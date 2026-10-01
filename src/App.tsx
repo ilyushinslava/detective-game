@@ -393,15 +393,26 @@ export default function App() {
 
         <div className="flex items-center gap-2 shrink-0">
           <div
-            className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 rounded-full border text-[10px] sm:text-xs font-black tracking-wider sm:tracking-widest uppercase transition-all shadow-lg ${
+            className={`flex items-center gap-2 px-2.5 sm:px-3.5 py-1 rounded-full border text-[10px] sm:text-xs font-black tracking-wider sm:tracking-widest uppercase transition-all shadow-lg ${
               isAIThinking
-                ? 'bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse'
+                ? 'bg-amber-950/90 border-amber-500 text-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
                 : isKillerTurn
-                ? 'bg-red-950/80 border-red-600 text-red-100'
-                : 'bg-blue-950/80 border-blue-600 text-blue-100'
+                ? 'bg-red-950/90 border-red-600/90 text-red-100 shadow-[0_0_12px_rgba(239,68,68,0.3)]'
+                : 'bg-blue-950/90 border-blue-600/90 text-blue-100 shadow-[0_0_12px_rgba(59,130,246,0.3)]'
             }`}
           >
-            <span className={`w-2 h-2 rounded-full ${isAIThinking ? 'bg-amber-400 animate-ping' : isKillerTurn ? 'bg-red-500' : 'bg-blue-500'}`} />
+            <span className="relative flex h-2.5 w-2.5 items-center justify-center">
+              <span
+                className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${
+                  isAIThinking ? 'bg-amber-400' : isKillerTurn ? 'bg-red-400' : 'bg-blue-400'
+                }`}
+              />
+              <span
+                className={`relative inline-flex rounded-full h-2 w-2 ${
+                  isAIThinking ? 'bg-amber-400' : isKillerTurn ? 'bg-red-500' : 'bg-blue-500'
+                }`}
+              />
+            </span>
             <span>{isAIThinking ? 'Бот думает...' : currentRoleName}</span>
           </div>
 

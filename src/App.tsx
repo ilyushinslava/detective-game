@@ -6,6 +6,7 @@ import { VictimList } from './components/VictimList';
 import { RoleRevealModal } from './components/RoleRevealModal';
 import { GameOverModal } from './components/GameOverModal';
 import { ModeSelectModal, GAME_MODES } from './components/ModeSelectModal';
+import { MainMenu } from './components/MainMenu';
 import { triggerHaptic } from './utils/haptics';
 import { sounds } from './utils/audio';
 import {
@@ -153,7 +154,7 @@ export default function App() {
     setSecondsElapsed(0);
     setIsLobbyOpen(false);
     setHasStartedEver(true);
-    setIsIntroPhase(modeId === 'SKHVATKA' || modeId === 'MANIAC_VS_OPERATIVE' || modeId === 'THIEF_HUNT');
+    setIsIntroPhase(true);
   };
 
   const handleResumeGame = () => {
@@ -347,12 +348,10 @@ export default function App() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center select-none font-sans pb-10">
       {isLobbyOpen && (
-        <ModeSelectModal
-          currentModeId={activeMode}
+        <MainMenu
           hasActiveGame={hasStartedEver}
-          onSelectMode={(modeId) => setActiveMode(modeId)}
           onResumeGame={handleResumeGame}
-          onStartNewGame={handleStartNewGame}
+          onStartGame={handleStartNewGame}
         />
       )}
 

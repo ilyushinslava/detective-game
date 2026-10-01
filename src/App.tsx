@@ -153,7 +153,7 @@ export default function App() {
     setSecondsElapsed(0);
     setIsLobbyOpen(false);
     setHasStartedEver(true);
-    setIsIntroPhase(modeId === 'SKHVATKA' || modeId === 'MANIAC_VS_OPERATIVE');
+    setIsIntroPhase(modeId === 'SKHVATKA');
   };
 
   const handleResumeGame = () => {
@@ -341,8 +341,8 @@ export default function App() {
   }
 
   const activeAgentAdjacentIds = isKillerTurn ? killerAdjacentIds : detectiveAdjacentIds;
-  const canPeekKiller = gameState.opponent === 'PVP' || gameState.playerRole === 'KILLER';
-  const canPeekDetective = gameState.opponent === 'PVP' || gameState.playerRole === 'DETECTIVE';
+  const canPeekKiller = true;
+  const canPeekDetective = true;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center select-none font-sans pb-10">
@@ -356,7 +356,7 @@ export default function App() {
         />
       )}
 
-      {isIntroPhase && !isLobbyOpen && (activeMode === 'SKHVATKA' || activeMode === 'MANIAC_VS_OPERATIVE') && (
+      {isIntroPhase && !isLobbyOpen && activeMode === 'SKHVATKA' && (
         <RoleRevealModal
           killer={killerChar}
           inspectorChoices={inspectorChoices}
@@ -480,6 +480,7 @@ export default function App() {
               showKillerHints={showKillerRole}
               showDetectiveHints={showDetectiveRole}
               lastShift={gameState.lastShift}
+              blockedShift={gameState.blockedShift}
               onShift={handleShift}
               onSelectCharacter={(id) => {
                 if (isHumanTurn) {

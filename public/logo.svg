@@ -1,0 +1,14 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Тёмная подложка-бейдж -->
+  <rect width="64" height="64" rx="16" fill="#09090b"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" stroke="#f59e0b" stroke-width="2" stroke-opacity="0.6"/>
+  <!-- Поля шляпы -->
+  <ellipse cx="32" cy="44" rx="26" ry="6" fill="#d97706"/>
+  <!-- Тулья шляпы -->
+  <path d="M18 42 L22 22 Q24 16 32 18 Q40 16 42 22 L46 42 Z" fill="#b45309"/>
+  <!-- Нуарная лента на шляпе -->
+  <path d="M19.5 37 L21 32 Q25 30 32 30 Q39 30 43 32 L44.5 37 Q38 35 32 35 Q26 35 19.5 37 Z" fill="#18181b"/>
+  <!-- Сияние глаз / тень -->
+  <circle cx="28" cy="48" r="1.5" fill="#fef3c7"/>
+  <circle cx="36" cy="48" r="1.5" fill="#fef3c7"/>
+</svg>

@@ -88,118 +88,6 @@ This section contains the contents of the repository's files.
 <svg xmlns="http://www.w3.org/2000/svg" width="77" height="47" fill="none" aria-labelledby="vite-logo-title" viewBox="0 0 77 47"><title id="vite-logo-title">Vite</title><style>.parenthesis{fill:#000}@media (prefers-color-scheme:dark){.parenthesis{fill:#fff}}</style><path fill="#9135ff" d="M40.151 45.71c-.663.844-2.02.374-2.02-.699V34.708a2.26 2.26 0 0 0-2.262-2.262H24.493c-.92 0-1.457-1.04-.92-1.788l7.479-10.471c1.07-1.498 0-3.578-1.842-3.578H15.443c-.92 0-1.456-1.04-.92-1.788l9.696-13.576c.213-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.472c-1.07 1.497 0 3.578 1.842 3.578h11.376c.944 0 1.474 1.087.89 1.83L40.153 45.712z"/><mask id="a" width="48" height="47" x="14" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="#000" d="M40.047 45.71c-.663.843-2.02.374-2.02-.699V34.708a2.26 2.26 0 0 0-2.262-2.262H24.389c-.92 0-1.457-1.04-.92-1.788l7.479-10.472c1.07-1.497 0-3.578-1.842-3.578H15.34c-.92 0-1.456-1.04-.92-1.788l9.696-13.575c.213-.297.556-.474.92-.474H53.93c.92 0 1.456 1.04.92 1.788L47.37 13.03c-1.07 1.498 0 3.578 1.842 3.578h11.376c.944 0 1.474 1.088.89 1.831L40.049 45.712z"/></mask><g mask="url(#a)"><g filter="url(#b)"><ellipse cx="5.508" cy="14.704" fill="#eee6ff" rx="5.508" ry="14.704" transform="rotate(269.814 20.96 11.29)scale(-1 1)"/></g><g filter="url(#c)"><ellipse cx="10.399" cy="29.851" fill="#eee6ff" rx="10.399" ry="29.851" transform="rotate(89.814 -16.902 -8.275)scale(1 -1)"/></g><g filter="url(#d)"><ellipse cx="5.508" cy="30.487" fill="#8900ff" rx="5.508" ry="30.487" transform="rotate(89.814 -19.197 -7.127)scale(1 -1)"/></g><g filter="url(#e)"><ellipse cx="5.508" cy="30.599" fill="#8900ff" rx="5.508" ry="30.599" transform="rotate(89.814 -25.928 4.177)scale(1 -1)"/></g><g filter="url(#f)"><ellipse cx="5.508" cy="30.599" fill="#8900ff" rx="5.508" ry="30.599" transform="rotate(89.814 -25.738 5.52)scale(1 -1)"/></g><g filter="url(#g)"><ellipse cx="14.072" cy="22.078" fill="#eee6ff" rx="14.072" ry="22.078" transform="rotate(93.35 31.245 55.578)scale(-1 1)"/></g><g filter="url(#h)"><ellipse cx="3.47" cy="21.501" fill="#8900ff" rx="3.47" ry="21.501" transform="rotate(89.009 35.419 55.202)scale(-1 1)"/></g><g filter="url(#i)"><ellipse cx="3.47" cy="21.501" fill="#8900ff" rx="3.47" ry="21.501" transform="rotate(89.009 35.419 55.202)scale(-1 1)"/></g><g filter="url(#j)"><ellipse cx="14.592" cy="9.743" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(39.51 14.592 9.743)"/></g><g filter="url(#k)"><ellipse cx="61.728" cy="-5.321" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 61.728 -5.32)"/></g><g filter="url(#l)"><ellipse cx="55.618" cy="7.104" fill="#00c2ff" rx="5.971" ry="9.665" transform="rotate(37.892 55.618 7.104)"/></g><g filter="url(#m)"><ellipse cx="12.326" cy="39.103" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 12.326 39.103)"/></g><g filter="url(#n)"><ellipse cx="12.326" cy="39.103" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 12.326 39.103)"/></g><g filter="url(#o)"><ellipse cx="49.857" cy="30.678" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 49.857 30.678)"/></g><g filter="url(#p)"><ellipse cx="52.623" cy="33.171" fill="#00c2ff" rx="5.971" ry="15.297" transform="rotate(37.892 52.623 33.17)"/></g></g><path d="M6.919 0c-9.198 13.166-9.252 33.575 0 46.789h6.215c-9.25-13.214-9.196-33.623 0-46.789zm62.424 0h-6.215c9.198 13.166 9.252 33.575 0 46.789h6.215c9.25-13.214 9.196-33.623 0-46.789" class="parenthesis"/><defs><filter id="b" width="60.045" height="41.654" x="-5.564" y="16.92" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="7.659"/></filter><filter id="c" width="90.34" height="51.437" x="-40.407" y="-6.762" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="7.659"/></filter><filter id="d" width="79.355" height="29.4" x="-35.435" y="2.801" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="e" width="79.579" height="29.4" x="-30.84" y="20.8" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="f" width="79.579" height="29.4" x="-29.307" y="21.949" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="g" width="74.749" height="58.852" x="29.961" y="-17.13" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="7.659"/></filter><filter id="h" width="61.377" height="25.362" x="37.754" y="3.055" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="i" width="61.377" height="25.362" x="37.754" y="3.055" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="j" width="56.045" height="63.649" x="-13.43" y="-22.082" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="k" width="54.814" height="64.646" x="34.321" y="-37.644" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="l" width="33.541" height="35.313" x="38.847" y="-10.552" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="m" width="54.814" height="64.646" x="-15.081" y="6.78" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="n" width="54.814" height="64.646" x="-15.081" y="6.78" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="o" width="54.814" height="64.646" x="22.45" y="-1.645" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="p" width="39.409" height="43.623" x="32.919" y="11.36" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter></defs></svg>
 </file>
 
-<file path="src/components/CharacterCard.tsx">
-import { memo } from 'react';
-import type { Character } from '../types/game';
-
-interface CharacterCardProps {
-  character: Character;
-  isSelected: boolean;
-  isKillerAdjacent: boolean;
-  isDetectiveAdjacent: boolean;
-  showKillerHint: boolean;
-  showDetectiveHint: boolean;
-  onClick: () => void;
-}
-
-export const CharacterCard = memo(({
-  character,
-  isSelected,
-  isKillerAdjacent,
-  isDetectiveAdjacent,
-  showKillerHint,
-  showDetectiveHint,
-  onClick,
-}: CharacterCardProps) => {
-  const isDead = !character.isAlive;
-  const isExonerated = character.isExonerated && !isDead;
-
-  return (
-    <div
-      onClick={onClick}
-      className={`relative w-full aspect-square rounded-xl p-1.5 sm:p-2.5 flex flex-col justify-between border select-none transition-all duration-200 cursor-pointer overflow-hidden ${
-        isDead
-          ? 'bg-zinc-950/80 border-zinc-900 shadow-inner'
-          : isExonerated
-          ? 'bg-gradient-to-b from-blue-950/50 to-zinc-900/90 border-blue-500/70 shadow-[0_0_12px_rgba(59,130,246,0.2)]'
-          : 'bg-zinc-900/95 border-zinc-800 hover:border-zinc-600 shadow-sm'
-      } ${
-        isSelected
-          ? 'ring-2 ring-amber-400 border-amber-400 shadow-[0_0_18px_rgba(251,191,36,0.35)] scale-[1.02] z-10'
-          : ''
-      } ${
-        showKillerHint && isKillerAdjacent
-          ? 'ring-1 ring-red-500/80 border-red-500'
-          : ''
-      } ${
-        showDetectiveHint && isDetectiveAdjacent
-          ? 'ring-1 ring-blue-500/80 border-blue-500'
-          : ''
-      }`}
-    >
-      {/* Декоративная подложка для мертвых */}
-      {isDead && (
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-red-950/20 via-transparent to-transparent pointer-events-none" />
-      )}
-
-      {/* Верхняя плашка: номер досье и иконка */}
-      <div className="flex items-center justify-between gap-1 z-10">
-        <span
-          className={`text-[9px] sm:text-[10px] font-mono tracking-wider font-bold ${
-            isDead ? 'text-zinc-600 line-through' : isExonerated ? 'text-blue-400' : 'text-zinc-500'
-          }`}
-        >
-          #{character.id.replace('c', '').padStart(2, '0')}
-        </span>
-
-        <div className="flex items-center gap-1 text-[11px] leading-none">
-          {isDead && (
-            <span className="text-zinc-500 text-[10px] tracking-tighter" title="Ликвидирован">
-              ☠
-            </span>
-          )}
-          {character.isShielded && <span>🛡️</span>}
-          {character.hasBomb && <span>💣</span>}
-          {character.isRobbed && <span>💰</span>}
-        </div>
-      </div>
-
-      {/* Имя персонажа */}
-      <div className="text-center my-auto px-0.5 z-10">
-        <span
-          className={`block text-[11px] sm:text-xs font-bold leading-tight tracking-tight ${
-            isDead
-              ? 'text-zinc-600 line-through decoration-zinc-700 decoration-1'
-              : isExonerated
-              ? 'text-blue-100 font-extrabold'
-              : 'text-zinc-100'
-          }`}
-        >
-          {character.name}
-        </span>
-      </div>
-
-      {/* Нижняя полоска статуса в виде аккуратного штампа */}
-      <div className="z-10 flex items-center justify-center">
-        {isDead ? (
-          <span className="text-[8px] sm:text-[9px] font-mono font-bold tracking-wider text-red-500/80 bg-red-950/40 border border-red-900/40 px-1.5 py-0.5 rounded">
-            ЛИКВИДИРОВАН
-          </span>
-        ) : isExonerated ? (
-          <span className="text-[8px] sm:text-[9px] font-mono font-bold tracking-wider text-blue-300 bg-blue-950/70 border border-blue-700/50 px-1.5 py-0.5 rounded shadow-sm">
-            АЛИБИ ПОДТВЕРЖДЕНО
-          </span>
-        ) : (
-          <span className="text-[8px] sm:text-[9px] font-mono tracking-wider text-zinc-500">
-            ПОДОЗРЕВАЕМЫЙ
-          </span>
-        )}
-      </div>
-    </div>
-  );
-});
-</file>
-
 <file path="src/components/DetectiveHand.tsx">
 import { useState } from 'react';
 import type { Character } from '../types/game';
@@ -2649,6 +2537,429 @@ describe('Режим: Охота на грабителя (THIEF_HUNT)', () => {
 }
 </file>
 
+<file path="src/index.css">
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  background-color: #09090b;
+  color: #f4f4f5;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+</file>
+
+<file path="src/main.tsx">
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+</file>
+
+<file path="src/components/CharacterCard.tsx">
+import { memo } from 'react';
+import type { Character } from '../types/game';
+
+interface CharacterCardProps {
+  character: Character;
+  isSelected: boolean;
+  isKillerAdjacent: boolean;
+  isDetectiveAdjacent: boolean;
+  showKillerHint: boolean;
+  showDetectiveHint: boolean;
+  onClick: () => void;
+}
+
+export const CharacterCard = memo(({
+  character,
+  isSelected,
+  isKillerAdjacent,
+  isDetectiveAdjacent,
+  showKillerHint,
+  showDetectiveHint,
+  onClick,
+}: CharacterCardProps) => {
+  const isDead = !character.isAlive;
+  const isExonerated = character.isExonerated && !isDead;
+
+  return (
+    <div
+      onClick={onClick}
+      className={`relative w-full aspect-square rounded-xl p-1.5 sm:p-2.5 flex flex-col justify-between border select-none transition-all duration-200 cursor-pointer overflow-hidden ${
+        isDead
+          ? 'bg-zinc-950/80 border-zinc-900 shadow-inner'
+          : isExonerated
+          ? 'bg-gradient-to-b from-blue-950/50 to-zinc-900/90 border-blue-500/70 shadow-[0_0_12px_rgba(59,130,246,0.2)]'
+          : 'bg-zinc-900/95 border-zinc-800 hover:border-zinc-600 shadow-sm'
+      } ${
+        isSelected
+          ? 'ring-2 ring-amber-400 border-amber-400 shadow-[0_0_18px_rgba(251,191,36,0.35)] scale-[1.02] z-10'
+          : ''
+      } ${
+        showKillerHint && isKillerAdjacent
+          ? 'ring-1 ring-red-500/80 border-red-500'
+          : ''
+      } ${
+        showDetectiveHint && isDetectiveAdjacent
+          ? 'ring-1 ring-blue-500/80 border-blue-500'
+          : ''
+      }`}
+    >
+      {/* Декоративная подложка для мертвых */}
+      {isDead && (
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-red-950/20 via-transparent to-transparent pointer-events-none" />
+      )}
+
+      {/* Верхняя плашка: номер досье и иконка */}
+      <div className="flex items-center justify-between gap-1 z-10">
+        <span
+          className={`text-[9px] sm:text-[10px] font-mono tracking-wider font-bold ${
+            isDead ? 'text-zinc-600 line-through' : isExonerated ? 'text-blue-400' : 'text-zinc-500'
+          }`}
+        >
+          #{character.id.replace('c', '').padStart(2, '0')}
+        </span>
+
+        <div className="flex items-center gap-1 text-[11px] leading-none">
+          {isDead && (
+            <span className="text-zinc-500 text-[10px] tracking-tighter" title="Ликвидирован">
+              ☠
+            </span>
+          )}
+          {character.isShielded && <span>🛡️</span>}
+          {character.hasBomb && <span>💣</span>}
+          {character.isRobbed && <span>💰</span>}
+        </div>
+      </div>
+
+      {/* Имя персонажа */}
+      <div className="text-center my-auto px-0.5 z-10">
+        <span
+          className={`block text-[11px] sm:text-xs font-bold leading-tight tracking-tight ${
+            isDead
+              ? 'text-zinc-600 line-through decoration-zinc-700 decoration-1'
+              : isExonerated
+              ? 'text-blue-100 font-extrabold'
+              : 'text-zinc-100'
+          }`}
+        >
+          {character.name}
+        </span>
+      </div>
+
+      {/* Нижняя полоска статуса в виде аккуратного штампа */}
+      <div className="z-10 flex items-center justify-center">
+        {isDead ? (
+          <span className="text-[8px] sm:text-[9px] font-mono font-bold tracking-wider text-red-500/80 bg-red-950/40 border border-red-900/40 px-1.5 py-0.5 rounded">
+            ЛИКВИДИРОВАН
+          </span>
+        ) : isExonerated ? (
+          <span className="text-[8px] sm:text-[9px] font-mono font-bold tracking-wider text-blue-300 bg-blue-950/70 border border-blue-700/50 px-1.5 py-0.5 rounded shadow-sm">
+            АЛИБИ ПОДТВЕРЖДЕНО
+          </span>
+        ) : (
+          <span className="text-[8px] sm:text-[9px] font-mono tracking-wider text-zinc-500">
+            ПОДОЗРЕВАЕМЫЙ
+          </span>
+        )}
+      </div>
+    </div>
+  );
+});
+</file>
+
+<file path="src/components/ModeSelectModal.tsx">
+import { useState } from 'react';
+import type { GameModeType, OpponentType, Role } from '../types/game';
+
+export interface GameModeInfo {
+  id: GameModeType;
+  title: string;
+  players: string;
+  time: string;
+  difficulty: 'Легкая' | 'Средняя' | 'Высокая';
+  description: string;
+  isAvailable: boolean;
+  killerRoleName: string;
+  detectiveRoleName: string;
+}
+
+export const GAME_MODES: GameModeInfo[] = [
+  {
+    id: 'SKHVATKA',
+    title: 'Схватка',
+    players: '2 игрока',
+    time: '15 минут',
+    difficulty: 'Легкая',
+    description: 'Опасная городская дуэль на опережение: вычислите скрывающегося бандита до того, как инспектор окажется в его прицеле.',
+    isAvailable: true,
+    killerRoleName: 'Бандит',
+    detectiveRoleName: 'Инспектор',
+  },
+  {
+    id: 'MANIAC_VS_OPERATIVE',
+    title: 'Маньяк против оперативника',
+    players: '2 игрока',
+    time: '20 минут',
+    difficulty: 'Средняя',
+    description: 'Серийный маньяк ведет охоту по скрытому заказу из 4 целей. Задача оперативника — перехватить след и остановить расправу.',
+    isAvailable: true,
+    killerRoleName: 'Маньяк',
+    detectiveRoleName: 'Оперативник',
+  },
+  {
+    id: 'THIEF_HUNT',
+    title: 'Охота на грабителя',
+    players: '2 игрока',
+    time: '60 минут',
+    difficulty: 'Высокая',
+    description: 'Дерзкий домушник методично обчищает карманы горожан и меняет маски, а полиция стягивает оцепление по кварталам.',
+    isAvailable: true,
+    killerRoleName: 'Грабитель',
+    detectiveRoleName: 'Полиция',
+  },
+  {
+    id: 'SECRET_SERVICE',
+    title: 'Секретная служба',
+    players: '3–9 игроков',
+    time: '30 минут',
+    difficulty: 'Средняя',
+    description: 'Закрытая операция разведок: опрашивайте связных, вычисляйте резидентов конкурентов и собирайте компромат.',
+    isAvailable: false,
+    killerRoleName: 'Агент «Восток»',
+    detectiveRoleName: 'Агент «Запад»',
+  },
+  {
+    id: 'EUROPOL_VS_OPG',
+    title: 'Европол против ОПГ',
+    players: '6 или 8 игроков',
+    time: '45 минут',
+    difficulty: 'Высокая',
+    description: 'Масштабная спецоперация: бронежилеты, снайперские расчеты и минные засады в борьбе с верхушкой синдиката.',
+    isAvailable: false,
+    killerRoleName: 'Глава ОПГ',
+    detectiveRoleName: 'Европол',
+  },
+  {
+    id: 'SPANISH_HEIST',
+    title: 'Ограбление по-испански',
+    players: '5–7 игроков',
+    time: '45 минут',
+    difficulty: 'Высокая',
+    description: 'Команда взломщиков пытается вскрыть центральные сейфы казино, пока служба охраны блокирует периметр сигнализацией.',
+    isAvailable: false,
+    killerRoleName: 'Взломщик',
+    detectiveRoleName: 'Начальник СБ',
+  },
+];
+
+interface ModeSelectModalProps {
+  currentModeId: string;
+  hasActiveGame: boolean;
+  onSelectMode: (modeId: GameModeType) => void;
+  onResumeGame: () => void;
+  onStartNewGame: (modeId: GameModeType, opponent: OpponentType, playerRole: Role) => void;
+}
+
+export const ModeSelectModal = ({
+  currentModeId,
+  hasActiveGame,
+  onSelectMode,
+  onResumeGame,
+  onStartNewGame,
+}: ModeSelectModalProps) => {
+  const [selectedOpponent, setSelectedOpponent] = useState<OpponentType>('AI');
+  const [selectedPlayerRole, setSelectedPlayerRole] = useState<Role>('DETECTIVE');
+
+  const selectedMode = GAME_MODES.find((m) => m.id === currentModeId) ?? GAME_MODES[0];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-2 sm:p-4">
+      <div className="w-full max-w-4xl max-h-[92vh] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-zinc-800/80 bg-zinc-900/90 backdrop-blur z-10 shrink-0">
+          <div>
+            <h2 className="text-lg sm:text-2xl font-black uppercase tracking-wider text-zinc-100 flex items-center gap-2">
+              <span>Город грехов</span>
+              <span className="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">Дуэли</span>
+            </h2>
+            <p className="text-[11px] sm:text-xs text-zinc-400 mt-0.5">
+              Выберите сценарий противостояния двух сторон
+            </p>
+          </div>
+          {hasActiveGame && (
+            <button
+              onClick={onResumeGame}
+              className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3.5 py-2 rounded-lg border border-zinc-700 transition cursor-pointer font-bold shrink-0 ml-2"
+            >
+              ✕ Закрыть
+            </button>
+          )}
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="mb-4 p-3.5 bg-zinc-950/80 border border-zinc-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>
+              <span className="text-xs font-black uppercase tracking-wider text-zinc-200 block">
+                Формат матча:
+              </span>
+              <span className="text-[10px] text-zinc-400">
+                Одиночная игра против AI-бота или дуэль вдвоем на одном экране
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => setSelectedOpponent('AI')}
+                className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs font-bold transition border cursor-pointer ${
+                  selectedOpponent === 'AI'
+                    ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
+                    : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-zinc-200'
+                }`}
+              >
+                🤖 Против бота
+              </button>
+
+              <button
+                onClick={() => setSelectedOpponent('PVP')}
+                className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs font-bold transition border cursor-pointer ${
+                  selectedOpponent === 'PVP'
+                    ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
+                    : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-zinc-200'
+                }`}
+              >
+                👥 Вдвоем (1 на 1)
+              </button>
+            </div>
+          </div>
+
+          {selectedOpponent === 'AI' && (
+            <div className="mb-5 p-3.5 bg-zinc-950/60 border border-zinc-800/80 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs">
+              <div>
+                <span className="text-zinc-300 font-bold block">Ваша роль:</span>
+                <span className="text-[10px] text-zinc-500 font-mono">
+                  {selectedMode.title}
+                </span>
+              </div>
+
+              <div className="flex gap-2 w-full sm:w-auto">
+                <button
+                  onClick={() => setSelectedPlayerRole('DETECTIVE')}
+                  className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg border font-bold text-xs cursor-pointer transition flex items-center justify-center gap-1.5 ${
+                    selectedPlayerRole === 'DETECTIVE'
+                      ? 'bg-blue-950 border-blue-500 text-blue-200 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
+                      : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                  <span>{selectedMode.detectiveRoleName}</span>
+                </button>
+
+                <button
+                  onClick={() => setSelectedPlayerRole('KILLER')}
+                  className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg border font-bold text-xs cursor-pointer transition flex items-center justify-center gap-1.5 ${
+                    selectedPlayerRole === 'KILLER'
+                      ? 'bg-red-950 border-red-500 text-red-200 shadow-[0_0_10px_rgba(239,68,68,0.3)]'
+                      : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                  <span>{selectedMode.killerRoleName}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            {GAME_MODES.map((mode) => {
+              const isSelected = mode.id === currentModeId;
+              const isLocked = !mode.isAvailable;
+
+              return (
+                <div
+                  key={mode.id}
+                  className={`relative flex flex-col justify-between p-4 rounded-xl border transition-all ${
+                    isLocked
+                      ? 'bg-zinc-950/40 border-zinc-800/40 opacity-50 cursor-not-allowed'
+                      : isSelected
+                      ? 'ring-2 ring-amber-500 border-amber-500 bg-zinc-950 shadow-lg cursor-pointer'
+                      : 'bg-zinc-950 border-zinc-800 hover:border-zinc-600 active:scale-[0.99] cursor-pointer'
+                  }`}
+                  onClick={() => {
+                    if (!isLocked) onSelectMode(mode.id);
+                  }}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${
+                        isLocked
+                          ? 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                          : 'bg-emerald-950/90 text-emerald-300 border-emerald-700'
+                      }`}>
+                        {isLocked ? '🔒 Скоро (3+ игр.)' : 'Дуэль 1х1'}
+                      </span>
+                      <span className="text-[10px] text-zinc-500 font-mono font-bold">
+                        {mode.difficulty}
+                      </span>
+                    </div>
+
+                    <h3 className="text-sm sm:text-base font-black text-zinc-100 leading-tight mb-2">
+                      {mode.title}
+                    </h3>
+
+                    <p className="text-[11px] leading-relaxed mb-4 text-zinc-400">
+                      {mode.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-500 font-mono">
+                    <span>👥 {mode.players}</span>
+                    <span>⏳ {mode.time}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="p-3 sm:p-5 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur z-10 shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2.5">
+          {hasActiveGame ? (
+            <>
+              <button
+                onClick={onResumeGame}
+                className="w-full sm:w-auto px-4 py-3 bg-zinc-800 active:bg-zinc-700 text-zinc-200 font-bold text-xs uppercase tracking-wider rounded-xl border border-zinc-700 transition cursor-pointer text-center"
+              >
+                ← Вернуться в игру
+              </button>
+
+              <button
+                onClick={() => onStartNewGame(currentModeId as GameModeType, selectedOpponent, selectedPlayerRole)}
+                className="w-full sm:w-auto px-6 py-3.5 bg-amber-600 active:bg-amber-500 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg text-center"
+              >
+                Начать новую партию →
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => onStartNewGame(currentModeId as GameModeType, selectedOpponent, selectedPlayerRole)}
+              className="w-full sm:w-auto px-8 py-3.5 bg-amber-600 active:bg-amber-500 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg text-center"
+            >
+              Начать операцию →
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+</file>
+
 <file path="src/App.tsx">
 import { useState, useRef, useEffect } from 'react';
 import type { GameModeType, OpponentType, Role } from './types/game';
@@ -3045,15 +3356,26 @@ export default function App() {
 
         <div className="flex items-center gap-2 shrink-0">
           <div
-            className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 rounded-full border text-[10px] sm:text-xs font-black tracking-wider sm:tracking-widest uppercase transition-all shadow-lg ${
+            className={`flex items-center gap-2 px-2.5 sm:px-3.5 py-1 rounded-full border text-[10px] sm:text-xs font-black tracking-wider sm:tracking-widest uppercase transition-all shadow-lg ${
               isAIThinking
-                ? 'bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse'
+                ? 'bg-amber-950/90 border-amber-500 text-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
                 : isKillerTurn
-                ? 'bg-red-950/80 border-red-600 text-red-100'
-                : 'bg-blue-950/80 border-blue-600 text-blue-100'
+                ? 'bg-red-950/90 border-red-600/90 text-red-100 shadow-[0_0_12px_rgba(239,68,68,0.3)]'
+                : 'bg-blue-950/90 border-blue-600/90 text-blue-100 shadow-[0_0_12px_rgba(59,130,246,0.3)]'
             }`}
           >
-            <span className={`w-2 h-2 rounded-full ${isAIThinking ? 'bg-amber-400 animate-ping' : isKillerTurn ? 'bg-red-500' : 'bg-blue-500'}`} />
+            <span className="relative flex h-2.5 w-2.5 items-center justify-center">
+              <span
+                className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${
+                  isAIThinking ? 'bg-amber-400' : isKillerTurn ? 'bg-red-400' : 'bg-blue-400'
+                }`}
+              />
+              <span
+                className={`relative inline-flex rounded-full h-2 w-2 ${
+                  isAIThinking ? 'bg-amber-400' : isKillerTurn ? 'bg-red-500' : 'bg-blue-500'
+                }`}
+              />
+            </span>
             <span>{isAIThinking ? 'Бот думает...' : currentRoleName}</span>
           </div>
 
@@ -3406,32 +3728,6 @@ export default function App() {
 }
 </file>
 
-<file path="src/index.css">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-body {
-  margin: 0;
-  background-color: #09090b;
-  color: #f4f4f5;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-</file>
-
-<file path="src/main.tsx">
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
-</file>
-
 <file path="package.json">
 {
     "name":  "detective-game",
@@ -3466,289 +3762,15 @@ createRoot(document.getElementById('root')!).render(
 }
 </file>
 
-<file path="src/components/ModeSelectModal.tsx">
-import { useState } from 'react';
-import type { GameModeType, OpponentType, Role } from '../types/game';
+<file path="vite.config.ts">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
-export interface GameModeInfo {
-  id: GameModeType;
-  title: string;
-  players: string;
-  time: string;
-  difficulty: 'Легкая' | 'Средняя' | 'Высокая';
-  description: string;
-  isAvailable: boolean;
-  killerRoleName: string;
-  detectiveRoleName: string;
-}
-
-export const GAME_MODES: GameModeInfo[] = [
-  {
-    id: 'SKHVATKA',
-    title: 'Схватка',
-    players: '2 игрока',
-    time: '15 минут',
-    difficulty: 'Легкая',
-    description: 'Опасная городская дуэль на опережение: вычислите скрывающегося бандита до того, как инспектор окажется в его прицеле.',
-    isAvailable: true,
-    killerRoleName: 'Бандит',
-    detectiveRoleName: 'Инспектор',
-  },
-  {
-    id: 'MANIAC_VS_OPERATIVE',
-    title: 'Маньяк против оперативника',
-    players: '2 игрока',
-    time: '20 минут',
-    difficulty: 'Средняя',
-    description: 'Серийный маньяк ведет охоту по скрытому заказу из 4 целей. Задача оперативника — перехватить след и остановить расправу.',
-    isAvailable: true,
-    killerRoleName: 'Маньяк',
-    detectiveRoleName: 'Оперативник',
-  },
-  {
-    id: 'THIEF_HUNT',
-    title: 'Охота на грабителя',
-    players: '2 игрока',
-    time: '60 минут',
-    difficulty: 'Высокая',
-    description: 'Дерзкий домушник методично обчищает карманы горожан и меняет маски, а полиция стягивает оцепление по кварталам.',
-    isAvailable: true,
-    killerRoleName: 'Грабитель',
-    detectiveRoleName: 'Полиция',
-  },
-  {
-    id: 'SECRET_SERVICE',
-    title: 'Секретная служба',
-    players: '3–9 игроков',
-    time: '30 минут',
-    difficulty: 'Средняя',
-    description: 'Закрытая операция разведок: опрашивайте связных, вычисляйте резидентов конкурентов и собирайте компромат.',
-    isAvailable: false,
-    killerRoleName: 'Агент «Восток»',
-    detectiveRoleName: 'Агент «Запад»',
-  },
-  {
-    id: 'EUROPOL_VS_OPG',
-    title: 'Европол против ОПГ',
-    players: '6 или 8 игроков',
-    time: '45 минут',
-    difficulty: 'Высокая',
-    description: 'Масштабная спецоперация: бронежилеты, снайперские расчеты и минные засады в борьбе с верхушкой синдиката.',
-    isAvailable: false,
-    killerRoleName: 'Глава ОПГ',
-    detectiveRoleName: 'Европол',
-  },
-  {
-    id: 'SPANISH_HEIST',
-    title: 'Ограбление по-испански',
-    players: '5–7 игроков',
-    time: '45 минут',
-    difficulty: 'Высокая',
-    description: 'Команда взломщиков пытается вскрыть центральные сейфы казино, пока служба охраны блокирует периметр сигнализацией.',
-    isAvailable: false,
-    killerRoleName: 'Взломщик',
-    detectiveRoleName: 'Начальник СБ',
-  },
-];
-
-interface ModeSelectModalProps {
-  currentModeId: string;
-  hasActiveGame: boolean;
-  onSelectMode: (modeId: GameModeType) => void;
-  onResumeGame: () => void;
-  onStartNewGame: (modeId: GameModeType, opponent: OpponentType, playerRole: Role) => void;
-}
-
-export const ModeSelectModal = ({
-  currentModeId,
-  hasActiveGame,
-  onSelectMode,
-  onResumeGame,
-  onStartNewGame,
-}: ModeSelectModalProps) => {
-  const [selectedOpponent, setSelectedOpponent] = useState<OpponentType>('AI');
-  const [selectedPlayerRole, setSelectedPlayerRole] = useState<Role>('DETECTIVE');
-
-  const selectedMode = GAME_MODES.find((m) => m.id === currentModeId) ?? GAME_MODES[0];
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-2 sm:p-4">
-      <div className="w-full max-w-4xl max-h-[92vh] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-zinc-800/80 bg-zinc-900/90 backdrop-blur z-10 shrink-0">
-          <div>
-            <h2 className="text-lg sm:text-2xl font-black uppercase tracking-wider text-zinc-100 flex items-center gap-2">
-              <span>Город грехов</span>
-              <span className="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">Дуэли</span>
-            </h2>
-            <p className="text-[11px] sm:text-xs text-zinc-400 mt-0.5">
-              Выберите сценарий противостояния двух сторон
-            </p>
-          </div>
-          {hasActiveGame && (
-            <button
-              onClick={onResumeGame}
-              className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3.5 py-2 rounded-lg border border-zinc-700 transition cursor-pointer font-bold shrink-0 ml-2"
-            >
-              ✕ Закрыть
-            </button>
-          )}
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-          <div className="mb-4 p-3.5 bg-zinc-950/80 border border-zinc-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div>
-              <span className="text-xs font-black uppercase tracking-wider text-zinc-200 block">
-                Формат матча:
-              </span>
-              <span className="text-[10px] text-zinc-400">
-                Одиночная игра против AI-бота или дуэль вдвоем на одном экране
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <button
-                onClick={() => setSelectedOpponent('AI')}
-                className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs font-bold transition border cursor-pointer ${
-                  selectedOpponent === 'AI'
-                    ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
-                    : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-zinc-200'
-                }`}
-              >
-                🤖 Против бота
-              </button>
-
-              <button
-                onClick={() => setSelectedOpponent('PVP')}
-                className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs font-bold transition border cursor-pointer ${
-                  selectedOpponent === 'PVP'
-                    ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
-                    : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-zinc-200'
-                }`}
-              >
-                👥 Вдвоем (1 на 1)
-              </button>
-            </div>
-          </div>
-
-          {selectedOpponent === 'AI' && (
-            <div className="mb-5 p-3.5 bg-zinc-950/60 border border-zinc-800/80 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs">
-              <div>
-                <span className="text-zinc-300 font-bold block">Ваша роль:</span>
-                <span className="text-[10px] text-zinc-500 font-mono">
-                  {selectedMode.title}
-                </span>
-              </div>
-
-              <div className="flex gap-2 w-full sm:w-auto">
-                <button
-                  onClick={() => setSelectedPlayerRole('DETECTIVE')}
-                  className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg border font-bold text-xs cursor-pointer transition flex items-center justify-center gap-1.5 ${
-                    selectedPlayerRole === 'DETECTIVE'
-                      ? 'bg-blue-950 border-blue-500 text-blue-200 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
-                      : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
-                  }`}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                  <span>{selectedMode.detectiveRoleName}</span>
-                </button>
-
-                <button
-                  onClick={() => setSelectedPlayerRole('KILLER')}
-                  className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg border font-bold text-xs cursor-pointer transition flex items-center justify-center gap-1.5 ${
-                    selectedPlayerRole === 'KILLER'
-                      ? 'bg-red-950 border-red-500 text-red-200 shadow-[0_0_10px_rgba(239,68,68,0.3)]'
-                      : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
-                  }`}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                  <span>{selectedMode.killerRoleName}</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {GAME_MODES.map((mode) => {
-              const isSelected = mode.id === currentModeId;
-              const isLocked = !mode.isAvailable;
-
-              return (
-                <div
-                  key={mode.id}
-                  className={`relative flex flex-col justify-between p-4 rounded-xl border transition-all ${
-                    isLocked
-                      ? 'bg-zinc-950/40 border-zinc-800/40 opacity-50 cursor-not-allowed'
-                      : isSelected
-                      ? 'ring-2 ring-amber-500 border-amber-500 bg-zinc-950 shadow-lg cursor-pointer'
-                      : 'bg-zinc-950 border-zinc-800 hover:border-zinc-600 active:scale-[0.99] cursor-pointer'
-                  }`}
-                  onClick={() => {
-                    if (!isLocked) onSelectMode(mode.id);
-                  }}
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${
-                        isLocked
-                          ? 'bg-zinc-800 text-zinc-400 border-zinc-700'
-                          : 'bg-emerald-950/90 text-emerald-300 border-emerald-700'
-                      }`}>
-                        {isLocked ? '🔒 Скоро (3+ игр.)' : 'Дуэль 1х1'}
-                      </span>
-                      <span className="text-[10px] text-zinc-500 font-mono font-bold">
-                        {mode.difficulty}
-                      </span>
-                    </div>
-
-                    <h3 className="text-sm sm:text-base font-black text-zinc-100 leading-tight mb-2">
-                      {mode.title}
-                    </h3>
-
-                    <p className="text-[11px] leading-relaxed mb-4 text-zinc-400">
-                      {mode.description}
-                    </p>
-                  </div>
-
-                  <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-500 font-mono">
-                    <span>👥 {mode.players}</span>
-                    <span>⏳ {mode.time}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="p-3 sm:p-5 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur z-10 shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2.5">
-          {hasActiveGame ? (
-            <>
-              <button
-                onClick={onResumeGame}
-                className="w-full sm:w-auto px-4 py-3 bg-zinc-800 active:bg-zinc-700 text-zinc-200 font-bold text-xs uppercase tracking-wider rounded-xl border border-zinc-700 transition cursor-pointer text-center"
-              >
-                ← Вернуться в игру
-              </button>
-
-              <button
-                onClick={() => onStartNewGame(currentModeId as GameModeType, selectedOpponent, selectedPlayerRole)}
-                className="w-full sm:w-auto px-6 py-3.5 bg-amber-600 active:bg-amber-500 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg text-center"
-              >
-                Начать новую партию →
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={() => onStartNewGame(currentModeId as GameModeType, selectedOpponent, selectedPlayerRole)}
-              className="w-full sm:w-auto px-8 py-3.5 bg-amber-600 active:bg-amber-500 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg text-center"
-            >
-              Начать операцию →
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  base: './',
+})
 </file>
 
 <file path="index.html">
@@ -3777,17 +3799,6 @@ export const ModeSelectModal = ({
     <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>
-</file>
-
-<file path="vite.config.ts">
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  base: './',
-})
 </file>
 
 </files>

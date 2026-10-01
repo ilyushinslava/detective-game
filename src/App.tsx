@@ -153,7 +153,7 @@ export default function App() {
     setSecondsElapsed(0);
     setIsLobbyOpen(false);
     setHasStartedEver(true);
-    setIsIntroPhase(modeId === 'SKHVATKA');
+    setIsIntroPhase(modeId === 'SKHVATKA' || modeId === 'MANIAC_VS_OPERATIVE' || modeId === 'THIEF_HUNT');
   };
 
   const handleResumeGame = () => {
@@ -356,9 +356,13 @@ export default function App() {
         />
       )}
 
-      {isIntroPhase && !isLobbyOpen && activeMode === 'SKHVATKA' && (
+      {isIntroPhase && !isLobbyOpen && (activeMode === 'SKHVATKA' || activeMode === 'MANIAC_VS_OPERATIVE' || activeMode === 'THIEF_HUNT') && (
         <RoleRevealModal
+          mode={activeMode}
+          opponent={gameState.opponent}
+          playerRole={gameState.playerRole}
           killer={killerChar}
+          detective={detectiveChar}
           inspectorChoices={inspectorChoices}
           onSelectDetectiveRole={handleSelectInspectorRole}
           onComplete={() => setIsIntroPhase(false)}

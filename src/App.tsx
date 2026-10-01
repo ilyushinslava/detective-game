@@ -19,11 +19,7 @@ import {
   captureSpy,
   interrogateNeighbor,
 } from "./utils/gameLogic";
-import {
-  getKillerAIMove,
-  getDetectiveAIMove,
-  getSecretServiceAIMove,
-} from "./utils/aiLogic";
+import { getKillerAIMove, getDetectiveAIMove } from "./utils/aiLogic";
 
 interface ActionItem {
   id: string;

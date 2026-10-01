@@ -17,68 +17,68 @@ export const GAME_MODES: GameModeInfo[] = [
   {
     id: 'SKHVATKA',
     title: 'Схватка',
-    players: '2 игрока / Соло',
+    players: '2 игрока',
     time: '15 минут',
     difficulty: 'Легкая',
-    description: 'Охотник против добычи. Бандит пытается устранить 14 целей или инспектора, а инспектор собирает алиби и берет след.',
+    description: 'Опасная городская дуэль на опережение: вычислите скрывающегося бандита до того, как инспектор окажется в его прицеле.',
     isAvailable: true,
     killerRoleName: 'Бандит',
     detectiveRoleName: 'Инспектор',
   },
   {
     id: 'MANIAC_VS_OPERATIVE',
-    title: 'Маньяк против Оперативника',
-    players: '2 игрока / Соло',
+    title: 'Маньяк против оперативника',
+    players: '2 игрока',
     time: '20 минут',
     difficulty: 'Средняя',
-    description: 'Маньяк ведет кровавую серию строго по списку 4 открытых жертв. Оперативник вычисляет убийцу до завершения серии из 4 смертей.',
+    description: 'Серийный маньяк ведет охоту по скрытому заказу из 4 целей. Задача оперативника — перехватить след и остановить расправу.',
     isAvailable: true,
     killerRoleName: 'Маньяк',
     detectiveRoleName: 'Оперативник',
   },
   {
+    id: 'THIEF_HUNT',
+    title: 'Охота на грабителя',
+    players: '2 игрока',
+    time: '60 минут',
+    difficulty: 'Высокая',
+    description: 'Дерзкий домушник методично обчищает карманы горожан и меняет маски, а полиция стягивает оцепление по кварталам.',
+    isAvailable: true,
+    killerRoleName: 'Грабитель',
+    detectiveRoleName: 'Полиция',
+  },
+  {
     id: 'SECRET_SERVICE',
     title: 'Секретная служба',
-    players: '2 игрока / Соло',
-    time: '25 минут',
-    difficulty: 'Легкая',
-    description: 'Шпионская дуэль равных агентов. Допрашивайте свидетелей, разоблачайте вражеского шпиона и захватите 2 трофейных досье.',
-    isAvailable: true,
+    players: '3–9 игроков',
+    time: '30 минут',
+    difficulty: 'Средняя',
+    description: 'Закрытая операция разведок: опрашивайте связных, вычисляйте резидентов конкурентов и собирайте компромат.',
+    isAvailable: false,
     killerRoleName: 'Агент «Восток»',
     detectiveRoleName: 'Агент «Запад»',
   },
   {
-    id: 'THIEF_HUNT',
-    title: 'Охота на грабителя',
-    players: '2 игрока / Соло',
-    time: '25 минут',
-    difficulty: 'Высокая',
-    description: 'Виртуозный взломщик пытается похитить 5 сокровищ, меняя личности, пока полиция перекрывает кварталы патрулями.',
-    isAvailable: true,
-    killerRoleName: 'Вор',
-    detectiveRoleName: 'Шериф',
-  },
-  {
     id: 'EUROPOL_VS_OPG',
     title: 'Европол против ОПГ',
-    players: '2 игрока / Соло',
-    time: '35 минут',
+    players: '6 или 8 игроков',
+    time: '45 минут',
     difficulty: 'Высокая',
-    description: 'Война спецподразделений против синдиката: снайперы, минеры, защитные бронежилеты и штурмовые протоколы.',
-    isAvailable: true,
-    killerRoleName: 'Синдикат (ОПГ)',
-    detectiveRoleName: 'Спецназ Европола',
+    description: 'Масштабная спецоперация: бронежилеты, снайперские расчеты и минные засады в борьбе с верхушкой синдиката.',
+    isAvailable: false,
+    killerRoleName: 'Глава ОПГ',
+    detectiveRoleName: 'Европол',
   },
   {
     id: 'SPANISH_HEIST',
     title: 'Ограбление по-испански',
-    players: '2 игрока / Соло',
-    time: '30 минут',
+    players: '5–7 игроков',
+    time: '45 минут',
     difficulty: 'Высокая',
-    description: 'Дерзкое ограбление казино: банда должна взломать 3 угловых хранилища, пока охрана не заблокировала периметр.',
-    isAvailable: true,
-    killerRoleName: 'Грабители',
-    detectiveRoleName: 'Охрана казино',
+    description: 'Команда взломщиков пытается вскрыть центральные сейфы казино, пока служба охраны блокирует периметр сигнализацией.',
+    isAvailable: false,
+    killerRoleName: 'Взломщик',
+    detectiveRoleName: 'Начальник СБ',
   },
 ];
 
@@ -107,11 +107,12 @@ export const ModeSelectModal = ({
       <div className="w-full max-w-4xl max-h-[92vh] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-zinc-800/80 bg-zinc-900/90 backdrop-blur z-10 shrink-0">
           <div>
-            <h2 className="text-lg sm:text-2xl font-black uppercase tracking-wider text-zinc-100">
-              Выбор операции
+            <h2 className="text-lg sm:text-2xl font-black uppercase tracking-wider text-zinc-100 flex items-center gap-2">
+              <span>Город грехов</span>
+              <span className="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">Дуэли</span>
             </h2>
             <p className="text-[11px] sm:text-xs text-zinc-400 mt-0.5">
-              Единый город грехов, 50 досье горожан и 6 криминальных сценариев
+              Выберите сценарий противостояния двух сторон
             </p>
           </div>
           {hasActiveGame && (
@@ -131,7 +132,7 @@ export const ModeSelectModal = ({
                 Формат матча:
               </span>
               <span className="text-[10px] text-zinc-400">
-                Сражайтесь против умного компьютерного бота или вдвоем на одном экране
+                Одиночная игра против AI-бота или дуэль вдвоем на одном экране
               </span>
             </div>
 
@@ -155,18 +156,17 @@ export const ModeSelectModal = ({
                     : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-zinc-200'
                 }`}
               >
-                👥 Вдвоем на одном экране
+                👥 Вдвоем (1 на 1)
               </button>
             </div>
           </div>
 
-          {/* Строго динамические стороны под выбранный сценарий */}
           {selectedOpponent === 'AI' && (
             <div className="mb-5 p-3.5 bg-zinc-950/60 border border-zinc-800/80 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs">
               <div>
-                <span className="text-zinc-300 font-bold block">Ваша сторона в операции:</span>
+                <span className="text-zinc-300 font-bold block">Ваша роль:</span>
                 <span className="text-[10px] text-zinc-500 font-mono">
-                  Сценарий: {selectedMode.title}
+                  {selectedMode.title}
                 </span>
               </div>
 
@@ -201,20 +201,32 @@ export const ModeSelectModal = ({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {GAME_MODES.map((mode) => {
               const isSelected = mode.id === currentModeId;
+              const isLocked = !mode.isAvailable;
+
               return (
                 <div
                   key={mode.id}
-                  className={`relative flex flex-col justify-between p-4 rounded-xl border transition-all bg-zinc-950 border-zinc-800 hover:border-zinc-600 active:scale-[0.99] cursor-pointer shadow-md ${
-                    isSelected ? 'ring-2 ring-amber-500 border-amber-500 bg-zinc-950' : ''
+                  className={`relative flex flex-col justify-between p-4 rounded-xl border transition-all ${
+                    isLocked
+                      ? 'bg-zinc-950/40 border-zinc-800/40 opacity-50 cursor-not-allowed'
+                      : isSelected
+                      ? 'ring-2 ring-amber-500 border-amber-500 bg-zinc-950 shadow-lg cursor-pointer'
+                      : 'bg-zinc-950 border-zinc-800 hover:border-zinc-600 active:scale-[0.99] cursor-pointer'
                   }`}
-                  onClick={() => onSelectMode(mode.id)}
+                  onClick={() => {
+                    if (!isLocked) onSelectMode(mode.id);
+                  }}
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2.5">
-                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded border bg-emerald-950/90 text-emerald-300 border-emerald-700">
-                        Доступно
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${
+                        isLocked
+                          ? 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                          : 'bg-emerald-950/90 text-emerald-300 border-emerald-700'
+                      }`}>
+                        {isLocked ? '🔒 Скоро (3+ игр.)' : 'Дуэль 1х1'}
                       </span>
-                      <span className="text-[10px] text-zinc-400 font-mono font-bold">
+                      <span className="text-[10px] text-zinc-500 font-mono font-bold">
                         {mode.difficulty}
                       </span>
                     </div>
@@ -223,12 +235,12 @@ export const ModeSelectModal = ({
                       {mode.title}
                     </h3>
 
-                    <p className="text-[11px] leading-relaxed mb-4 text-zinc-300">
+                    <p className="text-[11px] leading-relaxed mb-4 text-zinc-400">
                       {mode.description}
                     </p>
                   </div>
 
-                  <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-400 font-mono">
+                  <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-500 font-mono">
                     <span>👥 {mode.players}</span>
                     <span>⏳ {mode.time}</span>
                   </div>
@@ -245,7 +257,7 @@ export const ModeSelectModal = ({
                 onClick={onResumeGame}
                 className="w-full sm:w-auto px-4 py-3 bg-zinc-800 active:bg-zinc-700 text-zinc-200 font-bold text-xs uppercase tracking-wider rounded-xl border border-zinc-700 transition cursor-pointer text-center"
               >
-                ← Вернуться к текущей партии
+                ← Вернуться в игру
               </button>
 
               <button
@@ -260,7 +272,7 @@ export const ModeSelectModal = ({
               onClick={() => onStartNewGame(currentModeId as GameModeType, selectedOpponent, selectedPlayerRole)}
               className="w-full sm:w-auto px-8 py-3.5 bg-amber-600 active:bg-amber-500 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg text-center"
             >
-              Начать выбранную операцию →
+              Начать операцию →
             </button>
           )}
         </div>

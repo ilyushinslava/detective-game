@@ -1,16 +1,13 @@
 ﻿export type GameModeType = 
   | 'SKHVATKA' 
   | 'MANIAC_VS_OPERATIVE' 
-  | 'SECRET_SERVICE' 
   | 'THIEF_HUNT' 
+  | 'SECRET_SERVICE' 
   | 'EUROPOL_VS_OPG' 
   | 'SPANISH_HEIST';
 
 export type Role = 'KILLER' | 'DETECTIVE';
-
 export type OpponentType = 'PVP' | 'AI';
-
-export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
 export interface Character {
   id: string;
@@ -18,11 +15,6 @@ export interface Character {
   isAlive: boolean;
   isExonerated: boolean;
   isRobbed?: boolean;
-  isShielded?: boolean;
-  hasBomb?: boolean;
-  isVault?: boolean;       // Хранилище казино
-  isVaultCracked?: boolean; // Взломанный сейф
-  isVaultLocked?: boolean;  // Заблокированный сигнализацией
 }
 
 export interface LastShift {
@@ -43,14 +35,13 @@ export interface GameState {
   playerRole: Role;
   board: Character[][];
   currentTurn: Role;
-  killerSecretId: string;    // Лидер банды / Убийца
-  detectiveSecretId: string; // Начальник СБ / Сыщик
+  killerSecretId: string;
+  detectiveSecretId: string;
   detectiveHand: string[];
   evidenceDeck: string[];
   victimList: string[];
   killCount: number;
-  trophiesKiller?: number;    // Взломанные сейфы (цель: 3)
-  trophiesDetective?: number;
+  trophiesKiller?: number;
   blockedShift?: { type: 'ROW' | 'COL'; index: number } | null;
   winner: Role | null;
   log: string[];

@@ -1,32 +1,5 @@
 ﻿import type { Character, GameModeType, GameState, OpponentType, Role, LastShift } from '../types/game';
-
-export const CHARACTERS_DATA: Omit<Character, 'isAlive' | 'isExonerated'>[] = [
-  { id: 'c1', name: 'Артур Блэк' },
-  { id: 'c2', name: 'Мария Козлова' },
-  { id: 'c3', name: 'Елена Соколова' },
-  { id: 'c4', name: 'Виктор Громов' },
-  { id: 'c5', name: 'Анна Морозова' },
-  { id: 'c6', name: 'Алексей Медведев' },
-  { id: 'c7', name: 'Татьяна Павлова' },
-  { id: 'c8', name: 'Павел Макаров' },
-  { id: 'c9', name: 'Роман Орлов' },
-  { id: 'c10', name: 'Илья Богданов' },
-  { id: 'c11', name: 'София Романова' },
-  { id: 'c12', name: 'Виктория Белова' },
-  { id: 'c13', name: 'Ксения Тарасова' },
-  { id: 'c14', name: 'Алиса Смирнова' },
-  { id: 'c15', name: 'Андрей Семенов' },
-  { id: 'c16', name: 'Дарья Кузнецова' },
-  { id: 'c17', name: 'Ольга Зайцева' },
-  { id: 'c18', name: 'Дмитрий Волков' },
-  { id: 'c19', name: 'Сергей Степанов' },
-  { id: 'c20', name: 'Максим Лебедев' },
-  { id: 'c21', name: 'Игорь Новиков' },
-  { id: 'c22', name: 'Наталья Николаева' },
-  { id: 'c23', name: 'Марк Воронов' },
-  { id: 'c24', name: 'Денис Попов' },
-  { id: 'c25', name: 'Екатерина Ильина' },
-];
+import { ALL_CHARACTERS } from '../constants/characters';
 
 function shuffle<T>(array: T[]): T[] {
   const arr = [...array];
@@ -95,17 +68,12 @@ export function createInitialState(
   opponent: OpponentType,
   playerRole: Role = 'DETECTIVE'
 ): GameState {
-  const shuffledCharacters = shuffle(CHARACTERS_DATA);
-  const boardCharacters = shuffledCharacters.slice(0, 25).map((c) => ({
+  const shuffledPool = shuffle(ALL_CHARACTERS);
+  const boardCharacters = shuffledPool.slice(0, 25).map((c) => ({
     ...c,
     isAlive: true,
     isExonerated: false,
     isRobbed: false,
-    isShielded: false,
-    hasBomb: false,
-    isVault: false,
-    isVaultCracked: false,
-    isVaultLocked: false,
   }));
 
   const board: Character[][] = [];
@@ -113,21 +81,13 @@ export function createInitialState(
     board.push(boardCharacters.slice(i * 5, i * 5 + 5));
   }
 
-  if (mode === 'SPANISH_HEIST') {
-    board[0][0].isVault = true;
-    board[0][4].isVault = true;
-    board[4][0].isVault = true;
-    board[4][4].isVault = true;
-  }
+  const deck = shuffledPool.slice(25).map((c) => c.id);
 
-  const deck = shuffledCharacters.slice(25).map((c) => c.id);
-
-  const candidatePool = boardCharacters.filter((c) => !c.isVault);
-  const killerIndex = Math.floor(Math.random() * candidatePool.length);
-  const killerSecretId = candidatePool[killerIndex].id;
+  const killerIndex = Math.floor(Math.random() * boardCharacters.length);
+  const killerSecretId = boardCharacters[killerIndex].id;
 
   const killerNeighbors = getAdjacentCharacters(board, killerSecretId).map((c) => c.id);
-  const validDetectiveCandidates = candidatePool.filter(
+  const validDetectiveCandidates = boardCharacters.filter(
     (c) => c.id !== killerSecretId && !killerNeighbors.includes(c.id)
   );
 
@@ -165,7 +125,6 @@ export function createInitialState(
     currentTurn: 'KILLER',
     killCount: 0,
     trophiesKiller: 0,
-    trophiesDetective: 0,
     blockedShift: null,
     lastShift: null,
     winner: null,
@@ -237,30 +196,12 @@ export function killCharacter(state: GameState, targetId: string): GameState {
   }
   if (!isVictimValid) return state;
 
-  const targetChar = state.board.flat().find((c) => c.id === targetId);
-
-  if (targetChar?.isShielded) {
-    const newBoard = state.board.map((row) =>
-      row.map((c) => (c.id === targetId ? { ...c, isShielded: false } : c))
-    );
-    return {
-      ...state,
-      board: newBoard,
-      currentTurn: 'DETECTIVE',
-      blockedShift: null,
-      log: [
-        ...state.log,
-        `Выстрел отражен! Бронежилет спас жизнь ${targetChar.name}! Защита снята.`,
-      ],
-    };
-  }
-
   let killedName = '';
   const newBoard = state.board.map((row) =>
     row.map((c) => {
       if (c.id === targetId) {
         killedName = c.name;
-        return { ...c, isAlive: false, hasBomb: false };
+        return { ...c, isAlive: false };
       }
       return c;
     })
@@ -272,8 +213,6 @@ export function killCharacter(state: GameState, targetId: string): GameState {
   if (targetId === state.detectiveSecretId) {
     winner = 'KILLER';
   } else if (state.mode === 'MANIAC_VS_OPERATIVE' && newKillCount >= 4) {
-    winner = 'KILLER';
-  } else if (state.mode === 'EUROPOL_VS_OPG' && newKillCount >= 6) {
     winner = 'KILLER';
   } else if (state.mode === 'SKHVATKA' && newKillCount >= 14) {
     winner = 'KILLER';
@@ -290,135 +229,6 @@ export function killCharacter(state: GameState, targetId: string): GameState {
       ...state.log,
       `Ликвидация: персонаж ${killedName} устранен.${winner ? ' Победа преступного мира!' : ''}`,
     ],
-  };
-}
-
-export function crackVault(state: GameState, targetId: string): GameState {
-  if (state.winner || state.mode !== 'SPANISH_HEIST') return state;
-  if (!areAdjacent(state.board, state.killerSecretId, targetId)) return state;
-
-  const target = state.board.flat().find((c) => c.id === targetId);
-  if (!target || !target.isVault || target.isVaultCracked || target.isVaultLocked) return state;
-
-  const crackedCount = (state.trophiesKiller ?? 0) + 1;
-  const isWin = crackedCount >= 3;
-
-  const newBoard = state.board.map((row) =>
-    row.map((c) => (c.id === targetId ? { ...c, isVaultCracked: true } : c))
-  );
-
-  return {
-    ...state,
-    board: newBoard,
-    trophiesKiller: crackedCount,
-    winner: isWin ? 'KILLER' : null,
-    currentTurn: 'DETECTIVE',
-    blockedShift: null,
-    log: [
-      ...state.log,
-      `Сейф ${target.name} взломан! Прогресс ограбления: ${crackedCount}/3.${
-        isWin ? ' Хранилище казино полностью обчищено! Победа банды!' : ''
-      }`,
-    ],
-  };
-}
-
-export function lockVault(state: GameState, targetId: string): GameState {
-  if (state.winner || state.mode !== 'SPANISH_HEIST') return state;
-  if (!areAdjacent(state.board, state.detectiveSecretId, targetId)) return state;
-
-  const target = state.board.flat().find((c) => c.id === targetId);
-  if (!target || !target.isVault || target.isVaultCracked || target.isVaultLocked) return state;
-
-  const newBoard = state.board.map((row) =>
-    row.map((c) => (c.id === targetId ? { ...c, isVaultLocked: true } : c))
-  );
-
-  return {
-    ...state,
-    board: newBoard,
-    currentTurn: 'KILLER',
-    blockedShift: null,
-    log: [...state.log, `Охрана включила протокол тревоги на сейфе ${target.name}!`],
-  };
-}
-
-export function plantBomb(state: GameState, targetId: string): GameState {
-  if (state.winner || state.mode !== 'EUROPOL_VS_OPG') return state;
-  if (!areAdjacent(state.board, state.killerSecretId, targetId)) return state;
-
-  const targetChar = state.board.flat().find((c) => c.id === targetId);
-  if (!targetChar || targetChar.hasBomb) return state;
-
-  const newBoard = state.board.map((row) =>
-    row.map((c) => (c.id === targetId ? { ...c, hasBomb: true } : c))
-  );
-
-  return {
-    ...state,
-    board: newBoard,
-    currentTurn: 'DETECTIVE',
-    blockedShift: null,
-    log: [...state.log, `ОПГ заложила скрытый заряд взрывчатки в квартале ${targetChar.name}!`],
-  };
-}
-
-export function applyShield(state: GameState, targetId: string): GameState {
-  if (state.winner || state.mode !== 'EUROPOL_VS_OPG') return state;
-  if (!areAdjacent(state.board, state.detectiveSecretId, targetId) && targetId !== state.detectiveSecretId) {
-    return state;
-  }
-
-  const targetChar = state.board.flat().find((c) => c.id === targetId);
-  if (!targetChar || targetChar.isShielded) return state;
-
-  const newBoard = state.board.map((row) =>
-    row.map((c) => (c.id === targetId ? { ...c, isShielded: true } : c))
-  );
-
-  return {
-    ...state,
-    board: newBoard,
-    currentTurn: 'KILLER',
-    blockedShift: null,
-    log: [...state.log, `Европол экипировал защитным протоколом: ${targetChar.name}.`],
-  };
-}
-
-export function sniperShot(state: GameState, targetId: string): GameState {
-  if (state.winner || state.mode !== 'EUROPOL_VS_OPG') return state;
-
-  const pDet = getCharacterCoords(state.board, state.detectiveSecretId);
-  const pTarget = getCharacterCoords(state.board, targetId);
-  if (!pDet || !pTarget) return state;
-
-  const dr = Math.abs(pDet.r - pTarget.r);
-  const dc = Math.abs(pDet.c - pTarget.c);
-  const isValidSniperRange = (dr === 2 && dc === 0) || (dr === 0 && dc === 2);
-
-  if (!isValidSniperRange) return state;
-
-  const targetChar = state.board.flat().find((c) => c.id === targetId);
-  if (!targetChar || !targetChar.isAlive) return state;
-
-  if (targetId === state.killerSecretId) {
-    return {
-      ...state,
-      winner: 'DETECTIVE',
-      log: [...state.log, `Снайперский выстрел точно в цель! Глава ОПГ (${targetChar.name}) ликвидирован! Победа Европола!`],
-    };
-  }
-
-  const newBoard = state.board.map((row) =>
-    row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c))
-  );
-
-  return {
-    ...state,
-    board: newBoard,
-    currentTurn: 'KILLER',
-    blockedShift: null,
-    log: [...state.log, `Снайпер Европола устранил ложную цель: ${targetChar.name}.`],
   };
 }
 
@@ -453,8 +263,8 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
     blockedShift: null,
     log: [
       ...state.log,
-      `Вор похитил сокровище у персонажа ${targetChar.name}! Добыча: ${newTrophies}/5.${
-        isWin ? ' Вор скрылся со всеми сокровищами!' : ' Вор сменил прикрытие и растворился в толпе.'
+      `Вор похитил ценности у персонажа ${targetChar.name}! Добыча: ${newTrophies}/5.${
+        isWin ? ' Вор скрылся со всей добычей!' : ' Вор сменил прикрытие.'
       }`,
     ],
   };
@@ -469,7 +279,7 @@ export function setPolicePatrol(state: GameState, type: 'ROW' | 'COL', index: nu
     currentTurn: 'KILLER',
     log: [
       ...state.log,
-      `Полиция выставила оцепление на ${type === 'ROW' ? `ряд ${index + 1}` : `колонку ${index + 1}`}. Сдвиг заблокирован на 1 ход!`,
+      `Полиция выставила патруль на ${type === 'ROW' ? `ряд ${index + 1}` : `колонку ${index + 1}`}. Сдвиг заблокирован на 1 ход!`,
     ],
   };
 }
@@ -481,37 +291,8 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
   const isSelf = targetId === state.detectiveSecretId;
   if (!isAdjacent && !isSelf) return state;
 
-  let targetName = '';
-  let targetChar: Character | undefined;
-  state.board.forEach((r) =>
-    r.forEach((c) => {
-      if (c.id === targetId) {
-        targetName = c.name;
-        targetChar = c;
-      }
-    })
-  );
-
-  if (targetChar?.hasBomb) {
-    const isDetKilled = targetId === state.detectiveSecretId;
-    const newBoard = state.board.map((row) =>
-      row.map((c) => (c.id === targetId ? { ...c, isAlive: false, hasBomb: false } : c))
-    );
-
-    return {
-      ...state,
-      board: newBoard,
-      currentTurn: 'KILLER',
-      winner: isDetKilled ? 'KILLER' : null,
-      blockedShift: null,
-      log: [
-        ...state.log,
-        `💥 ЛОВУШКА! При проверке сдетонировала скрытая бомба ОПГ! ${targetName} ликвидирован!${
-          isDetKilled ? ' Командир Европола погиб при взрыве!' : ''
-        }`,
-      ],
-    };
-  }
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+  const targetName = targetChar?.name ?? '';
 
   if (targetId === state.killerSecretId) {
     return {
@@ -628,76 +409,5 @@ export function cleanupDeadCharacters(state: GameState): GameState {
     currentTurn: nextTurn,
     blockedShift: null,
     log: [...state.log, 'Морг очищен: тела смещены в нижнюю часть квартала.'],
-  };
-}
-
-export function captureSpy(state: GameState, targetId: string): GameState {
-  if (state.winner) return state;
-
-  const isAgent1 = state.currentTurn === 'KILLER';
-  const mySecretId = isAgent1 ? state.killerSecretId : state.detectiveSecretId;
-  const enemySecretId = isAgent1 ? state.detectiveSecretId : state.killerSecretId;
-
-  if (!areAdjacent(state.board, mySecretId, targetId)) return state;
-
-  if (targetId === enemySecretId) {
-    const winner: Role = isAgent1 ? 'KILLER' : 'DETECTIVE';
-    return {
-      ...state,
-      winner,
-      blockedShift: null,
-      log: [...state.log, `Вражеский резидент разоблачен на месте! Победа ${winner === 'KILLER' ? 'Востока' : 'Запада'}!`],
-    };
-  }
-
-  const nextTrophiesKiller = isAgent1 ? (state.trophiesKiller ?? 0) + 1 : state.trophiesKiller ?? 0;
-  const nextTrophiesDetective = !isAgent1 ? (state.trophiesDetective ?? 0) + 1 : state.trophiesDetective ?? 0;
-
-  let winner: Role | null = null;
-  if (nextTrophiesKiller >= 2) winner = 'KILLER';
-  if (nextTrophiesDetective >= 2) winner = 'DETECTIVE';
-
-  const newBoard = state.board.map((row) =>
-    row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c))
-  );
-
-  return {
-    ...state,
-    board: newBoard,
-    trophiesKiller: nextTrophiesKiller,
-    trophiesDetective: nextTrophiesDetective,
-    winner,
-    currentTurn: isAgent1 ? 'DETECTIVE' : 'KILLER',
-    blockedShift: null,
-    log: [
-      ...state.log,
-      `Захвачен агент связного. Получен трофей (+1).${winner ? ' Собрано 2 трофея — победа!' : ''}`,
-    ],
-  };
-}
-
-export function interrogateNeighbor(state: GameState, targetId: string): GameState {
-  const isAgent1 = state.currentTurn === 'KILLER';
-  const mySecretId = isAgent1 ? state.killerSecretId : state.detectiveSecretId;
-  const enemySecretId = isAgent1 ? state.detectiveSecretId : state.killerSecretId;
-
-  if (!areAdjacent(state.board, mySecretId, targetId)) return state;
-
-  const isNear = areAdjacent(state.board, targetId, enemySecretId);
-  const targetChar = state.board.flat().find((c) => c.id === targetId);
-
-  return {
-    ...state,
-    lastInterrogation: {
-      interrogator: isAgent1 ? 'KILLER' : 'DETECTIVE',
-      targetName: targetChar?.name ?? 'Свидетель',
-      isNear,
-    },
-    currentTurn: isAgent1 ? 'DETECTIVE' : 'KILLER',
-    blockedShift: null,
-    log: [
-      ...state.log,
-      `Допрос свидетеля (${targetChar?.name}): ${isNear ? '«Да, подозрительный субъект рядом!»' : '«Никого рядом не видел»'}.`,
-    ],
   };
 }

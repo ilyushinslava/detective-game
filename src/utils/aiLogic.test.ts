@@ -1,6 +1,6 @@
 ﻿import { describe, it, expect } from 'vitest';
 import { createInitialState } from './gameLogic';
-import { getKillerAIMove, getDetectiveAIMove, getSecretServiceAIMove } from './aiLogic';
+import { getKillerAIMove, getDetectiveAIMove, getThiefAIMove, getPoliceAIMove } from './aiLogic';
 
 describe('Интеллект игрового бота (aiLogic)', () => {
   it('Бот-убийца обязан сменить ход на Сыщика после своего действия', () => {
@@ -13,7 +13,7 @@ describe('Интеллект игрового бота (aiLogic)', () => {
     expect(nextState.log.length).toBeGreaterThan(state.log.length);
   });
 
-  it('Бот-маньяк не зависает и не атакует цели вне списка смертников', () => {
+  it('Бот-маньяк не атакует цели вне списка смертников', () => {
     const state = createInitialState('MANIAC_VS_OPERATIVE', 'AI', 'DETECTIVE');
     state.currentTurn = 'KILLER';
 
@@ -28,23 +28,22 @@ describe('Интеллект игрового бота (aiLogic)', () => {
     }
   });
 
-  it('Бот-детектив с пустой рукой алиби не падает с ошибкой и делает сдвиг или обвинение', () => {
+  it('Бот-детектив с пустой рукой алиби делает сдвиг или обвинение без падений', () => {
     const state = createInitialState('SKHVATKA', 'AI', 'KILLER');
     state.currentTurn = 'DETECTIVE';
-    state.detectiveHand = []; // пустая рука
+    state.detectiveHand = [];
 
     const nextState = getDetectiveAIMove(state);
 
     expect(nextState.currentTurn).toBe('KILLER');
   });
 
-  it('Бот-шпион в «Секретной службе» делает валидный ход и передает очередь', () => {
-    const state = createInitialState('SECRET_SERVICE', 'AI', 'KILLER');
-    state.currentTurn = 'DETECTIVE';
+  it('Бот-вор и бот-полиция передают ход корректно', () => {
+    const state = createInitialState('THIEF_HUNT', 'AI', 'DETECTIVE');
+    const thiefMove = getThiefAIMove(state);
+    expect(thiefMove.currentTurn).toBe('DETECTIVE');
 
-    const nextState = getSecretServiceAIMove(state);
-
-    expect(nextState.currentTurn).toBe('KILLER');
-    expect(nextState.log.length).toBeGreaterThan(state.log.length);
+    const policeMove = getPoliceAIMove(thiefMove);
+    expect(policeMove.currentTurn).toBe('KILLER');
   });
 });

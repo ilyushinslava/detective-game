@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180">
+  <rect width="180" height="180" rx="36" fill="#09090b"/>
+  <rect x="8" y="8" width="164" height="164" rx="30" fill="none" stroke="#d97706" stroke-width="3" stroke-opacity="0.9"/>
+  <circle cx="90" cy="90" r="55" fill="#f59e0b" fill-opacity="0.12"/>
+  <!-- Шляпа -->
+  <ellipse cx="90" cy="102" rx="52" ry="12" fill="#18181b" stroke="#f59e0b" stroke-width="2.5"/>
+  <path d="M60,100 L66,60 C78,65 85,65 90,63 C95,65 102,65 114,60 L120,100 Z" fill="#18181b" stroke="#f59e0b" stroke-width="2.5"/>
+  <path d="M61,96 L62,86 L118,86 L119,96 Z" fill="#d97706"/>
+  <!-- Очки -->
+  <rect x="64" y="110" width="22" height="16" rx="5" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
+  <rect x="94" y="110" width="22" height="16" rx="5" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
+  <line x1="86" y1="117" x2="94" y2="117" stroke="#f59e0b" stroke-width="2"/>
+  <line x1="69" y1="114" x2="76" y2="122" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="99" y1="114" x2="106" y2="122" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,8043 @@
+This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix.
+
+# File Summary
+
+## Purpose
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+
+## File Format
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  a. A header with the file path (## File: path/to/file)
+  b. The full contents of the file in a code block
+
+## Usage Guidelines
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+
+## Notes
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching these patterns are excluded: **/package-lock.json, **/yarn.lock, **/pnpm-lock.yaml, **/*.min.*, **/*.map, **/*.svg, **/*.png, **/*.jpg, **/*.jpeg, **/*.ico, **/dist/**, **/build/**, .env*, repomix-output*, audit_project*, project_context*
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+
+# Directory Structure
+````
+src/
+  components/
+    CharacterCard.tsx
+    DetectiveHand.tsx
+    GameBoard.tsx
+    GameOverModal.tsx
+    ModeSelectModal.tsx
+    RoleRevealModal.tsx
+    VictimList.tsx
+  constants/
+    characters.ts
+  types/
+    game.ts
+  utils/
+    aiLogic.test.ts
+    aiLogic.ts
+    audio.ts
+    europol.test.ts
+    gameLogic.test.ts
+    gameLogic.ts
+    haptics.ts
+    spanishHeist.test.ts
+    thiefHunt.test.ts
+  App.css
+  App.tsx
+  index.css
+  main.tsx
+.gitignore
+eslint.config.js
+index.html
+package.json
+postcss.config.js
+README.md
+repomix-clean.xml
+tailwind.config.js
+tsconfig.app.json
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
+````
+
+# Files
+
+## File: repomix-clean.xml
+````xml
+This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching these patterns are excluded: **/package-lock.json, **/yarn.lock, **/pnpm-lock.yaml, **/*.min.*, **/*.map, **/*.svg, **/*.png, **/*.jpg, **/*.jpeg, **/*.ico, **/dist/**, **/build/**, .env*, repomix-output*, audit_project*, project_context*
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/
+  components/
+    CharacterCard.tsx
+    DetectiveHand.tsx
+    GameBoard.tsx
+    GameOverModal.tsx
+    ModeSelectModal.tsx
+    RoleRevealModal.tsx
+    VictimList.tsx
+  constants/
+    characters.ts
+  types/
+    game.ts
+  utils/
+    aiLogic.test.ts
+    aiLogic.ts
+    audio.ts
+    europol.test.ts
+    gameLogic.test.ts
+    gameLogic.ts
+    haptics.ts
+    spanishHeist.test.ts
+    thiefHunt.test.ts
+  App.css
+  App.tsx
+  index.css
+  main.tsx
+.gitignore
+eslint.config.js
+index.html
+package.json
+postcss.config.js
+README.md
+tailwind.config.js
+tsconfig.app.json
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/components/CharacterCard.tsx">
+import { memo } from 'react';
+import type { Character } from '../types/game';
+
+interface CharacterCardProps {
+  character: Character;
+  isSelected: boolean;
+  isKillerAdjacent: boolean;
+  isDetectiveAdjacent: boolean;
+  showKillerHint: boolean;
+  showDetectiveHint: boolean;
+  onClick: () => void;
+}
+
+export const CharacterCard = memo(({
+  character,
+  isSelected,
+  isKillerAdjacent,
+  isDetectiveAdjacent,
+  showKillerHint,
+  showDetectiveHint,
+  onClick,
+}: CharacterCardProps) => {
+  const isDead = !character.isAlive;
+  const isExonerated = character.isExonerated && !isDead;
+
+  return (
+    <div
+      onClick={onClick}
+      className={`relative w-full aspect-square rounded-xl p-1.5 sm:p-2.5 flex flex-col justify-between border select-none transition-all duration-200 cursor-pointer overflow-hidden ${
+        isDead
+          ? 'bg-zinc-950/80 border-zinc-900 shadow-inner'
+          : isExonerated
+          ? 'bg-gradient-to-b from-blue-950/50 to-zinc-900/90 border-blue-500/70 shadow-[0_0_12px_rgba(59,130,246,0.2)]'
+          : 'bg-zinc-900/95 border-zinc-800 hover:border-zinc-600 shadow-sm'
+      } ${
+        isSelected
+          ? 'ring-2 ring-amber-400 border-amber-400 shadow-[0_0_18px_rgba(251,191,36,0.35)] scale-[1.02] z-10'
+          : ''
+      } ${
+        showKillerHint && isKillerAdjacent
+          ? 'ring-1 ring-red-500/80 border-red-500'
+          : ''
+      } ${
+        showDetectiveHint && isDetectiveAdjacent
+          ? 'ring-1 ring-blue-500/80 border-blue-500'
+          : ''
+      }`}
+    >
+      {/* Декоративная подложка для мертвых */}
+      {isDead && (
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-red-950/20 via-transparent to-transparent pointer-events-none" />
+      )}
+
+      {/* Верхняя плашка: номер досье и иконка */}
+      <div className="flex items-center justify-between gap-1 z-10">
+        <span
+          className={`text-[9px] sm:text-[10px] font-mono tracking-wider font-bold ${
+            isDead ? 'text-zinc-600 line-through' : isExonerated ? 'text-blue-400' : 'text-zinc-500'
+          }`}
+        >
+          #{character.id.replace('c', '').padStart(2, '0')}
+        </span>
+
+        <div className="flex items-center gap-1 text-[11px] leading-none">
+          {isDead && (
+            <span className="text-zinc-500 text-[10px] tracking-tighter" title="Ликвидирован">
+              ☠
+            </span>
+          )}
+          {character.isShielded && <span>🛡️</span>}
+          {character.hasBomb && <span>💣</span>}
+          {character.isRobbed && <span>💰</span>}
+        </div>
+      </div>
+
+      {/* Имя персонажа */}
+      <div className="text-center my-auto px-0.5 z-10">
+        <span
+          className={`block text-[11px] sm:text-xs font-bold leading-tight tracking-tight ${
+            isDead
+              ? 'text-zinc-600 line-through decoration-zinc-700 decoration-1'
+              : isExonerated
+              ? 'text-blue-100 font-extrabold'
+              : 'text-zinc-100'
+          }`}
+        >
+          {character.name}
+        </span>
+      </div>
+
+      {/* Нижняя полоска статуса в виде аккуратного штампа */}
+      <div className="z-10 flex items-center justify-center">
+        {isDead ? (
+          <span className="text-[8px] sm:text-[9px] font-mono font-bold tracking-wider text-red-500/80 bg-red-950/40 border border-red-900/40 px-1.5 py-0.5 rounded">
+            ЛИКВИДИРОВАН
+          </span>
+        ) : isExonerated ? (
+          <span className="text-[8px] sm:text-[9px] font-mono font-bold tracking-wider text-blue-300 bg-blue-950/70 border border-blue-700/50 px-1.5 py-0.5 rounded shadow-sm">
+            АЛИБИ ПОДТВЕРЖДЕНО
+          </span>
+        ) : (
+          <span className="text-[8px] sm:text-[9px] font-mono tracking-wider text-zinc-500">
+            ПОДОЗРЕВАЕМЫЙ
+          </span>
+        )}
+      </div>
+    </div>
+  );
+});
+</file>
+
+<file path="src/components/DetectiveHand.tsx">
+import { useState } from 'react';
+import type { Character } from '../types/game';
+
+interface DetectiveHandProps {
+  handIds: string[];
+  allCharacters: Character[];
+  isDetectiveTurn: boolean;
+  onExonerateFromHand: (id: string) => void;
+}
+
+export const DetectiveHand = ({
+  handIds,
+  allCharacters,
+  isDetectiveTurn,
+  onExonerateFromHand,
+}: DetectiveHandProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // В чужой ход досье принудительно скрыто
+  const canView = isDetectiveTurn;
+  const showContent = isOpen && canView;
+
+  return (
+    <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 shadow-lg">
+      <div className="flex items-center justify-between">
+        <div>
+          <span className="text-xs font-black uppercase tracking-wider text-blue-400">
+            Досье алиби ({handIds.length} карт)
+          </span>
+          {!canView && (
+            <span className="block text-[10px] text-zinc-500 font-mono">
+              Закрыто (чужой ход)
+            </span>
+          )}
+        </div>
+
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          disabled={!canView}
+          className={`text-xs px-3 py-1.5 rounded-lg border font-bold transition select-none ${
+            canView
+              ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 cursor-pointer active:scale-95'
+              : 'bg-zinc-950 text-zinc-600 border-zinc-900 cursor-not-allowed opacity-40'
+          }`}
+        >
+          {showContent ? 'Скрыть карты' : 'Показать карты'}
+        </button>
+      </div>
+
+      {showContent && (
+        <div className="mt-3 pt-3 border-t border-zinc-800/80">
+          <div className="text-[10px] text-zinc-400 mb-2 font-mono">
+            Нажмите на карту, чтобы оправдать подозреваемого и запустить допрос:
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {handIds.map((id) => {
+              const char = allCharacters.find((c) => c.id === id);
+              return (
+                <div
+                  key={id}
+                  onClick={() => onExonerateFromHand(id)}
+                  className="p-2.5 rounded-xl bg-zinc-950 hover:bg-blue-950/40 border border-zinc-800 hover:border-blue-500/80 cursor-pointer transition flex flex-col justify-between min-h-[90px] shadow select-none group"
+                >
+                  <div className="flex items-center justify-between text-[9px] font-mono text-zinc-500">
+                    <span>#{id}</span>
+                    <span className="text-blue-400 font-bold uppercase tracking-wider text-[8px] px-1 py-0.2 bg-blue-950 rounded border border-blue-900">
+                      Алиби
+                    </span>
+                  </div>
+
+                  <div className="text-xs sm:text-sm font-black text-zinc-100 group-hover:text-blue-200 leading-snug my-1.5">
+                    {char?.name ?? id}
+                  </div>
+
+                  <div className="text-[9px] text-zinc-400 group-hover:text-zinc-300 font-semibold">
+                    Оправдать →
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/GameBoard.tsx">
+import type { Character, LastShift } from '../types/game';
+import { CharacterCard } from './CharacterCard';
+
+interface GameBoardProps {
+  board: Character[][];
+  selectedCharacterId: string | null;
+  killerAdjacentIds: string[];
+  detectiveAdjacentIds: string[];
+  showKillerHints: boolean;
+  showDetectiveHints: boolean;
+  lastShift: LastShift | null;
+  onShift: (type: 'ROW' | 'COL', index: number, direction: 'FORWARD' | 'BACKWARD') => void;
+  onSelectCharacter: (id: string) => void;
+}
+
+export const GameBoard = ({
+  board,
+  selectedCharacterId,
+  killerAdjacentIds,
+  detectiveAdjacentIds,
+  showKillerHints,
+  showDetectiveHints,
+  onShift,
+  onSelectCharacter,
+}: GameBoardProps) => {
+  return (
+    <div className="w-full flex flex-col items-center">
+      {/* Кнопки сдвига колонок ВВЕРХ */}
+      <div className="grid grid-cols-5 gap-1.5 sm:gap-2 w-full max-w-[480px] mb-1.5 pl-6 pr-6 sm:pl-8 sm:pr-8">
+        {[0, 1, 2, 3, 4].map((colIdx) => (
+          <button
+            key={`col-up-${colIdx}`}
+            onClick={() => onShift('COL', colIdx, 'BACKWARD')}
+            className="h-6 sm:h-7 bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border border-zinc-800 rounded-lg text-xs font-bold transition flex items-center justify-center cursor-pointer"
+          >
+            ↑
+          </button>
+        ))}
+      </div>
+
+      {/* Поле 5x5 со стрелками рядов */}
+      <div className="w-full max-w-[540px] flex flex-col gap-1.5 sm:gap-2">
+        {board.map((row, rIdx) => (
+          <div key={`row-${rIdx}`} className="flex items-center gap-1.5 sm:gap-2 w-full">
+            {/* Сдвиг ряда влево */}
+            <button
+              onClick={() => onShift('ROW', rIdx, 'BACKWARD')}
+              className="w-5 sm:w-6 h-full min-h-[44px] bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border border-zinc-800 rounded-lg text-xs font-bold transition flex items-center justify-center shrink-0 cursor-pointer"
+            >
+              ←
+            </button>
+
+            {/* 5 карт в ряду */}
+            <div className="grid grid-cols-5 gap-1.5 sm:gap-2 flex-1">
+              {row.map((character) => (
+                <CharacterCard
+                  key={character.id}
+                  character={character}
+                  isSelected={selectedCharacterId === character.id}
+                  isKillerAdjacent={killerAdjacentIds.includes(character.id)}
+                  isDetectiveAdjacent={detectiveAdjacentIds.includes(character.id)}
+                  showKillerHint={showKillerHints}
+                  showDetectiveHint={showDetectiveHints}
+                  onClick={() => onSelectCharacter(character.id)}
+                />
+              ))}
+            </div>
+
+            {/* Сдвиг ряда вправо */}
+            <button
+              onClick={() => onShift('ROW', rIdx, 'FORWARD')}
+              className="w-5 sm:w-6 h-full min-h-[44px] bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border border-zinc-800 rounded-lg text-xs font-bold transition flex items-center justify-center shrink-0 cursor-pointer"
+            >
+              →
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Кнопки сдвига колонок ВНИЗ */}
+      <div className="grid grid-cols-5 gap-1.5 sm:gap-2 w-full max-w-[480px] mt-1.5 pl-6 pr-6 sm:pl-8 sm:pr-8">
+        {[0, 1, 2, 3, 4].map((colIdx) => (
+          <button
+            key={`col-down-${colIdx}`}
+            onClick={() => onShift('COL', colIdx, 'FORWARD')}
+            className="h-6 sm:h-7 bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border border-zinc-800 rounded-lg text-xs font-bold transition flex items-center justify-center cursor-pointer"
+          >
+            ↓
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/GameOverModal.tsx">
+import type { Role, Character, GameModeType } from '../types/game';
+
+interface GameOverModalProps {
+  winner: Role;
+  mode: GameModeType;
+  killer: Character | undefined;
+  detective: Character | undefined;
+  elapsedTime: string;
+  onRestart: () => void;
+}
+
+export const GameOverModal = ({
+  winner,
+  mode,
+  killer,
+  detective,
+  elapsedTime,
+  onRestart,
+}: GameOverModalProps) => {
+  let killerTitle = 'Бандит';
+  let detectiveTitle = 'Инспектор';
+
+  if (mode === 'MANIAC_VS_OPERATIVE') {
+    killerTitle = 'Маньяк';
+    detectiveTitle = 'Оперативник';
+  } else if (mode === 'SECRET_SERVICE') {
+    killerTitle = 'Агент «Восток»';
+    detectiveTitle = 'Агент «Запад»';
+  }
+
+  const isKillerWin = winner === 'KILLER';
+  const winnerTitle = isKillerWin ? killerTitle : detectiveTitle;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+      <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-6 text-center flex flex-col items-center">
+        <div
+          className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black mb-4 border ${
+            isKillerWin
+              ? 'bg-red-950/80 border-red-700 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.3)]'
+              : 'bg-blue-950/80 border-blue-700 text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
+          }`}
+        >
+          {isKillerWin ? '☠' : '⚖'}
+        </div>
+
+        <h3 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-zinc-100">
+          Победа стороны: {winnerTitle}!
+        </h3>
+        
+        <p className="text-xs text-zinc-400 mt-1 font-mono">
+          Время проведения операции: {elapsedTime}
+        </p>
+
+        {/* Раскрытие личностей с четким читаемым шрифтом */}
+        <div className="w-full grid grid-cols-2 gap-3 my-6 text-left">
+          <div className="p-3 bg-zinc-950 border border-red-950/80 rounded-xl">
+            <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider block">
+              {killerTitle}
+            </span>
+            <span className="text-sm font-bold text-zinc-100 block mt-1 tracking-normal">
+              {killer?.name ?? 'Неизвестно'}
+            </span>
+            <span className="text-[11px] text-zinc-400 font-mono mt-0.5 block">
+              Статус: {killer?.isAlive ? 'Жив' : 'Ликвидирован'}
+            </span>
+          </div>
+
+          <div className="p-3 bg-zinc-950 border border-blue-950/80 rounded-xl">
+            <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">
+              {detectiveTitle}
+            </span>
+            <span className="text-sm font-bold text-zinc-100 block mt-1 tracking-normal">
+              {detective?.name ?? 'Неизвестно'}
+            </span>
+            <span className="text-[11px] text-zinc-400 font-mono mt-0.5 block">
+              Статус: {detective?.isAlive ? 'Жив' : 'Ликвидирован'}
+            </span>
+          </div>
+        </div>
+
+        {/* Кнопка с крупной, четко видимой стрелкой */}
+        <button
+          onClick={onRestart}
+          className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg flex items-center justify-center gap-1.5"
+        >
+          <span>Новая операция</span>
+          <span className="text-base leading-none">➔</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/ModeSelectModal.tsx">
+import { useState } from 'react';
+import type { GameModeType, OpponentType, Role } from '../types/game';
+
+export interface GameModeInfo {
+  id: GameModeType;
+  title: string;
+  players: string;
+  time: string;
+  difficulty: 'Легкая' | 'Средняя' | 'Высокая';
+  description: string;
+  isAvailable: boolean;
+  killerRoleName: string;
+  detectiveRoleName: string;
+}
+
+export const GAME_MODES: GameModeInfo[] = [
+  {
+    id: 'SKHVATKA',
+    title: 'Бандит против инспектора',
+    players: '2 игрока',
+    time: '15 минут',
+    difficulty: 'Легкая',
+    description: 'Сыграйте в смертельные кошки-мышки и выследите бандита, прежде чем он доберется до вас.',
+    isAvailable: true,
+    killerRoleName: 'Бандит',
+    detectiveRoleName: 'Инспектор',
+  },
+  {
+    id: 'MANIAC_VS_OPERATIVE',
+    title: 'Убийца против сыщика',
+    players: '2 игрока',
+    time: '20 минут',
+    difficulty: 'Средняя',
+    description: 'Убийца устраняет людей строго по списку 4 жертв, а сыщик старается его обезвредить.',
+    isAvailable: true,
+    killerRoleName: 'Убийца',
+    detectiveRoleName: 'Сыщик',
+  },
+  {
+    id: 'THIEF_HUNT',
+    title: 'Вор-виртуоз против начальника полиции',
+    players: '2 игрока',
+    time: '60 минут',
+    difficulty: 'Высокая',
+    description: 'Вор-виртуоз грабит всех, кто попадается под руку, но по его следу неотступно идет начальник полиции.',
+    isAvailable: true,
+    killerRoleName: 'Вор-виртуоз',
+    detectiveRoleName: 'Начальник полиции',
+  },
+  {
+    id: 'SECRET_SERVICE',
+    title: 'Шпионские игры',
+    players: '3–9 игроков',
+    time: '30 минут',
+    difficulty: 'Средняя',
+    description: 'Отыщите и поймайте остальных шпионов раньше, чем они поймают вас.',
+    isAvailable: false,
+    killerRoleName: 'Шпион',
+    detectiveRoleName: 'Контрразведка',
+  },
+  {
+    id: 'EUROPOL_VS_OPG',
+    title: 'ФБР против мафии',
+    players: '6 или 8 игроков',
+    time: '45 минут',
+    difficulty: 'Высокая',
+    description: 'Командная игра, в которой агенты ФБР ловят мафиози, решивших, что город принадлежит им.',
+    isAvailable: false,
+    killerRoleName: 'Мафия',
+    detectiveRoleName: 'Агент ФБР',
+  },
+  {
+    id: 'SPANISH_HEIST',
+    title: 'Ограбление века',
+    players: '5–7 игроков',
+    time: '45 минут',
+    difficulty: 'Высокая',
+    description: 'Группа воров пытается ограбить хранилища казино, а начальник безопасности — их остановить.',
+    isAvailable: false,
+    killerRoleName: 'Грабитель',
+    detectiveRoleName: 'Безопасность',
+  },
+];
+
+interface ModeSelectModalProps {
+  currentModeId: string;
+  hasActiveGame: boolean;
+  onSelectMode: (modeId: GameModeType) => void;
+  onResumeGame: () => void;
+  onStartNewGame: (modeId: GameModeType, opponent: OpponentType, playerRole: Role) => void;
+}
+
+export const ModeSelectModal = ({
+  currentModeId,
+  hasActiveGame,
+  onSelectMode,
+  onResumeGame,
+  onStartNewGame,
+}: ModeSelectModalProps) => {
+  const [selectedOpponent, setSelectedOpponent] = useState<OpponentType>('AI');
+  const [selectedPlayerRole, setSelectedPlayerRole] = useState<Role>('DETECTIVE');
+
+  const selectedMode = GAME_MODES.find((m) => m.id === currentModeId) ?? GAME_MODES[0];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-2 sm:p-4">
+      <div className="w-full max-w-4xl max-h-[92vh] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-zinc-800/80 bg-zinc-900/90 backdrop-blur z-10 shrink-0">
+          <div>
+            <h2 className="text-lg sm:text-2xl font-black uppercase tracking-wider text-zinc-100 flex items-center gap-2">
+              <span>Город грехов</span>
+              <span className="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">Дуэли</span>
+            </h2>
+            <p className="text-[11px] sm:text-xs text-zinc-400 mt-0.5">
+              Выберите сценарий противостояния двух сторон
+            </p>
+          </div>
+          {hasActiveGame && (
+            <button
+              onClick={onResumeGame}
+              className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3.5 py-2 rounded-lg border border-zinc-700 transition cursor-pointer font-bold shrink-0 ml-2"
+            >
+              ✕ Закрыть
+            </button>
+          )}
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="mb-4 p-3.5 bg-zinc-950/80 border border-zinc-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>
+              <span className="text-xs font-black uppercase tracking-wider text-zinc-200 block">
+                Формат матча:
+              </span>
+              <span className="text-[10px] text-zinc-400">
+                Одиночная игра против AI-бота или дуэль вдвоем на одном экране
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => setSelectedOpponent('AI')}
+                className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs font-bold transition border cursor-pointer ${
+                  selectedOpponent === 'AI'
+                    ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
+                    : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-zinc-200'
+                }`}
+              >
+                🤖 Против бота
+              </button>
+
+              <button
+                onClick={() => setSelectedOpponent('PVP')}
+                className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs font-bold transition border cursor-pointer ${
+                  selectedOpponent === 'PVP'
+                    ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
+                    : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-zinc-200'
+                }`}
+              >
+                👥 Вдвоем (1 на 1)
+              </button>
+            </div>
+          </div>
+
+          {selectedOpponent === 'AI' && (
+            <div className="mb-5 p-3.5 bg-zinc-950/60 border border-zinc-800/80 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs">
+              <div>
+                <span className="text-zinc-300 font-bold block">Ваша роль:</span>
+                <span className="text-[10px] text-zinc-500 font-mono">
+                  {selectedMode.title}
+                </span>
+              </div>
+
+              <div className="flex gap-2 w-full sm:w-auto">
+                <button
+                  onClick={() => setSelectedPlayerRole('DETECTIVE')}
+                  className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg border font-bold text-xs cursor-pointer transition flex items-center justify-center gap-1.5 ${
+                    selectedPlayerRole === 'DETECTIVE'
+                      ? 'bg-blue-950 border-blue-500 text-blue-200 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
+                      : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                  <span>{selectedMode.detectiveRoleName}</span>
+                </button>
+
+                <button
+                  onClick={() => setSelectedPlayerRole('KILLER')}
+                  className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg border font-bold text-xs cursor-pointer transition flex items-center justify-center gap-1.5 ${
+                    selectedPlayerRole === 'KILLER'
+                      ? 'bg-red-950 border-red-500 text-red-200 shadow-[0_0_10px_rgba(239,68,68,0.3)]'
+                      : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                  <span>{selectedMode.killerRoleName}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            {GAME_MODES.map((mode) => {
+              const isSelected = mode.id === currentModeId;
+              const isLocked = !mode.isAvailable;
+
+              return (
+                <div
+                  key={mode.id}
+                  className={`relative flex flex-col justify-between p-4 rounded-xl border transition-all ${
+                    isLocked
+                      ? 'bg-zinc-950/40 border-zinc-800/40 opacity-50 cursor-not-allowed'
+                      : isSelected
+                      ? 'ring-2 ring-amber-500 border-amber-500 bg-zinc-950 shadow-lg cursor-pointer'
+                      : 'bg-zinc-950 border-zinc-800 hover:border-zinc-600 active:scale-[0.99] cursor-pointer'
+                  }`}
+                  onClick={() => {
+                    if (!isLocked) onSelectMode(mode.id);
+                  }}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${
+                        isLocked
+                          ? 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                          : 'bg-emerald-950/90 text-emerald-300 border-emerald-700'
+                      }`}>
+                        {isLocked ? '🔒 Скоро (3+ игр.)' : 'Дуэль 1х1'}
+                      </span>
+                      <span className="text-[10px] text-zinc-500 font-mono font-bold">
+                        {mode.difficulty}
+                      </span>
+                    </div>
+
+                    <h3 className="text-sm sm:text-base font-black text-zinc-100 leading-tight mb-2">
+                      {mode.title}
+                    </h3>
+
+                    <p className="text-[11px] leading-relaxed mb-4 text-zinc-400">
+                      {mode.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-500 font-mono">
+                    <span>👥 {mode.players}</span>
+                    <span>⏳ {mode.time}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="p-3 sm:p-5 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur z-10 shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2.5">
+          {hasActiveGame ? (
+            <>
+              <button
+                onClick={onResumeGame}
+                className="w-full sm:w-auto px-4 py-3 bg-zinc-800 active:bg-zinc-700 text-zinc-200 font-bold text-xs uppercase tracking-wider rounded-xl border border-zinc-700 transition cursor-pointer text-center"
+              >
+                ← Вернуться в игру
+              </button>
+
+              <button
+                onClick={() => onStartNewGame(currentModeId as GameModeType, selectedOpponent, selectedPlayerRole)}
+                className="w-full sm:w-auto px-6 py-3.5 bg-amber-600 active:bg-amber-500 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg text-center"
+              >
+                Начать новую партию →
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => onStartNewGame(currentModeId as GameModeType, selectedOpponent, selectedPlayerRole)}
+              className="w-full sm:w-auto px-8 py-3.5 bg-amber-600 active:bg-amber-500 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg text-center"
+            >
+              Начать операцию →
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/RoleRevealModal.tsx">
+import { useState } from 'react';
+import type { Character } from '../types/game';
+
+interface RoleRevealModalProps {
+  killer: Character | undefined;
+  inspectorChoices: Character[];
+  onSelectDetectiveRole: (id: string) => void;
+  onComplete: () => void;
+}
+
+type Phase = 'KILLER_PROMPT' | 'KILLER_REVEAL' | 'DETECTIVE_PROMPT' | 'DETECTIVE_CHOOSE';
+
+export const RoleRevealModal = ({
+  killer,
+  inspectorChoices,
+  onSelectDetectiveRole,
+  onComplete,
+}: RoleRevealModalProps) => {
+  const [phase, setPhase] = useState<Phase>('KILLER_PROMPT');
+  const [selectedInspectorId, setSelectedInspectorId] = useState<string | null>(null);
+
+  const handleConfirmInspectorRole = () => {
+    if (!selectedInspectorId) return;
+    onSelectDetectiveRole(selectedInspectorId);
+    onComplete();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
+      <div className="w-full max-w-xl min-h-[500px] bg-zinc-900 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col justify-between text-center">
+        {phase === 'KILLER_PROMPT' && (
+          <>
+            <div className="flex flex-col items-center justify-center flex-1 my-auto">
+              <div className="w-14 h-14 rounded-full bg-red-950/70 border border-red-700 flex items-center justify-center text-red-400 font-black text-lg mb-4 shadow-lg shadow-red-950/50">
+                1
+              </div>
+              <h2 className="text-2xl font-black uppercase tracking-wider text-zinc-100 mb-2">
+                Ознакомление: Бандит
+              </h2>
+              <p className="text-xs text-zinc-400 max-w-sm leading-relaxed">
+                Убедитесь, что второй игрок не смотрит на экран перед раскрытием тайной личности.
+              </p>
+            </div>
+            <button
+              onClick={() => setPhase('KILLER_REVEAL')}
+              className="w-full py-4 bg-red-900/90 hover:bg-red-800 text-red-100 text-xs font-bold uppercase tracking-wider rounded-xl border border-red-700 transition cursor-pointer shadow-lg"
+            >
+              Посмотреть тайную роль
+            </button>
+          </>
+        )}
+
+        {phase === 'KILLER_REVEAL' && (
+          <>
+            <div className="flex flex-col items-center justify-center flex-1 my-auto w-full">
+              <span className="text-[11px] font-bold text-red-400 uppercase tracking-widest mb-2">
+                Твоя секретная личность
+              </span>
+              <div className="w-full max-w-sm p-5 rounded-2xl bg-zinc-950 border border-red-900/60 shadow-xl mb-4">
+                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest block mb-1">
+                  Досье подозреваемого
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-black text-zinc-100">
+                  {killer?.name}
+                </h2>
+              </div>
+              <div className="p-3.5 bg-zinc-950/80 border border-zinc-800 rounded-xl text-xs text-zinc-400 space-y-1.5 text-left w-full font-mono max-w-sm">
+                <div>• Роль: Бандит</div>
+                <div>• Первый ход: обязан убить соседнюю цель</div>
+                <div>• Победа: ликвидация Инспектора или 14 жертв</div>
+              </div>
+            </div>
+            <button
+              onClick={() => setPhase('DETECTIVE_PROMPT')}
+              className="w-full py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold uppercase tracking-wider rounded-xl border border-zinc-700 transition cursor-pointer shadow-lg"
+            >
+              Скрыть роль и передать Инспектору
+            </button>
+          </>
+        )}
+
+        {phase === 'DETECTIVE_PROMPT' && (
+          <>
+            <div className="flex flex-col items-center justify-center flex-1 my-auto">
+              <div className="w-14 h-14 rounded-full bg-blue-950/70 border border-blue-700 flex items-center justify-center text-blue-400 font-black text-lg mb-4 shadow-lg shadow-blue-950/50">
+                2
+              </div>
+              <h2 className="text-2xl font-black uppercase tracking-wider text-zinc-100 mb-2">
+                Ознакомление: Инспектор
+              </h2>
+              <p className="text-xs text-zinc-400 max-w-sm leading-relaxed">
+                Бандит передал устройство. Выберите одну тайную личность из 4 полученных карт доказательств.
+              </p>
+            </div>
+            <button
+              onClick={() => setPhase('DETECTIVE_CHOOSE')}
+              className="w-full py-4 bg-blue-900/90 hover:bg-blue-800 text-blue-100 text-xs font-bold uppercase tracking-wider rounded-xl border border-blue-700 transition cursor-pointer shadow-lg"
+            >
+              Выбрать тайную личность
+            </button>
+          </>
+        )}
+
+        {phase === 'DETECTIVE_CHOOSE' && (
+          <>
+            <div className="flex flex-col items-center flex-1 justify-center w-full my-auto">
+              <span className="text-[11px] font-black text-blue-400 uppercase tracking-widest mb-1">
+                Выбор роли (1 из 4 карт)
+              </span>
+              <p className="text-xs text-zinc-400 mb-5">
+                Остальные 3 карты составят твою начальную руку доказательств (алиби).
+              </p>
+
+              <div className="grid grid-cols-2 gap-3.5 w-full">
+                {inspectorChoices.map((char) => {
+                  const isSelected = selectedInspectorId === char.id;
+                  return (
+                    <div
+                      key={char.id}
+                      onClick={() => setSelectedInspectorId(char.id)}
+                      className={`relative flex flex-col justify-between p-4 rounded-xl border text-left cursor-pointer transition-all select-none min-h-[90px] ${
+                        isSelected
+                          ? 'bg-blue-950/80 border-blue-500 shadow-[0_0_16px_rgba(59,130,246,0.4)] scale-[1.02]'
+                          : 'bg-zinc-950 border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:bg-zinc-900/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase">
+                          Дело #{char.id}
+                        </span>
+                        {isSelected && (
+                          <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+                        )}
+                      </div>
+                      <div className="text-sm sm:text-base font-black text-zinc-100 mt-2">
+                        {char.name}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <button
+              onClick={handleConfirmInspectorRole}
+              disabled={!selectedInspectorId}
+              className="w-full py-4 bg-emerald-900/90 hover:bg-emerald-800 disabled:opacity-40 text-emerald-100 text-xs font-bold uppercase tracking-wider rounded-xl border border-emerald-700 transition cursor-pointer disabled:cursor-not-allowed shadow-lg mt-4"
+            >
+              Подтвердить выбор и начать партию
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/VictimList.tsx">
+import type { Character } from '../types/game';
+
+interface VictimListProps {
+  victimIds: string[];
+  allCharacters: Character[];
+}
+
+export const VictimList = ({ victimIds, allCharacters }: VictimListProps) => {
+  if (!victimIds || victimIds.length === 0) return null;
+
+  return (
+    <div className="w-full bg-zinc-900/90 border border-red-950/80 rounded-xl p-3 shadow-xl mb-3">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] font-black uppercase tracking-widest text-red-400 flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+          Список смертников (Открытые цели маньяка)
+        </span>
+        <span className="text-[9px] font-mono text-zinc-500 uppercase">
+          Маньяк убивает только их
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {victimIds.map((id) => {
+          const char = allCharacters.find((c) => c.id === id);
+          return (
+            <div
+              key={id}
+              className="p-2 rounded-lg bg-zinc-950 border border-red-900/40 flex flex-col justify-between"
+            >
+              <span className="text-[9px] font-mono text-red-500/70 block">
+                #{id}
+              </span>
+              <span className="text-xs font-black text-zinc-200 truncate mt-0.5">
+                {char?.name ?? id}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+</file>
+
+<file path="src/constants/characters.ts">
+import type { Character } from '../types/game';
+
+export const INITIAL_CHARACTERS: Character[] = [
+  { id: 'c1', name: 'Виктор Громов', isAlive: true, isExonerated: false },
+  { id: 'c2', name: 'Марк Воронов', isAlive: true, isExonerated: false },
+  { id: 'c3', name: 'Елена Соколова', isAlive: true, isExonerated: false },
+  { id: 'c4', name: 'Артур Блэк', isAlive: true, isExonerated: false },
+  { id: 'c5', name: 'Анна Морозова', isAlive: true, isExonerated: false },
+  { id: 'c6', name: 'Дмитрий Волков', isAlive: true, isExonerated: false },
+  { id: 'c7', name: 'София Романова', isAlive: true, isExonerated: false },
+  { id: 'c8', name: 'Максим Лебедев', isAlive: true, isExonerated: false },
+  { id: 'c9', name: 'Алиса Смирнова', isAlive: true, isExonerated: false },
+  { id: 'c10', name: 'Роман Орлов', isAlive: true, isExonerated: false },
+  { id: 'c11', name: 'Виктория Белова', isAlive: true, isExonerated: false },
+  { id: 'c12', name: 'Игорь Новиков', isAlive: true, isExonerated: false },
+  { id: 'c13', name: 'Мария Козлова', isAlive: true, isExonerated: false },
+  { id: 'c14', name: 'Денис Попов', isAlive: true, isExonerated: false },
+  { id: 'c15', name: 'Екатерина Ильина', isAlive: true, isExonerated: false },
+  { id: 'c16', name: 'Алексей Медведев', isAlive: true, isExonerated: false },
+  { id: 'c17', name: 'Дарья Кузнецова', isAlive: true, isExonerated: false },
+  { id: 'c18', name: 'Павел Макаров', isAlive: true, isExonerated: false },
+  { id: 'c19', name: 'Ольга Зайцева', isAlive: true, isExonerated: false },
+  { id: 'c20', name: 'Сергей Степанов', isAlive: true, isExonerated: false },
+  { id: 'c21', name: 'Наталья Николаева', isAlive: true, isExonerated: false },
+  { id: 'c22', name: 'Андрей Семенов', isAlive: true, isExonerated: false },
+  { id: 'c23', name: 'Татьяна Павлова', isAlive: true, isExonerated: false },
+  { id: 'c24', name: 'Илья Богданов', isAlive: true, isExonerated: false },
+  { id: 'c25', name: 'Ксения Тарасова', isAlive: true, isExonerated: false },
+];
+</file>
+
+<file path="src/types/game.ts">
+export type GameModeType = 
+  | 'SKHVATKA' 
+  | 'MANIAC_VS_OPERATIVE' 
+  | 'SECRET_SERVICE' 
+  | 'THIEF_HUNT' 
+  | 'EUROPOL_VS_OPG' 
+  | 'SPANISH_HEIST';
+
+export type Role = 'KILLER' | 'DETECTIVE';
+
+export type OpponentType = 'PVP' | 'AI';
+
+export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
+
+export interface Character {
+  id: string;
+  name: string;
+  isAlive: boolean;
+  isExonerated: boolean;
+  isRobbed?: boolean;
+  isShielded?: boolean;
+  hasBomb?: boolean;
+  isVault?: boolean;       // Хранилище казино
+  isVaultCracked?: boolean; // Взломанный сейф
+  isVaultLocked?: boolean;  // Заблокированный сигнализацией
+}
+
+export interface LastShift {
+  type: 'ROW' | 'COL';
+  index: number;
+  direction: 'FORWARD' | 'BACKWARD';
+}
+
+export interface InterrogationResult {
+  interrogator: Role;
+  targetName: string;
+  isNear: boolean;
+}
+
+export interface GameState {
+  mode: GameModeType;
+  opponent: OpponentType;
+  playerRole: Role;
+  board: Character[][];
+  currentTurn: Role;
+  killerSecretId: string;    // Лидер банды / Убийца
+  detectiveSecretId: string; // Начальник СБ / Сыщик
+  detectiveHand: string[];
+  evidenceDeck: string[];
+  victimList: string[];
+  killCount: number;
+  trophiesKiller?: number;    // Взломанные сейфы (цель: 3)
+  trophiesDetective?: number;
+  blockedShift?: { type: 'ROW' | 'COL'; index: number } | null;
+  winner: Role | null;
+  log: string[];
+  lastShift: LastShift | null;
+  lastInterrogation: InterrogationResult | null;
+  inspectorChoices?: string[];
+}
+</file>
+
+<file path="src/utils/aiLogic.test.ts">
+import { describe, it, expect } from 'vitest';
+import { createInitialState } from './gameLogic';
+import { getKillerAIMove, getDetectiveAIMove, getSecretServiceAIMove } from './aiLogic';
+
+describe('Интеллект игрового бота (aiLogic)', () => {
+  it('Бот-убийца обязан сменить ход на Сыщика после своего действия', () => {
+    const state = createInitialState('SKHVATKA', 'AI', 'DETECTIVE');
+    state.currentTurn = 'KILLER';
+
+    const nextState = getKillerAIMove(state);
+
+    expect(nextState.currentTurn).toBe('DETECTIVE');
+    expect(nextState.log.length).toBeGreaterThan(state.log.length);
+  });
+
+  it('Бот-маньяк не зависает и не атакует цели вне списка смертников', () => {
+    const state = createInitialState('MANIAC_VS_OPERATIVE', 'AI', 'DETECTIVE');
+    state.currentTurn = 'KILLER';
+
+    const nextState = getKillerAIMove(state);
+
+    expect(nextState.currentTurn).toBe('DETECTIVE');
+    if (nextState.killCount > state.killCount) {
+      const dead = nextState.board.flat().filter(c => !c.isAlive);
+      const lastKilled = dead[dead.length - 1];
+      const wasValidTarget = state.victimList.includes(lastKilled.id) || lastKilled.id === state.detectiveSecretId;
+      expect(wasValidTarget).toBe(true);
+    }
+  });
+
+  it('Бот-детектив с пустой рукой алиби не падает с ошибкой и делает сдвиг или обвинение', () => {
+    const state = createInitialState('SKHVATKA', 'AI', 'KILLER');
+    state.currentTurn = 'DETECTIVE';
+    state.detectiveHand = []; // пустая рука
+
+    const nextState = getDetectiveAIMove(state);
+
+    expect(nextState.currentTurn).toBe('KILLER');
+  });
+
+  it('Бот-шпион в «Секретной службе» делает валидный ход и передает очередь', () => {
+    const state = createInitialState('SECRET_SERVICE', 'AI', 'KILLER');
+    state.currentTurn = 'DETECTIVE';
+
+    const nextState = getSecretServiceAIMove(state);
+
+    expect(nextState.currentTurn).toBe('KILLER');
+    expect(nextState.log.length).toBeGreaterThan(state.log.length);
+  });
+});
+</file>
+
+<file path="src/utils/aiLogic.ts">
+import type { GameState, LastShift, Character } from '../types/game';
+import {
+  getAdjacentCharacters,
+  getCharacterCoords,
+  isOppositeShift,
+  killCharacter,
+  accuseCharacter,
+  exonerateFromHand,
+  disguiseKiller,
+  shiftBoard,
+  captureSpy,
+  interrogateNeighbor,
+  robNeighbor,
+  setPolicePatrol,
+  plantBomb,
+  applyShield,
+  sniperShot,
+  crackVault,
+  lockVault,
+} from './gameLogic';
+
+function getAllValidShifts(board: Character[][], lastShift: LastShift | null, blockedShift?: { type: 'ROW' | 'COL'; index: number } | null) {
+  const shifts: Array<{ type: 'ROW' | 'COL'; index: number; direction: 'FORWARD' | 'BACKWARD' }> = [];
+  const numRows = board.length;
+  const numCols = board[0].length;
+
+  for (let r = 0; r < numRows; r++) {
+    if (blockedShift && blockedShift.type === 'ROW' && blockedShift.index === r) continue;
+    for (const dir of ['FORWARD', 'BACKWARD'] as const) {
+      if (!isOppositeShift(lastShift, 'ROW', r, dir)) {
+        shifts.push({ type: 'ROW', index: r, direction: dir });
+      }
+    }
+  }
+
+  for (let c = 0; c < numCols; c++) {
+    if (blockedShift && blockedShift.type === 'COL' && blockedShift.index === c) continue;
+    for (const dir of ['FORWARD', 'BACKWARD'] as const) {
+      if (!isOppositeShift(lastShift, 'COL', c, dir)) {
+        shifts.push({ type: 'COL', index: c, direction: dir });
+      }
+    }
+  }
+
+  return shifts;
+}
+
+export function getKillerAIMove(state: GameState): GameState {
+  if (state.mode === 'THIEF_HUNT') return getThiefAIMove(state);
+  if (state.mode === 'EUROPOL_VS_OPG') return getOPGAIMove(state);
+  if (state.mode === 'SPANISH_HEIST') return getHeistRobberAIMove(state);
+
+  const killerNeighbors = getAdjacentCharacters(state.board, state.killerSecretId);
+
+  if (state.mode === 'MANIAC_VS_OPERATIVE') {
+    const validTargets = killerNeighbors.filter(
+      (c) => c.isAlive && (state.victimList.includes(c.id) || c.id === state.detectiveSecretId)
+    );
+    if (validTargets.length > 0) {
+      const detTarget = validTargets.find((c) => c.id === state.detectiveSecretId);
+      const chosen = detTarget ?? validTargets[Math.floor(Math.random() * validTargets.length)];
+      return killCharacter(state, chosen.id);
+    }
+  } else if (state.mode === 'SKHVATKA') {
+    const validTargets = killerNeighbors.filter((c) => c.isAlive);
+    if (validTargets.length > 0) {
+      const detTarget = validTargets.find((c) => c.id === state.detectiveSecretId);
+      const chosen = detTarget ?? validTargets[Math.floor(Math.random() * validTargets.length)];
+      return killCharacter(state, chosen.id);
+    }
+  }
+
+  const isFirstTurnKiller = state.mode === 'SKHVATKA' && state.killCount === 0;
+  const exoneratedNeighbors = killerNeighbors.filter((c) => c.isExonerated).length;
+  if (!isFirstTurnKiller && exoneratedNeighbors >= 3 && state.evidenceDeck.length > 0 && Math.random() < 0.4) {
+    return disguiseKiller(state);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'DETECTIVE',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Бот сдвинул ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getDetectiveAIMove(state: GameState): GameState {
+  if (state.mode === 'THIEF_HUNT') return getPoliceAIMove(state);
+  if (state.mode === 'EUROPOL_VS_OPG') return getEuropolAIMove(state);
+  if (state.mode === 'SPANISH_HEIST') return getHeistSecurityAIMove(state);
+
+  const detectiveNeighbors = getAdjacentCharacters(state.board, state.detectiveSecretId);
+
+  const suspectsNear = detectiveNeighbors.filter(
+    (c) => c.isAlive && !c.isExonerated && !state.detectiveHand.includes(c.id) && c.id !== state.detectiveSecretId
+  );
+
+  if (suspectsNear.length === 1 && Math.random() < 0.85) {
+    return accuseCharacter(state, suspectsNear[0].id);
+  }
+
+  if (state.detectiveHand.length > 0 && Math.random() < 0.6) {
+    const cardToExonerate = state.detectiveHand[0];
+    return exonerateFromHand(state, cardToExonerate);
+  }
+
+  if (suspectsNear.length > 0 && Math.random() < 0.3) {
+    const chosen = suspectsNear[Math.floor(Math.random() * suspectsNear.length)];
+    return accuseCharacter(state, chosen.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'KILLER',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Бот сдвинул ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getHeistRobberAIMove(state: GameState): GameState {
+  const neighbors = getAdjacentCharacters(state.board, state.killerSecretId);
+  const crackableVault = neighbors.find((c) => c.isVault && !c.isVaultCracked && !c.isVaultLocked);
+
+  if (crackableVault) {
+    return crackVault(state, crackableVault.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'DETECTIVE',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Грабители сдвинули ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getHeistSecurityAIMove(state: GameState): GameState {
+  const neighbors = getAdjacentCharacters(state.board, state.detectiveSecretId);
+  const suspects = neighbors.filter((c) => !c.isExonerated && !c.isVault && c.id !== state.detectiveSecretId);
+
+  if (suspects.length === 1 && Math.random() < 0.75) {
+    return accuseCharacter(state, suspects[0].id);
+  }
+
+  const targetVault = neighbors.find((c) => c.isVault && !c.isVaultCracked && !c.isVaultLocked);
+  if (targetVault && Math.random() < 0.6) {
+    return lockVault(state, targetVault.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'KILLER',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Охрана сдвинула ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getOPGAIMove(state: GameState): GameState {
+  const neighbors = getAdjacentCharacters(state.board, state.killerSecretId).filter((c) => c.isAlive);
+  const detTarget = neighbors.find((c) => c.id === state.detectiveSecretId);
+  if (detTarget) return killCharacter(state, detTarget.id);
+
+  const unmined = neighbors.filter((c) => !c.hasBomb);
+  if (unmined.length > 0 && Math.random() < 0.35) {
+    const target = unmined[Math.floor(Math.random() * unmined.length)];
+    return plantBomb(state, target.id);
+  }
+
+  if (neighbors.length > 0 && Math.random() < 0.6) {
+    const target = neighbors[Math.floor(Math.random() * neighbors.length)];
+    return killCharacter(state, target.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'DETECTIVE',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 ОПГ сдвинула ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getEuropolAIMove(state: GameState): GameState {
+  const detPos = getCharacterCoords(state.board, state.detectiveSecretId);
+  const neighbors = getAdjacentCharacters(state.board, state.detectiveSecretId).filter((c) => c.isAlive);
+
+  const suspects = neighbors.filter((c) => !c.isExonerated && c.id !== state.detectiveSecretId);
+  if (suspects.length === 1 && Math.random() < 0.7) {
+    return accuseCharacter(state, suspects[0].id);
+  }
+
+  if (detPos && Math.random() < 0.3) {
+    const candidates: Character[] = [];
+    const deltas = [[-2, 0], [2, 0], [0, -2], [0, 2]];
+    for (const [dr, dc] of deltas) {
+      const nr = detPos.r + dr;
+      const nc = detPos.c + dc;
+      if (nr >= 0 && nr < 5 && nc >= 0 && nc < 5) {
+        const char = state.board[nr][nc];
+        if (char.isAlive && !char.isExonerated) candidates.push(char);
+      }
+    }
+
+    if (candidates.length > 0) {
+      const target = candidates[Math.floor(Math.random() * candidates.length)];
+      return sniperShot(state, target.id);
+    }
+  }
+
+  const unshielded = [
+    state.board.flat().find((c) => c.id === state.detectiveSecretId),
+    ...neighbors,
+  ].filter((c): c is Character => Boolean(c && c.isAlive && !c.isShielded));
+
+  if (unshielded.length > 0 && Math.random() < 0.4) {
+    const target = unshielded[0];
+    return applyShield(state, target.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'KILLER',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Европол сдвинул ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getThiefAIMove(state: GameState): GameState {
+  const thiefNeighbors = getAdjacentCharacters(state.board, state.killerSecretId);
+  const robTargets = thiefNeighbors.filter((c) => !c.isRobbed && c.id !== state.killerSecretId);
+
+  if (robTargets.length > 0) {
+    const target = robTargets[Math.floor(Math.random() * robTargets.length)];
+    return robNeighbor(state, target.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'DETECTIVE',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Вор сдвинул ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getPoliceAIMove(state: GameState): GameState {
+  const policeNeighbors = getAdjacentCharacters(state.board, state.detectiveSecretId);
+  const suspects = policeNeighbors.filter((c) => !c.isExonerated && c.id !== state.detectiveSecretId);
+
+  if (suspects.length === 1 && Math.random() < 0.75) {
+    return accuseCharacter(state, suspects[0].id);
+  }
+
+  if (Math.random() < 0.45 && !state.blockedShift) {
+    const type: 'ROW' | 'COL' = Math.random() < 0.5 ? 'ROW' : 'COL';
+    const index = Math.floor(Math.random() * 5);
+    return setPolicePatrol(state, type, index);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'KILLER',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Полиция сдвинула ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getSecretServiceAIMove(state: GameState): GameState {
+  const isAgent1 = state.currentTurn === 'KILLER';
+  const mySecretId = isAgent1 ? state.killerSecretId : state.detectiveSecretId;
+  const myNeighbors = getAdjacentCharacters(state.board, mySecretId).filter((c) => c.isAlive);
+
+  if (myNeighbors.length > 0 && Math.random() < 0.5) {
+    const target = myNeighbors[Math.floor(Math.random() * myNeighbors.length)];
+    return captureSpy(state, target.id);
+  }
+
+  if (myNeighbors.length > 0 && Math.random() < 0.7) {
+    const target = myNeighbors[Math.floor(Math.random() * myNeighbors.length)];
+    return interrogateNeighbor(state, target.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    const nextTurn = isAgent1 ? 'DETECTIVE' : 'KILLER';
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: nextTurn,
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Бот сдвинул ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+</file>
+
+<file path="src/utils/audio.ts">
+// Процедурный синтезатор звуков на базе Web Audio API
+class SoundEffects {
+  private ctx: AudioContext | null = null;
+
+  private getContext(): AudioContext | null {
+    if (typeof window === 'undefined') return null;
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (AudioCtx) {
+        this.ctx = new AudioCtx();
+      }
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+    return this.ctx;
+  }
+
+  // Щелчок сдвига ряда / плитки
+  playShift() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(320, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.06);
+
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.06);
+  }
+
+  // Выстрел / Ликвидация (глухой хлопок нуарного револьвера)
+  playKill() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    // Шумовой всплеск
+    const bufferSize = ctx.sampleRate * 0.15;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(600, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.15);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    noise.start();
+    noise.stop(ctx.currentTime + 0.15);
+  }
+
+  // Арест / Наручники (металлический двухтоновый лязг)
+  playAccuse() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    [480, 720].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + i * 0.04);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.6, now + i * 0.04 + 0.08);
+
+      gain.gain.setValueAtTime(0.12, now + i * 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.04 + 0.08);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + i * 0.04);
+      osc.stop(now + i * 0.04 + 0.08);
+    });
+  }
+
+  // Взрыв мины / Взлом хранилища
+  playExplosion() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(110, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.25);
+
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.25);
+  }
+}
+
+export const sounds = new SoundEffects();
+</file>
+
+<file path="src/utils/europol.test.ts">
+import { describe, it, expect } from 'vitest';
+import { createInitialState, plantBomb, applyShield, sniperShot, killCharacter } from './gameLogic';
+import { getOPGAIMove, getEuropolAIMove } from './aiLogic';
+
+describe('Режим: Европол против ОПГ (EUROPOL_VS_OPG)', () => {
+  it('Бронежилет отражает выстрел и снимается после атаки', () => {
+    const state = createInitialState('EUROPOL_VS_OPG', 'AI', 'KILLER');
+    // Ставим Европол на [0, 0], а цель рядом на [0, 1]
+    state.detectiveSecretId = state.board[0][0].id;
+    const target = state.board[0][1];
+
+    // Навешиваем бронежилет
+    const shieldedState = applyShield(state, target.id);
+    expect(shieldedState.board[0][1].isShielded).toBe(true);
+
+    // Бандит встает на [0, 2] и стреляет в соседа [0, 1]
+    shieldedState.killerSecretId = state.board[0][2].id;
+    const afterShot = killCharacter(shieldedState, target.id);
+
+    expect(afterShot.board[0][1].isAlive).toBe(true);
+    expect(afterShot.board[0][1].isShielded).toBe(false);
+  });
+
+  it('ОПГ закладывает мину на клетку соседа', () => {
+    const state = createInitialState('EUROPOL_VS_OPG', 'AI', 'DETECTIVE');
+    state.killerSecretId = state.board[1][1].id;
+
+    const bombedState = plantBomb(state, state.board[1][2].id);
+    expect(bombedState.board[1][2].hasBomb).toBe(true);
+  });
+
+  it('Снайпер поражает цель строго на дистанции 2 клеток', () => {
+    const state = createInitialState('EUROPOL_VS_OPG', 'AI', 'KILLER');
+    state.detectiveSecretId = state.board[0][0].id;
+
+    const shotState = sniperShot(state, state.board[0][2].id);
+    expect(shotState.board[0][2].isAlive).toBe(false);
+  });
+
+  it('Бот Европола и бот ОПГ совершают ходы без зависаний', () => {
+    const state = createInitialState('EUROPOL_VS_OPG', 'AI', 'DETECTIVE');
+    const opgMove = getOPGAIMove(state);
+    expect(opgMove.currentTurn).toBe('DETECTIVE');
+
+    const europolMove = getEuropolAIMove(opgMove);
+    expect(europolMove.currentTurn).toBe('KILLER');
+  });
+});
+</file>
+
+<file path="src/utils/gameLogic.test.ts">
+import { describe, it, expect } from 'vitest';
+import {
+  isOppositeShift,
+  getAdjacentCharacters,
+  killCharacter,
+  accuseCharacter,
+  canCleanupBoard,
+} from './gameLogic';
+import type { Character, GameState } from '../types/game';
+
+const createMockChar = (id: string, name: string, isAlive = true, isExonerated = false): Character => ({
+  id,
+  name,
+  isAlive,
+  isExonerated,
+});
+
+describe('Ядро правил игры (gameLogic)', () => {
+  it('должно блокировать отмену хода противника (anti-undo)', () => {
+    const lastShift = { type: 'ROW' as const, index: 2, direction: 'FORWARD' as const };
+
+    expect(isOppositeShift(lastShift, 'ROW', 2, 'BACKWARD')).toBe(true);
+    expect(isOppositeShift(lastShift, 'ROW', 2, 'FORWARD')).toBe(false);
+    expect(isOppositeShift(lastShift, 'ROW', 1, 'BACKWARD')).toBe(false);
+    expect(isOppositeShift(lastShift, 'COL', 2, 'BACKWARD')).toBe(false);
+  });
+
+  it('должно корректно находить соседей клетки (включая диагонали)', () => {
+    const board: Character[][] = [
+      [createMockChar('1', 'A'), createMockChar('2', 'B'), createMockChar('3', 'C')],
+      [createMockChar('4', 'D'), createMockChar('5', 'E'), createMockChar('6', 'F')],
+      [createMockChar('7', 'G'), createMockChar('8', 'H'), createMockChar('9', 'I')],
+    ];
+
+    const centerNeighbors = getAdjacentCharacters(board, '5');
+    expect(centerNeighbors.length).toBe(8);
+    expect(centerNeighbors.map((c) => c.id)).toEqual(
+      expect.arrayContaining(['1', '2', '3', '4', '6', '7', '8', '9'])
+    );
+
+    const cornerNeighbors = getAdjacentCharacters(board, '1');
+    expect(cornerNeighbors.length).toBe(3);
+    expect(cornerNeighbors.map((c) => c.id)).toEqual(
+      expect.arrayContaining(['2', '4', '5'])
+    );
+  });
+
+  it('Бандит побеждает мгновенно при убийстве Инспектора', () => {
+    const board: Character[][] = [
+      [createMockChar('k', 'Бандит'), createMockChar('i', 'Инспектор')],
+      [createMockChar('v1', 'Жертва 1'), createMockChar('v2', 'Жертва 2')],
+    ];
+
+    const state: GameState = {
+      mode: 'SKHVATKA',
+      board,
+      currentTurn: 'KILLER',
+      killerSecretId: 'k',
+      detectiveSecretId: 'i',
+      detectiveHand: [],
+      evidenceDeck: [],
+      victimList: [],
+      killCount: 0,
+      winner: null,
+      log: [],
+      lastShift: null,
+      lastInterrogation: null,
+    };
+
+    const nextState = killCharacter(state, 'i');
+    expect(nextState.winner).toBe('KILLER');
+    expect(nextState.board[0][1].isAlive).toBe(false);
+  });
+
+  it('Бандит побеждает при наборе 14 убийств', () => {
+    const board: Character[][] = [
+      [createMockChar('k', 'Бандит'), createMockChar('v1', 'Жертва 1')],
+      [createMockChar('v2', 'Жертва 2'), createMockChar('i', 'Инспектор')],
+    ];
+
+    const state: GameState = {
+      mode: 'SKHVATKA',
+      board,
+      currentTurn: 'KILLER',
+      killerSecretId: 'k',
+      detectiveSecretId: 'i',
+      detectiveHand: [],
+      evidenceDeck: [],
+      victimList: [],
+      killCount: 13,
+      winner: null,
+      log: [],
+      lastShift: null,
+      lastInterrogation: null,
+    };
+
+    const nextState = killCharacter(state, 'v1');
+    expect(nextState.killCount).toBe(14);
+    expect(nextState.winner).toBe('KILLER');
+  });
+
+  it('Инспектор побеждает при верном обвинении Бандита-соседа', () => {
+    const board: Character[][] = [
+      [createMockChar('i', 'Инспектор'), createMockChar('k', 'Бандит')],
+      [createMockChar('v1', 'Гражданин'), createMockChar('v2', 'Гражданин 2')],
+    ];
+
+    const state: GameState = {
+      mode: 'SKHVATKA',
+      board,
+      currentTurn: 'DETECTIVE',
+      killerSecretId: 'k',
+      detectiveSecretId: 'i',
+      detectiveHand: [],
+      evidenceDeck: [],
+      victimList: [],
+      killCount: 0,
+      winner: null,
+      log: [],
+      lastShift: null,
+      lastInterrogation: null,
+    };
+
+    const nextState = accuseCharacter(state, 'k');
+    expect(nextState.winner).toBe('DETECTIVE');
+  });
+
+  it('Ложное обвинение оправдывает персонажа (isExonerated = true)', () => {
+    const board: Character[][] = [
+      [createMockChar('i', 'Инспектор'), createMockChar('v1', 'Подозреваемый')],
+      [createMockChar('k', 'Бандит'), createMockChar('v2', 'Гражданин 2')],
+    ];
+
+    const state: GameState = {
+      mode: 'SKHVATKA',
+      board,
+      currentTurn: 'DETECTIVE',
+      killerSecretId: 'k',
+      detectiveSecretId: 'i',
+      detectiveHand: [],
+      evidenceDeck: [],
+      victimList: [],
+      killCount: 0,
+      winner: null,
+      log: [],
+      lastShift: null,
+      lastInterrogation: null,
+    };
+
+    const nextState = accuseCharacter(state, 'v1');
+    expect(nextState.winner).toBeNull();
+    expect(nextState.currentTurn).toBe('KILLER');
+    expect(nextState.board[0][1].isExonerated).toBe(true);
+  });
+
+  it('кнопка «Обновить» активна только если мертвый находится перед живым', () => {
+    const boardNeedsCleanup: Character[][] = [
+      [createMockChar('1', 'A', false), createMockChar('2', 'B', true)],
+      [createMockChar('3', 'C', true), createMockChar('4', 'D', true)],
+    ];
+    expect(canCleanupBoard(boardNeedsCleanup)).toBe(true);
+
+    const boardAlreadyClean: Character[][] = [
+      [createMockChar('1', 'A', true), createMockChar('2', 'B', true)],
+      [createMockChar('3', 'C', true), createMockChar('4', 'D', false)],
+    ];
+    expect(canCleanupBoard(boardAlreadyClean)).toBe(false);
+  });
+
+  it('Маньяк не может убить соседа, которого нет в списке смертников', () => {
+    const board: Character[][] = [
+      [createMockChar('m', 'Маньяк'), createMockChar('targetNotInList', 'Не в списке')],
+      [createMockChar('v1', 'В списке'), createMockChar('op', 'Оперативник')],
+    ];
+
+    const state: GameState = {
+      mode: 'MANIAC_VS_OPERATIVE',
+      board,
+      currentTurn: 'KILLER',
+      killerSecretId: 'm',
+      detectiveSecretId: 'op',
+      detectiveHand: [],
+      evidenceDeck: [],
+      victimList: ['v1'],
+      killCount: 0,
+      winner: null,
+      log: [],
+      lastShift: null,
+      lastInterrogation: null,
+    };
+
+    // Попытка убить цель вне списка смертников
+    const unallowedKillState = killCharacter(state, 'targetNotInList');
+    expect(unallowedKillState.killCount).toBe(0);
+    expect(unallowedKillState.currentTurn).toBe('KILLER'); // Ход не сменился
+    expect(unallowedKillState.board[0][1].isAlive).toBe(true);
+  });
+});
+</file>
+
+<file path="src/utils/gameLogic.ts">
+import type { Character, GameModeType, GameState, OpponentType, Role, LastShift } from '../types/game';
+
+export const CHARACTERS_DATA: Omit<Character, 'isAlive' | 'isExonerated'>[] = [
+  { id: 'c1', name: 'Артур Блэк' },
+  { id: 'c2', name: 'Мария Козлова' },
+  { id: 'c3', name: 'Елена Соколова' },
+  { id: 'c4', name: 'Виктор Громов' },
+  { id: 'c5', name: 'Анна Морозова' },
+  { id: 'c6', name: 'Алексей Медведев' },
+  { id: 'c7', name: 'Татьяна Павлова' },
+  { id: 'c8', name: 'Павел Макаров' },
+  { id: 'c9', name: 'Роман Орлов' },
+  { id: 'c10', name: 'Илья Богданов' },
+  { id: 'c11', name: 'София Романова' },
+  { id: 'c12', name: 'Виктория Белова' },
+  { id: 'c13', name: 'Ксения Тарасова' },
+  { id: 'c14', name: 'Алиса Смирнова' },
+  { id: 'c15', name: 'Андрей Семенов' },
+  { id: 'c16', name: 'Дарья Кузнецова' },
+  { id: 'c17', name: 'Ольга Зайцева' },
+  { id: 'c18', name: 'Дмитрий Волков' },
+  { id: 'c19', name: 'Сергей Степанов' },
+  { id: 'c20', name: 'Максим Лебедев' },
+  { id: 'c21', name: 'Игорь Новиков' },
+  { id: 'c22', name: 'Наталья Николаева' },
+  { id: 'c23', name: 'Марк Воронов' },
+  { id: 'c24', name: 'Денис Попов' },
+  { id: 'c25', name: 'Екатерина Ильина' },
+];
+
+function shuffle<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+export function isOppositeShift(
+  lastShift: LastShift | null,
+  type: 'ROW' | 'COL',
+  index: number,
+  direction: 'FORWARD' | 'BACKWARD'
+): boolean {
+  if (!lastShift) return false;
+  return (
+    lastShift.type === type &&
+    lastShift.index === index &&
+    lastShift.direction !== direction
+  );
+}
+
+export function getCharacterCoords(board: Character[][], characterId: string): { r: number; c: number } | null {
+  for (let r = 0; r < board.length; r++) {
+    for (let c = 0; c < board[r].length; c++) {
+      if (board[r][c].id === characterId) return { r, c };
+    }
+  }
+  return null;
+}
+
+export function areAdjacent(board: Character[][], id1: string, id2: string): boolean {
+  const p1 = getCharacterCoords(board, id1);
+  const p2 = getCharacterCoords(board, id2);
+  if (!p1 || !p2) return false;
+  const dr = Math.abs(p1.r - p2.r);
+  const dc = Math.abs(p1.c - p2.c);
+  return dr <= 1 && dc <= 1 && !(dr === 0 && dc === 0);
+}
+
+export function getAdjacentCharacters(board: Character[][], characterId: string): Character[] {
+  const pos = getCharacterCoords(board, characterId);
+  if (!pos) return [];
+  const { r, c } = pos;
+  const adjacent: Character[] = [];
+  const numRows = board.length;
+  const numCols = board[0].length;
+
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      if (dr === 0 && dc === 0) continue;
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr >= 0 && nr < numRows && nc >= 0 && nc < numCols) {
+        adjacent.push(board[nr][nc]);
+      }
+    }
+  }
+  return adjacent;
+}
+
+export function createInitialState(
+  mode: GameModeType,
+  opponent: OpponentType,
+  playerRole: Role = 'DETECTIVE'
+): GameState {
+  const shuffledCharacters = shuffle(CHARACTERS_DATA);
+  const boardCharacters = shuffledCharacters.slice(0, 25).map((c) => ({
+    ...c,
+    isAlive: true,
+    isExonerated: false,
+    isRobbed: false,
+    isShielded: false,
+    hasBomb: false,
+    isVault: false,
+    isVaultCracked: false,
+    isVaultLocked: false,
+  }));
+
+  const board: Character[][] = [];
+  for (let i = 0; i < 5; i++) {
+    board.push(boardCharacters.slice(i * 5, i * 5 + 5));
+  }
+
+  if (mode === 'SPANISH_HEIST') {
+    board[0][0].isVault = true;
+    board[0][4].isVault = true;
+    board[4][0].isVault = true;
+    board[4][4].isVault = true;
+  }
+
+  const deck = shuffledCharacters.slice(25).map((c) => c.id);
+
+  const candidatePool = boardCharacters.filter((c) => !c.isVault);
+  const killerIndex = Math.floor(Math.random() * candidatePool.length);
+  const killerSecretId = candidatePool[killerIndex].id;
+
+  const killerNeighbors = getAdjacentCharacters(board, killerSecretId).map((c) => c.id);
+  const validDetectiveCandidates = candidatePool.filter(
+    (c) => c.id !== killerSecretId && !killerNeighbors.includes(c.id)
+  );
+
+  let detectiveSecretId: string;
+  let detectiveHand: string[] = [];
+  let inspectorChoices: string[] = [];
+  let victimList: string[] = [];
+
+  if (mode === 'SKHVATKA') {
+    const safeCandidates = shuffle(validDetectiveCandidates);
+    const chosenChoices = safeCandidates.slice(0, 4);
+    inspectorChoices = chosenChoices.map((c) => c.id);
+    detectiveSecretId = inspectorChoices[0];
+    detectiveHand = inspectorChoices.slice(1);
+  } else if (mode === 'MANIAC_VS_OPERATIVE') {
+    const chosenDet = validDetectiveCandidates[Math.floor(Math.random() * validDetectiveCandidates.length)];
+    detectiveSecretId = chosenDet.id;
+    const potentialVictims = boardCharacters
+      .filter((c) => c.id !== killerSecretId && c.id !== detectiveSecretId)
+      .map((c) => c.id);
+    victimList = shuffle(potentialVictims).slice(0, 4);
+  } else {
+    const chosenDet = validDetectiveCandidates[Math.floor(Math.random() * validDetectiveCandidates.length)];
+    detectiveSecretId = chosenDet.id;
+  }
+
+  return {
+    board,
+    evidenceDeck: deck,
+    killerSecretId,
+    detectiveSecretId,
+    detectiveHand,
+    inspectorChoices,
+    victimList,
+    currentTurn: 'KILLER',
+    killCount: 0,
+    trophiesKiller: 0,
+    trophiesDetective: 0,
+    blockedShift: null,
+    lastShift: null,
+    winner: null,
+    mode,
+    opponent,
+    playerRole,
+    log: [
+      `Операция началась (${mode}). Режим: ${opponent === 'AI' ? 'Против бота' : 'Вдвоем'}.`,
+      'Раунд 1: Первый ход за атакующей стороной.',
+    ],
+  };
+}
+
+export function setInspectorRole(state: GameState, chosenId: string): GameState {
+  if (!state.inspectorChoices?.includes(chosenId)) return state;
+  const remainingHand = state.inspectorChoices.filter((id) => id !== chosenId);
+  return {
+    ...state,
+    detectiveSecretId: chosenId,
+    detectiveHand: remainingHand,
+    inspectorChoices: [],
+    log: [...state.log, 'Инспектор определился с тайным досье прикрытия.'],
+  };
+}
+
+export function shiftBoard(
+  board: Character[][],
+  type: 'ROW' | 'COL',
+  index: number,
+  direction: 'FORWARD' | 'BACKWARD'
+): Character[][] {
+  const newBoard = board.map((row) => [...row]);
+
+  if (type === 'ROW') {
+    const row = [...newBoard[index]];
+    if (direction === 'FORWARD') {
+      const last = row.pop()!;
+      row.unshift(last);
+    } else {
+      const first = row.shift()!;
+      row.push(first);
+    }
+    newBoard[index] = row;
+  } else {
+    const col: Character[] = [];
+    for (let r = 0; r < 5; r++) col.push(newBoard[r][index]);
+    if (direction === 'FORWARD') {
+      const last = col.pop()!;
+      col.unshift(last);
+    } else {
+      const first = col.shift()!;
+      col.push(first);
+    }
+    for (let r = 0; r < 5; r++) newBoard[r][index] = col[r];
+  }
+
+  return newBoard;
+}
+
+export function killCharacter(state: GameState, targetId: string): GameState {
+  if (state.winner) return state;
+
+  const isAdjacent = areAdjacent(state.board, state.killerSecretId, targetId);
+  if (!isAdjacent) return state;
+
+  let isVictimValid = true;
+  if (state.mode === 'MANIAC_VS_OPERATIVE') {
+    isVictimValid = state.victimList.includes(targetId) || targetId === state.detectiveSecretId;
+  }
+  if (!isVictimValid) return state;
+
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+
+  if (targetChar?.isShielded) {
+    const newBoard = state.board.map((row) =>
+      row.map((c) => (c.id === targetId ? { ...c, isShielded: false } : c))
+    );
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'DETECTIVE',
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `Выстрел отражен! Бронежилет спас жизнь ${targetChar.name}! Защита снята.`,
+      ],
+    };
+  }
+
+  let killedName = '';
+  const newBoard = state.board.map((row) =>
+    row.map((c) => {
+      if (c.id === targetId) {
+        killedName = c.name;
+        return { ...c, isAlive: false, hasBomb: false };
+      }
+      return c;
+    })
+  );
+
+  const newKillCount = state.killCount + 1;
+  let winner: Role | null = null;
+
+  if (targetId === state.detectiveSecretId) {
+    winner = 'KILLER';
+  } else if (state.mode === 'MANIAC_VS_OPERATIVE' && newKillCount >= 4) {
+    winner = 'KILLER';
+  } else if (state.mode === 'EUROPOL_VS_OPG' && newKillCount >= 6) {
+    winner = 'KILLER';
+  } else if (state.mode === 'SKHVATKA' && newKillCount >= 14) {
+    winner = 'KILLER';
+  }
+
+  return {
+    ...state,
+    board: newBoard,
+    killCount: newKillCount,
+    winner,
+    currentTurn: 'DETECTIVE',
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Ликвидация: персонаж ${killedName} устранен.${winner ? ' Победа преступного мира!' : ''}`,
+    ],
+  };
+}
+
+export function crackVault(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== 'SPANISH_HEIST') return state;
+  if (!areAdjacent(state.board, state.killerSecretId, targetId)) return state;
+
+  const target = state.board.flat().find((c) => c.id === targetId);
+  if (!target || !target.isVault || target.isVaultCracked || target.isVaultLocked) return state;
+
+  const crackedCount = (state.trophiesKiller ?? 0) + 1;
+  const isWin = crackedCount >= 3;
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isVaultCracked: true } : c))
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    trophiesKiller: crackedCount,
+    winner: isWin ? 'KILLER' : null,
+    currentTurn: 'DETECTIVE',
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Сейф ${target.name} взломан! Прогресс ограбления: ${crackedCount}/3.${
+        isWin ? ' Хранилище казино полностью обчищено! Победа банды!' : ''
+      }`,
+    ],
+  };
+}
+
+export function lockVault(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== 'SPANISH_HEIST') return state;
+  if (!areAdjacent(state.board, state.detectiveSecretId, targetId)) return state;
+
+  const target = state.board.flat().find((c) => c.id === targetId);
+  if (!target || !target.isVault || target.isVaultCracked || target.isVaultLocked) return state;
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isVaultLocked: true } : c))
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    currentTurn: 'KILLER',
+    blockedShift: null,
+    log: [...state.log, `Охрана включила протокол тревоги на сейфе ${target.name}!`],
+  };
+}
+
+export function plantBomb(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== 'EUROPOL_VS_OPG') return state;
+  if (!areAdjacent(state.board, state.killerSecretId, targetId)) return state;
+
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+  if (!targetChar || targetChar.hasBomb) return state;
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, hasBomb: true } : c))
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    currentTurn: 'DETECTIVE',
+    blockedShift: null,
+    log: [...state.log, `ОПГ заложила скрытый заряд взрывчатки в квартале ${targetChar.name}!`],
+  };
+}
+
+export function applyShield(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== 'EUROPOL_VS_OPG') return state;
+  if (!areAdjacent(state.board, state.detectiveSecretId, targetId) && targetId !== state.detectiveSecretId) {
+    return state;
+  }
+
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+  if (!targetChar || targetChar.isShielded) return state;
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isShielded: true } : c))
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    currentTurn: 'KILLER',
+    blockedShift: null,
+    log: [...state.log, `Европол экипировал защитным протоколом: ${targetChar.name}.`],
+  };
+}
+
+export function sniperShot(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== 'EUROPOL_VS_OPG') return state;
+
+  const pDet = getCharacterCoords(state.board, state.detectiveSecretId);
+  const pTarget = getCharacterCoords(state.board, targetId);
+  if (!pDet || !pTarget) return state;
+
+  const dr = Math.abs(pDet.r - pTarget.r);
+  const dc = Math.abs(pDet.c - pTarget.c);
+  const isValidSniperRange = (dr === 2 && dc === 0) || (dr === 0 && dc === 2);
+
+  if (!isValidSniperRange) return state;
+
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+  if (!targetChar || !targetChar.isAlive) return state;
+
+  if (targetId === state.killerSecretId) {
+    return {
+      ...state,
+      winner: 'DETECTIVE',
+      log: [...state.log, `Снайперский выстрел точно в цель! Глава ОПГ (${targetChar.name}) ликвидирован! Победа Европола!`],
+    };
+  }
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c))
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    currentTurn: 'KILLER',
+    blockedShift: null,
+    log: [...state.log, `Снайпер Европола устранил ложную цель: ${targetChar.name}.`],
+  };
+}
+
+export function robNeighbor(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== 'THIEF_HUNT') return state;
+  if (!areAdjacent(state.board, state.killerSecretId, targetId)) return state;
+
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+  if (!targetChar || targetChar.isRobbed) return state;
+
+  const newTrophies = (state.trophiesKiller ?? 0) + 1;
+  const isWin = newTrophies >= 5;
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isRobbed: true } : c))
+  );
+
+  let nextKillerSecretId = state.killerSecretId;
+  const nextDeck = [...state.evidenceDeck];
+  if (!isWin && nextDeck.length > 0) {
+    nextKillerSecretId = nextDeck.shift()!;
+  }
+
+  return {
+    ...state,
+    board: newBoard,
+    trophiesKiller: newTrophies,
+    killerSecretId: nextKillerSecretId,
+    evidenceDeck: nextDeck,
+    winner: isWin ? 'KILLER' : null,
+    currentTurn: 'DETECTIVE',
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Вор похитил сокровище у персонажа ${targetChar.name}! Добыча: ${newTrophies}/5.${
+        isWin ? ' Вор скрылся со всеми сокровищами!' : ' Вор сменил прикрытие и растворился в толпе.'
+      }`,
+    ],
+  };
+}
+
+export function setPolicePatrol(state: GameState, type: 'ROW' | 'COL', index: number): GameState {
+  if (state.winner || state.mode !== 'THIEF_HUNT') return state;
+
+  return {
+    ...state,
+    blockedShift: { type, index },
+    currentTurn: 'KILLER',
+    log: [
+      ...state.log,
+      `Полиция выставила оцепление на ${type === 'ROW' ? `ряд ${index + 1}` : `колонку ${index + 1}`}. Сдвиг заблокирован на 1 ход!`,
+    ],
+  };
+}
+
+export function accuseCharacter(state: GameState, targetId: string): GameState {
+  if (state.winner) return state;
+
+  const isAdjacent = areAdjacent(state.board, state.detectiveSecretId, targetId);
+  const isSelf = targetId === state.detectiveSecretId;
+  if (!isAdjacent && !isSelf) return state;
+
+  let targetName = '';
+  let targetChar: Character | undefined;
+  state.board.forEach((r) =>
+    r.forEach((c) => {
+      if (c.id === targetId) {
+        targetName = c.name;
+        targetChar = c;
+      }
+    })
+  );
+
+  if (targetChar?.hasBomb) {
+    const isDetKilled = targetId === state.detectiveSecretId;
+    const newBoard = state.board.map((row) =>
+      row.map((c) => (c.id === targetId ? { ...c, isAlive: false, hasBomb: false } : c))
+    );
+
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'KILLER',
+      winner: isDetKilled ? 'KILLER' : null,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `💥 ЛОВУШКА! При проверке сдетонировала скрытая бомба ОПГ! ${targetName} ликвидирован!${
+          isDetKilled ? ' Командир Европола погиб при взрыве!' : ''
+        }`,
+      ],
+    };
+  }
+
+  if (targetId === state.killerSecretId) {
+    return {
+      ...state,
+      winner: 'DETECTIVE',
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `Точное задержание! ${targetName} оказался преступником. Победа Закона!`,
+      ],
+    };
+  }
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isExonerated: true } : c))
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    currentTurn: 'KILLER',
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Ложная проверка: ${targetName} не преступник. Получено алиби.`,
+    ],
+  };
+}
+
+export function exonerateFromHand(state: GameState, id: string): GameState {
+  if (!state.detectiveHand.includes(id)) return state;
+
+  let name = '';
+  const newBoard = state.board.map((row) =>
+    row.map((c) => {
+      if (c.id === id) {
+        name = c.name;
+        return { ...c, isExonerated: true };
+      }
+      return c;
+    })
+  );
+
+  const nextHand = state.detectiveHand.filter((cardId) => cardId !== id);
+  const nextDeck = [...state.evidenceDeck];
+  if (nextDeck.length > 0) nextHand.push(nextDeck.shift()!);
+
+  return {
+    ...state,
+    board: newBoard,
+    detectiveHand: nextHand,
+    evidenceDeck: nextDeck,
+    currentTurn: 'KILLER',
+    blockedShift: null,
+    log: [...state.log, `Из досье сыщика подтверждено алиби для: ${name}.`],
+  };
+}
+
+export function disguiseKiller(state: GameState): GameState {
+  if (state.evidenceDeck.length === 0) return state;
+
+  const nextDeck = [...state.evidenceDeck];
+  const newSecretId = nextDeck.shift()!;
+  nextDeck.push(state.killerSecretId);
+
+  return {
+    ...state,
+    killerSecretId: newSecretId,
+    evidenceDeck: nextDeck,
+    currentTurn: 'DETECTIVE',
+    blockedShift: null,
+    log: [...state.log, 'Преступник сменил облик и ушел в тень.'],
+  };
+}
+
+export function canCleanupBoard(board: Character[][] | Character[]): boolean {
+  if (!board || board.length === 0) return false;
+  const flat = Array.isArray(board[0]) ? (board as Character[][]).flat() : (board as Character[]);
+
+  const firstDeadIdx = flat.findIndex((c) => !c.isAlive);
+  if (firstDeadIdx === -1) return false;
+
+  let lastAliveIdx = -1;
+  for (let i = flat.length - 1; i >= 0; i--) {
+    if (flat[i].isAlive) {
+      lastAliveIdx = i;
+      break;
+    }
+  }
+
+  return firstDeadIdx < lastAliveIdx;
+}
+
+export function cleanupDeadCharacters(state: GameState): GameState {
+  if (state.winner || !canCleanupBoard(state.board)) return state;
+
+  const numRows = state.board.length;
+  const numCols = state.board[0].length;
+
+  const living = state.board.flat().filter((c) => c.isAlive);
+  const dead = state.board.flat().filter((c) => !c.isAlive);
+  const reordered = [...living, ...dead];
+
+  const updatedBoard: Character[][] = [];
+  for (let r = 0; r < numRows; r++) {
+    updatedBoard.push(reordered.slice(r * numCols, r * numCols + numCols));
+  }
+
+  const nextTurn = state.currentTurn === 'KILLER' ? 'DETECTIVE' : 'KILLER';
+
+  return {
+    ...state,
+    board: updatedBoard,
+    currentTurn: nextTurn,
+    blockedShift: null,
+    log: [...state.log, 'Морг очищен: тела смещены в нижнюю часть квартала.'],
+  };
+}
+
+export function captureSpy(state: GameState, targetId: string): GameState {
+  if (state.winner) return state;
+
+  const isAgent1 = state.currentTurn === 'KILLER';
+  const mySecretId = isAgent1 ? state.killerSecretId : state.detectiveSecretId;
+  const enemySecretId = isAgent1 ? state.detectiveSecretId : state.killerSecretId;
+
+  if (!areAdjacent(state.board, mySecretId, targetId)) return state;
+
+  if (targetId === enemySecretId) {
+    const winner: Role = isAgent1 ? 'KILLER' : 'DETECTIVE';
+    return {
+      ...state,
+      winner,
+      blockedShift: null,
+      log: [...state.log, `Вражеский резидент разоблачен на месте! Победа ${winner === 'KILLER' ? 'Востока' : 'Запада'}!`],
+    };
+  }
+
+  const nextTrophiesKiller = isAgent1 ? (state.trophiesKiller ?? 0) + 1 : state.trophiesKiller ?? 0;
+  const nextTrophiesDetective = !isAgent1 ? (state.trophiesDetective ?? 0) + 1 : state.trophiesDetective ?? 0;
+
+  let winner: Role | null = null;
+  if (nextTrophiesKiller >= 2) winner = 'KILLER';
+  if (nextTrophiesDetective >= 2) winner = 'DETECTIVE';
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c))
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    trophiesKiller: nextTrophiesKiller,
+    trophiesDetective: nextTrophiesDetective,
+    winner,
+    currentTurn: isAgent1 ? 'DETECTIVE' : 'KILLER',
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Захвачен агент связного. Получен трофей (+1).${winner ? ' Собрано 2 трофея — победа!' : ''}`,
+    ],
+  };
+}
+
+export function interrogateNeighbor(state: GameState, targetId: string): GameState {
+  const isAgent1 = state.currentTurn === 'KILLER';
+  const mySecretId = isAgent1 ? state.killerSecretId : state.detectiveSecretId;
+  const enemySecretId = isAgent1 ? state.detectiveSecretId : state.killerSecretId;
+
+  if (!areAdjacent(state.board, mySecretId, targetId)) return state;
+
+  const isNear = areAdjacent(state.board, targetId, enemySecretId);
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+
+  return {
+    ...state,
+    lastInterrogation: {
+      interrogator: isAgent1 ? 'KILLER' : 'DETECTIVE',
+      targetName: targetChar?.name ?? 'Свидетель',
+      isNear,
+    },
+    currentTurn: isAgent1 ? 'DETECTIVE' : 'KILLER',
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Допрос свидетеля (${targetChar?.name}): ${isNear ? '«Да, подозрительный субъект рядом!»' : '«Никого рядом не видел»'}.`,
+    ],
+  };
+}
+</file>
+
+<file path="src/utils/haptics.ts">
+// Универсальный Haptic Feedback для Android, iPhone (iOS Web Audio Click) и Telegram Mini App
+export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | 'error') => {
+  if (typeof window === 'undefined') return;
+
+  // 1. Если запущено внутри Telegram Mini App
+  const tg = (window as unknown as { Telegram?: { WebApp?: { HapticFeedback?: { impactOccurred: (s: string) => void; notificationOccurred: (s: string) => void } } } }).Telegram?.WebApp?.HapticFeedback;
+  if (tg) {
+    try {
+      if (type === 'success' || type === 'error') {
+        tg.notificationOccurred(type);
+      } else {
+        tg.impactOccurred(type === 'heavy' ? 'heavy' : type === 'medium' ? 'medium' : 'light');
+      }
+      return;
+    } catch {
+      // Игнорируем
+    }
+  }
+
+  // 2. Стандартный Android Vibration API
+  if (navigator.vibrate) {
+    try {
+      switch (type) {
+        case 'light':
+          navigator.vibrate(15);
+          return;
+        case 'medium':
+          navigator.vibrate(30);
+          return;
+        case 'heavy':
+          navigator.vibrate(55);
+          return;
+        case 'success':
+          navigator.vibrate([25, 40, 25]);
+          return;
+        case 'error':
+          navigator.vibrate([40, 30, 60]);
+          return;
+      }
+    } catch {
+      // Игнорируем
+    }
+  }
+
+  // 3. iPhone / iOS Safari Taptic Simulator (микро-щелчок звукового синтезатора для тактильного ощущения нажатия)
+  try {
+    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (AudioContextClass) {
+      const ctx = new AudioContextClass();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(type === 'heavy' || type === 'error' ? 80 : 160, ctx.currentTime);
+      gain.gain.setValueAtTime(0.04, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.04);
+    }
+  } catch {
+    // Safari AudioContext restricted
+  }
+};
+</file>
+
+<file path="src/utils/spanishHeist.test.ts">
+import { describe, it, expect } from 'vitest';
+import { createInitialState, crackVault, lockVault } from './gameLogic';
+import { getHeistRobberAIMove, getHeistSecurityAIMove } from './aiLogic';
+
+describe('Режим: Ограбление по-испански (SPANISH_HEIST)', () => {
+  it('В режиме испанского ограбления 4 угла являются хранилищами', () => {
+    const state = createInitialState('SPANISH_HEIST', 'AI', 'DETECTIVE');
+    expect(state.board[0][0].isVault).toBe(true);
+    expect(state.board[0][4].isVault).toBe(true);
+    expect(state.board[4][0].isVault).toBe(true);
+    expect(state.board[4][4].isVault).toBe(true);
+  });
+
+  it('Грабитель успешно взламывает соседний сейф', () => {
+    const state = createInitialState('SPANISH_HEIST', 'AI', 'DETECTIVE');
+    // Ставим грабителя рядом с углом [0,0]
+    state.killerSecretId = state.board[0][1].id;
+    const target = state.board[0][0];
+
+    const crackedState = crackVault(state, target.id);
+    expect(crackedState.trophiesKiller).toBe(1);
+    expect(crackedState.board[0][0].isVaultCracked).toBe(true);
+  });
+
+  it('Охрана блокирует доступ к сейфу сигнализацией', () => {
+    const state = createInitialState('SPANISH_HEIST', 'AI', 'KILLER');
+    state.detectiveSecretId = state.board[0][1].id;
+    const target = state.board[0][0];
+
+    const lockedState = lockVault(state, target.id);
+    expect(lockedState.board[0][0].isVaultLocked).toBe(true);
+  });
+
+  it('Бот-грабитель и бот-охрана выполняют валидные ходы', () => {
+    const state = createInitialState('SPANISH_HEIST', 'AI', 'DETECTIVE');
+    const robberMove = getHeistRobberAIMove(state);
+    expect(robberMove.currentTurn).toBe('DETECTIVE');
+
+    const securityMove = getHeistSecurityAIMove(robberMove);
+    expect(securityMove.currentTurn).toBe('KILLER');
+  });
+});
+</file>
+
+<file path="src/utils/thiefHunt.test.ts">
+import { describe, it, expect } from 'vitest';
+import { createInitialState, robNeighbor, setPolicePatrol } from './gameLogic';
+import { getThiefAIMove, getPoliceAIMove } from './aiLogic';
+
+describe('Режим: Охота на грабителя (THIEF_HUNT)', () => {
+  it('Вор успешно похищает сокровище и сменяет тайную личность', () => {
+    const state = createInitialState('THIEF_HUNT', 'AI', 'DETECTIVE');
+    const startKiller = state.killerSecretId;
+    const target = state.board[0][0].id !== startKiller ? state.board[0][0].id : state.board[0][1].id;
+
+    // Имитируем соседство
+    state.killerSecretId = state.board[0][0].id;
+    const nextState = robNeighbor(state, state.board[0][1].id);
+
+    expect(nextState.trophiesKiller).toBe(1);
+    expect(nextState.killerSecretId).not.toBe(startKiller);
+  });
+
+  it('Полиция блокирует ряд или колонку патрулем', () => {
+    const state = createInitialState('THIEF_HUNT', 'AI', 'KILLER');
+    const nextState = setPolicePatrol(state, 'ROW', 1);
+
+    expect(nextState.blockedShift).toEqual({ type: 'ROW', index: 1 });
+  });
+
+  it('Бот-вор и бот-полиция совершают корректные ходы', () => {
+    const state = createInitialState('THIEF_HUNT', 'AI', 'DETECTIVE');
+    const thiefMove = getThiefAIMove(state);
+    expect(thiefMove.currentTurn).toBe('DETECTIVE');
+
+    const policeMove = getPoliceAIMove(thiefMove);
+    expect(policeMove.currentTurn).toBe('KILLER');
+  });
+});
+</file>
+
+<file path="src/App.css">
+.counter {
+  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+  margin-bottom: 24px;
+
+  &:hover {
+    border-color: var(--accent-border);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.hero {
+  position: relative;
+
+  .base,
+  .framework,
+  .vite {
+    inset-inline: 0;
+    margin: 0 auto;
+  }
+
+  .base {
+    width: 170px;
+    position: relative;
+    z-index: 0;
+  }
+
+  .framework,
+  .vite {
+    position: absolute;
+  }
+
+  .framework {
+    z-index: 1;
+    top: 34px;
+    height: 28px;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
+      scale(1.4);
+  }
+
+  .vite {
+    z-index: 0;
+    top: 107px;
+    height: 26px;
+    width: auto;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
+      scale(0.8);
+  }
+}
+
+#center {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  place-content: center;
+  place-items: center;
+  flex-grow: 1;
+
+  @media (max-width: 1024px) {
+    padding: 32px 20px 24px;
+    gap: 18px;
+  }
+}
+
+#next-steps {
+  display: flex;
+  border-top: 1px solid var(--border);
+  text-align: left;
+
+  & > div {
+    flex: 1 1 0;
+    padding: 32px;
+    @media (max-width: 1024px) {
+      padding: 24px 20px;
+    }
+  }
+
+  .icon {
+    margin-bottom: 16px;
+    width: 22px;
+    height: 22px;
+  }
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+#docs {
+  border-right: 1px solid var(--border);
+
+  @media (max-width: 1024px) {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+#next-steps ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+  margin: 32px 0 0;
+
+  .logo {
+    height: 18px;
+  }
+
+  a {
+    color: var(--text-h);
+    font-size: 16px;
+    border-radius: 6px;
+    background: var(--social-bg);
+    display: flex;
+    padding: 6px 12px;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: box-shadow 0.3s;
+
+    &:hover {
+      box-shadow: var(--shadow);
+    }
+    .button-icon {
+      height: 18px;
+      width: 18px;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    li {
+      flex: 1 1 calc(50% - 8px);
+    }
+
+    a {
+      width: 100%;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+  }
+}
+
+#spacer {
+  height: 88px;
+  border-top: 1px solid var(--border);
+  @media (max-width: 1024px) {
+    height: 48px;
+  }
+}
+
+.ticks {
+  position: relative;
+  width: 100%;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: -4.5px;
+    border: 5px solid transparent;
+  }
+
+  &::before {
+    left: 0;
+    border-left-color: var(--border);
+  }
+  &::after {
+    right: 0;
+    border-right-color: var(--border);
+  }
+}
+</file>
+
+<file path="src/App.tsx">
+import { useState, useRef, useEffect } from 'react';
+import type { GameModeType, OpponentType, Role } from './types/game';
+import { GameBoard } from './components/GameBoard';
+import { DetectiveHand } from './components/DetectiveHand';
+import { VictimList } from './components/VictimList';
+import { RoleRevealModal } from './components/RoleRevealModal';
+import { GameOverModal } from './components/GameOverModal';
+import { ModeSelectModal, GAME_MODES } from './components/ModeSelectModal';
+import { triggerHaptic } from './utils/haptics';
+import { sounds } from './utils/audio';
+import {
+  createInitialState,
+  setInspectorRole,
+  shiftBoard,
+  killCharacter,
+  accuseCharacter,
+  exonerateFromHand,
+  disguiseKiller,
+  getAdjacentCharacters,
+  getCharacterCoords,
+  cleanupDeadCharacters,
+  canCleanupBoard,
+  captureSpy,
+  interrogateNeighbor,
+  robNeighbor,
+  setPolicePatrol,
+  plantBomb,
+  applyShield,
+  sniperShot,
+  crackVault,
+  lockVault,
+} from './utils/gameLogic';
+import { getKillerAIMove, getDetectiveAIMove, getSecretServiceAIMove } from './utils/aiLogic';
+
+export default function App() {
+  const [activeMode, setActiveMode] = useState<GameModeType>('SKHVATKA');
+  const [isLobbyOpen, setIsLobbyOpen] = useState(true);
+  const [hasStartedEver, setHasStartedEver] = useState(false);
+
+  const [gameState, setGameState] = useState(() => createInitialState('SKHVATKA', 'AI', 'DETECTIVE'));
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const [isIntroPhase, setIsIntroPhase] = useState(false);
+  const [showKillerRole, setShowKillerRole] = useState(false);
+  const [showDetectiveRole, setShowDetectiveRole] = useState(false);
+
+  const [secondsElapsed, setSecondsElapsed] = useState(0);
+  const [isLogOpen, setIsLogOpen] = useState(false);
+  const [isAIThinking, setIsAIThinking] = useState(false);
+
+  const logContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+  }, [gameState.log, isLogOpen]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    const isGameRunning = hasStartedEver && !isIntroPhase && !gameState.winner;
+
+    if (isGameRunning) {
+      interval = setInterval(() => {
+        setSecondsElapsed((prev) => prev + 1);
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [hasStartedEver, isIntroPhase, gameState.winner]);
+
+  // Ход бота
+  useEffect(() => {
+    if (!hasStartedEver || isIntroPhase || gameState.winner || gameState.opponent !== 'AI') {
+      return;
+    }
+
+    const isAITurn = gameState.currentTurn !== gameState.playerRole;
+
+    if (isAITurn) {
+      setIsAIThinking(true);
+      const timer = setTimeout(() => {
+        setGameState((prev) => {
+          if (prev.winner) return prev;
+          let next = prev;
+          if (prev.mode === 'SECRET_SERVICE') {
+            next = getSecretServiceAIMove(prev);
+          } else if (prev.currentTurn === 'KILLER') {
+            next = getKillerAIMove(prev);
+          } else {
+            next = getDetectiveAIMove(prev);
+          }
+
+          sounds.playShift();
+          if (next.winner) {
+            triggerHaptic(next.winner === next.playerRole ? 'success' : 'error');
+          }
+          return next;
+        });
+        setIsAIThinking(false);
+      }, 350);
+
+      return () => clearTimeout(timer);
+    }
+  }, [hasStartedEver, isIntroPhase, gameState.currentTurn, gameState.winner, gameState.opponent, gameState.playerRole]);
+
+  const formatTimer = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const allChars = gameState.board.flat();
+  const killerChar = allChars.find((c) => c.id === gameState.killerSecretId);
+  const detectiveChar = allChars.find((c) => c.id === gameState.detectiveSecretId);
+
+  const inspectorChoices = (gameState.inspectorChoices ?? [])
+    .map((id) => allChars.find((c) => c.id === id))
+    .filter(Boolean) as typeof allChars;
+
+  const isCleanupAvailable = canCleanupBoard(gameState.board) && !gameState.winner;
+  const isFirstTurnKiller = gameState.mode === 'SKHVATKA' && gameState.killCount === 0 && gameState.currentTurn === 'KILLER';
+
+  const killerAdjacentIds = getAdjacentCharacters(gameState.board, gameState.killerSecretId).map((c) => c.id);
+  const detectiveAdjacentIds = getAdjacentCharacters(gameState.board, gameState.detectiveSecretId).map((c) => c.id);
+
+  const currentModeInfo = GAME_MODES.find((m) => m.id === activeMode) ?? GAME_MODES[0];
+  const currentModeTitle = currentModeInfo?.title ?? 'Схватка';
+
+  const isKillerTurn = gameState.currentTurn === 'KILLER';
+  const isDetectiveTurn = gameState.currentTurn === 'DETECTIVE';
+
+  const role1Name = (currentModeInfo?.killerRoleName ?? 'Бандит').toUpperCase();
+  const role2Name = (currentModeInfo?.detectiveRoleName ?? 'Инспектор').toUpperCase();
+  const currentRoleName = isKillerTurn ? role1Name : role2Name;
+
+  const isHumanTurn = gameState.opponent === 'PVP' || gameState.currentTurn === gameState.playerRole;
+
+  const handleSelectInspectorRole = (chosenId: string) => {
+    triggerHaptic('medium');
+    setGameState((prev) => setInspectorRole(prev, chosenId));
+  };
+
+  const handleStartNewGame = (modeId: GameModeType, opponent: OpponentType, playerRole: Role) => {
+    triggerHaptic('light');
+    setActiveMode(modeId);
+    setGameState(createInitialState(modeId, opponent, playerRole));
+    setSelectedId(null);
+    setShowKillerRole(false);
+    setShowDetectiveRole(false);
+    setSecondsElapsed(0);
+    setIsLobbyOpen(false);
+    setHasStartedEver(true);
+    setIsIntroPhase(modeId === 'SKHVATKA' || modeId === 'MANIAC_VS_OPERATIVE');
+  };
+
+  const handleResumeGame = () => {
+    triggerHaptic('light');
+    setIsLobbyOpen(false);
+  };
+
+  const handleShift = (
+    type: 'ROW' | 'COL',
+    index: number,
+    direction: 'FORWARD' | 'BACKWARD'
+  ) => {
+    if (gameState.winner || isFirstTurnKiller || !isHumanTurn) return;
+    if (gameState.blockedShift && gameState.blockedShift.type === type && gameState.blockedShift.index === index) {
+      triggerHaptic('error');
+      return;
+    }
+
+    triggerHaptic('light');
+    sounds.playShift();
+    const newBoard = shiftBoard(gameState.board, type, index, direction);
+    const nextTurn = gameState.currentTurn === 'KILLER' ? 'DETECTIVE' : 'KILLER';
+    const actionText = `${currentRoleName} сдвинул ${type === 'ROW' ? `ряд ${index + 1}` : `колонку ${index + 1}`}.`;
+
+    setGameState((prev) => ({
+      ...prev,
+      board: newBoard,
+      currentTurn: nextTurn,
+      lastShift: { type, index, direction },
+      blockedShift: null,
+      log: [...prev.log, actionText],
+    }));
+    setSelectedId(null);
+  };
+
+  const handleKill = () => {
+    if (!selectedId || gameState.currentTurn !== 'KILLER' || !isHumanTurn) return;
+    triggerHaptic('heavy');
+    sounds.playKill();
+    setGameState((prev) => {
+      const next = killCharacter(prev, selectedId);
+      if (next.winner) triggerHaptic('success');
+      return next;
+    });
+    setSelectedId(null);
+  };
+
+  const handleCrackVault = () => {
+    if (!selectedId || gameState.currentTurn !== 'KILLER' || !isHumanTurn) return;
+    triggerHaptic('heavy');
+    sounds.playExplosion();
+    setGameState((prev) => {
+      const next = crackVault(prev, selectedId);
+      if (next.winner) triggerHaptic('success');
+      return next;
+    });
+    setSelectedId(null);
+  };
+
+  const handleLockVault = () => {
+    if (!selectedId || gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
+    triggerHaptic('medium');
+    sounds.playAccuse();
+    setGameState((prev) => lockVault(prev, selectedId));
+    setSelectedId(null);
+  };
+
+  const handleRob = () => {
+    if (!selectedId || gameState.currentTurn !== 'KILLER' || !isHumanTurn) return;
+    triggerHaptic('heavy');
+    sounds.playExplosion();
+    setGameState((prev) => {
+      const next = robNeighbor(prev, selectedId);
+      if (next.winner) triggerHaptic('success');
+      return next;
+    });
+    setSelectedId(null);
+  };
+
+  const handlePlantBomb = () => {
+    if (!selectedId || gameState.currentTurn !== 'KILLER' || !isHumanTurn) return;
+    triggerHaptic('medium');
+    sounds.playExplosion();
+    setGameState((prev) => plantBomb(prev, selectedId));
+    setSelectedId(null);
+  };
+
+  const handleApplyShield = () => {
+    if (!selectedId || gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
+    triggerHaptic('light');
+    sounds.playShift();
+    setGameState((prev) => applyShield(prev, selectedId));
+    setSelectedId(null);
+  };
+
+  const handleSniperShot = () => {
+    if (!selectedId || gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
+    triggerHaptic('heavy');
+    sounds.playKill();
+    setGameState((prev) => {
+      const next = sniperShot(prev, selectedId);
+      if (next.winner) triggerHaptic('success');
+      return next;
+    });
+    setSelectedId(null);
+  };
+
+  const handlePatrol = () => {
+    if (gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
+    triggerHaptic('medium');
+    sounds.playAccuse();
+    setGameState((prev) => setPolicePatrol(prev, 'ROW', 2));
+    setSelectedId(null);
+  };
+
+  const handleAccuse = () => {
+    if (!selectedId || gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
+    triggerHaptic('medium');
+    sounds.playAccuse();
+    setGameState((prev) => {
+      const next = accuseCharacter(prev, selectedId);
+      triggerHaptic(next.winner ? 'success' : 'medium');
+      return next;
+    });
+    setSelectedId(null);
+  };
+
+  const handleDisguise = () => {
+    if (gameState.currentTurn !== 'KILLER' || isFirstTurnKiller || !isHumanTurn) return;
+    triggerHaptic('medium');
+    sounds.playShift();
+    setGameState((prev) => disguiseKiller(prev));
+    setSelectedId(null);
+  };
+
+  const handleExonerateFromHand = (id: string) => {
+    if (gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
+    triggerHaptic('light');
+    sounds.playShift();
+    setGameState((prev) => exonerateFromHand(prev, id));
+    setSelectedId(null);
+  };
+
+  const handleCleanup = () => {
+    if (!isCleanupAvailable || isFirstTurnKiller || !isHumanTurn) return;
+    triggerHaptic('medium');
+    sounds.playShift();
+    setGameState((prev) => cleanupDeadCharacters(prev));
+    setSelectedId(null);
+  };
+
+  const handleCaptureSpy = () => {
+    if (!selectedId || gameState.mode !== 'SECRET_SERVICE' || !isHumanTurn) return;
+    sounds.playAccuse();
+    setGameState((prev) => {
+      const next = captureSpy(prev, selectedId);
+      triggerHaptic(next.winner ? 'success' : 'heavy');
+      return next;
+    });
+    setSelectedId(null);
+  };
+
+  const handleInterrogateSpy = () => {
+    if (!selectedId || gameState.mode !== 'SECRET_SERVICE' || !isHumanTurn) return;
+    triggerHaptic('light');
+    sounds.playShift();
+    setGameState((prev) => interrogateNeighbor(prev, selectedId));
+    setSelectedId(null);
+  };
+
+  const handleReset = () => {
+    triggerHaptic('light');
+    handleStartNewGame(activeMode, gameState.opponent, gameState.playerRole);
+  };
+
+  let isSniperTargetValid = false;
+  if (selectedId && gameState.mode === 'EUROPOL_VS_OPG') {
+    const pDet = getCharacterCoords(gameState.board, gameState.detectiveSecretId);
+    const pTarget = getCharacterCoords(gameState.board, selectedId);
+    if (pDet && pTarget) {
+      const dr = Math.abs(pDet.r - pTarget.r);
+      const dc = Math.abs(pDet.c - pTarget.c);
+      isSniperTargetValid = (dr === 2 && dc === 0) || (dr === 0 && dc === 2);
+    }
+  }
+
+  const activeAgentAdjacentIds = isKillerTurn ? killerAdjacentIds : detectiveAdjacentIds;
+  const canPeekKiller = gameState.opponent === 'PVP' || gameState.playerRole === 'KILLER';
+  const canPeekDetective = gameState.opponent === 'PVP' || gameState.playerRole === 'DETECTIVE';
+
+  return (
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center select-none font-sans pb-10">
+      {isLobbyOpen && (
+        <ModeSelectModal
+          currentModeId={activeMode}
+          hasActiveGame={hasStartedEver}
+          onSelectMode={(modeId) => setActiveMode(modeId)}
+          onResumeGame={handleResumeGame}
+          onStartNewGame={handleStartNewGame}
+        />
+      )}
+
+      {isIntroPhase && !isLobbyOpen && (activeMode === 'SKHVATKA' || activeMode === 'MANIAC_VS_OPERATIVE') && (
+        <RoleRevealModal
+          killer={killerChar}
+          inspectorChoices={inspectorChoices}
+          onSelectDetectiveRole={handleSelectInspectorRole}
+          onComplete={() => setIsIntroPhase(false)}
+        />
+      )}
+
+      {gameState.winner && (
+        <GameOverModal
+          winner={gameState.winner}
+          mode={gameState.mode}
+          killer={killerChar}
+          detective={detectiveChar}
+          elapsedTime={formatTimer(secondsElapsed)}
+          onRestart={handleReset}
+        />
+      )}
+
+      <div className="sticky top-0 z-40 w-full bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800 px-2 sm:px-4 pt-[max(0.5rem,env(safe-area-inset-top))] pb-1.5 sm:py-2 flex items-center justify-between shadow-xl">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <button
+            onClick={() => setIsLobbyOpen(true)}
+            className="text-[11px] sm:text-xs bg-zinc-900 active:bg-zinc-800 text-zinc-300 px-2 py-1 sm:py-1.5 rounded-lg border border-zinc-700 transition cursor-pointer flex items-center gap-1"
+          >
+            <span>☰</span>
+            <span className="hidden md:inline">Операции</span>
+          </button>
+
+          <span className="text-[10px] xs:text-xs sm:text-sm font-black tracking-wider text-zinc-200 uppercase">
+            {currentModeTitle}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <div
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 rounded-full border text-[10px] sm:text-xs font-black tracking-wider sm:tracking-widest uppercase transition-all shadow-lg ${
+              isAIThinking
+                ? 'bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse'
+                : isKillerTurn
+                ? 'bg-red-950/80 border-red-600 text-red-100'
+                : 'bg-blue-950/80 border-blue-600 text-blue-100'
+            }`}
+          >
+            <span className={`w-2 h-2 rounded-full ${isAIThinking ? 'bg-amber-400 animate-ping' : isKillerTurn ? 'bg-red-500' : 'bg-blue-500'}`} />
+            <span>{isAIThinking ? 'Бот думает...' : currentRoleName}</span>
+          </div>
+
+          <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-zinc-900 border border-zinc-800 font-mono text-[10px] sm:text-xs text-zinc-400 font-bold">
+            <span>{formatTimer(secondsElapsed)}</span>
+          </div>
+        </div>
+
+        <button
+          onClick={handleReset}
+          className="text-[11px] sm:text-xs bg-zinc-900 active:bg-zinc-800 text-zinc-300 px-2 py-1 sm:py-1.5 rounded-lg border border-zinc-700 transition cursor-pointer shrink-0 ml-1"
+        >
+          Заново
+        </button>
+      </div>
+
+      <div className="w-full max-w-4xl p-2 sm:p-6 flex flex-col items-center">
+        <div className="w-full flex items-center justify-between text-[11px] text-zinc-400 mb-2 px-1">
+          {gameState.mode === 'SECRET_SERVICE' ? (
+            <div className="flex items-center gap-3">
+              <span>Трофеи «Восток»: <b className="text-red-400">{gameState.trophiesKiller ?? 0}/2</b></span>
+              <span>Трофеи «Запад»: <b className="text-blue-400">{gameState.trophiesDetective ?? 0}/2</b></span>
+              <span>Колода: {gameState.evidenceDeck.length}</span>
+            </div>
+          ) : gameState.mode === 'SPANISH_HEIST' ? (
+            <div className="flex items-center gap-3">
+              <span>Взломано хранилищ: <b className="text-amber-400">{gameState.trophiesKiller ?? 0}/3</b></span>
+              <span>Колода: {gameState.evidenceDeck.length}</span>
+            </div>
+          ) : gameState.mode === 'THIEF_HUNT' ? (
+            <div className="flex items-center gap-3">
+              <span>Украдено сокровищ: <b className="text-amber-400">{gameState.trophiesKiller ?? 0}/5</b></span>
+              <span>Колода: {gameState.evidenceDeck.length}</span>
+            </div>
+          ) : gameState.mode === 'EUROPOL_VS_OPG' ? (
+            <div className="flex items-center gap-3">
+              <span>Потери Европола: <b className="text-red-400">{gameState.killCount}/6</b></span>
+              <span>Колода: {gameState.evidenceDeck.length}</span>
+            </div>
+          ) : (
+            <div>
+              Жертвы: <span className="text-red-400 font-bold">{gameState.killCount}/{gameState.mode === 'MANIAC_VS_OPERATIVE' ? 4 : 14}</span> | Улики: {gameState.evidenceDeck.length}
+            </div>
+          )}
+
+          <div className="text-[10px] font-mono text-zinc-500">
+            {gameState.opponent === 'AI' ? '⚔️ Режим: против бота' : '👥 Режим: вдвоем'}
+          </div>
+        </div>
+
+        {gameState.mode === 'MANIAC_VS_OPERATIVE' && (
+          <VictimList
+            victimIds={gameState.victimList}
+            allCharacters={allChars}
+          />
+        )}
+
+        <div className="w-full flex flex-col lg:flex-row gap-3 sm:gap-4 items-start">
+          <div className="flex-1 w-full">
+            <GameBoard
+              board={gameState.board}
+              selectedCharacterId={selectedId}
+              killerAdjacentIds={killerAdjacentIds}
+              detectiveAdjacentIds={detectiveAdjacentIds}
+              showKillerHints={showKillerRole}
+              showDetectiveHints={showDetectiveRole}
+              lastShift={gameState.lastShift}
+              onShift={handleShift}
+              onSelectCharacter={(id) => {
+                if (isHumanTurn) {
+                  triggerHaptic('light');
+                  setSelectedId((prev) => (prev === id ? null : id));
+                }
+              }}
+            />
+          </div>
+
+          <div className="w-full lg:w-72 flex flex-col gap-2.5">
+            <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-xl text-xs flex sm:flex-col gap-2">
+              <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-red-950/60 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] font-bold text-red-400">{role1Name}</div>
+                  <div className="text-[11px] font-mono font-bold text-zinc-300">
+                    {showKillerRole ? killerChar?.name : '••••••••'}
+                  </div>
+                </div>
+                <button
+                  disabled={!canPeekKiller}
+                  onMouseDown={(e) => { e.preventDefault(); triggerHaptic('light'); setShowKillerRole(true); }}
+                  onMouseUp={() => setShowKillerRole(false)}
+                  onMouseLeave={() => setShowKillerRole(false)}
+                  onTouchStart={(e) => { e.preventDefault(); triggerHaptic('light'); setShowKillerRole(true); }}
+                  onTouchEnd={() => setShowKillerRole(false)}
+                  onTouchCancel={() => setShowKillerRole(false)}
+                  className={`text-[9px] px-2.5 py-1.5 rounded border font-bold select-none touch-none ${
+                    !canPeekKiller
+                      ? 'bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed'
+                      : 'bg-red-950 text-red-200 border-red-800 active:bg-red-900 cursor-pointer'
+                  }`}
+                >
+                  Зажать
+                </button>
+              </div>
+
+              <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-blue-950/60 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] font-bold text-blue-400">{role2Name}</div>
+                  <div className="text-[11px] font-mono font-bold text-zinc-300">
+                    {showDetectiveRole ? detectiveChar?.name : '••••••••'}
+                  </div>
+                </div>
+                <button
+                  disabled={!canPeekDetective}
+                  onMouseDown={(e) => { e.preventDefault(); triggerHaptic('light'); setShowDetectiveRole(true); }}
+                  onMouseUp={() => setShowDetectiveRole(false)}
+                  onMouseLeave={() => setShowDetectiveRole(false)}
+                  onTouchStart={(e) => { e.preventDefault(); triggerHaptic('light'); setShowDetectiveRole(true); }}
+                  onTouchEnd={() => setShowDetectiveRole(false)}
+                  onTouchCancel={() => setShowDetectiveRole(false)}
+                  className={`text-[9px] px-2.5 py-1.5 rounded border font-bold select-none touch-none ${
+                    !canPeekDetective
+                      ? 'bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed'
+                      : 'bg-blue-950 text-blue-200 border-blue-800 active:bg-blue-900 cursor-pointer'
+                  }`}
+                >
+                  Зажать
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-xl">
+              <div className="text-zinc-400 font-semibold uppercase tracking-wider text-[10px] mb-1.5 flex items-center justify-between">
+                <span>Действия ({currentRoleName})</span>
+                {isAIThinking && <span className="text-amber-400 text-[9px] animate-pulse">Бот думает...</span>}
+              </div>
+
+              {gameState.mode === 'SPANISH_HEIST' ? (
+                <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
+                  {isKillerTurn ? (
+                    <>
+                      <button
+                        onClick={handleCrackVault}
+                        disabled={!isHumanTurn || !selectedId || !killerAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                        className="py-2.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 disabled:opacity-30 text-zinc-950 text-[11px] font-black rounded-lg transition disabled:cursor-not-allowed"
+                      >
+                        Взломать хранилище 🔓
+                      </button>
+
+                      <button
+                        onClick={handleDisguise}
+                        disabled={!isHumanTurn || gameState.evidenceDeck.length === 0 || gameState.winner !== null}
+                        className="py-2.5 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-200 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed"
+                      >
+                        Дымовая завеса
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleLockVault}
+                        disabled={!isHumanTurn || !selectedId || !detectiveAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                        className="py-2.5 bg-red-900/80 active:bg-red-800 disabled:opacity-30 text-red-100 text-[11px] font-black rounded-lg border border-red-700 transition disabled:cursor-not-allowed"
+                      >
+                        Заблокировать сейф 🔒
+                      </button>
+
+                      <button
+                        onClick={handleAccuse}
+                        disabled={!isHumanTurn || !selectedId || !detectiveAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                        className="py-2.5 bg-blue-900/80 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed"
+                      >
+                        Захват с поличным
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) : gameState.mode === 'EUROPOL_VS_OPG' ? (
+                <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
+                  {isKillerTurn ? (
+                    <>
+                      <button
+                        onClick={handleKill}
+                        disabled={!isHumanTurn || !selectedId || !killerAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                        className="py-2.5 bg-red-900/80 active:bg-red-800 disabled:opacity-30 text-red-100 text-[11px] font-black rounded-lg border border-red-700 transition disabled:cursor-not-allowed"
+                      >
+                        Ликвидация соседа
+                      </button>
+
+                      <button
+                        onClick={handlePlantBomb}
+                        disabled={!isHumanTurn || !selectedId || !killerAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                        className="py-2.5 bg-amber-950/80 active:bg-amber-900 disabled:opacity-30 text-amber-200 text-[11px] font-black rounded-lg border border-amber-800 transition disabled:cursor-not-allowed"
+                      >
+                        Минировать клетку 💣
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleAccuse}
+                        disabled={!isHumanTurn || !selectedId || !detectiveAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                        className="py-2.5 bg-blue-900/80 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed"
+                      >
+                        Штурм и арест
+                      </button>
+
+                      <button
+                        onClick={handleSniperShot}
+                        disabled={!isHumanTurn || !selectedId || !isSniperTargetValid || gameState.winner !== null}
+                        className="py-2.5 bg-emerald-950/80 active:bg-emerald-900 disabled:opacity-30 text-emerald-200 text-[11px] font-black rounded-lg border border-emerald-700 transition disabled:cursor-not-allowed"
+                      >
+                        Выстрел снайпера 🎯
+                      </button>
+
+                      <button
+                        onClick={handleApplyShield}
+                        disabled={!isHumanTurn || !selectedId || (!detectiveAdjacentIds.includes(selectedId) && selectedId !== gameState.detectiveSecretId) || gameState.winner !== null}
+                        className="py-2 bg-indigo-900/70 active:bg-indigo-800 disabled:opacity-30 text-indigo-200 text-[11px] font-bold rounded-lg border border-indigo-700 transition disabled:cursor-not-allowed col-span-2 lg:col-span-1"
+                      >
+                        Бронежилет 🛡️
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) : gameState.mode === 'THIEF_HUNT' ? (
+                <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
+                  <button
+                    onClick={handleRob}
+                    disabled={!isHumanTurn || !isKillerTurn || !selectedId || !killerAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                    className="py-2.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 disabled:opacity-30 text-zinc-950 text-[11px] font-black rounded-lg transition disabled:cursor-not-allowed"
+                  >
+                    Ограбить соседа
+                  </button>
+
+                  <button
+                    onClick={handlePatrol}
+                    disabled={!isHumanTurn || !isDetectiveTurn || gameState.blockedShift !== null || gameState.winner !== null}
+                    className="py-2.5 bg-blue-900/80 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed"
+                  >
+                    Выставить патруль
+                  </button>
+
+                  <button
+                    onClick={handleAccuse}
+                    disabled={!isHumanTurn || !isDetectiveTurn || !selectedId || !detectiveAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                    className="py-2.5 bg-indigo-900/70 active:bg-indigo-800 disabled:opacity-30 text-indigo-100 text-[11px] font-black rounded-lg border border-indigo-700 transition disabled:cursor-not-allowed col-span-2 lg:col-span-1"
+                  >
+                    Арестовать вора
+                  </button>
+                </div>
+              ) : gameState.mode === 'SECRET_SERVICE' ? (
+                <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
+                  <button
+                    onClick={handleCaptureSpy}
+                    disabled={!isHumanTurn || !selectedId || !activeAgentAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                    className="py-2.5 bg-red-900/70 active:bg-red-800 disabled:opacity-30 text-red-100 text-[11px] font-black rounded-lg border border-red-700 transition disabled:cursor-not-allowed"
+                  >
+                    Захватить шпиона
+                  </button>
+
+                  <button
+                    onClick={handleInterrogateSpy}
+                    disabled={!isHumanTurn || !selectedId || !activeAgentAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                    className="py-2.5 bg-blue-900/70 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed"
+                  >
+                    Допросить свидетеля
+                  </button>
+
+                  <button
+                    onClick={handleCleanup}
+                    disabled={!isHumanTurn || !isCleanupAvailable}
+                    className="py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed col-span-2 lg:col-span-1"
+                  >
+                    Обновить поле
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
+                  <button
+                    onClick={handleKill}
+                    disabled={!isHumanTurn || !isKillerTurn || !selectedId || gameState.winner !== null}
+                    className="py-2 bg-red-900/60 active:bg-red-800 disabled:opacity-30 text-red-200 text-[11px] font-bold rounded-lg border border-red-800 transition disabled:cursor-not-allowed"
+                  >
+                    {gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Убить цель' : 'Убить соседа'}
+                  </button>
+
+                  <button
+                    onClick={handleDisguise}
+                    disabled={!isHumanTurn || !isKillerTurn || isFirstTurnKiller || gameState.evidenceDeck.length === 0 || gameState.winner !== null}
+                    className="py-2 bg-amber-950/70 active:bg-amber-900 disabled:opacity-30 text-amber-200 text-[11px] font-bold rounded-lg border border-amber-800 transition disabled:cursor-not-allowed"
+                  >
+                    Замаскироваться
+                  </button>
+
+                  <button
+                    onClick={handleAccuse}
+                    disabled={!isHumanTurn || !isDetectiveTurn || !selectedId || (!detectiveAdjacentIds.includes(selectedId) && selectedId !== gameState.detectiveSecretId) || gameState.winner !== null}
+                    className="py-2 bg-blue-900/60 active:bg-blue-800 disabled:opacity-30 text-blue-200 text-[11px] font-bold rounded-lg border border-blue-800 transition disabled:cursor-not-allowed"
+                  >
+                    {gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Арестовать' : 'Обвинить'}
+                  </button>
+
+                  <button
+                    onClick={handleCleanup}
+                    disabled={!isHumanTurn || !isCleanupAvailable || isFirstTurnKiller}
+                    className="py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed"
+                  >
+                    Обновить поле
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {gameState.mode === 'SKHVATKA' && (
+              <DetectiveHand
+                handIds={gameState.detectiveHand}
+                allCharacters={allChars}
+                isDetectiveTurn={isHumanTurn && isDetectiveTurn && !gameState.winner}
+                onExonerateFromHand={handleExonerateFromHand}
+              />
+            )}
+
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+              <button
+                onClick={() => { triggerHaptic('light'); setIsLogOpen(!isLogOpen); }}
+                className="w-full p-2.5 flex items-center justify-between text-[11px] font-semibold text-zinc-400 bg-zinc-900 hover:bg-zinc-800/80 transition cursor-pointer"
+              >
+                <span>Протокол событий ({gameState.log.length})</span>
+                <span className="text-xs">{isLogOpen ? '▲' : '▼'}</span>
+              </button>
+
+              <div
+                ref={logContainerRef}
+                className={`overflow-y-auto space-y-1 text-[10px] text-zinc-300 font-mono px-2.5 pb-2 transition-all ${
+                  isLogOpen ? 'max-h-48' : 'max-h-16 lg:max-h-44'
+                }`}
+              >
+                {gameState.log.map((entry, idx) => (
+                  <div key={idx} className="border-b border-zinc-800/60 pb-0.5">
+                    • {entry}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="src/index.css">
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  background-color: #09090b;
+  color: #f4f4f5;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+</file>
+
+<file path="src/main.tsx">
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+</file>
+
+<file path=".gitignore">
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+</file>
+
+<file path="eslint.config.js">
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import tseslint from 'typescript-eslint'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      globals: globals.browser,
+    },
+  },
+])
+</file>
+
+<file path="index.html">
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Город грехов</title>
+
+    <!-- Иконки для iOS Safari и браузеров -->
+    <link rel="icon" type="image/png" href="data:image/png;base64,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" />
+    <link rel="apple-touch-icon" href="data:image/png;base64,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" />
+    <link rel="apple-touch-icon-precomposed" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAABRMSURBVHhe7Z1fyGdFGce9cv+8rru66moaJrFIhto/jZYWFPurlJmU1SLitpW2Vv5JdCFrMbRCDL3YqIyESEgskQySiESKIFCSvAiv8s5u6qquT3zet/Gd93vm/M6cc2bOmTlnLj5k+57f+c3vzPc888zzPDNz0rZta1fs2LF2vFCYAyf9/z+qQmEOFEEXZkURdGFWFEEXZkURdGFWFEEXZkURdGFWFEFH4qJzd1YH9zfzjjfvrH2mMJwi6B4gyKvfvrO644rt1UMf2149cWh79be7Tq5evWcY3OeHn9q2ft/rLt2x/j17dtW/v9BMEfQKENNVF+6s7rlqQ7R//kpdhGPAy8L3P3DNhtDP2l2sexNF0MLlF+ysjh7csS4gFVZK/Prz29ZfNF64YsU3WbygEcMN796xPtS/eMe2mnD6wgvRRgg3xcD9brxsR3Xe3vpvXBKLFTSWDf+3j6iwjo9/dsPXRUT4ukPdAF4s7oNLwX15wX55U78XjM9ynyVa7kUJmsjDNz/czRd+7gvb1n1XJoF8Xu85Blhd48t3ETkjDi8tL4rec64sQtCIEauqHe4CsSMC3JBUh29GA34TLycvnP4GF8/fevL6b5q71Z61oOlAHyEjYsQxlQUeCi8eE1lEq79N4bceed98hT07QZtJXlvn4jtjiRnK9R45Q5QGF6ltgouw8dWH+v6pMStBY3na/GMmTEsYeoGJ4aPXrZ74Ivw5CXsWgsYqtbkWWOO37qt/dgngkjChXGW1MQT45frZ3Mha0FgVhlftHAOWib8vVcgKzwtrvErYhCNzfl7ZCprhtMm9QMhM8lKNUkwNwl7lnvH8EH6Obll2giYSgRXRTjDgIxch+4GwcUX0GRoICeYWw85K0FjlpuGShz+3iMVYYCRW1a5grfUzqZKFoBn6mnzlnIfH1CD60+SGIPgcRr7kBY31aIpg4HrkmgxJFdwQ5h/6rAGxp+6CJC3oJhcDq0xRkF5fCAeh0CZrnbILkqygm1wMfOWyfGkcsNZNE3BckBSTMckJGl+46SGS9UrxIc4dLLL2BeAKphazTkrQiNVVHllcjOnBd3a5INTMpDSPSUbQvOmuUkgeWHEx0oAohyu8xzwnlT5KQtA8DFd1HENacTHSApcQ10/7ilE0hTzA5IJGzK5IBn50EXO6NE3aiWXrtWMyqaCbxExlXEmUpA+LCrTvYMqqvckEjc/scjMI6uu1hXTBImsf4n5MlYCZRNC4Eq4JYMoB+0Iz+M66iGCqieLogsaVcIXmqPrSawv5QFZX+5Qw39hx6tEF7Uqa4DPrdYX8oMZa+xa3csyiplEF7ZoZI/AyAZwPrqwi4dex+ng0QbsmD2P+0MJ4MOJqX481Co8iaFKjOmlgKCpx5vnCyiEVNX62Xhea6ILGAmtEA3GnlP8vhMc1+SfyEXuSGF3QruFn6mxSYRxcIzMij+lmRhW0y28ey5cqpIFLAzGTZ9EE7Xo7cT1ivp2FNHGN0rEKmaIJWssMi9+8XFzzKJIuMYICUQTtGmaK37xsXCM2eQm9bijBBU1WSFc2EMLR6wrLw5V0YTGuXjeE4IJWf4m3MnaoppAHLtcjdHItqKB52/QNpGZWryssFyaDMTUSTNC8ZbohTIlqFFzoEq6Qo3gwQbsqraYq8i6kDfMsXakUap4VRNBYYZ0I8hbqdYWCgW0p1ACGWBAQRNBqnRlCxqyBHcKF59X/LWcuuaD+b6miLmoIKz1Y0C7rHDO1GZqnbl+rXj+xVv3ki2vVBy6t/z0HLtu/Vn3/xrXq7w9toH9PFRbTqpUemnwbLOicrTP845G16r8/3YT/jzgQiV6bEows37p+rXr5wa3th32n169PFbXSQ43hYEGHbtCYIAoVgw3WDtGkMoyfv2+tuv3qteov99fbanP9e+ufTRW10kMN4iBBh27M2Hzu/ZsieO3RXdWrD++qicOAiBDT2D431vbwlWvV747V22T45w9O2dL2Bz9Tv0/KhDSKgwQdsiFTgGthRPCdQ3urs88+t7r2wL7qsVtOXxeJCseAuG79YLyh/bRTN162nx+tf7fh3z8+pXry9j3VjVeetd5u/tdun94zZVxua9/Cpd6C1qxgbtYZ7KH70wc3hGGDSH5222nr4lFBGZhUIj5EqPfvCq4Ck9N//aj+PYZn7t5THb36zOr88960pa0X7z/njWv4vN47ZVyBhb67zfYWtK7gzi3ujABt4ex/y1aB2CCeIx86a11MKjBbRFjUrv7rwYvWqhOH65NTmz/ct7u68+NnrGwj2G5H6pNaRQuXKD/Wa3zoJWjXGzXGAsiQEKIznf/iA6fWxNEEosJCIjIVXkho072fPKN6z9vOqbWhCVwQ83n8ff3NKUO4ztYT9EmH9xK0TgZJY+ZWs0GHm87HrVBx+MAwj+gQnwqyD1hYfPkDF/uL2Ia2mHvhuuhvTh1dVNtna7hegtbikhiF2rHB9zWdj8VVcXQFS4oYX/lec6TEBdGVE0dOr65859m1e3aFe5j75pRgMWg6nOI2vaaNzoJm9qkrD3IsQrJ91hBiSgF8fXsCGysKEwuCCqqtrgsAOgta3yI2jNFrUsdOqBCeU2HkjO3bd52gpoBuUNN19O8saF382sfPmRo7ofLbY3tqosgZ3Bfz23JLsIDuYkrwQa9ZRSdBM/HTIWFoMckUuBIqcyHnBAugMa2V7lJW2knQ+Mr2F+XobkBbQiVnck6wGDToQCZRr2mik6A1+J1bqhu6JFRyJecEC+g2GGy5rNc00UnQWrsx5eEwfembUMmJnBMsQELF1hlurm+ew1vQhOvsL4G+BSRTEiKhkjq5J1hAD5TyDQ17C1qzg1hrvSYHQidUUiT3BAvo/i6+0TRvQeMv21+Q6yE/c0yoKLknWED9aN9iJW9Bq//sOwSkxJwTKkruCRZ1cfGj9RoX3oLW2GButc8w54SKknuCBbSi0yfn4SVoxGvfGHHrNTkw54SKknuCBTQr7bOntJegNaFCmZ9ekwNzTqgoc0iw6CISnwSLl6C1ICm31SmwhISKknuCRdca+iTyvARNRMO+ccjdIseCpU6mc+eaUFFyT7BoqNgnY+glaC3py225FSwhoaLknmDRZVk+tUNegtaQXZfqp1RYQkJFmUOCxdYdtKXAvQStJaNtN00ROtR07lwTKsocEixqTNsWznoJ2r6hb4A7JZaUUFFyT7Bo6K5tSVaroDUG7ePHpAYdaTp17gkVJfcEiwq6LUPdKmgt5ctR0HZC5bHDe6pjH1kOxz+xKegcEyxapNRWstwqaCaA9g19i0RS4oX7NgX9i5tP2fJ75s7Thzd/e44JFhV023mXrYLWLGFugtaEyh9v2/qA5s4rX9+WdYJFcyBt2cJWQWtwO8SxAWNiJ1Re+vauWocvgWfv2BR0bgkWXfbXVhfdKmitS2UI0GtSxk6oPPu1U2udvQR+dnhzq7LcEixd09+tgtY6jtwEbSdUnjyyLP/Z8OTNm7Ho3BIsXQ1qq6C73jA17ITK779cXxe5BF66c3u2CRY1qG07KbUKWneyyUnQWxIqJ5ZpnQ0vfGPT7cgpwRLch845ymEnVJ4/tkz/2fD00TzPYFFBt1V6tgpaj57ISdB2QuWZW5dtoZ86vOly5JRgCR6H1kxhnz17p8JOqPzmS8v0nw3P3bLzjWeRU4IluqBzSX1rQoWJkXby4nho00rnkmDRWvzBtRxg3zDlBbJs88VBmRze88p3N8X81/uX7W4Ynrtz049+7ZGNkCbPi+cW4hSvGAQvTgJ9MPr3KaADmPQxwbFdC8N/rP/+1Vd314p2lsgjh06rPScbFhEz72C7h1RCe3ruSpB6aN1nzGd/hBgwTN577epTVd/gcce/FTqBwDEYWHDti7HQ/WDa9lP0EjSLE+2b+uyPEApEjNWwEyRNcGAP6wU504/DePTvha3cde2Z6/XSPqd4sYUa5ymOKW6txffZzd9L0H32RxgC7gTnW7tcCRsEzDHGbKrCPhSmqJ0TqfTaQh1zrDKwXIu9Sh6+aW+rwDEu1MjEdks0B+KzH4yXoLVApC392BeEzINqOlWV5VPGAnc5kLLQHQwEp+diMJpGO6JIjJ7nt/i1fdG0t0+W2kvQuBj2jX32R+jKKiEjYtuaFMbn2gP71sWNUdH+Qdj42qEjJbrjbVuWELwErfsj+PgyvvB2uyZ5WIXjN+zd4koUpocdpxghXQeMvvzgRv259nFfNAbdtvwKvAQN9o0hxFYGTPheP7H1obC6Yin7ZuQOo6bL32b+o33dB7LStuZ89oPxFnSfm6/ikgvqYsYi60MrpA8GSF2RoaLW/aF9jai3oNX8D4l04GvZO4FilT96+b7agyrkA66hba3xq4dMFnXpn2/JhbegdcY5ZG2hvSyKwvMSsZgH+Ne2b00ERPveF50Q+kbWvAWtRUpdjtpS7GVRxc2YF8SyTd8OWe6l2WmfCSF4Cxr0S9oKRZqww3MHLi7WeW6YvoU+bocaT2hLeRs6CVprU9uWwzRhZwAJ3usDKeSLnaVl0q9974OuY+1yhGAnQesX9V29Yq8kYUJI2lUfTCFPnrl7c5P1vitj1HC2bV1g00nQOhT09aMZhuyQHRsoFlHnDxld293om2RR17ZLMVwnQYPu10v0Q6/xwT5iDf50fHdQf9q+91Rom3JqXxeIbmCU7Hv3jXDoGtauRrOzoHWvMZ8KqCbs8B0QwuO4tRAH+mjnTYG2Kaf2+cCoyrEXWrw0ZHcmrezsWjfUWdBa1wFtqwhWgajttX9A1okyxiHxae28KdA25dS+VWBwXEKGIVskYIn1sM2u5/l0FjTospi+0Q4DafCm2meGsj6VdvY9du+7aDR8BZN6+1xQcYefbO/CZCDmfM276n3bBc0Oslqli7sBvQSt9dG+ack2WCNop8RtTC004vaZQKYumNTbZ0DErGpxWWNAyEPrNgxaXuFT/6z0EjRLY/Qgob5JFhe86XY20QVnh5BlbDoAyL5WOzUm9vdqm3JoHxNz3AnCby5LbGBEDSVkCKWpXoIGfZt8c+1dYG86ltlTZ6sP1IYHj8CZUJJ6tY8FBu3UmNjfq2JJTdCMdFhgnhuunVbMKWZdIS6i9tVQtFao76jfW9C6iSPOfFd/pws8RCYcTS7JKrRTY6Lf7YPeIyb63W3gUoyxOFbDwX3nZb0F7ZqRDikp7QKJGYY7NpRpWrZlo50aE/1uH/QeMdHvVkh4PXv3RvQphiV2oef4QN+tMnoLGnRyGNtKN4FrQqIGC066VcOA2qkxUYH4oPeIiX43zwsLjIEYS8CKuq9DSpMHCdrlyI9lpdtIRTA+6D1iYn+vPrMpcFnnIauhBgkatBB7KiutpCAYX/QeMbG/V5/ZFKh17poZVAYL2mWlu2Z3YpCCYHzRe8TE/l59ZmPjyjr7FvI3MVjQoFaaGevUVjp1waTevjHQuo0udc9NBBG0y0pP7UunLpjU2xcbraoLYZ0hiKBBrTQCR+h63VikLpjU2xcbjTuHsM4QTNAuK/3odf2C4yFIXTCpty8mGu6FLkX8qwgmaIjZ0K6kLpjU2xeL2IYvqKBBhxJ2XJpigpi6YFJvXywQr60PSkRDuqbBBe1y9n12jQxN6oJJvX0x0F1sIXTwILigQcMxDDF9c/N9sTtuKrRNObUvNOyroYtfQ00EbaIImiFEC5fGdj2086ZA25RT+0KjGUEYkuJuIoqgQffwgD4rEPqinTcF2qac2hcSV7CAxdZ6XQiiCRp0wxBoOwm0MC9wNTWqwZrUWKN1VEHTaN1Xegp/ujANrv4nqjFkl4A2ogoaXG/o2P50YRpcI3SI9PYqogsaXP50yGB6IT10jSDEWHeqjCJocL2tXTbhK+SD7q8BY43Kowna5U/BFEmXQjxInqiLOea8aTRBA5MBDa5DiXzMA+LKejY3Yh6znmdUQUMKP7oQHoyV9iuMvXppdEED9R6uYSlG5qgQn6aRt+9Wy0OYRNDgKlThDe+z/VNhOprE3HejmKFMJmhwhfOw1LFjlYUwuNxHGCM818SkggbeZH0gUCaKacMI6xLzmPU6LiYXNLiC8DDVsFVYDSOozoFSEDMkIWhgNux6SFMOX4U6LjcxJeOTjKDBFZQHdtMJuUyn0B0SY65sL0wRzWgiKUFD00SDBQMlAjINZPlcWV6Mz9hx5jaSEzTwAF2hIIhVGF5wg/V1jZqpJsOSFDSwBg1XQx8kUCBeXJC48Px1hbYBaz1WbUZXkhW0geIll4XALUnJd5sTuHYuFwPwo8eomutL8oIGUuVNLgjWOlVrkRuMek0TPwxIav6yiywEDauGQMC3TtlypA6jnWsyDmw3kIvRyEbQhlUPnkhIihOVlGH004NUczYU2QkaGBqbJozA30rl3mooKtIdY22wyohdP5c6WQragDXWDW1U2CV2vRWE3OQnA6NfzquIshY04FszLGrH2DxxaPviK/gYsVy7F9nMISObvaANbb4gMIzig+feab7wslN7wQutz8KGCNJc5h6zEbSBjmnrQMBaEYbKacLjC88At8IVv7ch1jy3Mt3ZCdqAxW4bYgGfkc7P3dcmrMYkb9WcwsBINlcXbLaCNtDRqyZBNlgsylXpbIZrvVdK0D7aSXubsnrKEibJsxe0gdk9s3ffzgcsGRPOFPxLXCPaQXv0lIRVYLGx3LkkRoayGEHbMOPHsvkMzzYIHCtHMTu+J9Yuhg/OffHv+R6yoz5zAht8Zz43V7diFYsUtA2dTue3TaBWwWcRHRjB2xjxG5HaGMFC1xdM4R58V+ruUkwWL2ibPkP6lBifnxdlySK2KYJuoM+kKzZYcCa4WOGYeyznTBG0J/jKQ31bX1y+erHAfhRBBwCxIToD2UjbT8aqIn5eAvvfibrYn1tKBjMmRdCFWVEEXZgVRdCFWVEEXZgVRdCFWVEEXZgVRdCFWfE/EYl1ligUrh0AAAAASUVORK5CYII=" />
+    <link rel="apple-touch-icon" sizes="180x180" href="https://ilyushinslava.github.io/detective-game/apple-touch-icon.png?v=2" />
+
+    <!-- Настройки PWA / Fullscreen на iPhone -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Город грехов" />
+    <meta name="theme-color" content="#09090b" />
+  </head>
+  <body class="bg-zinc-950 text-zinc-100 antialiased select-none">
+    <div id="root"></div>
+    <script type="module" src="./src/main.tsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="package.json">
+{
+    "name":  "detective-game",
+    "private":  true,
+    "version":  "0.0.0",
+    "type":  "module",
+    "scripts":  {
+                    "dev":  "vite --host 0.0.0.0",
+                    "build":  "tsc \u0026\u0026 vite build",
+                    "preview":  "vite preview",
+                    "test":  "vitest run",
+                    "predeploy":  "npm run build",
+                    "deploy":  "gh-pages -d dist"
+                },
+    "dependencies":  {
+                         "framer-motion":  "^11.1.7",
+                         "react":  "^18.3.1",
+                         "react-dom":  "^18.3.1"
+                     },
+    "devDependencies":  {
+                            "@types/react":  "^18.3.3",
+                            "@types/react-dom":  "^18.3.0",
+                            "@vitejs/plugin-react":  "^4.3.1",
+                            "autoprefixer":  "10.4.19",
+                            "gh-pages":  "^6.3.0",
+                            "postcss":  "8.4.38",
+                            "tailwindcss":  "3.4.3",
+                            "typescript":  "^5.4.5",
+                            "vite":  "^5.2.11",
+                            "vitest":  "^1.6.0"
+                        }
+}
+</file>
+
+<file path="postcss.config.js">
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+</file>
+
+<file path="README.md">
+# React + TypeScript + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+
+```
+
+You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+
+```
+</file>
+
+<file path="tailwind.config.js">
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+</file>
+
+<file path="tsconfig.app.json">
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    "types": ["vite/client"],
+    "allowArbitraryExtensions": true,
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+</file>
+
+<file path="tsconfig.node.json">
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "module": "nodenext",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["vite.config.ts"]
+}
+</file>
+
+<file path="vite.config.ts">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  base: './',
+})
+</file>
+
+</files>
+````
+
+## File: src/components/CharacterCard.tsx
+````typescript
+import { memo } from 'react';
+import type { Character } from '../types/game';
+
+interface CharacterCardProps {
+  character: Character;
+  isSelected: boolean;
+  isKillerAdjacent: boolean;
+  isDetectiveAdjacent: boolean;
+  showKillerHint: boolean;
+  showDetectiveHint: boolean;
+  onClick: () => void;
+}
+
+export const CharacterCard = memo(({
+  character,
+  isSelected,
+  isKillerAdjacent,
+  isDetectiveAdjacent,
+  showKillerHint,
+  showDetectiveHint,
+  onClick,
+}: CharacterCardProps) => {
+  const isDead = !character.isAlive;
+  const isExonerated = character.isExonerated && !isDead;
+
+  return (
+    <div
+      onClick={onClick}
+      className={`relative w-full aspect-square rounded-xl p-1.5 sm:p-2.5 flex flex-col justify-between border select-none transition-all duration-200 cursor-pointer overflow-hidden ${
+        isDead
+          ? 'bg-zinc-950/80 border-zinc-900 shadow-inner'
+          : isExonerated
+          ? 'bg-gradient-to-b from-blue-950/50 to-zinc-900/90 border-blue-500/70 shadow-[0_0_12px_rgba(59,130,246,0.2)]'
+          : 'bg-zinc-900/95 border-zinc-800 hover:border-zinc-600 shadow-sm'
+      } ${
+        isSelected
+          ? 'ring-2 ring-amber-400 border-amber-400 shadow-[0_0_18px_rgba(251,191,36,0.35)] scale-[1.02] z-10'
+          : ''
+      } ${
+        showKillerHint && isKillerAdjacent
+          ? 'ring-1 ring-red-500/80 border-red-500'
+          : ''
+      } ${
+        showDetectiveHint && isDetectiveAdjacent
+          ? 'ring-1 ring-blue-500/80 border-blue-500'
+          : ''
+      }`}
+    >
+      {/* Декоративная подложка для мертвых */}
+      {isDead && (
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-red-950/20 via-transparent to-transparent pointer-events-none" />
+      )}
+
+      {/* Верхняя плашка: номер досье и иконка */}
+      <div className="flex items-center justify-between gap-1 z-10">
+        <span
+          className={`text-[9px] sm:text-[10px] font-mono tracking-wider font-bold ${
+            isDead ? 'text-zinc-600 line-through' : isExonerated ? 'text-blue-400' : 'text-zinc-500'
+          }`}
+        >
+          #{character.id.replace('c', '').padStart(2, '0')}
+        </span>
+
+        <div className="flex items-center gap-1 text-[11px] leading-none">
+          {isDead && (
+            <span className="text-zinc-500 text-[10px] tracking-tighter" title="Ликвидирован">
+              ☠
+            </span>
+          )}
+          {character.isShielded && <span>🛡️</span>}
+          {character.hasBomb && <span>💣</span>}
+          {character.isRobbed && <span>💰</span>}
+        </div>
+      </div>
+
+      {/* Имя персонажа */}
+      <div className="text-center my-auto px-0.5 z-10">
+        <span
+          className={`block text-[11px] sm:text-xs font-bold leading-tight tracking-tight ${
+            isDead
+              ? 'text-zinc-600 line-through decoration-zinc-700 decoration-1'
+              : isExonerated
+              ? 'text-blue-100 font-extrabold'
+              : 'text-zinc-100'
+          }`}
+        >
+          {character.name}
+        </span>
+      </div>
+
+      {/* Нижняя полоска статуса в виде аккуратного штампа */}
+      <div className="z-10 flex items-center justify-center">
+        {isDead ? (
+          <span className="text-[8px] sm:text-[9px] font-mono font-bold tracking-wider text-red-500/80 bg-red-950/40 border border-red-900/40 px-1.5 py-0.5 rounded">
+            ЛИКВИДИРОВАН
+          </span>
+        ) : isExonerated ? (
+          <span className="text-[8px] sm:text-[9px] font-mono font-bold tracking-wider text-blue-300 bg-blue-950/70 border border-blue-700/50 px-1.5 py-0.5 rounded shadow-sm">
+            АЛИБИ ПОДТВЕРЖДЕНО
+          </span>
+        ) : (
+          <span className="text-[8px] sm:text-[9px] font-mono tracking-wider text-zinc-500">
+            ПОДОЗРЕВАЕМЫЙ
+          </span>
+        )}
+      </div>
+    </div>
+  );
+});
+````
+
+## File: src/components/DetectiveHand.tsx
+````typescript
+import { useState } from 'react';
+import type { Character } from '../types/game';
+
+interface DetectiveHandProps {
+  handIds: string[];
+  allCharacters: Character[];
+  isDetectiveTurn: boolean;
+  onExonerateFromHand: (id: string) => void;
+}
+
+export const DetectiveHand = ({
+  handIds,
+  allCharacters,
+  isDetectiveTurn,
+  onExonerateFromHand,
+}: DetectiveHandProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // В чужой ход досье принудительно скрыто
+  const canView = isDetectiveTurn;
+  const showContent = isOpen && canView;
+
+  return (
+    <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 shadow-lg">
+      <div className="flex items-center justify-between">
+        <div>
+          <span className="text-xs font-black uppercase tracking-wider text-blue-400">
+            Досье алиби ({handIds.length} карт)
+          </span>
+          {!canView && (
+            <span className="block text-[10px] text-zinc-500 font-mono">
+              Закрыто (чужой ход)
+            </span>
+          )}
+        </div>
+
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          disabled={!canView}
+          className={`text-xs px-3 py-1.5 rounded-lg border font-bold transition select-none ${
+            canView
+              ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 cursor-pointer active:scale-95'
+              : 'bg-zinc-950 text-zinc-600 border-zinc-900 cursor-not-allowed opacity-40'
+          }`}
+        >
+          {showContent ? 'Скрыть карты' : 'Показать карты'}
+        </button>
+      </div>
+
+      {showContent && (
+        <div className="mt-3 pt-3 border-t border-zinc-800/80">
+          <div className="text-[10px] text-zinc-400 mb-2 font-mono">
+            Нажмите на карту, чтобы оправдать подозреваемого и запустить допрос:
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {handIds.map((id) => {
+              const char = allCharacters.find((c) => c.id === id);
+              return (
+                <div
+                  key={id}
+                  onClick={() => onExonerateFromHand(id)}
+                  className="p-2.5 rounded-xl bg-zinc-950 hover:bg-blue-950/40 border border-zinc-800 hover:border-blue-500/80 cursor-pointer transition flex flex-col justify-between min-h-[90px] shadow select-none group"
+                >
+                  <div className="flex items-center justify-between text-[9px] font-mono text-zinc-500">
+                    <span>#{id}</span>
+                    <span className="text-blue-400 font-bold uppercase tracking-wider text-[8px] px-1 py-0.2 bg-blue-950 rounded border border-blue-900">
+                      Алиби
+                    </span>
+                  </div>
+
+                  <div className="text-xs sm:text-sm font-black text-zinc-100 group-hover:text-blue-200 leading-snug my-1.5">
+                    {char?.name ?? id}
+                  </div>
+
+                  <div className="text-[9px] text-zinc-400 group-hover:text-zinc-300 font-semibold">
+                    Оправдать →
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+````
+
+## File: src/components/GameBoard.tsx
+````typescript
+import type { Character, LastShift } from '../types/game';
+import { CharacterCard } from './CharacterCard';
+
+interface GameBoardProps {
+  board: Character[][];
+  selectedCharacterId: string | null;
+  killerAdjacentIds: string[];
+  detectiveAdjacentIds: string[];
+  showKillerHints: boolean;
+  showDetectiveHints: boolean;
+  lastShift: LastShift | null;
+  onShift: (type: 'ROW' | 'COL', index: number, direction: 'FORWARD' | 'BACKWARD') => void;
+  onSelectCharacter: (id: string) => void;
+}
+
+export const GameBoard = ({
+  board,
+  selectedCharacterId,
+  killerAdjacentIds,
+  detectiveAdjacentIds,
+  showKillerHints,
+  showDetectiveHints,
+  onShift,
+  onSelectCharacter,
+}: GameBoardProps) => {
+  return (
+    <div className="w-full flex flex-col items-center">
+      {/* Кнопки сдвига колонок ВВЕРХ */}
+      <div className="grid grid-cols-5 gap-1.5 sm:gap-2 w-full max-w-[480px] mb-1.5 pl-6 pr-6 sm:pl-8 sm:pr-8">
+        {[0, 1, 2, 3, 4].map((colIdx) => (
+          <button
+            key={`col-up-${colIdx}`}
+            onClick={() => onShift('COL', colIdx, 'BACKWARD')}
+            className="h-6 sm:h-7 bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border border-zinc-800 rounded-lg text-xs font-bold transition flex items-center justify-center cursor-pointer"
+          >
+            ↑
+          </button>
+        ))}
+      </div>
+
+      {/* Поле 5x5 со стрелками рядов */}
+      <div className="w-full max-w-[540px] flex flex-col gap-1.5 sm:gap-2">
+        {board.map((row, rIdx) => (
+          <div key={`row-${rIdx}`} className="flex items-center gap-1.5 sm:gap-2 w-full">
+            {/* Сдвиг ряда влево */}
+            <button
+              onClick={() => onShift('ROW', rIdx, 'BACKWARD')}
+              className="w-5 sm:w-6 h-full min-h-[44px] bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border border-zinc-800 rounded-lg text-xs font-bold transition flex items-center justify-center shrink-0 cursor-pointer"
+            >
+              ←
+            </button>
+
+            {/* 5 карт в ряду */}
+            <div className="grid grid-cols-5 gap-1.5 sm:gap-2 flex-1">
+              {row.map((character) => (
+                <CharacterCard
+                  key={character.id}
+                  character={character}
+                  isSelected={selectedCharacterId === character.id}
+                  isKillerAdjacent={killerAdjacentIds.includes(character.id)}
+                  isDetectiveAdjacent={detectiveAdjacentIds.includes(character.id)}
+                  showKillerHint={showKillerHints}
+                  showDetectiveHint={showDetectiveHints}
+                  onClick={() => onSelectCharacter(character.id)}
+                />
+              ))}
+            </div>
+
+            {/* Сдвиг ряда вправо */}
+            <button
+              onClick={() => onShift('ROW', rIdx, 'FORWARD')}
+              className="w-5 sm:w-6 h-full min-h-[44px] bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border border-zinc-800 rounded-lg text-xs font-bold transition flex items-center justify-center shrink-0 cursor-pointer"
+            >
+              →
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Кнопки сдвига колонок ВНИЗ */}
+      <div className="grid grid-cols-5 gap-1.5 sm:gap-2 w-full max-w-[480px] mt-1.5 pl-6 pr-6 sm:pl-8 sm:pr-8">
+        {[0, 1, 2, 3, 4].map((colIdx) => (
+          <button
+            key={`col-down-${colIdx}`}
+            onClick={() => onShift('COL', colIdx, 'FORWARD')}
+            className="h-6 sm:h-7 bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border border-zinc-800 rounded-lg text-xs font-bold transition flex items-center justify-center cursor-pointer"
+          >
+            ↓
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+````
+
+## File: src/components/GameOverModal.tsx
+````typescript
+import type { Role, Character, GameModeType } from '../types/game';
+
+interface GameOverModalProps {
+  winner: Role;
+  mode: GameModeType;
+  killer: Character | undefined;
+  detective: Character | undefined;
+  elapsedTime: string;
+  onRestart: () => void;
+}
+
+export const GameOverModal = ({
+  winner,
+  mode,
+  killer,
+  detective,
+  elapsedTime,
+  onRestart,
+}: GameOverModalProps) => {
+  let killerTitle = 'Бандит';
+  let detectiveTitle = 'Инспектор';
+
+  if (mode === 'MANIAC_VS_OPERATIVE') {
+    killerTitle = 'Маньяк';
+    detectiveTitle = 'Оперативник';
+  } else if (mode === 'SECRET_SERVICE') {
+    killerTitle = 'Агент «Восток»';
+    detectiveTitle = 'Агент «Запад»';
+  }
+
+  const isKillerWin = winner === 'KILLER';
+  const winnerTitle = isKillerWin ? killerTitle : detectiveTitle;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+      <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-6 text-center flex flex-col items-center">
+        <div
+          className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black mb-4 border ${
+            isKillerWin
+              ? 'bg-red-950/80 border-red-700 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.3)]'
+              : 'bg-blue-950/80 border-blue-700 text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
+          }`}
+        >
+          {isKillerWin ? '☠' : '⚖'}
+        </div>
+
+        <h3 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-zinc-100">
+          Победа стороны: {winnerTitle}!
+        </h3>
+        
+        <p className="text-xs text-zinc-400 mt-1 font-mono">
+          Время проведения операции: {elapsedTime}
+        </p>
+
+        {/* Раскрытие личностей с четким читаемым шрифтом */}
+        <div className="w-full grid grid-cols-2 gap-3 my-6 text-left">
+          <div className="p-3 bg-zinc-950 border border-red-950/80 rounded-xl">
+            <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider block">
+              {killerTitle}
+            </span>
+            <span className="text-sm font-bold text-zinc-100 block mt-1 tracking-normal">
+              {killer?.name ?? 'Неизвестно'}
+            </span>
+            <span className="text-[11px] text-zinc-400 font-mono mt-0.5 block">
+              Статус: {killer?.isAlive ? 'Жив' : 'Ликвидирован'}
+            </span>
+          </div>
+
+          <div className="p-3 bg-zinc-950 border border-blue-950/80 rounded-xl">
+            <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">
+              {detectiveTitle}
+            </span>
+            <span className="text-sm font-bold text-zinc-100 block mt-1 tracking-normal">
+              {detective?.name ?? 'Неизвестно'}
+            </span>
+            <span className="text-[11px] text-zinc-400 font-mono mt-0.5 block">
+              Статус: {detective?.isAlive ? 'Жив' : 'Ликвидирован'}
+            </span>
+          </div>
+        </div>
+
+        {/* Кнопка с крупной, четко видимой стрелкой */}
+        <button
+          onClick={onRestart}
+          className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg flex items-center justify-center gap-1.5"
+        >
+          <span>Новая операция</span>
+          <span className="text-base leading-none">➔</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+````
+
+## File: src/components/ModeSelectModal.tsx
+````typescript
+import { useState } from 'react';
+import type { GameModeType, OpponentType, Role } from '../types/game';
+
+export interface GameModeInfo {
+  id: GameModeType;
+  title: string;
+  players: string;
+  time: string;
+  difficulty: 'Легкая' | 'Средняя' | 'Высокая';
+  description: string;
+  isAvailable: boolean;
+  killerRoleName: string;
+  detectiveRoleName: string;
+}
+
+export const GAME_MODES: GameModeInfo[] = [
+  {
+    id: 'SKHVATKA',
+    title: 'Бандит против инспектора',
+    players: '2 игрока',
+    time: '15 минут',
+    difficulty: 'Легкая',
+    description: 'Сыграйте в смертельные кошки-мышки и выследите бандита, прежде чем он доберется до вас.',
+    isAvailable: true,
+    killerRoleName: 'Бандит',
+    detectiveRoleName: 'Инспектор',
+  },
+  {
+    id: 'MANIAC_VS_OPERATIVE',
+    title: 'Убийца против сыщика',
+    players: '2 игрока',
+    time: '20 минут',
+    difficulty: 'Средняя',
+    description: 'Убийца устраняет людей строго по списку 4 жертв, а сыщик старается его обезвредить.',
+    isAvailable: true,
+    killerRoleName: 'Убийца',
+    detectiveRoleName: 'Сыщик',
+  },
+  {
+    id: 'THIEF_HUNT',
+    title: 'Вор-виртуоз против начальника полиции',
+    players: '2 игрока',
+    time: '60 минут',
+    difficulty: 'Высокая',
+    description: 'Вор-виртуоз грабит всех, кто попадается под руку, но по его следу неотступно идет начальник полиции.',
+    isAvailable: true,
+    killerRoleName: 'Вор-виртуоз',
+    detectiveRoleName: 'Начальник полиции',
+  },
+  {
+    id: 'SECRET_SERVICE',
+    title: 'Шпионские игры',
+    players: '3–9 игроков',
+    time: '30 минут',
+    difficulty: 'Средняя',
+    description: 'Отыщите и поймайте остальных шпионов раньше, чем они поймают вас.',
+    isAvailable: false,
+    killerRoleName: 'Шпион',
+    detectiveRoleName: 'Контрразведка',
+  },
+  {
+    id: 'EUROPOL_VS_OPG',
+    title: 'ФБР против мафии',
+    players: '6 или 8 игроков',
+    time: '45 минут',
+    difficulty: 'Высокая',
+    description: 'Командная игра, в которой агенты ФБР ловят мафиози, решивших, что город принадлежит им.',
+    isAvailable: false,
+    killerRoleName: 'Мафия',
+    detectiveRoleName: 'Агент ФБР',
+  },
+  {
+    id: 'SPANISH_HEIST',
+    title: 'Ограбление века',
+    players: '5–7 игроков',
+    time: '45 минут',
+    difficulty: 'Высокая',
+    description: 'Группа воров пытается ограбить хранилища казино, а начальник безопасности — их остановить.',
+    isAvailable: false,
+    killerRoleName: 'Грабитель',
+    detectiveRoleName: 'Безопасность',
+  },
+];
+
+interface ModeSelectModalProps {
+  currentModeId: string;
+  hasActiveGame: boolean;
+  onSelectMode: (modeId: GameModeType) => void;
+  onResumeGame: () => void;
+  onStartNewGame: (modeId: GameModeType, opponent: OpponentType, playerRole: Role) => void;
+}
+
+export const ModeSelectModal = ({
+  currentModeId,
+  hasActiveGame,
+  onSelectMode,
+  onResumeGame,
+  onStartNewGame,
+}: ModeSelectModalProps) => {
+  const [selectedOpponent, setSelectedOpponent] = useState<OpponentType>('AI');
+  const [selectedPlayerRole, setSelectedPlayerRole] = useState<Role>('DETECTIVE');
+
+  const selectedMode = GAME_MODES.find((m) => m.id === currentModeId) ?? GAME_MODES[0];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-2 sm:p-4">
+      <div className="w-full max-w-4xl max-h-[92vh] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-zinc-800/80 bg-zinc-900/90 backdrop-blur z-10 shrink-0">
+          <div>
+            <h2 className="text-lg sm:text-2xl font-black uppercase tracking-wider text-zinc-100 flex items-center gap-2">
+              <span>Город грехов</span>
+              <span className="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">Дуэли</span>
+            </h2>
+            <p className="text-[11px] sm:text-xs text-zinc-400 mt-0.5">
+              Выберите сценарий противостояния двух сторон
+            </p>
+          </div>
+          {hasActiveGame && (
+            <button
+              onClick={onResumeGame}
+              className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3.5 py-2 rounded-lg border border-zinc-700 transition cursor-pointer font-bold shrink-0 ml-2"
+            >
+              ✕ Закрыть
+            </button>
+          )}
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="mb-4 p-3.5 bg-zinc-950/80 border border-zinc-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>
+              <span className="text-xs font-black uppercase tracking-wider text-zinc-200 block">
+                Формат матча:
+              </span>
+              <span className="text-[10px] text-zinc-400">
+                Одиночная игра против AI-бота или дуэль вдвоем на одном экране
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => setSelectedOpponent('AI')}
+                className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs font-bold transition border cursor-pointer ${
+                  selectedOpponent === 'AI'
+                    ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
+                    : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-zinc-200'
+                }`}
+              >
+                🤖 Против бота
+              </button>
+
+              <button
+                onClick={() => setSelectedOpponent('PVP')}
+                className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs font-bold transition border cursor-pointer ${
+                  selectedOpponent === 'PVP'
+                    ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
+                    : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-zinc-200'
+                }`}
+              >
+                👥 Вдвоем (1 на 1)
+              </button>
+            </div>
+          </div>
+
+          {selectedOpponent === 'AI' && (
+            <div className="mb-5 p-3.5 bg-zinc-950/60 border border-zinc-800/80 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs">
+              <div>
+                <span className="text-zinc-300 font-bold block">Ваша роль:</span>
+                <span className="text-[10px] text-zinc-500 font-mono">
+                  {selectedMode.title}
+                </span>
+              </div>
+
+              <div className="flex gap-2 w-full sm:w-auto">
+                <button
+                  onClick={() => setSelectedPlayerRole('DETECTIVE')}
+                  className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg border font-bold text-xs cursor-pointer transition flex items-center justify-center gap-1.5 ${
+                    selectedPlayerRole === 'DETECTIVE'
+                      ? 'bg-blue-950 border-blue-500 text-blue-200 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
+                      : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                  <span>{selectedMode.detectiveRoleName}</span>
+                </button>
+
+                <button
+                  onClick={() => setSelectedPlayerRole('KILLER')}
+                  className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg border font-bold text-xs cursor-pointer transition flex items-center justify-center gap-1.5 ${
+                    selectedPlayerRole === 'KILLER'
+                      ? 'bg-red-950 border-red-500 text-red-200 shadow-[0_0_10px_rgba(239,68,68,0.3)]'
+                      : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                  <span>{selectedMode.killerRoleName}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            {GAME_MODES.map((mode) => {
+              const isSelected = mode.id === currentModeId;
+              const isLocked = !mode.isAvailable;
+
+              return (
+                <div
+                  key={mode.id}
+                  className={`relative flex flex-col justify-between p-4 rounded-xl border transition-all ${
+                    isLocked
+                      ? 'bg-zinc-950/40 border-zinc-800/40 opacity-50 cursor-not-allowed'
+                      : isSelected
+                      ? 'ring-2 ring-amber-500 border-amber-500 bg-zinc-950 shadow-lg cursor-pointer'
+                      : 'bg-zinc-950 border-zinc-800 hover:border-zinc-600 active:scale-[0.99] cursor-pointer'
+                  }`}
+                  onClick={() => {
+                    if (!isLocked) onSelectMode(mode.id);
+                  }}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${
+                        isLocked
+                          ? 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                          : 'bg-emerald-950/90 text-emerald-300 border-emerald-700'
+                      }`}>
+                        {isLocked ? '🔒 Скоро (3+ игр.)' : 'Дуэль 1х1'}
+                      </span>
+                      <span className="text-[10px] text-zinc-500 font-mono font-bold">
+                        {mode.difficulty}
+                      </span>
+                    </div>
+
+                    <h3 className="text-sm sm:text-base font-black text-zinc-100 leading-tight mb-2">
+                      {mode.title}
+                    </h3>
+
+                    <p className="text-[11px] leading-relaxed mb-4 text-zinc-400">
+                      {mode.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-500 font-mono">
+                    <span>👥 {mode.players}</span>
+                    <span>⏳ {mode.time}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="p-3 sm:p-5 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur z-10 shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2.5">
+          {hasActiveGame ? (
+            <>
+              <button
+                onClick={onResumeGame}
+                className="w-full sm:w-auto px-4 py-3 bg-zinc-800 active:bg-zinc-700 text-zinc-200 font-bold text-xs uppercase tracking-wider rounded-xl border border-zinc-700 transition cursor-pointer text-center"
+              >
+                ← Вернуться в игру
+              </button>
+
+              <button
+                onClick={() => onStartNewGame(currentModeId as GameModeType, selectedOpponent, selectedPlayerRole)}
+                className="w-full sm:w-auto px-6 py-3.5 bg-amber-600 active:bg-amber-500 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg text-center"
+              >
+                Начать новую партию →
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => onStartNewGame(currentModeId as GameModeType, selectedOpponent, selectedPlayerRole)}
+              className="w-full sm:w-auto px-8 py-3.5 bg-amber-600 active:bg-amber-500 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg text-center"
+            >
+              Начать операцию →
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+````
+
+## File: src/components/RoleRevealModal.tsx
+````typescript
+import { useState } from 'react';
+import type { Character } from '../types/game';
+
+interface RoleRevealModalProps {
+  killer: Character | undefined;
+  inspectorChoices: Character[];
+  onSelectDetectiveRole: (id: string) => void;
+  onComplete: () => void;
+}
+
+type Phase = 'KILLER_PROMPT' | 'KILLER_REVEAL' | 'DETECTIVE_PROMPT' | 'DETECTIVE_CHOOSE';
+
+export const RoleRevealModal = ({
+  killer,
+  inspectorChoices,
+  onSelectDetectiveRole,
+  onComplete,
+}: RoleRevealModalProps) => {
+  const [phase, setPhase] = useState<Phase>('KILLER_PROMPT');
+  const [selectedInspectorId, setSelectedInspectorId] = useState<string | null>(null);
+
+  const handleConfirmInspectorRole = () => {
+    if (!selectedInspectorId) return;
+    onSelectDetectiveRole(selectedInspectorId);
+    onComplete();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
+      <div className="w-full max-w-xl min-h-[500px] bg-zinc-900 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col justify-between text-center">
+        {phase === 'KILLER_PROMPT' && (
+          <>
+            <div className="flex flex-col items-center justify-center flex-1 my-auto">
+              <div className="w-14 h-14 rounded-full bg-red-950/70 border border-red-700 flex items-center justify-center text-red-400 font-black text-lg mb-4 shadow-lg shadow-red-950/50">
+                1
+              </div>
+              <h2 className="text-2xl font-black uppercase tracking-wider text-zinc-100 mb-2">
+                Ознакомление: Бандит
+              </h2>
+              <p className="text-xs text-zinc-400 max-w-sm leading-relaxed">
+                Убедитесь, что второй игрок не смотрит на экран перед раскрытием тайной личности.
+              </p>
+            </div>
+            <button
+              onClick={() => setPhase('KILLER_REVEAL')}
+              className="w-full py-4 bg-red-900/90 hover:bg-red-800 text-red-100 text-xs font-bold uppercase tracking-wider rounded-xl border border-red-700 transition cursor-pointer shadow-lg"
+            >
+              Посмотреть тайную роль
+            </button>
+          </>
+        )}
+
+        {phase === 'KILLER_REVEAL' && (
+          <>
+            <div className="flex flex-col items-center justify-center flex-1 my-auto w-full">
+              <span className="text-[11px] font-bold text-red-400 uppercase tracking-widest mb-2">
+                Твоя секретная личность
+              </span>
+              <div className="w-full max-w-sm p-5 rounded-2xl bg-zinc-950 border border-red-900/60 shadow-xl mb-4">
+                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest block mb-1">
+                  Досье подозреваемого
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-black text-zinc-100">
+                  {killer?.name}
+                </h2>
+              </div>
+              <div className="p-3.5 bg-zinc-950/80 border border-zinc-800 rounded-xl text-xs text-zinc-400 space-y-1.5 text-left w-full font-mono max-w-sm">
+                <div>• Роль: Бандит</div>
+                <div>• Первый ход: обязан убить соседнюю цель</div>
+                <div>• Победа: ликвидация Инспектора или 14 жертв</div>
+              </div>
+            </div>
+            <button
+              onClick={() => setPhase('DETECTIVE_PROMPT')}
+              className="w-full py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold uppercase tracking-wider rounded-xl border border-zinc-700 transition cursor-pointer shadow-lg"
+            >
+              Скрыть роль и передать Инспектору
+            </button>
+          </>
+        )}
+
+        {phase === 'DETECTIVE_PROMPT' && (
+          <>
+            <div className="flex flex-col items-center justify-center flex-1 my-auto">
+              <div className="w-14 h-14 rounded-full bg-blue-950/70 border border-blue-700 flex items-center justify-center text-blue-400 font-black text-lg mb-4 shadow-lg shadow-blue-950/50">
+                2
+              </div>
+              <h2 className="text-2xl font-black uppercase tracking-wider text-zinc-100 mb-2">
+                Ознакомление: Инспектор
+              </h2>
+              <p className="text-xs text-zinc-400 max-w-sm leading-relaxed">
+                Бандит передал устройство. Выберите одну тайную личность из 4 полученных карт доказательств.
+              </p>
+            </div>
+            <button
+              onClick={() => setPhase('DETECTIVE_CHOOSE')}
+              className="w-full py-4 bg-blue-900/90 hover:bg-blue-800 text-blue-100 text-xs font-bold uppercase tracking-wider rounded-xl border border-blue-700 transition cursor-pointer shadow-lg"
+            >
+              Выбрать тайную личность
+            </button>
+          </>
+        )}
+
+        {phase === 'DETECTIVE_CHOOSE' && (
+          <>
+            <div className="flex flex-col items-center flex-1 justify-center w-full my-auto">
+              <span className="text-[11px] font-black text-blue-400 uppercase tracking-widest mb-1">
+                Выбор роли (1 из 4 карт)
+              </span>
+              <p className="text-xs text-zinc-400 mb-5">
+                Остальные 3 карты составят твою начальную руку доказательств (алиби).
+              </p>
+
+              <div className="grid grid-cols-2 gap-3.5 w-full">
+                {inspectorChoices.map((char) => {
+                  const isSelected = selectedInspectorId === char.id;
+                  return (
+                    <div
+                      key={char.id}
+                      onClick={() => setSelectedInspectorId(char.id)}
+                      className={`relative flex flex-col justify-between p-4 rounded-xl border text-left cursor-pointer transition-all select-none min-h-[90px] ${
+                        isSelected
+                          ? 'bg-blue-950/80 border-blue-500 shadow-[0_0_16px_rgba(59,130,246,0.4)] scale-[1.02]'
+                          : 'bg-zinc-950 border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:bg-zinc-900/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase">
+                          Дело #{char.id}
+                        </span>
+                        {isSelected && (
+                          <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+                        )}
+                      </div>
+                      <div className="text-sm sm:text-base font-black text-zinc-100 mt-2">
+                        {char.name}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <button
+              onClick={handleConfirmInspectorRole}
+              disabled={!selectedInspectorId}
+              className="w-full py-4 bg-emerald-900/90 hover:bg-emerald-800 disabled:opacity-40 text-emerald-100 text-xs font-bold uppercase tracking-wider rounded-xl border border-emerald-700 transition cursor-pointer disabled:cursor-not-allowed shadow-lg mt-4"
+            >
+              Подтвердить выбор и начать партию
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+````
+
+## File: src/components/VictimList.tsx
+````typescript
+import type { Character } from '../types/game';
+
+interface VictimListProps {
+  victimIds: string[];
+  allCharacters: Character[];
+}
+
+export const VictimList = ({ victimIds, allCharacters }: VictimListProps) => {
+  if (!victimIds || victimIds.length === 0) return null;
+
+  return (
+    <div className="w-full bg-zinc-900/90 border border-red-950/80 rounded-xl p-3 shadow-xl mb-3">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] font-black uppercase tracking-widest text-red-400 flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+          Список смертников (Открытые цели маньяка)
+        </span>
+        <span className="text-[9px] font-mono text-zinc-500 uppercase">
+          Маньяк убивает только их
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {victimIds.map((id) => {
+          const char = allCharacters.find((c) => c.id === id);
+          return (
+            <div
+              key={id}
+              className="p-2 rounded-lg bg-zinc-950 border border-red-900/40 flex flex-col justify-between"
+            >
+              <span className="text-[9px] font-mono text-red-500/70 block">
+                #{id}
+              </span>
+              <span className="text-xs font-black text-zinc-200 truncate mt-0.5">
+                {char?.name ?? id}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+````
+
+## File: src/constants/characters.ts
+````typescript
+import type { Character } from '../types/game';
+
+export const INITIAL_CHARACTERS: Character[] = [
+  { id: 'c1', name: 'Виктор Громов', isAlive: true, isExonerated: false },
+  { id: 'c2', name: 'Марк Воронов', isAlive: true, isExonerated: false },
+  { id: 'c3', name: 'Елена Соколова', isAlive: true, isExonerated: false },
+  { id: 'c4', name: 'Артур Блэк', isAlive: true, isExonerated: false },
+  { id: 'c5', name: 'Анна Морозова', isAlive: true, isExonerated: false },
+  { id: 'c6', name: 'Дмитрий Волков', isAlive: true, isExonerated: false },
+  { id: 'c7', name: 'София Романова', isAlive: true, isExonerated: false },
+  { id: 'c8', name: 'Максим Лебедев', isAlive: true, isExonerated: false },
+  { id: 'c9', name: 'Алиса Смирнова', isAlive: true, isExonerated: false },
+  { id: 'c10', name: 'Роман Орлов', isAlive: true, isExonerated: false },
+  { id: 'c11', name: 'Виктория Белова', isAlive: true, isExonerated: false },
+  { id: 'c12', name: 'Игорь Новиков', isAlive: true, isExonerated: false },
+  { id: 'c13', name: 'Мария Козлова', isAlive: true, isExonerated: false },
+  { id: 'c14', name: 'Денис Попов', isAlive: true, isExonerated: false },
+  { id: 'c15', name: 'Екатерина Ильина', isAlive: true, isExonerated: false },
+  { id: 'c16', name: 'Алексей Медведев', isAlive: true, isExonerated: false },
+  { id: 'c17', name: 'Дарья Кузнецова', isAlive: true, isExonerated: false },
+  { id: 'c18', name: 'Павел Макаров', isAlive: true, isExonerated: false },
+  { id: 'c19', name: 'Ольга Зайцева', isAlive: true, isExonerated: false },
+  { id: 'c20', name: 'Сергей Степанов', isAlive: true, isExonerated: false },
+  { id: 'c21', name: 'Наталья Николаева', isAlive: true, isExonerated: false },
+  { id: 'c22', name: 'Андрей Семенов', isAlive: true, isExonerated: false },
+  { id: 'c23', name: 'Татьяна Павлова', isAlive: true, isExonerated: false },
+  { id: 'c24', name: 'Илья Богданов', isAlive: true, isExonerated: false },
+  { id: 'c25', name: 'Ксения Тарасова', isAlive: true, isExonerated: false },
+];
+````
+
+## File: src/types/game.ts
+````typescript
+export type GameModeType = 
+  | 'SKHVATKA' 
+  | 'MANIAC_VS_OPERATIVE' 
+  | 'SECRET_SERVICE' 
+  | 'THIEF_HUNT' 
+  | 'EUROPOL_VS_OPG' 
+  | 'SPANISH_HEIST';
+
+export type Role = 'KILLER' | 'DETECTIVE';
+
+export type OpponentType = 'PVP' | 'AI';
+
+export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
+
+export interface Character {
+  id: string;
+  name: string;
+  isAlive: boolean;
+  isExonerated: boolean;
+  isRobbed?: boolean;
+  isShielded?: boolean;
+  hasBomb?: boolean;
+  isVault?: boolean;       // Хранилище казино
+  isVaultCracked?: boolean; // Взломанный сейф
+  isVaultLocked?: boolean;  // Заблокированный сигнализацией
+}
+
+export interface LastShift {
+  type: 'ROW' | 'COL';
+  index: number;
+  direction: 'FORWARD' | 'BACKWARD';
+}
+
+export interface InterrogationResult {
+  interrogator: Role;
+  targetName: string;
+  isNear: boolean;
+}
+
+export interface GameState {
+  mode: GameModeType;
+  opponent: OpponentType;
+  playerRole: Role;
+  board: Character[][];
+  currentTurn: Role;
+  killerSecretId: string;    // Лидер банды / Убийца
+  detectiveSecretId: string; // Начальник СБ / Сыщик
+  detectiveHand: string[];
+  evidenceDeck: string[];
+  victimList: string[];
+  killCount: number;
+  trophiesKiller?: number;    // Взломанные сейфы (цель: 3)
+  trophiesDetective?: number;
+  blockedShift?: { type: 'ROW' | 'COL'; index: number } | null;
+  winner: Role | null;
+  log: string[];
+  lastShift: LastShift | null;
+  lastInterrogation: InterrogationResult | null;
+  inspectorChoices?: string[];
+}
+````
+
+## File: src/utils/aiLogic.test.ts
+````typescript
+import { describe, it, expect } from 'vitest';
+import { createInitialState } from './gameLogic';
+import { getKillerAIMove, getDetectiveAIMove, getSecretServiceAIMove } from './aiLogic';
+
+describe('Интеллект игрового бота (aiLogic)', () => {
+  it('Бот-убийца обязан сменить ход на Сыщика после своего действия', () => {
+    const state = createInitialState('SKHVATKA', 'AI', 'DETECTIVE');
+    state.currentTurn = 'KILLER';
+
+    const nextState = getKillerAIMove(state);
+
+    expect(nextState.currentTurn).toBe('DETECTIVE');
+    expect(nextState.log.length).toBeGreaterThan(state.log.length);
+  });
+
+  it('Бот-маньяк не зависает и не атакует цели вне списка смертников', () => {
+    const state = createInitialState('MANIAC_VS_OPERATIVE', 'AI', 'DETECTIVE');
+    state.currentTurn = 'KILLER';
+
+    const nextState = getKillerAIMove(state);
+
+    expect(nextState.currentTurn).toBe('DETECTIVE');
+    if (nextState.killCount > state.killCount) {
+      const dead = nextState.board.flat().filter(c => !c.isAlive);
+      const lastKilled = dead[dead.length - 1];
+      const wasValidTarget = state.victimList.includes(lastKilled.id) || lastKilled.id === state.detectiveSecretId;
+      expect(wasValidTarget).toBe(true);
+    }
+  });
+
+  it('Бот-детектив с пустой рукой алиби не падает с ошибкой и делает сдвиг или обвинение', () => {
+    const state = createInitialState('SKHVATKA', 'AI', 'KILLER');
+    state.currentTurn = 'DETECTIVE';
+    state.detectiveHand = []; // пустая рука
+
+    const nextState = getDetectiveAIMove(state);
+
+    expect(nextState.currentTurn).toBe('KILLER');
+  });
+
+  it('Бот-шпион в «Секретной службе» делает валидный ход и передает очередь', () => {
+    const state = createInitialState('SECRET_SERVICE', 'AI', 'KILLER');
+    state.currentTurn = 'DETECTIVE';
+
+    const nextState = getSecretServiceAIMove(state);
+
+    expect(nextState.currentTurn).toBe('KILLER');
+    expect(nextState.log.length).toBeGreaterThan(state.log.length);
+  });
+});
+````
+
+## File: src/utils/aiLogic.ts
+````typescript
+import type { GameState, LastShift, Character } from '../types/game';
+import {
+  getAdjacentCharacters,
+  getCharacterCoords,
+  isOppositeShift,
+  killCharacter,
+  accuseCharacter,
+  exonerateFromHand,
+  disguiseKiller,
+  shiftBoard,
+  captureSpy,
+  interrogateNeighbor,
+  robNeighbor,
+  setPolicePatrol,
+  plantBomb,
+  applyShield,
+  sniperShot,
+  crackVault,
+  lockVault,
+} from './gameLogic';
+
+function getAllValidShifts(board: Character[][], lastShift: LastShift | null, blockedShift?: { type: 'ROW' | 'COL'; index: number } | null) {
+  const shifts: Array<{ type: 'ROW' | 'COL'; index: number; direction: 'FORWARD' | 'BACKWARD' }> = [];
+  const numRows = board.length;
+  const numCols = board[0].length;
+
+  for (let r = 0; r < numRows; r++) {
+    if (blockedShift && blockedShift.type === 'ROW' && blockedShift.index === r) continue;
+    for (const dir of ['FORWARD', 'BACKWARD'] as const) {
+      if (!isOppositeShift(lastShift, 'ROW', r, dir)) {
+        shifts.push({ type: 'ROW', index: r, direction: dir });
+      }
+    }
+  }
+
+  for (let c = 0; c < numCols; c++) {
+    if (blockedShift && blockedShift.type === 'COL' && blockedShift.index === c) continue;
+    for (const dir of ['FORWARD', 'BACKWARD'] as const) {
+      if (!isOppositeShift(lastShift, 'COL', c, dir)) {
+        shifts.push({ type: 'COL', index: c, direction: dir });
+      }
+    }
+  }
+
+  return shifts;
+}
+
+export function getKillerAIMove(state: GameState): GameState {
+  if (state.mode === 'THIEF_HUNT') return getThiefAIMove(state);
+  if (state.mode === 'EUROPOL_VS_OPG') return getOPGAIMove(state);
+  if (state.mode === 'SPANISH_HEIST') return getHeistRobberAIMove(state);
+
+  const killerNeighbors = getAdjacentCharacters(state.board, state.killerSecretId);
+
+  if (state.mode === 'MANIAC_VS_OPERATIVE') {
+    const validTargets = killerNeighbors.filter(
+      (c) => c.isAlive && (state.victimList.includes(c.id) || c.id === state.detectiveSecretId)
+    );
+    if (validTargets.length > 0) {
+      const detTarget = validTargets.find((c) => c.id === state.detectiveSecretId);
+      const chosen = detTarget ?? validTargets[Math.floor(Math.random() * validTargets.length)];
+      return killCharacter(state, chosen.id);
+    }
+  } else if (state.mode === 'SKHVATKA') {
+    const validTargets = killerNeighbors.filter((c) => c.isAlive);
+    if (validTargets.length > 0) {
+      const detTarget = validTargets.find((c) => c.id === state.detectiveSecretId);
+      const chosen = detTarget ?? validTargets[Math.floor(Math.random() * validTargets.length)];
+      return killCharacter(state, chosen.id);
+    }
+  }
+
+  const isFirstTurnKiller = state.mode === 'SKHVATKA' && state.killCount === 0;
+  const exoneratedNeighbors = killerNeighbors.filter((c) => c.isExonerated).length;
+  if (!isFirstTurnKiller && exoneratedNeighbors >= 3 && state.evidenceDeck.length > 0 && Math.random() < 0.4) {
+    return disguiseKiller(state);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'DETECTIVE',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Бот сдвинул ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getDetectiveAIMove(state: GameState): GameState {
+  if (state.mode === 'THIEF_HUNT') return getPoliceAIMove(state);
+  if (state.mode === 'EUROPOL_VS_OPG') return getEuropolAIMove(state);
+  if (state.mode === 'SPANISH_HEIST') return getHeistSecurityAIMove(state);
+
+  const detectiveNeighbors = getAdjacentCharacters(state.board, state.detectiveSecretId);
+
+  const suspectsNear = detectiveNeighbors.filter(
+    (c) => c.isAlive && !c.isExonerated && !state.detectiveHand.includes(c.id) && c.id !== state.detectiveSecretId
+  );
+
+  if (suspectsNear.length === 1 && Math.random() < 0.85) {
+    return accuseCharacter(state, suspectsNear[0].id);
+  }
+
+  if (state.detectiveHand.length > 0 && Math.random() < 0.6) {
+    const cardToExonerate = state.detectiveHand[0];
+    return exonerateFromHand(state, cardToExonerate);
+  }
+
+  if (suspectsNear.length > 0 && Math.random() < 0.3) {
+    const chosen = suspectsNear[Math.floor(Math.random() * suspectsNear.length)];
+    return accuseCharacter(state, chosen.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'KILLER',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Бот сдвинул ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getHeistRobberAIMove(state: GameState): GameState {
+  const neighbors = getAdjacentCharacters(state.board, state.killerSecretId);
+  const crackableVault = neighbors.find((c) => c.isVault && !c.isVaultCracked && !c.isVaultLocked);
+
+  if (crackableVault) {
+    return crackVault(state, crackableVault.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'DETECTIVE',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Грабители сдвинули ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getHeistSecurityAIMove(state: GameState): GameState {
+  const neighbors = getAdjacentCharacters(state.board, state.detectiveSecretId);
+  const suspects = neighbors.filter((c) => !c.isExonerated && !c.isVault && c.id !== state.detectiveSecretId);
+
+  if (suspects.length === 1 && Math.random() < 0.75) {
+    return accuseCharacter(state, suspects[0].id);
+  }
+
+  const targetVault = neighbors.find((c) => c.isVault && !c.isVaultCracked && !c.isVaultLocked);
+  if (targetVault && Math.random() < 0.6) {
+    return lockVault(state, targetVault.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'KILLER',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Охрана сдвинула ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getOPGAIMove(state: GameState): GameState {
+  const neighbors = getAdjacentCharacters(state.board, state.killerSecretId).filter((c) => c.isAlive);
+  const detTarget = neighbors.find((c) => c.id === state.detectiveSecretId);
+  if (detTarget) return killCharacter(state, detTarget.id);
+
+  const unmined = neighbors.filter((c) => !c.hasBomb);
+  if (unmined.length > 0 && Math.random() < 0.35) {
+    const target = unmined[Math.floor(Math.random() * unmined.length)];
+    return plantBomb(state, target.id);
+  }
+
+  if (neighbors.length > 0 && Math.random() < 0.6) {
+    const target = neighbors[Math.floor(Math.random() * neighbors.length)];
+    return killCharacter(state, target.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'DETECTIVE',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 ОПГ сдвинула ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getEuropolAIMove(state: GameState): GameState {
+  const detPos = getCharacterCoords(state.board, state.detectiveSecretId);
+  const neighbors = getAdjacentCharacters(state.board, state.detectiveSecretId).filter((c) => c.isAlive);
+
+  const suspects = neighbors.filter((c) => !c.isExonerated && c.id !== state.detectiveSecretId);
+  if (suspects.length === 1 && Math.random() < 0.7) {
+    return accuseCharacter(state, suspects[0].id);
+  }
+
+  if (detPos && Math.random() < 0.3) {
+    const candidates: Character[] = [];
+    const deltas = [[-2, 0], [2, 0], [0, -2], [0, 2]];
+    for (const [dr, dc] of deltas) {
+      const nr = detPos.r + dr;
+      const nc = detPos.c + dc;
+      if (nr >= 0 && nr < 5 && nc >= 0 && nc < 5) {
+        const char = state.board[nr][nc];
+        if (char.isAlive && !char.isExonerated) candidates.push(char);
+      }
+    }
+
+    if (candidates.length > 0) {
+      const target = candidates[Math.floor(Math.random() * candidates.length)];
+      return sniperShot(state, target.id);
+    }
+  }
+
+  const unshielded = [
+    state.board.flat().find((c) => c.id === state.detectiveSecretId),
+    ...neighbors,
+  ].filter((c): c is Character => Boolean(c && c.isAlive && !c.isShielded));
+
+  if (unshielded.length > 0 && Math.random() < 0.4) {
+    const target = unshielded[0];
+    return applyShield(state, target.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'KILLER',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Европол сдвинул ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getThiefAIMove(state: GameState): GameState {
+  const thiefNeighbors = getAdjacentCharacters(state.board, state.killerSecretId);
+  const robTargets = thiefNeighbors.filter((c) => !c.isRobbed && c.id !== state.killerSecretId);
+
+  if (robTargets.length > 0) {
+    const target = robTargets[Math.floor(Math.random() * robTargets.length)];
+    return robNeighbor(state, target.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'DETECTIVE',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Вор сдвинул ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getPoliceAIMove(state: GameState): GameState {
+  const policeNeighbors = getAdjacentCharacters(state.board, state.detectiveSecretId);
+  const suspects = policeNeighbors.filter((c) => !c.isExonerated && c.id !== state.detectiveSecretId);
+
+  if (suspects.length === 1 && Math.random() < 0.75) {
+    return accuseCharacter(state, suspects[0].id);
+  }
+
+  if (Math.random() < 0.45 && !state.blockedShift) {
+    const type: 'ROW' | 'COL' = Math.random() < 0.5 ? 'ROW' : 'COL';
+    const index = Math.floor(Math.random() * 5);
+    return setPolicePatrol(state, type, index);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'KILLER',
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Полиция сдвинула ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getSecretServiceAIMove(state: GameState): GameState {
+  const isAgent1 = state.currentTurn === 'KILLER';
+  const mySecretId = isAgent1 ? state.killerSecretId : state.detectiveSecretId;
+  const myNeighbors = getAdjacentCharacters(state.board, mySecretId).filter((c) => c.isAlive);
+
+  if (myNeighbors.length > 0 && Math.random() < 0.5) {
+    const target = myNeighbors[Math.floor(Math.random() * myNeighbors.length)];
+    return captureSpy(state, target.id);
+  }
+
+  if (myNeighbors.length > 0 && Math.random() < 0.7) {
+    const target = myNeighbors[Math.floor(Math.random() * myNeighbors.length)];
+    return interrogateNeighbor(state, target.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift, state.blockedShift);
+  if (validShifts.length > 0) {
+    const randomShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(state.board, randomShift.type, randomShift.index, randomShift.direction);
+    const nextTurn = isAgent1 ? 'DETECTIVE' : 'KILLER';
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: nextTurn,
+      lastShift: randomShift,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `🤖 Бот сдвинул ${randomShift.type === 'ROW' ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+````
+
+## File: src/utils/audio.ts
+````typescript
+// Процедурный синтезатор звуков на базе Web Audio API
+class SoundEffects {
+  private ctx: AudioContext | null = null;
+
+  private getContext(): AudioContext | null {
+    if (typeof window === 'undefined') return null;
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (AudioCtx) {
+        this.ctx = new AudioCtx();
+      }
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+    return this.ctx;
+  }
+
+  // Щелчок сдвига ряда / плитки
+  playShift() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(320, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.06);
+
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.06);
+  }
+
+  // Выстрел / Ликвидация (глухой хлопок нуарного револьвера)
+  playKill() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    // Шумовой всплеск
+    const bufferSize = ctx.sampleRate * 0.15;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(600, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.15);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    noise.start();
+    noise.stop(ctx.currentTime + 0.15);
+  }
+
+  // Арест / Наручники (металлический двухтоновый лязг)
+  playAccuse() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    [480, 720].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + i * 0.04);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.6, now + i * 0.04 + 0.08);
+
+      gain.gain.setValueAtTime(0.12, now + i * 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.04 + 0.08);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + i * 0.04);
+      osc.stop(now + i * 0.04 + 0.08);
+    });
+  }
+
+  // Взрыв мины / Взлом хранилища
+  playExplosion() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(110, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.25);
+
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.25);
+  }
+}
+
+export const sounds = new SoundEffects();
+````
+
+## File: src/utils/europol.test.ts
+````typescript
+import { describe, it, expect } from 'vitest';
+import { createInitialState, plantBomb, applyShield, sniperShot, killCharacter } from './gameLogic';
+import { getOPGAIMove, getEuropolAIMove } from './aiLogic';
+
+describe('Режим: Европол против ОПГ (EUROPOL_VS_OPG)', () => {
+  it('Бронежилет отражает выстрел и снимается после атаки', () => {
+    const state = createInitialState('EUROPOL_VS_OPG', 'AI', 'KILLER');
+    // Ставим Европол на [0, 0], а цель рядом на [0, 1]
+    state.detectiveSecretId = state.board[0][0].id;
+    const target = state.board[0][1];
+
+    // Навешиваем бронежилет
+    const shieldedState = applyShield(state, target.id);
+    expect(shieldedState.board[0][1].isShielded).toBe(true);
+
+    // Бандит встает на [0, 2] и стреляет в соседа [0, 1]
+    shieldedState.killerSecretId = state.board[0][2].id;
+    const afterShot = killCharacter(shieldedState, target.id);
+
+    expect(afterShot.board[0][1].isAlive).toBe(true);
+    expect(afterShot.board[0][1].isShielded).toBe(false);
+  });
+
+  it('ОПГ закладывает мину на клетку соседа', () => {
+    const state = createInitialState('EUROPOL_VS_OPG', 'AI', 'DETECTIVE');
+    state.killerSecretId = state.board[1][1].id;
+
+    const bombedState = plantBomb(state, state.board[1][2].id);
+    expect(bombedState.board[1][2].hasBomb).toBe(true);
+  });
+
+  it('Снайпер поражает цель строго на дистанции 2 клеток', () => {
+    const state = createInitialState('EUROPOL_VS_OPG', 'AI', 'KILLER');
+    state.detectiveSecretId = state.board[0][0].id;
+
+    const shotState = sniperShot(state, state.board[0][2].id);
+    expect(shotState.board[0][2].isAlive).toBe(false);
+  });
+
+  it('Бот Европола и бот ОПГ совершают ходы без зависаний', () => {
+    const state = createInitialState('EUROPOL_VS_OPG', 'AI', 'DETECTIVE');
+    const opgMove = getOPGAIMove(state);
+    expect(opgMove.currentTurn).toBe('DETECTIVE');
+
+    const europolMove = getEuropolAIMove(opgMove);
+    expect(europolMove.currentTurn).toBe('KILLER');
+  });
+});
+````
+
+## File: src/utils/gameLogic.test.ts
+````typescript
+import { describe, it, expect } from 'vitest';
+import {
+  isOppositeShift,
+  getAdjacentCharacters,
+  killCharacter,
+  accuseCharacter,
+  canCleanupBoard,
+} from './gameLogic';
+import type { Character, GameState } from '../types/game';
+
+const createMockChar = (id: string, name: string, isAlive = true, isExonerated = false): Character => ({
+  id,
+  name,
+  isAlive,
+  isExonerated,
+});
+
+describe('Ядро правил игры (gameLogic)', () => {
+  it('должно блокировать отмену хода противника (anti-undo)', () => {
+    const lastShift = { type: 'ROW' as const, index: 2, direction: 'FORWARD' as const };
+
+    expect(isOppositeShift(lastShift, 'ROW', 2, 'BACKWARD')).toBe(true);
+    expect(isOppositeShift(lastShift, 'ROW', 2, 'FORWARD')).toBe(false);
+    expect(isOppositeShift(lastShift, 'ROW', 1, 'BACKWARD')).toBe(false);
+    expect(isOppositeShift(lastShift, 'COL', 2, 'BACKWARD')).toBe(false);
+  });
+
+  it('должно корректно находить соседей клетки (включая диагонали)', () => {
+    const board: Character[][] = [
+      [createMockChar('1', 'A'), createMockChar('2', 'B'), createMockChar('3', 'C')],
+      [createMockChar('4', 'D'), createMockChar('5', 'E'), createMockChar('6', 'F')],
+      [createMockChar('7', 'G'), createMockChar('8', 'H'), createMockChar('9', 'I')],
+    ];
+
+    const centerNeighbors = getAdjacentCharacters(board, '5');
+    expect(centerNeighbors.length).toBe(8);
+    expect(centerNeighbors.map((c) => c.id)).toEqual(
+      expect.arrayContaining(['1', '2', '3', '4', '6', '7', '8', '9'])
+    );
+
+    const cornerNeighbors = getAdjacentCharacters(board, '1');
+    expect(cornerNeighbors.length).toBe(3);
+    expect(cornerNeighbors.map((c) => c.id)).toEqual(
+      expect.arrayContaining(['2', '4', '5'])
+    );
+  });
+
+  it('Бандит побеждает мгновенно при убийстве Инспектора', () => {
+    const board: Character[][] = [
+      [createMockChar('k', 'Бандит'), createMockChar('i', 'Инспектор')],
+      [createMockChar('v1', 'Жертва 1'), createMockChar('v2', 'Жертва 2')],
+    ];
+
+    const state: GameState = {
+      mode: 'SKHVATKA',
+      board,
+      currentTurn: 'KILLER',
+      killerSecretId: 'k',
+      detectiveSecretId: 'i',
+      detectiveHand: [],
+      evidenceDeck: [],
+      victimList: [],
+      killCount: 0,
+      winner: null,
+      log: [],
+      lastShift: null,
+      lastInterrogation: null,
+    };
+
+    const nextState = killCharacter(state, 'i');
+    expect(nextState.winner).toBe('KILLER');
+    expect(nextState.board[0][1].isAlive).toBe(false);
+  });
+
+  it('Бандит побеждает при наборе 14 убийств', () => {
+    const board: Character[][] = [
+      [createMockChar('k', 'Бандит'), createMockChar('v1', 'Жертва 1')],
+      [createMockChar('v2', 'Жертва 2'), createMockChar('i', 'Инспектор')],
+    ];
+
+    const state: GameState = {
+      mode: 'SKHVATKA',
+      board,
+      currentTurn: 'KILLER',
+      killerSecretId: 'k',
+      detectiveSecretId: 'i',
+      detectiveHand: [],
+      evidenceDeck: [],
+      victimList: [],
+      killCount: 13,
+      winner: null,
+      log: [],
+      lastShift: null,
+      lastInterrogation: null,
+    };
+
+    const nextState = killCharacter(state, 'v1');
+    expect(nextState.killCount).toBe(14);
+    expect(nextState.winner).toBe('KILLER');
+  });
+
+  it('Инспектор побеждает при верном обвинении Бандита-соседа', () => {
+    const board: Character[][] = [
+      [createMockChar('i', 'Инспектор'), createMockChar('k', 'Бандит')],
+      [createMockChar('v1', 'Гражданин'), createMockChar('v2', 'Гражданин 2')],
+    ];
+
+    const state: GameState = {
+      mode: 'SKHVATKA',
+      board,
+      currentTurn: 'DETECTIVE',
+      killerSecretId: 'k',
+      detectiveSecretId: 'i',
+      detectiveHand: [],
+      evidenceDeck: [],
+      victimList: [],
+      killCount: 0,
+      winner: null,
+      log: [],
+      lastShift: null,
+      lastInterrogation: null,
+    };
+
+    const nextState = accuseCharacter(state, 'k');
+    expect(nextState.winner).toBe('DETECTIVE');
+  });
+
+  it('Ложное обвинение оправдывает персонажа (isExonerated = true)', () => {
+    const board: Character[][] = [
+      [createMockChar('i', 'Инспектор'), createMockChar('v1', 'Подозреваемый')],
+      [createMockChar('k', 'Бандит'), createMockChar('v2', 'Гражданин 2')],
+    ];
+
+    const state: GameState = {
+      mode: 'SKHVATKA',
+      board,
+      currentTurn: 'DETECTIVE',
+      killerSecretId: 'k',
+      detectiveSecretId: 'i',
+      detectiveHand: [],
+      evidenceDeck: [],
+      victimList: [],
+      killCount: 0,
+      winner: null,
+      log: [],
+      lastShift: null,
+      lastInterrogation: null,
+    };
+
+    const nextState = accuseCharacter(state, 'v1');
+    expect(nextState.winner).toBeNull();
+    expect(nextState.currentTurn).toBe('KILLER');
+    expect(nextState.board[0][1].isExonerated).toBe(true);
+  });
+
+  it('кнопка «Обновить» активна только если мертвый находится перед живым', () => {
+    const boardNeedsCleanup: Character[][] = [
+      [createMockChar('1', 'A', false), createMockChar('2', 'B', true)],
+      [createMockChar('3', 'C', true), createMockChar('4', 'D', true)],
+    ];
+    expect(canCleanupBoard(boardNeedsCleanup)).toBe(true);
+
+    const boardAlreadyClean: Character[][] = [
+      [createMockChar('1', 'A', true), createMockChar('2', 'B', true)],
+      [createMockChar('3', 'C', true), createMockChar('4', 'D', false)],
+    ];
+    expect(canCleanupBoard(boardAlreadyClean)).toBe(false);
+  });
+
+  it('Маньяк не может убить соседа, которого нет в списке смертников', () => {
+    const board: Character[][] = [
+      [createMockChar('m', 'Маньяк'), createMockChar('targetNotInList', 'Не в списке')],
+      [createMockChar('v1', 'В списке'), createMockChar('op', 'Оперативник')],
+    ];
+
+    const state: GameState = {
+      mode: 'MANIAC_VS_OPERATIVE',
+      board,
+      currentTurn: 'KILLER',
+      killerSecretId: 'm',
+      detectiveSecretId: 'op',
+      detectiveHand: [],
+      evidenceDeck: [],
+      victimList: ['v1'],
+      killCount: 0,
+      winner: null,
+      log: [],
+      lastShift: null,
+      lastInterrogation: null,
+    };
+
+    // Попытка убить цель вне списка смертников
+    const unallowedKillState = killCharacter(state, 'targetNotInList');
+    expect(unallowedKillState.killCount).toBe(0);
+    expect(unallowedKillState.currentTurn).toBe('KILLER'); // Ход не сменился
+    expect(unallowedKillState.board[0][1].isAlive).toBe(true);
+  });
+});
+````
+
+## File: src/utils/gameLogic.ts
+````typescript
+import type { Character, GameModeType, GameState, OpponentType, Role, LastShift } from '../types/game';
+
+export const CHARACTERS_DATA: Omit<Character, 'isAlive' | 'isExonerated'>[] = [
+  { id: 'c1', name: 'Артур Блэк' },
+  { id: 'c2', name: 'Мария Козлова' },
+  { id: 'c3', name: 'Елена Соколова' },
+  { id: 'c4', name: 'Виктор Громов' },
+  { id: 'c5', name: 'Анна Морозова' },
+  { id: 'c6', name: 'Алексей Медведев' },
+  { id: 'c7', name: 'Татьяна Павлова' },
+  { id: 'c8', name: 'Павел Макаров' },
+  { id: 'c9', name: 'Роман Орлов' },
+  { id: 'c10', name: 'Илья Богданов' },
+  { id: 'c11', name: 'София Романова' },
+  { id: 'c12', name: 'Виктория Белова' },
+  { id: 'c13', name: 'Ксения Тарасова' },
+  { id: 'c14', name: 'Алиса Смирнова' },
+  { id: 'c15', name: 'Андрей Семенов' },
+  { id: 'c16', name: 'Дарья Кузнецова' },
+  { id: 'c17', name: 'Ольга Зайцева' },
+  { id: 'c18', name: 'Дмитрий Волков' },
+  { id: 'c19', name: 'Сергей Степанов' },
+  { id: 'c20', name: 'Максим Лебедев' },
+  { id: 'c21', name: 'Игорь Новиков' },
+  { id: 'c22', name: 'Наталья Николаева' },
+  { id: 'c23', name: 'Марк Воронов' },
+  { id: 'c24', name: 'Денис Попов' },
+  { id: 'c25', name: 'Екатерина Ильина' },
+];
+
+function shuffle<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+export function isOppositeShift(
+  lastShift: LastShift | null,
+  type: 'ROW' | 'COL',
+  index: number,
+  direction: 'FORWARD' | 'BACKWARD'
+): boolean {
+  if (!lastShift) return false;
+  return (
+    lastShift.type === type &&
+    lastShift.index === index &&
+    lastShift.direction !== direction
+  );
+}
+
+export function getCharacterCoords(board: Character[][], characterId: string): { r: number; c: number } | null {
+  for (let r = 0; r < board.length; r++) {
+    for (let c = 0; c < board[r].length; c++) {
+      if (board[r][c].id === characterId) return { r, c };
+    }
+  }
+  return null;
+}
+
+export function areAdjacent(board: Character[][], id1: string, id2: string): boolean {
+  const p1 = getCharacterCoords(board, id1);
+  const p2 = getCharacterCoords(board, id2);
+  if (!p1 || !p2) return false;
+  const dr = Math.abs(p1.r - p2.r);
+  const dc = Math.abs(p1.c - p2.c);
+  return dr <= 1 && dc <= 1 && !(dr === 0 && dc === 0);
+}
+
+export function getAdjacentCharacters(board: Character[][], characterId: string): Character[] {
+  const pos = getCharacterCoords(board, characterId);
+  if (!pos) return [];
+  const { r, c } = pos;
+  const adjacent: Character[] = [];
+  const numRows = board.length;
+  const numCols = board[0].length;
+
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      if (dr === 0 && dc === 0) continue;
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr >= 0 && nr < numRows && nc >= 0 && nc < numCols) {
+        adjacent.push(board[nr][nc]);
+      }
+    }
+  }
+  return adjacent;
+}
+
+export function createInitialState(
+  mode: GameModeType,
+  opponent: OpponentType,
+  playerRole: Role = 'DETECTIVE'
+): GameState {
+  const shuffledCharacters = shuffle(CHARACTERS_DATA);
+  const boardCharacters = shuffledCharacters.slice(0, 25).map((c) => ({
+    ...c,
+    isAlive: true,
+    isExonerated: false,
+    isRobbed: false,
+    isShielded: false,
+    hasBomb: false,
+    isVault: false,
+    isVaultCracked: false,
+    isVaultLocked: false,
+  }));
+
+  const board: Character[][] = [];
+  for (let i = 0; i < 5; i++) {
+    board.push(boardCharacters.slice(i * 5, i * 5 + 5));
+  }
+
+  if (mode === 'SPANISH_HEIST') {
+    board[0][0].isVault = true;
+    board[0][4].isVault = true;
+    board[4][0].isVault = true;
+    board[4][4].isVault = true;
+  }
+
+  const deck = shuffledCharacters.slice(25).map((c) => c.id);
+
+  const candidatePool = boardCharacters.filter((c) => !c.isVault);
+  const killerIndex = Math.floor(Math.random() * candidatePool.length);
+  const killerSecretId = candidatePool[killerIndex].id;
+
+  const killerNeighbors = getAdjacentCharacters(board, killerSecretId).map((c) => c.id);
+  const validDetectiveCandidates = candidatePool.filter(
+    (c) => c.id !== killerSecretId && !killerNeighbors.includes(c.id)
+  );
+
+  let detectiveSecretId: string;
+  let detectiveHand: string[] = [];
+  let inspectorChoices: string[] = [];
+  let victimList: string[] = [];
+
+  if (mode === 'SKHVATKA') {
+    const safeCandidates = shuffle(validDetectiveCandidates);
+    const chosenChoices = safeCandidates.slice(0, 4);
+    inspectorChoices = chosenChoices.map((c) => c.id);
+    detectiveSecretId = inspectorChoices[0];
+    detectiveHand = inspectorChoices.slice(1);
+  } else if (mode === 'MANIAC_VS_OPERATIVE') {
+    const chosenDet = validDetectiveCandidates[Math.floor(Math.random() * validDetectiveCandidates.length)];
+    detectiveSecretId = chosenDet.id;
+    const potentialVictims = boardCharacters
+      .filter((c) => c.id !== killerSecretId && c.id !== detectiveSecretId)
+      .map((c) => c.id);
+    victimList = shuffle(potentialVictims).slice(0, 4);
+  } else {
+    const chosenDet = validDetectiveCandidates[Math.floor(Math.random() * validDetectiveCandidates.length)];
+    detectiveSecretId = chosenDet.id;
+  }
+
+  return {
+    board,
+    evidenceDeck: deck,
+    killerSecretId,
+    detectiveSecretId,
+    detectiveHand,
+    inspectorChoices,
+    victimList,
+    currentTurn: 'KILLER',
+    killCount: 0,
+    trophiesKiller: 0,
+    trophiesDetective: 0,
+    blockedShift: null,
+    lastShift: null,
+    winner: null,
+    mode,
+    opponent,
+    playerRole,
+    log: [
+      `Операция началась (${mode}). Режим: ${opponent === 'AI' ? 'Против бота' : 'Вдвоем'}.`,
+      'Раунд 1: Первый ход за атакующей стороной.',
+    ],
+  };
+}
+
+export function setInspectorRole(state: GameState, chosenId: string): GameState {
+  if (!state.inspectorChoices?.includes(chosenId)) return state;
+  const remainingHand = state.inspectorChoices.filter((id) => id !== chosenId);
+  return {
+    ...state,
+    detectiveSecretId: chosenId,
+    detectiveHand: remainingHand,
+    inspectorChoices: [],
+    log: [...state.log, 'Инспектор определился с тайным досье прикрытия.'],
+  };
+}
+
+export function shiftBoard(
+  board: Character[][],
+  type: 'ROW' | 'COL',
+  index: number,
+  direction: 'FORWARD' | 'BACKWARD'
+): Character[][] {
+  const newBoard = board.map((row) => [...row]);
+
+  if (type === 'ROW') {
+    const row = [...newBoard[index]];
+    if (direction === 'FORWARD') {
+      const last = row.pop()!;
+      row.unshift(last);
+    } else {
+      const first = row.shift()!;
+      row.push(first);
+    }
+    newBoard[index] = row;
+  } else {
+    const col: Character[] = [];
+    for (let r = 0; r < 5; r++) col.push(newBoard[r][index]);
+    if (direction === 'FORWARD') {
+      const last = col.pop()!;
+      col.unshift(last);
+    } else {
+      const first = col.shift()!;
+      col.push(first);
+    }
+    for (let r = 0; r < 5; r++) newBoard[r][index] = col[r];
+  }
+
+  return newBoard;
+}
+
+export function killCharacter(state: GameState, targetId: string): GameState {
+  if (state.winner) return state;
+
+  const isAdjacent = areAdjacent(state.board, state.killerSecretId, targetId);
+  if (!isAdjacent) return state;
+
+  let isVictimValid = true;
+  if (state.mode === 'MANIAC_VS_OPERATIVE') {
+    isVictimValid = state.victimList.includes(targetId) || targetId === state.detectiveSecretId;
+  }
+  if (!isVictimValid) return state;
+
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+
+  if (targetChar?.isShielded) {
+    const newBoard = state.board.map((row) =>
+      row.map((c) => (c.id === targetId ? { ...c, isShielded: false } : c))
+    );
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'DETECTIVE',
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `Выстрел отражен! Бронежилет спас жизнь ${targetChar.name}! Защита снята.`,
+      ],
+    };
+  }
+
+  let killedName = '';
+  const newBoard = state.board.map((row) =>
+    row.map((c) => {
+      if (c.id === targetId) {
+        killedName = c.name;
+        return { ...c, isAlive: false, hasBomb: false };
+      }
+      return c;
+    })
+  );
+
+  const newKillCount = state.killCount + 1;
+  let winner: Role | null = null;
+
+  if (targetId === state.detectiveSecretId) {
+    winner = 'KILLER';
+  } else if (state.mode === 'MANIAC_VS_OPERATIVE' && newKillCount >= 4) {
+    winner = 'KILLER';
+  } else if (state.mode === 'EUROPOL_VS_OPG' && newKillCount >= 6) {
+    winner = 'KILLER';
+  } else if (state.mode === 'SKHVATKA' && newKillCount >= 14) {
+    winner = 'KILLER';
+  }
+
+  return {
+    ...state,
+    board: newBoard,
+    killCount: newKillCount,
+    winner,
+    currentTurn: 'DETECTIVE',
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Ликвидация: персонаж ${killedName} устранен.${winner ? ' Победа преступного мира!' : ''}`,
+    ],
+  };
+}
+
+export function crackVault(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== 'SPANISH_HEIST') return state;
+  if (!areAdjacent(state.board, state.killerSecretId, targetId)) return state;
+
+  const target = state.board.flat().find((c) => c.id === targetId);
+  if (!target || !target.isVault || target.isVaultCracked || target.isVaultLocked) return state;
+
+  const crackedCount = (state.trophiesKiller ?? 0) + 1;
+  const isWin = crackedCount >= 3;
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isVaultCracked: true } : c))
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    trophiesKiller: crackedCount,
+    winner: isWin ? 'KILLER' : null,
+    currentTurn: 'DETECTIVE',
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Сейф ${target.name} взломан! Прогресс ограбления: ${crackedCount}/3.${
+        isWin ? ' Хранилище казино полностью обчищено! Победа банды!' : ''
+      }`,
+    ],
+  };
+}
+
+export function lockVault(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== 'SPANISH_HEIST') return state;
+  if (!areAdjacent(state.board, state.detectiveSecretId, targetId)) return state;
+
+  const target = state.board.flat().find((c) => c.id === targetId);
+  if (!target || !target.isVault || target.isVaultCracked || target.isVaultLocked) return state;
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isVaultLocked: true } : c))
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    currentTurn: 'KILLER',
+    blockedShift: null,
+    log: [...state.log, `Охрана включила протокол тревоги на сейфе ${target.name}!`],
+  };
+}
+
+export function plantBomb(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== 'EUROPOL_VS_OPG') return state;
+  if (!areAdjacent(state.board, state.killerSecretId, targetId)) return state;
+
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+  if (!targetChar || targetChar.hasBomb) return state;
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, hasBomb: true } : c))
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    currentTurn: 'DETECTIVE',
+    blockedShift: null,
+    log: [...state.log, `ОПГ заложила скрытый заряд взрывчатки в квартале ${targetChar.name}!`],
+  };
+}
+
+export function applyShield(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== 'EUROPOL_VS_OPG') return state;
+  if (!areAdjacent(state.board, state.detectiveSecretId, targetId) && targetId !== state.detectiveSecretId) {
+    return state;
+  }
+
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+  if (!targetChar || targetChar.isShielded) return state;
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isShielded: true } : c))
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    currentTurn: 'KILLER',
+    blockedShift: null,
+    log: [...state.log, `Европол экипировал защитным протоколом: ${targetChar.name}.`],
+  };
+}
+
+export function sniperShot(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== 'EUROPOL_VS_OPG') return state;
+
+  const pDet = getCharacterCoords(state.board, state.detectiveSecretId);
+  const pTarget = getCharacterCoords(state.board, targetId);
+  if (!pDet || !pTarget) return state;
+
+  const dr = Math.abs(pDet.r - pTarget.r);
+  const dc = Math.abs(pDet.c - pTarget.c);
+  const isValidSniperRange = (dr === 2 && dc === 0) || (dr === 0 && dc === 2);
+
+  if (!isValidSniperRange) return state;
+
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+  if (!targetChar || !targetChar.isAlive) return state;
+
+  if (targetId === state.killerSecretId) {
+    return {
+      ...state,
+      winner: 'DETECTIVE',
+      log: [...state.log, `Снайперский выстрел точно в цель! Глава ОПГ (${targetChar.name}) ликвидирован! Победа Европола!`],
+    };
+  }
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c))
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    currentTurn: 'KILLER',
+    blockedShift: null,
+    log: [...state.log, `Снайпер Европола устранил ложную цель: ${targetChar.name}.`],
+  };
+}
+
+export function robNeighbor(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== 'THIEF_HUNT') return state;
+  if (!areAdjacent(state.board, state.killerSecretId, targetId)) return state;
+
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+  if (!targetChar || targetChar.isRobbed) return state;
+
+  const newTrophies = (state.trophiesKiller ?? 0) + 1;
+  const isWin = newTrophies >= 5;
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isRobbed: true } : c))
+  );
+
+  let nextKillerSecretId = state.killerSecretId;
+  const nextDeck = [...state.evidenceDeck];
+  if (!isWin && nextDeck.length > 0) {
+    nextKillerSecretId = nextDeck.shift()!;
+  }
+
+  return {
+    ...state,
+    board: newBoard,
+    trophiesKiller: newTrophies,
+    killerSecretId: nextKillerSecretId,
+    evidenceDeck: nextDeck,
+    winner: isWin ? 'KILLER' : null,
+    currentTurn: 'DETECTIVE',
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Вор похитил сокровище у персонажа ${targetChar.name}! Добыча: ${newTrophies}/5.${
+        isWin ? ' Вор скрылся со всеми сокровищами!' : ' Вор сменил прикрытие и растворился в толпе.'
+      }`,
+    ],
+  };
+}
+
+export function setPolicePatrol(state: GameState, type: 'ROW' | 'COL', index: number): GameState {
+  if (state.winner || state.mode !== 'THIEF_HUNT') return state;
+
+  return {
+    ...state,
+    blockedShift: { type, index },
+    currentTurn: 'KILLER',
+    log: [
+      ...state.log,
+      `Полиция выставила оцепление на ${type === 'ROW' ? `ряд ${index + 1}` : `колонку ${index + 1}`}. Сдвиг заблокирован на 1 ход!`,
+    ],
+  };
+}
+
+export function accuseCharacter(state: GameState, targetId: string): GameState {
+  if (state.winner) return state;
+
+  const isAdjacent = areAdjacent(state.board, state.detectiveSecretId, targetId);
+  const isSelf = targetId === state.detectiveSecretId;
+  if (!isAdjacent && !isSelf) return state;
+
+  let targetName = '';
+  let targetChar: Character | undefined;
+  state.board.forEach((r) =>
+    r.forEach((c) => {
+      if (c.id === targetId) {
+        targetName = c.name;
+        targetChar = c;
+      }
+    })
+  );
+
+  if (targetChar?.hasBomb) {
+    const isDetKilled = targetId === state.detectiveSecretId;
+    const newBoard = state.board.map((row) =>
+      row.map((c) => (c.id === targetId ? { ...c, isAlive: false, hasBomb: false } : c))
+    );
+
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: 'KILLER',
+      winner: isDetKilled ? 'KILLER' : null,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `💥 ЛОВУШКА! При проверке сдетонировала скрытая бомба ОПГ! ${targetName} ликвидирован!${
+          isDetKilled ? ' Командир Европола погиб при взрыве!' : ''
+        }`,
+      ],
+    };
+  }
+
+  if (targetId === state.killerSecretId) {
+    return {
+      ...state,
+      winner: 'DETECTIVE',
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `Точное задержание! ${targetName} оказался преступником. Победа Закона!`,
+      ],
+    };
+  }
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isExonerated: true } : c))
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    currentTurn: 'KILLER',
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Ложная проверка: ${targetName} не преступник. Получено алиби.`,
+    ],
+  };
+}
+
+export function exonerateFromHand(state: GameState, id: string): GameState {
+  if (!state.detectiveHand.includes(id)) return state;
+
+  let name = '';
+  const newBoard = state.board.map((row) =>
+    row.map((c) => {
+      if (c.id === id) {
+        name = c.name;
+        return { ...c, isExonerated: true };
+      }
+      return c;
+    })
+  );
+
+  const nextHand = state.detectiveHand.filter((cardId) => cardId !== id);
+  const nextDeck = [...state.evidenceDeck];
+  if (nextDeck.length > 0) nextHand.push(nextDeck.shift()!);
+
+  return {
+    ...state,
+    board: newBoard,
+    detectiveHand: nextHand,
+    evidenceDeck: nextDeck,
+    currentTurn: 'KILLER',
+    blockedShift: null,
+    log: [...state.log, `Из досье сыщика подтверждено алиби для: ${name}.`],
+  };
+}
+
+export function disguiseKiller(state: GameState): GameState {
+  if (state.evidenceDeck.length === 0) return state;
+
+  const nextDeck = [...state.evidenceDeck];
+  const newSecretId = nextDeck.shift()!;
+  nextDeck.push(state.killerSecretId);
+
+  return {
+    ...state,
+    killerSecretId: newSecretId,
+    evidenceDeck: nextDeck,
+    currentTurn: 'DETECTIVE',
+    blockedShift: null,
+    log: [...state.log, 'Преступник сменил облик и ушел в тень.'],
+  };
+}
+
+export function canCleanupBoard(board: Character[][] | Character[]): boolean {
+  if (!board || board.length === 0) return false;
+  const flat = Array.isArray(board[0]) ? (board as Character[][]).flat() : (board as Character[]);
+
+  const firstDeadIdx = flat.findIndex((c) => !c.isAlive);
+  if (firstDeadIdx === -1) return false;
+
+  let lastAliveIdx = -1;
+  for (let i = flat.length - 1; i >= 0; i--) {
+    if (flat[i].isAlive) {
+      lastAliveIdx = i;
+      break;
+    }
+  }
+
+  return firstDeadIdx < lastAliveIdx;
+}
+
+export function cleanupDeadCharacters(state: GameState): GameState {
+  if (state.winner || !canCleanupBoard(state.board)) return state;
+
+  const numRows = state.board.length;
+  const numCols = state.board[0].length;
+
+  const living = state.board.flat().filter((c) => c.isAlive);
+  const dead = state.board.flat().filter((c) => !c.isAlive);
+  const reordered = [...living, ...dead];
+
+  const updatedBoard: Character[][] = [];
+  for (let r = 0; r < numRows; r++) {
+    updatedBoard.push(reordered.slice(r * numCols, r * numCols + numCols));
+  }
+
+  const nextTurn = state.currentTurn === 'KILLER' ? 'DETECTIVE' : 'KILLER';
+
+  return {
+    ...state,
+    board: updatedBoard,
+    currentTurn: nextTurn,
+    blockedShift: null,
+    log: [...state.log, 'Морг очищен: тела смещены в нижнюю часть квартала.'],
+  };
+}
+
+export function captureSpy(state: GameState, targetId: string): GameState {
+  if (state.winner) return state;
+
+  const isAgent1 = state.currentTurn === 'KILLER';
+  const mySecretId = isAgent1 ? state.killerSecretId : state.detectiveSecretId;
+  const enemySecretId = isAgent1 ? state.detectiveSecretId : state.killerSecretId;
+
+  if (!areAdjacent(state.board, mySecretId, targetId)) return state;
+
+  if (targetId === enemySecretId) {
+    const winner: Role = isAgent1 ? 'KILLER' : 'DETECTIVE';
+    return {
+      ...state,
+      winner,
+      blockedShift: null,
+      log: [...state.log, `Вражеский резидент разоблачен на месте! Победа ${winner === 'KILLER' ? 'Востока' : 'Запада'}!`],
+    };
+  }
+
+  const nextTrophiesKiller = isAgent1 ? (state.trophiesKiller ?? 0) + 1 : state.trophiesKiller ?? 0;
+  const nextTrophiesDetective = !isAgent1 ? (state.trophiesDetective ?? 0) + 1 : state.trophiesDetective ?? 0;
+
+  let winner: Role | null = null;
+  if (nextTrophiesKiller >= 2) winner = 'KILLER';
+  if (nextTrophiesDetective >= 2) winner = 'DETECTIVE';
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c))
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    trophiesKiller: nextTrophiesKiller,
+    trophiesDetective: nextTrophiesDetective,
+    winner,
+    currentTurn: isAgent1 ? 'DETECTIVE' : 'KILLER',
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Захвачен агент связного. Получен трофей (+1).${winner ? ' Собрано 2 трофея — победа!' : ''}`,
+    ],
+  };
+}
+
+export function interrogateNeighbor(state: GameState, targetId: string): GameState {
+  const isAgent1 = state.currentTurn === 'KILLER';
+  const mySecretId = isAgent1 ? state.killerSecretId : state.detectiveSecretId;
+  const enemySecretId = isAgent1 ? state.detectiveSecretId : state.killerSecretId;
+
+  if (!areAdjacent(state.board, mySecretId, targetId)) return state;
+
+  const isNear = areAdjacent(state.board, targetId, enemySecretId);
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+
+  return {
+    ...state,
+    lastInterrogation: {
+      interrogator: isAgent1 ? 'KILLER' : 'DETECTIVE',
+      targetName: targetChar?.name ?? 'Свидетель',
+      isNear,
+    },
+    currentTurn: isAgent1 ? 'DETECTIVE' : 'KILLER',
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Допрос свидетеля (${targetChar?.name}): ${isNear ? '«Да, подозрительный субъект рядом!»' : '«Никого рядом не видел»'}.`,
+    ],
+  };
+}
+````
+
+## File: src/utils/haptics.ts
+````typescript
+// Универсальный Haptic Feedback для Android, iPhone (iOS Web Audio Click) и Telegram Mini App
+export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | 'error') => {
+  if (typeof window === 'undefined') return;
+
+  // 1. Если запущено внутри Telegram Mini App
+  const tg = (window as unknown as { Telegram?: { WebApp?: { HapticFeedback?: { impactOccurred: (s: string) => void; notificationOccurred: (s: string) => void } } } }).Telegram?.WebApp?.HapticFeedback;
+  if (tg) {
+    try {
+      if (type === 'success' || type === 'error') {
+        tg.notificationOccurred(type);
+      } else {
+        tg.impactOccurred(type === 'heavy' ? 'heavy' : type === 'medium' ? 'medium' : 'light');
+      }
+      return;
+    } catch {
+      // Игнорируем
+    }
+  }
+
+  // 2. Стандартный Android Vibration API
+  if (navigator.vibrate) {
+    try {
+      switch (type) {
+        case 'light':
+          navigator.vibrate(15);
+          return;
+        case 'medium':
+          navigator.vibrate(30);
+          return;
+        case 'heavy':
+          navigator.vibrate(55);
+          return;
+        case 'success':
+          navigator.vibrate([25, 40, 25]);
+          return;
+        case 'error':
+          navigator.vibrate([40, 30, 60]);
+          return;
+      }
+    } catch {
+      // Игнорируем
+    }
+  }
+
+  // 3. iPhone / iOS Safari Taptic Simulator (микро-щелчок звукового синтезатора для тактильного ощущения нажатия)
+  try {
+    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (AudioContextClass) {
+      const ctx = new AudioContextClass();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(type === 'heavy' || type === 'error' ? 80 : 160, ctx.currentTime);
+      gain.gain.setValueAtTime(0.04, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.04);
+    }
+  } catch {
+    // Safari AudioContext restricted
+  }
+};
+````
+
+## File: src/utils/spanishHeist.test.ts
+````typescript
+import { describe, it, expect } from 'vitest';
+import { createInitialState, crackVault, lockVault } from './gameLogic';
+import { getHeistRobberAIMove, getHeistSecurityAIMove } from './aiLogic';
+
+describe('Режим: Ограбление по-испански (SPANISH_HEIST)', () => {
+  it('В режиме испанского ограбления 4 угла являются хранилищами', () => {
+    const state = createInitialState('SPANISH_HEIST', 'AI', 'DETECTIVE');
+    expect(state.board[0][0].isVault).toBe(true);
+    expect(state.board[0][4].isVault).toBe(true);
+    expect(state.board[4][0].isVault).toBe(true);
+    expect(state.board[4][4].isVault).toBe(true);
+  });
+
+  it('Грабитель успешно взламывает соседний сейф', () => {
+    const state = createInitialState('SPANISH_HEIST', 'AI', 'DETECTIVE');
+    // Ставим грабителя рядом с углом [0,0]
+    state.killerSecretId = state.board[0][1].id;
+    const target = state.board[0][0];
+
+    const crackedState = crackVault(state, target.id);
+    expect(crackedState.trophiesKiller).toBe(1);
+    expect(crackedState.board[0][0].isVaultCracked).toBe(true);
+  });
+
+  it('Охрана блокирует доступ к сейфу сигнализацией', () => {
+    const state = createInitialState('SPANISH_HEIST', 'AI', 'KILLER');
+    state.detectiveSecretId = state.board[0][1].id;
+    const target = state.board[0][0];
+
+    const lockedState = lockVault(state, target.id);
+    expect(lockedState.board[0][0].isVaultLocked).toBe(true);
+  });
+
+  it('Бот-грабитель и бот-охрана выполняют валидные ходы', () => {
+    const state = createInitialState('SPANISH_HEIST', 'AI', 'DETECTIVE');
+    const robberMove = getHeistRobberAIMove(state);
+    expect(robberMove.currentTurn).toBe('DETECTIVE');
+
+    const securityMove = getHeistSecurityAIMove(robberMove);
+    expect(securityMove.currentTurn).toBe('KILLER');
+  });
+});
+````
+
+## File: src/utils/thiefHunt.test.ts
+````typescript
+import { describe, it, expect } from 'vitest';
+import { createInitialState, robNeighbor, setPolicePatrol } from './gameLogic';
+import { getThiefAIMove, getPoliceAIMove } from './aiLogic';
+
+describe('Режим: Охота на грабителя (THIEF_HUNT)', () => {
+  it('Вор успешно похищает сокровище и сменяет тайную личность', () => {
+    const state = createInitialState('THIEF_HUNT', 'AI', 'DETECTIVE');
+    const startKiller = state.killerSecretId;
+    const target = state.board[0][0].id !== startKiller ? state.board[0][0].id : state.board[0][1].id;
+
+    // Имитируем соседство
+    state.killerSecretId = state.board[0][0].id;
+    const nextState = robNeighbor(state, state.board[0][1].id);
+
+    expect(nextState.trophiesKiller).toBe(1);
+    expect(nextState.killerSecretId).not.toBe(startKiller);
+  });
+
+  it('Полиция блокирует ряд или колонку патрулем', () => {
+    const state = createInitialState('THIEF_HUNT', 'AI', 'KILLER');
+    const nextState = setPolicePatrol(state, 'ROW', 1);
+
+    expect(nextState.blockedShift).toEqual({ type: 'ROW', index: 1 });
+  });
+
+  it('Бот-вор и бот-полиция совершают корректные ходы', () => {
+    const state = createInitialState('THIEF_HUNT', 'AI', 'DETECTIVE');
+    const thiefMove = getThiefAIMove(state);
+    expect(thiefMove.currentTurn).toBe('DETECTIVE');
+
+    const policeMove = getPoliceAIMove(thiefMove);
+    expect(policeMove.currentTurn).toBe('KILLER');
+  });
+});
+````
+
+## File: src/App.css
+````css
+.counter {
+  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+  margin-bottom: 24px;
+
+  &:hover {
+    border-color: var(--accent-border);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.hero {
+  position: relative;
+
+  .base,
+  .framework,
+  .vite {
+    inset-inline: 0;
+    margin: 0 auto;
+  }
+
+  .base {
+    width: 170px;
+    position: relative;
+    z-index: 0;
+  }
+
+  .framework,
+  .vite {
+    position: absolute;
+  }
+
+  .framework {
+    z-index: 1;
+    top: 34px;
+    height: 28px;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
+      scale(1.4);
+  }
+
+  .vite {
+    z-index: 0;
+    top: 107px;
+    height: 26px;
+    width: auto;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
+      scale(0.8);
+  }
+}
+
+#center {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  place-content: center;
+  place-items: center;
+  flex-grow: 1;
+
+  @media (max-width: 1024px) {
+    padding: 32px 20px 24px;
+    gap: 18px;
+  }
+}
+
+#next-steps {
+  display: flex;
+  border-top: 1px solid var(--border);
+  text-align: left;
+
+  & > div {
+    flex: 1 1 0;
+    padding: 32px;
+    @media (max-width: 1024px) {
+      padding: 24px 20px;
+    }
+  }
+
+  .icon {
+    margin-bottom: 16px;
+    width: 22px;
+    height: 22px;
+  }
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+#docs {
+  border-right: 1px solid var(--border);
+
+  @media (max-width: 1024px) {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+#next-steps ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+  margin: 32px 0 0;
+
+  .logo {
+    height: 18px;
+  }
+
+  a {
+    color: var(--text-h);
+    font-size: 16px;
+    border-radius: 6px;
+    background: var(--social-bg);
+    display: flex;
+    padding: 6px 12px;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: box-shadow 0.3s;
+
+    &:hover {
+      box-shadow: var(--shadow);
+    }
+    .button-icon {
+      height: 18px;
+      width: 18px;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    li {
+      flex: 1 1 calc(50% - 8px);
+    }
+
+    a {
+      width: 100%;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+  }
+}
+
+#spacer {
+  height: 88px;
+  border-top: 1px solid var(--border);
+  @media (max-width: 1024px) {
+    height: 48px;
+  }
+}
+
+.ticks {
+  position: relative;
+  width: 100%;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: -4.5px;
+    border: 5px solid transparent;
+  }
+
+  &::before {
+    left: 0;
+    border-left-color: var(--border);
+  }
+  &::after {
+    right: 0;
+    border-right-color: var(--border);
+  }
+}
+````
+
+## File: src/App.tsx
+````typescript
+import { useState, useRef, useEffect } from 'react';
+import type { GameModeType, OpponentType, Role } from './types/game';
+import { GameBoard } from './components/GameBoard';
+import { DetectiveHand } from './components/DetectiveHand';
+import { VictimList } from './components/VictimList';
+import { RoleRevealModal } from './components/RoleRevealModal';
+import { GameOverModal } from './components/GameOverModal';
+import { ModeSelectModal, GAME_MODES } from './components/ModeSelectModal';
+import { triggerHaptic } from './utils/haptics';
+import { sounds } from './utils/audio';
+import {
+  createInitialState,
+  setInspectorRole,
+  shiftBoard,
+  killCharacter,
+  accuseCharacter,
+  exonerateFromHand,
+  disguiseKiller,
+  getAdjacentCharacters,
+  getCharacterCoords,
+  cleanupDeadCharacters,
+  canCleanupBoard,
+  captureSpy,
+  interrogateNeighbor,
+  robNeighbor,
+  setPolicePatrol,
+  plantBomb,
+  applyShield,
+  sniperShot,
+  crackVault,
+  lockVault,
+} from './utils/gameLogic';
+import { getKillerAIMove, getDetectiveAIMove, getSecretServiceAIMove } from './utils/aiLogic';
+
+export default function App() {
+  const [activeMode, setActiveMode] = useState<GameModeType>('SKHVATKA');
+  const [isLobbyOpen, setIsLobbyOpen] = useState(true);
+  const [hasStartedEver, setHasStartedEver] = useState(false);
+
+  const [gameState, setGameState] = useState(() => createInitialState('SKHVATKA', 'AI', 'DETECTIVE'));
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const [isIntroPhase, setIsIntroPhase] = useState(false);
+  const [showKillerRole, setShowKillerRole] = useState(false);
+  const [showDetectiveRole, setShowDetectiveRole] = useState(false);
+
+  const [secondsElapsed, setSecondsElapsed] = useState(0);
+  const [isLogOpen, setIsLogOpen] = useState(false);
+  const [isAIThinking, setIsAIThinking] = useState(false);
+
+  const logContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+  }, [gameState.log, isLogOpen]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    const isGameRunning = hasStartedEver && !isIntroPhase && !gameState.winner;
+
+    if (isGameRunning) {
+      interval = setInterval(() => {
+        setSecondsElapsed((prev) => prev + 1);
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [hasStartedEver, isIntroPhase, gameState.winner]);
+
+  // Ход бота
+  useEffect(() => {
+    if (!hasStartedEver || isIntroPhase || gameState.winner || gameState.opponent !== 'AI') {
+      return;
+    }
+
+    const isAITurn = gameState.currentTurn !== gameState.playerRole;
+
+    if (isAITurn) {
+      setIsAIThinking(true);
+      const timer = setTimeout(() => {
+        setGameState((prev) => {
+          if (prev.winner) return prev;
+          let next = prev;
+          if (prev.mode === 'SECRET_SERVICE') {
+            next = getSecretServiceAIMove(prev);
+          } else if (prev.currentTurn === 'KILLER') {
+            next = getKillerAIMove(prev);
+          } else {
+            next = getDetectiveAIMove(prev);
+          }
+
+          sounds.playShift();
+          if (next.winner) {
+            triggerHaptic(next.winner === next.playerRole ? 'success' : 'error');
+          }
+          return next;
+        });
+        setIsAIThinking(false);
+      }, 350);
+
+      return () => clearTimeout(timer);
+    }
+  }, [hasStartedEver, isIntroPhase, gameState.currentTurn, gameState.winner, gameState.opponent, gameState.playerRole]);
+
+  const formatTimer = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const allChars = gameState.board.flat();
+  const killerChar = allChars.find((c) => c.id === gameState.killerSecretId);
+  const detectiveChar = allChars.find((c) => c.id === gameState.detectiveSecretId);
+
+  const inspectorChoices = (gameState.inspectorChoices ?? [])
+    .map((id) => allChars.find((c) => c.id === id))
+    .filter(Boolean) as typeof allChars;
+
+  const isCleanupAvailable = canCleanupBoard(gameState.board) && !gameState.winner;
+  const isFirstTurnKiller = gameState.mode === 'SKHVATKA' && gameState.killCount === 0 && gameState.currentTurn === 'KILLER';
+
+  const killerAdjacentIds = getAdjacentCharacters(gameState.board, gameState.killerSecretId).map((c) => c.id);
+  const detectiveAdjacentIds = getAdjacentCharacters(gameState.board, gameState.detectiveSecretId).map((c) => c.id);
+
+  const currentModeInfo = GAME_MODES.find((m) => m.id === activeMode) ?? GAME_MODES[0];
+  const currentModeTitle = currentModeInfo?.title ?? 'Схватка';
+
+  const isKillerTurn = gameState.currentTurn === 'KILLER';
+  const isDetectiveTurn = gameState.currentTurn === 'DETECTIVE';
+
+  const role1Name = (currentModeInfo?.killerRoleName ?? 'Бандит').toUpperCase();
+  const role2Name = (currentModeInfo?.detectiveRoleName ?? 'Инспектор').toUpperCase();
+  const currentRoleName = isKillerTurn ? role1Name : role2Name;
+
+  const isHumanTurn = gameState.opponent === 'PVP' || gameState.currentTurn === gameState.playerRole;
+
+  const handleSelectInspectorRole = (chosenId: string) => {
+    triggerHaptic('medium');
+    setGameState((prev) => setInspectorRole(prev, chosenId));
+  };
+
+  const handleStartNewGame = (modeId: GameModeType, opponent: OpponentType, playerRole: Role) => {
+    triggerHaptic('light');
+    setActiveMode(modeId);
+    setGameState(createInitialState(modeId, opponent, playerRole));
+    setSelectedId(null);
+    setShowKillerRole(false);
+    setShowDetectiveRole(false);
+    setSecondsElapsed(0);
+    setIsLobbyOpen(false);
+    setHasStartedEver(true);
+    setIsIntroPhase(modeId === 'SKHVATKA' || modeId === 'MANIAC_VS_OPERATIVE');
+  };
+
+  const handleResumeGame = () => {
+    triggerHaptic('light');
+    setIsLobbyOpen(false);
+  };
+
+  const handleShift = (
+    type: 'ROW' | 'COL',
+    index: number,
+    direction: 'FORWARD' | 'BACKWARD'
+  ) => {
+    if (gameState.winner || isFirstTurnKiller || !isHumanTurn) return;
+    if (gameState.blockedShift && gameState.blockedShift.type === type && gameState.blockedShift.index === index) {
+      triggerHaptic('error');
+      return;
+    }
+
+    triggerHaptic('light');
+    sounds.playShift();
+    const newBoard = shiftBoard(gameState.board, type, index, direction);
+    const nextTurn = gameState.currentTurn === 'KILLER' ? 'DETECTIVE' : 'KILLER';
+    const actionText = `${currentRoleName} сдвинул ${type === 'ROW' ? `ряд ${index + 1}` : `колонку ${index + 1}`}.`;
+
+    setGameState((prev) => ({
+      ...prev,
+      board: newBoard,
+      currentTurn: nextTurn,
+      lastShift: { type, index, direction },
+      blockedShift: null,
+      log: [...prev.log, actionText],
+    }));
+    setSelectedId(null);
+  };
+
+  const handleKill = () => {
+    if (!selectedId || gameState.currentTurn !== 'KILLER' || !isHumanTurn) return;
+    triggerHaptic('heavy');
+    sounds.playKill();
+    setGameState((prev) => {
+      const next = killCharacter(prev, selectedId);
+      if (next.winner) triggerHaptic('success');
+      return next;
+    });
+    setSelectedId(null);
+  };
+
+  const handleCrackVault = () => {
+    if (!selectedId || gameState.currentTurn !== 'KILLER' || !isHumanTurn) return;
+    triggerHaptic('heavy');
+    sounds.playExplosion();
+    setGameState((prev) => {
+      const next = crackVault(prev, selectedId);
+      if (next.winner) triggerHaptic('success');
+      return next;
+    });
+    setSelectedId(null);
+  };
+
+  const handleLockVault = () => {
+    if (!selectedId || gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
+    triggerHaptic('medium');
+    sounds.playAccuse();
+    setGameState((prev) => lockVault(prev, selectedId));
+    setSelectedId(null);
+  };
+
+  const handleRob = () => {
+    if (!selectedId || gameState.currentTurn !== 'KILLER' || !isHumanTurn) return;
+    triggerHaptic('heavy');
+    sounds.playExplosion();
+    setGameState((prev) => {
+      const next = robNeighbor(prev, selectedId);
+      if (next.winner) triggerHaptic('success');
+      return next;
+    });
+    setSelectedId(null);
+  };
+
+  const handlePlantBomb = () => {
+    if (!selectedId || gameState.currentTurn !== 'KILLER' || !isHumanTurn) return;
+    triggerHaptic('medium');
+    sounds.playExplosion();
+    setGameState((prev) => plantBomb(prev, selectedId));
+    setSelectedId(null);
+  };
+
+  const handleApplyShield = () => {
+    if (!selectedId || gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
+    triggerHaptic('light');
+    sounds.playShift();
+    setGameState((prev) => applyShield(prev, selectedId));
+    setSelectedId(null);
+  };
+
+  const handleSniperShot = () => {
+    if (!selectedId || gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
+    triggerHaptic('heavy');
+    sounds.playKill();
+    setGameState((prev) => {
+      const next = sniperShot(prev, selectedId);
+      if (next.winner) triggerHaptic('success');
+      return next;
+    });
+    setSelectedId(null);
+  };
+
+  const handlePatrol = () => {
+    if (gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
+    triggerHaptic('medium');
+    sounds.playAccuse();
+    setGameState((prev) => setPolicePatrol(prev, 'ROW', 2));
+    setSelectedId(null);
+  };
+
+  const handleAccuse = () => {
+    if (!selectedId || gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
+    triggerHaptic('medium');
+    sounds.playAccuse();
+    setGameState((prev) => {
+      const next = accuseCharacter(prev, selectedId);
+      triggerHaptic(next.winner ? 'success' : 'medium');
+      return next;
+    });
+    setSelectedId(null);
+  };
+
+  const handleDisguise = () => {
+    if (gameState.currentTurn !== 'KILLER' || isFirstTurnKiller || !isHumanTurn) return;
+    triggerHaptic('medium');
+    sounds.playShift();
+    setGameState((prev) => disguiseKiller(prev));
+    setSelectedId(null);
+  };
+
+  const handleExonerateFromHand = (id: string) => {
+    if (gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
+    triggerHaptic('light');
+    sounds.playShift();
+    setGameState((prev) => exonerateFromHand(prev, id));
+    setSelectedId(null);
+  };
+
+  const handleCleanup = () => {
+    if (!isCleanupAvailable || isFirstTurnKiller || !isHumanTurn) return;
+    triggerHaptic('medium');
+    sounds.playShift();
+    setGameState((prev) => cleanupDeadCharacters(prev));
+    setSelectedId(null);
+  };
+
+  const handleCaptureSpy = () => {
+    if (!selectedId || gameState.mode !== 'SECRET_SERVICE' || !isHumanTurn) return;
+    sounds.playAccuse();
+    setGameState((prev) => {
+      const next = captureSpy(prev, selectedId);
+      triggerHaptic(next.winner ? 'success' : 'heavy');
+      return next;
+    });
+    setSelectedId(null);
+  };
+
+  const handleInterrogateSpy = () => {
+    if (!selectedId || gameState.mode !== 'SECRET_SERVICE' || !isHumanTurn) return;
+    triggerHaptic('light');
+    sounds.playShift();
+    setGameState((prev) => interrogateNeighbor(prev, selectedId));
+    setSelectedId(null);
+  };
+
+  const handleReset = () => {
+    triggerHaptic('light');
+    handleStartNewGame(activeMode, gameState.opponent, gameState.playerRole);
+  };
+
+  let isSniperTargetValid = false;
+  if (selectedId && gameState.mode === 'EUROPOL_VS_OPG') {
+    const pDet = getCharacterCoords(gameState.board, gameState.detectiveSecretId);
+    const pTarget = getCharacterCoords(gameState.board, selectedId);
+    if (pDet && pTarget) {
+      const dr = Math.abs(pDet.r - pTarget.r);
+      const dc = Math.abs(pDet.c - pTarget.c);
+      isSniperTargetValid = (dr === 2 && dc === 0) || (dr === 0 && dc === 2);
+    }
+  }
+
+  const activeAgentAdjacentIds = isKillerTurn ? killerAdjacentIds : detectiveAdjacentIds;
+  const canPeekKiller = gameState.opponent === 'PVP' || gameState.playerRole === 'KILLER';
+  const canPeekDetective = gameState.opponent === 'PVP' || gameState.playerRole === 'DETECTIVE';
+
+  return (
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center select-none font-sans pb-10">
+      {isLobbyOpen && (
+        <ModeSelectModal
+          currentModeId={activeMode}
+          hasActiveGame={hasStartedEver}
+          onSelectMode={(modeId) => setActiveMode(modeId)}
+          onResumeGame={handleResumeGame}
+          onStartNewGame={handleStartNewGame}
+        />
+      )}
+
+      {isIntroPhase && !isLobbyOpen && (activeMode === 'SKHVATKA' || activeMode === 'MANIAC_VS_OPERATIVE') && (
+        <RoleRevealModal
+          killer={killerChar}
+          inspectorChoices={inspectorChoices}
+          onSelectDetectiveRole={handleSelectInspectorRole}
+          onComplete={() => setIsIntroPhase(false)}
+        />
+      )}
+
+      {gameState.winner && (
+        <GameOverModal
+          winner={gameState.winner}
+          mode={gameState.mode}
+          killer={killerChar}
+          detective={detectiveChar}
+          elapsedTime={formatTimer(secondsElapsed)}
+          onRestart={handleReset}
+        />
+      )}
+
+      <div className="sticky top-0 z-40 w-full bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800 px-2 sm:px-4 pt-[max(0.5rem,env(safe-area-inset-top))] pb-1.5 sm:py-2 flex items-center justify-between shadow-xl">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <button
+            onClick={() => setIsLobbyOpen(true)}
+            className="text-[11px] sm:text-xs bg-zinc-900 active:bg-zinc-800 text-zinc-300 px-2 py-1 sm:py-1.5 rounded-lg border border-zinc-700 transition cursor-pointer flex items-center gap-1"
+          >
+            <span>☰</span>
+            <span className="hidden md:inline">Операции</span>
+          </button>
+
+          <span className="text-[10px] xs:text-xs sm:text-sm font-black tracking-wider text-zinc-200 uppercase">
+            {currentModeTitle}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <div
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 rounded-full border text-[10px] sm:text-xs font-black tracking-wider sm:tracking-widest uppercase transition-all shadow-lg ${
+              isAIThinking
+                ? 'bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse'
+                : isKillerTurn
+                ? 'bg-red-950/80 border-red-600 text-red-100'
+                : 'bg-blue-950/80 border-blue-600 text-blue-100'
+            }`}
+          >
+            <span className={`w-2 h-2 rounded-full ${isAIThinking ? 'bg-amber-400 animate-ping' : isKillerTurn ? 'bg-red-500' : 'bg-blue-500'}`} />
+            <span>{isAIThinking ? 'Бот думает...' : currentRoleName}</span>
+          </div>
+
+          <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-zinc-900 border border-zinc-800 font-mono text-[10px] sm:text-xs text-zinc-400 font-bold">
+            <span>{formatTimer(secondsElapsed)}</span>
+          </div>
+        </div>
+
+        <button
+          onClick={handleReset}
+          className="text-[11px] sm:text-xs bg-zinc-900 active:bg-zinc-800 text-zinc-300 px-2 py-1 sm:py-1.5 rounded-lg border border-zinc-700 transition cursor-pointer shrink-0 ml-1"
+        >
+          Заново
+        </button>
+      </div>
+
+      <div className="w-full max-w-4xl p-2 sm:p-6 flex flex-col items-center">
+        <div className="w-full flex items-center justify-between text-[11px] text-zinc-400 mb-2 px-1">
+          {gameState.mode === 'SECRET_SERVICE' ? (
+            <div className="flex items-center gap-3">
+              <span>Трофеи «Восток»: <b className="text-red-400">{gameState.trophiesKiller ?? 0}/2</b></span>
+              <span>Трофеи «Запад»: <b className="text-blue-400">{gameState.trophiesDetective ?? 0}/2</b></span>
+              <span>Колода: {gameState.evidenceDeck.length}</span>
+            </div>
+          ) : gameState.mode === 'SPANISH_HEIST' ? (
+            <div className="flex items-center gap-3">
+              <span>Взломано хранилищ: <b className="text-amber-400">{gameState.trophiesKiller ?? 0}/3</b></span>
+              <span>Колода: {gameState.evidenceDeck.length}</span>
+            </div>
+          ) : gameState.mode === 'THIEF_HUNT' ? (
+            <div className="flex items-center gap-3">
+              <span>Украдено сокровищ: <b className="text-amber-400">{gameState.trophiesKiller ?? 0}/5</b></span>
+              <span>Колода: {gameState.evidenceDeck.length}</span>
+            </div>
+          ) : gameState.mode === 'EUROPOL_VS_OPG' ? (
+            <div className="flex items-center gap-3">
+              <span>Потери Европола: <b className="text-red-400">{gameState.killCount}/6</b></span>
+              <span>Колода: {gameState.evidenceDeck.length}</span>
+            </div>
+          ) : (
+            <div>
+              Жертвы: <span className="text-red-400 font-bold">{gameState.killCount}/{gameState.mode === 'MANIAC_VS_OPERATIVE' ? 4 : 14}</span> | Улики: {gameState.evidenceDeck.length}
+            </div>
+          )}
+
+          <div className="text-[10px] font-mono text-zinc-500">
+            {gameState.opponent === 'AI' ? '⚔️ Режим: против бота' : '👥 Режим: вдвоем'}
+          </div>
+        </div>
+
+        {gameState.mode === 'MANIAC_VS_OPERATIVE' && (
+          <VictimList
+            victimIds={gameState.victimList}
+            allCharacters={allChars}
+          />
+        )}
+
+        <div className="w-full flex flex-col lg:flex-row gap-3 sm:gap-4 items-start">
+          <div className="flex-1 w-full">
+            <GameBoard
+              board={gameState.board}
+              selectedCharacterId={selectedId}
+              killerAdjacentIds={killerAdjacentIds}
+              detectiveAdjacentIds={detectiveAdjacentIds}
+              showKillerHints={showKillerRole}
+              showDetectiveHints={showDetectiveRole}
+              lastShift={gameState.lastShift}
+              onShift={handleShift}
+              onSelectCharacter={(id) => {
+                if (isHumanTurn) {
+                  triggerHaptic('light');
+                  setSelectedId((prev) => (prev === id ? null : id));
+                }
+              }}
+            />
+          </div>
+
+          <div className="w-full lg:w-72 flex flex-col gap-2.5">
+            <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-xl text-xs flex sm:flex-col gap-2">
+              <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-red-950/60 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] font-bold text-red-400">{role1Name}</div>
+                  <div className="text-[11px] font-mono font-bold text-zinc-300">
+                    {showKillerRole ? killerChar?.name : '••••••••'}
+                  </div>
+                </div>
+                <button
+                  disabled={!canPeekKiller}
+                  onMouseDown={(e) => { e.preventDefault(); triggerHaptic('light'); setShowKillerRole(true); }}
+                  onMouseUp={() => setShowKillerRole(false)}
+                  onMouseLeave={() => setShowKillerRole(false)}
+                  onTouchStart={(e) => { e.preventDefault(); triggerHaptic('light'); setShowKillerRole(true); }}
+                  onTouchEnd={() => setShowKillerRole(false)}
+                  onTouchCancel={() => setShowKillerRole(false)}
+                  className={`text-[9px] px-2.5 py-1.5 rounded border font-bold select-none touch-none ${
+                    !canPeekKiller
+                      ? 'bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed'
+                      : 'bg-red-950 text-red-200 border-red-800 active:bg-red-900 cursor-pointer'
+                  }`}
+                >
+                  Зажать
+                </button>
+              </div>
+
+              <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-blue-950/60 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] font-bold text-blue-400">{role2Name}</div>
+                  <div className="text-[11px] font-mono font-bold text-zinc-300">
+                    {showDetectiveRole ? detectiveChar?.name : '••••••••'}
+                  </div>
+                </div>
+                <button
+                  disabled={!canPeekDetective}
+                  onMouseDown={(e) => { e.preventDefault(); triggerHaptic('light'); setShowDetectiveRole(true); }}
+                  onMouseUp={() => setShowDetectiveRole(false)}
+                  onMouseLeave={() => setShowDetectiveRole(false)}
+                  onTouchStart={(e) => { e.preventDefault(); triggerHaptic('light'); setShowDetectiveRole(true); }}
+                  onTouchEnd={() => setShowDetectiveRole(false)}
+                  onTouchCancel={() => setShowDetectiveRole(false)}
+                  className={`text-[9px] px-2.5 py-1.5 rounded border font-bold select-none touch-none ${
+                    !canPeekDetective
+                      ? 'bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed'
+                      : 'bg-blue-950 text-blue-200 border-blue-800 active:bg-blue-900 cursor-pointer'
+                  }`}
+                >
+                  Зажать
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-xl">
+              <div className="text-zinc-400 font-semibold uppercase tracking-wider text-[10px] mb-1.5 flex items-center justify-between">
+                <span>Действия ({currentRoleName})</span>
+                {isAIThinking && <span className="text-amber-400 text-[9px] animate-pulse">Бот думает...</span>}
+              </div>
+
+              {gameState.mode === 'SPANISH_HEIST' ? (
+                <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
+                  {isKillerTurn ? (
+                    <>
+                      <button
+                        onClick={handleCrackVault}
+                        disabled={!isHumanTurn || !selectedId || !killerAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                        className="py-2.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 disabled:opacity-30 text-zinc-950 text-[11px] font-black rounded-lg transition disabled:cursor-not-allowed"
+                      >
+                        Взломать хранилище 🔓
+                      </button>
+
+                      <button
+                        onClick={handleDisguise}
+                        disabled={!isHumanTurn || gameState.evidenceDeck.length === 0 || gameState.winner !== null}
+                        className="py-2.5 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-200 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed"
+                      >
+                        Дымовая завеса
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleLockVault}
+                        disabled={!isHumanTurn || !selectedId || !detectiveAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                        className="py-2.5 bg-red-900/80 active:bg-red-800 disabled:opacity-30 text-red-100 text-[11px] font-black rounded-lg border border-red-700 transition disabled:cursor-not-allowed"
+                      >
+                        Заблокировать сейф 🔒
+                      </button>
+
+                      <button
+                        onClick={handleAccuse}
+                        disabled={!isHumanTurn || !selectedId || !detectiveAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                        className="py-2.5 bg-blue-900/80 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed"
+                      >
+                        Захват с поличным
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) : gameState.mode === 'EUROPOL_VS_OPG' ? (
+                <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
+                  {isKillerTurn ? (
+                    <>
+                      <button
+                        onClick={handleKill}
+                        disabled={!isHumanTurn || !selectedId || !killerAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                        className="py-2.5 bg-red-900/80 active:bg-red-800 disabled:opacity-30 text-red-100 text-[11px] font-black rounded-lg border border-red-700 transition disabled:cursor-not-allowed"
+                      >
+                        Ликвидация соседа
+                      </button>
+
+                      <button
+                        onClick={handlePlantBomb}
+                        disabled={!isHumanTurn || !selectedId || !killerAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                        className="py-2.5 bg-amber-950/80 active:bg-amber-900 disabled:opacity-30 text-amber-200 text-[11px] font-black rounded-lg border border-amber-800 transition disabled:cursor-not-allowed"
+                      >
+                        Минировать клетку 💣
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleAccuse}
+                        disabled={!isHumanTurn || !selectedId || !detectiveAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                        className="py-2.5 bg-blue-900/80 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed"
+                      >
+                        Штурм и арест
+                      </button>
+
+                      <button
+                        onClick={handleSniperShot}
+                        disabled={!isHumanTurn || !selectedId || !isSniperTargetValid || gameState.winner !== null}
+                        className="py-2.5 bg-emerald-950/80 active:bg-emerald-900 disabled:opacity-30 text-emerald-200 text-[11px] font-black rounded-lg border border-emerald-700 transition disabled:cursor-not-allowed"
+                      >
+                        Выстрел снайпера 🎯
+                      </button>
+
+                      <button
+                        onClick={handleApplyShield}
+                        disabled={!isHumanTurn || !selectedId || (!detectiveAdjacentIds.includes(selectedId) && selectedId !== gameState.detectiveSecretId) || gameState.winner !== null}
+                        className="py-2 bg-indigo-900/70 active:bg-indigo-800 disabled:opacity-30 text-indigo-200 text-[11px] font-bold rounded-lg border border-indigo-700 transition disabled:cursor-not-allowed col-span-2 lg:col-span-1"
+                      >
+                        Бронежилет 🛡️
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) : gameState.mode === 'THIEF_HUNT' ? (
+                <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
+                  <button
+                    onClick={handleRob}
+                    disabled={!isHumanTurn || !isKillerTurn || !selectedId || !killerAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                    className="py-2.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 disabled:opacity-30 text-zinc-950 text-[11px] font-black rounded-lg transition disabled:cursor-not-allowed"
+                  >
+                    Ограбить соседа
+                  </button>
+
+                  <button
+                    onClick={handlePatrol}
+                    disabled={!isHumanTurn || !isDetectiveTurn || gameState.blockedShift !== null || gameState.winner !== null}
+                    className="py-2.5 bg-blue-900/80 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed"
+                  >
+                    Выставить патруль
+                  </button>
+
+                  <button
+                    onClick={handleAccuse}
+                    disabled={!isHumanTurn || !isDetectiveTurn || !selectedId || !detectiveAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                    className="py-2.5 bg-indigo-900/70 active:bg-indigo-800 disabled:opacity-30 text-indigo-100 text-[11px] font-black rounded-lg border border-indigo-700 transition disabled:cursor-not-allowed col-span-2 lg:col-span-1"
+                  >
+                    Арестовать вора
+                  </button>
+                </div>
+              ) : gameState.mode === 'SECRET_SERVICE' ? (
+                <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
+                  <button
+                    onClick={handleCaptureSpy}
+                    disabled={!isHumanTurn || !selectedId || !activeAgentAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                    className="py-2.5 bg-red-900/70 active:bg-red-800 disabled:opacity-30 text-red-100 text-[11px] font-black rounded-lg border border-red-700 transition disabled:cursor-not-allowed"
+                  >
+                    Захватить шпиона
+                  </button>
+
+                  <button
+                    onClick={handleInterrogateSpy}
+                    disabled={!isHumanTurn || !selectedId || !activeAgentAdjacentIds.includes(selectedId) || gameState.winner !== null}
+                    className="py-2.5 bg-blue-900/70 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed"
+                  >
+                    Допросить свидетеля
+                  </button>
+
+                  <button
+                    onClick={handleCleanup}
+                    disabled={!isHumanTurn || !isCleanupAvailable}
+                    className="py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed col-span-2 lg:col-span-1"
+                  >
+                    Обновить поле
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
+                  <button
+                    onClick={handleKill}
+                    disabled={!isHumanTurn || !isKillerTurn || !selectedId || gameState.winner !== null}
+                    className="py-2 bg-red-900/60 active:bg-red-800 disabled:opacity-30 text-red-200 text-[11px] font-bold rounded-lg border border-red-800 transition disabled:cursor-not-allowed"
+                  >
+                    {gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Убить цель' : 'Убить соседа'}
+                  </button>
+
+                  <button
+                    onClick={handleDisguise}
+                    disabled={!isHumanTurn || !isKillerTurn || isFirstTurnKiller || gameState.evidenceDeck.length === 0 || gameState.winner !== null}
+                    className="py-2 bg-amber-950/70 active:bg-amber-900 disabled:opacity-30 text-amber-200 text-[11px] font-bold rounded-lg border border-amber-800 transition disabled:cursor-not-allowed"
+                  >
+                    Замаскироваться
+                  </button>
+
+                  <button
+                    onClick={handleAccuse}
+                    disabled={!isHumanTurn || !isDetectiveTurn || !selectedId || (!detectiveAdjacentIds.includes(selectedId) && selectedId !== gameState.detectiveSecretId) || gameState.winner !== null}
+                    className="py-2 bg-blue-900/60 active:bg-blue-800 disabled:opacity-30 text-blue-200 text-[11px] font-bold rounded-lg border border-blue-800 transition disabled:cursor-not-allowed"
+                  >
+                    {gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Арестовать' : 'Обвинить'}
+                  </button>
+
+                  <button
+                    onClick={handleCleanup}
+                    disabled={!isHumanTurn || !isCleanupAvailable || isFirstTurnKiller}
+                    className="py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed"
+                  >
+                    Обновить поле
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {gameState.mode === 'SKHVATKA' && (
+              <DetectiveHand
+                handIds={gameState.detectiveHand}
+                allCharacters={allChars}
+                isDetectiveTurn={isHumanTurn && isDetectiveTurn && !gameState.winner}
+                onExonerateFromHand={handleExonerateFromHand}
+              />
+            )}
+
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+              <button
+                onClick={() => { triggerHaptic('light'); setIsLogOpen(!isLogOpen); }}
+                className="w-full p-2.5 flex items-center justify-between text-[11px] font-semibold text-zinc-400 bg-zinc-900 hover:bg-zinc-800/80 transition cursor-pointer"
+              >
+                <span>Протокол событий ({gameState.log.length})</span>
+                <span className="text-xs">{isLogOpen ? '▲' : '▼'}</span>
+              </button>
+
+              <div
+                ref={logContainerRef}
+                className={`overflow-y-auto space-y-1 text-[10px] text-zinc-300 font-mono px-2.5 pb-2 transition-all ${
+                  isLogOpen ? 'max-h-48' : 'max-h-16 lg:max-h-44'
+                }`}
+              >
+                {gameState.log.map((entry, idx) => (
+                  <div key={idx} className="border-b border-zinc-800/60 pb-0.5">
+                    • {entry}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+````
+
+## File: src/index.css
+````css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  background-color: #09090b;
+  color: #f4f4f5;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+````
+
+## File: src/main.tsx
+````typescript
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+````
+
+## File: .gitignore
+````
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+````
+
+## File: eslint.config.js
+````javascript
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import tseslint from 'typescript-eslint'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      globals: globals.browser,
+    },
+  },
+])
+````
+
+## File: index.html
+````html
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Город грехов</title>
+
+    <!-- Иконки для iOS Safari и браузеров -->
+    <link rel="icon" type="image/png" href="data:image/png;base64,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" />
+    <link rel="apple-touch-icon" href="data:image/png;base64,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" />
+    <link rel="apple-touch-icon-precomposed" href="data:image/png;base64,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" />
+    <link rel="apple-touch-icon" sizes="180x180" href="https://ilyushinslava.github.io/detective-game/apple-touch-icon.png?v=2" />
+
+    <!-- Настройки PWA / Fullscreen на iPhone -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Город грехов" />
+    <meta name="theme-color" content="#09090b" />
+  </head>
+  <body class="bg-zinc-950 text-zinc-100 antialiased select-none">
+    <div id="root"></div>
+    <script type="module" src="./src/main.tsx"></script>
+  </body>
+</html>
+````
+
+## File: package.json
+````json
+{
+    "name":  "detective-game",
+    "private":  true,
+    "version":  "0.0.0",
+    "type":  "module",
+    "scripts":  {
+                    "dev":  "vite --host 0.0.0.0",
+                    "build":  "tsc \u0026\u0026 vite build",
+                    "preview":  "vite preview",
+                    "test":  "vitest run",
+                    "predeploy":  "npm run build",
+                    "deploy":  "gh-pages -d dist"
+                },
+    "dependencies":  {
+                         "framer-motion":  "^11.1.7",
+                         "react":  "^18.3.1",
+                         "react-dom":  "^18.3.1"
+                     },
+    "devDependencies":  {
+                            "@types/react":  "^18.3.3",
+                            "@types/react-dom":  "^18.3.0",
+                            "@vitejs/plugin-react":  "^4.3.1",
+                            "autoprefixer":  "10.4.19",
+                            "gh-pages":  "^6.3.0",
+                            "postcss":  "8.4.38",
+                            "tailwindcss":  "3.4.3",
+                            "typescript":  "^5.4.5",
+                            "vite":  "^5.2.11",
+                            "vitest":  "^1.6.0"
+                        }
+}
+````
+
+## File: postcss.config.js
+````javascript
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+````
+
+## File: README.md
+````markdown
+# React + TypeScript + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+
+```
+
+You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+
+```
+````
+
+## File: tailwind.config.js
+````javascript
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+````
+
+## File: tsconfig.app.json
+````json
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    "types": ["vite/client"],
+    "allowArbitraryExtensions": true,
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}
+````
+
+## File: tsconfig.json
+````json
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+````
+
+## File: tsconfig.node.json
+````json
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "module": "nodenext",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["vite.config.ts"]
+}
+````
+
+## File: vite.config.ts
+````typescript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  base: './',
+})
+````

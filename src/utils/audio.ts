@@ -4,7 +4,7 @@
 
   constructor() {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('noir_sound');
+      const saved = localStorage.getItem('crime_city_sound');
       if (saved !== null) this.enabled = saved === 'true';
     }
   }
@@ -12,7 +12,7 @@
   setEnabled(value: boolean) {
     this.enabled = value;
     if (typeof window !== 'undefined') {
-      localStorage.setItem('noir_sound', value ? 'true' : 'false');
+      localStorage.setItem('crime_city_sound', value ? 'true' : 'false');
     }
   }
 

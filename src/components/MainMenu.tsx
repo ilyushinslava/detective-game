@@ -16,7 +16,6 @@ export const MainMenu = ({ onStartGame, hasActiveGame, onResumeGame }: MainMenuP
   const [selectedOpponent, setSelectedOpponent] = useState<OpponentType>('AI');
   const [selectedRole, setSelectedRole] = useState<Role>('DETECTIVE');
 
-  // Интерактивные настройки
   const [soundActive, setSoundActive] = useState<boolean>(() => sounds.getEnabled());
   const [hapticActive, setHapticActive] = useState<boolean>(() => getHapticsEnabled());
 
@@ -37,9 +36,9 @@ export const MainMenu = ({ onStartGame, hasActiveGame, onResumeGame }: MainMenuP
   const currentModeInfo = GAME_MODES.find((m) => m.id === selectedMode) ?? GAME_MODES[0];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950 p-2 sm:p-4 overflow-y-auto select-none font-sans">
-      <div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden my-auto max-h-[92vh]">
-        {/* Шапка в стиле Монополиста */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950 p-2 sm:p-4 select-none font-sans">
+      <div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden max-h-[92vh]">
+        {/* Шапка */}
         <div className="pt-5 pb-3 px-5 text-center bg-gradient-to-b from-zinc-800/80 to-zinc-900 border-b border-zinc-800 shrink-0">
           <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-widest mb-1.5">
             ★ Детективная стратегия
@@ -48,10 +47,9 @@ export const MainMenu = ({ onStartGame, hasActiveGame, onResumeGame }: MainMenuP
             Город Грехов
           </h1>
           <p className="text-[11px] text-zinc-400 mt-0.5">
-            Настольная дедуктивная игра «Нуар»
+            Настольная дедуктивная стратегия
           </p>
 
-          {/* Вкладки: Операции, Справочник, Настройки */}
           <div className="grid grid-cols-3 gap-1.5 mt-3.5 p-1 bg-zinc-950 rounded-xl border border-zinc-800">
             <button
               onClick={() => { triggerHaptic('light'); setActiveTab('MODES'); }}
@@ -86,7 +84,7 @@ export const MainMenu = ({ onStartGame, hasActiveGame, onResumeGame }: MainMenuP
           </div>
         </div>
 
-        {/* Тело экрана */}
+        {/* Тело экрана со скроллом */}
         <div className="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1">
           {activeTab === 'MODES' && (
             <>
@@ -99,7 +97,6 @@ export const MainMenu = ({ onStartGame, hasActiveGame, onResumeGame }: MainMenuP
                 </button>
               )}
 
-              {/* Формат матча */}
               <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800 space-y-2">
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
                   Формат дуэли:
@@ -128,10 +125,9 @@ export const MainMenu = ({ onStartGame, hasActiveGame, onResumeGame }: MainMenuP
                 </div>
               </div>
 
-              {/* Выбор роли при игре с ботом */}
               {selectedOpponent === 'AI' && (
                 <div className="p-2.5 bg-zinc-950/60 rounded-xl border border-zinc-800 flex items-center justify-between text-xs">
-                  <span className="text-zinc-400 font-bold text-[11px]">Ваша сторона:</span>
+                  <span className="text-zinc-400 font-bold text-[11px]">Ваша роль:</span>
                   <div className="flex gap-1.5">
                     <button
                       onClick={() => { triggerHaptic('light'); setSelectedRole('DETECTIVE'); }}
@@ -157,7 +153,6 @@ export const MainMenu = ({ onStartGame, hasActiveGame, onResumeGame }: MainMenuP
                 </div>
               )}
 
-              {/* Полный список всех 6 сценариев */}
               <div className="space-y-2">
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
                   Сценарии игры:
@@ -191,7 +186,7 @@ export const MainMenu = ({ onStartGame, hasActiveGame, onResumeGame }: MainMenuP
                               ? 'bg-emerald-950/80 text-emerald-300 border-emerald-700/60'
                               : 'bg-zinc-800 text-zinc-400 border-zinc-700'
                           }`}>
-                            {isAvailable ? 'Дуэль 1х1' : '🔒 Скоро (3+ игр.)'}
+                            {isAvailable ? 'Дуэль 1х1' : '🔒 Скоро'}
                           </span>
                         </div>
                         <span className="text-[10px] text-amber-400 font-mono font-bold shrink-0">{mode.time}</span>
@@ -201,44 +196,60 @@ export const MainMenu = ({ onStartGame, hasActiveGame, onResumeGame }: MainMenuP
                   );
                 })}
               </div>
-
-              {/* Кнопка запуска */}
-              <button
-                onClick={() => {
-                  triggerHaptic('heavy');
-                  onStartGame(selectedMode, selectedOpponent, selectedRole);
-                }}
-                className="w-full py-3.5 bg-red-900 hover:bg-red-800 active:bg-red-950 text-red-100 font-black text-xs uppercase tracking-widest rounded-xl border border-red-700 shadow-xl cursor-pointer transition mt-2"
-              >
-                Начать операцию →
-              </button>
             </>
           )}
 
           {activeTab === 'RULES' && (
-            <div className="space-y-3 text-left text-xs text-zinc-300">
-              <div className="p-3 bg-zinc-950 rounded-xl border border-zinc-800">
-                <span className="font-bold text-amber-400 block mb-1">Общее правило перемещения:</span>
-                Каждый ход игрок обязан либо сдвинуть один ряд/колонку на 1 клетку со смещением, либо выполнить специальное действие роли. Запрещено отменять последний ход соперника!
+            <div className="space-y-3.5 text-left text-xs text-zinc-300">
+              <div className="p-3 bg-zinc-950 rounded-xl border border-zinc-800 space-y-1.5">
+                <span className="font-black text-amber-400 block text-xs uppercase tracking-wider">
+                  1. Зона соседства и границы карты
+                </span>
+                <p className="text-zinc-300 text-[11px] leading-relaxed">
+                  • <b>КТО ТАКОЙ СОСЕД?</b> Персонаж считается соседом, если находится на расстоянии не более 1 клетки по вертикали, горизонтали или <b>диагонали</b> (до 8 соседних клеток).
+                </p>
+                <p className="text-zinc-300 text-[11px] leading-relaxed">
+                  • <b>ГРАНИЦЫ ПОЛЯ:</b> Действия атаки, допроса и обвинения <b>не распространяются</b> за пределы поля! Если персонаж загнан в угол, у него доступно только 3 соседа.
+                </p>
               </div>
-              <div className="p-3 bg-zinc-950 rounded-xl border border-zinc-800">
-                <span className="font-bold text-red-400 block mb-1">1. Схватка (Бандит против инспектора):</span>
-                Бандит устраняет смежные цели (цель: 14 жертв или ликвидация Инспектора). Инспектор оправдывает подозрения из досье алиби и обвиняет соседа.
+
+              <div className="p-3 bg-zinc-950 rounded-xl border border-zinc-800 space-y-1.5">
+                <span className="font-black text-amber-400 block text-xs uppercase tracking-wider">
+                  2. Правила сдвига и перемещения
+                </span>
+                <p className="text-zinc-300 text-[11px] leading-relaxed">
+                  • Вы можете сдвинуть <b>любой ряд или колонку</b> (не обязательно тот, где находитесь вы).
+                </p>
+                <p className="text-zinc-300 text-[11px] leading-relaxed">
+                  • Вышедшая за границу карта переносится на противоположный край этого же ряда/колонки.
+                </p>
+                <p className="text-amber-200/90 text-[11px] leading-relaxed">
+                  • <b>АНТИ-ОТМЕНА:</b> Запрещено отменять последний сдвиг соперника обратно тем же рядом/колонкой!
+                </p>
               </div>
-              <div className="p-3 bg-zinc-950 rounded-xl border border-zinc-800">
-                <span className="font-bold text-red-400 block mb-1">2. Маньяк против Оперативника:</span>
-                Маньяк устраняет 4 открытые цели строго из списка смертников. Оперативник ищет убийцу до завершения кровавой серии.
-              </div>
-              <div className="p-3 bg-zinc-950 rounded-xl border border-zinc-800">
-                <span className="font-bold text-red-400 block mb-1">3. Охота на грабителя:</span>
-                Грабитель ворует сокровища у соседей (цель: 5 краж) и меняет маски. Полиция перекрывает улицы патрулями 🚔 и проводит задержание.
+
+              <div className="p-3 bg-zinc-950 rounded-xl border border-zinc-800 space-y-1.5">
+                <span className="font-black text-red-400 block text-xs uppercase tracking-wider">
+                  3. Где действуют действия (Зачем и как)
+                </span>
+                <p className="text-zinc-300 text-[11px] leading-relaxed">
+                  • <b>Ликвидация / Убийство:</b> Применяется <b>только к живым соседям</b> вашей тайной роли.
+                </p>
+                <p className="text-zinc-300 text-[11px] leading-relaxed">
+                  • <b>Обвинение:</b> Применяется <b>только к соседям</b> Инспектора (или намеренно на самого себя). При ошибке персонаж получает алиби и становится неприкосновенным.
+                </p>
+                <p className="text-zinc-300 text-[11px] leading-relaxed">
+                  • <b>Оправдание из досье:</b> Действует из руки на любого живого подозреваемого на поле.
+                </p>
+                <p className="text-zinc-300 text-[11px] leading-relaxed">
+                  • <b>Допрос:</b> Свидетель отвечает только «Да» или «Нет» на вопрос, находится ли противник в числе его соседей.
+                </p>
               </div>
             </div>
           )}
 
           {activeTab === 'SETTINGS' && (
             <div className="space-y-3 text-xs text-zinc-300">
-              {/* Кликабельный переключатель звука */}
               <div
                 onClick={toggleSound}
                 className="p-3.5 bg-zinc-950 hover:bg-zinc-900 active:scale-[0.99] rounded-xl border border-zinc-800 flex items-center justify-between cursor-pointer transition select-none"
@@ -258,7 +269,6 @@ export const MainMenu = ({ onStartGame, hasActiveGame, onResumeGame }: MainMenuP
                 </button>
               </div>
 
-              {/* Кликабельный переключатель вибрации */}
               <div
                 onClick={toggleHapticSetting}
                 className="p-3.5 bg-zinc-950 hover:bg-zinc-900 active:scale-[0.99] rounded-xl border border-zinc-800 flex items-center justify-between cursor-pointer transition select-none"
@@ -280,6 +290,22 @@ export const MainMenu = ({ onStartGame, hasActiveGame, onResumeGame }: MainMenuP
             </div>
           )}
         </div>
+
+        {/* ЗАФИКСИРОВАННЫЙ НИЗ: Кнопка запуска всегда на виду без скролла */}
+        {activeTab === 'MODES' && (
+          <div className="p-3 sm:p-4 bg-zinc-950/95 border-t border-zinc-800 shrink-0 backdrop-blur z-20">
+            <button
+              onClick={() => {
+                triggerHaptic('heavy');
+                onStartGame(selectedMode, selectedOpponent, selectedRole);
+              }}
+              className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-zinc-950 font-black text-xs uppercase tracking-widest rounded-xl transition cursor-pointer shadow-lg flex items-center justify-center gap-2"
+            >
+              <span>Начать операцию</span>
+              <span className="text-base leading-none">➔</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

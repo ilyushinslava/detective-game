@@ -3,13 +3,13 @@
 export const setHapticsEnabled = (enabled: boolean) => {
   isHapticsEnabled = enabled;
   if (typeof window !== 'undefined') {
-    localStorage.setItem('noir_haptics', enabled ? 'true' : 'false');
+    localStorage.setItem('crime_city_haptics', enabled ? 'true' : 'false');
   }
 };
 
 export const getHapticsEnabled = (): boolean => {
   if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('noir_haptics');
+    const saved = localStorage.getItem('crime_city_haptics');
     if (saved !== null) return saved === 'true';
   }
   return true;
@@ -18,7 +18,6 @@ export const getHapticsEnabled = (): boolean => {
 export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | 'error') => {
   if (!getHapticsEnabled() || typeof window === 'undefined') return;
 
-  // 1. Telegram WebApp Haptic API
   const tg = (window as unknown as { Telegram?: { WebApp?: { HapticFeedback?: { impactOccurred: (s: string) => void; notificationOccurred: (s: string) => void } } } }).Telegram?.WebApp?.HapticFeedback;
   if (tg) {
     try {
@@ -28,12 +27,9 @@ export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | '
         tg.impactOccurred(type === 'heavy' ? 'heavy' : type === 'medium' ? 'medium' : 'light');
       }
       return;
-    } catch {
-      // Игнорируем
-    }
+    } catch {}
   }
 
-  // 2. Android Vibration API
   if (navigator.vibrate) {
     try {
       switch (type) {
@@ -43,12 +39,9 @@ export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | '
         case 'success': navigator.vibrate([20, 40, 20]); return;
         case 'error': navigator.vibrate([40, 30, 60]); return;
       }
-    } catch {
-      // Игнорируем
-    }
+    } catch {}
   }
 
-  // 3. iPhone Safari Taptic Simulator (микро-щелчок звукового генератора для физического ощущения)
   try {
     const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     if (AudioCtx) {
@@ -64,7 +57,5 @@ export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | '
       osc.start();
       osc.stop(ctx.currentTime + 0.05);
     }
-  } catch {
-    // Игнорируем ограничения автовоспроизведения
-  }
+  } catch {}
 };

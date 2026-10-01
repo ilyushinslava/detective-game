@@ -5,7 +5,7 @@ import { DetectiveHand } from './components/DetectiveHand';
 import { VictimList } from './components/VictimList';
 import { RoleRevealModal } from './components/RoleRevealModal';
 import { GameOverModal } from './components/GameOverModal';
-import { ModeSelectModal, GAME_MODES } from './components/ModeSelectModal';
+import { GAME_MODES } from './components/ModeSelectModal';
 import { MainMenu } from './components/MainMenu';
 import { triggerHaptic } from './utils/haptics';
 import { sounds } from './utils/audio';
@@ -22,7 +22,6 @@ import {
   cleanupDeadCharacters,
   canCleanupBoard,
   captureSpy,
-  interrogateNeighbor,
   robNeighbor,
   setPolicePatrol,
   plantBomb,
@@ -30,6 +29,7 @@ import {
   sniperShot,
   crackVault,
   lockVault,
+  areAdjacent,
 } from './utils/gameLogic';
 import { getKillerAIMove, getDetectiveAIMove, getSecretServiceAIMove } from './utils/aiLogic';
 
@@ -44,6 +44,13 @@ export default function App() {
   const [isIntroPhase, setIsIntroPhase] = useState(false);
   const [showKillerRole, setShowKillerRole] = useState(false);
   const [showDetectiveRole, setShowDetectiveRole] = useState(false);
+
+  // Интерактивное модальное окно допроса свидетеля (в PvP)
+  const [pvpInterrogationPending, setPvpInterrogationPending] = useState<{
+    targetName: string;
+    isActuallyNear: boolean;
+    initiatorRole: Role;
+  } | null>(null);
 
   const [secondsElapsed, setSecondsElapsed] = useState(0);
   const [isLogOpen, setIsLogOpen] = useState(false);
@@ -139,6 +146,19 @@ export default function App() {
 
   const isHumanTurn = gameState.opponent === 'PVP' || gameState.currentTurn === gameState.playerRole;
 
+  // ПРАВИЛО: Зажать кнопку можно ТОЛЬКО на себя и ТОЛЬКО в свой ход
+  let canPeekKiller = false;
+  let canPeekDetective = false;
+
+  if (gameState.opponent === 'AI') {
+    canPeekKiller = gameState.playerRole === 'KILLER' && isKillerTurn && !gameState.winner;
+    canPeekDetective = gameState.playerRole === 'DETECTIVE' && isDetectiveTurn && !gameState.winner;
+  } else {
+    // PvP: только активный игрок видит свою роль
+    canPeekKiller = isKillerTurn && !gameState.winner;
+    canPeekDetective = isDetectiveTurn && !gameState.winner;
+  }
+
   const handleSelectInspectorRole = (chosenId: string) => {
     triggerHaptic('medium');
     setGameState((prev) => setInspectorRole(prev, chosenId));
@@ -151,6 +171,7 @@ export default function App() {
     setSelectedId(null);
     setShowKillerRole(false);
     setShowDetectiveRole(false);
+    setPvpInterrogationPending(null);
     setSecondsElapsed(0);
     setIsLobbyOpen(false);
     setHasStartedEver(true);
@@ -294,8 +315,52 @@ export default function App() {
     if (gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
     triggerHaptic('light');
     sounds.playShift();
-    setGameState((prev) => exonerateFromHand(prev, id));
+
+    const target = allChars.find((c) => c.id === id);
+    const isEnemyNear = areAdjacent(gameState.board, id, gameState.killerSecretId);
+
+    // Если игра вдвоем (PvP), просим второго игрока ответить лично
+    if (gameState.opponent === 'PVP') {
+      setPvpInterrogationPending({
+        targetName: target?.name ?? 'Подозреваемый',
+        isActuallyNear: isEnemyNear,
+        initiatorRole: 'DETECTIVE',
+      });
+      // Применяем алиби
+      setGameState((prev) => exonerateFromHand(prev, id));
+      setSelectedId(null);
+      return;
+    }
+
+    // Если игра против бота, бот отвечает автоматически
+    setGameState((prev) => {
+      const st = exonerateFromHand(prev, id);
+      const answerText = isEnemyNear ? '«ДА, подозреваемый рядом!»' : '«НЕТ, никого рядом нет.»';
+      return {
+        ...st,
+        log: [
+          ...st.log,
+          `Допрос свидетеля (${target?.name}): ответ ${answerText}`,
+        ],
+      };
+    });
     setSelectedId(null);
+  };
+
+  const handlePvpAnswer = (answer: boolean) => {
+    if (!pvpInterrogationPending) return;
+    triggerHaptic('light');
+    sounds.playShift();
+
+    const answerStr = answer ? '«ДА»' : '«НЕТ»';
+    setGameState((prev) => ({
+      ...prev,
+      log: [
+        ...prev.log,
+        `Свидетель (${pvpInterrogationPending.targetName}) ответил: ${answerStr}.`,
+      ],
+    }));
+    setPvpInterrogationPending(null);
   };
 
   const handleCleanup = () => {
@@ -319,9 +384,33 @@ export default function App() {
 
   const handleInterrogateSpy = () => {
     if (!selectedId || gameState.mode !== 'SECRET_SERVICE' || !isHumanTurn) return;
+    const isAgent1 = gameState.currentTurn === 'KILLER';
+    const enemySecretId = isAgent1 ? gameState.detectiveSecretId : gameState.killerSecretId;
+    const isEnemyNear = areAdjacent(gameState.board, selectedId, enemySecretId);
+    const target = allChars.find((c) => c.id === selectedId);
+
+    if (gameState.opponent === 'PVP') {
+      setPvpInterrogationPending({
+        targetName: target?.name ?? 'Свидетель',
+        isActuallyNear: isEnemyNear,
+        initiatorRole: gameState.currentTurn,
+      });
+      setSelectedId(null);
+      return;
+    }
+
     triggerHaptic('light');
     sounds.playShift();
-    setGameState((prev) => interrogateNeighbor(prev, selectedId));
+    const answer = isEnemyNear ? '«ДА»' : '«НЕТ»';
+    setGameState((prev) => ({
+      ...prev,
+      currentTurn: isAgent1 ? 'DETECTIVE' : 'KILLER',
+      blockedShift: null,
+      log: [
+        ...prev.log,
+        `Допрос свидетеля (${target?.name}): ответ ${answer}.`,
+      ],
+    }));
     setSelectedId(null);
   };
 
@@ -342,8 +431,6 @@ export default function App() {
   }
 
   const activeAgentAdjacentIds = isKillerTurn ? killerAdjacentIds : detectiveAdjacentIds;
-  const canPeekKiller = true;
-  const canPeekDetective = true;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center select-none font-sans pb-10">
@@ -368,6 +455,40 @@ export default function App() {
         />
       )}
 
+      {/* МОДАЛЬНОЕ ОКНО ДЛЯ РУЧНОГО ОТВЕТА В PVP */}
+      {pvpInterrogationPending && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+          <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-5 text-center shadow-2xl space-y-4">
+            <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 block">
+              Вопрос свидетелю
+            </span>
+            <h4 className="text-base font-bold text-zinc-100">
+              Допрос персонажа: {pvpInterrogationPending.targetName}
+            </h4>
+            <p className="text-xs text-zinc-400">
+              Второй игрок: находится ли ваша секретная личность в числе соседей этого свидетеля?
+            </p>
+            <div className="text-[10px] text-zinc-500 font-mono">
+              (Подсказка системы: {pvpInterrogationPending.isActuallyNear ? 'ДА, рядом' : 'НЕТ, не рядом'})
+            </div>
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <button
+                onClick={() => handlePvpAnswer(true)}
+                className="py-2.5 bg-emerald-950 hover:bg-emerald-900 border border-emerald-600 text-emerald-200 font-black text-xs rounded-xl transition cursor-pointer"
+              >
+                ДА, РЯДОМ
+              </button>
+              <button
+                onClick={() => handlePvpAnswer(false)}
+                className="py-2.5 bg-zinc-950 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 font-black text-xs rounded-xl transition cursor-pointer"
+              >
+                НЕТ, ДАЛЕКО
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {gameState.winner && (
         <GameOverModal
           winner={gameState.winner}
@@ -386,7 +507,7 @@ export default function App() {
             className="text-[11px] sm:text-xs bg-zinc-900 active:bg-zinc-800 text-zinc-300 px-2 py-1 sm:py-1.5 rounded-lg border border-zinc-700 transition cursor-pointer flex items-center gap-1"
           >
             <span>☰</span>
-            <span className="hidden md:inline">Операции</span>
+            <span className="hidden md:inline">Меню</span>
           </button>
 
           <span className="text-[10px] xs:text-xs sm:text-sm font-black tracking-wider text-zinc-200 uppercase">
@@ -462,7 +583,7 @@ export default function App() {
           )}
 
           <div className="text-[10px] font-mono text-zinc-500">
-            {gameState.opponent === 'AI' ? '⚔️ Режим: против бота' : '👥 Режим: вдвоем'}
+            {gameState.opponent === 'AI' ? '⚔️ Против бота' : '👥 Дуэль 1 на 1'}
           </div>
         </div>
 
@@ -495,6 +616,7 @@ export default function App() {
           </div>
 
           <div className="w-full lg:w-72 flex flex-col gap-2.5">
+            {/* БЛОК КНОПОК ПОДГЛЯДЫВАНИЯ РОЛИ */}
             <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-xl text-xs flex sm:flex-col gap-2">
               <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-red-950/60 flex items-center justify-between">
                 <div>
@@ -505,10 +627,10 @@ export default function App() {
                 </div>
                 <button
                   disabled={!canPeekKiller}
-                  onMouseDown={(e) => { e.preventDefault(); triggerHaptic('light'); setShowKillerRole(true); }}
+                  onMouseDown={(e) => { e.preventDefault(); if (canPeekKiller) { triggerHaptic('light'); setShowKillerRole(true); } }}
                   onMouseUp={() => setShowKillerRole(false)}
                   onMouseLeave={() => setShowKillerRole(false)}
-                  onTouchStart={(e) => { e.preventDefault(); triggerHaptic('light'); setShowKillerRole(true); }}
+                  onTouchStart={(e) => { e.preventDefault(); if (canPeekKiller) { triggerHaptic('light'); setShowKillerRole(true); } }}
                   onTouchEnd={() => setShowKillerRole(false)}
                   onTouchCancel={() => setShowKillerRole(false)}
                   className={`text-[9px] px-2.5 py-1.5 rounded border font-bold select-none touch-none ${
@@ -516,6 +638,7 @@ export default function App() {
                       ? 'bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed'
                       : 'bg-red-950 text-red-200 border-red-800 active:bg-red-900 cursor-pointer'
                   }`}
+                  title={!canPeekKiller ? 'Доступно только в свой ход на свою роль' : 'Зажмите, чтобы посмотреть'}
                 >
                   Зажать
                 </button>
@@ -530,10 +653,10 @@ export default function App() {
                 </div>
                 <button
                   disabled={!canPeekDetective}
-                  onMouseDown={(e) => { e.preventDefault(); triggerHaptic('light'); setShowDetectiveRole(true); }}
+                  onMouseDown={(e) => { e.preventDefault(); if (canPeekDetective) { triggerHaptic('light'); setShowDetectiveRole(true); } }}
                   onMouseUp={() => setShowDetectiveRole(false)}
                   onMouseLeave={() => setShowDetectiveRole(false)}
-                  onTouchStart={(e) => { e.preventDefault(); triggerHaptic('light'); setShowDetectiveRole(true); }}
+                  onTouchStart={(e) => { e.preventDefault(); if (canPeekDetective) { triggerHaptic('light'); setShowDetectiveRole(true); } }}
                   onTouchEnd={() => setShowDetectiveRole(false)}
                   onTouchCancel={() => setShowDetectiveRole(false)}
                   className={`text-[9px] px-2.5 py-1.5 rounded border font-bold select-none touch-none ${
@@ -541,6 +664,7 @@ export default function App() {
                       ? 'bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed'
                       : 'bg-blue-950 text-blue-200 border-blue-800 active:bg-blue-900 cursor-pointer'
                   }`}
+                  title={!canPeekDetective ? 'Доступно только в свой ход на свою роль' : 'Зажмите, чтобы посмотреть'}
                 >
                   Зажать
                 </button>
@@ -562,7 +686,7 @@ export default function App() {
                         disabled={!isHumanTurn || !selectedId || !killerAdjacentIds.includes(selectedId) || gameState.winner !== null}
                         className="py-2.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 disabled:opacity-30 text-zinc-950 text-[11px] font-black rounded-lg transition disabled:cursor-not-allowed"
                       >
-                        Взломать хранилище 🔓
+                        Взломать сейф 🔓
                       </button>
 
                       <button
@@ -570,7 +694,7 @@ export default function App() {
                         disabled={!isHumanTurn || gameState.evidenceDeck.length === 0 || gameState.winner !== null}
                         className="py-2.5 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-200 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed"
                       >
-                        Дымовая завеса
+                        Сменить маску
                       </button>
                     </>
                   ) : (

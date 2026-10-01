@@ -1,14 +1,10 @@
-﻿import { useState, useRef, useEffect } from 'react';
-import type { GameModeType, OpponentType, Role } from './types/game';
-import { GameBoard } from './components/GameBoard';
-import { DetectiveHand } from './components/DetectiveHand';
-import { VictimList } from './components/VictimList';
-import { RoleRevealModal } from './components/RoleRevealModal';
-import { GameOverModal } from './components/GameOverModal';
-import { GAME_MODES } from './components/ModeSelectModal';
-import { MainMenu } from './components/MainMenu';
-import { triggerHaptic } from './utils/haptics';
-import { sounds } from './utils/audio';
+﻿import { useState, useRef, useEffect, useMemo } from "react";
+import type { GameModeType, OpponentType, Role } from "./types/game";
+import { GameBoard } from "./components/GameBoard";
+import { DetectiveHand } from "./components/DetectiveHand";
+import { VictimList } from "./components/VictimList";
+import { RoleRevealModal } from "./components/RoleRevealModal";
+import { ModeSelectModal, GAME_MODES } from "./components/ModeSelectModal";
 import {
   createInitialState,
   setInspectorRole,
@@ -18,39 +14,38 @@ import {
   exonerateFromHand,
   disguiseKiller,
   getAdjacentCharacters,
-  getCharacterCoords,
   cleanupDeadCharacters,
   canCleanupBoard,
   captureSpy,
-  robNeighbor,
-  setPolicePatrol,
-  plantBomb,
-  applyShield,
-  sniperShot,
-  crackVault,
-  lockVault,
-  areAdjacent,
-} from './utils/gameLogic';
-import { getKillerAIMove, getDetectiveAIMove, getSecretServiceAIMove } from './utils/aiLogic';
+  interrogateNeighbor,
+} from "./utils/gameLogic";
+import {
+  getKillerAIMove,
+  getDetectiveAIMove,
+  getSecretServiceAIMove,
+} from "./utils/aiLogic";
+
+interface ActionItem {
+  id: string;
+  label: string;
+  onClick: () => void;
+  disabled: boolean;
+  className: string;
+}
 
 export default function App() {
-  const [activeMode, setActiveMode] = useState<GameModeType>('SKHVATKA');
+  const [activeMode, setActiveMode] = useState<GameModeType>("SKHVATKA");
   const [isLobbyOpen, setIsLobbyOpen] = useState(true);
   const [hasStartedEver, setHasStartedEver] = useState(false);
 
-  const [gameState, setGameState] = useState(() => createInitialState('SKHVATKA', 'AI', 'DETECTIVE'));
+  const [gameState, setGameState] = useState(() =>
+    createInitialState("SKHVATKA", "AI", "DETECTIVE"),
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const [isIntroPhase, setIsIntroPhase] = useState(false);
   const [showKillerRole, setShowKillerRole] = useState(false);
   const [showDetectiveRole, setShowDetectiveRole] = useState(false);
-
-  // Интерактивное модальное окно допроса свидетеля (в PvP)
-  const [pvpInterrogationPending, setPvpInterrogationPending] = useState<{
-    targetName: string;
-    isActuallyNear: boolean;
-    initiatorRole: Role;
-  } | null>(null);
 
   const [secondsElapsed, setSecondsElapsed] = useState(0);
   const [isLogOpen, setIsLogOpen] = useState(false);
@@ -79,9 +74,13 @@ export default function App() {
     };
   }, [hasStartedEver, isIntroPhase, gameState.winner]);
 
-  // Ход бота
   useEffect(() => {
-    if (!hasStartedEver || isIntroPhase || gameState.winner || gameState.opponent !== 'AI') {
+    if (
+      !hasStartedEver ||
+      isIntroPhase ||
+      gameState.winner ||
+      gameState.opponent !== "AI"
+    ) {
       return;
     }
 
@@ -92,411 +91,314 @@ export default function App() {
       const timer = setTimeout(() => {
         setGameState((prev) => {
           if (prev.winner) return prev;
-          let next = prev;
-          if (prev.mode === 'SECRET_SERVICE') {
-            next = getSecretServiceAIMove(prev);
-          } else if (prev.currentTurn === 'KILLER') {
-            next = getKillerAIMove(prev);
-          } else {
-            next = getDetectiveAIMove(prev);
+          if (prev.mode === "SECRET_SERVICE") {
+            return getSecretServiceAIMove(prev);
           }
-
-          sounds.playShift();
-          if (next.winner) {
-            triggerHaptic(next.winner === next.playerRole ? 'success' : 'error');
+          if (prev.currentTurn === "KILLER") {
+            return getKillerAIMove(prev);
           }
-          return next;
+          return getDetectiveAIMove(prev);
         });
         setIsAIThinking(false);
       }, 350);
 
       return () => clearTimeout(timer);
     }
-  }, [hasStartedEver, isIntroPhase, gameState.currentTurn, gameState.winner, gameState.opponent, gameState.playerRole]);
+  }, [
+    hasStartedEver,
+    isIntroPhase,
+    gameState.currentTurn,
+    gameState.winner,
+    gameState.opponent,
+    gameState.playerRole,
+  ]);
 
   const formatTimer = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
     const secs = totalSeconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   const allChars = gameState.board.flat();
   const killerChar = allChars.find((c) => c.id === gameState.killerSecretId);
-  const detectiveChar = allChars.find((c) => c.id === gameState.detectiveSecretId);
+  const detectiveChar = allChars.find(
+    (c) => c.id === gameState.detectiveSecretId,
+  );
 
   const inspectorChoices = (gameState.inspectorChoices ?? [])
     .map((id) => allChars.find((c) => c.id === id))
     .filter(Boolean) as typeof allChars;
 
-  const isCleanupAvailable = canCleanupBoard(gameState.board) && !gameState.winner;
-  const isFirstTurnKiller = gameState.mode === 'SKHVATKA' && gameState.killCount === 0 && gameState.currentTurn === 'KILLER';
+  const isCleanupAvailable =
+    canCleanupBoard(gameState.board) && !gameState.winner;
+  const isFirstTurnKiller =
+    gameState.mode === "SKHVATKA" &&
+    gameState.killCount === 0 &&
+    gameState.currentTurn === "KILLER";
 
-  const killerAdjacentIds = getAdjacentCharacters(gameState.board, gameState.killerSecretId).map((c) => c.id);
-  const detectiveAdjacentIds = getAdjacentCharacters(gameState.board, gameState.detectiveSecretId).map((c) => c.id);
+  const killerAdjacentIds = getAdjacentCharacters(
+    gameState.board,
+    gameState.killerSecretId,
+  ).map((c) => c.id);
+  const detectiveAdjacentIds = getAdjacentCharacters(
+    gameState.board,
+    gameState.detectiveSecretId,
+  ).map((c) => c.id);
 
-  const currentModeInfo = GAME_MODES.find((m) => m.id === activeMode) ?? GAME_MODES[0];
-  const currentModeTitle = currentModeInfo?.title ?? 'Схватка';
+  const currentModeTitle =
+    GAME_MODES.find((m) => m.id === activeMode)?.title ?? "Схватка";
 
-  const isKillerTurn = gameState.currentTurn === 'KILLER';
-  const isDetectiveTurn = gameState.currentTurn === 'DETECTIVE';
+  const isKillerTurn = gameState.currentTurn === "KILLER";
+  const isDetectiveTurn = gameState.currentTurn === "DETECTIVE";
 
-  const role1Name = (currentModeInfo?.killerRoleName ?? 'Бандит').toUpperCase();
-  const role2Name = (currentModeInfo?.detectiveRoleName ?? 'Инспектор').toUpperCase();
-  const currentRoleName = isKillerTurn ? role1Name : role2Name;
-
-  const isHumanTurn = gameState.opponent === 'PVP' || gameState.currentTurn === gameState.playerRole;
-
-  // ПРАВИЛО: Зажать кнопку можно ТОЛЬКО на себя и ТОЛЬКО в свой ход
-  let canPeekKiller = false;
-  let canPeekDetective = false;
-
-  if (gameState.opponent === 'AI') {
-    canPeekKiller = gameState.playerRole === 'KILLER' && isKillerTurn && !gameState.winner;
-    canPeekDetective = gameState.playerRole === 'DETECTIVE' && isDetectiveTurn && !gameState.winner;
-  } else {
-    // PvP: только активный игрок видит свою роль
-    canPeekKiller = isKillerTurn && !gameState.winner;
-    canPeekDetective = isDetectiveTurn && !gameState.winner;
+  let role1Name = "БАНДИТ";
+  let role2Name = "ИНСПЕКТОР";
+  if (gameState.mode === "MANIAC_VS_OPERATIVE") {
+    role1Name = "МАНЬЯК";
+    role2Name = "ОПЕРАТИВНИК";
+  } else if (gameState.mode === "SECRET_SERVICE") {
+    role1Name = "АГЕНТ «ВОСТОК»";
+    role2Name = "АГЕНТ «ЗАПАД»";
   }
 
+  const currentRoleName = isKillerTurn ? role1Name : role2Name;
+  const isHumanTurn =
+    gameState.opponent === "PVP" ||
+    gameState.currentTurn === gameState.playerRole;
+
   const handleSelectInspectorRole = (chosenId: string) => {
-    triggerHaptic('medium');
     setGameState((prev) => setInspectorRole(prev, chosenId));
   };
 
-  const handleStartNewGame = (modeId: GameModeType, opponent: OpponentType, playerRole: Role) => {
-    triggerHaptic('light');
+  const handleStartNewGame = (
+    modeId: GameModeType,
+    opponent: OpponentType,
+    playerRole: Role,
+  ) => {
     setActiveMode(modeId);
     setGameState(createInitialState(modeId, opponent, playerRole));
     setSelectedId(null);
     setShowKillerRole(false);
     setShowDetectiveRole(false);
-    setPvpInterrogationPending(null);
     setSecondsElapsed(0);
     setIsLobbyOpen(false);
     setHasStartedEver(true);
-    setIsIntroPhase(true);
+    setIsIntroPhase(modeId !== "SECRET_SERVICE");
   };
 
   const handleResumeGame = () => {
-    triggerHaptic('light');
     setIsLobbyOpen(false);
   };
 
   const handleShift = (
-    type: 'ROW' | 'COL',
+    type: "ROW" | "COL",
     index: number,
-    direction: 'FORWARD' | 'BACKWARD'
+    direction: "FORWARD" | "BACKWARD",
   ) => {
     if (gameState.winner || isFirstTurnKiller || !isHumanTurn) return;
-    if (gameState.blockedShift && gameState.blockedShift.type === type && gameState.blockedShift.index === index) {
-      triggerHaptic('error');
-      return;
-    }
-
-    triggerHaptic('light');
-    sounds.playShift();
     const newBoard = shiftBoard(gameState.board, type, index, direction);
-    const nextTurn = gameState.currentTurn === 'KILLER' ? 'DETECTIVE' : 'KILLER';
-    const actionText = `${currentRoleName} сдвинул ${type === 'ROW' ? `ряд ${index + 1}` : `колонку ${index + 1}`}.`;
+    const nextTurn =
+      gameState.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER";
+    const actionText = `${currentRoleName} сдвинул ${type === "ROW" ? `ряд ${index + 1}` : `колонку ${index + 1}`}.`;
 
     setGameState((prev) => ({
       ...prev,
       board: newBoard,
       currentTurn: nextTurn,
       lastShift: { type, index, direction },
-      blockedShift: null,
       log: [...prev.log, actionText],
     }));
     setSelectedId(null);
   };
 
   const handleKill = () => {
-    if (!selectedId || gameState.currentTurn !== 'KILLER' || !isHumanTurn) return;
-    triggerHaptic('heavy');
-    sounds.playKill();
-    setGameState((prev) => {
-      const next = killCharacter(prev, selectedId);
-      if (next.winner) triggerHaptic('success');
-      return next;
-    });
-    setSelectedId(null);
-  };
-
-  const handleCrackVault = () => {
-    if (!selectedId || gameState.currentTurn !== 'KILLER' || !isHumanTurn) return;
-    triggerHaptic('heavy');
-    sounds.playExplosion();
-    setGameState((prev) => {
-      const next = crackVault(prev, selectedId);
-      if (next.winner) triggerHaptic('success');
-      return next;
-    });
-    setSelectedId(null);
-  };
-
-  const handleLockVault = () => {
-    if (!selectedId || gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
-    triggerHaptic('medium');
-    sounds.playAccuse();
-    setGameState((prev) => lockVault(prev, selectedId));
-    setSelectedId(null);
-  };
-
-  const handleRob = () => {
-    if (!selectedId || gameState.currentTurn !== 'KILLER' || !isHumanTurn) return;
-    triggerHaptic('heavy');
-    sounds.playExplosion();
-    setGameState((prev) => {
-      const next = robNeighbor(prev, selectedId);
-      if (next.winner) triggerHaptic('success');
-      return next;
-    });
-    setSelectedId(null);
-  };
-
-  const handlePlantBomb = () => {
-    if (!selectedId || gameState.currentTurn !== 'KILLER' || !isHumanTurn) return;
-    triggerHaptic('medium');
-    sounds.playExplosion();
-    setGameState((prev) => plantBomb(prev, selectedId));
-    setSelectedId(null);
-  };
-
-  const handleApplyShield = () => {
-    if (!selectedId || gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
-    triggerHaptic('light');
-    sounds.playShift();
-    setGameState((prev) => applyShield(prev, selectedId));
-    setSelectedId(null);
-  };
-
-  const handleSniperShot = () => {
-    if (!selectedId || gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
-    triggerHaptic('heavy');
-    sounds.playKill();
-    setGameState((prev) => {
-      const next = sniperShot(prev, selectedId);
-      if (next.winner) triggerHaptic('success');
-      return next;
-    });
-    setSelectedId(null);
-  };
-
-  const handlePatrol = () => {
-    if (gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
-    triggerHaptic('medium');
-    sounds.playAccuse();
-    setGameState((prev) => setPolicePatrol(prev, 'ROW', 2));
+    if (!selectedId || gameState.currentTurn !== "KILLER" || !isHumanTurn)
+      return;
+    setGameState((prev) => killCharacter(prev, selectedId));
     setSelectedId(null);
   };
 
   const handleAccuse = () => {
-    if (!selectedId || gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
-    triggerHaptic('medium');
-    sounds.playAccuse();
-    setGameState((prev) => {
-      const next = accuseCharacter(prev, selectedId);
-      triggerHaptic(next.winner ? 'success' : 'medium');
-      return next;
-    });
+    if (!selectedId || gameState.currentTurn !== "DETECTIVE" || !isHumanTurn)
+      return;
+    setGameState((prev) => accuseCharacter(prev, selectedId));
     setSelectedId(null);
   };
 
   const handleDisguise = () => {
-    if (gameState.currentTurn !== 'KILLER' || isFirstTurnKiller || !isHumanTurn) return;
-    triggerHaptic('medium');
-    sounds.playShift();
+    if (gameState.currentTurn !== "KILLER" || isFirstTurnKiller || !isHumanTurn)
+      return;
     setGameState((prev) => disguiseKiller(prev));
     setSelectedId(null);
   };
 
   const handleExonerateFromHand = (id: string) => {
-    if (gameState.currentTurn !== 'DETECTIVE' || !isHumanTurn) return;
-    triggerHaptic('light');
-    sounds.playShift();
-
-    const target = allChars.find((c) => c.id === id);
-    const isEnemyNear = areAdjacent(gameState.board, id, gameState.killerSecretId);
-
-    // Если игра вдвоем (PvP), просим второго игрока ответить лично
-    if (gameState.opponent === 'PVP') {
-      setPvpInterrogationPending({
-        targetName: target?.name ?? 'Подозреваемый',
-        isActuallyNear: isEnemyNear,
-        initiatorRole: 'DETECTIVE',
-      });
-      // Применяем алиби
-      setGameState((prev) => exonerateFromHand(prev, id));
-      setSelectedId(null);
-      return;
-    }
-
-    // Если игра против бота, бот отвечает автоматически
-    setGameState((prev) => {
-      const st = exonerateFromHand(prev, id);
-      const answerText = isEnemyNear ? '«ДА, подозреваемый рядом!»' : '«НЕТ, никого рядом нет.»';
-      return {
-        ...st,
-        log: [
-          ...st.log,
-          `Допрос свидетеля (${target?.name}): ответ ${answerText}`,
-        ],
-      };
-    });
+    if (gameState.currentTurn !== "DETECTIVE" || !isHumanTurn) return;
+    setGameState((prev) => exonerateFromHand(prev, id));
     setSelectedId(null);
-  };
-
-  const handlePvpAnswer = (answer: boolean) => {
-    if (!pvpInterrogationPending) return;
-    triggerHaptic('light');
-    sounds.playShift();
-
-    const answerStr = answer ? '«ДА»' : '«НЕТ»';
-    setGameState((prev) => ({
-      ...prev,
-      log: [
-        ...prev.log,
-        `Свидетель (${pvpInterrogationPending.targetName}) ответил: ${answerStr}.`,
-      ],
-    }));
-    setPvpInterrogationPending(null);
   };
 
   const handleCleanup = () => {
     if (!isCleanupAvailable || isFirstTurnKiller || !isHumanTurn) return;
-    triggerHaptic('medium');
-    sounds.playShift();
     setGameState((prev) => cleanupDeadCharacters(prev));
     setSelectedId(null);
   };
 
   const handleCaptureSpy = () => {
-    if (!selectedId || gameState.mode !== 'SECRET_SERVICE' || !isHumanTurn) return;
-    sounds.playAccuse();
-    setGameState((prev) => {
-      const next = captureSpy(prev, selectedId);
-      triggerHaptic(next.winner ? 'success' : 'heavy');
-      return next;
-    });
+    if (!selectedId || gameState.mode !== "SECRET_SERVICE" || !isHumanTurn)
+      return;
+    setGameState((prev) => captureSpy(prev, selectedId));
     setSelectedId(null);
   };
 
   const handleInterrogateSpy = () => {
-    if (!selectedId || gameState.mode !== 'SECRET_SERVICE' || !isHumanTurn) return;
-    const isAgent1 = gameState.currentTurn === 'KILLER';
-    const enemySecretId = isAgent1 ? gameState.detectiveSecretId : gameState.killerSecretId;
-    const isEnemyNear = areAdjacent(gameState.board, selectedId, enemySecretId);
-    const target = allChars.find((c) => c.id === selectedId);
-
-    if (gameState.opponent === 'PVP') {
-      setPvpInterrogationPending({
-        targetName: target?.name ?? 'Свидетель',
-        isActuallyNear: isEnemyNear,
-        initiatorRole: gameState.currentTurn,
-      });
-      setSelectedId(null);
+    if (!selectedId || gameState.mode !== "SECRET_SERVICE" || !isHumanTurn)
       return;
-    }
-
-    triggerHaptic('light');
-    sounds.playShift();
-    const answer = isEnemyNear ? '«ДА»' : '«НЕТ»';
-    setGameState((prev) => ({
-      ...prev,
-      currentTurn: isAgent1 ? 'DETECTIVE' : 'KILLER',
-      blockedShift: null,
-      log: [
-        ...prev.log,
-        `Допрос свидетеля (${target?.name}): ответ ${answer}.`,
-      ],
-    }));
+    setGameState((prev) => interrogateNeighbor(prev, selectedId));
     setSelectedId(null);
   };
 
   const handleReset = () => {
-    triggerHaptic('light');
     handleStartNewGame(activeMode, gameState.opponent, gameState.playerRole);
   };
 
-  let isSniperTargetValid = false;
-  if (selectedId && gameState.mode === 'EUROPOL_VS_OPG') {
-    const pDet = getCharacterCoords(gameState.board, gameState.detectiveSecretId);
-    const pTarget = getCharacterCoords(gameState.board, selectedId);
-    if (pDet && pTarget) {
-      const dr = Math.abs(pDet.r - pTarget.r);
-      const dc = Math.abs(pDet.c - pTarget.c);
-      isSniperTargetValid = (dr === 2 && dc === 0) || (dr === 0 && dc === 2);
-    }
-  }
+  const activeAgentAdjacentIds = isKillerTurn
+    ? killerAdjacentIds
+    : detectiveAdjacentIds;
 
-  const activeAgentAdjacentIds = isKillerTurn ? killerAdjacentIds : detectiveAdjacentIds;
+  // Динамическая фильтрация доступных действий
+  const availableActions = useMemo<ActionItem[]>(() => {
+    const actions: ActionItem[] = [];
+    const isGameOver = gameState.winner !== null;
+
+    if (gameState.mode === "SECRET_SERVICE") {
+      actions.push({
+        id: "capture_spy",
+        label: "Захватить шпиона",
+        onClick: handleCaptureSpy,
+        disabled:
+          !isHumanTurn ||
+          !selectedId ||
+          !activeAgentAdjacentIds.includes(selectedId) ||
+          isGameOver,
+        className:
+          "py-2.5 bg-red-900/70 active:bg-red-800 disabled:opacity-30 text-red-100 text-[11px] font-black rounded-lg border border-red-700 transition disabled:cursor-not-allowed",
+      });
+      actions.push({
+        id: "interrogate_spy",
+        label: "Допросить свидетеля",
+        onClick: handleInterrogateSpy,
+        disabled:
+          !isHumanTurn ||
+          !selectedId ||
+          !activeAgentAdjacentIds.includes(selectedId) ||
+          isGameOver,
+        className:
+          "py-2.5 bg-blue-900/70 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed",
+      });
+      actions.push({
+        id: "cleanup_ss",
+        label: "Обновить поле",
+        onClick: handleCleanup,
+        disabled: !isHumanTurn || !isCleanupAvailable,
+        className:
+          "py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed col-span-2 lg:col-span-1",
+      });
+    } else {
+      if (isKillerTurn) {
+        actions.push({
+          id: "kill_basic",
+          label:
+            gameState.mode === "MANIAC_VS_OPERATIVE"
+              ? "Убить цель"
+              : "Убить соседа",
+          onClick: handleKill,
+          disabled:
+            !isHumanTurn ||
+            !selectedId ||
+            !killerAdjacentIds.includes(selectedId) ||
+            isGameOver,
+          className:
+            "py-2 bg-red-900/60 active:bg-red-800 disabled:opacity-30 text-red-200 text-[11px] font-bold rounded-lg border border-red-800 transition disabled:cursor-not-allowed",
+        });
+
+        if (gameState.mode === "SKHVATKA") {
+          actions.push({
+            id: "disguise_skhvatka",
+            label: "Замаскироваться",
+            onClick: handleDisguise,
+            disabled:
+              !isHumanTurn ||
+              isFirstTurnKiller ||
+              gameState.evidenceDeck.length === 0 ||
+              isGameOver,
+            className:
+              "py-2 bg-amber-950/70 active:bg-amber-900 disabled:opacity-30 text-amber-200 text-[11px] font-bold rounded-lg border border-amber-800 transition disabled:cursor-not-allowed",
+          });
+        }
+      } else {
+        actions.push({
+          id: "accuse_basic",
+          label:
+            gameState.mode === "MANIAC_VS_OPERATIVE"
+              ? "Арестовать"
+              : "Обвинить",
+          onClick: handleAccuse,
+          disabled:
+            !isHumanTurn ||
+            !selectedId ||
+            (!detectiveAdjacentIds.includes(selectedId) &&
+              selectedId !== gameState.detectiveSecretId) ||
+            isGameOver,
+          className:
+            "py-2 bg-blue-900/60 active:bg-blue-800 disabled:opacity-30 text-blue-200 text-[11px] font-bold rounded-lg border border-blue-800 transition disabled:cursor-not-allowed",
+        });
+      }
+
+      actions.push({
+        id: "cleanup_basic",
+        label: "Обновить поле",
+        onClick: handleCleanup,
+        disabled: !isHumanTurn || !isCleanupAvailable || isFirstTurnKiller,
+        className:
+          "py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed col-span-2 lg:col-span-1",
+      });
+    }
+
+    return actions;
+  }, [
+    gameState.mode,
+    gameState.winner,
+    gameState.evidenceDeck.length,
+    gameState.detectiveSecretId,
+    isKillerTurn,
+    isHumanTurn,
+    selectedId,
+    killerAdjacentIds,
+    detectiveAdjacentIds,
+    activeAgentAdjacentIds,
+    isCleanupAvailable,
+    isFirstTurnKiller,
+  ]);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center select-none font-sans pb-10">
       {isLobbyOpen && (
-        <MainMenu
+        <ModeSelectModal
+          currentModeId={activeMode}
           hasActiveGame={hasStartedEver}
+          onSelectMode={(modeId) => setActiveMode(modeId)}
           onResumeGame={handleResumeGame}
-          onStartGame={handleStartNewGame}
+          onStartNewGame={handleStartNewGame}
         />
       )}
 
-      {isIntroPhase && !isLobbyOpen && (activeMode === 'SKHVATKA' || activeMode === 'MANIAC_VS_OPERATIVE' || activeMode === 'THIEF_HUNT') && (
+      {isIntroPhase && !isLobbyOpen && activeMode !== "SECRET_SERVICE" && (
         <RoleRevealModal
-          mode={activeMode}
-          opponent={gameState.opponent}
-          playerRole={gameState.playerRole}
           killer={killerChar}
-          detective={detectiveChar}
           inspectorChoices={inspectorChoices}
           onSelectDetectiveRole={handleSelectInspectorRole}
           onComplete={() => setIsIntroPhase(false)}
-        />
-      )}
-
-      {/* МОДАЛЬНОЕ ОКНО ДЛЯ РУЧНОГО ОТВЕТА В PVP */}
-      {pvpInterrogationPending && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
-          <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-5 text-center shadow-2xl space-y-4">
-            <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 block">
-              Вопрос свидетелю
-            </span>
-            <h4 className="text-base font-bold text-zinc-100">
-              Допрос персонажа: {pvpInterrogationPending.targetName}
-            </h4>
-            <p className="text-xs text-zinc-400">
-              Второй игрок: находится ли ваша секретная личность в числе соседей этого свидетеля?
-            </p>
-            <div className="text-[10px] text-zinc-500 font-mono">
-              (Подсказка системы: {pvpInterrogationPending.isActuallyNear ? 'ДА, рядом' : 'НЕТ, не рядом'})
-            </div>
-            <div className="grid grid-cols-2 gap-2 pt-2">
-              <button
-                onClick={() => handlePvpAnswer(true)}
-                className="py-2.5 bg-emerald-950 hover:bg-emerald-900 border border-emerald-600 text-emerald-200 font-black text-xs rounded-xl transition cursor-pointer"
-              >
-                ДА, РЯДОМ
-              </button>
-              <button
-                onClick={() => handlePvpAnswer(false)}
-                className="py-2.5 bg-zinc-950 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 font-black text-xs rounded-xl transition cursor-pointer"
-              >
-                НЕТ, ДАЛЕКО
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {gameState.winner && (
-        <GameOverModal
-          winner={gameState.winner}
-          mode={gameState.mode}
-          killer={killerChar}
-          detective={detectiveChar}
-          elapsedTime={formatTimer(secondsElapsed)}
-          onRestart={handleReset}
         />
       )}
 
@@ -507,7 +409,7 @@ export default function App() {
             className="text-[11px] sm:text-xs bg-zinc-900 active:bg-zinc-800 text-zinc-300 px-2 py-1 sm:py-1.5 rounded-lg border border-zinc-700 transition cursor-pointer flex items-center gap-1"
           >
             <span>☰</span>
-            <span className="hidden md:inline">Меню</span>
+            <span className="hidden md:inline">Операции</span>
           </button>
 
           <span className="text-[10px] xs:text-xs sm:text-sm font-black tracking-wider text-zinc-200 uppercase">
@@ -517,27 +419,18 @@ export default function App() {
 
         <div className="flex items-center gap-2 shrink-0">
           <div
-            className={`flex items-center gap-2 px-2.5 sm:px-3.5 py-1 rounded-full border text-[10px] sm:text-xs font-black tracking-wider sm:tracking-widest uppercase transition-all shadow-lg ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 rounded-full border text-[10px] sm:text-xs font-black tracking-wider sm:tracking-widest uppercase transition-all shadow-lg ${
               isAIThinking
-                ? 'bg-amber-950/90 border-amber-500 text-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
+                ? "bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse"
                 : isKillerTurn
-                ? 'bg-red-950/90 border-red-600/90 text-red-100 shadow-[0_0_12px_rgba(239,68,68,0.3)]'
-                : 'bg-blue-950/90 border-blue-600/90 text-blue-100 shadow-[0_0_12px_rgba(59,130,246,0.3)]'
+                  ? "bg-red-950/80 border-red-600 text-red-100"
+                  : "bg-blue-950/80 border-blue-600 text-blue-100"
             }`}
           >
-            <span className="relative flex h-2.5 w-2.5 items-center justify-center">
-              <span
-                className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${
-                  isAIThinking ? 'bg-amber-400' : isKillerTurn ? 'bg-red-400' : 'bg-blue-400'
-                }`}
-              />
-              <span
-                className={`relative inline-flex rounded-full h-2 w-2 ${
-                  isAIThinking ? 'bg-amber-400' : isKillerTurn ? 'bg-red-500' : 'bg-blue-500'
-                }`}
-              />
-            </span>
-            <span>{isAIThinking ? 'Бот думает...' : currentRoleName}</span>
+            <span
+              className={`w-2 h-2 rounded-full ${isAIThinking ? "bg-amber-400 animate-ping" : isKillerTurn ? "bg-red-500" : "bg-blue-500"}`}
+            />
+            <span>{isAIThinking ? "Бот думает..." : currentRoleName}</span>
           </div>
 
           <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-zinc-900 border border-zinc-800 font-mono text-[10px] sm:text-xs text-zinc-400 font-bold">
@@ -555,43 +448,89 @@ export default function App() {
 
       <div className="w-full max-w-4xl p-2 sm:p-6 flex flex-col items-center">
         <div className="w-full flex items-center justify-between text-[11px] text-zinc-400 mb-2 px-1">
-          {gameState.mode === 'SECRET_SERVICE' ? (
+          {gameState.mode === "SECRET_SERVICE" ? (
             <div className="flex items-center gap-3">
-              <span>Трофеи «Восток»: <b className="text-red-400">{gameState.trophiesKiller ?? 0}/2</b></span>
-              <span>Трофеи «Запад»: <b className="text-blue-400">{gameState.trophiesDetective ?? 0}/2</b></span>
-              <span>Колода: {gameState.evidenceDeck.length}</span>
-            </div>
-          ) : gameState.mode === 'SPANISH_HEIST' ? (
-            <div className="flex items-center gap-3">
-              <span>Взломано хранилищ: <b className="text-amber-400">{gameState.trophiesKiller ?? 0}/3</b></span>
-              <span>Колода: {gameState.evidenceDeck.length}</span>
-            </div>
-          ) : gameState.mode === 'THIEF_HUNT' ? (
-            <div className="flex items-center gap-3">
-              <span>Украдено сокровищ: <b className="text-amber-400">{gameState.trophiesKiller ?? 0}/5</b></span>
-              <span>Колода: {gameState.evidenceDeck.length}</span>
-            </div>
-          ) : gameState.mode === 'EUROPOL_VS_OPG' ? (
-            <div className="flex items-center gap-3">
-              <span>Потери Европола: <b className="text-red-400">{gameState.killCount}/6</b></span>
+              <span>
+                Трофеи «Восток»:{" "}
+                <b className="text-red-400">
+                  {gameState.trophiesKiller ?? 0}/2
+                </b>
+              </span>
+              <span>
+                Трофеи «Запад»:{" "}
+                <b className="text-blue-400">
+                  {gameState.trophiesDetective ?? 0}/2
+                </b>
+              </span>
               <span>Колода: {gameState.evidenceDeck.length}</span>
             </div>
           ) : (
             <div>
-              Жертвы: <span className="text-red-400 font-bold">{gameState.killCount}/{gameState.mode === 'MANIAC_VS_OPERATIVE' ? 4 : 14}</span> | Улики: {gameState.evidenceDeck.length}
+              Жертвы:{" "}
+              <span className="text-red-400 font-bold">
+                {gameState.killCount}/
+                {gameState.mode === "MANIAC_VS_OPERATIVE" ? 4 : 14}
+              </span>{" "}
+              | Улики: {gameState.evidenceDeck.length}
             </div>
           )}
 
           <div className="text-[10px] font-mono text-zinc-500">
-            {gameState.opponent === 'AI' ? '⚔️ Против бота' : '👥 Дуэль 1 на 1'}
+            {gameState.opponent === "AI"
+              ? "⚔️ Режим: против бота"
+              : "👥 Режим: вдвоем"}
           </div>
         </div>
 
-        {gameState.mode === 'MANIAC_VS_OPERATIVE' && (
+        {gameState.winner && (
+          <div className="w-full mb-3 p-3 rounded-xl text-center font-bold text-sm sm:text-lg border bg-zinc-900 shadow-xl border-amber-500 text-amber-300">
+            Игра окончена! Победил{" "}
+            {gameState.winner === "KILLER" ? role1Name : role2Name}!
+            <div className="text-xs text-zinc-400 font-normal font-mono mt-1">
+              Время операции: {formatTimer(secondsElapsed)}
+            </div>
+          </div>
+        )}
+
+        {gameState.mode === "MANIAC_VS_OPERATIVE" && (
           <VictimList
             victimIds={gameState.victimList}
             allCharacters={allChars}
           />
+        )}
+
+        {gameState.lastInterrogation && !gameState.winner && (
+          <div
+            className={`w-full mb-2 p-3 rounded-xl border flex items-center justify-between shadow transition-all ${
+              gameState.lastInterrogation.isNear
+                ? "bg-red-950/40 border-red-800/80 text-red-200"
+                : "bg-zinc-900 border-zinc-700 text-zinc-300"
+            }`}
+          >
+            <div className="text-xs">
+              <span className="font-bold text-zinc-400 block text-[10px] uppercase mb-0.5">
+                Свидетельские показания (
+                {gameState.lastInterrogation.targetName})
+              </span>
+              <span className="font-semibold text-zinc-200">
+                {gameState.mode === "SECRET_SERVICE"
+                  ? "Вражеский шпион находится рядом со свидетелем?"
+                  : gameState.lastInterrogation.interrogator === "DETECTIVE"
+                    ? "Преступник рядом с алиби?"
+                    : "Законник рядом с жертвой?"}
+              </span>
+            </div>
+
+            <div
+              className={`px-3 py-1.5 rounded-lg text-xs font-black tracking-wider uppercase border select-none ${
+                gameState.lastInterrogation.isNear
+                  ? "bg-red-950 text-red-300 border-red-700"
+                  : "bg-zinc-950 text-zinc-300 border-zinc-800"
+              }`}
+            >
+              {gameState.lastInterrogation.isNear ? "● ДА, РЯДОМ" : "○ НЕТ"}
+            </div>
+          </div>
         )}
 
         <div className="w-full flex flex-col lg:flex-row gap-3 sm:gap-4 items-start">
@@ -604,41 +543,44 @@ export default function App() {
               showKillerHints={showKillerRole}
               showDetectiveHints={showDetectiveRole}
               lastShift={gameState.lastShift}
-              blockedShift={gameState.blockedShift}
               onShift={handleShift}
-              onSelectCharacter={(id) => {
-                if (isHumanTurn) {
-                  triggerHaptic('light');
-                  setSelectedId((prev) => (prev === id ? null : id));
-                }
-              }}
+              onSelectCharacter={(id) =>
+                isHumanTurn &&
+                setSelectedId((prev) => (prev === id ? null : id))
+              }
             />
           </div>
 
           <div className="w-full lg:w-72 flex flex-col gap-2.5">
-            {/* БЛОК КНОПОК ПОДГЛЯДЫВАНИЯ РОЛИ */}
             <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-xl text-xs flex sm:flex-col gap-2">
               <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-red-950/60 flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] font-bold text-red-400">{role1Name}</div>
+                  <div className="text-[10px] font-bold text-red-400">
+                    {role1Name}
+                  </div>
                   <div className="text-[11px] font-mono font-bold text-zinc-300">
-                    {showKillerRole ? killerChar?.name : '••••••••'}
+                    {showKillerRole ||
+                    (gameState.opponent === "AI" &&
+                      gameState.playerRole === "KILLER")
+                      ? killerChar?.name
+                      : "••••••••"}
                   </div>
                 </div>
                 <button
-                  disabled={!canPeekKiller}
-                  onMouseDown={(e) => { e.preventDefault(); if (canPeekKiller) { triggerHaptic('light'); setShowKillerRole(true); } }}
+                  disabled={
+                    gameState.opponent === "AI" &&
+                    gameState.playerRole !== "KILLER"
+                  }
+                  onMouseDown={() => setShowKillerRole(true)}
                   onMouseUp={() => setShowKillerRole(false)}
-                  onMouseLeave={() => setShowKillerRole(false)}
-                  onTouchStart={(e) => { e.preventDefault(); if (canPeekKiller) { triggerHaptic('light'); setShowKillerRole(true); } }}
+                  onTouchStart={() => setShowKillerRole(true)}
                   onTouchEnd={() => setShowKillerRole(false)}
-                  onTouchCancel={() => setShowKillerRole(false)}
-                  className={`text-[9px] px-2.5 py-1.5 rounded border font-bold select-none touch-none ${
-                    !canPeekKiller
-                      ? 'bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed'
-                      : 'bg-red-950 text-red-200 border-red-800 active:bg-red-900 cursor-pointer'
+                  className={`text-[9px] px-2 py-1 rounded border font-bold ${
+                    gameState.opponent === "AI" &&
+                    gameState.playerRole !== "KILLER"
+                      ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
+                      : "bg-red-950 text-red-200 border-red-800 active:bg-red-900 cursor-pointer"
                   }`}
-                  title={!canPeekKiller ? 'Доступно только в свой ход на свою роль' : 'Зажмите, чтобы посмотреть'}
                 >
                   Зажать
                 </button>
@@ -646,25 +588,32 @@ export default function App() {
 
               <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-blue-950/60 flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] font-bold text-blue-400">{role2Name}</div>
+                  <div className="text-[10px] font-bold text-blue-400">
+                    {role2Name}
+                  </div>
                   <div className="text-[11px] font-mono font-bold text-zinc-300">
-                    {showDetectiveRole ? detectiveChar?.name : '••••••••'}
+                    {showDetectiveRole ||
+                    (gameState.opponent === "AI" &&
+                      gameState.playerRole === "DETECTIVE")
+                      ? detectiveChar?.name
+                      : "••••••••"}
                   </div>
                 </div>
                 <button
-                  disabled={!canPeekDetective}
-                  onMouseDown={(e) => { e.preventDefault(); if (canPeekDetective) { triggerHaptic('light'); setShowDetectiveRole(true); } }}
+                  disabled={
+                    gameState.opponent === "AI" &&
+                    gameState.playerRole !== "DETECTIVE"
+                  }
+                  onMouseDown={() => setShowDetectiveRole(true)}
                   onMouseUp={() => setShowDetectiveRole(false)}
-                  onMouseLeave={() => setShowDetectiveRole(false)}
-                  onTouchStart={(e) => { e.preventDefault(); if (canPeekDetective) { triggerHaptic('light'); setShowDetectiveRole(true); } }}
+                  onTouchStart={() => setShowDetectiveRole(true)}
                   onTouchEnd={() => setShowDetectiveRole(false)}
-                  onTouchCancel={() => setShowDetectiveRole(false)}
-                  className={`text-[9px] px-2.5 py-1.5 rounded border font-bold select-none touch-none ${
-                    !canPeekDetective
-                      ? 'bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed'
-                      : 'bg-blue-950 text-blue-200 border-blue-800 active:bg-blue-900 cursor-pointer'
+                  className={`text-[9px] px-2 py-1 rounded border font-bold ${
+                    gameState.opponent === "AI" &&
+                    gameState.playerRole !== "DETECTIVE"
+                      ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
+                      : "bg-blue-950 text-blue-200 border-blue-800 active:bg-blue-900 cursor-pointer"
                   }`}
-                  title={!canPeekDetective ? 'Доступно только в свой ход на свою роль' : 'Зажмите, чтобы посмотреть'}
                 >
                   Зажать
                 </button>
@@ -674,208 +623,51 @@ export default function App() {
             <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-xl">
               <div className="text-zinc-400 font-semibold uppercase tracking-wider text-[10px] mb-1.5 flex items-center justify-between">
                 <span>Действия ({currentRoleName})</span>
-                {isAIThinking && <span className="text-amber-400 text-[9px] animate-pulse">Бот думает...</span>}
+                {isAIThinking && (
+                  <span className="text-amber-400 text-[9px] animate-pulse">
+                    Бот думает...
+                  </span>
+                )}
               </div>
 
-              {gameState.mode === 'SPANISH_HEIST' ? (
-                <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
-                  {isKillerTurn ? (
-                    <>
-                      <button
-                        onClick={handleCrackVault}
-                        disabled={!isHumanTurn || !selectedId || !killerAdjacentIds.includes(selectedId) || gameState.winner !== null}
-                        className="py-2.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 disabled:opacity-30 text-zinc-950 text-[11px] font-black rounded-lg transition disabled:cursor-not-allowed"
-                      >
-                        Взломать сейф 🔓
-                      </button>
-
-                      <button
-                        onClick={handleDisguise}
-                        disabled={!isHumanTurn || gameState.evidenceDeck.length === 0 || gameState.winner !== null}
-                        className="py-2.5 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-200 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed"
-                      >
-                        Сменить маску
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={handleLockVault}
-                        disabled={!isHumanTurn || !selectedId || !detectiveAdjacentIds.includes(selectedId) || gameState.winner !== null}
-                        className="py-2.5 bg-red-900/80 active:bg-red-800 disabled:opacity-30 text-red-100 text-[11px] font-black rounded-lg border border-red-700 transition disabled:cursor-not-allowed"
-                      >
-                        Заблокировать сейф 🔒
-                      </button>
-
-                      <button
-                        onClick={handleAccuse}
-                        disabled={!isHumanTurn || !selectedId || !detectiveAdjacentIds.includes(selectedId) || gameState.winner !== null}
-                        className="py-2.5 bg-blue-900/80 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed"
-                      >
-                        Захват с поличным
-                      </button>
-                    </>
-                  )}
-                </div>
-              ) : gameState.mode === 'EUROPOL_VS_OPG' ? (
-                <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
-                  {isKillerTurn ? (
-                    <>
-                      <button
-                        onClick={handleKill}
-                        disabled={!isHumanTurn || !selectedId || !killerAdjacentIds.includes(selectedId) || gameState.winner !== null}
-                        className="py-2.5 bg-red-900/80 active:bg-red-800 disabled:opacity-30 text-red-100 text-[11px] font-black rounded-lg border border-red-700 transition disabled:cursor-not-allowed"
-                      >
-                        Ликвидация соседа
-                      </button>
-
-                      <button
-                        onClick={handlePlantBomb}
-                        disabled={!isHumanTurn || !selectedId || !killerAdjacentIds.includes(selectedId) || gameState.winner !== null}
-                        className="py-2.5 bg-amber-950/80 active:bg-amber-900 disabled:opacity-30 text-amber-200 text-[11px] font-black rounded-lg border border-amber-800 transition disabled:cursor-not-allowed"
-                      >
-                        Минировать клетку 💣
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={handleAccuse}
-                        disabled={!isHumanTurn || !selectedId || !detectiveAdjacentIds.includes(selectedId) || gameState.winner !== null}
-                        className="py-2.5 bg-blue-900/80 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed"
-                      >
-                        Штурм и арест
-                      </button>
-
-                      <button
-                        onClick={handleSniperShot}
-                        disabled={!isHumanTurn || !selectedId || !isSniperTargetValid || gameState.winner !== null}
-                        className="py-2.5 bg-emerald-950/80 active:bg-emerald-900 disabled:opacity-30 text-emerald-200 text-[11px] font-black rounded-lg border border-emerald-700 transition disabled:cursor-not-allowed"
-                      >
-                        Выстрел снайпера 🎯
-                      </button>
-
-                      <button
-                        onClick={handleApplyShield}
-                        disabled={!isHumanTurn || !selectedId || (!detectiveAdjacentIds.includes(selectedId) && selectedId !== gameState.detectiveSecretId) || gameState.winner !== null}
-                        className="py-2 bg-indigo-900/70 active:bg-indigo-800 disabled:opacity-30 text-indigo-200 text-[11px] font-bold rounded-lg border border-indigo-700 transition disabled:cursor-not-allowed col-span-2 lg:col-span-1"
-                      >
-                        Бронежилет 🛡️
-                      </button>
-                    </>
-                  )}
-                </div>
-              ) : gameState.mode === 'THIEF_HUNT' ? (
-                <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
+              <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
+                {availableActions.map((action) => (
                   <button
-                    onClick={handleRob}
-                    disabled={!isHumanTurn || !isKillerTurn || !selectedId || !killerAdjacentIds.includes(selectedId) || gameState.winner !== null}
-                    className="py-2.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 disabled:opacity-30 text-zinc-950 text-[11px] font-black rounded-lg transition disabled:cursor-not-allowed"
+                    key={action.id}
+                    onClick={action.onClick}
+                    disabled={action.disabled}
+                    className={action.className}
                   >
-                    Ограбить соседа
+                    {action.label}
                   </button>
-
-                  <button
-                    onClick={handlePatrol}
-                    disabled={!isHumanTurn || !isDetectiveTurn || gameState.blockedShift !== null || gameState.winner !== null}
-                    className="py-2.5 bg-blue-900/80 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed"
-                  >
-                    Выставить патруль
-                  </button>
-
-                  <button
-                    onClick={handleAccuse}
-                    disabled={!isHumanTurn || !isDetectiveTurn || !selectedId || !detectiveAdjacentIds.includes(selectedId) || gameState.winner !== null}
-                    className="py-2.5 bg-indigo-900/70 active:bg-indigo-800 disabled:opacity-30 text-indigo-100 text-[11px] font-black rounded-lg border border-indigo-700 transition disabled:cursor-not-allowed col-span-2 lg:col-span-1"
-                  >
-                    Арестовать вора
-                  </button>
-                </div>
-              ) : gameState.mode === 'SECRET_SERVICE' ? (
-                <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
-                  <button
-                    onClick={handleCaptureSpy}
-                    disabled={!isHumanTurn || !selectedId || !activeAgentAdjacentIds.includes(selectedId) || gameState.winner !== null}
-                    className="py-2.5 bg-red-900/70 active:bg-red-800 disabled:opacity-30 text-red-100 text-[11px] font-black rounded-lg border border-red-700 transition disabled:cursor-not-allowed"
-                  >
-                    Захватить шпиона
-                  </button>
-
-                  <button
-                    onClick={handleInterrogateSpy}
-                    disabled={!isHumanTurn || !selectedId || !activeAgentAdjacentIds.includes(selectedId) || gameState.winner !== null}
-                    className="py-2.5 bg-blue-900/70 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed"
-                  >
-                    Допросить свидетеля
-                  </button>
-
-                  <button
-                    onClick={handleCleanup}
-                    disabled={!isHumanTurn || !isCleanupAvailable}
-                    className="py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed col-span-2 lg:col-span-1"
-                  >
-                    Обновить поле
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
-                  <button
-                    onClick={handleKill}
-                    disabled={!isHumanTurn || !isKillerTurn || !selectedId || gameState.winner !== null}
-                    className="py-2 bg-red-900/60 active:bg-red-800 disabled:opacity-30 text-red-200 text-[11px] font-bold rounded-lg border border-red-800 transition disabled:cursor-not-allowed"
-                  >
-                    {gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Убить цель' : 'Убить соседа'}
-                  </button>
-
-                  <button
-                    onClick={handleDisguise}
-                    disabled={!isHumanTurn || !isKillerTurn || isFirstTurnKiller || gameState.evidenceDeck.length === 0 || gameState.winner !== null}
-                    className="py-2 bg-amber-950/70 active:bg-amber-900 disabled:opacity-30 text-amber-200 text-[11px] font-bold rounded-lg border border-amber-800 transition disabled:cursor-not-allowed"
-                  >
-                    Замаскироваться
-                  </button>
-
-                  <button
-                    onClick={handleAccuse}
-                    disabled={!isHumanTurn || !isDetectiveTurn || !selectedId || (!detectiveAdjacentIds.includes(selectedId) && selectedId !== gameState.detectiveSecretId) || gameState.winner !== null}
-                    className="py-2 bg-blue-900/60 active:bg-blue-800 disabled:opacity-30 text-blue-200 text-[11px] font-bold rounded-lg border border-blue-800 transition disabled:cursor-not-allowed"
-                  >
-                    {gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Арестовать' : 'Обвинить'}
-                  </button>
-
-                  <button
-                    onClick={handleCleanup}
-                    disabled={!isHumanTurn || !isCleanupAvailable || isFirstTurnKiller}
-                    className="py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed"
-                  >
-                    Обновить поле
-                  </button>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
 
-            {gameState.mode === 'SKHVATKA' && (
+            {gameState.mode === "SKHVATKA" && (
               <DetectiveHand
                 handIds={gameState.detectiveHand}
                 allCharacters={allChars}
-                isDetectiveTurn={isHumanTurn && isDetectiveTurn && !gameState.winner}
+                isDetectiveTurn={
+                  isHumanTurn && isDetectiveTurn && !gameState.winner
+                }
                 onExonerateFromHand={handleExonerateFromHand}
               />
             )}
 
             <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
               <button
-                onClick={() => { triggerHaptic('light'); setIsLogOpen(!isLogOpen); }}
+                onClick={() => setIsLogOpen(!isLogOpen)}
                 className="w-full p-2.5 flex items-center justify-between text-[11px] font-semibold text-zinc-400 bg-zinc-900 hover:bg-zinc-800/80 transition cursor-pointer"
               >
                 <span>Протокол событий ({gameState.log.length})</span>
-                <span className="text-xs">{isLogOpen ? '▲' : '▼'}</span>
+                <span className="text-xs">{isLogOpen ? "▲" : "▼"}</span>
               </button>
 
               <div
                 ref={logContainerRef}
                 className={`overflow-y-auto space-y-1 text-[10px] text-zinc-300 font-mono px-2.5 pb-2 transition-all ${
-                  isLogOpen ? 'max-h-48' : 'max-h-16 lg:max-h-44'
+                  isLogOpen ? "max-h-48" : "max-h-16 lg:max-h-44"
                 }`}
               >
                 {gameState.log.map((entry, idx) => (

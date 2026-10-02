@@ -644,7 +644,13 @@ export function exonerateFromHand(state: GameState, id: string): GameState {
 }
 
 export function disguiseKiller(state: GameState): GameState {
-  if (state.evidenceDeck.length === 0) return state;
+  if (
+    state.winner ||
+    state.mode === "MANIAC_VS_OPERATIVE" ||
+    state.evidenceDeck.length === 0
+  ) {
+    return state;
+  }
 
   const nextDeck = [...state.evidenceDeck];
   const newSecretId = nextDeck.shift()!;

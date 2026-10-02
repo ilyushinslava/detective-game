@@ -4,7 +4,8 @@ import { GameBoard } from "./components/GameBoard";
 import { DetectiveHand } from "./components/DetectiveHand";
 import { VictimList } from "./components/VictimList";
 import { RoleRevealModal } from "./components/RoleRevealModal";
-import { ModeSelectModal, GAME_MODES } from "./components/ModeSelectModal";
+import { MainMenu } from "./components/MainMenu";
+import { GAME_MODES } from "./components/ModeSelectModal";
 import {
   createInitialState,
   setInspectorRole,
@@ -25,6 +26,8 @@ import {
   getDetectiveAIMove,
   getSecretServiceAIMove,
 } from "./utils/aiLogic";
+import { sounds } from "./utils/audio";
+import { triggerHaptic } from "./utils/haptics";
 
 interface ActionItem {
   id: string;
@@ -74,6 +77,13 @@ export default function App() {
       if (interval) clearInterval(interval);
     };
   }, [hasStartedEver, isIntroPhase, gameState.winner]);
+
+  useEffect(() => {
+    if (gameState.winner) {
+      sounds.playExplosion();
+      triggerHaptic("success");
+    }
+  }, [gameState.winner]);
 
   useEffect(() => {
     if (
@@ -205,6 +215,9 @@ export default function App() {
       return;
     }
 
+    sounds.playShift();
+    triggerHaptic("light");
+
     const newBoard = shiftBoard(gameState.board, type, index, direction);
     const nextTurn =
       gameState.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER";
@@ -225,6 +238,8 @@ export default function App() {
   const handleKill = () => {
     if (!selectedId || gameState.currentTurn !== "KILLER" || !isHumanTurn)
       return;
+    sounds.playKill();
+    triggerHaptic("heavy");
     setGameState((prev) => killCharacter(prev, selectedId));
     setSelectedId(null);
   };
@@ -232,6 +247,11 @@ export default function App() {
   const handleAccuse = () => {
     if (!selectedId || gameState.currentTurn !== "DETECTIVE" || !isHumanTurn)
       return;
+    const targetChar = gameState.board.flat().find((c) => c.id === selectedId);
+    if (!targetChar || targetChar.isDead) return;
+
+    sounds.playAccuse();
+    triggerHaptic("medium");
     setGameState((prev) => accuseCharacter(prev, selectedId));
     setSelectedId(null);
   };
@@ -239,18 +259,24 @@ export default function App() {
   const handleDisguise = () => {
     if (gameState.currentTurn !== "KILLER" || isFirstTurnKiller || !isHumanTurn)
       return;
+    sounds.playShift();
+    triggerHaptic("medium");
     setGameState((prev) => disguiseKiller(prev));
     setSelectedId(null);
   };
 
   const handleExonerateFromHand = (id: string) => {
     if (gameState.currentTurn !== "DETECTIVE" || !isHumanTurn) return;
+    sounds.playShift();
+    triggerHaptic("light");
     setGameState((prev) => exonerateFromHand(prev, id));
     setSelectedId(null);
   };
 
   const handleCleanup = () => {
     if (!isCleanupAvailable || isFirstTurnKiller || !isHumanTurn) return;
+    sounds.playShift();
+    triggerHaptic("medium");
     setGameState((prev) => cleanupDeadCharacters(prev));
     setSelectedId(null);
   };
@@ -258,6 +284,8 @@ export default function App() {
   const handleCaptureSpy = () => {
     if (!selectedId || gameState.mode !== "SECRET_SERVICE" || !isHumanTurn)
       return;
+    sounds.playAccuse();
+    triggerHaptic("medium");
     setGameState((prev) => captureSpy(prev, selectedId));
     setSelectedId(null);
   };
@@ -265,6 +293,8 @@ export default function App() {
   const handleInterrogateSpy = () => {
     if (!selectedId || gameState.mode !== "SECRET_SERVICE" || !isHumanTurn)
       return;
+    sounds.playShift();
+    triggerHaptic("light");
     setGameState((prev) => interrogateNeighbor(prev, selectedId));
     setSelectedId(null);
   };
@@ -277,6 +307,10 @@ export default function App() {
     ? killerAdjacentIds
     : detectiveAdjacentIds;
 
+  const selectedCharacter = useMemo(() => {
+    if (!selectedId) return null;
+    return gameState.board.flat().find((c) => c.id === selectedId) ?? null;
+  }, [gameState.board, selectedId]);
   // Динамическая фильтрация доступных действий
   // Динамическая фильтрация доступных действий
   const availableActions = useMemo<ActionItem[]>(() => {
@@ -359,11 +393,10 @@ export default function App() {
           disabled:
             !isHumanTurn ||
             !selectedId ||
-            (!detectiveAdjacentIds.includes(selectedId) &&
-              selectedId !== gameState.detectiveSecretId) ||
+            Boolean(selectedCharacter?.isDead) ||
             isGameOver,
           className:
-            "py-2 bg-blue-900/60 active:bg-blue-800 disabled:opacity-30 text-blue-200 text-[11px] font-bold rounded-lg border border-blue-800 transition disabled:cursor-not-allowed",
+            "py-2.5 bg-blue-900/70 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed",
         });
       }
 
@@ -391,17 +424,16 @@ export default function App() {
     activeAgentAdjacentIds,
     isCleanupAvailable,
     isFirstTurnKiller,
+    selectedCharacter,
   ]);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center select-none font-sans pb-10">
       {isLobbyOpen && (
-        <ModeSelectModal
-          currentModeId={activeMode}
+        <MainMenu
+          onStartGame={handleStartNewGame}
           hasActiveGame={hasStartedEver}
-          onSelectMode={(modeId) => setActiveMode(modeId)}
           onResumeGame={handleResumeGame}
-          onStartNewGame={handleStartNewGame}
         />
       )}
 
@@ -441,25 +473,27 @@ export default function App() {
           </span>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <div
-            className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 rounded-full border text-[10px] sm:text-xs font-black tracking-wider sm:tracking-widest uppercase transition-all shadow-lg ${
-              isAIThinking
-                ? "bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse"
-                : isKillerTurn
-                  ? "bg-red-950/80 border-red-600 text-red-100"
-                  : "bg-blue-950/80 border-blue-600 text-blue-100"
+        <div
+          className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] sm:text-xs font-black tracking-widest uppercase transition-all shadow-lg ${
+            isAIThinking
+              ? "bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse"
+              : isKillerTurn
+                ? "bg-red-950/80 border-red-600 text-red-100"
+                : "bg-blue-950/80 border-blue-600 text-blue-100"
+          }`}
+        >
+          <span
+            className={`w-2.5 h-2.5 rounded-full animate-pulse shadow-md ${
+              isKillerTurn
+                ? "bg-red-500 shadow-red-500/50"
+                : "bg-blue-500 shadow-blue-500/50"
             }`}
-          >
-            <span
-              className={`w-2 h-2 rounded-full ${isAIThinking ? "bg-amber-400 animate-ping" : isKillerTurn ? "bg-red-500" : "bg-blue-500"}`}
-            />
-            <span>{isAIThinking ? "Бот думает..." : currentRoleName}</span>
-          </div>
+          />
+          <span>{currentRoleName}</span>
+        </div>
 
-          <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-zinc-900 border border-zinc-800 font-mono text-[10px] sm:text-xs text-zinc-400 font-bold">
-            <span>{formatTimer(secondsElapsed)}</span>
-          </div>
+        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-zinc-900 border border-zinc-800 font-mono text-[10px] sm:text-xs text-zinc-400 font-bold">
+          <span>{formatTimer(secondsElapsed)}</span>
         </div>
 
         <button
@@ -573,10 +607,9 @@ export default function App() {
                 setSelectedId((prev) => (prev === id ? null : id))
               }
             />
-          </div>
 
-          <div className="w-full lg:w-72 flex flex-col gap-2.5">
-            <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-xl text-xs flex sm:flex-col gap-2">
+            {/* Карточки ролей с кнопками «Зажать» под полем */}
+            <div className="w-full max-w-[540px] flex gap-2 mt-2">
               <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-red-950/60 flex items-center justify-between">
                 <div>
                   <div className="text-[10px] font-bold text-red-400">
@@ -591,19 +624,16 @@ export default function App() {
                   </div>
                 </div>
                 <button
-                  disabled={
-                    gameState.opponent === "AI" &&
-                    gameState.playerRole !== "KILLER"
-                  }
+                  type="button"
                   onMouseDown={() => setShowKillerRole(true)}
                   onMouseUp={() => setShowKillerRole(false)}
                   onTouchStart={() => setShowKillerRole(true)}
                   onTouchEnd={() => setShowKillerRole(false)}
-                  className={`text-[9px] px-2 py-1 rounded border font-bold ${
-                    gameState.opponent === "AI" &&
-                    gameState.playerRole !== "KILLER"
+                  disabled={gameState.opponent === "HOTSEAT" && !isKillerTurn}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                    gameState.opponent === "HOTSEAT" && !isKillerTurn
                       ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
-                      : "bg-red-950 text-red-200 border-red-800 active:bg-red-900 cursor-pointer"
+                      : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-300 border-red-700 cursor-pointer"
                   }`}
                 >
                   Зажать
@@ -624,26 +654,28 @@ export default function App() {
                   </div>
                 </div>
                 <button
-                  disabled={
-                    gameState.opponent === "AI" &&
-                    gameState.playerRole !== "DETECTIVE"
-                  }
+                  type="button"
                   onMouseDown={() => setShowDetectiveRole(true)}
                   onMouseUp={() => setShowDetectiveRole(false)}
                   onTouchStart={() => setShowDetectiveRole(true)}
                   onTouchEnd={() => setShowDetectiveRole(false)}
-                  className={`text-[9px] px-2 py-1 rounded border font-bold ${
-                    gameState.opponent === "AI" &&
-                    gameState.playerRole !== "DETECTIVE"
+                  disabled={
+                    gameState.opponent === "HOTSEAT" && !isDetectiveTurn
+                  }
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                    gameState.opponent === "HOTSEAT" && !isDetectiveTurn
                       ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
-                      : "bg-blue-950 text-blue-200 border-blue-800 active:bg-blue-900 cursor-pointer"
+                      : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-300 border-blue-700 cursor-pointer"
                   }`}
                 >
                   Зажать
                 </button>
               </div>
             </div>
+          </div>
 
+          {/* Правая панель: Действия, Карты и Протокол событий */}
+          <div className="w-full lg:w-72 flex flex-col gap-3">
             <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-xl">
               <div className="text-zinc-400 font-semibold uppercase tracking-wider text-[10px] mb-1.5 flex items-center justify-between">
                 <span>Действия ({currentRoleName})</span>
@@ -681,6 +713,7 @@ export default function App() {
 
             <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
               <button
+                type="button"
                 onClick={() => setIsLogOpen(!isLogOpen)}
                 className="w-full p-2.5 flex items-center justify-between text-[11px] font-semibold text-zinc-400 bg-zinc-900 hover:bg-zinc-800/80 transition cursor-pointer"
               >

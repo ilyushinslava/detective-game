@@ -22,7 +22,7 @@ export const RoleRevealModal = ({
   onSelectDetectiveRole,
   onComplete,
 }: RoleRevealModalProps) => {
-  // Названия ролей для модалки
+  
   let role1Name = 'Бандит';
   let role2Name = 'Инспектор';
   let role1Goal = 'Ликвидация Инспектора или 14 жертв';
@@ -38,14 +38,25 @@ export const RoleRevealModal = ({
     role2Name = 'Полиция';
     role1Goal = 'Похитить 5 сокровищ у соседей и менять маски';
     role2Goal = 'Выставлять патрули на улицы и арестовать Грабителя';
+  } else if (mode === 'SECRET_SERVICE') {
+    role1Name = 'Агент «Восток»';
+    role2Name = 'Агент «Запад»';
+    role1Goal = 'Вычислить и захватить вражеского шпиона';
+    role2Goal = 'Вычислить и захватить вражеского шпиона';
+  } else if (mode === 'EUROPOL_VS_OPG') {
+    role1Name = 'ОПГ';
+    role2Name = 'Европол';
+    role1Goal = 'Устранить ключевых свидетелей';
+    role2Goal = 'Арестовать главаря ОПГ';
+  } else if (mode === 'SPANISH_HEIST') {
+    role1Name = 'Профессор';
+    role2Name = 'Спецназ';
+    role1Goal = 'Ограбить банк и сбежать';
+    role2Goal = 'Штурмовать здание и арестовать Профессора';
   }
 
-  // Определение стартового экрана
   const isSoloVsBot = opponent === 'AI';
   
-  // Фазы:
-  // Для PVP: KILLER_PROMPT -> KILLER_REVEAL -> DETECTIVE_PROMPT -> (DETECTIVE_CHOOSE или DETECTIVE_REVEAL)
-  // Для Solo: сразу показ роли игрока
   const [phase, setPhase] = useState<string>(() => {
     if (isSoloVsBot) {
       return playerRole === 'KILLER' ? 'SOLO_KILLER' : (mode === 'SKHVATKA' ? 'SOLO_DETECTIVE_CHOOSE' : 'SOLO_DETECTIVE_REVEAL');
@@ -66,7 +77,6 @@ export const RoleRevealModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none">
       <div className="w-full max-w-xl min-h-[460px] bg-zinc-900 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col justify-between text-center">
         
-        {/* --- SOLO РЕЖИМ (ПРОТИВ БОТА) --- */}
         {phase === 'SOLO_KILLER' && (
           <>
             <div className="flex flex-col items-center justify-center flex-1 my-auto w-full">
@@ -170,7 +180,6 @@ export const RoleRevealModal = ({
           </>
         )}
 
-        {/* --- PVP РЕЖИМ (ВДВОЕМ НА ОДНОМ ЭКРАНЕ) --- */}
         {phase === 'KILLER_PROMPT' && (
           <>
             <div className="flex flex-col items-center justify-center flex-1 my-auto">

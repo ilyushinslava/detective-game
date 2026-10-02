@@ -395,7 +395,19 @@ export default function App() {
 
       {isIntroPhase && !isLobbyOpen && activeMode !== "SECRET_SERVICE" && (
         <RoleRevealModal
-          killer={killerChar}
+          mode={gameState.mode}
+          opponent={gameState.opponent}
+          playerRole={gameState.playerRole}
+          killer={
+            gameState.opponent === "AI" && gameState.playerRole === "DETECTIVE"
+              ? undefined
+              : killerChar
+          }
+          detective={
+            gameState.opponent === "AI" && gameState.playerRole === "KILLER"
+              ? undefined
+              : detectiveChar
+          }
           inspectorChoices={inspectorChoices}
           onSelectDetectiveRole={handleSelectInspectorRole}
           onComplete={() => setIsIntroPhase(false)}

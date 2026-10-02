@@ -20,6 +20,7 @@ import {
   canCleanupBoard,
   captureSpy,
   interrogateNeighbor,
+  robNeighbor,
 } from "./utils/gameLogic";
 import {
   getKillerAIMove,
@@ -162,7 +163,7 @@ export default function App() {
   const isKillerTurn = gameState.currentTurn === "KILLER";
   const isDetectiveTurn = gameState.currentTurn === "DETECTIVE";
 
-  let role1Name = "БАНДИТ";
+let role1Name = "БАНДИТ";
   let role2Name = "ИНСПЕКТОР";
   if (gameState.mode === "MANIAC_VS_OPERATIVE") {
     role1Name = "МАНЬЯК";
@@ -170,7 +171,11 @@ export default function App() {
   } else if (gameState.mode === "SECRET_SERVICE") {
     role1Name = "АГЕНТ «ВОСТОК»";
     role2Name = "АГЕНТ «ЗАПАД»";
+  } else if (gameState.mode === "THIEF_HUNT") { // <-- ДОБАВЛЕНО
+    role1Name = "ВОР";
+    role2Name = "СЫЩИК";
   }
+  
 
   const currentRoleName = isKillerTurn ? role1Name : role2Name;
   const isHumanTurn =
@@ -235,12 +240,21 @@ export default function App() {
     setSelectedId(null);
   };
 
-  const handleKill = () => {
+const handleKill = () => {
     if (!selectedId || gameState.currentTurn !== "KILLER" || !isHumanTurn)
       return;
     sounds.playKill();
     triggerHaptic("heavy");
     setGameState((prev) => killCharacter(prev, selectedId));
+    setSelectedId(null);
+  };
+
+  const handleRob = () => {
+    if (!selectedId || gameState.currentTurn !== "KILLER" || !isHumanTurn)
+      return;
+    sounds.playShift();
+    triggerHaptic("medium");
+    setGameState((prev) => robNeighbor(prev, selectedId));
     setSelectedId(null);
   };
 
@@ -352,21 +366,37 @@ export default function App() {
       });
     } else {
       if (isKillerTurn) {
-        actions.push({
-          id: "kill_basic",
-          label:
-            gameState.mode === "MANIAC_VS_OPERATIVE"
-              ? "Убить цель"
-              : "Убить соседа",
-          onClick: handleKill,
-          disabled:
-            !isHumanTurn ||
-            !selectedId ||
-            !killerAdjacentIds.includes(selectedId) ||
-            isGameOver,
-          className:
-            "py-2 bg-red-900/60 active:bg-red-800 disabled:opacity-30 text-red-200 text-[11px] font-bold rounded-lg border border-red-800 transition disabled:cursor-not-allowed",
-        });
+        if (gameState.mode === "THIEF_HUNT") {
+          actions.push({
+            id: "rob_basic",
+            label: "Ограбить соседа",
+            onClick: handleRob,
+            disabled:
+              !isHumanTurn ||
+              !selectedId ||
+              !killerAdjacentIds.includes(selectedId) ||
+              isGameOver ||
+              Boolean(selectedCharacter?.isRobbed),
+            className:
+              "py-2 bg-amber-900/60 active:bg-amber-800 disabled:opacity-30 text-amber-200 text-[11px] font-bold rounded-lg border border-amber-800 transition disabled:cursor-not-allowed",
+          });
+        } else {
+          actions.push({
+            id: "kill_basic",
+            label:
+              gameState.mode === "MANIAC_VS_OPERATIVE"
+                ? "Убить цель"
+                : "Убить соседа",
+            onClick: handleKill,
+            disabled:
+              !isHumanTurn ||
+              !selectedId ||
+              !killerAdjacentIds.includes(selectedId) ||
+              isGameOver,
+            className:
+              "py-2 bg-red-900/60 active:bg-red-800 disabled:opacity-30 text-red-200 text-[11px] font-bold rounded-lg border border-red-800 transition disabled:cursor-not-allowed",
+          });
+        }
 
         if (gameState.mode === "SKHVATKA") {
           actions.push({
@@ -504,7 +534,6 @@ export default function App() {
         </button>
       </div>
 
-      <div className="w-full max-w-5xl p-2 sm:p-4 lg:p-6 flex flex-col items-center flex-1">
         <div className="w-full flex items-center justify-between text-[11px] text-zinc-400 mb-2 px-1">
           {gameState.mode === "SECRET_SERVICE" ? (
             <div className="flex items-center gap-3">
@@ -521,6 +550,14 @@ export default function App() {
                 </b>
               </span>
               <span>Колода: {gameState.evidenceDeck.length}</span>
+            </div>
+          ) : gameState.mode === "THIEF_HUNT" ? (
+            <div>
+              Добыча:{" "}
+              <span className="text-amber-400 font-bold">
+                {gameState.trophiesKiller ?? 0}/5
+              </span>{" "}
+              | Улики: {gameState.evidenceDeck.length}
             </div>
           ) : (
             <div>
@@ -811,3 +848,4 @@ export default function App() {
     </div>
   );
 }
+

@@ -685,24 +685,60 @@ export function cleanupDeadCharacters(state: GameState): GameState {
 
   const numRows = state.board.length;
   const numCols = state.board[0].length;
+  const flatBoard = state.board.flat();
+  const living = flatBoard.filter((c) => c.isAlive);
+  const dead = flatBoard.filter((c) => !c.isAlive);
 
-  const living = state.board.flat().filter((c) => c.isAlive);
-  const dead = state.board.flat().filter((c) => !c.isAlive);
-  const reordered = [...living, ...dead];
+  if (dead.length === 0) return state;
 
+  const nextDeck = [...state.evidenceDeck];
+  const newCharacters: Character[] = [];
+
+  // Добираем свежие карты из колоды улик на место устраненных
+  let drawnCount = 0;
+  while (drawnCount < dead.length && nextDeck.length > 0) {
+    const newId = nextDeck.shift()!;
+    const baseChar = CHARACTERS_DATA.find((c) => c.id === newId);
+
+    if (baseChar) {
+      newCharacters.push({
+        ...baseChar,
+        isAlive: true,
+        isExonerated: false,
+        isRobbed: false,
+        isShielded: false,
+        hasBomb: false,
+        isVault: false,
+        isVaultCracked: false,
+        isVaultLocked: false,
+      });
+    }
+    drawnCount++;
+  }
+
+  // Если карт в колоде не хватило, оставшиеся слоты добираем из остатка мертвых
+  const remainingDead = dead.slice(drawnCount);
+  const reordered = [...living, ...newCharacters, ...remainingDead];
+
+  // Восстанавливаем исходную геометрию сетки (5x5)
   const updatedBoard: Character[][] = [];
   for (let r = 0; r < numRows; r++) {
     updatedBoard.push(reordered.slice(r * numCols, r * numCols + numCols));
   }
 
-  const nextTurn = state.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER";
+  const nextTurn: Role =
+    state.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER";
 
   return {
     ...state,
     board: updatedBoard,
+    evidenceDeck: nextDeck,
     currentTurn: nextTurn,
     blockedShift: null,
-    log: [...state.log, "Морг очищен: тела смещены в нижнюю часть квартала."],
+    log: [
+      ...state.log,
+      `Обновление поля: убрано тел — ${dead.length}. Прибыло новых подозреваемых из резерва: ${drawnCount}.`,
+    ],
   };
 }
 

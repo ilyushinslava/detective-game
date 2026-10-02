@@ -9,6 +9,8 @@ import {
   shiftBoard,
   captureSpy,
   interrogateNeighbor,
+  robNeighbor,
+  setPolicePatrol,
 } from "./gameLogic";
 
 function getAllValidShifts(board: Character[][], lastShift: LastShift | null) {
@@ -206,4 +208,134 @@ export function getSecretServiceAIMove(state: GameState): GameState {
   }
 
   return state;
+}
+export function getThiefAIMove(state: GameState): GameState {
+  if (state.winner) return state;
+
+  const neighbors = getAdjacentCharacters(state.board, state.killerSecretId);
+  const validTargets = neighbors.filter((c) => c.isAlive && !c.isRobbed);
+
+  if (validTargets.length > 0) {
+    const target =
+      validTargets[Math.floor(Math.random() * validTargets.length)];
+    return robNeighbor(state, target.id);
+  }
+
+  const possibleShifts: {
+    type: "ROW" | "COL";
+    index: number;
+    direction: "FORWARD" | "BACKWARD";
+  }[] = [];
+  const types: ("ROW" | "COL")[] = ["ROW", "COL"];
+  const directions: ("FORWARD" | "BACKWARD")[] = ["FORWARD", "BACKWARD"];
+
+  for (const type of types) {
+    for (let index = 0; index < 5; index++) {
+      if (
+        state.blockedShift &&
+        state.blockedShift.type === type &&
+        state.blockedShift.index === index
+      ) {
+        continue;
+      }
+
+      for (const direction of directions) {
+        if (!isOppositeShift(state.lastShift, type, index, direction)) {
+          possibleShifts.push({ type, index, direction });
+        }
+      }
+    }
+  }
+
+  if (possibleShifts.length > 0) {
+    const shift =
+      possibleShifts[Math.floor(Math.random() * possibleShifts.length)];
+    const newBoard = shiftBoard(
+      state.board,
+      shift.type,
+      shift.index,
+      shift.direction,
+    );
+
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: "DETECTIVE",
+      lastShift: shift,
+      log: [
+        ...state.log,
+        `Вор сдвинул ${shift.type === "ROW" ? `ряд ${shift.index + 1}` : `колонку ${shift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return {
+    ...state,
+    currentTurn: "DETECTIVE",
+    log: [...state.log, "Вор затаился и пропустил ход."],
+  };
+}
+export function getPoliceAIMove(state: GameState): GameState {
+  if (state.winner) return state;
+
+  // 1. С вероятностью 50% выставляем оцепление на случайный ряд или колонку
+  const shouldPatrol = Math.random() < 0.5;
+  if (shouldPatrol) {
+    const types: ("ROW" | "COL")[] = ["ROW", "COL"];
+    const randomType = types[Math.floor(Math.random() * types.length)];
+    const randomIndex = Math.floor(Math.random() * 5);
+    return setPolicePatrol(state, randomType, randomIndex);
+  }
+
+  // 2. Иначе делаем валидный сдвиг поля
+  const possibleShifts: {
+    type: "ROW" | "COL";
+    index: number;
+    direction: "FORWARD" | "BACKWARD";
+  }[] = [];
+  const types: ("ROW" | "COL")[] = ["ROW", "COL"];
+  const directions: ("FORWARD" | "BACKWARD")[] = ["FORWARD", "BACKWARD"];
+
+  for (const type of types) {
+    for (let index = 0; index < 5; index++) {
+      if (
+        state.blockedShift &&
+        state.blockedShift.type === type &&
+        state.blockedShift.index === index
+      ) {
+        continue;
+      }
+
+      for (const direction of directions) {
+        if (!isOppositeShift(state.lastShift, type, index, direction)) {
+          possibleShifts.push({ type, index, direction });
+        }
+      }
+    }
+  }
+
+  if (possibleShifts.length > 0) {
+    const shift =
+      possibleShifts[Math.floor(Math.random() * possibleShifts.length)];
+    const newBoard = shiftBoard(
+      state.board,
+      shift.type,
+      shift.index,
+      shift.direction,
+    );
+
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: "KILLER",
+      lastShift: shift,
+      log: [
+        ...state.log,
+        `Полиция сдвинула ${shift.type === "ROW" ? `ряд ${shift.index + 1}` : `колонку ${shift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  // Фолбэк на установку патруля, если со сдвигами возник коллизионный тупик
+  return setPolicePatrol(state, "ROW", 0);
 }

@@ -9,6 +9,7 @@ import {
   createInitialState,
   setInspectorRole,
   shiftBoard,
+  isOppositeShift,
   killCharacter,
   accuseCharacter,
   exonerateFromHand,
@@ -195,11 +196,21 @@ export default function App() {
     index: number,
     direction: "FORWARD" | "BACKWARD",
   ) => {
-    if (gameState.winner || isFirstTurnKiller || !isHumanTurn) return;
+    if (
+      gameState.winner ||
+      isFirstTurnKiller ||
+      !isHumanTurn ||
+      isOppositeShift(gameState.lastShift, type, index, direction)
+    ) {
+      return;
+    }
+
     const newBoard = shiftBoard(gameState.board, type, index, direction);
     const nextTurn =
       gameState.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER";
-    const actionText = `${currentRoleName} сдвинул ${type === "ROW" ? `ряд ${index + 1}` : `колонку ${index + 1}`}.`;
+    const actionText = `${currentRoleName} сдвинул ${
+      type === "ROW" ? `ряд ${index + 1}` : `колонку ${index + 1}`
+    }.`;
 
     setGameState((prev) => ({
       ...prev,
@@ -267,6 +278,7 @@ export default function App() {
     : detectiveAdjacentIds;
 
   // Динамическая фильтрация доступных действий
+  // Динамическая фильтрация доступных действий
   const availableActions = useMemo<ActionItem[]>(() => {
     const actions: ActionItem[] = [];
     const isGameOver = gameState.winner !== null;
@@ -302,7 +314,7 @@ export default function App() {
         onClick: handleCleanup,
         disabled: !isHumanTurn || !isCleanupAvailable,
         className:
-          "py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed col-span-2 lg:col-span-1",
+          "py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed",
       });
     } else {
       if (isKillerTurn) {
@@ -361,7 +373,7 @@ export default function App() {
         onClick: handleCleanup,
         disabled: !isHumanTurn || !isCleanupAvailable || isFirstTurnKiller,
         className:
-          "py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed col-span-2 lg:col-span-1",
+          "py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed",
       });
     }
 
@@ -642,13 +654,13 @@ export default function App() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">
+              <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
                 {availableActions.map((action) => (
                   <button
                     key={action.id}
                     onClick={action.onClick}
                     disabled={action.disabled}
-                    className={action.className}
+                    className={`${action.className} col-span-1 last:odd:col-span-2 lg:col-span-1 lg:last:odd:col-span-1`}
                   >
                     {action.label}
                   </button>

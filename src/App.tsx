@@ -74,6 +74,16 @@ export default function App() {
       }, 1000);
     }
 
+    const canPeekKiller =
+      gameState.opponent === "AI"
+        ? gameState.playerRole === "KILLER"
+        : isKillerTurn;
+
+    const canPeekDetective =
+      gameState.opponent === "AI"
+        ? gameState.playerRole === "DETECTIVE"
+        : isDetectiveTurn;
+
     return () => {
       if (interval) clearInterval(interval);
     };
@@ -113,6 +123,16 @@ export default function App() {
         });
         setIsAIThinking(false);
       }, 350);
+
+      const canPeekKiller =
+        gameState.opponent === "AI"
+          ? gameState.playerRole === "KILLER"
+          : isKillerTurn;
+
+      const canPeekDetective =
+        gameState.opponent === "AI"
+          ? gameState.playerRole === "DETECTIVE"
+          : isDetectiveTurn;
 
       return () => clearTimeout(timer);
     }
@@ -329,17 +349,6 @@ export default function App() {
     const actions: ActionItem[] = [];
     const isGameOver = gameState.winner !== null;
 
-    // Блокировка просмотра чужой роли
-    const canPeekKiller =
-      gameState.opponent === "AI"
-        ? gameState.playerRole === "KILLER"
-        : isKillerTurn;
-
-    const canPeekDetective =
-      gameState.opponent === "AI"
-        ? gameState.playerRole === "DETECTIVE"
-        : isDetectiveTurn;
-
     if (gameState.mode === "SECRET_SERVICE") {
       actions.push({
         id: "capture_spy",
@@ -466,6 +475,16 @@ export default function App() {
     selectedCharacter,
   ]);
 
+  const canPeekKiller =
+    gameState.opponent === "AI"
+      ? gameState.playerRole === "KILLER"
+      : isKillerTurn;
+
+  const canPeekDetective =
+    gameState.opponent === "AI"
+      ? gameState.playerRole === "DETECTIVE"
+      : isDetectiveTurn;
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center select-none font-sans pb-4 lg:pb-2">
       {isLobbyOpen && (
@@ -515,19 +534,27 @@ export default function App() {
         <div
           className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] sm:text-xs font-black tracking-widest uppercase transition-all shadow-lg ${
             isAIThinking
-              ? "bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse [animation-duration:800ms]"
+              ? "bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse"
               : isKillerTurn
                 ? "bg-red-950/80 border-red-600 text-red-100"
                 : "bg-blue-950/80 border-blue-600 text-blue-100"
           }`}
         >
-          <span
-            className={`w-2.5 h-2.5 rounded-full animate-pulse [animation-duration:800ms] shadow-md ${
-              isKillerTurn
-                ? "bg-red-500 shadow-red-500/50"
-                : "bg-blue-500 shadow-blue-500/50"
-            }`}
-          />
+          {/* Радарная метка: статичная точка + расходящаяся импульсная волна */}
+          <span className="relative flex h-2.5 w-2.5 items-center justify-center">
+            <span
+              className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping [animation-duration:2s] ${
+                isKillerTurn ? "bg-red-500" : "bg-blue-500"
+              }`}
+            />
+            <span
+              className={`relative inline-flex rounded-full h-2 w-2 shadow-md ${
+                isKillerTurn
+                  ? "bg-red-500 shadow-red-500/80"
+                  : "bg-blue-500 shadow-blue-500/80"
+              }`}
+            />
+          </span>
           <span>{currentRoleName}</span>
         </div>
 

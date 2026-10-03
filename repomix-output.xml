@@ -32,7 +32,7 @@ The content is organized as follows:
 <notes>
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
-- Only files matching these patterns are included: src/types/**, src/utils/gameLogic.ts, src/components/GameBoard.tsx
+- Only files matching these patterns are included: src/types/**, src/utils/gameLogic.ts, src/utils/aiLogic.ts, src/App.tsx
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
 - Files are sorted by Git change count (files with more changes are at the bottom)
@@ -42,148 +42,16 @@ The content is organized as follows:
 
 <directory_structure>
 src/
-  components/
-    GameBoard.tsx
   types/
     game.ts
   utils/
+    aiLogic.ts
     gameLogic.ts
+  App.tsx
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
-
-<file path="src/components/GameBoard.tsx">
-import type { Character, LastShift } from '../types/game';
-import { CharacterCard } from './CharacterCard';
-
-interface GameBoardProps {
-  board: Character[][];
-  selectedCharacterId: string | null;
-  killerAdjacentIds: string[];
-  detectiveAdjacentIds: string[];
-  showKillerHints: boolean;
-  showDetectiveHints: boolean;
-  lastShift: LastShift | null;
-  blockedShift?: { type: 'ROW' | 'COL'; index: number } | null;
-  onShift: (type: 'ROW' | 'COL', index: number, direction: 'FORWARD' | 'BACKWARD') => void;
-  onSelectCharacter: (id: string) => void;
-}
-
-export const GameBoard = ({
-  board,
-  selectedCharacterId,
-  killerAdjacentIds,
-  detectiveAdjacentIds,
-  showKillerHints,
-  showDetectiveHints,
-  blockedShift,
-  onShift,
-  onSelectCharacter,
-}: GameBoardProps) => {
-  return (
-    <div className="w-full flex flex-col items-center">
-      {/* Кнопки сдвига колонок ВВЕРХ */}
-      <div className="grid grid-cols-5 gap-1.5 sm:gap-2 w-full max-w-[480px] mb-1.5 pl-6 pr-6 sm:pl-8 sm:pr-8">
-        {[0, 1, 2, 3, 4].map((colIdx) => {
-          const isBlocked = blockedShift?.type === 'COL' && blockedShift.index === colIdx;
-          return (
-            <button
-              key={`col-up-${colIdx}`}
-              disabled={isBlocked}
-              onClick={() => onShift('COL', colIdx, 'BACKWARD')}
-              className={`h-6 sm:h-7 rounded-lg text-xs font-bold transition flex items-center justify-center border ${
-                isBlocked
-                  ? 'bg-blue-950/80 text-blue-300 border-blue-500 cursor-not-allowed shadow-[0_0_8px_rgba(59,130,246,0.4)]'
-                  : 'bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border-zinc-800 cursor-pointer'
-              }`}
-              title={isBlocked ? 'Патруль полиции блокирует сдвиг' : 'Сдвиг вверх'}
-            >
-              {isBlocked ? '🚔' : '↑'}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Поле 5x5 со стрелками рядов */}
-      <div className="w-full max-w-[540px] flex flex-col gap-1.5 sm:gap-2">
-        {board.map((row, rIdx) => {
-          const isRowBlocked = blockedShift?.type === 'ROW' && blockedShift.index === rIdx;
-          return (
-            <div key={`row-${rIdx}`} className="flex items-center gap-1.5 sm:gap-2 w-full">
-              {/* Сдвиг ряда влево */}
-              <button
-                disabled={isRowBlocked}
-                onClick={() => onShift('ROW', rIdx, 'BACKWARD')}
-                className={`w-5 sm:w-6 h-full min-h-[44px] rounded-lg text-xs font-bold transition flex items-center justify-center shrink-0 border ${
-                  isRowBlocked
-                    ? 'bg-blue-950/80 text-blue-300 border-blue-500 cursor-not-allowed shadow-[0_0_8px_rgba(59,130,246,0.4)]'
-                    : 'bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border-zinc-800 cursor-pointer'
-                }`}
-                title={isRowBlocked ? 'Патруль полиции блокирует сдвиг' : 'Сдвиг влево'}
-              >
-                {isRowBlocked ? '🚔' : '←'}
-              </button>
-
-              {/* 5 карт в ряду */}
-              <div className="grid grid-cols-5 gap-1.5 sm:gap-2 flex-1">
-                {row.map((character) => (
-                  <CharacterCard
-                    key={character.id}
-                    character={character}
-                    isSelected={selectedCharacterId === character.id}
-                    isKillerAdjacent={killerAdjacentIds.includes(character.id)}
-                    isDetectiveAdjacent={detectiveAdjacentIds.includes(character.id)}
-                    showKillerHint={showKillerHints}
-                    showDetectiveHint={showDetectiveHints}
-                    onClick={() => onSelectCharacter(character.id)}
-                  />
-                ))}
-              </div>
-
-              {/* Сдвиг ряда вправо */}
-              <button
-                disabled={isRowBlocked}
-                onClick={() => onShift('ROW', rIdx, 'FORWARD')}
-                className={`w-5 sm:w-6 h-full min-h-[44px] rounded-lg text-xs font-bold transition flex items-center justify-center shrink-0 border ${
-                  isRowBlocked
-                    ? 'bg-blue-950/80 text-blue-300 border-blue-500 cursor-not-allowed shadow-[0_0_8px_rgba(59,130,246,0.4)]'
-                    : 'bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border-zinc-800 cursor-pointer'
-                }`}
-                title={isRowBlocked ? 'Патруль полиции блокирует сдвиг' : 'Сдвиг вправо'}
-              >
-                {isRowBlocked ? '🚔' : '→'}
-              </button>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Кнопки сдвига колонок ВНИЗ */}
-      <div className="grid grid-cols-5 gap-1.5 sm:gap-2 w-full max-w-[480px] mt-1.5 pl-6 pr-6 sm:pl-8 sm:pr-8">
-        {[0, 1, 2, 3, 4].map((colIdx) => {
-          const isBlocked = blockedShift?.type === 'COL' && blockedShift.index === colIdx;
-          return (
-            <button
-              key={`col-down-${colIdx}`}
-              disabled={isBlocked}
-              onClick={() => onShift('COL', colIdx, 'FORWARD')}
-              className={`h-6 sm:h-7 rounded-lg text-xs font-bold transition flex items-center justify-center border ${
-                isBlocked
-                  ? 'bg-blue-950/80 text-blue-300 border-blue-500 cursor-not-allowed shadow-[0_0_8px_rgba(59,130,246,0.4)]'
-                  : 'bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border-zinc-800 cursor-pointer'
-              }`}
-              title={isBlocked ? 'Патруль полиции блокирует сдвиг' : 'Сдвиг вниз'}
-            >
-              {isBlocked ? '🚔' : '↓'}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-</file>
 
 <file path="src/types/game.ts">
 export type GameModeType = 
@@ -239,9 +107,387 @@ export interface GameState {
 }
 </file>
 
+<file path="src/utils/aiLogic.ts">
+import type { GameState, LastShift, Character } from "../types/game";
+import {
+  getAdjacentCharacters,
+  isOppositeShift,
+  killCharacter,
+  accuseCharacter,
+  exonerateFromHand,
+  disguiseKiller,
+  shiftBoard,
+  captureSpy,
+  interrogateNeighbor,
+  robNeighbor,
+  setPolicePatrol,
+} from "./gameLogic";
+
+function getAllValidShifts(board: Character[][], lastShift: LastShift | null) {
+  const shifts: Array<{
+    type: "ROW" | "COL";
+    index: number;
+    direction: "FORWARD" | "BACKWARD";
+  }> = [];
+  const numRows = board.length;
+  const numCols = board[0].length;
+
+  for (let r = 0; r < numRows; r++) {
+    for (const dir of ["FORWARD", "BACKWARD"] as const) {
+      if (!isOppositeShift(lastShift, "ROW", r, dir)) {
+        shifts.push({ type: "ROW", index: r, direction: dir });
+      }
+    }
+  }
+
+  for (let c = 0; c < numCols; c++) {
+    for (const dir of ["FORWARD", "BACKWARD"] as const) {
+      if (!isOppositeShift(lastShift, "COL", c, dir)) {
+        shifts.push({ type: "COL", index: c, direction: dir });
+      }
+    }
+  }
+
+  return shifts;
+}
+
+export function getKillerAIMove(state: GameState): GameState {
+  const killerNeighbors = getAdjacentCharacters(
+    state.board,
+    state.killerSecretId,
+  );
+
+  if (state.mode === "MANIAC_VS_OPERATIVE") {
+    const validTargets = killerNeighbors.filter(
+      (c) =>
+        c.isAlive &&
+        (state.victimList.includes(c.id) || c.id === state.detectiveSecretId),
+    );
+    if (validTargets.length > 0) {
+      const detTarget = validTargets.find(
+        (c) => c.id === state.detectiveSecretId,
+      );
+      const chosen =
+        detTarget ??
+        validTargets[Math.floor(Math.random() * validTargets.length)];
+      return killCharacter(state, chosen.id);
+    }
+  } else if (state.mode === "SKHVATKA") {
+    const validTargets = killerNeighbors.filter((c) => c.isAlive);
+    if (validTargets.length > 0) {
+      const detTarget = validTargets.find(
+        (c) => c.id === state.detectiveSecretId,
+      );
+      const chosen =
+        detTarget ??
+        validTargets[Math.floor(Math.random() * validTargets.length)];
+      return killCharacter(state, chosen.id);
+    }
+
+    const isFirstTurnKiller = state.killCount === 0;
+    const exoneratedNeighbors = killerNeighbors.filter(
+      (c) => c.isExonerated,
+    ).length;
+    if (
+      !isFirstTurnKiller &&
+      exoneratedNeighbors >= 3 &&
+      state.evidenceDeck.length > 0 &&
+      Math.random() < 0.4
+    ) {
+      return disguiseKiller(state);
+    }
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift);
+  if (validShifts.length > 0) {
+    const randomShift =
+      validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(
+      state.board,
+      randomShift.type,
+      randomShift.index,
+      randomShift.direction,
+    );
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: "DETECTIVE",
+      lastShift: randomShift,
+      log: [
+        ...state.log,
+        `🤖 Бот сдвинул ${randomShift.type === "ROW" ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getDetectiveAIMove(state: GameState): GameState {
+  const detectiveNeighbors = getAdjacentCharacters(
+    state.board,
+    state.detectiveSecretId,
+  );
+
+  const suspectsNear = detectiveNeighbors.filter(
+    (c) =>
+      c.isAlive &&
+      !c.isExonerated &&
+      !state.detectiveHand.includes(c.id) &&
+      c.id !== state.detectiveSecretId,
+  );
+
+  if (suspectsNear.length === 1 && Math.random() < 0.85) {
+    return accuseCharacter(state, suspectsNear[0].id);
+  }
+
+  if (state.detectiveHand.length > 0 && Math.random() < 0.6) {
+    const cardToExonerate = state.detectiveHand[0];
+    return exonerateFromHand(state, cardToExonerate);
+  }
+
+  if (suspectsNear.length > 0 && Math.random() < 0.3) {
+    const chosen =
+      suspectsNear[Math.floor(Math.random() * suspectsNear.length)];
+    return accuseCharacter(state, chosen.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift);
+  if (validShifts.length > 0) {
+    const randomShift =
+      validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(
+      state.board,
+      randomShift.type,
+      randomShift.index,
+      randomShift.direction,
+    );
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: "KILLER",
+      lastShift: randomShift,
+      log: [
+        ...state.log,
+        `🤖 Бот сдвинул ${randomShift.type === "ROW" ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+
+export function getSecretServiceAIMove(state: GameState): GameState {
+  const isAgent1 = state.currentTurn === "KILLER";
+  const mySecretId = isAgent1 ? state.killerSecretId : state.detectiveSecretId;
+  const myNeighbors = getAdjacentCharacters(state.board, mySecretId).filter(
+    (c) => c.isAlive,
+  );
+
+  if (myNeighbors.length > 0 && Math.random() < 0.5) {
+    const target = myNeighbors[Math.floor(Math.random() * myNeighbors.length)];
+    return captureSpy(state, target.id);
+  }
+
+  if (myNeighbors.length > 0 && Math.random() < 0.7) {
+    const target = myNeighbors[Math.floor(Math.random() * myNeighbors.length)];
+    return interrogateNeighbor(state, target.id);
+  }
+
+  const validShifts = getAllValidShifts(state.board, state.lastShift);
+  if (validShifts.length > 0) {
+    const randomShift =
+      validShifts[Math.floor(Math.random() * validShifts.length)];
+    const newBoard = shiftBoard(
+      state.board,
+      randomShift.type,
+      randomShift.index,
+      randomShift.direction,
+    );
+    const nextTurn = isAgent1 ? "DETECTIVE" : "KILLER";
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: nextTurn,
+      lastShift: randomShift,
+      log: [
+        ...state.log,
+        `🤖 Бот сдвинул ${randomShift.type === "ROW" ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return state;
+}
+export function getThiefAIMove(state: GameState): GameState {
+  if (state.winner) return state;
+
+  const neighbors = getAdjacentCharacters(state.board, state.killerSecretId);
+  const validTargets = neighbors.filter((c) => c.isAlive && !c.isRobbed);
+
+  if (validTargets.length > 0) {
+    const target =
+      validTargets[Math.floor(Math.random() * validTargets.length)];
+    return robNeighbor(state, target.id);
+  }
+
+  const possibleShifts: {
+    type: "ROW" | "COL";
+    index: number;
+    direction: "FORWARD" | "BACKWARD";
+  }[] = [];
+  const types: ("ROW" | "COL")[] = ["ROW", "COL"];
+  const directions: ("FORWARD" | "BACKWARD")[] = ["FORWARD", "BACKWARD"];
+
+  for (const type of types) {
+    for (let index = 0; index < 5; index++) {
+      if (
+        state.blockedShift &&
+        state.blockedShift.type === type &&
+        state.blockedShift.index === index
+      ) {
+        continue;
+      }
+
+      for (const direction of directions) {
+        if (!isOppositeShift(state.lastShift, type, index, direction)) {
+          possibleShifts.push({ type, index, direction });
+        }
+      }
+    }
+  }
+
+  if (possibleShifts.length > 0) {
+    const shift =
+      possibleShifts[Math.floor(Math.random() * possibleShifts.length)];
+    const newBoard = shiftBoard(
+      state.board,
+      shift.type,
+      shift.index,
+      shift.direction,
+    );
+
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: "DETECTIVE",
+      lastShift: shift,
+      log: [
+        ...state.log,
+        `Вор сдвинул ${shift.type === "ROW" ? `ряд ${shift.index + 1}` : `колонку ${shift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  return {
+    ...state,
+    currentTurn: "DETECTIVE",
+    log: [...state.log, "Вор затаился и пропустил ход."],
+  };
+}
+export function getPoliceAIMove(state: GameState): GameState {
+  if (state.winner) return state;
+
+  // 1. С вероятностью 50% выставляем оцепление на случайный ряд или колонку
+  const shouldPatrol = Math.random() < 0.5;
+  if (shouldPatrol) {
+    const types: ("ROW" | "COL")[] = ["ROW", "COL"];
+    const randomType = types[Math.floor(Math.random() * types.length)];
+    const randomIndex = Math.floor(Math.random() * 5);
+    return setPolicePatrol(state, randomType, randomIndex);
+  }
+
+  // 2. Иначе делаем валидный сдвиг поля
+  const possibleShifts: {
+    type: "ROW" | "COL";
+    index: number;
+    direction: "FORWARD" | "BACKWARD";
+  }[] = [];
+  const types: ("ROW" | "COL")[] = ["ROW", "COL"];
+  const directions: ("FORWARD" | "BACKWARD")[] = ["FORWARD", "BACKWARD"];
+
+  for (const type of types) {
+    for (let index = 0; index < 5; index++) {
+      if (
+        state.blockedShift &&
+        state.blockedShift.type === type &&
+        state.blockedShift.index === index
+      ) {
+        continue;
+      }
+
+      for (const direction of directions) {
+        if (!isOppositeShift(state.lastShift, type, index, direction)) {
+          possibleShifts.push({ type, index, direction });
+        }
+      }
+    }
+  }
+
+  if (possibleShifts.length > 0) {
+    const shift =
+      possibleShifts[Math.floor(Math.random() * possibleShifts.length)];
+    const newBoard = shiftBoard(
+      state.board,
+      shift.type,
+      shift.index,
+      shift.direction,
+    );
+
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: "KILLER",
+      lastShift: shift,
+      log: [
+        ...state.log,
+        `Полиция сдвинула ${shift.type === "ROW" ? `ряд ${shift.index + 1}` : `колонку ${shift.index + 1}`}.`,
+      ],
+    };
+  }
+
+  // Фолбэк на установку патруля, если со сдвигами возник коллизионный тупик
+  return setPolicePatrol(state, "ROW", 0);
+}
+</file>
+
 <file path="src/utils/gameLogic.ts">
-import type { Character, GameModeType, GameState, OpponentType, Role, LastShift } from '../types/game';
-import { ALL_CHARACTERS } from '../constants/characters';
+import type {
+  Character,
+  GameModeType,
+  GameState,
+  OpponentType,
+  Role,
+  LastShift,
+} from "../types/game";
+
+export const CHARACTERS_DATA: Omit<Character, "isAlive" | "isExonerated">[] = [
+  { id: "c1", name: "Артур Блэк" },
+  { id: "c2", name: "Мария Козлова" },
+  { id: "c3", name: "Елена Соколова" },
+  { id: "c4", name: "Виктор Громов" },
+  { id: "c5", name: "Анна Морозова" },
+  { id: "c6", name: "Алексей Медведев" },
+  { id: "c7", name: "Татьяна Павлова" },
+  { id: "c8", name: "Павел Макаров" },
+  { id: "c9", name: "Роман Орлов" },
+  { id: "c10", name: "Илья Богданов" },
+  { id: "c11", name: "София Романова" },
+  { id: "c12", name: "Виктория Белова" },
+  { id: "c13", name: "Ксения Тарасова" },
+  { id: "c14", name: "Алиса Смирнова" },
+  { id: "c15", name: "Андрей Семенов" },
+  { id: "c16", name: "Дарья Кузнецова" },
+  { id: "c17", name: "Ольга Зайцева" },
+  { id: "c18", name: "Дмитрий Волков" },
+  { id: "c19", name: "Сергей Степанов" },
+  { id: "c20", name: "Максим Лебедев" },
+  { id: "c21", name: "Игорь Новиков" },
+  { id: "c22", name: "Наталья Николаева" },
+  { id: "c23", name: "Марк Воронов" },
+  { id: "c24", name: "Денис Попов" },
+  { id: "c25", name: "Екатерина Ильина" },
+];
 
 function shuffle<T>(array: T[]): T[] {
   const arr = [...array];
@@ -254,9 +500,9 @@ function shuffle<T>(array: T[]): T[] {
 
 export function isOppositeShift(
   lastShift: LastShift | null,
-  type: 'ROW' | 'COL',
+  type: "ROW" | "COL",
   index: number,
-  direction: 'FORWARD' | 'BACKWARD'
+  direction: "FORWARD" | "BACKWARD",
 ): boolean {
   if (!lastShift) return false;
   return (
@@ -266,7 +512,10 @@ export function isOppositeShift(
   );
 }
 
-export function getCharacterCoords(board: Character[][], characterId: string): { r: number; c: number } | null {
+export function getCharacterCoords(
+  board: Character[][],
+  characterId: string,
+): { r: number; c: number } | null {
   for (let r = 0; r < board.length; r++) {
     for (let c = 0; c < board[r].length; c++) {
       if (board[r][c].id === characterId) return { r, c };
@@ -275,7 +524,11 @@ export function getCharacterCoords(board: Character[][], characterId: string): {
   return null;
 }
 
-export function areAdjacent(board: Character[][], id1: string, id2: string): boolean {
+export function areAdjacent(
+  board: Character[][],
+  id1: string,
+  id2: string,
+): boolean {
   const p1 = getCharacterCoords(board, id1);
   const p2 = getCharacterCoords(board, id2);
   if (!p1 || !p2) return false;
@@ -284,7 +537,10 @@ export function areAdjacent(board: Character[][], id1: string, id2: string): boo
   return dr <= 1 && dc <= 1 && !(dr === 0 && dc === 0);
 }
 
-export function getAdjacentCharacters(board: Character[][], characterId: string): Character[] {
+export function getAdjacentCharacters(
+  board: Character[][],
+  characterId: string,
+): Character[] {
   const pos = getCharacterCoords(board, characterId);
   if (!pos) return [];
   const { r, c } = pos;
@@ -308,14 +564,19 @@ export function getAdjacentCharacters(board: Character[][], characterId: string)
 export function createInitialState(
   mode: GameModeType,
   opponent: OpponentType,
-  playerRole: Role = 'DETECTIVE'
+  playerRole: Role = "DETECTIVE",
 ): GameState {
-  const shuffledPool = shuffle(ALL_CHARACTERS);
-  const boardCharacters = shuffledPool.slice(0, 25).map((c) => ({
+  const shuffledCharacters = shuffle(CHARACTERS_DATA);
+  const boardCharacters = shuffledCharacters.slice(0, 25).map((c) => ({
     ...c,
     isAlive: true,
     isExonerated: false,
     isRobbed: false,
+    isShielded: false,
+    hasBomb: false,
+    isVault: false,
+    isVaultCracked: false,
+    isVaultLocked: false,
   }));
 
   const board: Character[][] = [];
@@ -323,14 +584,24 @@ export function createInitialState(
     board.push(boardCharacters.slice(i * 5, i * 5 + 5));
   }
 
-  const deck = shuffledPool.slice(25).map((c) => c.id);
+  if (mode === "SPANISH_HEIST") {
+    board[0][0].isVault = true;
+    board[0][4].isVault = true;
+    board[4][0].isVault = true;
+    board[4][4].isVault = true;
+  }
 
-  const killerIndex = Math.floor(Math.random() * boardCharacters.length);
-  const killerSecretId = boardCharacters[killerIndex].id;
+  const deck = shuffledCharacters.slice(25).map((c) => c.id);
 
-  const killerNeighbors = getAdjacentCharacters(board, killerSecretId).map((c) => c.id);
-  const validDetectiveCandidates = boardCharacters.filter(
-    (c) => c.id !== killerSecretId && !killerNeighbors.includes(c.id)
+  const candidatePool = boardCharacters.filter((c) => !c.isVault);
+  const killerIndex = Math.floor(Math.random() * candidatePool.length);
+  const killerSecretId = candidatePool[killerIndex].id;
+
+  const killerNeighbors = getAdjacentCharacters(board, killerSecretId).map(
+    (c) => c.id,
+  );
+  const validDetectiveCandidates = candidatePool.filter(
+    (c) => c.id !== killerSecretId && !killerNeighbors.includes(c.id),
   );
 
   let detectiveSecretId: string;
@@ -338,21 +609,27 @@ export function createInitialState(
   let inspectorChoices: string[] = [];
   let victimList: string[] = [];
 
-  if (mode === 'SKHVATKA') {
+  if (mode === "SKHVATKA") {
     const safeCandidates = shuffle(validDetectiveCandidates);
     const chosenChoices = safeCandidates.slice(0, 4);
     inspectorChoices = chosenChoices.map((c) => c.id);
     detectiveSecretId = inspectorChoices[0];
     detectiveHand = inspectorChoices.slice(1);
-  } else if (mode === 'MANIAC_VS_OPERATIVE') {
-    const chosenDet = validDetectiveCandidates[Math.floor(Math.random() * validDetectiveCandidates.length)];
+  } else if (mode === "MANIAC_VS_OPERATIVE") {
+    const chosenDet =
+      validDetectiveCandidates[
+        Math.floor(Math.random() * validDetectiveCandidates.length)
+      ];
     detectiveSecretId = chosenDet.id;
     const potentialVictims = boardCharacters
       .filter((c) => c.id !== killerSecretId && c.id !== detectiveSecretId)
       .map((c) => c.id);
     victimList = shuffle(potentialVictims).slice(0, 4);
   } else {
-    const chosenDet = validDetectiveCandidates[Math.floor(Math.random() * validDetectiveCandidates.length)];
+    const chosenDet =
+      validDetectiveCandidates[
+        Math.floor(Math.random() * validDetectiveCandidates.length)
+      ];
     detectiveSecretId = chosenDet.id;
   }
 
@@ -364,9 +641,10 @@ export function createInitialState(
     detectiveHand,
     inspectorChoices,
     victimList,
-    currentTurn: 'KILLER',
+    currentTurn: "KILLER",
     killCount: 0,
     trophiesKiller: 0,
+    trophiesDetective: 0,
     blockedShift: null,
     lastShift: null,
     winner: null,
@@ -374,13 +652,16 @@ export function createInitialState(
     opponent,
     playerRole,
     log: [
-      `Операция началась (${mode}). Режим: ${opponent === 'AI' ? 'Против бота' : 'Вдвоем'}.`,
-      'Раунд 1: Первый ход за атакующей стороной.',
+      `Операция началась (${mode}). Режим: ${opponent === "AI" ? "Против бота" : "Вдвоем"}.`,
+      "Раунд 1: Первый ход за атакующей стороной.",
     ],
   };
 }
 
-export function setInspectorRole(state: GameState, chosenId: string): GameState {
+export function setInspectorRole(
+  state: GameState,
+  chosenId: string,
+): GameState {
   if (!state.inspectorChoices?.includes(chosenId)) return state;
   const remainingHand = state.inspectorChoices.filter((id) => id !== chosenId);
   return {
@@ -388,21 +669,21 @@ export function setInspectorRole(state: GameState, chosenId: string): GameState 
     detectiveSecretId: chosenId,
     detectiveHand: remainingHand,
     inspectorChoices: [],
-    log: [...state.log, 'Инспектор определился с тайным досье прикрытия.'],
+    log: [...state.log, "Инспектор определился с тайным досье прикрытия."],
   };
 }
 
 export function shiftBoard(
   board: Character[][],
-  type: 'ROW' | 'COL',
+  type: "ROW" | "COL",
   index: number,
-  direction: 'FORWARD' | 'BACKWARD'
+  direction: "FORWARD" | "BACKWARD",
 ): Character[][] {
   const newBoard = board.map((row) => [...row]);
 
-  if (type === 'ROW') {
+  if (type === "ROW") {
     const row = [...newBoard[index]];
-    if (direction === 'FORWARD') {
+    if (direction === "FORWARD") {
       const last = row.pop()!;
       row.unshift(last);
     } else {
@@ -413,7 +694,7 @@ export function shiftBoard(
   } else {
     const col: Character[] = [];
     for (let r = 0; r < 5; r++) col.push(newBoard[r][index]);
-    if (direction === 'FORWARD') {
+    if (direction === "FORWARD") {
       const last = col.pop()!;
       col.unshift(last);
     } else {
@@ -433,31 +714,53 @@ export function killCharacter(state: GameState, targetId: string): GameState {
   if (!isAdjacent) return state;
 
   let isVictimValid = true;
-  if (state.mode === 'MANIAC_VS_OPERATIVE') {
-    isVictimValid = state.victimList.includes(targetId) || targetId === state.detectiveSecretId;
+  if (state.mode === "MANIAC_VS_OPERATIVE") {
+    isVictimValid =
+      state.victimList.includes(targetId) ||
+      targetId === state.detectiveSecretId;
   }
   if (!isVictimValid) return state;
 
-  let killedName = '';
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+
+  if (targetChar?.isShielded) {
+    const newBoard = state.board.map((row) =>
+      row.map((c) => (c.id === targetId ? { ...c, isShielded: false } : c)),
+    );
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: "DETECTIVE",
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `Выстрел отражен! Бронежилет спас жизнь ${targetChar.name}! Защита снята.`,
+      ],
+    };
+  }
+
+  let killedName = "";
   const newBoard = state.board.map((row) =>
     row.map((c) => {
       if (c.id === targetId) {
         killedName = c.name;
-        return { ...c, isAlive: false };
+        return { ...c, isAlive: false, hasBomb: false };
       }
       return c;
-    })
+    }),
   );
 
   const newKillCount = state.killCount + 1;
   let winner: Role | null = null;
 
   if (targetId === state.detectiveSecretId) {
-    winner = 'KILLER';
-  } else if (state.mode === 'MANIAC_VS_OPERATIVE' && newKillCount >= 4) {
-    winner = 'KILLER';
-  } else if (state.mode === 'SKHVATKA' && newKillCount >= 14) {
-    winner = 'KILLER';
+    winner = "KILLER";
+  } else if (state.mode === "MANIAC_VS_OPERATIVE" && newKillCount >= 4) {
+    winner = "KILLER";
+  } else if (state.mode === "EUROPOL_VS_OPG" && newKillCount >= 6) {
+    winner = "KILLER";
+  } else if (state.mode === "SKHVATKA" && newKillCount >= 14) {
+    winner = "KILLER";
   }
 
   return {
@@ -465,17 +768,177 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     board: newBoard,
     killCount: newKillCount,
     winner,
-    currentTurn: 'DETECTIVE',
+    currentTurn: "DETECTIVE",
     blockedShift: null,
     log: [
       ...state.log,
-      `Ликвидация: персонаж ${killedName} устранен.${winner ? ' Победа преступного мира!' : ''}`,
+      `Ликвидация: персонаж ${killedName} устранен.${winner ? " Победа преступного мира!" : ""}`,
+    ],
+  };
+}
+
+export function crackVault(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== "SPANISH_HEIST") return state;
+  if (!areAdjacent(state.board, state.killerSecretId, targetId)) return state;
+
+  const target = state.board.flat().find((c) => c.id === targetId);
+  if (
+    !target ||
+    !target.isVault ||
+    target.isVaultCracked ||
+    target.isVaultLocked
+  )
+    return state;
+
+  const crackedCount = (state.trophiesKiller ?? 0) + 1;
+  const isWin = crackedCount >= 3;
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isVaultCracked: true } : c)),
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    trophiesKiller: crackedCount,
+    winner: isWin ? "KILLER" : null,
+    currentTurn: "DETECTIVE",
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Сейф ${target.name} взломан! Прогресс ограбления: ${crackedCount}/3.${
+        isWin ? " Хранилище казино полностью обчищено! Победа банды!" : ""
+      }`,
+    ],
+  };
+}
+
+export function lockVault(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== "SPANISH_HEIST") return state;
+  if (!areAdjacent(state.board, state.detectiveSecretId, targetId))
+    return state;
+
+  const target = state.board.flat().find((c) => c.id === targetId);
+  if (
+    !target ||
+    !target.isVault ||
+    target.isVaultCracked ||
+    target.isVaultLocked
+  )
+    return state;
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isVaultLocked: true } : c)),
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    currentTurn: "KILLER",
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Охрана включила протокол тревоги на сейфе ${target.name}!`,
+    ],
+  };
+}
+
+export function plantBomb(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== "EUROPOL_VS_OPG") return state;
+  if (!areAdjacent(state.board, state.killerSecretId, targetId)) return state;
+
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+  if (!targetChar || targetChar.hasBomb) return state;
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, hasBomb: true } : c)),
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    currentTurn: "DETECTIVE",
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `ОПГ заложила скрытый заряд взрывчатки в квартале ${targetChar.name}!`,
+    ],
+  };
+}
+
+export function applyShield(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== "EUROPOL_VS_OPG") return state;
+  if (
+    !areAdjacent(state.board, state.detectiveSecretId, targetId) &&
+    targetId !== state.detectiveSecretId
+  ) {
+    return state;
+  }
+
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+  if (!targetChar || targetChar.isShielded) return state;
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isShielded: true } : c)),
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    currentTurn: "KILLER",
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Европол экипировал защитным протоколом: ${targetChar.name}.`,
+    ],
+  };
+}
+
+export function sniperShot(state: GameState, targetId: string): GameState {
+  if (state.winner || state.mode !== "EUROPOL_VS_OPG") return state;
+
+  const pDet = getCharacterCoords(state.board, state.detectiveSecretId);
+  const pTarget = getCharacterCoords(state.board, targetId);
+  if (!pDet || !pTarget) return state;
+
+  const dr = Math.abs(pDet.r - pTarget.r);
+  const dc = Math.abs(pDet.c - pTarget.c);
+  const isValidSniperRange = (dr === 2 && dc === 0) || (dr === 0 && dc === 2);
+
+  if (!isValidSniperRange) return state;
+
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+  if (!targetChar || !targetChar.isAlive) return state;
+
+  if (targetId === state.killerSecretId) {
+    return {
+      ...state,
+      winner: "DETECTIVE",
+      log: [
+        ...state.log,
+        `Снайперский выстрел точно в цель! Глава ОПГ (${targetChar.name}) ликвидирован! Победа Европола!`,
+      ],
+    };
+  }
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c)),
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    currentTurn: "KILLER",
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Снайпер Европола устранил ложную цель: ${targetChar.name}.`,
     ],
   };
 }
 
 export function robNeighbor(state: GameState, targetId: string): GameState {
-  if (state.winner || state.mode !== 'THIEF_HUNT') return state;
+  if (state.winner || state.mode !== "THIEF_HUNT") return state;
   if (!areAdjacent(state.board, state.killerSecretId, targetId)) return state;
 
   const targetChar = state.board.flat().find((c) => c.id === targetId);
@@ -485,7 +948,7 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
   const isWin = newTrophies >= 5;
 
   const newBoard = state.board.map((row) =>
-    row.map((c) => (c.id === targetId ? { ...c, isRobbed: true } : c))
+    row.map((c) => (c.id === targetId ? { ...c, isRobbed: true } : c)),
   );
 
   let nextKillerSecretId = state.killerSecretId;
@@ -500,28 +963,34 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
     trophiesKiller: newTrophies,
     killerSecretId: nextKillerSecretId,
     evidenceDeck: nextDeck,
-    winner: isWin ? 'KILLER' : null,
-    currentTurn: 'DETECTIVE',
+    winner: isWin ? "KILLER" : null,
+    currentTurn: "DETECTIVE",
     blockedShift: null,
     log: [
       ...state.log,
-      `Вор похитил ценности у персонажа ${targetChar.name}! Добыча: ${newTrophies}/5.${
-        isWin ? ' Вор скрылся со всей добычей!' : ' Вор сменил прикрытие.'
+      `Вор похитил сокровище у персонажа ${targetChar.name}! Добыча: ${newTrophies}/5.${
+        isWin
+          ? " Вор скрылся со всеми сокровищами!"
+          : " Вор сменил прикрытие и растворился в толпе."
       }`,
     ],
   };
 }
 
-export function setPolicePatrol(state: GameState, type: 'ROW' | 'COL', index: number): GameState {
-  if (state.winner || state.mode !== 'THIEF_HUNT') return state;
+export function setPolicePatrol(
+  state: GameState,
+  type: "ROW" | "COL",
+  index: number,
+): GameState {
+  if (state.winner || state.mode !== "THIEF_HUNT") return state;
 
   return {
     ...state,
     blockedShift: { type, index },
-    currentTurn: 'KILLER',
+    currentTurn: "KILLER",
     log: [
       ...state.log,
-      `Полиция выставила патруль на ${type === 'ROW' ? `ряд ${index + 1}` : `колонку ${index + 1}`}. Сдвиг заблокирован на 1 ход!`,
+      `Полиция выставила оцепление на ${type === "ROW" ? `ряд ${index + 1}` : `колонку ${index + 1}`}. Сдвиг заблокирован на 1 ход!`,
     ],
   };
 }
@@ -529,17 +998,52 @@ export function setPolicePatrol(state: GameState, type: 'ROW' | 'COL', index: nu
 export function accuseCharacter(state: GameState, targetId: string): GameState {
   if (state.winner) return state;
 
-  const isAdjacent = areAdjacent(state.board, state.detectiveSecretId, targetId);
+  const isAdjacent = areAdjacent(
+    state.board,
+    state.detectiveSecretId,
+    targetId,
+  );
   const isSelf = targetId === state.detectiveSecretId;
   if (!isAdjacent && !isSelf) return state;
 
-  const targetChar = state.board.flat().find((c) => c.id === targetId);
-  const targetName = targetChar?.name ?? '';
+  let targetName = "";
+  let targetChar: Character | undefined;
+  state.board.forEach((r) =>
+    r.forEach((c) => {
+      if (c.id === targetId) {
+        targetName = c.name;
+        targetChar = c;
+      }
+    }),
+  );
+
+  if (targetChar?.hasBomb) {
+    const isDetKilled = targetId === state.detectiveSecretId;
+    const newBoard = state.board.map((row) =>
+      row.map((c) =>
+        c.id === targetId ? { ...c, isAlive: false, hasBomb: false } : c,
+      ),
+    );
+
+    return {
+      ...state,
+      board: newBoard,
+      currentTurn: "KILLER",
+      winner: isDetKilled ? "KILLER" : null,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `💥 ЛОВУШКА! При проверке сдетонировала скрытая бомба ОПГ! ${targetName} ликвидирован!${
+          isDetKilled ? " Командир Европола погиб при взрыве!" : ""
+        }`,
+      ],
+    };
+  }
 
   if (targetId === state.killerSecretId) {
     return {
       ...state,
-      winner: 'DETECTIVE',
+      winner: "DETECTIVE",
       blockedShift: null,
       log: [
         ...state.log,
@@ -549,13 +1053,13 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
   }
 
   const newBoard = state.board.map((row) =>
-    row.map((c) => (c.id === targetId ? { ...c, isExonerated: true } : c))
+    row.map((c) => (c.id === targetId ? { ...c, isExonerated: true } : c)),
   );
 
   return {
     ...state,
     board: newBoard,
-    currentTurn: 'KILLER',
+    currentTurn: "KILLER",
     blockedShift: null,
     log: [
       ...state.log,
@@ -567,7 +1071,7 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
 export function exonerateFromHand(state: GameState, id: string): GameState {
   if (!state.detectiveHand.includes(id)) return state;
 
-  let name = '';
+  let name = "";
   const newBoard = state.board.map((row) =>
     row.map((c) => {
       if (c.id === id) {
@@ -575,7 +1079,7 @@ export function exonerateFromHand(state: GameState, id: string): GameState {
         return { ...c, isExonerated: true };
       }
       return c;
-    })
+    }),
   );
 
   const nextHand = state.detectiveHand.filter((cardId) => cardId !== id);
@@ -587,14 +1091,20 @@ export function exonerateFromHand(state: GameState, id: string): GameState {
     board: newBoard,
     detectiveHand: nextHand,
     evidenceDeck: nextDeck,
-    currentTurn: 'KILLER',
+    currentTurn: "KILLER",
     blockedShift: null,
     log: [...state.log, `Из досье сыщика подтверждено алиби для: ${name}.`],
   };
 }
 
 export function disguiseKiller(state: GameState): GameState {
-  if (state.evidenceDeck.length === 0) return state;
+  if (
+    state.winner ||
+    state.mode === "MANIAC_VS_OPERATIVE" ||
+    state.evidenceDeck.length === 0
+  ) {
+    return state;
+  }
 
   const nextDeck = [...state.evidenceDeck];
   const newSecretId = nextDeck.shift()!;
@@ -604,15 +1114,17 @@ export function disguiseKiller(state: GameState): GameState {
     ...state,
     killerSecretId: newSecretId,
     evidenceDeck: nextDeck,
-    currentTurn: 'DETECTIVE',
+    currentTurn: "DETECTIVE",
     blockedShift: null,
-    log: [...state.log, 'Преступник сменил облик и ушел в тень.'],
+    log: [...state.log, "Преступник сменил облик и ушел в тень."],
   };
 }
 
 export function canCleanupBoard(board: Character[][] | Character[]): boolean {
   if (!board || board.length === 0) return false;
-  const flat = Array.isArray(board[0]) ? (board as Character[][]).flat() : (board as Character[]);
+  const flat = Array.isArray(board[0])
+    ? (board as Character[][]).flat()
+    : (board as Character[]);
 
   const firstDeadIdx = flat.findIndex((c) => !c.isAlive);
   if (firstDeadIdx === -1) return false;
@@ -633,25 +1145,1048 @@ export function cleanupDeadCharacters(state: GameState): GameState {
 
   const numRows = state.board.length;
   const numCols = state.board[0].length;
+  const flatBoard = state.board.flat();
+  const living = flatBoard.filter((c) => c.isAlive);
+  const dead = flatBoard.filter((c) => !c.isAlive);
 
-  const living = state.board.flat().filter((c) => c.isAlive);
-  const dead = state.board.flat().filter((c) => !c.isAlive);
-  const reordered = [...living, ...dead];
+  if (dead.length === 0) return state;
 
+  const nextDeck = [...state.evidenceDeck];
+  const newCharacters: Character[] = [];
+
+  // Добираем свежие карты из колоды улик на место устраненных
+  let drawnCount = 0;
+  while (drawnCount < dead.length && nextDeck.length > 0) {
+    const newId = nextDeck.shift()!;
+    const baseChar = CHARACTERS_DATA.find((c) => c.id === newId);
+
+    if (baseChar) {
+      newCharacters.push({
+        ...baseChar,
+        isAlive: true,
+        isExonerated: false,
+        isRobbed: false,
+        isShielded: false,
+        hasBomb: false,
+        isVault: false,
+        isVaultCracked: false,
+        isVaultLocked: false,
+      });
+    }
+    drawnCount++;
+  }
+
+  // Если карт в колоде не хватило, оставшиеся слоты добираем из остатка мертвых
+  const remainingDead = dead.slice(drawnCount);
+  const reordered = [...living, ...newCharacters, ...remainingDead];
+
+  // Восстанавливаем исходную геометрию сетки (5x5)
   const updatedBoard: Character[][] = [];
   for (let r = 0; r < numRows; r++) {
     updatedBoard.push(reordered.slice(r * numCols, r * numCols + numCols));
   }
 
-  const nextTurn = state.currentTurn === 'KILLER' ? 'DETECTIVE' : 'KILLER';
+  const nextTurn: Role =
+    state.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER";
 
   return {
     ...state,
     board: updatedBoard,
+    evidenceDeck: nextDeck,
     currentTurn: nextTurn,
     blockedShift: null,
-    log: [...state.log, 'Морг очищен: тела смещены в нижнюю часть квартала.'],
+    log: [
+      ...state.log,
+      `Обновление поля: убрано тел — ${dead.length}. Прибыло новых подозреваемых из резерва: ${drawnCount}.`,
+    ],
   };
+}
+
+export function captureSpy(state: GameState, targetId: string): GameState {
+  if (state.winner) return state;
+
+  const isAgent1 = state.currentTurn === "KILLER";
+  const mySecretId = isAgent1 ? state.killerSecretId : state.detectiveSecretId;
+  const enemySecretId = isAgent1
+    ? state.detectiveSecretId
+    : state.killerSecretId;
+
+  if (!areAdjacent(state.board, mySecretId, targetId)) return state;
+
+  // Успешный захват вражеского шпиона (победа активного игрока)
+  if (targetId === enemySecretId) {
+    const winner: Role = isAgent1 ? "KILLER" : "DETECTIVE";
+    return {
+      ...state,
+      winner,
+      blockedShift: null,
+      log: [
+        ...state.log,
+        `Вражеский резидент разоблачен на месте! Победа ${winner === "KILLER" ? "Востока" : "Запада"}!`,
+      ],
+    };
+  }
+
+  // Ошибочный захват (устранение невиновного)
+  const nextTrophiesKiller = isAgent1
+    ? (state.trophiesKiller ?? 0) + 1
+    : (state.trophiesKiller ?? 0);
+  const nextTrophiesDetective = !isAgent1
+    ? (state.trophiesDetective ?? 0) + 1
+    : (state.trophiesDetective ?? 0);
+
+  let winner: Role | null = null;
+
+  // ИНВЕРСИЯ ПОБЕДЫ: если игрок устранил 2 невиновных, он дисквалифицируется, побеждает оппонент
+  if (nextTrophiesKiller >= 2) winner = "DETECTIVE";
+  if (nextTrophiesDetective >= 2) winner = "KILLER";
+
+  const newBoard = state.board.map((row) =>
+    row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c)),
+  );
+
+  return {
+    ...state,
+    board: newBoard,
+    trophiesKiller: nextTrophiesKiller,
+    trophiesDetective: nextTrophiesDetective,
+    winner,
+    currentTurn: isAgent1 ? "DETECTIVE" : "KILLER",
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Захвачен невиновный гражданский. Получен штрафной трофей (+1).${
+        winner
+          ? " Устранено 2 невиновных — провал операции! Победа оппонента."
+          : ""
+      }`,
+    ],
+  };
+}
+
+export function interrogateNeighbor(
+  state: GameState,
+  targetId: string,
+): GameState {
+  const isAgent1 = state.currentTurn === "KILLER";
+  const mySecretId = isAgent1 ? state.killerSecretId : state.detectiveSecretId;
+  const enemySecretId = isAgent1
+    ? state.detectiveSecretId
+    : state.killerSecretId;
+
+  if (!areAdjacent(state.board, mySecretId, targetId)) return state;
+
+  const isNear = areAdjacent(state.board, targetId, enemySecretId);
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+
+  return {
+    ...state,
+    lastInterrogation: {
+      interrogator: isAgent1 ? "KILLER" : "DETECTIVE",
+      targetName: targetChar?.name ?? "Свидетель",
+      isNear,
+    },
+    currentTurn: isAgent1 ? "DETECTIVE" : "KILLER",
+    blockedShift: null,
+    log: [
+      ...state.log,
+      `Допрос свидетеля (${targetChar?.name}): ${isNear ? "«Да, подозрительный субъект рядом!»" : "«Никого рядом не видел»"}.`,
+    ],
+  };
+}
+</file>
+
+<file path="src/App.tsx">
+import { useState, useRef, useEffect, useMemo } from "react";
+import type { GameModeType, OpponentType, Role } from "./types/game";
+import { GameBoard } from "./components/GameBoard";
+import { DetectiveHand } from "./components/DetectiveHand";
+import { VictimList } from "./components/VictimList";
+import { RoleRevealModal } from "./components/RoleRevealModal";
+import { MainMenu } from "./components/MainMenu";
+import { GAME_MODES } from "./components/ModeSelectModal";
+import {
+  createInitialState,
+  setInspectorRole,
+  shiftBoard,
+  isOppositeShift,
+  killCharacter,
+  accuseCharacter,
+  exonerateFromHand,
+  disguiseKiller,
+  getAdjacentCharacters,
+  cleanupDeadCharacters,
+  canCleanupBoard,
+  captureSpy,
+  interrogateNeighbor,
+  robNeighbor,
+} from "./utils/gameLogic";
+import {
+  getKillerAIMove,
+  getDetectiveAIMove,
+  getSecretServiceAIMove,
+} from "./utils/aiLogic";
+import { sounds } from "./utils/audio";
+import { triggerHaptic } from "./utils/haptics";
+
+interface ActionItem {
+  id: string;
+  label: string;
+  onClick: () => void;
+  disabled: boolean;
+  className: string;
+}
+
+export default function App() {
+  const [activeMode, setActiveMode] = useState<GameModeType>("SKHVATKA");
+  const [isLobbyOpen, setIsLobbyOpen] = useState(true);
+  const [hasStartedEver, setHasStartedEver] = useState(false);
+
+  const [gameState, setGameState] = useState(() =>
+    createInitialState("SKHVATKA", "AI", "DETECTIVE"),
+  );
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const [isIntroPhase, setIsIntroPhase] = useState(false);
+  const [showKillerRole, setShowKillerRole] = useState(false);
+  const [showDetectiveRole, setShowDetectiveRole] = useState(false);
+
+  const [secondsElapsed, setSecondsElapsed] = useState(0);
+  const [isLogOpen, setIsLogOpen] = useState(false);
+  const [isAIThinking, setIsAIThinking] = useState(false);
+
+  const logContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+  }, [gameState.log, isLogOpen]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    const isGameRunning = hasStartedEver && !isIntroPhase && !gameState.winner;
+
+    if (isGameRunning) {
+      interval = setInterval(() => {
+        setSecondsElapsed((prev) => prev + 1);
+      }, 1000);
+    }
+
+    const canPeekKiller =
+      gameState.opponent === "AI"
+        ? gameState.playerRole === "KILLER"
+        : isKillerTurn;
+
+    const canPeekDetective =
+      gameState.opponent === "AI"
+        ? gameState.playerRole === "DETECTIVE"
+        : isDetectiveTurn;
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [hasStartedEver, isIntroPhase, gameState.winner]);
+
+  useEffect(() => {
+    if (gameState.winner) {
+      sounds.playExplosion();
+      triggerHaptic("success");
+    }
+  }, [gameState.winner]);
+
+  useEffect(() => {
+    if (
+      !hasStartedEver ||
+      isIntroPhase ||
+      gameState.winner ||
+      gameState.opponent !== "AI"
+    ) {
+      return;
+    }
+
+    const isAITurn = gameState.currentTurn !== gameState.playerRole;
+
+    if (isAITurn) {
+      setIsAIThinking(true);
+      const timer = setTimeout(() => {
+        setGameState((prev) => {
+          if (prev.winner) return prev;
+          if (prev.mode === "SECRET_SERVICE") {
+            return getSecretServiceAIMove(prev);
+          }
+          if (prev.currentTurn === "KILLER") {
+            return getKillerAIMove(prev);
+          }
+          return getDetectiveAIMove(prev);
+        });
+        setIsAIThinking(false);
+      }, 350);
+
+      const canPeekKiller =
+        gameState.opponent === "AI"
+          ? gameState.playerRole === "KILLER"
+          : isKillerTurn;
+
+      const canPeekDetective =
+        gameState.opponent === "AI"
+          ? gameState.playerRole === "DETECTIVE"
+          : isDetectiveTurn;
+
+      return () => clearTimeout(timer);
+    }
+  }, [
+    hasStartedEver,
+    isIntroPhase,
+    gameState.currentTurn,
+    gameState.winner,
+    gameState.opponent,
+    gameState.playerRole,
+  ]);
+
+  const formatTimer = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const allChars = gameState.board.flat();
+  const killerChar = allChars.find((c) => c.id === gameState.killerSecretId);
+  const detectiveChar = allChars.find(
+    (c) => c.id === gameState.detectiveSecretId,
+  );
+
+  const inspectorChoices = (gameState.inspectorChoices ?? [])
+    .map((id) => allChars.find((c) => c.id === id))
+    .filter(Boolean) as typeof allChars;
+
+  const isCleanupAvailable =
+    canCleanupBoard(gameState.board) && !gameState.winner;
+  const isFirstTurnKiller =
+    gameState.mode === "SKHVATKA" &&
+    gameState.killCount === 0 &&
+    gameState.currentTurn === "KILLER";
+
+  const killerAdjacentIds = getAdjacentCharacters(
+    gameState.board,
+    gameState.killerSecretId,
+  ).map((c) => c.id);
+  const detectiveAdjacentIds = getAdjacentCharacters(
+    gameState.board,
+    gameState.detectiveSecretId,
+  ).map((c) => c.id);
+
+  const currentModeTitle =
+    GAME_MODES.find((m) => m.id === activeMode)?.title ?? "Схватка";
+
+  const isKillerTurn = gameState.currentTurn === "KILLER";
+  const isDetectiveTurn = gameState.currentTurn === "DETECTIVE";
+
+  let role1Name = "БАНДИТ";
+  let role2Name = "ИНСПЕКТОР";
+  if (gameState.mode === "MANIAC_VS_OPERATIVE") {
+    role1Name = "МАНЬЯК";
+    role2Name = "ОПЕРАТИВНИК";
+  } else if (gameState.mode === "SECRET_SERVICE") {
+    role1Name = "АГЕНТ «ВОСТОК»";
+    role2Name = "АГЕНТ «ЗАПАД»";
+  } else if (gameState.mode === "THIEF_HUNT") {
+    role1Name = "ВОР";
+    role2Name = "СЫЩИК";
+  }
+
+  const currentRoleName = isKillerTurn ? role1Name : role2Name;
+  const isHumanTurn =
+    gameState.opponent === "PVP" ||
+    gameState.currentTurn === gameState.playerRole;
+
+  const handleSelectInspectorRole = (chosenId: string) => {
+    setGameState((prev) => setInspectorRole(prev, chosenId));
+  };
+
+  const handleStartNewGame = (
+    modeId: GameModeType,
+    opponent: OpponentType,
+    playerRole: Role,
+  ) => {
+    setActiveMode(modeId);
+    setGameState(createInitialState(modeId, opponent, playerRole));
+    setSelectedId(null);
+    setShowKillerRole(false);
+    setShowDetectiveRole(false);
+    setSecondsElapsed(0);
+    setIsLobbyOpen(false);
+    setHasStartedEver(true);
+    setIsIntroPhase(modeId !== "SECRET_SERVICE");
+  };
+
+  const handleResumeGame = () => {
+    setIsLobbyOpen(false);
+  };
+
+  const handleShift = (
+    type: "ROW" | "COL",
+    index: number,
+    direction: "FORWARD" | "BACKWARD",
+  ) => {
+    if (
+      gameState.winner ||
+      isFirstTurnKiller ||
+      !isHumanTurn ||
+      isOppositeShift(gameState.lastShift, type, index, direction)
+    ) {
+      return;
+    }
+
+    sounds.playShift();
+    triggerHaptic("light");
+
+    const newBoard = shiftBoard(gameState.board, type, index, direction);
+    const nextTurn =
+      gameState.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER";
+    const actionText = `${currentRoleName} сдвинул ${
+      type === "ROW" ? `ряд ${index + 1}` : `колонку ${index + 1}`
+    }.`;
+
+    setGameState((prev) => ({
+      ...prev,
+      board: newBoard,
+      currentTurn: nextTurn,
+      lastShift: { type, index, direction },
+      log: [...prev.log, actionText],
+    }));
+    setSelectedId(null);
+  };
+
+  const handleKill = () => {
+    if (!selectedId || gameState.currentTurn !== "KILLER" || !isHumanTurn)
+      return;
+    sounds.playKill();
+    triggerHaptic("heavy");
+    setGameState((prev) => killCharacter(prev, selectedId));
+    setSelectedId(null);
+  };
+
+  const handleRob = () => {
+    if (!selectedId || gameState.currentTurn !== "KILLER" || !isHumanTurn)
+      return;
+    sounds.playShift();
+    triggerHaptic("medium");
+    setGameState((prev) => robNeighbor(prev, selectedId));
+    setSelectedId(null);
+  };
+
+  const handleAccuse = () => {
+    if (!selectedId || gameState.currentTurn !== "DETECTIVE" || !isHumanTurn)
+      return;
+    const targetChar = gameState.board.flat().find((c) => c.id === selectedId);
+    if (!targetChar || targetChar.isDead) return;
+
+    sounds.playAccuse();
+    triggerHaptic("medium");
+    setGameState((prev) => accuseCharacter(prev, selectedId));
+    setSelectedId(null);
+  };
+
+  const handleDisguise = () => {
+    if (gameState.currentTurn !== "KILLER" || isFirstTurnKiller || !isHumanTurn)
+      return;
+    sounds.playShift();
+    triggerHaptic("medium");
+    setGameState((prev) => disguiseKiller(prev));
+    setSelectedId(null);
+  };
+
+  const handleExonerateFromHand = (id: string) => {
+    if (gameState.currentTurn !== "DETECTIVE" || !isHumanTurn) return;
+    sounds.playShift();
+    triggerHaptic("light");
+    setGameState((prev) => exonerateFromHand(prev, id));
+    setSelectedId(null);
+  };
+
+  const handleCleanup = () => {
+    if (!isCleanupAvailable || isFirstTurnKiller || !isHumanTurn) return;
+    sounds.playShift();
+    triggerHaptic("medium");
+    setGameState((prev) => cleanupDeadCharacters(prev));
+    setSelectedId(null);
+  };
+
+  const handleCaptureSpy = () => {
+    if (!selectedId || gameState.mode !== "SECRET_SERVICE" || !isHumanTurn)
+      return;
+    sounds.playAccuse();
+    triggerHaptic("medium");
+    setGameState((prev) => captureSpy(prev, selectedId));
+    setSelectedId(null);
+  };
+
+  const handleInterrogateSpy = () => {
+    if (!selectedId || gameState.mode !== "SECRET_SERVICE" || !isHumanTurn)
+      return;
+    sounds.playShift();
+    triggerHaptic("light");
+    setGameState((prev) => interrogateNeighbor(prev, selectedId));
+    setSelectedId(null);
+  };
+
+  const handleReset = () => {
+    handleStartNewGame(activeMode, gameState.opponent, gameState.playerRole);
+  };
+
+  const activeAgentAdjacentIds = isKillerTurn
+    ? killerAdjacentIds
+    : detectiveAdjacentIds;
+
+  const selectedCharacter = useMemo(() => {
+    if (!selectedId) return null;
+    return gameState.board.flat().find((c) => c.id === selectedId) ?? null;
+  }, [gameState.board, selectedId]);
+
+  const availableActions = useMemo<ActionItem[]>(() => {
+    const actions: ActionItem[] = [];
+    const isGameOver = gameState.winner !== null;
+
+    if (gameState.mode === "SECRET_SERVICE") {
+      actions.push({
+        id: "capture_spy",
+        label: "Захватить шпиона",
+        onClick: handleCaptureSpy,
+        disabled:
+          !isHumanTurn ||
+          !selectedId ||
+          !activeAgentAdjacentIds.includes(selectedId) ||
+          isGameOver,
+        className:
+          "py-2.5 bg-red-900/70 active:bg-red-800 disabled:opacity-30 text-red-100 text-[11px] font-black rounded-lg border border-red-700 transition disabled:cursor-not-allowed",
+      });
+      actions.push({
+        id: "interrogate_spy",
+        label: "Допросить свидетеля",
+        onClick: handleInterrogateSpy,
+        disabled:
+          !isHumanTurn ||
+          !selectedId ||
+          !activeAgentAdjacentIds.includes(selectedId) ||
+          isGameOver,
+        className:
+          "py-2.5 bg-blue-900/70 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed",
+      });
+      actions.push({
+        id: "cleanup_ss",
+        label: "Обновить поле",
+        onClick: handleCleanup,
+        disabled: !isHumanTurn || !isCleanupAvailable,
+        className:
+          "py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed",
+      });
+    } else {
+      if (isKillerTurn) {
+        if (gameState.mode === "THIEF_HUNT") {
+          actions.push({
+            id: "rob_basic",
+            label: "Ограбить соседа",
+            onClick: handleRob,
+            disabled:
+              !isHumanTurn ||
+              !selectedId ||
+              !killerAdjacentIds.includes(selectedId) ||
+              isGameOver ||
+              Boolean(selectedCharacter?.isRobbed),
+            className:
+              "py-2 bg-amber-900/60 active:bg-amber-800 disabled:opacity-30 text-amber-200 text-[11px] font-bold rounded-lg border border-amber-800 transition disabled:cursor-not-allowed",
+          });
+        } else {
+          actions.push({
+            id: "kill_basic",
+            label:
+              gameState.mode === "MANIAC_VS_OPERATIVE"
+                ? "Убить цель"
+                : "Убить соседа",
+            onClick: handleKill,
+            disabled:
+              !isHumanTurn ||
+              !selectedId ||
+              !killerAdjacentIds.includes(selectedId) ||
+              isGameOver,
+            className:
+              "py-2 bg-red-900/60 active:bg-red-800 disabled:opacity-30 text-red-200 text-[11px] font-bold rounded-lg border border-red-800 transition disabled:cursor-not-allowed",
+          });
+        }
+
+        if (gameState.mode === "SKHVATKA") {
+          actions.push({
+            id: "disguise_skhvatka",
+            label: "Замаскироваться",
+            onClick: handleDisguise,
+            disabled:
+              !isHumanTurn ||
+              isFirstTurnKiller ||
+              gameState.evidenceDeck.length === 0 ||
+              isGameOver,
+            className:
+              "py-2 bg-amber-950/70 active:bg-amber-900 disabled:opacity-30 text-amber-200 text-[11px] font-bold rounded-lg border border-amber-800 transition disabled:cursor-not-allowed",
+          });
+        }
+      } else {
+        actions.push({
+          id: "accuse_basic",
+          label:
+            gameState.mode === "MANIAC_VS_OPERATIVE"
+              ? "Арестовать"
+              : "Обвинить",
+          onClick: handleAccuse,
+          disabled:
+            !isHumanTurn ||
+            !selectedId ||
+            Boolean(selectedCharacter?.isDead) ||
+            isGameOver,
+          className:
+            "py-2.5 bg-blue-900/70 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed",
+        });
+      }
+
+      actions.push({
+        id: "cleanup_basic",
+        label: "Обновить поле",
+        onClick: handleCleanup,
+        disabled: !isHumanTurn || !isCleanupAvailable || isFirstTurnKiller,
+        className:
+          "py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-30 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed",
+      });
+    }
+
+    return actions;
+  }, [
+    gameState.mode,
+    gameState.winner,
+    gameState.evidenceDeck.length,
+    gameState.detectiveSecretId,
+    isKillerTurn,
+    isHumanTurn,
+    selectedId,
+    killerAdjacentIds,
+    detectiveAdjacentIds,
+    activeAgentAdjacentIds,
+    isCleanupAvailable,
+    isFirstTurnKiller,
+    selectedCharacter,
+  ]);
+
+  const canPeekKiller =
+    gameState.opponent === "AI"
+      ? gameState.playerRole === "KILLER"
+      : isKillerTurn;
+
+  const canPeekDetective =
+    gameState.opponent === "AI"
+      ? gameState.playerRole === "DETECTIVE"
+      : isDetectiveTurn;
+
+  return (
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center select-none font-sans pb-4 lg:pb-2">
+      {isLobbyOpen && (
+        <MainMenu
+          onStartGame={handleStartNewGame}
+          hasActiveGame={hasStartedEver}
+          onResumeGame={handleResumeGame}
+        />
+      )}
+
+      {isIntroPhase && !isLobbyOpen && activeMode !== "SECRET_SERVICE" && (
+        <RoleRevealModal
+          mode={gameState.mode}
+          opponent={gameState.opponent}
+          playerRole={gameState.playerRole}
+          killer={
+            gameState.opponent === "AI" && gameState.playerRole === "DETECTIVE"
+              ? undefined
+              : killerChar
+          }
+          detective={
+            gameState.opponent === "AI" && gameState.playerRole === "KILLER"
+              ? undefined
+              : detectiveChar
+          }
+          inspectorChoices={inspectorChoices}
+          onSelectDetectiveRole={handleSelectInspectorRole}
+          onComplete={() => setIsIntroPhase(false)}
+        />
+      )}
+
+      <div className="sticky top-0 z-40 w-full bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800 px-2 sm:px-4 pt-[max(0.5rem,env(safe-area-inset-top))] pb-1.5 sm:py-2 flex items-center justify-between shadow-xl">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <button
+            onClick={() => setIsLobbyOpen(true)}
+            className="text-[11px] sm:text-xs bg-zinc-900 active:bg-zinc-800 text-zinc-300 px-2 py-1 sm:py-1.5 rounded-lg border border-zinc-700 transition cursor-pointer flex items-center gap-1"
+          >
+            <span>☰</span>
+            <span className="hidden md:inline">Операции</span>
+          </button>
+
+          <span className="text-[10px] xs:text-xs sm:text-sm font-black tracking-wider text-zinc-200 uppercase">
+            {currentModeTitle}
+          </span>
+        </div>
+
+        <div
+          className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] sm:text-xs font-black tracking-widest uppercase transition-all shadow-lg ${
+            isAIThinking
+              ? "bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse"
+              : isKillerTurn
+                ? "bg-red-950/80 border-red-600 text-red-100"
+                : "bg-blue-950/80 border-blue-600 text-blue-100"
+          }`}
+        >
+          {/* Радарная метка: статичная точка + расходящаяся импульсная волна */}
+          <span className="relative flex h-2.5 w-2.5 items-center justify-center">
+            <span
+              className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping [animation-duration:2s] ${
+                isKillerTurn ? "bg-red-500" : "bg-blue-500"
+              }`}
+            />
+            <span
+              className={`relative inline-flex rounded-full h-2 w-2 shadow-md ${
+                isKillerTurn
+                  ? "bg-red-500 shadow-red-500/80"
+                  : "bg-blue-500 shadow-blue-500/80"
+              }`}
+            />
+          </span>
+          <span>{currentRoleName}</span>
+        </div>
+
+        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-zinc-900 border border-zinc-800 font-mono text-[10px] sm:text-xs text-zinc-400 font-bold">
+          <span>{formatTimer(secondsElapsed)}</span>
+        </div>
+
+        <button
+          onClick={handleReset}
+          className="text-[11px] sm:text-xs bg-zinc-900 active:bg-zinc-800 text-zinc-300 px-2 py-1 sm:py-1.5 rounded-lg border border-zinc-700 transition cursor-pointer shrink-0 ml-1"
+        >
+          Заново
+        </button>
+      </div>
+
+      <div className="w-full max-w-5xl p-2 sm:p-4 lg:p-6 flex flex-col items-center flex-1">
+        <div className="w-full flex items-center justify-between text-[11px] text-zinc-400 mb-2 px-1">
+          {gameState.mode === "SECRET_SERVICE" ? (
+            <div className="flex items-center gap-3">
+              <span>
+                Трофеи «Восток»:{" "}
+                <b className="text-red-400">
+                  {gameState.trophiesKiller ?? 0}/2
+                </b>
+              </span>
+              <span>
+                Трофеи «Запад»:{" "}
+                <b className="text-blue-400">
+                  {gameState.trophiesDetective ?? 0}/2
+                </b>
+              </span>
+              <span>Колода: {gameState.evidenceDeck.length}</span>
+            </div>
+          ) : gameState.mode === "THIEF_HUNT" ? (
+            <div>
+              Добыча:{" "}
+              <span className="text-amber-400 font-bold">
+                {gameState.trophiesKiller ?? 0}/5
+              </span>{" "}
+              | Улики: {gameState.evidenceDeck.length}
+            </div>
+          ) : (
+            <div>
+              Жертвы:{" "}
+              <span className="text-red-400 font-bold">
+                {gameState.killCount}/
+                {gameState.mode === "MANIAC_VS_OPERATIVE" ? 4 : 14}
+              </span>{" "}
+              | Улики: {gameState.evidenceDeck.length}
+            </div>
+          )}
+
+          <div className="text-[10px] font-mono text-zinc-500">
+            {gameState.opponent === "AI"
+              ? "⚔️ Режим: против бота"
+              : "👥 Режим: вдвоем"}
+          </div>
+        </div>
+
+        {gameState.winner && (
+          <div className="w-full mb-3 p-3 rounded-xl text-center font-bold text-sm sm:text-lg border bg-zinc-900 shadow-xl border-amber-500 text-amber-300">
+            Игра окончена! Победил{" "}
+            {gameState.winner === "KILLER" ? role1Name : role2Name}!
+            <div className="text-xs text-zinc-400 font-normal font-mono mt-1">
+              Время операции: {formatTimer(secondsElapsed)}
+            </div>
+          </div>
+        )}
+
+        {gameState.mode === "MANIAC_VS_OPERATIVE" && (
+          <VictimList
+            victimIds={gameState.victimList}
+            allCharacters={allChars}
+          />
+        )}
+
+        {gameState.lastInterrogation && !gameState.winner && (
+          <div
+            className={`w-full mb-2 p-3 rounded-xl border flex items-center justify-between shadow transition-all ${
+              gameState.lastInterrogation.isNear
+                ? "bg-red-950/40 border-red-800/80 text-red-200"
+                : "bg-zinc-900 border-zinc-700 text-zinc-300"
+            }`}
+          >
+            <div className="text-xs">
+              <span className="font-bold text-zinc-400 block text-[10px] uppercase mb-0.5">
+                Свидетельские показания (
+                {gameState.lastInterrogation.targetName})
+              </span>
+              <span className="font-semibold text-zinc-200">
+                {gameState.mode === "SECRET_SERVICE"
+                  ? "Вражеский шпион находится рядом со свидетелем?"
+                  : gameState.lastInterrogation.interrogator === "DETECTIVE"
+                    ? "Преступник рядом с алиби?"
+                    : "Законник рядом с жертвой?"}
+              </span>
+            </div>
+
+            <div
+              className={`px-3 py-1.5 rounded-lg text-xs font-black tracking-wider uppercase border select-none ${
+                gameState.lastInterrogation.isNear
+                  ? "bg-red-950 text-red-300 border-red-700"
+                  : "bg-zinc-950 text-zinc-300 border-zinc-800"
+              }`}
+            >
+              {gameState.lastInterrogation.isNear ? "● ДА, РЯДОМ" : "○ НЕТ"}
+            </div>
+          </div>
+        )}
+
+        <div className="w-full flex flex-col lg:flex-row gap-3 sm:gap-6 items-start justify-center">
+          {/* Левая колонка: Игровое поле и мобильный блок ролей */}
+          <div className="w-full lg:w-auto flex-1 flex flex-col items-center">
+            <div className="w-full flex justify-center">
+              <GameBoard
+                board={gameState.board}
+                selectedCharacterId={selectedId}
+                killerAdjacentIds={killerAdjacentIds}
+                detectiveAdjacentIds={detectiveAdjacentIds}
+                showKillerHints={showKillerRole}
+                showDetectiveHints={showDetectiveRole}
+                lastShift={gameState.lastShift}
+                onShift={handleShift}
+                onSelectCharacter={(id) =>
+                  isHumanTurn &&
+                  setSelectedId((prev) => (prev === id ? null : id))
+                }
+              />
+            </div>
+
+            {/* Карточки ролей: видны только на мобилках под полем */}
+            <div className="w-full max-w-[540px] flex lg:hidden gap-2 mt-2">
+              <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-red-950/60 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] font-bold text-red-400">
+                    {role1Name}
+                  </div>
+                  <div className="text-[11px] font-mono font-bold text-zinc-300">
+                    {showKillerRole ||
+                    (gameState.opponent === "AI" &&
+                      gameState.playerRole === "KILLER")
+                      ? killerChar?.name
+                      : "••••••••"}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onMouseDown={() => canPeekKiller && setShowKillerRole(true)}
+                  onMouseUp={() => setShowKillerRole(false)}
+                  onTouchStart={() => canPeekKiller && setShowKillerRole(true)}
+                  onTouchEnd={() => setShowKillerRole(false)}
+                  disabled={!canPeekKiller}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                    !canPeekKiller
+                      ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
+                      : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-300 border-red-700 cursor-pointer"
+                  }`}
+                >
+                  Зажать
+                </button>
+              </div>
+
+              <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-blue-950/60 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] font-bold text-blue-400">
+                    {role2Name}
+                  </div>
+                  <div className="text-[11px] font-mono font-bold text-zinc-300">
+                    {showDetectiveRole ||
+                    (gameState.opponent === "AI" &&
+                      gameState.playerRole === "DETECTIVE")
+                      ? detectiveChar?.name
+                      : "••••••••"}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onMouseDown={() =>
+                    canPeekDetective && setShowDetectiveRole(true)
+                  }
+                  onMouseUp={() => setShowDetectiveRole(false)}
+                  onTouchStart={() =>
+                    canPeekDetective && setShowDetectiveRole(true)
+                  }
+                  onTouchEnd={() => setShowDetectiveRole(false)}
+                  disabled={!canPeekDetective}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                    !canPeekDetective
+                      ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
+                      : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-300 border-blue-700 cursor-pointer"
+                  }`}
+                >
+                  Зажать
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Правая колонка: Сайдбар (Десктопные роли, Действия, Карты, Протокол) */}
+          <div className="w-full lg:w-72 flex flex-col gap-3 shrink-0">
+            {/* Карточки ролей: видны только на десктопе в сайдбаре */}
+            <div className="w-full hidden lg:flex flex-col gap-2">
+              <div className="p-2 bg-zinc-950 rounded-lg border border-red-950/60 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] font-bold text-red-400">
+                    {role1Name}
+                  </div>
+                  <div className="text-[11px] font-mono font-bold text-zinc-300">
+                    {showKillerRole ||
+                    (gameState.opponent === "AI" &&
+                      gameState.playerRole === "KILLER")
+                      ? killerChar?.name
+                      : "••••••••"}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onMouseDown={() => canPeekKiller && setShowKillerRole(true)}
+                  onMouseUp={() => setShowKillerRole(false)}
+                  onTouchStart={() => canPeekKiller && setShowKillerRole(true)}
+                  onTouchEnd={() => setShowKillerRole(false)}
+                  disabled={!canPeekKiller}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                    !canPeekKiller
+                      ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
+                      : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-300 border-red-700 cursor-pointer"
+                  }`}
+                >
+                  Зажать
+                </button>
+              </div>
+
+              <div className="p-2 bg-zinc-950 rounded-lg border border-blue-950/60 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] font-bold text-blue-400">
+                    {role2Name}
+                  </div>
+                  <div className="text-[11px] font-mono font-bold text-zinc-300">
+                    {showDetectiveRole ||
+                    (gameState.opponent === "AI" &&
+                      gameState.playerRole === "DETECTIVE")
+                      ? detectiveChar?.name
+                      : "••••••••"}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onMouseDown={() =>
+                    canPeekDetective && setShowDetectiveRole(true)
+                  }
+                  onMouseUp={() => setShowDetectiveRole(false)}
+                  onTouchStart={() =>
+                    canPeekDetective && setShowDetectiveRole(true)
+                  }
+                  onTouchEnd={() => setShowDetectiveRole(false)}
+                  disabled={!canPeekDetective}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                    !canPeekDetective
+                      ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
+                      : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-300 border-blue-700 cursor-pointer"
+                  }`}
+                >
+                  Зажать
+                </button>
+              </div>
+            </div>
+
+            {/* Блок действий */}
+            <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-xl">
+              <div className="text-zinc-400 font-semibold uppercase tracking-wider text-[10px] mb-1.5 flex items-center justify-between">
+                <span>Действия ({currentRoleName})</span>
+                {isAIThinking && (
+                  <span className="text-amber-400 text-[9px] animate-pulse">
+                    Бот думает...
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
+                {availableActions.map((action) => (
+                  <button
+                    key={action.id}
+                    onClick={action.onClick}
+                    disabled={action.disabled}
+                    className={`${action.className} col-span-1 last:odd:col-span-2 lg:col-span-1 lg:last:odd:col-span-1`}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Рука следователя */}
+            {gameState.mode === "SKHVATKA" && (
+              <DetectiveHand
+                handIds={gameState.detectiveHand}
+                allCharacters={allChars}
+                isDetectiveTurn={
+                  isHumanTurn && isDetectiveTurn && !gameState.winner
+                }
+                onExonerateFromHand={handleExonerateFromHand}
+              />
+            )}
+
+            {/* Протокол событий */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex-1 flex flex-col">
+              <button
+                type="button"
+                onClick={() => setIsLogOpen(!isLogOpen)}
+                className="w-full p-2.5 flex items-center justify-between text-[11px] font-semibold text-zinc-400 bg-zinc-900 hover:bg-zinc-800/80 transition cursor-pointer shrink-0"
+              >
+                <span>Протокол событий ({gameState.log.length})</span>
+                <span className="text-xs">{isLogOpen ? "▲" : "▼"}</span>
+              </button>
+
+              <div
+                ref={logContainerRef}
+                className={`overflow-y-auto space-y-1 text-[10px] text-zinc-300 font-mono px-2.5 pb-2 transition-all ${
+                  isLogOpen ? "max-h-48" : "max-h-16 lg:max-h-48"
+                }`}
+              >
+                {gameState.log.map((entry, idx) => (
+                  <div key={idx} className="border-b border-zinc-800/60 pb-0.5">
+                    • {entry}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 </file>
 

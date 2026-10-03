@@ -163,7 +163,7 @@ export default function App() {
   const isKillerTurn = gameState.currentTurn === "KILLER";
   const isDetectiveTurn = gameState.currentTurn === "DETECTIVE";
 
-let role1Name = "БАНДИТ";
+  let role1Name = "БАНДИТ";
   let role2Name = "ИНСПЕКТОР";
   if (gameState.mode === "MANIAC_VS_OPERATIVE") {
     role1Name = "МАНЬЯК";
@@ -171,11 +171,10 @@ let role1Name = "БАНДИТ";
   } else if (gameState.mode === "SECRET_SERVICE") {
     role1Name = "АГЕНТ «ВОСТОК»";
     role2Name = "АГЕНТ «ЗАПАД»";
-  } else if (gameState.mode === "THIEF_HUNT") { // <-- ДОБАВЛЕНО
+  } else if (gameState.mode === "THIEF_HUNT") {
     role1Name = "ВОР";
     role2Name = "СЫЩИК";
   }
-  
 
   const currentRoleName = isKillerTurn ? role1Name : role2Name;
   const isHumanTurn =
@@ -240,7 +239,7 @@ let role1Name = "БАНДИТ";
     setSelectedId(null);
   };
 
-const handleKill = () => {
+  const handleKill = () => {
     if (!selectedId || gameState.currentTurn !== "KILLER" || !isHumanTurn)
       return;
     sounds.playKill();
@@ -325,8 +324,7 @@ const handleKill = () => {
     if (!selectedId) return null;
     return gameState.board.flat().find((c) => c.id === selectedId) ?? null;
   }, [gameState.board, selectedId]);
-  // Динамическая фильтрация доступных действий
-  // Динамическая фильтрация доступных действий
+
   const availableActions = useMemo<ActionItem[]>(() => {
     const actions: ActionItem[] = [];
     const isGameOver = gameState.winner !== null;
@@ -534,6 +532,7 @@ const handleKill = () => {
         </button>
       </div>
 
+      <div className="w-full max-w-5xl p-2 sm:p-4 lg:p-6 flex flex-col items-center flex-1">
         <div className="w-full flex items-center justify-between text-[11px] text-zinc-400 mb-2 px-1">
           {gameState.mode === "SECRET_SERVICE" ? (
             <div className="flex items-center gap-3">
@@ -669,9 +668,9 @@ const handleKill = () => {
                   onMouseUp={() => setShowKillerRole(false)}
                   onTouchStart={() => setShowKillerRole(true)}
                   onTouchEnd={() => setShowKillerRole(false)}
-                  disabled={gameState.opponent === "HOTSEAT" && !isKillerTurn}
+                  disabled={gameState.opponent === "PVP" && !isKillerTurn}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                    gameState.opponent === "HOTSEAT" && !isKillerTurn
+                    gameState.opponent === "PVP" && !isKillerTurn
                       ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
                       : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-300 border-red-700 cursor-pointer"
                   }`}
@@ -700,10 +699,10 @@ const handleKill = () => {
                   onTouchStart={() => setShowDetectiveRole(true)}
                   onTouchEnd={() => setShowDetectiveRole(false)}
                   disabled={
-                    gameState.opponent === "HOTSEAT" && !isDetectiveTurn
+                    gameState.opponent === "PVP" && !isDetectiveTurn
                   }
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                    gameState.opponent === "HOTSEAT" && !isDetectiveTurn
+                    gameState.opponent === "PVP" && !isDetectiveTurn
                       ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
                       : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-300 border-blue-700 cursor-pointer"
                   }`}
@@ -737,9 +736,9 @@ const handleKill = () => {
                   onMouseUp={() => setShowKillerRole(false)}
                   onTouchStart={() => setShowKillerRole(true)}
                   onTouchEnd={() => setShowKillerRole(false)}
-                  disabled={gameState.opponent === "HOTSEAT" && !isKillerTurn}
+                  disabled={gameState.opponent === "PVP" && !isKillerTurn}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                    gameState.opponent === "HOTSEAT" && !isKillerTurn
+                    gameState.opponent === "PVP" && !isKillerTurn
                       ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
                       : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-300 border-red-700 cursor-pointer"
                   }`}
@@ -768,10 +767,10 @@ const handleKill = () => {
                   onTouchStart={() => setShowDetectiveRole(true)}
                   onTouchEnd={() => setShowDetectiveRole(false)}
                   disabled={
-                    gameState.opponent === "HOTSEAT" && !isDetectiveTurn
+                    gameState.opponent === "PVP" && !isDetectiveTurn
                   }
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                    gameState.opponent === "HOTSEAT" && !isDetectiveTurn
+                    gameState.opponent === "PVP" && !isDetectiveTurn
                       ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
                       : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-300 border-blue-700 cursor-pointer"
                   }`}
@@ -848,4 +847,3 @@ const handleKill = () => {
     </div>
   );
 }
-

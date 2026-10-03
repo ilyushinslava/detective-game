@@ -329,6 +329,17 @@ export default function App() {
     const actions: ActionItem[] = [];
     const isGameOver = gameState.winner !== null;
 
+    // Блокировка просмотра чужой роли
+    const canPeekKiller =
+      gameState.opponent === "AI"
+        ? gameState.playerRole === "KILLER"
+        : isKillerTurn;
+
+    const canPeekDetective =
+      gameState.opponent === "AI"
+        ? gameState.playerRole === "DETECTIVE"
+        : isDetectiveTurn;
+
     if (gameState.mode === "SECRET_SERVICE") {
       actions.push({
         id: "capture_spy",
@@ -504,14 +515,14 @@ export default function App() {
         <div
           className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] sm:text-xs font-black tracking-widest uppercase transition-all shadow-lg ${
             isAIThinking
-              ? "bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse"
+              ? "bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse [animation-duration:800ms]"
               : isKillerTurn
                 ? "bg-red-950/80 border-red-600 text-red-100"
                 : "bg-blue-950/80 border-blue-600 text-blue-100"
           }`}
         >
           <span
-            className={`w-2.5 h-2.5 rounded-full animate-pulse shadow-md ${
+            className={`w-2.5 h-2.5 rounded-full animate-pulse [animation-duration:800ms] shadow-md ${
               isKillerTurn
                 ? "bg-red-500 shadow-red-500/50"
                 : "bg-blue-500 shadow-blue-500/50"
@@ -664,13 +675,13 @@ export default function App() {
                 </div>
                 <button
                   type="button"
-                  onMouseDown={() => setShowKillerRole(true)}
+                  onMouseDown={() => canPeekKiller && setShowKillerRole(true)}
                   onMouseUp={() => setShowKillerRole(false)}
-                  onTouchStart={() => setShowKillerRole(true)}
+                  onTouchStart={() => canPeekKiller && setShowKillerRole(true)}
                   onTouchEnd={() => setShowKillerRole(false)}
-                  disabled={gameState.opponent === "PVP" && !isKillerTurn}
+                  disabled={!canPeekKiller}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                    gameState.opponent === "PVP" && !isKillerTurn
+                    !canPeekKiller
                       ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
                       : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-300 border-red-700 cursor-pointer"
                   }`}
@@ -694,15 +705,17 @@ export default function App() {
                 </div>
                 <button
                   type="button"
-                  onMouseDown={() => setShowDetectiveRole(true)}
-                  onMouseUp={() => setShowDetectiveRole(false)}
-                  onTouchStart={() => setShowDetectiveRole(true)}
-                  onTouchEnd={() => setShowDetectiveRole(false)}
-                  disabled={
-                    gameState.opponent === "PVP" && !isDetectiveTurn
+                  onMouseDown={() =>
+                    canPeekDetective && setShowDetectiveRole(true)
                   }
+                  onMouseUp={() => setShowDetectiveRole(false)}
+                  onTouchStart={() =>
+                    canPeekDetective && setShowDetectiveRole(true)
+                  }
+                  onTouchEnd={() => setShowDetectiveRole(false)}
+                  disabled={!canPeekDetective}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                    gameState.opponent === "PVP" && !isDetectiveTurn
+                    !canPeekDetective
                       ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
                       : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-300 border-blue-700 cursor-pointer"
                   }`}
@@ -732,13 +745,13 @@ export default function App() {
                 </div>
                 <button
                   type="button"
-                  onMouseDown={() => setShowKillerRole(true)}
+                  onMouseDown={() => canPeekKiller && setShowKillerRole(true)}
                   onMouseUp={() => setShowKillerRole(false)}
-                  onTouchStart={() => setShowKillerRole(true)}
+                  onTouchStart={() => canPeekKiller && setShowKillerRole(true)}
                   onTouchEnd={() => setShowKillerRole(false)}
-                  disabled={gameState.opponent === "PVP" && !isKillerTurn}
+                  disabled={!canPeekKiller}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                    gameState.opponent === "PVP" && !isKillerTurn
+                    !canPeekKiller
                       ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
                       : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-300 border-red-700 cursor-pointer"
                   }`}
@@ -762,15 +775,17 @@ export default function App() {
                 </div>
                 <button
                   type="button"
-                  onMouseDown={() => setShowDetectiveRole(true)}
-                  onMouseUp={() => setShowDetectiveRole(false)}
-                  onTouchStart={() => setShowDetectiveRole(true)}
-                  onTouchEnd={() => setShowDetectiveRole(false)}
-                  disabled={
-                    gameState.opponent === "PVP" && !isDetectiveTurn
+                  onMouseDown={() =>
+                    canPeekDetective && setShowDetectiveRole(true)
                   }
+                  onMouseUp={() => setShowDetectiveRole(false)}
+                  onTouchStart={() =>
+                    canPeekDetective && setShowDetectiveRole(true)
+                  }
+                  onTouchEnd={() => setShowDetectiveRole(false)}
+                  disabled={!canPeekDetective}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                    gameState.opponent === "PVP" && !isDetectiveTurn
+                    !canPeekDetective
                       ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
                       : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-300 border-blue-700 cursor-pointer"
                   }`}

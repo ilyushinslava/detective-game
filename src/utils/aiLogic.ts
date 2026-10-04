@@ -51,7 +51,7 @@ export function getKillerAIMove(state: GameState): GameState {
     const validTargets = killerNeighbors.filter(
       (c) =>
         c.isAlive &&
-        (state.victimList.includes(c.id) || c.id === state.detectiveSecretId),
+        (c.id === state.victimList[0] || c.id === state.detectiveSecretId),
     );
     if (validTargets.length > 0) {
       const detTarget = validTargets.find(
@@ -110,7 +110,15 @@ export function getKillerAIMove(state: GameState): GameState {
     };
   }
 
-  return state;
+  // ФОЛБЭК: Если нет доступных ходов, бот обязан передать ход, чтобы игра не зависла
+  return {
+    ...state,
+    currentTurn: "DETECTIVE",
+    log: [
+      ...state.log,
+      "🤖 Бот-преступник пропустил ход (нет доступных действий).",
+    ],
+  };
 }
 
 export function getDetectiveAIMove(state: GameState): GameState {
@@ -164,7 +172,15 @@ export function getDetectiveAIMove(state: GameState): GameState {
     };
   }
 
-  return state;
+  // ФОЛБЭК: Защита от зависания
+  return {
+    ...state,
+    currentTurn: "KILLER",
+    log: [
+      ...state.log,
+      "🤖 Бот-инспектор пропустил ход (нет доступных действий).",
+    ],
+  };
 }
 
 export function getSecretServiceAIMove(state: GameState): GameState {
@@ -207,8 +223,15 @@ export function getSecretServiceAIMove(state: GameState): GameState {
     };
   }
 
-  return state;
+  // ФОЛБЭК: Защита от зависания
+  const nextTurn = isAgent1 ? "DETECTIVE" : "KILLER";
+  return {
+    ...state,
+    currentTurn: nextTurn,
+    log: [...state.log, "🤖 Бот-агент пропустил ход (нет доступных действий)."],
+  };
 }
+
 export function getThiefAIMove(state: GameState): GameState {
   if (state.winner) return state;
 
@@ -221,30 +244,15 @@ export function getThiefAIMove(state: GameState): GameState {
     return robNeighbor(state, target.id);
   }
 
-  const possibleShifts: {
-    type: "ROW" | "COL";
-    index: number;
-    direction: "FORWARD" | "BACKWARD";
-  }[] = [];
-  const types: ("ROW" | "COL")[] = ["ROW", "COL"];
-  const directions: ("FORWARD" | "BACKWARD")[] = ["FORWARD", "BACKWARD"];
-
-  for (const type of types) {
-    for (let index = 0; index < 5; index++) {
-      if (
-        state.blockedShift &&
-        state.blockedShift.type === type &&
-        state.blockedShift.index === index
-      ) {
-        continue;
-      }
-
-      for (const direction of directions) {
-        if (!isOppositeShift(state.lastShift, type, index, direction)) {
-          possibleShifts.push({ type, index, direction });
-        }
-      }
-    }
+  let possibleShifts = getAllValidShifts(state.board, state.lastShift);
+  if (state.blockedShift) {
+    possibleShifts = possibleShifts.filter(
+      (shift) =>
+        !(
+          shift.type === state.blockedShift!.type &&
+          shift.index === state.blockedShift!.index
+        ),
+    );
   }
 
   if (possibleShifts.length > 0) {
@@ -275,6 +283,7 @@ export function getThiefAIMove(state: GameState): GameState {
     log: [...state.log, "Вор затаился и пропустил ход."],
   };
 }
+
 export function getPoliceAIMove(state: GameState): GameState {
   if (state.winner) return state;
 
@@ -288,30 +297,15 @@ export function getPoliceAIMove(state: GameState): GameState {
   }
 
   // 2. Иначе делаем валидный сдвиг поля
-  const possibleShifts: {
-    type: "ROW" | "COL";
-    index: number;
-    direction: "FORWARD" | "BACKWARD";
-  }[] = [];
-  const types: ("ROW" | "COL")[] = ["ROW", "COL"];
-  const directions: ("FORWARD" | "BACKWARD")[] = ["FORWARD", "BACKWARD"];
-
-  for (const type of types) {
-    for (let index = 0; index < 5; index++) {
-      if (
-        state.blockedShift &&
-        state.blockedShift.type === type &&
-        state.blockedShift.index === index
-      ) {
-        continue;
-      }
-
-      for (const direction of directions) {
-        if (!isOppositeShift(state.lastShift, type, index, direction)) {
-          possibleShifts.push({ type, index, direction });
-        }
-      }
-    }
+  let possibleShifts = getAllValidShifts(state.board, state.lastShift);
+  if (state.blockedShift) {
+    possibleShifts = possibleShifts.filter(
+      (shift) =>
+        !(
+          shift.type === state.blockedShift!.type &&
+          shift.index === state.blockedShift!.index
+        ),
+    );
   }
 
   if (possibleShifts.length > 0) {

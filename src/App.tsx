@@ -21,6 +21,7 @@ import {
   captureSpy,
   interrogateNeighbor,
   robNeighbor,
+  escapeManiac,
 } from "./utils/gameLogic";
 import {
   getKillerAIMove,
@@ -29,14 +30,9 @@ import {
 } from "./utils/aiLogic";
 import { sounds } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
-
-interface ActionItem {
-  id: string;
-  label: string;
-  onClick: () => void;
-  disabled: boolean;
-  className: string;
-}
+import { MainMenu } from "./components/MainMenu";
+import { GAME_MODES } from "./components/ModeSelectModal";
+import { ActionPanel } from "./components/ActionPanel";
 
 export default function App() {
   const [activeMode, setActiveMode] = useState<GameModeType>("SKHVATKA");
@@ -74,16 +70,6 @@ export default function App() {
       }, 1000);
     }
 
-    const canPeekKiller =
-      gameState.opponent === "AI"
-        ? gameState.playerRole === "KILLER"
-        : isKillerTurn;
-
-    const canPeekDetective =
-      gameState.opponent === "AI"
-        ? gameState.playerRole === "DETECTIVE"
-        : isDetectiveTurn;
-
     return () => {
       if (interval) clearInterval(interval);
     };
@@ -95,6 +81,8 @@ export default function App() {
       triggerHaptic("success");
     }
   }, [gameState.winner]);
+
+  // src/App.tsx
 
   useEffect(() => {
     if (
@@ -122,17 +110,8 @@ export default function App() {
           return getDetectiveAIMove(prev);
         });
         setIsAIThinking(false);
+        setSelectedId(null); // НОВОЕ: Сбрасываем выделение игрока после хода бота
       }, 350);
-
-      const canPeekKiller =
-        gameState.opponent === "AI"
-          ? gameState.playerRole === "KILLER"
-          : isKillerTurn;
-
-      const canPeekDetective =
-        gameState.opponent === "AI"
-          ? gameState.playerRole === "DETECTIVE"
-          : isDetectiveTurn;
 
       return () => clearTimeout(timer);
     }
@@ -254,6 +233,7 @@ export default function App() {
       board: newBoard,
       currentTurn: nextTurn,
       lastShift: { type, index, direction },
+      lastInterrogation: null, // <-- ДОБАВИТЬ ЭТУ СТРОКУ
       log: [...prev.log, actionText],
     }));
     setSelectedId(null);
@@ -277,6 +257,13 @@ export default function App() {
     setSelectedId(null);
   };
 
+  const handleEscapeManiac = () => {
+    if (gameState.currentTurn !== "KILLER" || !isHumanTurn) return;
+    sounds.playShift();
+    triggerHaptic("medium");
+    setGameState((prev) => escapeManiac(prev));
+    setSelectedId(null);
+  };
   const handleAccuse = () => {
     if (!selectedId || gameState.currentTurn !== "DETECTIVE" || !isHumanTurn)
       return;
@@ -426,6 +413,17 @@ export default function App() {
               isFirstTurnKiller ||
               gameState.evidenceDeck.length === 0 ||
               isGameOver,
+            className:
+              "py-2 bg-amber-950/70 active:bg-amber-900 disabled:opacity-30 text-amber-200 text-[11px] font-bold rounded-lg border border-amber-800 transition disabled:cursor-not-allowed",
+          });
+        }
+        if (gameState.mode === "MANIAC_VS_OPERATIVE") {
+          actions.push({
+            id: "escape_maniac",
+            label: "Сбежать (Сменить личность)",
+            onClick: handleEscapeManiac,
+            disabled:
+              !isHumanTurn || gameState.evidenceDeck.length < 2 || isGameOver,
             className:
               "py-2 bg-amber-950/70 active:bg-amber-900 disabled:opacity-30 text-amber-200 text-[11px] font-bold rounded-lg border border-amber-800 transition disabled:cursor-not-allowed",
           });
@@ -823,32 +821,15 @@ export default function App() {
             </div>
 
             {/* Блок действий */}
-            <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-xl">
-              <div className="text-zinc-400 font-semibold uppercase tracking-wider text-[10px] mb-1.5 flex items-center justify-between">
-                <span>Действия ({currentRoleName})</span>
-                {isAIThinking && (
-                  <span className="text-amber-400 text-[9px] animate-pulse">
-                    Бот думает...
-                  </span>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
-                {availableActions.map((action) => (
-                  <button
-                    key={action.id}
-                    onClick={action.onClick}
-                    disabled={action.disabled}
-                    className={`${action.className} col-span-1 last:odd:col-span-2 lg:col-span-1 lg:last:odd:col-span-1`}
-                  >
-                    {action.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <ActionPanel
+              actions={availableActions}
+              currentRoleName={currentRoleName}
+              isAIThinking={isAIThinking}
+            />
 
             {/* Рука следователя */}
-            {gameState.mode === "SKHVATKA" && (
+            {(gameState.mode === "SKHVATKA" ||
+              gameState.mode === "MANIAC_VS_OPERATIVE") && (
               <DetectiveHand
                 handIds={gameState.detectiveHand}
                 allCharacters={allChars}

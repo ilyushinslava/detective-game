@@ -1,13 +1,14 @@
-﻿export type GameModeType = 
-  | 'SKHVATKA' 
-  | 'MANIAC_VS_OPERATIVE' 
-  | 'THIEF_HUNT' 
-  | 'SECRET_SERVICE' 
-  | 'EUROPOL_VS_OPG' 
-  | 'SPANISH_HEIST';
+﻿// src/types/game.ts
+export type GameModeType =
+  | "SKHVATKA"
+  | "MANIAC_VS_OPERATIVE"
+  | "THIEF_HUNT"
+  | "SECRET_SERVICE"
+  | "EUROPOL_VS_OPG"
+  | "SPANISH_HEIST";
 
-export type Role = 'KILLER' | 'DETECTIVE';
-export type OpponentType = 'PVP' | 'AI';
+export type Role = "KILLER" | "DETECTIVE";
+export type OpponentType = "PVP" | "AI";
 
 export interface Character {
   id: string;
@@ -15,12 +16,17 @@ export interface Character {
   isAlive: boolean;
   isExonerated: boolean;
   isRobbed?: boolean;
+  isShielded?: boolean;
+  hasBomb?: boolean;
+  isVault?: boolean;
+  isVaultCracked?: boolean;
+  isVaultLocked?: boolean;
 }
 
 export interface LastShift {
-  type: 'ROW' | 'COL';
+  type: "ROW" | "COL";
   index: number;
-  direction: 'FORWARD' | 'BACKWARD';
+  direction: "FORWARD" | "BACKWARD";
 }
 
 export interface InterrogationResult {
@@ -42,10 +48,13 @@ export interface GameState {
   victimList: string[];
   killCount: number;
   trophiesKiller?: number;
-  blockedShift?: { type: 'ROW' | 'COL'; index: number } | null;
+  trophiesDetective?: number;
+  blockedShift?: { type: "ROW" | "COL"; index: number } | null;
   winner: Role | null;
   log: string[];
   lastShift: LastShift | null;
   lastInterrogation: InterrogationResult | null;
   inspectorChoices?: string[];
+  uniformedOfficers?: string[]; // Задел для Охоты на грабителя
+  killerHand?: string[]; // Задел для Охоты на грабителя
 }

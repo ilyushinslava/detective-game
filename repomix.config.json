@@ -1,0 +1,29 @@
+{
+  "output": {
+    "filePath": "repomix-game.xml",
+    "style": "xml"
+  },
+  "include": [
+    "src/**/*",
+    "index.html",
+    "package.json",
+    "vite.config.ts",
+    "tailwind.config.js",
+    "tsconfig.json",
+    "tsconfig.app.json"
+  ],
+  "ignore": {
+    "useGitignore": true,
+    "customPatterns": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "package-lock.json",
+      "repomix*",
+      "*.txt",
+      "*.svg",
+      "*.png",
+      "*.ico",
+      "public/**"
+    ]
+  }
+}

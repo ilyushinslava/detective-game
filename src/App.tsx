@@ -32,8 +32,8 @@ import { sounds } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
 import { MainMenu } from "./components/MainMenu";
 import { GAME_MODES } from "./components/ModeSelectModal";
-import { ActionPanel } from "./components/ActionPanel";
-
+import { ActionPanel, type ActionItem } from "./components/ActionPanel";
+import { RoleCards } from "./components/RoleCards";
 export default function App() {
   const [activeMode, setActiveMode] = useState<GameModeType>("SKHVATKA");
   const [isLobbyOpen, setIsLobbyOpen] = useState(true);
@@ -483,6 +483,18 @@ export default function App() {
       ? gameState.playerRole === "DETECTIVE"
       : isDetectiveTurn;
 
+  const killerNameText =
+    showKillerRole ||
+    (gameState.opponent === "AI" && gameState.playerRole === "KILLER")
+      ? (killerChar?.name ?? "Неизвестно")
+      : "••••••••";
+
+  const detectiveNameText =
+    showDetectiveRole ||
+    (gameState.opponent === "AI" && gameState.playerRole === "DETECTIVE")
+      ? (detectiveChar?.name ?? "Неизвестно")
+      : "••••••••";
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center select-none font-sans pb-4 lg:pb-2">
       {isLobbyOpen && (
@@ -684,187 +696,164 @@ export default function App() {
             </div>
 
             {/* Карточки ролей: видны только на мобилках под полем */}
-            <div className="w-full max-w-[540px] flex lg:hidden gap-2 mt-2">
-              <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-red-950/60 flex items-center justify-between">
-                <div>
-                  <div className="text-[10px] font-bold text-red-400">
-                    {role1Name}
-                  </div>
-                  <div className="text-[11px] font-mono font-bold text-zinc-300">
-                    {showKillerRole ||
-                    (gameState.opponent === "AI" &&
-                      gameState.playerRole === "KILLER")
-                      ? killerChar?.name
-                      : "••••••••"}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onMouseDown={() => canPeekKiller && setShowKillerRole(true)}
-                  onMouseUp={() => setShowKillerRole(false)}
-                  onTouchStart={() => canPeekKiller && setShowKillerRole(true)}
-                  onTouchEnd={() => setShowKillerRole(false)}
-                  disabled={!canPeekKiller}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                    !canPeekKiller
-                      ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
-                      : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-300 border-red-700 cursor-pointer"
-                  }`}
-                >
-                  Зажать
-                </button>
-              </div>
-
-              <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-blue-950/60 flex items-center justify-between">
-                <div>
-                  <div className="text-[10px] font-bold text-blue-400">
-                    {role2Name}
-                  </div>
-                  <div className="text-[11px] font-mono font-bold text-zinc-300">
-                    {showDetectiveRole ||
-                    (gameState.opponent === "AI" &&
-                      gameState.playerRole === "DETECTIVE")
-                      ? detectiveChar?.name
-                      : "••••••••"}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onMouseDown={() =>
-                    canPeekDetective && setShowDetectiveRole(true)
-                  }
-                  onMouseUp={() => setShowDetectiveRole(false)}
-                  onTouchStart={() =>
-                    canPeekDetective && setShowDetectiveRole(true)
-                  }
-                  onTouchEnd={() => setShowDetectiveRole(false)}
-                  disabled={!canPeekDetective}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                    !canPeekDetective
-                      ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
-                      : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-300 border-blue-700 cursor-pointer"
-                  }`}
-                >
-                  Зажать
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Правая колонка: Сайдбар (Десктопные роли, Действия, Карты, Протокол) */}
-          <div className="w-full lg:w-72 flex flex-col gap-3 shrink-0">
-            {/* Карточки ролей: видны только на десктопе в сайдбаре */}
-            <div className="w-full hidden lg:flex flex-col gap-2">
-              <div className="p-2 bg-zinc-950 rounded-lg border border-red-950/60 flex items-center justify-between">
-                <div>
-                  <div className="text-[10px] font-bold text-red-400">
-                    {role1Name}
-                  </div>
-                  <div className="text-[11px] font-mono font-bold text-zinc-300">
-                    {showKillerRole ||
-                    (gameState.opponent === "AI" &&
-                      gameState.playerRole === "KILLER")
-                      ? killerChar?.name
-                      : "••••••••"}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onMouseDown={() => canPeekKiller && setShowKillerRole(true)}
-                  onMouseUp={() => setShowKillerRole(false)}
-                  onTouchStart={() => canPeekKiller && setShowKillerRole(true)}
-                  onTouchEnd={() => setShowKillerRole(false)}
-                  disabled={!canPeekKiller}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                    !canPeekKiller
-                      ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
-                      : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-300 border-red-700 cursor-pointer"
-                  }`}
-                >
-                  Зажать
-                </button>
-              </div>
-
-              <div className="p-2 bg-zinc-950 rounded-lg border border-blue-950/60 flex items-center justify-between">
-                <div>
-                  <div className="text-[10px] font-bold text-blue-400">
-                    {role2Name}
-                  </div>
-                  <div className="text-[11px] font-mono font-bold text-zinc-300">
-                    {showDetectiveRole ||
-                    (gameState.opponent === "AI" &&
-                      gameState.playerRole === "DETECTIVE")
-                      ? detectiveChar?.name
-                      : "••••••••"}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onMouseDown={() =>
-                    canPeekDetective && setShowDetectiveRole(true)
-                  }
-                  onMouseUp={() => setShowDetectiveRole(false)}
-                  onTouchStart={() =>
-                    canPeekDetective && setShowDetectiveRole(true)
-                  }
-                  onTouchEnd={() => setShowDetectiveRole(false)}
-                  disabled={!canPeekDetective}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                    !canPeekDetective
-                      ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
-                      : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-300 border-blue-700 cursor-pointer"
-                  }`}
-                >
-                  Зажать
-                </button>
-              </div>
-            </div>
-
-            {/* Блок действий */}
-            <ActionPanel
-              actions={availableActions}
-              currentRoleName={currentRoleName}
-              isAIThinking={isAIThinking}
+            <RoleCards
+              className="w-full max-w-[540px] flex lg:hidden gap-2 mt-2"
+              role1Name={role1Name}
+              role2Name={role2Name}
+              killerNameText={killerNameText}
+              detectiveNameText={detectiveNameText}
+              canPeekKiller={canPeekKiller}
+              canPeekDetective={canPeekDetective}
+              onPeekKillerStart={() => canPeekKiller && setShowKillerRole(true)}
+              onPeekKillerEnd={() => setShowKillerRole(false)}
+              onPeekDetectiveStart={() =>
+                canPeekDetective && setShowDetectiveRole(true)
+              }
+              onPeekDetectiveEnd={() => setShowDetectiveRole(false)}
             />
 
-            {/* Рука следователя */}
-            {(gameState.mode === "SKHVATKA" ||
-              gameState.mode === "MANIAC_VS_OPERATIVE") && (
-              <DetectiveHand
-                handIds={gameState.detectiveHand}
-                allCharacters={allChars}
-                isDetectiveTurn={
-                  isHumanTurn && isDetectiveTurn && !gameState.winner
-                }
-                onExonerateFromHand={handleExonerateFromHand}
-              />
-            )}
-
-            {/* Протокол событий */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex-1 flex flex-col">
+            <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-blue-950/60 flex items-center justify-between">
+              <div>
+                <div className="text-[10px] font-bold text-blue-400">
+                  {role2Name}
+                </div>
+                <div className="text-[11px] font-mono font-bold text-zinc-300">
+                  {showDetectiveRole ||
+                  (gameState.opponent === "AI" &&
+                    gameState.playerRole === "DETECTIVE")
+                    ? detectiveChar?.name
+                    : "••••••••"}
+                </div>
+              </div>
               <button
                 type="button"
-                onClick={() => setIsLogOpen(!isLogOpen)}
-                className="w-full p-2.5 flex items-center justify-between text-[11px] font-semibold text-zinc-400 bg-zinc-900 hover:bg-zinc-800/80 transition cursor-pointer shrink-0"
-              >
-                <span>Протокол событий ({gameState.log.length})</span>
-                <span className="text-xs">{isLogOpen ? "▲" : "▼"}</span>
-              </button>
-
-              <div
-                ref={logContainerRef}
-                className={`overflow-y-auto space-y-1 text-[10px] text-zinc-300 font-mono px-2.5 pb-2 transition-all ${
-                  isLogOpen ? "max-h-48" : "max-h-16 lg:max-h-48"
+                onMouseDown={() =>
+                  canPeekDetective && setShowDetectiveRole(true)
+                }
+                onMouseUp={() => setShowDetectiveRole(false)}
+                onTouchStart={() =>
+                  canPeekDetective && setShowDetectiveRole(true)
+                }
+                onTouchEnd={() => setShowDetectiveRole(false)}
+                disabled={!canPeekDetective}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                  !canPeekDetective
+                    ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
+                    : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-300 border-blue-700 cursor-pointer"
                 }`}
               >
-                {gameState.log.map((entry, idx) => (
-                  <div key={idx} className="border-b border-zinc-800/60 pb-0.5">
-                    • {entry}
-                  </div>
-                ))}
-              </div>
+                Зажать
+              </button>
             </div>
           </div>
+        </div>
+
+        {/* Правая колонка: Сайдбар (Десктопные роли, Действия, Карты, Протокол) */}
+        <div className="w-full lg:w-72 flex flex-col gap-3 shrink-0">
+          {/* Карточки ролей: видны только на десктопе в сайдбаре */}
+          <RoleCards
+            className="w-full hidden lg:flex flex-col gap-2"
+            role1Name={role1Name}
+            role2Name={role2Name}
+            killerNameText={killerNameText}
+            detectiveNameText={detectiveNameText}
+            canPeekKiller={canPeekKiller}
+            canPeekDetective={canPeekDetective}
+            onPeekKillerStart={() => canPeekKiller && setShowKillerRole(true)}
+            onPeekKillerEnd={() => setShowKillerRole(false)}
+            onPeekDetectiveStart={() =>
+              canPeekDetective && setShowDetectiveRole(true)
+            }
+            onPeekDetectiveEnd={() => setShowDetectiveRole(false)}
+          />
+          <button
+            type="button"
+            onMouseDown={() => canPeekKiller && setShowKillerRole(true)}
+            onMouseUp={() => setShowKillerRole(false)}
+            onTouchStart={() => canPeekKiller && setShowKillerRole(true)}
+            onTouchEnd={() => setShowKillerRole(false)}
+            disabled={!canPeekKiller}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+              !canPeekKiller
+                ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
+                : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-300 border-red-700 cursor-pointer"
+            }`}
+          >
+            Зажать
+          </button>
+        </div>
+
+        <div className="p-2 bg-zinc-950 rounded-lg border border-blue-950/60 flex items-center justify-between">
+          <div>
+            <div className="text-[10px] font-bold text-blue-400">
+              {role2Name}
+            </div>
+            <div className="text-[11px] font-mono font-bold text-zinc-300">
+              {showDetectiveRole ||
+              (gameState.opponent === "AI" &&
+                gameState.playerRole === "DETECTIVE")
+                ? detectiveChar?.name
+                : "••••••••"}
+            </div>
+          </div>
+          <button
+            type="button"
+            onMouseDown={() => canPeekDetective && setShowDetectiveRole(true)}
+            onMouseUp={() => setShowDetectiveRole(false)}
+            onTouchStart={() => canPeekDetective && setShowDetectiveRole(true)}
+            onTouchEnd={() => setShowDetectiveRole(false)}
+            disabled={!canPeekDetective}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+              !canPeekDetective
+                ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
+                : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-300 border-blue-700 cursor-pointer"
+            }`}
+          >
+            Зажать
+          </button>
+        </div>
+      </div>
+
+      {/* Блок действий */}
+      <ActionPanel
+        actions={availableActions}
+        currentRoleName={currentRoleName}
+        isAIThinking={isAIThinking}
+      />
+
+      {/* Рука следователя */}
+      {(gameState.mode === "SKHVATKA" ||
+        gameState.mode === "MANIAC_VS_OPERATIVE") && (
+        <DetectiveHand
+          handIds={gameState.detectiveHand}
+          allCharacters={allChars}
+          isDetectiveTurn={isHumanTurn && isDetectiveTurn && !gameState.winner}
+          onExonerateFromHand={handleExonerateFromHand}
+        />
+      )}
+
+      {/* Протокол событий */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex-1 flex flex-col">
+        <button
+          type="button"
+          onClick={() => setIsLogOpen(!isLogOpen)}
+          className="w-full p-2.5 flex items-center justify-between text-[11px] font-semibold text-zinc-400 bg-zinc-900 hover:bg-zinc-800/80 transition cursor-pointer shrink-0"
+        >
+          <span>Протокол событий ({gameState.log.length})</span>
+          <span className="text-xs">{isLogOpen ? "▲" : "▼"}</span>
+        </button>
+
+        <div
+          ref={logContainerRef}
+          className={`overflow-y-auto space-y-1 text-[10px] text-zinc-300 font-mono px-2.5 pb-2 transition-all ${
+            isLogOpen ? "max-h-48" : "max-h-16 lg:max-h-48"
+          }`}
+        >
+          {gameState.log.map((entry, idx) => (
+            <div key={idx} className="border-b border-zinc-800/60 pb-0.5">
+              • {entry}
+            </div>
+          ))}
         </div>
       </div>
     </div>

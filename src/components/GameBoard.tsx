@@ -12,6 +12,7 @@ interface GameBoardProps {
   lastShift: LastShift | null;
   blockedShift?: { type: "ROW" | "COL"; index: number } | null;
   uniformedOfficerIds?: string[];
+  targetVictimId?: string | null;
   onShift: (
     type: "ROW" | "COL",
     index: number,
@@ -30,6 +31,7 @@ export const GameBoard = ({
   blockedShift,
   lastShift,
   uniformedOfficerIds,
+  targetVictimId,
   onShift,
   onSelectCharacter,
 }: GameBoardProps) => {
@@ -137,6 +139,7 @@ export const GameBoard = ({
                     isUniformedOfficer={uniformedOfficerIds?.includes(
                       character.id,
                     )}
+                    isTargetVictim={character.id === targetVictimId}
                     onClick={() => onSelectCharacter(character.id)}
                   />
                 ))}

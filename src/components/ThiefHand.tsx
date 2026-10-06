@@ -53,6 +53,14 @@ export const ThiefHand = ({
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {handIds.map((id) => {
               const char = ALL_CHARACTERS.find((c) => c.id === id);
+
+              // Строгая защита от undefined/null
+              const charId = char?.id ?? id ?? "";
+              const displayId = charId
+                ? `#${charId.replace("c", "").padStart(2, "0")}`
+                : "#--";
+              const displayName = char?.name ?? id ?? "Неизвестный";
+
               return (
                 <div
                   key={id}
@@ -60,14 +68,14 @@ export const ThiefHand = ({
                   className="p-2.5 rounded-xl bg-zinc-950 hover:bg-amber-950/40 border border-zinc-800 hover:border-amber-500/80 cursor-pointer transition flex flex-col justify-between min-h-[90px] shadow select-none group"
                 >
                   <div className="flex items-center justify-between text-[9px] font-mono text-zinc-500">
-                    <span>#{id.replace("c", "").padStart(2, "0")}</span>
+                    <span>{displayId}</span>
                     <span className="text-amber-500 font-bold uppercase tracking-wider text-[8px] px-1 py-0.2 bg-amber-950 rounded border border-amber-900">
                       Маска
                     </span>
                   </div>
 
                   <div className="text-xs sm:text-sm font-black text-zinc-100 group-hover:text-amber-200 leading-snug my-1.5">
-                    {char?.name ?? id}
+                    {displayName}
                   </div>
 
                   <div className="text-[9px] text-zinc-400 group-hover:text-zinc-300 font-semibold">

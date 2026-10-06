@@ -661,6 +661,11 @@ export default function App() {
                 showDetectiveHints={showDetectiveRole}
                 lastShift={gameState.lastShift}
                 uniformedOfficerIds={gameState.uniformedOfficers}
+                targetVictimId={
+                  gameState.mode === "MANIAC_VS_OPERATIVE"
+                    ? gameState.victimList[0]
+                    : null
+                }
                 onShift={handleShift}
                 onSelectCharacter={(id) =>
                   isHumanTurn &&

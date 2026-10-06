@@ -9,6 +9,7 @@ interface CharacterCardProps {
   showKillerHint: boolean;
   showDetectiveHint: boolean;
   isUniformedOfficer?: boolean;
+  isTargetVictim?: boolean;
   onClick: () => void;
 }
 
@@ -21,6 +22,7 @@ export const CharacterCard = memo(
     showKillerHint,
     showDetectiveHint,
     isUniformedOfficer,
+    isTargetVictim,
     onClick,
   }: CharacterCardProps) => {
     const isDead = !character.isAlive;
@@ -40,7 +42,9 @@ export const CharacterCard = memo(
               ? "bg-zinc-950/95 border-zinc-900 opacity-50 shadow-inner"
               : isExonerated
                 ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
-                : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
+                : isTargetVictim
+                  ? "bg-red-950/30 border-red-600/80 shadow-[inset_0_0_15px_rgba(220,38,38,0.2)]"
+                  : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
         } ${
           isSelected
             ? "ring-1 sm:ring-2 ring-amber-400 border-amber-400 shadow-[0_0_14px_rgba(251,191,36,0.4)] scale-[1.02] z-20"
@@ -53,6 +57,10 @@ export const CharacterCard = memo(
           showDetectiveHint && isDetectiveAdjacent
             ? "ring-1 ring-blue-500/80 border-blue-500"
             : ""
+        } ${
+          isTargetVictim && !isDead && !isSelected
+            ? "ring-1 ring-red-500/50 animate-pulse"
+            : ""
         }`}
       >
         {/* Верхняя строка: номер дела и иконки механик */}
@@ -63,7 +71,9 @@ export const CharacterCard = memo(
                 ? "text-zinc-600 line-through"
                 : isExonerated
                   ? "text-blue-400"
-                  : "text-zinc-500"
+                  : isTargetVictim
+                    ? "text-red-400"
+                    : "text-zinc-500"
             }`}
           >
             {character.isVault
@@ -91,8 +101,12 @@ export const CharacterCard = memo(
             {character.isRobbed && <span title="Ограблен">💰</span>}
             {!isDead && isUniformedOfficer && (
               <span title="Офицер в форме">👮</span>
-            )}{" "}
-            {/* <-- ДОБАВИТЬ ЭТУ СТРОКУ */}
+            )}
+            {!isDead && isTargetVictim && (
+              <span title="Открытая жертва" className="animate-pulse">
+                🎯
+              </span>
+            )}
           </div>
         </div>
 
@@ -104,7 +118,9 @@ export const CharacterCard = memo(
                 ? "text-zinc-600 line-through decoration-red-900/70"
                 : isExonerated
                   ? "text-blue-100 font-extrabold"
-                  : "text-zinc-100"
+                  : isTargetVictim
+                    ? "text-red-100 font-extrabold"
+                    : "text-zinc-100"
             }`}
           >
             {character.name}
@@ -136,6 +152,10 @@ export const CharacterCard = memo(
           ) : isExonerated ? (
             <span className="text-[5.5px] xs:text-[6.5px] sm:text-[7.5px] font-mono font-bold tracking-wider text-blue-300 bg-blue-950/80 border border-blue-600/70 px-1 py-0.5 rounded shadow-sm">
               АЛИБИ
+            </span>
+          ) : isTargetVictim ? (
+            <span className="text-[5.5px] xs:text-[6.5px] sm:text-[7.5px] font-mono font-bold tracking-wider text-red-300 bg-red-950/80 border border-red-600/70 px-1 py-0.5 rounded shadow-sm">
+              ЦЕЛЬ
             </span>
           ) : (
             <span className="text-[5.5px] xs:text-[6.5px] sm:text-[7.5px] font-mono text-zinc-500 uppercase tracking-tighter">

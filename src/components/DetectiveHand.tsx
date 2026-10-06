@@ -1,5 +1,5 @@
-﻿import { useState } from 'react';
-import type { Character } from '../types/game';
+﻿import { useState } from "react";
+import type { Character } from "../types/game";
 
 interface DetectiveHandProps {
   handIds: string[];
@@ -39,11 +39,11 @@ export const DetectiveHand = ({
           disabled={!canView}
           className={`text-xs px-3 py-1.5 rounded-lg border font-bold transition select-none ${
             canView
-              ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 cursor-pointer active:scale-95'
-              : 'bg-zinc-950 text-zinc-600 border-zinc-900 cursor-not-allowed opacity-40'
+              ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 cursor-pointer active:scale-95"
+              : "bg-zinc-950 text-zinc-600 border-zinc-900 cursor-not-allowed opacity-40"
           }`}
         >
-          {showContent ? 'Скрыть карты' : 'Показать карты'}
+          {showContent ? "Скрыть карты" : "Показать карты"}
         </button>
       </div>
 
@@ -52,7 +52,8 @@ export const DetectiveHand = ({
           <div className="text-[10px] text-zinc-400 mb-2 font-mono">
             Нажмите на карту, чтобы оправдать подозреваемого и запустить допрос:
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-2 gap-2">
+            {" "}
             {handIds.map((id) => {
               const char = allCharacters.find((c) => c.id === id);
               return (
@@ -68,7 +69,7 @@ export const DetectiveHand = ({
                     </span>
                   </div>
 
-                  <div className="text-xs sm:text-sm font-black text-zinc-100 group-hover:text-blue-200 leading-snug my-1.5">
+                  <div className="text-xs font-black text-zinc-100 group-hover:text-blue-200 leading-tight my-1 break-words">
                     {char?.name ?? id}
                   </div>
 

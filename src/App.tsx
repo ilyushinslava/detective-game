@@ -19,8 +19,8 @@ import {
   getAdjacentCharacters,
   cleanupDeadCharacters,
   canCleanupBoard,
-  captureSpy,
-  interrogateNeighbor,
+  spyCatch,
+  spyInterrogate,
   robNeighbor,
   escapeManiac,
   fastDisguise,
@@ -93,7 +93,12 @@ export default function App() {
       return;
     }
 
-    const isAITurn = gameState.currentTurn !== gameState.playerRole;
+    const isAITurn =
+      gameState.mode === "SECRET_SERVICE"
+        ? gameState.spies
+          ? gameState.spies[gameState.activeSpyIndex ?? 0]?.isAI === true
+          : false
+        : gameState.currentTurn !== gameState.playerRole;
 
     if (isAITurn) {
       setIsAIThinking(true);
@@ -121,6 +126,9 @@ export default function App() {
     gameState.winner,
     gameState.opponent,
     gameState.playerRole,
+    gameState.mode,
+    gameState.activeSpyIndex,
+    gameState.spies,
   ]);
 
   const formatTimer = (totalSeconds: number) => {
@@ -131,6 +139,13 @@ export default function App() {
 
   const allChars = gameState.board.flat();
   const killerChar = allChars.find((c) => c.id === gameState.killerSecretId);
+  const mySpy =
+    gameState.mode === "SECRET_SERVICE" && gameState.spies
+      ? gameState.spies[0]
+      : null;
+  const mySpyChar = mySpy
+    ? allChars.find((c) => c.id === mySpy.secretId)
+    : null;
   const detectiveChar = allChars.find(
     (c) => c.id === gameState.detectiveSecretId,
   );
@@ -174,10 +189,18 @@ export default function App() {
     role2Name = "СЫЩИК";
   }
 
-  const currentRoleName = isKillerTurn ? role1Name : role2Name;
+  let currentRoleName = isKillerTurn ? role1Name : role2Name;
+  if (gameState.mode === "SECRET_SERVICE" && gameState.spies) {
+    currentRoleName = gameState.spies[gameState.activeSpyIndex ?? 0].name;
+  }
+
   const isHumanTurn =
-    gameState.opponent === "PVP" ||
-    gameState.currentTurn === gameState.playerRole;
+    gameState.mode === "SECRET_SERVICE"
+      ? gameState.spies
+        ? gameState.spies[gameState.activeSpyIndex ?? 0]?.isAI === false
+        : true
+      : gameState.opponent === "PVP" ||
+        gameState.currentTurn === gameState.playerRole;
 
   const handleSelectInspectorRole = (chosenId: string) => {
     setGameState((prev) => setInspectorRole(prev, chosenId));
@@ -223,6 +246,12 @@ export default function App() {
     const newBoard = shiftBoard(gameState.board, type, index, direction);
     const nextTurn =
       gameState.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER";
+
+    let nextSpyIndex = gameState.activeSpyIndex;
+    if (gameState.mode === "SECRET_SERVICE" && gameState.spies) {
+      nextSpyIndex = (gameState.activeSpyIndex! + 1) % gameState.spies.length;
+    }
+
     const actionText = `${currentRoleName} сдвинул ${
       type === "ROW" ? `ряд ${index + 1}` : `колонку ${index + 1}`
     }.`;
@@ -231,8 +260,10 @@ export default function App() {
       ...prev,
       board: newBoard,
       currentTurn: nextTurn,
+      activeSpyIndex: nextSpyIndex,
       lastShift: { type, index, direction },
       lastInterrogation: null,
+      lastSpyInterrogation: null,
       log: [...prev.log, actionText],
     }));
     setSelectedId(null);
@@ -314,7 +345,7 @@ export default function App() {
       return;
     sounds.playAccuse();
     triggerHaptic("medium");
-    setGameState((prev) => captureSpy(prev, selectedId));
+    setGameState((prev) => spyCatch(prev, selectedId));
     setSelectedId(null);
   };
 
@@ -323,7 +354,7 @@ export default function App() {
       return;
     sounds.playShift();
     triggerHaptic("light");
-    setGameState((prev) => interrogateNeighbor(prev, selectedId));
+    setGameState((prev) => spyInterrogate(prev, selectedId));
     setSelectedId(null);
   };
 
@@ -345,27 +376,31 @@ export default function App() {
     const isGameOver = gameState.winner !== null;
 
     if (gameState.mode === "SECRET_SERVICE") {
+      const humanSpy = gameState.spies?.[0];
+      const humanSpyNeighbors = humanSpy
+        ? getAdjacentCharacters(gameState.board, humanSpy.secretId).map(
+            (c) => c.id,
+          )
+        : [];
+      const isValidSpyTarget =
+        selectedId &&
+        humanSpy &&
+        (humanSpyNeighbors.includes(selectedId) ||
+          selectedId === humanSpy.secretId);
+
       actions.push({
         id: "capture_spy",
-        label: "Захватить шпиона",
+        label: "Поймать шпиона",
         onClick: handleCaptureSpy,
-        disabled:
-          !isHumanTurn ||
-          !selectedId ||
-          !activeAgentAdjacentIds.includes(selectedId) ||
-          isGameOver,
+        disabled: !isHumanTurn || !isValidSpyTarget || isGameOver,
         className:
           "py-2.5 bg-red-900/70 active:bg-red-800 disabled:opacity-30 text-red-100 text-[11px] font-black rounded-lg border border-red-700 transition disabled:cursor-not-allowed",
       });
       actions.push({
         id: "interrogate_spy",
-        label: "Допросить свидетеля",
+        label: "Допросить",
         onClick: handleInterrogateSpy,
-        disabled:
-          !isHumanTurn ||
-          !selectedId ||
-          !activeAgentAdjacentIds.includes(selectedId) ||
-          isGameOver,
+        disabled: !isHumanTurn || !isValidSpyTarget || isGameOver,
         className:
           "py-2.5 bg-blue-900/70 active:bg-blue-800 disabled:opacity-30 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed",
       });
@@ -470,6 +505,7 @@ export default function App() {
     gameState.winner,
     gameState.evidenceDeck.length,
     gameState.detectiveSecretId,
+    gameState.spies,
     isKillerTurn,
     isHumanTurn,
     selectedId,
@@ -591,19 +627,23 @@ export default function App() {
         <div className="w-full flex items-center justify-between text-[11px] text-zinc-400 mb-2 px-1">
           {gameState.mode === "SECRET_SERVICE" ? (
             <div className="flex items-center gap-3">
-              <span>
-                Трофеи «Восток»:{" "}
-                <b className="text-red-400">
-                  {gameState.trophiesKiller ?? 0}/2
-                </b>
-              </span>
-              <span>
-                Трофеи «Запад»:{" "}
-                <b className="text-blue-400">
-                  {gameState.trophiesDetective ?? 0}/2
-                </b>
-              </span>
-              <span>Колода: {gameState.evidenceDeck.length}</span>
+              {gameState.spies?.map((spy, idx) => (
+                <span key={spy.id}>
+                  {spy.name}
+                  {idx === 0 ? " (Вы)" : ""}:{" "}
+                  <b
+                    className={
+                      idx === 0
+                        ? "text-emerald-400"
+                        : idx === 1
+                          ? "text-red-400"
+                          : "text-blue-400"
+                    }
+                  >
+                    {spy.trophies}/{gameState.spyTargetTrophies}
+                  </b>
+                </span>
+              ))}
             </div>
           ) : gameState.mode === "THIEF_HUNT" ? (
             <div>
@@ -675,41 +715,96 @@ export default function App() {
             </div>
 
             {/* Карточки ролей: видны только на мобилках под полем */}
-            <RoleCards
-              className="w-full max-w-[540px] flex lg:hidden gap-2 mt-2"
-              role1Name={role1Name}
-              role2Name={role2Name}
-              killerNameText={killerNameText}
-              detectiveNameText={detectiveNameText}
-              canPeekKiller={canPeekKiller}
-              canPeekDetective={canPeekDetective}
-              onPeekKillerStart={() => canPeekKiller && setShowKillerRole(true)}
-              onPeekKillerEnd={() => setShowKillerRole(false)}
-              onPeekDetectiveStart={() =>
-                canPeekDetective && setShowDetectiveRole(true)
-              }
-              onPeekDetectiveEnd={() => setShowDetectiveRole(false)}
-            />
+            {gameState.mode !== "SECRET_SERVICE" && (
+              <RoleCards
+                className="w-full max-w-[540px] flex lg:hidden gap-2 mt-2"
+                role1Name={role1Name}
+                role2Name={role2Name}
+                killerNameText={killerNameText}
+                detectiveNameText={detectiveNameText}
+                canPeekKiller={canPeekKiller}
+                canPeekDetective={canPeekDetective}
+                onPeekKillerStart={() =>
+                  canPeekKiller && setShowKillerRole(true)
+                }
+                onPeekKillerEnd={() => setShowKillerRole(false)}
+                onPeekDetectiveStart={() =>
+                  canPeekDetective && setShowDetectiveRole(true)
+                }
+                onPeekDetectiveEnd={() => setShowDetectiveRole(false)}
+              />
+            )}
           </div>
 
+          {/* Досье агента в Секретной службе (мобилка) */}
+          {gameState.mode === "SECRET_SERVICE" && mySpyChar && (
+            <div className="w-full max-w-[540px] mt-2 block lg:hidden bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 flex items-center justify-between shadow-sm">
+              <div>
+                <span className="text-[10px] font-bold text-zinc-500 uppercase block">
+                  Ваша тайная личность
+                </span>
+                <span className="text-xs font-black text-emerald-400">
+                  {showDetectiveRole ? mySpyChar.name : "••••••••"}
+                </span>
+              </div>
+
+              <button
+                onMouseDown={() => setShowDetectiveRole(true)}
+                onMouseUp={() => setShowDetectiveRole(false)}
+                onTouchStart={() => setShowDetectiveRole(true)}
+                onTouchEnd={() => setShowDetectiveRole(false)}
+                className="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-zinc-300 rounded text-[10px] font-bold border border-zinc-700 select-none cursor-pointer"
+              >
+                Зажать
+              </button>
+            </div>
+          )}
           {/* Правая колонка: Сайдбар (Десктопные роли, Действия, Карты, Протокол) */}
           <div className="w-full lg:w-72 flex flex-col gap-3 shrink-0">
             {/* Карточки ролей: видны только на десктопе в сайдбаре */}
-            <RoleCards
-              className="w-full hidden lg:flex flex-col gap-2"
-              role1Name={role1Name}
-              role2Name={role2Name}
-              killerNameText={killerNameText}
-              detectiveNameText={detectiveNameText}
-              canPeekKiller={canPeekKiller}
-              canPeekDetective={canPeekDetective}
-              onPeekKillerStart={() => canPeekKiller && setShowKillerRole(true)}
-              onPeekKillerEnd={() => setShowKillerRole(false)}
-              onPeekDetectiveStart={() =>
-                canPeekDetective && setShowDetectiveRole(true)
-              }
-              onPeekDetectiveEnd={() => setShowDetectiveRole(false)}
-            />
+            {gameState.mode !== "SECRET_SERVICE" && (
+              <RoleCards
+                className="w-full hidden lg:flex flex-col gap-2"
+                role1Name={role1Name}
+                role2Name={role2Name}
+                killerNameText={killerNameText}
+                detectiveNameText={detectiveNameText}
+                canPeekKiller={canPeekKiller}
+                canPeekDetective={canPeekDetective}
+                onPeekKillerStart={() =>
+                  canPeekKiller && setShowKillerRole(true)
+                }
+                onPeekKillerEnd={() => setShowKillerRole(false)}
+                onPeekDetectiveStart={() =>
+                  canPeekDetective && setShowDetectiveRole(true)
+                }
+                onPeekDetectiveEnd={() => setShowDetectiveRole(false)}
+              />
+            )}
+
+            {/* Досье агента в Секретной службе (десктоп) */}
+            {gameState.mode === "SECRET_SERVICE" && mySpyChar && (
+              <div className="w-full hidden lg:flex bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 items-center justify-between shadow-sm">
+                <div>
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase block">
+                    Ваша тайная личность
+                  </span>
+                  <span className="text-xs font-black text-emerald-400">
+                    {showDetectiveRole ? mySpyChar.name : "••••••••"}
+                  </span>
+                </div>
+
+                <button
+                  onMouseDown={() => setShowDetectiveRole(true)}
+                  onMouseUp={() => setShowDetectiveRole(false)}
+                  onTouchStart={() => setShowDetectiveRole(true)}
+                  onTouchEnd={() => setShowDetectiveRole(false)}
+                  className="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-zinc-300 rounded text-[10px] font-bold border border-zinc-700 select-none cursor-pointer"
+                >
+                  Зажать
+                </button>
+              </div>
+            )}
 
             {/* Показания свидетелей (Допрос) */}
             {gameState.lastInterrogation && !gameState.winner && (
@@ -725,11 +820,9 @@ export default function App() {
                     Показания ({gameState.lastInterrogation.targetName})
                   </span>
                   <span className="font-semibold text-zinc-300">
-                    {gameState.mode === "SECRET_SERVICE"
-                      ? "Враг рядом со свидетелем?"
-                      : gameState.lastInterrogation.interrogator === "DETECTIVE"
-                        ? "Преступник рядом с алиби?"
-                        : "Законник рядом с жертвой?"}
+                    {gameState.lastInterrogation.interrogator === "DETECTIVE"
+                      ? "Преступник рядом с алиби?"
+                      : "Законник рядом с жертвой?"}
                   </span>
                 </div>
 
@@ -746,6 +839,26 @@ export default function App() {
                   {gameState.lastInterrogation.isNear
                     ? "Враг рядом"
                     : "Вне зоны"}
+                </div>
+              </div>
+            )}
+
+            {/* Показания свидетелей (Допрос шпионов) */}
+            {gameState.lastSpyInterrogation && !gameState.winner && (
+              <div className="w-full p-2.5 rounded-xl border flex items-center justify-between shadow-sm transition-all bg-zinc-900/50 border-zinc-800">
+                <div className="text-[10px] leading-tight flex-1 pr-2">
+                  <span className="font-bold text-zinc-500 uppercase mb-0.5 block">
+                    Допрос: {gameState.lastSpyInterrogation.targetName}
+                  </span>
+                  <span className="font-semibold text-zinc-300">
+                    Контакт подтвердили:{" "}
+                    {gameState.lastSpyInterrogation.raisedHandsPlayerNames
+                      .length > 0
+                      ? gameState.lastSpyInterrogation.raisedHandsPlayerNames.join(
+                          ", ",
+                        )
+                      : "Никто"}
+                  </span>
                 </div>
               </div>
             )}

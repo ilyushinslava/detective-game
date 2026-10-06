@@ -5,8 +5,10 @@
   OpponentType,
   Role,
   LastShift,
+  SpyPlayer,
 } from "../types/game";
 import { ALL_CHARACTERS } from "../constants/characters";
+
 export const CHARACTERS_DATA: Omit<Character, "isAlive" | "isExonerated">[] = [
   { id: "c1", name: "Артур Блэк" },
   { id: "c2", name: "Мария Козлова" },
@@ -137,7 +139,7 @@ export function createInitialState(
     board[4][4].isVault = true;
   }
 
-  const deck = shuffledCharacters.slice(25).map((c) => c.id);
+  let deck = shuffledCharacters.slice(25).map((c) => c.id);
 
   const candidatePool = boardCharacters.filter((c) => !c.isVault);
   const killerIndex = Math.floor(Math.random() * candidatePool.length);
@@ -150,12 +152,16 @@ export function createInitialState(
     (c) => c.id !== killerSecretId && !killerNeighbors.includes(c.id),
   );
 
-  let detectiveSecretId: string;
+  let detectiveSecretId: string = "";
   let detectiveHand: string[] = [];
   let inspectorChoices: string[] = [];
   let victimList: string[] = [];
   let killerHand: string[] = [];
   let uniformedOfficers: string[] = [];
+
+  let spies: SpyPlayer[] | undefined = undefined;
+  let activeSpyIndex: number | undefined = undefined;
+  let spyTargetTrophies: number | undefined = undefined;
 
   if (mode === "SKHVATKA") {
     const safeCandidates = shuffle(validDetectiveCandidates);
@@ -176,12 +182,10 @@ export function createInitialState(
       .map((c) => c.id);
     victimList = shuffle(potentialVictims).slice(0, 4);
   } else if (mode === "THIEF_HUNT") {
-    // Вор выбирается с поля
     const thiefCandidate =
       candidatePool[Math.floor(Math.random() * candidatePool.length)];
     killerSecretId = thiefCandidate.id;
 
-    // Полицейский выбирается с поля (не сосед Вора)
     const thiefNeighbors = getAdjacentCharacters(board, killerSecretId).map(
       (c) => c.id,
     );
@@ -197,9 +201,40 @@ export function createInitialState(
 
     detectiveSecretId = copCandidate.id;
 
-    // Маски для Вора (3 карты) и Офицеры (2 карты) берутся строго из колоды deck
     killerHand = [deck.shift()!, deck.shift()!, deck.shift()!].filter(Boolean);
     uniformedOfficers = [deck.shift()!, deck.shift()!].filter(Boolean);
+  } else if (mode === "SECRET_SERVICE") {
+    // КАНОН: Колода состоит строго из 25 персонажей поля
+    deck = shuffle(boardCharacters.map((c) => c.id));
+    spies = [
+      {
+        id: "p1",
+        name: "Агент «Восток»",
+        secretId: deck.shift()!,
+        trophies: 0,
+        isAI: false,
+      },
+      {
+        id: "p2",
+        name: "Бот «Альфа»",
+        secretId: deck.shift()!,
+        trophies: 0,
+        isAI: true,
+      },
+      {
+        id: "p3",
+        name: "Бот «Омега»",
+        secretId: deck.shift()!,
+        trophies: 0,
+        isAI: true,
+      },
+    ];
+    activeSpyIndex = 0;
+    spyTargetTrophies = 4;
+
+    // Для совместимости с UI карточек ролей
+    detectiveSecretId = spies[0].secretId;
+    killerSecretId = spies[1].secretId;
   } else {
     const chosenDet =
       validDetectiveCandidates[
@@ -228,9 +263,13 @@ export function createInitialState(
     mode,
     opponent,
     playerRole,
+    spies,
+    activeSpyIndex,
+    spyTargetTrophies,
+    lastSpyInterrogation: null,
     log: [
-      `Операция началась (${mode}). Режим: ${opponent === "AI" ? "Против бота" : "Вдвоем"}.`,
-      "Раунд 1: Первый ход за атакующей стороной.",
+      `Операция началась (${mode}). Режим: ${mode === "SECRET_SERVICE" ? "Куча-мала (3 игрока)" : opponent === "AI" ? "Против бота" : "Вдвоем"}.`,
+      "Раунд 1: Первый ход.",
     ],
   };
 }
@@ -583,7 +622,7 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
   if (state.winner || state.mode !== "THIEF_HUNT") return state;
 
   const isAdjacent = areAdjacent(state.board, state.killerSecretId, targetId);
-  const isSelf = targetId === state.killerSecretId;
+  const isSelf = state.killerSecretId === targetId;
   if (!isAdjacent && !isSelf) return state;
 
   const targetChar = state.board.flat().find((c) => c.id === targetId);
@@ -838,14 +877,21 @@ export function cleanupDeadCharacters(state: GameState): GameState {
   const nextTurn: Role =
     state.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER";
 
+  let nextSpyIndex = state.activeSpyIndex;
+  if (state.mode === "SECRET_SERVICE" && state.spies) {
+    nextSpyIndex = (state.activeSpyIndex! + 1) % state.spies.length;
+  }
+
   return {
     ...state,
     board: updatedBoard,
     evidenceDeck: nextDeck,
     currentTurn: nextTurn,
+    activeSpyIndex: nextSpyIndex,
     blockedShift: null,
     lastShift: null,
     lastInterrogation: null,
+    lastSpyInterrogation: null,
     log: [
       ...state.log,
       `Обновление поля: убрано тел — ${dead.length}. Прибыло новых подозреваемых из резерва: ${drawnCount}.`,
@@ -853,92 +899,114 @@ export function cleanupDeadCharacters(state: GameState): GameState {
   };
 }
 
-export function captureSpy(state: GameState, targetId: string): GameState {
-  if (state.winner) return state;
+export function spyCatch(state: GameState, targetId: string): GameState {
+  if (
+    state.winner ||
+    state.mode !== "SECRET_SERVICE" ||
+    !state.spies ||
+    state.activeSpyIndex === undefined
+  )
+    return state;
 
-  const isAgent1 = state.currentTurn === "KILLER";
-  const mySecretId = isAgent1 ? state.killerSecretId : state.detectiveSecretId;
-  const enemySecretId = isAgent1
-    ? state.detectiveSecretId
-    : state.killerSecretId;
+  const activeSpy = state.spies[state.activeSpyIndex];
+  if (!areAdjacent(state.board, activeSpy.secretId, targetId)) return state;
 
-  if (!areAdjacent(state.board, mySecretId, targetId)) return state;
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+  const targetName = targetChar?.name ?? targetId;
 
-  if (targetId === enemySecretId) {
-    const winner: Role = isAgent1 ? "KILLER" : "DETECTIVE";
-    return {
-      ...state,
-      winner,
-      blockedShift: null,
-      log: [
-        ...state.log,
-        `Вражеский резидент разоблачен на месте! Победа ${winner === "KILLER" ? "Востока" : "Запада"}!`,
-      ],
-    };
-  }
+  const caughtSpyIndex = state.spies.findIndex(
+    (s) => s.id !== activeSpy.id && s.secretId === targetId,
+  );
 
-  const nextTrophiesKiller = isAgent1
-    ? (state.trophiesKiller ?? 0) + 1
-    : (state.trophiesKiller ?? 0);
-  const nextTrophiesDetective = !isAgent1
-    ? (state.trophiesDetective ?? 0) + 1
-    : (state.trophiesDetective ?? 0);
-
+  let newBoard = state.board;
+  let newSpies = [...state.spies];
+  let newDeck = [...state.evidenceDeck];
+  let logMsg = "";
   let winner: Role | null = null;
 
-  if (nextTrophiesKiller >= 2) winner = "DETECTIVE";
-  if (nextTrophiesDetective >= 2) winner = "KILLER";
+  if (caughtSpyIndex !== -1) {
+    const caughtSpy = newSpies[caughtSpyIndex];
+    newBoard = state.board.map((row) =>
+      row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c)),
+    );
 
-  const newBoard = state.board.map((row) =>
-    row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c)),
-  );
+    newSpies[state.activeSpyIndex] = {
+      ...activeSpy,
+      trophies: activeSpy.trophies + 1,
+    };
+
+    const newSecretId = newDeck.shift();
+    if (newSecretId) {
+      newSpies[caughtSpyIndex] = { ...caughtSpy, secretId: newSecretId };
+    }
+
+    logMsg = `Шпион ${activeSpy.name} поймал агента (${caughtSpy.name}) под прикрытием ${targetName}!`;
+
+    if (
+      newSpies[state.activeSpyIndex].trophies >= (state.spyTargetTrophies ?? 4)
+    ) {
+      winner = activeSpy.isAI ? "KILLER" : "DETECTIVE";
+      logMsg += ` ${activeSpy.name} побеждает в игре!`;
+    }
+  } else {
+    logMsg = `Шпион ${activeSpy.name} попытался поймать ${targetName}, но это оказался мирный житель.`;
+  }
+
+  const nextIndex = (state.activeSpyIndex + 1) % state.spies.length;
+  const humanSpy = newSpies[0];
 
   return {
     ...state,
     board: newBoard,
-    trophiesKiller: nextTrophiesKiller,
-    trophiesDetective: nextTrophiesDetective,
+    spies: newSpies,
+    evidenceDeck: newDeck,
     winner,
-    currentTurn: isAgent1 ? "DETECTIVE" : "KILLER",
+    activeSpyIndex: nextIndex,
+    detectiveSecretId: humanSpy.secretId,
     blockedShift: null,
-    log: [
-      ...state.log,
-      `Захвачен невиновный гражданский. Получен штрафной трофей (+1).${
-        winner
-          ? " Устранено 2 невиновных — провал операции! Победа оппонента."
-          : ""
-      }`,
-    ],
+    lastSpyInterrogation: null,
+    log: [...state.log, logMsg],
   };
 }
 
-export function interrogateNeighbor(
-  state: GameState,
-  targetId: string,
-): GameState {
-  const isAgent1 = state.currentTurn === "KILLER";
-  const mySecretId = isAgent1 ? state.killerSecretId : state.detectiveSecretId;
-  const enemySecretId = isAgent1
-    ? state.detectiveSecretId
-    : state.killerSecretId;
+export function spyInterrogate(state: GameState, targetId: string): GameState {
+  if (
+    state.winner ||
+    state.mode !== "SECRET_SERVICE" ||
+    !state.spies ||
+    state.activeSpyIndex === undefined
+  )
+    return state;
 
-  if (!areAdjacent(state.board, mySecretId, targetId)) return state;
+  const activeSpy = state.spies[state.activeSpyIndex];
+  if (!areAdjacent(state.board, activeSpy.secretId, targetId)) return state;
 
-  const isNear = areAdjacent(state.board, targetId, enemySecretId);
   const targetChar = state.board.flat().find((c) => c.id === targetId);
+  const targetName = targetChar?.name ?? targetId;
+
+  const raisedHands: string[] = [];
+  for (const spy of state.spies) {
+    const isAdjacent = areAdjacent(state.board, spy.secretId, targetId);
+    const isTargetSelf = spy.secretId === targetId;
+    if (isAdjacent || isTargetSelf) {
+      raisedHands.push(spy.name);
+    }
+  }
+
+  const nextIndex = (state.activeSpyIndex + 1) % state.spies.length;
 
   return {
     ...state,
-    lastInterrogation: {
-      interrogator: isAgent1 ? "KILLER" : "DETECTIVE",
-      targetName: targetChar?.name ?? "Свидетель",
-      isNear,
-    },
-    currentTurn: isAgent1 ? "DETECTIVE" : "KILLER",
+    activeSpyIndex: nextIndex,
     blockedShift: null,
+    lastSpyInterrogation: {
+      interrogatorName: activeSpy.name,
+      targetName,
+      raisedHandsPlayerNames: raisedHands,
+    },
     log: [
       ...state.log,
-      `Допрос свидетеля (${targetChar?.name}): ${isNear ? "«Да, подозрительный субъект рядом!»" : "«Никого рядом не видел»"}.`,
+      `Шпион ${activeSpy.name} допросил окружение ${targetName}. Руку подняли: ${raisedHands.length > 0 ? raisedHands.join(", ") : "Никто"}.`,
     ],
   };
 }

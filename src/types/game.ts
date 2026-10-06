@@ -35,6 +35,14 @@ export interface InterrogationResult {
   isNear: boolean;
 }
 
+export interface SpyPlayer {
+  id: string;
+  name: string;
+  secretId: string;
+  trophies: number;
+  isAI: boolean;
+}
+
 export interface GameState {
   mode: GameModeType;
   opponent: OpponentType;
@@ -55,6 +63,14 @@ export interface GameState {
   lastShift: LastShift | null;
   lastInterrogation: InterrogationResult | null;
   inspectorChoices?: string[];
-  uniformedOfficers?: string[]; // Задел для Охоты на грабителя
-  killerHand?: string[]; // Задел для Охоты на грабителя
+  uniformedOfficers?: string[];
+  killerHand?: string[];
+  spies?: SpyPlayer[];
+  activeSpyIndex?: number;
+  spyTargetTrophies?: number;
+  lastSpyInterrogation?: {
+    interrogatorName: string;
+    targetName: string;
+    raisedHandsPlayerNames: string[];
+  } | null;
 }

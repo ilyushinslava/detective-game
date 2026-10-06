@@ -7,13 +7,17 @@ import {
   exonerateFromHand,
   disguiseKiller,
   shiftBoard,
-  captureSpy,
-  interrogateNeighbor,
+  spyCatch,
+  spyInterrogate,
   robNeighbor,
   setPolicePatrol,
 } from "./gameLogic";
 
-function getAllValidShifts(board: Character[][], lastShift: LastShift | null) {
+function getAllValidShifts(
+  board: Character[][],
+  lastShift: LastShift | null,
+  blockedShift?: { type: "ROW" | "COL"; index: number } | null,
+) {
   const shifts: Array<{
     type: "ROW" | "COL";
     index: number;
@@ -23,6 +27,7 @@ function getAllValidShifts(board: Character[][], lastShift: LastShift | null) {
   const numCols = board[0].length;
 
   for (let r = 0; r < numRows; r++) {
+    if (blockedShift?.type === "ROW" && blockedShift.index === r) continue;
     for (const dir of ["FORWARD", "BACKWARD"] as const) {
       if (!isOppositeShift(lastShift, "ROW", r, dir)) {
         shifts.push({ type: "ROW", index: r, direction: dir });
@@ -31,6 +36,7 @@ function getAllValidShifts(board: Character[][], lastShift: LastShift | null) {
   }
 
   for (let c = 0; c < numCols; c++) {
+    if (blockedShift?.type === "COL" && blockedShift.index === c) continue;
     for (const dir of ["FORWARD", "BACKWARD"] as const) {
       if (!isOppositeShift(lastShift, "COL", c, dir)) {
         shifts.push({ type: "COL", index: c, direction: dir });
@@ -88,7 +94,11 @@ export function getKillerAIMove(state: GameState): GameState {
     }
   }
 
-  const validShifts = getAllValidShifts(state.board, state.lastShift);
+  const validShifts = getAllValidShifts(
+    state.board,
+    state.lastShift,
+    state.blockedShift,
+  );
   if (validShifts.length > 0) {
     const randomShift =
       validShifts[Math.floor(Math.random() * validShifts.length)];
@@ -110,7 +120,6 @@ export function getKillerAIMove(state: GameState): GameState {
     };
   }
 
-  // ФОЛБЭК: Если нет доступных ходов, бот обязан передать ход, чтобы игра не зависла
   return {
     ...state,
     currentTurn: "DETECTIVE",
@@ -150,7 +159,11 @@ export function getDetectiveAIMove(state: GameState): GameState {
     return accuseCharacter(state, chosen.id);
   }
 
-  const validShifts = getAllValidShifts(state.board, state.lastShift);
+  const validShifts = getAllValidShifts(
+    state.board,
+    state.lastShift,
+    state.blockedShift,
+  );
   if (validShifts.length > 0) {
     const randomShift =
       validShifts[Math.floor(Math.random() * validShifts.length)];
@@ -172,7 +185,6 @@ export function getDetectiveAIMove(state: GameState): GameState {
     };
   }
 
-  // ФОЛБЭК: Защита от зависания
   return {
     ...state,
     currentTurn: "KILLER",
@@ -184,23 +196,40 @@ export function getDetectiveAIMove(state: GameState): GameState {
 }
 
 export function getSecretServiceAIMove(state: GameState): GameState {
-  const isAgent1 = state.currentTurn === "KILLER";
-  const mySecretId = isAgent1 ? state.killerSecretId : state.detectiveSecretId;
-  const myNeighbors = getAdjacentCharacters(state.board, mySecretId).filter(
+  if (state.winner || !state.spies || state.activeSpyIndex === undefined)
+    return state;
+
+  const activeSpy = state.spies[state.activeSpyIndex];
+  if (!activeSpy || !activeSpy.isAI) return state;
+
+  const neighbors = getAdjacentCharacters(state.board, activeSpy.secretId);
+  const selfChar = state.board.flat().find((c) => c.id === activeSpy.secretId);
+
+  // Бот может поймать/допросить соседа или самого себя
+  const validTargets = [...neighbors, ...(selfChar ? [selfChar] : [])].filter(
     (c) => c.isAlive,
   );
 
-  if (myNeighbors.length > 0 && Math.random() < 0.5) {
-    const target = myNeighbors[Math.floor(Math.random() * myNeighbors.length)];
-    return captureSpy(state, target.id);
+  const rand = Math.random();
+
+  if (validTargets.length > 0) {
+    if (rand < 0.4) {
+      const target =
+        validTargets[Math.floor(Math.random() * validTargets.length)];
+      return spyCatch(state, target.id);
+    } else if (rand < 0.8) {
+      const target =
+        validTargets[Math.floor(Math.random() * validTargets.length)];
+      return spyInterrogate(state, target.id);
+    }
   }
 
-  if (myNeighbors.length > 0 && Math.random() < 0.7) {
-    const target = myNeighbors[Math.floor(Math.random() * myNeighbors.length)];
-    return interrogateNeighbor(state, target.id);
-  }
-
-  const validShifts = getAllValidShifts(state.board, state.lastShift);
+  // Сдвиг (20% шанс или если нет целей)
+  const validShifts = getAllValidShifts(
+    state.board,
+    state.lastShift,
+    state.blockedShift,
+  );
   if (validShifts.length > 0) {
     const randomShift =
       validShifts[Math.floor(Math.random() * validShifts.length)];
@@ -210,25 +239,29 @@ export function getSecretServiceAIMove(state: GameState): GameState {
       randomShift.index,
       randomShift.direction,
     );
-    const nextTurn = isAgent1 ? "DETECTIVE" : "KILLER";
+    const nextIndex = (state.activeSpyIndex + 1) % state.spies.length;
     return {
       ...state,
       board: newBoard,
-      currentTurn: nextTurn,
+      activeSpyIndex: nextIndex,
       lastShift: randomShift,
+      lastSpyInterrogation: null,
       log: [
         ...state.log,
-        `🤖 Бот сдвинул ${randomShift.type === "ROW" ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+        `🤖 ${activeSpy.name} сдвинул ${randomShift.type === "ROW" ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
       ],
     };
   }
 
   // ФОЛБЭК: Защита от зависания
-  const nextTurn = isAgent1 ? "DETECTIVE" : "KILLER";
+  const nextIndex = (state.activeSpyIndex + 1) % state.spies.length;
   return {
     ...state,
-    currentTurn: nextTurn,
-    log: [...state.log, "🤖 Бот-агент пропустил ход (нет доступных действий)."],
+    activeSpyIndex: nextIndex,
+    log: [
+      ...state.log,
+      `🤖 ${activeSpy.name} пропустил ход (нет доступных действий).`,
+    ],
   };
 }
 
@@ -244,20 +277,14 @@ export function getThiefAIMove(state: GameState): GameState {
     return robNeighbor(state, target.id);
   }
 
-  let possibleShifts = getAllValidShifts(state.board, state.lastShift);
-  if (state.blockedShift) {
-    possibleShifts = possibleShifts.filter(
-      (shift) =>
-        !(
-          shift.type === state.blockedShift!.type &&
-          shift.index === state.blockedShift!.index
-        ),
-    );
-  }
+  const validShifts = getAllValidShifts(
+    state.board,
+    state.lastShift,
+    state.blockedShift,
+  );
 
-  if (possibleShifts.length > 0) {
-    const shift =
-      possibleShifts[Math.floor(Math.random() * possibleShifts.length)];
+  if (validShifts.length > 0) {
+    const shift = validShifts[Math.floor(Math.random() * validShifts.length)];
     const newBoard = shiftBoard(
       state.board,
       shift.type,
@@ -287,7 +314,6 @@ export function getThiefAIMove(state: GameState): GameState {
 export function getPoliceAIMove(state: GameState): GameState {
   if (state.winner) return state;
 
-  // 1. С вероятностью 50% выставляем оцепление на случайный ряд или колонку
   const shouldPatrol = Math.random() < 0.5;
   if (shouldPatrol) {
     const types: ("ROW" | "COL")[] = ["ROW", "COL"];
@@ -296,21 +322,14 @@ export function getPoliceAIMove(state: GameState): GameState {
     return setPolicePatrol(state, randomType, randomIndex);
   }
 
-  // 2. Иначе делаем валидный сдвиг поля
-  let possibleShifts = getAllValidShifts(state.board, state.lastShift);
-  if (state.blockedShift) {
-    possibleShifts = possibleShifts.filter(
-      (shift) =>
-        !(
-          shift.type === state.blockedShift!.type &&
-          shift.index === state.blockedShift!.index
-        ),
-    );
-  }
+  const validShifts = getAllValidShifts(
+    state.board,
+    state.lastShift,
+    state.blockedShift,
+  );
 
-  if (possibleShifts.length > 0) {
-    const shift =
-      possibleShifts[Math.floor(Math.random() * possibleShifts.length)];
+  if (validShifts.length > 0) {
+    const shift = validShifts[Math.floor(Math.random() * validShifts.length)];
     const newBoard = shiftBoard(
       state.board,
       shift.type,
@@ -330,6 +349,5 @@ export function getPoliceAIMove(state: GameState): GameState {
     };
   }
 
-  // Фолбэк на установку патруля, если со сдвигами возник коллизионный тупик
   return setPolicePatrol(state, "ROW", 0);
 }

@@ -6,7 +6,8 @@ import {
   accuseCharacter,
   canCleanupBoard,
   disguiseKiller,
-  captureSpy,
+  createInitialState,
+  spyCatch,
   cleanupDeadCharacters,
 } from "./gameLogic";
 import type { Character, GameState } from "../types/game";
@@ -256,40 +257,38 @@ describe("Ядро правил игры (gameLogic)", () => {
     expect(nextState.currentTurn).toBe("KILLER");
   });
 
-  it("captureSpy присуждает победу оппоненту при двух ошибочных захватах гражданских", () => {
-    const board: Character[][] = Array(5)
-      .fill(null)
-      .map((_, r) =>
-        Array(5)
-          .fill(null)
-          .map((__, c) => createMockChar(`c_${r}_${c}`, `Персонаж ${r}_${c}`)),
-      );
+  it("spyCatch начисляет трофей при поимке другого шпиона и не начисляет на мирном", () => {
+    let state = createInitialState("SECRET_SERVICE", "AI", "DETECTIVE");
+    if (!state.spies) return;
 
-    // KILLER на (0,0), гражданский на (0,1), DETECTIVE на (4,4)
-    const state: GameState = {
-      mode: "SECRET_SERVICE",
-      opponent: "HUMAN",
-      playerRole: "KILLER",
-      board,
-      currentTurn: "KILLER",
-      killerSecretId: "c_0_0",
-      detectiveSecretId: "c_4_4",
-      detectiveHand: [],
-      evidenceDeck: [],
-      trophiesKiller: 1, // уже был 1 ошибочный захват
-      trophiesDetective: 0,
-      killCount: 0,
-      winner: null,
-      log: [],
-      lastShift: null,
-      lastInterrogation: null,
-    };
+    const activeSpy = state.spies[0];
+    const victimSpy = state.spies[1];
 
-    // Второй ошибочный захват гражданского соседа
-    const nextState = captureSpy(state, "c_0_1");
+    // Размещаем жертву рядом с активным шпионом
+    const neighbors = getAdjacentCharacters(state.board, activeSpy.secretId);
+    expect(neighbors.length).toBeGreaterThan(0);
 
-    expect(nextState.trophiesKiller).toBe(2);
-    expect(nextState.winner).toBe("DETECTIVE");
+    // 1. Попытка поймать шпиона
+    state.spies[1].secretId = neighbors[0].id;
+    const caughtState = spyCatch(state, neighbors[0].id);
+
+    expect(caughtState.spies![0].trophies).toBe(1);
+    expect(
+      caughtState.board.flat().find((c) => c.id === neighbors[0].id)?.isAlive,
+    ).toBe(false);
+
+    // 2. Попытка поймать мирного жителя (трофей не дается, цель не гибнет)
+    const civilian = neighbors.find(
+      (c) =>
+        c.id !== state.spies![1].secretId && c.id !== state.spies![2].secretId,
+    );
+    if (civilian) {
+      const failState = spyCatch(caughtState, civilian.id);
+      expect(failState.spies![0].trophies).toBe(1);
+      expect(
+        failState.board.flat().find((c) => c.id === civilian.id)?.isAlive,
+      ).toBe(true);
+    }
   });
 
   it("cleanupDeadCharacters удаляет убитых и добирает новые карты из evidenceDeck", () => {

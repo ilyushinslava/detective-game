@@ -176,11 +176,12 @@ export function createInitialState(
       .map((c) => c.id);
     victimList = shuffle(potentialVictims).slice(0, 4);
   } else if (mode === "THIEF_HUNT") {
-    // КАНОН: Раздаем роли прямо из перемешанной колоды улик (deck)
-    killerSecretId = deck.shift()!;
-    killerHand = [deck.shift()!, deck.shift()!, deck.shift()!];
+    // ИСПРАВЛЕНИЕ: Тайные личности Грабителя и Полиции выбираются с поля
+    const safeCandidates = shuffle(validDetectiveCandidates);
+    detectiveSecretId = safeCandidates[0].id;
 
-    detectiveSecretId = deck.shift()!;
+    // Из колоды берутся только маски и офицеры в форме
+    killerHand = [deck.shift()!, deck.shift()!, deck.shift()!];
     uniformedOfficers = [deck.shift()!, deck.shift()!];
   } else {
     const chosenDet =
@@ -198,8 +199,8 @@ export function createInitialState(
     detectiveHand,
     inspectorChoices,
     victimList,
-    killerHand, // Добавлено для Вора
-    uniformedOfficers, // Добавлено для Полиции
+    killerHand,
+    uniformedOfficers,
     currentTurn: "KILLER",
     killCount: 0,
     trophiesKiller: 0,
@@ -266,15 +267,12 @@ export function shiftBoard(
   return newBoard;
 }
 
-// src/utils/gameLogic.ts
-
 export function killCharacter(state: GameState, targetId: string): GameState {
   if (state.winner) return state;
 
   const isAdjacent = areAdjacent(state.board, state.killerSecretId, targetId);
   if (!isAdjacent) return state;
 
-  // Ограничение для режима Маньяка: цель должна быть текущей открытой жертвой или Оперативником
   if (state.mode === "MANIAC_VS_OPERATIVE") {
     const isCurrentVictim =
       state.victimList.length > 0 && targetId === state.victimList[0];
@@ -285,8 +283,7 @@ export function killCharacter(state: GameState, targetId: string): GameState {
   }
 
   const targetChar = state.board.flat().find((c) => c.id === targetId);
-  // ... оставшаяся логика функции
-  // Обработка бронежилета (режим EUROPOL_VS_OPG)
+
   if (targetChar?.isShielded) {
     const newBoard = state.board.map((row) =>
       row.map((c) => (c.id === targetId ? { ...c, isShielded: false } : c)),
@@ -315,12 +312,10 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     }),
   );
 
-  // Обновляем список жертв для режима маньяка
   let newVictimList = [...state.victimList];
   if (state.mode === "MANIAC_VS_OPERATIVE" && targetId === newVictimList[0]) {
     newVictimList.shift();
 
-    // Если следующая цель в очереди уже мертва — сбрасываем ее
     while (newVictimList.length > 0) {
       const nextId = newVictimList[0];
       const nextChar = newBoard.flat().find((c) => c.id === nextId);
@@ -332,7 +327,6 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     }
   }
 
-  // НОВОЕ: Если убитый был в руке Оперативника (досье алиби), карта сбрасывается
   let newDetectiveHand = [...state.detectiveHand];
   if (
     state.mode === "MANIAC_VS_OPERATIVE" &&
@@ -357,7 +351,6 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     winner = "KILLER";
   }
 
-  // Восстановленный блок допроса
   let lastInterrogation = null;
   let interrogationLog = "";
 
@@ -375,7 +368,7 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     ...state,
     board: newBoard,
     victimList: newVictimList,
-    detectiveHand: newDetectiveHand, // Применяем обновленную руку
+    detectiveHand: newDetectiveHand,
     killCount: newKillCount,
     winner,
     currentTurn: "DETECTIVE",
@@ -391,6 +384,7 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     ],
   };
 }
+
 export function setPolicePatrol(
   state: GameState,
   type: "ROW" | "COL",
@@ -407,6 +401,7 @@ export function setPolicePatrol(
     ],
   };
 }
+
 export function crackVault(state: GameState, targetId: string): GameState {
   if (state.winner || state.mode !== "SPANISH_HEIST") return state;
   if (!areAdjacent(state.board, state.killerSecretId, targetId)) return state;
@@ -570,7 +565,6 @@ export function sniperShot(state: GameState, targetId: string): GameState {
 export function robNeighbor(state: GameState, targetId: string): GameState {
   if (state.winner || state.mode !== "THIEF_HUNT") return state;
 
-  // КАНОН: Вор может обокрасть соседа ИЛИ самого себя
   const isAdjacent = areAdjacent(state.board, state.killerSecretId, targetId);
   const isSelf = targetId === state.killerSecretId;
   if (!isAdjacent && !isSelf) return state;
@@ -579,7 +573,7 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
   if (!targetChar || targetChar.isRobbed) return state;
 
   const newTrophies = (state.trophiesKiller ?? 0) + 1;
-  const isWin = newTrophies >= 25; // КАНОН: 25 сокровищ для победы
+  const isWin = newTrophies >= 25;
 
   const newBoard = state.board.map((row) =>
     row.map((c) => (c.id === targetId ? { ...c, isRobbed: true } : c)),
@@ -607,7 +601,6 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
   let isAdjacent = areAdjacent(state.board, state.detectiveSecretId, targetId);
   let isSelf = targetId === state.detectiveSecretId;
 
-  // КАНОН: В Охоте на грабителя обвинять можно и от лица Офицеров в форме
   if (state.mode === "THIEF_HUNT" && state.uniformedOfficers) {
     const isNearOfficer = state.uniformedOfficers.some((offId) =>
       areAdjacent(state.board, offId, targetId),
@@ -622,9 +615,6 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
   const targetChar = state.board.flat().find((c) => c.id === targetId);
   const targetName = targetChar?.name ?? targetId;
 
-  // ... (дальше код функции остается без изменений)
-
-  // Логика ловушки-бомбы (режим EUROPOL_VS_OPG)
   if (targetChar?.hasBomb) {
     const isDetKilled = targetId === state.detectiveSecretId;
     const newBoard = state.board.map((row) =>
@@ -649,7 +639,6 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
     };
   }
 
-  // 1. Точное обвинение: цель — преступник
   if (targetId === state.killerSecretId) {
     return {
       ...state,
@@ -663,7 +652,6 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
     };
   }
 
-  // 2. Ложное обвинение: персонаж получает алиби (isExonerated = true)
   const newBoard = state.board.map((row) =>
     row.map((c) => (c.id === targetId ? { ...c, isExonerated: true } : c)),
   );
@@ -680,6 +668,7 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
     ],
   };
 }
+
 export function exonerateFromHand(state: GameState, id: string): GameState {
   if (!state.detectiveHand.includes(id)) return state;
 
@@ -698,7 +687,6 @@ export function exonerateFromHand(state: GameState, id: string): GameState {
   const nextDeck = [...state.evidenceDeck];
   if (nextDeck.length > 0) nextHand.push(nextDeck.shift()!);
 
-  // ДОПРОС: Инспектор оправдывает подозреваемого
   const isNear = areAdjacent(state.board, state.killerSecretId, id);
 
   return {
@@ -725,7 +713,7 @@ export function disguiseKiller(state: GameState): GameState {
   if (
     state.winner ||
     state.mode === "MANIAC_VS_OPERATIVE" ||
-    state.evidenceDeck.length === 0 // Защита уже есть, но усилим логику
+    state.evidenceDeck.length === 0
   ) {
     return state;
   }
@@ -733,14 +721,12 @@ export function disguiseKiller(state: GameState): GameState {
   const nextDeck = [...state.evidenceDeck];
   const drawnId = nextDeck.shift();
 
-  if (!drawnId) return state; // Безопасный выход, если shift() вернул undefined
+  if (!drawnId) return state;
 
-  // Проверяем, жив ли вытянутый персонаж
   const drawnChar = state.board.flat().find((c) => c.id === drawnId);
   const isAlive = drawnChar?.isAlive ?? false;
 
   if (isAlive) {
-    // Успешная маскировка
     nextDeck.push(state.killerSecretId);
     return {
       ...state,
@@ -752,8 +738,6 @@ export function disguiseKiller(state: GameState): GameState {
       log: [...state.log, "Преступник успешно сменил облик и ушел в тень."],
     };
   } else {
-    // Провал маскировки (персонаж мертв)
-    // Карта уходит в сброс, личность не меняется
     return {
       ...state,
       evidenceDeck: nextDeck,
@@ -780,7 +764,6 @@ export function canCleanupBoard(board: Character[][] | Character[]): boolean {
     if (!char.isAlive) {
       foundDead = true;
     } else if (foundDead) {
-      // Живой персонаж стоит после мертвого — требуется очистка/сдвиг
       return true;
     }
   }
@@ -804,7 +787,6 @@ export function cleanupDeadCharacters(state: GameState): GameState {
   const nextDeck = [...state.evidenceDeck];
   const newCharacters: Character[] = [];
 
-  // Добираем карты из колоды улик на замену убитым
   let drawnCount = 0;
   while (
     living.length + newCharacters.length < totalCells &&
@@ -828,11 +810,9 @@ export function cleanupDeadCharacters(state: GameState): GameState {
     drawnCount++;
   }
 
-  // Если карт в колоде не хватило, оставшиеся слоты добираем из остатка мертвых
   const remainingDead = dead.slice(drawnCount);
   const reordered = [...living, ...newCharacters, ...remainingDead];
 
-  // Восстанавливаем геометрию сетки
   const updatedBoard: Character[][] = [];
   for (let r = 0; r < numRows; r++) {
     updatedBoard.push(reordered.slice(r * numCols, r * numCols + numCols));
@@ -867,7 +847,6 @@ export function captureSpy(state: GameState, targetId: string): GameState {
 
   if (!areAdjacent(state.board, mySecretId, targetId)) return state;
 
-  // Успешный захват вражеского шпиона (победа активного игрока)
   if (targetId === enemySecretId) {
     const winner: Role = isAgent1 ? "KILLER" : "DETECTIVE";
     return {
@@ -881,7 +860,6 @@ export function captureSpy(state: GameState, targetId: string): GameState {
     };
   }
 
-  // Ошибочный захват (устранение невиновного)
   const nextTrophiesKiller = isAgent1
     ? (state.trophiesKiller ?? 0) + 1
     : (state.trophiesKiller ?? 0);
@@ -891,7 +869,6 @@ export function captureSpy(state: GameState, targetId: string): GameState {
 
   let winner: Role | null = null;
 
-  // ИНВЕРСИЯ ПОБЕДЫ: если игрок устранил 2 невиновных, он дисквалифицируется, побеждает оппонент
   if (nextTrophiesKiller >= 2) winner = "DETECTIVE";
   if (nextTrophiesDetective >= 2) winner = "KILLER";
 
@@ -948,8 +925,8 @@ export function interrogateNeighbor(
     ],
   };
 }
+
 export function escapeManiac(state: GameState): GameState {
-  // Для побега нужно минимум 2 карты в колоде
   if (
     state.winner ||
     state.mode !== "MANIAC_VS_OPERATIVE" ||
@@ -961,7 +938,7 @@ export function escapeManiac(state: GameState): GameState {
   const nextDeck = [...state.evidenceDeck];
   const drawnId = nextDeck.shift();
 
-  if (!drawnId) return state; // Безопасность
+  if (!drawnId) return state;
 
   const drawnChar = state.board.flat().find((c) => c.id === drawnId);
   const isAlive = drawnChar?.isAlive ?? false;
@@ -970,7 +947,7 @@ export function escapeManiac(state: GameState): GameState {
     nextDeck.push(state.killerSecretId);
     const newVictimId = nextDeck.shift();
 
-    if (!newVictimId) return state; // Безопасность
+    if (!newVictimId) return state;
 
     return {
       ...state,
@@ -999,11 +976,11 @@ export function escapeManiac(state: GameState): GameState {
     };
   }
 }
+
 export function fastDisguise(state: GameState, handCardId: string): GameState {
   if (state.winner || state.mode !== "THIEF_HUNT") return state;
   if (!state.killerHand?.includes(handCardId)) return state;
 
-  // Меняем текущую личность на выбранную из руки
   const newHand = state.killerHand.filter((id) => id !== handCardId);
   newHand.push(state.killerSecretId);
 
@@ -1032,7 +1009,6 @@ export function swearInOfficer(
     id === oldOfficerId ? newOfficerId : id,
   );
 
-  // КАНОН: При присяге Вор бесплатно забирает 1 сокровище с поля
   const unrobbed = state.board.flat().filter((c) => !c.isRobbed);
   let newBoard = state.board;
   let newTrophies = state.trophiesKiller ?? 0;

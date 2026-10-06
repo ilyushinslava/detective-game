@@ -8,6 +8,7 @@ interface CharacterCardProps {
   isDetectiveAdjacent: boolean;
   showKillerHint: boolean;
   showDetectiveHint: boolean;
+  isUniformedOfficer?: boolean;
   onClick: () => void;
 }
 
@@ -19,6 +20,7 @@ export const CharacterCard = memo(
     isDetectiveAdjacent,
     showKillerHint,
     showDetectiveHint,
+    isUniformedOfficer,
     onClick,
   }: CharacterCardProps) => {
     const isDead = !character.isAlive;
@@ -87,6 +89,10 @@ export const CharacterCard = memo(
             {character.isShielded && <span title="Бронежилет">🛡️</span>}
             {character.hasBomb && <span title="Мина">💣</span>}
             {character.isRobbed && <span title="Ограблен">💰</span>}
+            {!isDead && isUniformedOfficer && (
+              <span title="Офицер в форме">👮</span>
+            )}{" "}
+            {/* <-- ДОБАВИТЬ ЭТУ СТРОКУ */}
           </div>
         </div>
 

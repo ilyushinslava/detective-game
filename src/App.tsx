@@ -2,6 +2,7 @@
 import type { GameModeType, OpponentType, Role } from "./types/game";
 import { GameBoard } from "./components/GameBoard";
 import { DetectiveHand } from "./components/DetectiveHand";
+import { ThiefHand } from "./components/ThiefHand";
 import { VictimList } from "./components/VictimList";
 import { RoleRevealModal } from "./components/RoleRevealModal";
 import { MainMenu } from "./components/MainMenu";
@@ -22,6 +23,7 @@ import {
   interrogateNeighbor,
   robNeighbor,
   escapeManiac,
+  fastDisguise,
 } from "./utils/gameLogic";
 import {
   getKillerAIMove,
@@ -30,10 +32,9 @@ import {
 } from "./utils/aiLogic";
 import { sounds } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
-import { MainMenu } from "./components/MainMenu";
-import { GAME_MODES } from "./components/ModeSelectModal";
 import { ActionPanel, type ActionItem } from "./components/ActionPanel";
 import { RoleCards } from "./components/RoleCards";
+
 export default function App() {
   const [activeMode, setActiveMode] = useState<GameModeType>("SKHVATKA");
   const [isLobbyOpen, setIsLobbyOpen] = useState(true);
@@ -82,8 +83,6 @@ export default function App() {
     }
   }, [gameState.winner]);
 
-  // src/App.tsx
-
   useEffect(() => {
     if (
       !hasStartedEver ||
@@ -110,7 +109,7 @@ export default function App() {
           return getDetectiveAIMove(prev);
         });
         setIsAIThinking(false);
-        setSelectedId(null); // НОВОЕ: Сбрасываем выделение игрока после хода бота
+        setSelectedId(null);
       }, 350);
 
       return () => clearTimeout(timer);
@@ -233,7 +232,7 @@ export default function App() {
       board: newBoard,
       currentTurn: nextTurn,
       lastShift: { type, index, direction },
-      lastInterrogation: null, // <-- ДОБАВИТЬ ЭТУ СТРОКУ
+      lastInterrogation: null,
       log: [...prev.log, actionText],
     }));
     setSelectedId(null);
@@ -264,6 +263,15 @@ export default function App() {
     setGameState((prev) => escapeManiac(prev));
     setSelectedId(null);
   };
+
+  const handleFastDisguise = (id: string) => {
+    if (gameState.currentTurn !== "KILLER" || !isHumanTurn) return;
+    sounds.playShift();
+    triggerHaptic("medium");
+    setGameState((prev) => fastDisguise(prev, id));
+    setSelectedId(null);
+  };
+
   const handleAccuse = () => {
     if (!selectedId || gameState.currentTurn !== "DETECTIVE" || !isHumanTurn)
       return;
@@ -550,7 +558,6 @@ export default function App() {
                 : "bg-blue-950/80 border-blue-600 text-blue-100"
           }`}
         >
-          {/* Радарная метка: статичная точка + расходящаяся импульсная волна */}
           <span className="relative flex h-2.5 w-2.5 items-center justify-center">
             <span
               className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping [animation-duration:2s] ${
@@ -675,6 +682,7 @@ export default function App() {
           </div>
         )}
 
+        {/* ИСПРАВЛЕНИЕ: Восстановлена правильная структура колонок */}
         <div className="w-full flex flex-col lg:flex-row gap-3 sm:gap-6 items-start justify-center">
           {/* Левая колонка: Игровое поле и мобильный блок ролей */}
           <div className="w-full lg:w-auto flex-1 flex flex-col items-center">
@@ -687,6 +695,7 @@ export default function App() {
                 showKillerHints={showKillerRole}
                 showDetectiveHints={showDetectiveRole}
                 lastShift={gameState.lastShift}
+                uniformedOfficerIds={gameState.uniformedOfficers}
                 onShift={handleShift}
                 onSelectCharacter={(id) =>
                   isHumanTurn &&
@@ -711,149 +720,82 @@ export default function App() {
               }
               onPeekDetectiveEnd={() => setShowDetectiveRole(false)}
             />
+          </div>
 
-            <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-blue-950/60 flex items-center justify-between">
-              <div>
-                <div className="text-[10px] font-bold text-blue-400">
-                  {role2Name}
-                </div>
-                <div className="text-[11px] font-mono font-bold text-zinc-300">
-                  {showDetectiveRole ||
-                  (gameState.opponent === "AI" &&
-                    gameState.playerRole === "DETECTIVE")
-                    ? detectiveChar?.name
-                    : "••••••••"}
-                </div>
-              </div>
+          {/* Правая колонка: Сайдбар (Десктопные роли, Действия, Карты, Протокол) */}
+          <div className="w-full lg:w-72 flex flex-col gap-3 shrink-0">
+            {/* Карточки ролей: видны только на десктопе в сайдбаре */}
+            <RoleCards
+              className="w-full hidden lg:flex flex-col gap-2"
+              role1Name={role1Name}
+              role2Name={role2Name}
+              killerNameText={killerNameText}
+              detectiveNameText={detectiveNameText}
+              canPeekKiller={canPeekKiller}
+              canPeekDetective={canPeekDetective}
+              onPeekKillerStart={() => canPeekKiller && setShowKillerRole(true)}
+              onPeekKillerEnd={() => setShowKillerRole(false)}
+              onPeekDetectiveStart={() =>
+                canPeekDetective && setShowDetectiveRole(true)
+              }
+              onPeekDetectiveEnd={() => setShowDetectiveRole(false)}
+            />
+
+            {/* Блок действий */}
+            <ActionPanel
+              actions={availableActions}
+              currentRoleName={currentRoleName}
+              isAIThinking={isAIThinking}
+            />
+
+            {/* Рука следователя */}
+            {(gameState.mode === "SKHVATKA" ||
+              gameState.mode === "MANIAC_VS_OPERATIVE") && (
+              <DetectiveHand
+                handIds={gameState.detectiveHand}
+                allCharacters={allChars}
+                isDetectiveTurn={
+                  isHumanTurn && isDetectiveTurn && !gameState.winner
+                }
+                onExonerateFromHand={handleExonerateFromHand}
+              />
+            )}
+
+            {/* Рука Вора */}
+            {gameState.mode === "THIEF_HUNT" && (
+              <ThiefHand
+                handIds={gameState.killerHand ?? []}
+                allCharacters={allChars}
+                isThiefTurn={isHumanTurn && isKillerTurn && !gameState.winner}
+                onFastDisguise={handleFastDisguise}
+              />
+            )}
+
+            {/* Протокол событий */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex-1 flex flex-col">
               <button
                 type="button"
-                onMouseDown={() =>
-                  canPeekDetective && setShowDetectiveRole(true)
-                }
-                onMouseUp={() => setShowDetectiveRole(false)}
-                onTouchStart={() =>
-                  canPeekDetective && setShowDetectiveRole(true)
-                }
-                onTouchEnd={() => setShowDetectiveRole(false)}
-                disabled={!canPeekDetective}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                  !canPeekDetective
-                    ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
-                    : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-300 border-blue-700 cursor-pointer"
+                onClick={() => setIsLogOpen(!isLogOpen)}
+                className="w-full p-2.5 flex items-center justify-between text-[11px] font-semibold text-zinc-400 bg-zinc-900 hover:bg-zinc-800/80 transition cursor-pointer shrink-0"
+              >
+                <span>Протокол событий ({gameState.log.length})</span>
+                <span className="text-xs">{isLogOpen ? "▲" : "▼"}</span>
+              </button>
+
+              <div
+                ref={logContainerRef}
+                className={`overflow-y-auto space-y-1 text-[10px] text-zinc-300 font-mono px-2.5 pb-2 transition-all ${
+                  isLogOpen ? "max-h-48" : "max-h-16 lg:max-h-48"
                 }`}
               >
-                Зажать
-              </button>
+                {gameState.log.map((entry, idx) => (
+                  <div key={idx} className="border-b border-zinc-800/60 pb-0.5">
+                    • {entry}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Правая колонка: Сайдбар (Десктопные роли, Действия, Карты, Протокол) */}
-        <div className="w-full lg:w-72 flex flex-col gap-3 shrink-0">
-          {/* Карточки ролей: видны только на десктопе в сайдбаре */}
-          <RoleCards
-            className="w-full hidden lg:flex flex-col gap-2"
-            role1Name={role1Name}
-            role2Name={role2Name}
-            killerNameText={killerNameText}
-            detectiveNameText={detectiveNameText}
-            canPeekKiller={canPeekKiller}
-            canPeekDetective={canPeekDetective}
-            onPeekKillerStart={() => canPeekKiller && setShowKillerRole(true)}
-            onPeekKillerEnd={() => setShowKillerRole(false)}
-            onPeekDetectiveStart={() =>
-              canPeekDetective && setShowDetectiveRole(true)
-            }
-            onPeekDetectiveEnd={() => setShowDetectiveRole(false)}
-          />
-          <button
-            type="button"
-            onMouseDown={() => canPeekKiller && setShowKillerRole(true)}
-            onMouseUp={() => setShowKillerRole(false)}
-            onTouchStart={() => canPeekKiller && setShowKillerRole(true)}
-            onTouchEnd={() => setShowKillerRole(false)}
-            disabled={!canPeekKiller}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-              !canPeekKiller
-                ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
-                : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-300 border-red-700 cursor-pointer"
-            }`}
-          >
-            Зажать
-          </button>
-        </div>
-
-        <div className="p-2 bg-zinc-950 rounded-lg border border-blue-950/60 flex items-center justify-between">
-          <div>
-            <div className="text-[10px] font-bold text-blue-400">
-              {role2Name}
-            </div>
-            <div className="text-[11px] font-mono font-bold text-zinc-300">
-              {showDetectiveRole ||
-              (gameState.opponent === "AI" &&
-                gameState.playerRole === "DETECTIVE")
-                ? detectiveChar?.name
-                : "••••••••"}
-            </div>
-          </div>
-          <button
-            type="button"
-            onMouseDown={() => canPeekDetective && setShowDetectiveRole(true)}
-            onMouseUp={() => setShowDetectiveRole(false)}
-            onTouchStart={() => canPeekDetective && setShowDetectiveRole(true)}
-            onTouchEnd={() => setShowDetectiveRole(false)}
-            disabled={!canPeekDetective}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-              !canPeekDetective
-                ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
-                : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-300 border-blue-700 cursor-pointer"
-            }`}
-          >
-            Зажать
-          </button>
-        </div>
-      </div>
-
-      {/* Блок действий */}
-      <ActionPanel
-        actions={availableActions}
-        currentRoleName={currentRoleName}
-        isAIThinking={isAIThinking}
-      />
-
-      {/* Рука следователя */}
-      {(gameState.mode === "SKHVATKA" ||
-        gameState.mode === "MANIAC_VS_OPERATIVE") && (
-        <DetectiveHand
-          handIds={gameState.detectiveHand}
-          allCharacters={allChars}
-          isDetectiveTurn={isHumanTurn && isDetectiveTurn && !gameState.winner}
-          onExonerateFromHand={handleExonerateFromHand}
-        />
-      )}
-
-      {/* Протокол событий */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex-1 flex flex-col">
-        <button
-          type="button"
-          onClick={() => setIsLogOpen(!isLogOpen)}
-          className="w-full p-2.5 flex items-center justify-between text-[11px] font-semibold text-zinc-400 bg-zinc-900 hover:bg-zinc-800/80 transition cursor-pointer shrink-0"
-        >
-          <span>Протокол событий ({gameState.log.length})</span>
-          <span className="text-xs">{isLogOpen ? "▲" : "▼"}</span>
-        </button>
-
-        <div
-          ref={logContainerRef}
-          className={`overflow-y-auto space-y-1 text-[10px] text-zinc-300 font-mono px-2.5 pb-2 transition-all ${
-            isLogOpen ? "max-h-48" : "max-h-16 lg:max-h-48"
-          }`}
-        >
-          {gameState.log.map((entry, idx) => (
-            <div key={idx} className="border-b border-zinc-800/60 pb-0.5">
-              • {entry}
-            </div>
-          ))}
         </div>
       </div>
     </div>

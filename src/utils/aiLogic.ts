@@ -202,29 +202,34 @@ export function getSecretServiceAIMove(state: GameState): GameState {
   const activeSpy = state.spies[state.activeSpyIndex];
   if (!activeSpy || !activeSpy.isAI) return state;
 
-  const neighbors = getAdjacentCharacters(state.board, activeSpy.secretId);
-  const selfChar = state.board.flat().find((c) => c.id === activeSpy.secretId);
+  const neighbors = getAdjacentCharacters(
+    state.board,
+    activeSpy.secretId,
+  ).filter((c) => c.isAlive);
+  const selfChar = state.board
+    .flat()
+    .find((c) => c.id === activeSpy.secretId && c.isAlive);
 
-  // Бот может поймать/допросить соседа или самого себя
-  const validTargets = [...neighbors, ...(selfChar ? [selfChar] : [])].filter(
-    (c) => c.isAlive,
-  );
-
+  const validTargets = [...neighbors, ...(selfChar ? [selfChar] : [])];
   const rand = Math.random();
 
-  if (validTargets.length > 0) {
-    if (rand < 0.4) {
-      const target =
-        validTargets[Math.floor(Math.random() * validTargets.length)];
-      return spyCatch(state, target.id);
-    } else if (rand < 0.8) {
-      const target =
-        validTargets[Math.floor(Math.random() * validTargets.length)];
-      return spyInterrogate(state, target.id);
-    }
+  // 1. Попытка поймать шпиона (40% шанс при наличии живых соседей)
+  if (validTargets.length > 0 && rand < 0.4) {
+    const target =
+      validTargets[Math.floor(Math.random() * validTargets.length)];
+    const resultState = spyCatch(state, target.id);
+    if (resultState !== state) return resultState;
   }
 
-  // Сдвиг (20% шанс или если нет целей)
+  // 2. Попытка допроса (40% шанс при наличии живых соседей)
+  if (validTargets.length > 0 && rand < 0.8) {
+    const target =
+      validTargets[Math.floor(Math.random() * validTargets.length)];
+    const resultState = spyInterrogate(state, target.id);
+    if (resultState !== state) return resultState;
+  }
+
+  // 3. Сдвиг поля (если атака/допрос не удались или выпало 20%)
   const validShifts = getAllValidShifts(
     state.board,
     state.lastShift,
@@ -253,15 +258,12 @@ export function getSecretServiceAIMove(state: GameState): GameState {
     };
   }
 
-  // ФОЛБЭК: Защита от зависания
+  // 4. Гарантированный фолбэк передачи хода (чтобы бот никогда не зависал)
   const nextIndex = (state.activeSpyIndex + 1) % state.spies.length;
   return {
     ...state,
     activeSpyIndex: nextIndex,
-    log: [
-      ...state.log,
-      `🤖 ${activeSpy.name} пропустил ход (нет доступных действий).`,
-    ],
+    log: [...state.log, `🤖 ${activeSpy.name} пропустил ход.`],
   };
 }
 

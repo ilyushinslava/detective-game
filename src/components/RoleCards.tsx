@@ -7,8 +7,10 @@ interface RoleCardsProps {
   canPeekDetective: boolean;
   onPeekKillerStart: () => void;
   onPeekKillerEnd: () => void;
+  onPeekKillerLeave?: () => void;
   onPeekDetectiveStart: () => void;
   onPeekDetectiveEnd: () => void;
+  onPeekDetectiveLeave?: () => void;
   className?: string;
 }
 
@@ -21,8 +23,10 @@ export const RoleCards = ({
   canPeekDetective,
   onPeekKillerStart,
   onPeekKillerEnd,
+  onPeekKillerLeave,
   onPeekDetectiveStart,
   onPeekDetectiveEnd,
+  onPeekDetectiveLeave,
   className = "",
 }: RoleCardsProps) => {
   return (
@@ -38,6 +42,7 @@ export const RoleCards = ({
           type="button"
           onMouseDown={onPeekKillerStart}
           onMouseUp={onPeekKillerEnd}
+          onMouseLeave={onPeekKillerLeave}
           onTouchStart={onPeekKillerStart}
           onTouchEnd={onPeekKillerEnd}
           disabled={!canPeekKiller}
@@ -62,6 +67,7 @@ export const RoleCards = ({
           type="button"
           onMouseDown={onPeekDetectiveStart}
           onMouseUp={onPeekDetectiveEnd}
+          onMouseLeave={onPeekDetectiveLeave}
           onTouchStart={onPeekDetectiveStart}
           onTouchEnd={onPeekDetectiveEnd}
           disabled={!canPeekDetective}

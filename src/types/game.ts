@@ -47,6 +47,7 @@ export interface GameState {
   mode: GameModeType;
   opponent: OpponentType;
   playerRole: Role;
+  boardSize: number;
   board: Character[][];
   currentTurn: Role;
   killerSecretId: string;
@@ -73,4 +74,63 @@ export interface GameState {
     targetName: string;
     raisedHandsPlayerNames: string[];
   } | null;
+  justCaughtSpyId?: string;
+  interrogationRadar?: { targetId: string; interrogatorIndex: number } | null;
+  isHotseatCoverOpen?: boolean;
 }
+export const SPY_COLORS = [
+  {
+    text: "text-emerald-400",
+    bg: "bg-emerald-950",
+    border: "border-emerald-500",
+    ring: "ring-emerald-500/80",
+  },
+  {
+    text: "text-amber-400",
+    bg: "bg-amber-950",
+    border: "border-amber-500",
+    ring: "ring-amber-500/80",
+  },
+  {
+    text: "text-sky-400",
+    bg: "bg-sky-950",
+    border: "border-sky-500",
+    ring: "ring-sky-500/80",
+  },
+  {
+    text: "text-purple-400",
+    bg: "bg-purple-950",
+    border: "border-purple-500",
+    ring: "ring-purple-500/80",
+  },
+  {
+    text: "text-rose-400",
+    bg: "bg-rose-950",
+    border: "border-rose-500",
+    ring: "ring-rose-500/80",
+  },
+  {
+    text: "text-lime-400",
+    bg: "bg-lime-950",
+    border: "border-lime-500",
+    ring: "ring-lime-500/80",
+  },
+  {
+    text: "text-cyan-400",
+    bg: "bg-cyan-950",
+    border: "border-cyan-500",
+    ring: "ring-cyan-500/80",
+  },
+  {
+    text: "text-orange-400",
+    bg: "bg-orange-950",
+    border: "border-orange-500",
+    ring: "ring-orange-500/80",
+  },
+  {
+    text: "text-fuchsia-400",
+    bg: "bg-fuchsia-950",
+    border: "border-fuchsia-500",
+    ring: "ring-fuchsia-500/80",
+  },
+];

@@ -10,6 +10,7 @@ export interface CharacterCardProps {
   showDetectiveHint: boolean;
   isUniformedOfficer?: boolean;
   isTargetVictim?: boolean;
+  radarRingColor?: string | null;
   onClick: () => void;
 }
 
@@ -106,6 +107,7 @@ export const CharacterCard = memo(
     showDetectiveHint,
     isUniformedOfficer,
     isTargetVictim,
+    radarRingColor,
     onClick,
   }: CharacterCardProps) => {
     const isDead = !character.isAlive;
@@ -140,7 +142,7 @@ export const CharacterCard = memo(
           showDetectiveHint && isDetectiveAdjacent
             ? "ring-1 ring-blue-500/80 border-blue-500"
             : ""
-        }`}
+        } } ${radarRingColor ? `ring-2 ${radarRingColor} animate-pulse` : ""}`}
       >
         {/* Фоновый силуэт */}
         {!character.isVault && !isDead && (

@@ -13,6 +13,7 @@ interface MainMenuProps {
     modeId: GameModeType,
     opponent: OpponentType,
     playerRole: Role,
+    playerCount?: number,
   ) => void;
   hasActiveGame: boolean;
   onResumeGame: () => void;
@@ -29,6 +30,7 @@ export const MainMenu = ({
   const [selectedMode, setSelectedMode] = useState<GameModeType>("SKHVATKA");
   const [selectedOpponent, setSelectedOpponent] = useState<OpponentType>("AI");
   const [selectedRole, setSelectedRole] = useState<Role>("DETECTIVE");
+  const [playerCount, setPlayerCount] = useState<number>(3);
 
   const [soundActive, setSoundActive] = useState<boolean>(() =>
     sounds.getEnabled(),
@@ -112,7 +114,7 @@ export const MainMenu = ({
           </div>
         </div>
 
-        {/* Тело экрана со скроллом */}
+        {/* Тело экрана */}
         <div className="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1">
           {activeTab === "MODES" && (
             <>
@@ -127,7 +129,7 @@ export const MainMenu = ({
 
               <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800 space-y-2">
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
-                  Формат дуэли:
+                  Формат матча:
                 </span>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -159,41 +161,89 @@ export const MainMenu = ({
                 </div>
               </div>
 
-              {selectedOpponent === "AI" && (
-                <div className="p-2.5 bg-zinc-950/60 rounded-xl border border-zinc-800 flex items-center justify-between text-xs">
-                  <span className="text-zinc-400 font-bold text-[11px]">
-                    Ваша роль:
-                  </span>
-                  <div className="flex gap-1.5">
-                    <button
-                      onClick={() => {
-                        triggerHaptic("light");
-                        setSelectedRole("DETECTIVE");
-                      }}
-                      className={`px-3 py-1.5 rounded-lg border font-bold text-xs cursor-pointer transition ${
-                        selectedRole === "DETECTIVE"
-                          ? "bg-blue-950 border-blue-500 text-blue-200 shadow-[0_0_10px_rgba(59,130,246,0.3)]"
-                          : "bg-zinc-900 border-zinc-800 text-zinc-500"
-                      }`}
-                    >
-                      {currentModeInfo.detectiveRoleName}
-                    </button>
-                    <button
-                      onClick={() => {
-                        triggerHaptic("light");
-                        setSelectedRole("KILLER");
-                      }}
-                      className={`px-3 py-1.5 rounded-lg border font-bold text-xs cursor-pointer transition ${
-                        selectedRole === "KILLER"
-                          ? "bg-red-950 border-red-500 text-red-200 shadow-[0_0_10px_rgba(239,68,68,0.3)]"
-                          : "bg-zinc-900 border-zinc-800 text-zinc-500"
-                      }`}
-                    >
-                      {currentModeInfo.killerRoleName}
-                    </button>
+              {/* Выбор роли для обычных дуэлей */}
+              {selectedOpponent === "AI" &&
+                selectedMode !== "SECRET_SERVICE" && (
+                  <div className="p-2.5 bg-zinc-950/60 rounded-xl border border-zinc-800 flex items-center justify-between text-xs">
+                    <span className="text-zinc-400 font-bold text-[11px]">
+                      Ваша роль:
+                    </span>
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={() => {
+                          triggerHaptic("light");
+                          setSelectedRole("DETECTIVE");
+                        }}
+                        className={`px-3 py-1.5 rounded-lg border font-bold text-xs cursor-pointer transition ${
+                          selectedRole === "DETECTIVE"
+                            ? "bg-blue-950 border-blue-500 text-blue-200 shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+                            : "bg-zinc-900 border-zinc-800 text-zinc-500"
+                        }`}
+                      >
+                        {currentModeInfo.detectiveRoleName}
+                      </button>
+                      <button
+                        onClick={() => {
+                          triggerHaptic("light");
+                          setSelectedRole("KILLER");
+                        }}
+                        className={`px-3 py-1.5 rounded-lg border font-bold text-xs cursor-pointer transition ${
+                          selectedRole === "KILLER"
+                            ? "bg-red-950 border-red-500 text-red-200 shadow-[0_0_10px_rgba(239,68,68,0.3)]"
+                            : "bg-zinc-900 border-zinc-800 text-zinc-500"
+                        }`}
+                      >
+                        {currentModeInfo.killerRoleName}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+
+              {/* Выбор количества участников для Секретной службы */}
+              {selectedMode === "SECRET_SERVICE" &&
+                selectedOpponent === "AI" && (
+                  <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800 space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-300 font-bold text-[11px] block">
+                        Участники (Вы + Боты):
+                      </span>
+                      <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                        Поле:{" "}
+                        {playerCount >= 7
+                          ? "7×7 (49 карт)"
+                          : playerCount >= 5
+                            ? "6×6 (36 карт)"
+                            : "5×5 (25 карт)"}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {[3, 4, 5, 6, 7, 8, 9].map((num) => {
+                        const isSelected = playerCount === num;
+                        const sizeLabel =
+                          num >= 7 ? "7x7" : num >= 5 ? "6x6" : "5x5";
+                        return (
+                          <button
+                            key={num}
+                            onClick={() => {
+                              triggerHaptic("light");
+                              setPlayerCount(num);
+                            }}
+                            className={`py-1.5 px-2 rounded-lg border font-bold text-xs cursor-pointer transition flex flex-col items-center justify-center ${
+                              isSelected
+                                ? "bg-emerald-950 border-emerald-500 text-emerald-200 shadow-[0_0_10px_rgba(16,185,129,0.3)] font-black"
+                                : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                            }`}
+                          >
+                            <span>{num} игр.</span>
+                            <span className="text-[9px] font-mono opacity-60">
+                              {sizeLabel}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
               <div className="space-y-2">
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
@@ -232,7 +282,13 @@ export const MainMenu = ({
                                 : "bg-zinc-800 text-zinc-400 border-zinc-700"
                             }`}
                           >
-                            {isAvailable ? "Дуэль 1х1" : "🔒 Скоро"}
+                            {mode.id === "SECRET_SERVICE"
+                              ? selectedOpponent === "PVP"
+                                ? "Дуэль 1х1"
+                                : "3–9 игроков"
+                              : isAvailable
+                                ? "Дуэль 1х1"
+                                : "🔒 Скоро"}
                           </span>
                         </div>
                         <span className="text-[10px] text-amber-400 font-mono font-bold shrink-0">
@@ -262,8 +318,7 @@ export const MainMenu = ({
                 </p>
                 <p className="text-zinc-300 text-[11px] leading-relaxed">
                   • <b>ГРАНИЦЫ ПОЛЯ:</b> Действия атаки, допроса и обвинения{" "}
-                  <b>не распространяются</b> за пределы поля! Если персонаж
-                  загнан в угол, у него доступно только 3 соседа.
+                  <b>не распространяются</b> за пределы поля!
                 </p>
               </div>
 
@@ -272,8 +327,7 @@ export const MainMenu = ({
                   2. Правила сдвига и перемещения
                 </span>
                 <p className="text-zinc-300 text-[11px] leading-relaxed">
-                  • Вы можете сдвинуть <b>любой ряд или колонку</b> (не
-                  обязательно тот, где находитесь вы).
+                  • Вы можете сдвинуть <b>любой ряд или колонку</b> поля.
                 </p>
                 <p className="text-zinc-300 text-[11px] leading-relaxed">
                   • Вышедшая за границу карта переносится на противоположный
@@ -286,25 +340,17 @@ export const MainMenu = ({
               </div>
 
               <div className="p-3 bg-zinc-950 rounded-xl border border-zinc-800 space-y-1.5">
-                <span className="font-black text-red-400 block text-xs uppercase tracking-wider">
-                  3. Где действуют действия (Зачем и как)
+                <span className="font-black text-emerald-400 block text-xs uppercase tracking-wider">
+                  3. Режим «Секретная служба»
                 </span>
                 <p className="text-zinc-300 text-[11px] leading-relaxed">
-                  • <b>Ликвидация / Убийство:</b> Применяется{" "}
-                  <b>только к живым соседям</b> вашей тайной роли.
+                  • Масштаб поля зависит от стола: <b>3–4 игрока</b> — сетка
+                  5×5; <b>5–6 игроков</b> — сетка 6×6; <b>7–9 игроков</b> —
+                  сетка 7×7.
                 </p>
                 <p className="text-zinc-300 text-[11px] leading-relaxed">
-                  • <b>Обвинение:</b> Применяется <b>только к соседям</b>{" "}
-                  Инспектора (или намеренно на самого себя). При ошибке персонаж
-                  получает алиби и становится неприкосновенным.
-                </p>
-                <p className="text-zinc-300 text-[11px] leading-relaxed">
-                  • <b>Оправдание из досье:</b> Действует из руки на любого
-                  живого подозреваемого на поле.
-                </p>
-                <p className="text-zinc-300 text-[11px] leading-relaxed">
-                  • <b>Допрос:</b> Свидетель отвечает только «Да» или «Нет» на
-                  вопрос, находится ли противник в числе его соседей.
+                  • Победа достигается набором целевых трофеев (3 или 4) через
+                  раскрытие резидентов соперников.
                 </p>
               </div>
             </div>
@@ -362,13 +408,19 @@ export const MainMenu = ({
             </div>
           )}
         </div>
-        {/* ЗАФИКСИРОВАННЫЙ НИЗ: Кнопка запуска всегда на виду без скролла */}
+
+        {/* Закрепленная кнопка старта */}
         {activeTab === "MODES" && (
           <div className="p-3 sm:p-4 bg-zinc-950/95 border-t border-zinc-800 shrink-0 backdrop-blur z-20">
             <button
               onClick={() => {
                 triggerHaptic("heavy");
-                onStartGame(selectedMode, selectedOpponent, selectedRole);
+                onStartGame(
+                  selectedMode,
+                  selectedOpponent,
+                  selectedRole,
+                  playerCount,
+                );
               }}
               className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-zinc-950 font-black text-xs uppercase tracking-widest rounded-xl transition cursor-pointer shadow-lg flex items-center justify-center gap-2"
             >

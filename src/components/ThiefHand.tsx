@@ -14,16 +14,26 @@ export const ThiefHand = ({
 }: ThiefHandProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  // В чужой ход маски принудительно скрыты
   const canView = isThiefTurn;
   const showContent = isOpen && canView;
+
+  // Безопасный список карт
+  const validCards = (handIds ?? []).map((id) => {
+    const char = ALL_CHARACTERS.find((c) => c.id === id);
+    const num = id?.replace("c", "").padStart(2, "0") ?? "--";
+    return {
+      id,
+      name: char?.name ?? id ?? "Неизвестный",
+      num,
+    };
+  });
 
   return (
     <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 shadow-lg">
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-xs font-black uppercase tracking-wider text-amber-500">
-            Маски Вора ({handIds.length} карт)
+          <span className="text-xs font-black uppercase tracking-wider text-amber-400">
+            Маски вора ({validCards.length} карт)
           </span>
           {!canView && (
             <span className="block text-[10px] text-zinc-500 font-mono">
@@ -50,40 +60,29 @@ export const ThiefHand = ({
           <div className="text-[10px] text-zinc-400 mb-2 font-mono">
             Нажмите на карту, чтобы применить быструю маскировку:
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            {handIds.map((id) => {
-              const char = ALL_CHARACTERS.find((c) => c.id === id);
-
-              // Строгая защита от undefined/null
-              const charId = char?.id ?? id ?? "";
-              const displayId = charId
-                ? `#${charId.replace("c", "").padStart(2, "0")}`
-                : "#--";
-              const displayName = char?.name ?? id ?? "Неизвестный";
-
-              return (
-                <div
-                  key={id}
-                  onClick={() => onFastDisguise(id)}
-                  className="p-2.5 rounded-xl bg-zinc-950 hover:bg-amber-950/40 border border-zinc-800 hover:border-amber-500/80 cursor-pointer transition flex flex-col justify-between min-h-[90px] shadow select-none group"
-                >
-                  <div className="flex items-center justify-between text-[9px] font-mono text-zinc-500">
-                    <span>{displayId}</span>
-                    <span className="text-amber-500 font-bold uppercase tracking-wider text-[8px] px-1 py-0.2 bg-amber-950 rounded border border-amber-900">
-                      Маска
-                    </span>
-                  </div>
-
-                  <div className="text-xs sm:text-sm font-black text-zinc-100 group-hover:text-amber-200 leading-snug my-1.5">
-                    {displayName}
-                  </div>
-
-                  <div className="text-[9px] text-zinc-400 group-hover:text-zinc-300 font-semibold">
-                    Сменить маску →
-                  </div>
+          <div className="grid grid-cols-2 gap-2">
+            {validCards.map((card) => (
+              <div
+                key={card.id}
+                onClick={() => onFastDisguise(card.id)}
+                className="p-2 rounded-xl bg-zinc-950 hover:bg-amber-950/30 border border-zinc-800 hover:border-amber-500/80 cursor-pointer transition flex flex-col justify-between min-h-[82px] shadow select-none group"
+              >
+                <div className="flex items-center justify-between text-[9px] font-mono text-zinc-500">
+                  <span>#{card.num}</span>
+                  <span className="text-amber-400 font-bold uppercase tracking-wider text-[8px] px-1 py-0.5 bg-amber-950 rounded border border-amber-900">
+                    Маска
+                  </span>
                 </div>
-              );
-            })}
+
+                <div className="text-xs font-black text-zinc-100 group-hover:text-amber-200 leading-tight my-1 break-words">
+                  {card.name}
+                </div>
+
+                <div className="text-[9px] text-zinc-400 group-hover:text-zinc-200 font-semibold">
+                  Сменить маску →
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

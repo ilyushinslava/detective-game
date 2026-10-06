@@ -6,7 +6,7 @@
   Role,
   LastShift,
 } from "../types/game";
-
+import { ALL_CHARACTERS } from "../constants/characters";
 export const CHARACTERS_DATA: Omit<Character, "isAlive" | "isExonerated">[] = [
   { id: "c1", name: "Артур Блэк" },
   { id: "c2", name: "Мария Козлова" },
@@ -112,7 +112,7 @@ export function createInitialState(
   opponent: OpponentType,
   playerRole: Role = "DETECTIVE",
 ): GameState {
-  const shuffledCharacters = shuffle(CHARACTERS_DATA);
+  const shuffledCharacters = shuffle(ALL_CHARACTERS);
   const boardCharacters = shuffledCharacters.slice(0, 25).map((c) => ({
     ...c,
     isAlive: true,
@@ -176,11 +176,30 @@ export function createInitialState(
       .map((c) => c.id);
     victimList = shuffle(potentialVictims).slice(0, 4);
   } else if (mode === "THIEF_HUNT") {
-    const safeCandidates = shuffle(validDetectiveCandidates);
-    detectiveSecretId = safeCandidates[0].id;
+    // Вор выбирается с поля
+    const thiefCandidate =
+      candidatePool[Math.floor(Math.random() * candidatePool.length)];
+    killerSecretId = thiefCandidate.id;
 
-    killerHand = [deck.shift()!, deck.shift()!, deck.shift()!];
-    uniformedOfficers = [deck.shift()!, deck.shift()!];
+    // Полицейский выбирается с поля (не сосед Вора)
+    const thiefNeighbors = getAdjacentCharacters(board, killerSecretId).map(
+      (c) => c.id,
+    );
+    const validCopCandidates = candidatePool.filter(
+      (c) => c.id !== killerSecretId && !thiefNeighbors.includes(c.id),
+    );
+    const copCandidate =
+      validCopCandidates.length > 0
+        ? validCopCandidates[
+            Math.floor(Math.random() * validCopCandidates.length)
+          ]
+        : candidatePool.find((c) => c.id !== killerSecretId)!;
+
+    detectiveSecretId = copCandidate.id;
+
+    // Маски для Вора (3 карты) и Офицеры (2 карты) берутся строго из колоды deck
+    killerHand = [deck.shift()!, deck.shift()!, deck.shift()!].filter(Boolean);
+    uniformedOfficers = [deck.shift()!, deck.shift()!].filter(Boolean);
   } else {
     const chosenDet =
       validDetectiveCandidates[

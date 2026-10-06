@@ -648,41 +648,6 @@ export default function App() {
           />
         )}
 
-        {gameState.lastInterrogation && !gameState.winner && (
-          <div
-            className={`w-full mb-2 p-3 rounded-xl border flex items-center justify-between shadow transition-all ${
-              gameState.lastInterrogation.isNear
-                ? "bg-red-950/40 border-red-800/80 text-red-200"
-                : "bg-zinc-900 border-zinc-700 text-zinc-300"
-            }`}
-          >
-            <div className="text-xs">
-              <span className="font-bold text-zinc-400 block text-[10px] uppercase mb-0.5">
-                Свидетельские показания (
-                {gameState.lastInterrogation.targetName})
-              </span>
-              <span className="font-semibold text-zinc-200">
-                {gameState.mode === "SECRET_SERVICE"
-                  ? "Вражеский шпион находится рядом со свидетелем?"
-                  : gameState.lastInterrogation.interrogator === "DETECTIVE"
-                    ? "Преступник рядом с алиби?"
-                    : "Законник рядом с жертвой?"}
-              </span>
-            </div>
-
-            <div
-              className={`px-3 py-1.5 rounded-lg text-xs font-black tracking-wider uppercase border select-none ${
-                gameState.lastInterrogation.isNear
-                  ? "bg-red-950 text-red-300 border-red-700"
-                  : "bg-zinc-950 text-zinc-300 border-zinc-800"
-              }`}
-            >
-              {gameState.lastInterrogation.isNear ? "● ДА, РЯДОМ" : "○ НЕТ"}
-            </div>
-          </div>
-        )}
-
-        {/* ИСПРАВЛЕНИЕ: Восстановлена правильная структура колонок */}
         <div className="w-full flex flex-col lg:flex-row gap-3 sm:gap-6 items-start justify-center">
           {/* Левая колонка: Игровое поле и мобильный блок ролей */}
           <div className="w-full lg:w-auto flex-1 flex flex-col items-center">
@@ -741,6 +706,45 @@ export default function App() {
               onPeekDetectiveEnd={() => setShowDetectiveRole(false)}
             />
 
+            {/* Показания свидетелей (Допрос) */}
+            {gameState.lastInterrogation && !gameState.winner && (
+              <div
+                className={`w-full p-2.5 rounded-xl border flex items-center justify-between shadow-sm transition-all ${
+                  gameState.lastInterrogation.isNear
+                    ? "bg-red-950/20 border-red-900/50"
+                    : "bg-zinc-900/50 border-zinc-800"
+                }`}
+              >
+                <div className="text-[10px] leading-tight flex-1 pr-2">
+                  <span className="font-bold text-zinc-500 uppercase mb-0.5 block">
+                    Показания ({gameState.lastInterrogation.targetName})
+                  </span>
+                  <span className="font-semibold text-zinc-300">
+                    {gameState.mode === "SECRET_SERVICE"
+                      ? "Враг рядом со свидетелем?"
+                      : gameState.lastInterrogation.interrogator === "DETECTIVE"
+                        ? "Преступник рядом с алиби?"
+                        : "Законник рядом с жертвой?"}
+                  </span>
+                </div>
+
+                <div
+                  className={`shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-md text-[9px] font-black tracking-wider uppercase border ${
+                    gameState.lastInterrogation.isNear
+                      ? "bg-red-950/40 text-red-400 border-red-900/50"
+                      : "bg-blue-950/20 text-blue-400 border-blue-900/30"
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${gameState.lastInterrogation.isNear ? "bg-red-500 animate-pulse" : "bg-blue-500"}`}
+                  />
+                  {gameState.lastInterrogation.isNear
+                    ? "Враг рядом"
+                    : "Вне зоны"}
+                </div>
+              </div>
+            )}
+
             {/* Блок действий */}
             <ActionPanel
               actions={availableActions}
@@ -765,7 +769,6 @@ export default function App() {
             {gameState.mode === "THIEF_HUNT" && (
               <ThiefHand
                 handIds={gameState.killerHand ?? []}
-                allCharacters={allChars}
                 isThiefTurn={isHumanTurn && isKillerTurn && !gameState.winner}
                 onFastDisguise={handleFastDisguise}
               />

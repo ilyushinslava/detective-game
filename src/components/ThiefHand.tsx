@@ -1,16 +1,14 @@
 import { useState } from "react";
-import type { Character } from "../types/game";
+import { ALL_CHARACTERS } from "../constants/characters";
 
 interface ThiefHandProps {
   handIds: string[];
-  allCharacters: Character[];
   isThiefTurn: boolean;
   onFastDisguise: (id: string) => void;
 }
 
 export const ThiefHand = ({
   handIds,
-  allCharacters,
   isThiefTurn,
   onFastDisguise,
 }: ThiefHandProps) => {
@@ -54,7 +52,7 @@ export const ThiefHand = ({
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {handIds.map((id) => {
-              const char = allCharacters.find((c) => c.id === id);
+              const char = ALL_CHARACTERS.find((c) => c.id === id);
               return (
                 <div
                   key={id}
@@ -62,7 +60,7 @@ export const ThiefHand = ({
                   className="p-2.5 rounded-xl bg-zinc-950 hover:bg-amber-950/40 border border-zinc-800 hover:border-amber-500/80 cursor-pointer transition flex flex-col justify-between min-h-[90px] shadow select-none group"
                 >
                   <div className="flex items-center justify-between text-[9px] font-mono text-zinc-500">
-                    <span>#{id}</span>
+                    <span>#{id.replace("c", "").padStart(2, "0")}</span>
                     <span className="text-amber-500 font-bold uppercase tracking-wider text-[8px] px-1 py-0.2 bg-amber-950 rounded border border-amber-900">
                       Маска
                     </span>

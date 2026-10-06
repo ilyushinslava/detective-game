@@ -176,11 +176,9 @@ export function createInitialState(
       .map((c) => c.id);
     victimList = shuffle(potentialVictims).slice(0, 4);
   } else if (mode === "THIEF_HUNT") {
-    // ИСПРАВЛЕНИЕ: Тайные личности Грабителя и Полиции выбираются с поля
     const safeCandidates = shuffle(validDetectiveCandidates);
     detectiveSecretId = safeCandidates[0].id;
 
-    // Из колоды берутся только маски и офицеры в форме
     killerHand = [deck.shift()!, deck.shift()!, deck.shift()!];
     uniformedOfficers = [deck.shift()!, deck.shift()!];
   } else {
@@ -573,7 +571,7 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
   if (!targetChar || targetChar.isRobbed) return state;
 
   const newTrophies = (state.trophiesKiller ?? 0) + 1;
-  const isWin = newTrophies >= 25;
+  const isWin = newTrophies >= 5;
 
   const newBoard = state.board.map((row) =>
     row.map((c) => (c.id === targetId ? { ...c, isRobbed: true } : c)),
@@ -588,7 +586,7 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
     blockedShift: null,
     log: [
       ...state.log,
-      `Вор похитил сокровище у ${targetChar.name}! Добыча: ${newTrophies}/25.${
+      `Вор похитил сокровище у ${targetChar.name}! Добыча: ${newTrophies}/5.${
         isWin ? " Вор украл всё и победил!" : ""
       }`,
     ],
@@ -1020,7 +1018,7 @@ export function swearInOfficer(
       row.map((c) => (c.id === randomTarget.id ? { ...c, isRobbed: true } : c)),
     );
     newTrophies += 1;
-    isWin = newTrophies >= 25;
+    isWin = newTrophies >= 5;
   }
 
   return {
@@ -1034,7 +1032,7 @@ export function swearInOfficer(
     blockedShift: null,
     log: [
       ...state.log,
-      `Полиция призвала к присяге нового офицера. Пользуясь суматохой, Вор украл сокровище! Добыча: ${newTrophies}/25.`,
+      `Полиция призвала к присяге нового офицера. Пользуясь суматохой, Вор украл сокровище! Добыча: ${newTrophies}/5.`,
     ],
   };
 }

@@ -108,6 +108,7 @@ export default function App() {
   const [secondsElapsed, setSecondsElapsed] = useState(0);
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [isAIThinking, setIsAIThinking] = useState(false);
+  const [errorCardId, setErrorCardId] = useState<string | null>(null);
 
   const logContainerRef = useRef<HTMLDivElement>(null);
 
@@ -132,9 +133,42 @@ export default function App() {
     };
   }, [hasStartedEver, isIntroPhase, gameState.winner]);
 
+  /* ДОБАВЛЕНО: Проверка лимита ходов */
+  useEffect(() => {
+    // В Секретной службе лимит ходов не применяется
+    if (gameState.mode === "SECRET_SERVICE") return;
+
+    if (gameState.maxTurns && gameState.maxTurns > 0 && !gameState.winner) {
+      const currentTurns = gameState.log.length - 2;
+      if (currentTurns >= gameState.maxTurns) {
+        setGameState((prev) => {
+          let lawName = "Закона";
+          if (prev.mode === "SKHVATKA") lawName = "Инспектора";
+          else if (prev.mode === "MANIAC_VS_OPERATIVE")
+            lawName = "Оперативника";
+          else if (prev.mode === "THIEF_HUNT") lawName = "Полиции";
+
+          return {
+            ...prev,
+            winner: "DETECTIVE",
+            log: [
+              ...prev.log,
+              `⏳ Время вышло! Лимит в ${prev.maxTurns} ходов исчерпан. Победа ${lawName}!`,
+            ],
+          };
+        });
+      }
+    }
+  }, [
+    gameState.log.length,
+    gameState.maxTurns,
+    gameState.winner,
+    gameState.mode,
+  ]);
+
   useEffect(() => {
     if (gameState.winner) {
-      sounds.playExplosion();
+      sounds.playVictory();
       triggerHaptic("success");
     }
   }, [gameState.winner]);
@@ -295,16 +329,29 @@ export default function App() {
     opponent: OpponentType,
     playerRole: Role,
     playerCount: number = 3,
+    targetTrophies: number = 3,
+    maxTurns: number = 16,
   ) => {
     setActiveMode(modeId);
-    setGameState(createInitialState(modeId, opponent, playerRole, playerCount));
+    setGameState(
+      createInitialState(
+        modeId,
+        opponent,
+        playerRole,
+        playerCount,
+        targetTrophies,
+        maxTurns,
+      ),
+    );
     setSelectedId(null);
+    setIsRevealConfirmed(false);
     setShowKillerRole(false);
     setShowDetectiveRole(false);
-    setSecondsElapsed(0);
+    setShowSpyP1Role(false);
+    setShowSpyP2Role(false);
+    setIsIntroPhase(false);
     setIsLobbyOpen(false);
-    setHasStartedEver(true);
-    setIsIntroPhase(true);
+    setSecondsElapsed(0);
   };
 
   const handleResumeGame = () => {
@@ -396,8 +443,19 @@ export default function App() {
     const targetChar = gameState.board.flat().find((c) => c.id === selectedId);
     if (!targetChar || targetChar.isDead) return;
 
-    sounds.playAccuse();
-    triggerHaptic("medium");
+    // Проверка на промах
+    const isMiss =
+      selectedId !== gameState.killerSecretId && !targetChar.hasBomb;
+    if (isMiss) {
+      sounds.playBuzzer();
+      triggerHaptic("error");
+      setErrorCardId(selectedId);
+      setTimeout(() => setErrorCardId(null), 500);
+    } else {
+      sounds.playAccuse();
+      triggerHaptic("medium");
+    }
+
     setGameState((prev) => accuseCharacter(prev, selectedId));
     setSelectedId(null);
   };
@@ -430,8 +488,23 @@ export default function App() {
   const handleCaptureSpy = () => {
     if (!selectedId || gameState.mode !== "SECRET_SERVICE" || !isHumanTurn)
       return;
-    sounds.playAccuse();
-    triggerHaptic("medium");
+
+    // Проверка на промах
+    const activeSpy = gameState.spies![gameState.activeSpyIndex ?? 0];
+    const isMiss = !gameState.spies!.some(
+      (s) => s.id !== activeSpy.id && s.secretId === selectedId,
+    );
+
+    if (isMiss) {
+      sounds.playBuzzer();
+      triggerHaptic("error");
+      setErrorCardId(selectedId);
+      setTimeout(() => setErrorCardId(null), 500);
+    } else {
+      sounds.playAccuse();
+      triggerHaptic("medium");
+    }
+
     setGameState((prev) => {
       const next = spyCatch(prev, selectedId);
       return {
@@ -446,7 +519,7 @@ export default function App() {
   const handleInterrogateSpy = () => {
     if (!selectedId || gameState.mode !== "SECRET_SERVICE" || !isHumanTurn)
       return;
-    sounds.playShift();
+    sounds.playRadar();
     triggerHaptic("light");
     setGameState((prev) => {
       const next = spyInterrogate(prev, selectedId);
@@ -464,6 +537,8 @@ export default function App() {
       gameState.opponent,
       gameState.playerRole,
       gameState.spies?.length ?? 3,
+      gameState.spyTargetTrophies ?? 3,
+      gameState.maxTurns ?? 16,
     );
   };
 
@@ -664,11 +739,10 @@ export default function App() {
       {isLobbyOpen && (
         <MainMenu
           onStartGame={handleStartNewGame}
-          hasActiveGame={hasStartedEver}
+          hasActiveGame={!gameState.winner && gameState.log.length > 2}
           onResumeGame={handleResumeGame}
         />
       )}
-
       {isIntroPhase && !isLobbyOpen && (
         <RoleRevealModal
           mode={gameState.mode}
@@ -698,9 +772,10 @@ export default function App() {
           onComplete={() => setIsIntroPhase(false)}
         />
       )}
-
       {/* Двухуровневая модалка смены прикрытия для PVP */}
       {gameState.justCaughtSpyId &&
+        !gameState.winner && // ДОБАВЛЕНО
+        !isLobbyOpen && // ДОБАВЛЕНО
         gameState.spies?.find((s) => s.id === gameState.justCaughtSpyId)
           ?.isAI === false && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4 select-none">
@@ -773,7 +848,6 @@ export default function App() {
             )}
           </div>
         )}
-
       <div className="sticky top-0 z-40 w-full bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800 px-2 sm:px-4 pt-[max(0.5rem,env(safe-area-inset-top))] pb-1.5 sm:py-2 flex items-center justify-between shadow-xl">
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <button
@@ -826,11 +900,10 @@ export default function App() {
           Заново
         </button>
       </div>
-
       <div className="w-full max-w-5xl p-2 sm:p-4 lg:p-6 flex flex-col items-center flex-1">
         <div className="w-full flex items-center justify-between text-[11px] text-zinc-400 mb-2 px-1">
           {gameState.mode === "SECRET_SERVICE" ? (
-            <div className="flex items-center gap-3 overflow-x-auto whitespace-nowrap pb-1">
+            <div className="flex flex-wrap items-center gap-2 pb-1 pr-2">
               {gameState.spies?.map((spy, idx) => {
                 const color = SPY_COLORS[idx % SPY_COLORS.length];
                 return (
@@ -875,23 +948,6 @@ export default function App() {
           </div>
         </div>
 
-        {gameState.winner && (
-          <div className="w-full mb-3 p-3 rounded-xl text-center font-bold text-sm sm:text-lg border bg-zinc-900 shadow-xl border-amber-500 text-amber-300">
-            Игра окончена! Победил{" "}
-            {gameState.mode === "SECRET_SERVICE"
-              ? (gameState.spies?.find(
-                  (s) => s.trophies >= (gameState.spyTargetTrophies ?? 3),
-                )?.name ?? "Шпион")
-              : gameState.winner === "KILLER"
-                ? role1Name
-                : role2Name}
-            !
-            <div className="text-xs text-zinc-400 font-normal font-mono mt-1">
-              Время операции: {formatTimer(secondsElapsed)}
-            </div>
-          </div>
-        )}
-
         {gameState.mode === "MANIAC_VS_OPERATIVE" && (
           <VictimList
             victimIds={gameState.victimList}
@@ -924,10 +980,11 @@ export default function App() {
                 targetVictimId={
                   gameState.mode === "MANIAC_VS_OPERATIVE"
                     ? gameState.victimList[0]
-                    : null
+                    : (gameState.interrogationRadar?.targetId ?? null)
                 }
                 radarCellIds={radarCellIds}
                 radarColorClass={radarColorClass}
+                errorCardId={errorCardId} // ДОБАВЛЕНО
                 onShift={handleShift}
                 onSelectCharacter={(id) =>
                   isHumanTurn &&
@@ -1286,6 +1343,110 @@ export default function App() {
             </div>
           </div>
         )}
+
+      {/* Экран итогов матча (Game Over Modal) */}
+      {gameState.winner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none">
+          <div className="w-full max-w-md bg-zinc-900 border border-amber-500/50 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
+            <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center text-4xl mb-4 shadow-[0_0_20px_rgba(245,158,11,0.4)]">
+              🏆
+            </div>
+            <span className="text-xs font-bold text-amber-500 uppercase tracking-widest block mb-1">
+              Операция завершена
+            </span>
+            <h2 className="text-2xl font-black text-zinc-100 mb-4">
+              Победил:{" "}
+              {gameState.mode === "SECRET_SERVICE"
+                ? (gameState.spies?.find(
+                    (s) => s.trophies >= (gameState.spyTargetTrophies ?? 3),
+                  )?.name ?? "Шпион")
+                : gameState.winner === "KILLER"
+                  ? role1Name
+                  : role2Name}
+            </h2>
+
+            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-3 flex flex-col items-center">
+              <span className="text-[10px] text-zinc-500 uppercase font-bold">
+                {gameState.mode === "SECRET_SERVICE"
+                  ? "Всего ходов"
+                  : gameState.mode === "THIEF_HUNT"
+                    ? "Ходов / Краж"
+                    : "Ходов / Жертв"}
+              </span>
+              <span className="text-lg font-mono font-black text-zinc-200">
+                {gameState.mode === "SECRET_SERVICE"
+                  ? Math.max(1, gameState.log.length - 1)
+                  : `${Math.max(1, gameState.log.length - 1)} / ${gameState.mode === "THIEF_HUNT" ? (gameState.trophiesKiller ?? 0) : gameState.killCount}`}
+              </span>
+            </div>
+
+            <div className="w-full text-left mb-6">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1 mb-2 block">
+                Раскрытие личностей:
+              </span>
+              <div className="space-y-2">
+                {gameState.mode === "SECRET_SERVICE" ? (
+                  gameState.spies?.map((spy) => (
+                    <div
+                      key={spy.id}
+                      className="flex items-center justify-between bg-zinc-950 p-2.5 rounded-lg border border-zinc-800"
+                    >
+                      <span className="text-xs font-bold text-zinc-300">
+                        {spy.name}
+                      </span>
+                      <span className="text-xs font-black text-emerald-400">
+                        {allChars.find((c) => c.id === spy.secretId)?.name}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between bg-zinc-950 p-2.5 rounded-lg border border-red-900/30">
+                      <span className="text-xs font-bold text-red-400">
+                        {role1Name}
+                      </span>
+                      <span className="text-xs font-black text-zinc-200">
+                        {killerChar?.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between bg-zinc-950 p-2.5 rounded-lg border border-blue-900/30">
+                      <span className="text-xs font-bold text-blue-400">
+                        {role2Name}
+                      </span>
+                      <span className="text-xs font-black text-zinc-200">
+                        {detectiveChar?.name}
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="w-full flex gap-3">
+              <button
+                onClick={() => {
+                  setIsLobbyOpen(true);
+                  setGameState((prev) => ({
+                    ...prev,
+                    winner: null,
+                    justCaughtSpyId: undefined,
+                  })); // ДОБАВЛЕНО
+                  setIsRevealConfirmed(false); // ДОБАВЛЕНО
+                }}
+                className="flex-1 py-3.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
+              >
+                В меню ☰
+              </button>
+              <button
+                onClick={handleReset}
+                className="flex-1 py-3.5 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg"
+              >
+                Реванш ↻
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

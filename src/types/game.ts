@@ -69,6 +69,7 @@ export interface GameState {
   spies?: SpyPlayer[];
   activeSpyIndex?: number;
   spyTargetTrophies?: number;
+  maxTurns?: number;
   lastSpyInterrogation?: {
     interrogatorName: string;
     targetName: string;

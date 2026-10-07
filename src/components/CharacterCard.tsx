@@ -1,4 +1,5 @@
 ﻿import { memo } from "react";
+import { motion } from "framer-motion";
 import type { Character } from "../types/game";
 
 export interface CharacterCardProps {
@@ -11,6 +12,8 @@ export interface CharacterCardProps {
   isUniformedOfficer?: boolean;
   isTargetVictim?: boolean;
   radarRingColor?: string | null;
+  isRadarCenter?: boolean;
+  isError?: boolean;
   onClick: () => void;
 }
 
@@ -21,7 +24,7 @@ const renderSilhouette = (id: string) => {
 
   switch (variant) {
     case 0:
-      // Детектив / Гангстер в шляпе
+      // Детектив /
       return (
         <svg
           viewBox="0 0 120 120"
@@ -109,27 +112,37 @@ export const CharacterCard = memo(
     isTargetVictim,
     radarRingColor,
     onClick,
+    isRadarCenter,
+    isError = false,
   }: CharacterCardProps) => {
     const isDead = !character.isAlive;
     const isExonerated = character.isExonerated && !isDead;
 
     return (
-      <div
+      <motion.div
         onClick={onClick}
+        animate={
+          isError
+            ? { rotate: [-4, 4, -4, 4, 0], scale: [1, 1.05, 0.95, 1] }
+            : {}
+        }
+        transition={{ duration: 0.4 }}
         className={`relative w-full aspect-square rounded-md sm:rounded-xl p-0.5 sm:p-1.5 flex flex-col justify-between border select-none transition-all duration-150 cursor-pointer overflow-hidden ${
-          character.isVault
-            ? character.isVaultCracked
-              ? "bg-amber-950/40 border-amber-500 shadow-[inset_0_0_12px_rgba(245,158,11,0.25)]"
-              : character.isVaultLocked
-                ? "bg-red-950/40 border-red-700/80"
-                : "bg-zinc-900 border-amber-600/60"
-            : isDead
-              ? "bg-zinc-950/95 border-zinc-900 opacity-50 shadow-inner"
-              : isTargetVictim
-                ? "bg-red-950/30 border-red-600 shadow-[0_0_12px_rgba(220,38,38,0.35)] animate-pulse"
-                : isExonerated
-                  ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
-                  : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
+          isError
+            ? "bg-zinc-800/90 border-zinc-500 ring-2 ring-zinc-500/50 shadow-[0_0_12px_rgba(113,113,122,0.4)] z-30"
+            : character.isVault
+              ? character.isVaultCracked
+                ? "bg-amber-950/40 border-amber-500 shadow-[inset_0_0_12px_rgba(245,158,11,0.25)]"
+                : character.isVaultLocked
+                  ? "bg-red-950/40 border-red-700/80"
+                  : "bg-zinc-900 border-amber-600/60"
+              : isDead
+                ? "bg-zinc-950/95 border-zinc-900 opacity-50 shadow-inner"
+                : isTargetVictim
+                  ? "bg-red-950/30 border-red-600 shadow-[0_0_12px_rgba(220,38,38,0.35)] animate-pulse"
+                  : isExonerated
+                    ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
+                    : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
         } ${
           isSelected
             ? "ring-1 sm:ring-2 ring-amber-400 border-amber-400 shadow-[0_0_14px_rgba(251,191,36,0.4)] scale-[1.02] z-20"
@@ -142,7 +155,13 @@ export const CharacterCard = memo(
           showDetectiveHint && isDetectiveAdjacent
             ? "ring-1 ring-blue-500/80 border-blue-500"
             : ""
-        } } ${radarRingColor ? `ring-2 ${radarRingColor} animate-pulse` : ""}`}
+        } ${
+          isRadarCenter && radarRingColor
+            ? `ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} shadow-[0_0_15px_currentColor] z-10`
+            : radarRingColor
+              ? `ring-1 ${radarRingColor} opacity-70 animate-pulse`
+              : ""
+        }`}
       >
         {/* Фоновый силуэт */}
         {!character.isVault && !isDead && (
@@ -180,6 +199,14 @@ export const CharacterCard = memo(
             )}
             {isUniformedOfficer && !isDead && (
               <span title="Офицер в форме">👮</span>
+            )}
+            {isRadarCenter && !isDead && (
+              <span
+                className="text-zinc-100 font-bold animate-bounce"
+                title="Центр допроса"
+              >
+                📡
+              </span>
             )}
             {character.isVault && (
               <span>
@@ -249,7 +276,7 @@ export const CharacterCard = memo(
             </span>
           )}
         </div>
-      </div>
+      </motion.div>
     );
   },
 );

@@ -1,4 +1,5 @@
-﻿import type { Character, LastShift } from "../types/game";
+﻿import { motion } from "framer-motion";
+import type { Character, LastShift } from "../types/game";
 import { CharacterCard } from "./CharacterCard";
 import { isOppositeShift } from "../utils/gameLogic";
 
@@ -15,6 +16,7 @@ interface GameBoardProps {
   targetVictimId?: string | null;
   radarCellIds?: string[];
   radarColorClass?: string | null;
+  errorCardId?: string | null;
   onShift: (
     type: "ROW" | "COL",
     index: number,
@@ -36,6 +38,7 @@ export const GameBoard = ({
   targetVictimId,
   radarCellIds = [],
   radarColorClass = null,
+  errorCardId = null,
   onShift,
   onSelectCharacter,
 }: GameBoardProps) => {
@@ -46,11 +49,11 @@ export const GameBoard = ({
   return (
     <div className="w-full flex flex-col items-center select-none">
       {/* Кнопки сдвига колонок ВВЕРХ */}
-      <div className="w-full flex items-center gap-1.5 sm:gap-2 mb-1.5">
-        <div className="w-5 sm:w-6 shrink-0" />
+      <div className="w-full flex items-center gap-1 sm:gap-2 mb-1 sm:mb-1.5">
+        <div className="w-4 sm:w-6 shrink-0" />
 
         <div
-          className="grid gap-1.5 sm:gap-2 flex-1"
+          className="grid gap-1 sm:gap-2 flex-1"
           style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
         >
           {colsArray.map((colIdx) => {
@@ -68,7 +71,7 @@ export const GameBoard = ({
                 key={`col-up-${colIdx}`}
                 disabled={isBlocked || isOpposite}
                 onClick={() => onShift("COL", colIdx, "BACKWARD")}
-                className={`h-6 sm:h-7 rounded-md text-[11px] font-bold transition flex items-center justify-center border ${
+                className={`h-5 sm:h-7 rounded-md text-[11px] font-bold transition flex items-center justify-center border active:scale-90 ${
                   isOpposite
                     ? "invisible pointer-events-none"
                     : isBlocked
@@ -85,11 +88,11 @@ export const GameBoard = ({
           })}
         </div>
 
-        <div className="w-5 sm:w-6 shrink-0" />
+        <div className="w-4 sm:w-6 shrink-0" />
       </div>
 
       {/* Сетка со стрелками рядов */}
-      <div className="w-full flex flex-col gap-1.5 sm:gap-2">
+      <div className="w-full flex flex-col gap-1 sm:gap-2">
         {board.map((row, rIdx) => {
           const isRowBlocked =
             blockedShift?.type === "ROW" && blockedShift.index === rIdx;
@@ -109,12 +112,12 @@ export const GameBoard = ({
           return (
             <div
               key={`row-${rIdx}`}
-              className="flex items-center gap-1.5 sm:gap-2 w-full"
+              className="flex items-center gap-1 sm:gap-2 w-full"
             >
               <button
                 disabled={isRowBlocked || isOppositeLeft}
                 onClick={() => onShift("ROW", rIdx, "BACKWARD")}
-                className={`w-5 sm:w-6 h-12 sm:h-14 rounded-md text-[11px] font-bold transition flex items-center justify-center shrink-0 border ${
+                className={`w-4 sm:w-6 h-10 sm:h-14 rounded-md text-[11px] font-bold transition flex items-center justify-center shrink-0 border active:scale-90 ${
                   isOppositeLeft
                     ? "invisible pointer-events-none"
                     : isRowBlocked
@@ -131,40 +134,50 @@ export const GameBoard = ({
               </button>
 
               <div
-                className="grid gap-1.5 sm:gap-2 flex-1"
+                className="grid gap-1 sm:gap-2 flex-1"
                 style={{
                   gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))`,
                 }}
               >
                 {row.map((character) => (
-                  <CharacterCard
+                  <motion.div
                     key={character.id}
-                    character={character}
-                    isSelected={selectedCharacterId === character.id}
-                    isKillerAdjacent={killerAdjacentIds.includes(character.id)}
-                    isDetectiveAdjacent={detectiveAdjacentIds.includes(
-                      character.id,
-                    )}
-                    showKillerHint={showKillerHints}
-                    showDetectiveHint={showDetectiveHints}
-                    isUniformedOfficer={uniformedOfficerIds?.includes(
-                      character.id,
-                    )}
-                    isTargetVictim={character.id === targetVictimId}
-                    onClick={() => onSelectCharacter(character.id)}
-                    radarRingColor={
-                      radarCellIds.includes(character.id)
-                        ? radarColorClass
-                        : null
-                    }
-                  />
+                    layout
+                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                    className="w-full h-full"
+                  >
+                    <CharacterCard
+                      character={character}
+                      isSelected={selectedCharacterId === character.id}
+                      isKillerAdjacent={killerAdjacentIds.includes(
+                        character.id,
+                      )}
+                      isDetectiveAdjacent={detectiveAdjacentIds.includes(
+                        character.id,
+                      )}
+                      showKillerHint={showKillerHints}
+                      showDetectiveHint={showDetectiveHints}
+                      isUniformedOfficer={uniformedOfficerIds?.includes(
+                        character.id,
+                      )}
+                      isTargetVictim={character.id === targetVictimId}
+                      isRadarCenter={character.id === targetVictimId}
+                      radarRingColor={
+                        radarCellIds.includes(character.id)
+                          ? radarColorClass
+                          : null
+                      }
+                      isError={character.id === errorCardId}
+                      onClick={() => onSelectCharacter(character.id)}
+                    />
+                  </motion.div>
                 ))}
               </div>
 
               <button
                 disabled={isRowBlocked || isOppositeRight}
                 onClick={() => onShift("ROW", rIdx, "FORWARD")}
-                className={`w-5 sm:w-6 h-12 sm:h-14 rounded-md text-[11px] font-bold transition flex items-center justify-center shrink-0 border ${
+                className={`w-4 sm:w-6 h-10 sm:h-14 rounded-md text-[11px] font-bold transition flex items-center justify-center shrink-0 border active:scale-90 ${
                   isOppositeRight
                     ? "invisible pointer-events-none"
                     : isRowBlocked
@@ -185,11 +198,11 @@ export const GameBoard = ({
       </div>
 
       {/* Кнопки сдвига колонок ВНИЗ */}
-      <div className="w-full flex items-center gap-1.5 sm:gap-2 mt-1.5">
-        <div className="w-5 sm:w-6 shrink-0" />
+      <div className="w-full flex items-center gap-1 sm:gap-2 mt-1 sm:mt-1.5">
+        <div className="w-4 sm:w-6 shrink-0" />
 
         <div
-          className="grid gap-1.5 sm:gap-2 flex-1"
+          className="grid gap-1 sm:gap-2 flex-1"
           style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
         >
           {colsArray.map((colIdx) => {
@@ -207,7 +220,7 @@ export const GameBoard = ({
                 key={`col-down-${colIdx}`}
                 disabled={isBlocked || isOpposite}
                 onClick={() => onShift("COL", colIdx, "FORWARD")}
-                className={`h-6 sm:h-7 rounded-md text-[11px] font-bold transition flex items-center justify-center border ${
+                className={`h-5 sm:h-7 rounded-md text-[11px] font-bold transition flex items-center justify-center border active:scale-90 ${
                   isOpposite
                     ? "invisible pointer-events-none"
                     : isBlocked
@@ -224,7 +237,7 @@ export const GameBoard = ({
           })}
         </div>
 
-        <div className="w-5 sm:w-6 shrink-0" />
+        <div className="w-4 sm:w-6 shrink-0" />
       </div>
     </div>
   );

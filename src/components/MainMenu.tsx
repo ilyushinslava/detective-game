@@ -14,6 +14,8 @@ interface MainMenuProps {
     opponent: OpponentType,
     playerRole: Role,
     playerCount?: number,
+    targetTrophies?: number,
+    maxTurns?: number,
   ) => void;
   hasActiveGame: boolean;
   onResumeGame: () => void;
@@ -31,6 +33,9 @@ export const MainMenu = ({
   const [selectedOpponent, setSelectedOpponent] = useState<OpponentType>("AI");
   const [selectedRole, setSelectedRole] = useState<Role>("DETECTIVE");
   const [playerCount, setPlayerCount] = useState<number>(3);
+  const [targetTrophies, setTargetTrophies] = useState<number>(3);
+
+  const [maxTurns, setMaxTurns] = useState<number>(16);
 
   const [soundActive, setSoundActive] = useState<boolean>(() =>
     sounds.getEnabled(),
@@ -126,7 +131,6 @@ export const MainMenu = ({
                   <span>▶ Вернуться к текущей партии</span>
                 </button>
               )}
-
               <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800 space-y-2">
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
                   Формат матча:
@@ -160,7 +164,48 @@ export const MainMenu = ({
                   </button>
                 </div>
               </div>
-
+              {/* Выбор лимита ходов для дуэлей */}
+              {selectedMode !== "SECRET_SERVICE" && (
+                <div className="mb-5 p-3.5 bg-zinc-950/60 border border-zinc-800/80 rounded-xl flex flex-col items-start gap-2.5 text-xs">
+                  <div>
+                    <span className="text-zinc-300 font-bold block">
+                      Лимит ходов:
+                    </span>
+                    <span className="text-[10px] text-zinc-500 font-mono">
+                      Определяет длительность партии
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 w-full">
+                    {[
+                      { val: 12, label: "12", sub: "Быстрая" },
+                      { val: 16, label: "16", sub: "Стандарт" },
+                      { val: 20, label: "20", sub: "Долгая" },
+                      { val: 0, label: "∞", sub: "Без лимита" },
+                    ].map((opt) => {
+                      const isSelected = maxTurns === opt.val;
+                      return (
+                        <button
+                          key={opt.val}
+                          onClick={() => {
+                            triggerHaptic("light");
+                            setMaxTurns(opt.val);
+                          }}
+                          className={`py-1.5 px-1 rounded-lg border font-bold text-xs cursor-pointer transition flex flex-col items-center justify-center ${
+                            isSelected
+                              ? "bg-amber-950 border-amber-500 text-amber-200 shadow-[0_0_10px_rgba(245,158,11,0.3)] font-black"
+                              : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                          }`}
+                        >
+                          <span>{opt.label}</span>
+                          <span className="text-[8px] font-mono opacity-60">
+                            {opt.sub}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               {/* Выбор роли для обычных дуэлей */}
               {selectedOpponent === "AI" &&
                 selectedMode !== "SECRET_SERVICE" && (
@@ -198,35 +243,69 @@ export const MainMenu = ({
                     </div>
                   </div>
                 )}
-
-              {/* Выбор количества участников для Секретной службы */}
-              {selectedMode === "SECRET_SERVICE" &&
-                selectedOpponent === "AI" && (
-                  <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800 space-y-2 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="text-zinc-300 font-bold text-[11px] block">
-                        Участники (Вы + Боты):
-                      </span>
-                      <span className="text-[10px] font-mono text-emerald-400 font-bold">
-                        Поле:{" "}
-                        {playerCount >= 7
-                          ? "7×7 (49 карт)"
-                          : playerCount >= 5
-                            ? "6×6 (36 карт)"
-                            : "5×5 (25 карт)"}
-                      </span>
+              {/* Выбор количества участников и трофеев для Секретной службы */}
+              {selectedMode === "SECRET_SERVICE" && (
+                <div className="space-y-3">
+                  {selectedOpponent === "AI" && (
+                    <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800 space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-zinc-300 font-bold text-[11px] block">
+                          Участники (Вы + Боты):
+                        </span>
+                        <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                          Поле:{" "}
+                          {playerCount >= 7
+                            ? "7×7 (49 карт)"
+                            : playerCount >= 5
+                              ? "6×6 (36 карт)"
+                              : "5×5 (25 карт)"}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 w-full">
+                        {[3, 4].map((num) => {
+                          const isSelected = playerCount === num;
+                          const sizeLabel = "5x5";
+                          return (
+                            <button
+                              key={num}
+                              onClick={() => {
+                                triggerHaptic("light");
+                                setPlayerCount(num);
+                              }}
+                              className={`py-1.5 px-2 rounded-lg border font-bold text-xs cursor-pointer transition flex flex-col items-center justify-center ${
+                                isSelected
+                                  ? "bg-emerald-950 border-emerald-500 text-emerald-200 shadow-[0_0_10px_rgba(16,185,129,0.3)] font-black"
+                                  : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                              }`}
+                            >
+                              <span>{num} игр.</span>
+                              <span className="text-[9px] font-mono opacity-60">
+                                {sizeLabel}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {[3, 4, 5, 6, 7, 8, 9].map((num) => {
-                        const isSelected = playerCount === num;
-                        const sizeLabel =
-                          num >= 7 ? "7x7" : num >= 5 ? "6x6" : "5x5";
+                  )}
+
+                  <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800 space-y-2 text-xs">
+                    <span className="text-zinc-300 font-bold text-[11px] block">
+                      Условие победы:
+                    </span>
+                    <div className="grid grid-cols-3 gap-2 w-full">
+                      {[
+                        { val: 2, label: "2 трофея", sub: "Быстрая" },
+                        { val: 3, label: "3 трофея", sub: "Стандарт" },
+                        { val: 4, label: "4 трофея", sub: "Затяжная" },
+                      ].map((opt) => {
+                        const isSelected = targetTrophies === opt.val;
                         return (
                           <button
-                            key={num}
+                            key={opt.val}
                             onClick={() => {
                               triggerHaptic("light");
-                              setPlayerCount(num);
+                              setTargetTrophies(opt.val);
                             }}
                             className={`py-1.5 px-2 rounded-lg border font-bold text-xs cursor-pointer transition flex flex-col items-center justify-center ${
                               isSelected
@@ -234,17 +313,17 @@ export const MainMenu = ({
                                 : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
                             }`}
                           >
-                            <span>{num} игр.</span>
+                            <span>{opt.label}</span>
                             <span className="text-[9px] font-mono opacity-60">
-                              {sizeLabel}
+                              {opt.sub}
                             </span>
                           </button>
                         );
                       })}
                     </div>
                   </div>
-                )}
-
+                </div>
+              )}
               <div className="space-y-2">
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
                   Сценарии игры:
@@ -420,6 +499,8 @@ export const MainMenu = ({
                   selectedOpponent,
                   selectedRole,
                   playerCount,
+                  targetTrophies,
+                  maxTurns,
                 );
               }}
               className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-zinc-950 font-black text-xs uppercase tracking-widest rounded-xl transition cursor-pointer shadow-lg flex items-center justify-center gap-2"

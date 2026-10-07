@@ -88,6 +88,8 @@ export function createInitialState(
   opponent: OpponentType,
   playerRole: Role = "DETECTIVE",
   playerCount: number = 3,
+  targetTrophies: number = 3,
+  maxTurns: number = 16,
 ): GameState {
   let boardSize = 5;
 
@@ -207,7 +209,7 @@ export function createInitialState(
           isAI: false,
         },
       ];
-      spyTargetTrophies = 3;
+      spyTargetTrophies = targetTrophies;
     } else {
       const botNames = [
         "Альфа",
@@ -237,7 +239,7 @@ export function createInitialState(
           isAI: true,
         });
       }
-      spyTargetTrophies = playerCount === 3 ? 4 : 3;
+      spyTargetTrophies = targetTrophies;
     }
 
     activeSpyIndex = 0;
@@ -275,6 +277,7 @@ export function createInitialState(
     spies,
     activeSpyIndex,
     spyTargetTrophies,
+    maxTurns,
     lastSpyInterrogation: null,
     log: [
       `Операция началась (${mode}). Режим: ${mode === "SECRET_SERVICE" ? `Куча-мала (${playerCount} игр., поле ${boardSize}x${boardSize})` : opponent === "AI" ? "Против бота" : "Вдвоем"}.`,
@@ -979,11 +982,14 @@ export function spyCatch(state: GameState, targetId: string): GameState {
     newSpies[caughtSpyIndex] = { ...caughtSpy, secretId: nextSecretId };
     justCaughtSpyId = caughtSpy.id;
 
-    logMsg = `🎯 Поимка! ${activeSpy.name} разоблачил резидента соперника (${targetName})! Трофей получен (${newTrophies}/${state.spyTargetTrophies ?? 4}). Пойманный сменил прикрытие.`;
+    logMsg = `🎯 Поимка! ${activeSpy.name} разоблачил резидента соперника (${targetName})! Трофей получен (${newTrophies}/${state.spyTargetTrophies ?? 4}).`;
 
     if (newTrophies >= (state.spyTargetTrophies ?? 4)) {
       winner = activeSpy.isAI ? "KILLER" : "DETECTIVE";
       logMsg += ` 🏆 ${activeSpy.name} собрал все трофеи и победил!`;
+    } else {
+      justCaughtSpyId = caughtSpy.id;
+      logMsg += ` Пойманный сменил прикрытие.`;
     }
   } else {
     logMsg = `🔍 Промах: ${activeSpy.name} объявил подозрение на ${targetName}. Никто из агентов не признал эту личность.`;

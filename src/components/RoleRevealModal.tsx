@@ -59,13 +59,13 @@ export const RoleRevealModal = ({
     role2Goal = "Штурмовать здание и арестовать Профессора";
   }
 
-  const isSoloVsBot = opponent === "AI";
+  const isSoloOrOnline = opponent === "AI" || opponent === "ONLINE";
 
   const [phase, setPhase] = useState<string>(() => {
     if (mode === "SECRET_SERVICE") {
-      return isSoloVsBot ? "SECRET_SERVICE_SOLO" : "SPY_P1_PROMPT";
+      return isSoloOrOnline ? "SECRET_SERVICE_SOLO" : "SPY_P1_PROMPT";
     }
-    if (isSoloVsBot) {
+    if (isSoloOrOnline) {
       return playerRole === "KILLER"
         ? "SOLO_KILLER"
         : mode === "SKHVATKA"
@@ -278,7 +278,7 @@ export const RoleRevealModal = ({
               </span>
               <div className="w-full max-w-sm p-5 rounded-2xl bg-zinc-950 border border-blue-900/60 shadow-xl mb-4">
                 <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest block mb-1">
-                  Личное дело
+                  Личное дело: {role2Name}
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-black text-zinc-100">
                   {detective?.name ?? "Неизвестно"}
@@ -289,6 +289,12 @@ export const RoleRevealModal = ({
                   • Роль: <b className="text-blue-400">{role2Name}</b>
                 </div>
                 <div>• Задача: {role2Goal}</div>
+                {mode === "MANIAC_VS_OPERATIVE" && (
+                  <div className="text-amber-300 font-mono text-[11px] pt-1 border-t border-zinc-800">
+                    ⚠ Защищайте намеченных жертв и арестуйте маньяка до 4
+                    убийств!
+                  </div>
+                )}
                 <div>• Соперник: Бот-компьютер ({role1Name})</div>
               </div>
             </div>

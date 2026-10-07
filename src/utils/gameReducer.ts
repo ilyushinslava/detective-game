@@ -7,8 +7,14 @@ import {
   spyInterrogate,
   createInitialState,
   isOppositeShift,
+  killCharacter,
+  robNeighbor,
+  escapeManiac,
+  fastDisguise,
+  disguiseKiller,
+  exonerateFromHand,
+  cleanupDeadCharacters,
 } from "./gameLogic";
-
 export function gameReducer(state: GameState, action: GameAction): GameState {
   // Валидация: если игра окончена, разрешаем только рестарт
   if (state.winner && action.type !== "RESTART_GAME") {
@@ -64,7 +70,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         log: [...state.log, actionText],
       };
     }
+    case "KILL_CHARACTER": {
+      return killCharacter(state, action.payload.targetId);
+    }
 
+    case "ROB_NEIGHBOR": {
+      return robNeighbor(state, action.payload.targetId);
+    }
     case "ACCUSE": {
       return accuseCharacter(state, action.payload.targetId);
     }
@@ -86,6 +98,26 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    case "ESCAPE_MANIAC": {
+      return escapeManiac(state);
+    }
+
+    case "FAST_DISGUISE": {
+      return fastDisguise(state, action.payload.targetId);
+    }
+
+    case "DISGUISE": {
+      return disguiseKiller(state);
+    }
+
+    case "EXONERATE": {
+      return exonerateFromHand(state, action.payload.targetId);
+    }
+
+    case "CLEANUP": {
+      return cleanupDeadCharacters(state);
+    }
+
     case "RESTART_GAME": {
       const {
         modeId,
@@ -94,7 +126,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         playerCount,
         targetTrophies,
         maxTurns,
+        state: remoteState,
       } = action.payload;
+
+      // Если пришел сгенерированный стейт по сети от хоста — применяем его
+      if (remoteState) return remoteState;
+
       return createInitialState(
         modeId,
         opponent,

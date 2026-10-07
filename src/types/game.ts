@@ -8,7 +8,7 @@ export type GameModeType =
   | "SPANISH_HEIST";
 
 export type Role = "KILLER" | "DETECTIVE";
-export type OpponentType = "PVP" | "AI";
+export type OpponentType = "PVP" | "AI" | "ONLINE";
 
 export interface Character {
   id: string;

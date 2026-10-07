@@ -192,7 +192,7 @@ export function createInitialState(
   } else if (mode === "SECRET_SERVICE") {
     deck = shuffle(boardCharacters.map((c) => c.id));
 
-    if (opponent === "PVP") {
+    if (opponent === "PVP" || opponent === "ONLINE") {
       spies = [
         {
           id: "p1",

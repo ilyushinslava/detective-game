@@ -12,6 +12,8 @@ interface RoleCardsProps {
   onPeekDetectiveEnd: () => void;
   onPeekDetectiveLeave?: () => void;
   className?: string;
+  isOnline?: boolean;
+  playerRole?: string;
 }
 
 export const RoleCards = ({
@@ -28,6 +30,8 @@ export const RoleCards = ({
   onPeekDetectiveEnd,
   onPeekDetectiveLeave,
   className = "",
+  isOnline = false,
+  playerRole = "",
 }: RoleCardsProps) => {
   return (
     <div className={className}>
@@ -45,14 +49,18 @@ export const RoleCards = ({
           onMouseLeave={onPeekKillerLeave}
           onTouchStart={onPeekKillerStart}
           onTouchEnd={onPeekKillerEnd}
-          disabled={!canPeekKiller}
+          disabled={!canPeekKiller || (isOnline && playerRole !== "KILLER")}
           className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-            !canPeekKiller
+            !canPeekKiller || (isOnline && playerRole !== "KILLER")
               ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
               : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-300 border-red-700 cursor-pointer"
           }`}
         >
-          Зажать
+          {isOnline && playerRole !== "KILLER"
+            ? "Роль соперника"
+            : canPeekKiller
+              ? "Зажать"
+              : "Чужой ход"}
         </button>
       </div>
 
@@ -70,14 +78,20 @@ export const RoleCards = ({
           onMouseLeave={onPeekDetectiveLeave}
           onTouchStart={onPeekDetectiveStart}
           onTouchEnd={onPeekDetectiveEnd}
-          disabled={!canPeekDetective}
+          disabled={
+            !canPeekDetective || (isOnline && playerRole !== "DETECTIVE")
+          }
           className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-            !canPeekDetective
+            !canPeekDetective || (isOnline && playerRole !== "DETECTIVE")
               ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
               : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-300 border-blue-700 cursor-pointer"
           }`}
         >
-          Зажать
+          {isOnline && playerRole !== "DETECTIVE"
+            ? "Роль соперника"
+            : canPeekDetective
+              ? "Зажать"
+              : "Чужой ход"}
         </button>
       </div>
     </div>

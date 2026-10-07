@@ -34,6 +34,8 @@ import { sounds } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
 import { ActionPanel, type ActionItem } from "./components/ActionPanel";
 import { RoleCards } from "./components/RoleCards";
+import type { GameAction } from "./types/multiplayer";
+import { gameReducer } from "./utils/gameReducer";
 const SPY_COLORS = [
   {
     text: "text-emerald-400",
@@ -111,7 +113,9 @@ export default function App() {
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
 
   const logContainerRef = useRef<HTMLDivElement>(null);
-
+  const dispatchAction = (action: GameAction) => {
+    setGameState((prev) => gameReducer(prev, action));
+  };
   useEffect(() => {
     if (logContainerRef.current) {
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
@@ -375,6 +379,13 @@ export default function App() {
     sounds.playShift();
     triggerHaptic("light");
 
+    dispatchAction({
+      type: "SHIFT_BOARD",
+      payload: { shiftType: type, index, direction },
+      senderId: "local",
+      timestamp: Date.now(),
+    });
+    setSelectedId(null);
     const newBoard = shiftBoard(gameState.board, type, index, direction);
     const nextTurn =
       gameState.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER";
@@ -456,7 +467,12 @@ export default function App() {
       triggerHaptic("medium");
     }
 
-    setGameState((prev) => accuseCharacter(prev, selectedId));
+    dispatchAction({
+      type: "ACCUSE",
+      payload: { targetId: selectedId },
+      senderId: "local",
+      timestamp: Date.now(),
+    });
     setSelectedId(null);
   };
 
@@ -473,7 +489,12 @@ export default function App() {
     if (gameState.currentTurn !== "DETECTIVE" || !isHumanTurn) return;
     sounds.playShift();
     triggerHaptic("light");
-    setGameState((prev) => exonerateFromHand(prev, id));
+    dispatchAction({
+      type: "ACCUSE",
+      payload: { targetId: selectedId },
+      senderId: "local",
+      timestamp: Date.now(),
+    });
     setSelectedId(null);
   };
 
@@ -505,13 +526,11 @@ export default function App() {
       triggerHaptic("medium");
     }
 
-    setGameState((prev) => {
-      const next = spyCatch(prev, selectedId);
-      return {
-        ...next,
-        interrogationRadar: null,
-        isHotseatCoverOpen: false,
-      };
+    dispatchAction({
+      type: "CAPTURE_SPY",
+      payload: { targetId: selectedId },
+      senderId: "local",
+      timestamp: Date.now(),
     });
     setSelectedId(null);
   };
@@ -521,12 +540,11 @@ export default function App() {
       return;
     sounds.playRadar();
     triggerHaptic("light");
-    setGameState((prev) => {
-      const next = spyInterrogate(prev, selectedId);
-      return {
-        ...next,
-        isHotseatCoverOpen: false,
-      };
+    dispatchAction({
+      type: "INTERROGATE",
+      payload: { targetId: selectedId },
+      senderId: "local",
+      timestamp: Date.now(),
     });
     setSelectedId(null);
   };

@@ -104,20 +104,23 @@ export default function App() {
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
   const [isPauseOpen, setIsPauseOpen] = useState(false);
   const [isRulesOpen, setIsRulesOpen] = useState(false);
+  const [opponentDisconnectedNotice, setOpponentDisconnectedNotice] =
+    useState(false);
 
   const logContainerRef = useRef<HTMLDivElement>(null);
 
-  // Единая точка входа для всех действий (локальных и сетевых)
   const dispatchAction = (action: GameAction) => {
-    if (action.senderId === "local" && mpService.roomCode) {
+    if (
+      action.senderId === "local" &&
+      (gameState.opponent === "ONLINE" || Boolean(mpService.roomCode))
+    ) {
       mpService.sendAction(action);
     }
     setGameState((prev) => gameReducer(prev, action));
   };
 
-  // Сетевой слушатель (пустой массив зависимостей защищает от stale closures)
   useEffect(() => {
-    mpService.onActionReceived = (action: GameAction) => {
+    const unsubscribe = mpService.subscribeToActions((action: GameAction) => {
       if (action.type === "RESTART_GAME" || action.type === "MATCH_STARTED") {
         setGameState((prev) => {
           const newState =
@@ -125,7 +128,8 @@ export default function App() {
               ? action.payload.state
               : gameReducer(prev, action);
 
-          // Инвертируем роль для гостя
+          setActiveMode(newState.mode);
+
           if (newState.opponent === "ONLINE" && !mpService.isHost) {
             return {
               ...newState,
@@ -144,13 +148,34 @@ export default function App() {
         setIsIntroPhase(true);
         setSecondsElapsed(0);
       } else {
-        // Функциональное обновление гарантирует применение к самому свежему стейту!
         setGameState((prev) =>
           gameReducer(prev, { ...action, senderId: "remote" }),
         );
       }
+    });
+
+    return () => {
+      unsubscribe();
     };
   }, []);
+
+  // Отслеживание отключения соперника во время игры для обоих игроков
+  useEffect(() => {
+    if (!isLobbyOpen && gameState.opponent === "ONLINE") {
+      const handleDisconnect = () => {
+        setOpponentDisconnectedNotice(true);
+      };
+      mpService.onPlayerDisconnected = handleDisconnect;
+      mpService.onRoomClosed = handleDisconnect;
+    }
+
+    return () => {
+      if (!isLobbyOpen && gameState.opponent === "ONLINE") {
+        mpService.onPlayerDisconnected = null;
+        mpService.onRoomClosed = null;
+      }
+    };
+  }, [isLobbyOpen, gameState.opponent]);
 
   useEffect(() => {
     if (logContainerRef.current) {
@@ -180,13 +205,13 @@ export default function App() {
     }
   }, [gameState.winner]);
 
-  // Логика хода ИИ
   useEffect(() => {
     if (
       isIntroPhase ||
       isLobbyOpen ||
       gameState.winner ||
-      gameState.opponent !== "AI"
+      gameState.opponent === "ONLINE" ||
+      gameState.opponent === "PVP"
     ) {
       return;
     }
@@ -289,8 +314,9 @@ export default function App() {
         gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length
       ].ring
     : null;
+
   const currentModeTitle =
-    GAME_MODES.find((m) => m.id === activeMode)?.title ?? "Схватка";
+    GAME_MODES.find((m) => m.id === gameState.mode)?.title ?? "Схватка";
 
   const isKillerTurn = gameState.currentTurn === "KILLER";
   const isDetectiveTurn = gameState.currentTurn === "DETECTIVE";
@@ -313,7 +339,6 @@ export default function App() {
     currentRoleName = gameState.spies[gameState.activeSpyIndex ?? 0].name;
   }
 
-  // СТРОГАЯ ЛОГИКА ОЧЕРЕДНОСТИ ХОДА
   let isHumanTurn = false;
   if (gameState.opponent === "ONLINE") {
     if (gameState.mode === "SECRET_SERVICE") {
@@ -326,7 +351,6 @@ export default function App() {
   } else if (gameState.opponent === "PVP") {
     isHumanTurn = true;
   } else {
-    // AI mode
     if (gameState.mode === "SECRET_SERVICE") {
       isHumanTurn = gameState.spies
         ? gameState.spies[gameState.activeSpyIndex ?? 0]?.isAI === false
@@ -357,6 +381,15 @@ export default function App() {
       maxTurns,
     );
 
+    if (
+      opponent === "ONLINE" &&
+      modeId === "SECRET_SERVICE" &&
+      newState.spies
+    ) {
+      newState.spies[0].name = `Агент «${mpService.hostName || "Восток"}»`;
+      newState.spies[1].name = `Агент «${mpService.guestName || "Запад"}»`;
+    }
+
     if (opponent === "ONLINE" && mpService.isHost) {
       mpService.broadcastMatchStart(newState);
     }
@@ -379,7 +412,6 @@ export default function App() {
     setIsLobbyOpen(false);
   };
 
-  // ВСЕ ХЕНДЛЕРЫ ТЕПЕРЬ СТРОГО ЧЕРЕЗ dispatchAction
   const handleShift = (
     type: "ROW" | "COL",
     index: number,
@@ -519,9 +551,15 @@ export default function App() {
     if (!selectedId || gameState.mode !== "SECRET_SERVICE" || !isHumanTurn)
       return;
 
-    const activeSpy = gameState.spies![gameState.activeSpyIndex ?? 0];
+    const mySpyIndex =
+      gameState.opponent === "ONLINE"
+        ? mpService.isHost
+          ? 0
+          : 1
+        : (gameState.activeSpyIndex ?? 0);
+    const mySpy = gameState.spies![mySpyIndex];
     const isMiss = !gameState.spies!.some(
-      (s) => s.id !== activeSpy.id && s.secretId === selectedId,
+      (s) => s.id !== mySpy.id && s.secretId === selectedId,
     );
 
     if (isMiss) {
@@ -558,8 +596,12 @@ export default function App() {
   };
 
   const handleReset = () => {
+    if (gameState.opponent === "ONLINE" && !mpService.isHost) {
+      return;
+    }
+
     handleStartNewGame(
-      activeMode,
+      gameState.mode,
       gameState.opponent,
       gameState.playerRole,
       gameState.spies?.length ?? 3,
@@ -582,18 +624,24 @@ export default function App() {
     const isGameOver = gameState.winner !== null;
 
     if (gameState.mode === "SECRET_SERVICE") {
-      const currentSpy = gameState.spies?.[gameState.activeSpyIndex ?? 0];
-      const currentSpyNeighbors = currentSpy
-        ? getAdjacentCharacters(gameState.board, currentSpy.secretId).map(
+      const mySpyIndex =
+        gameState.opponent === "ONLINE"
+          ? mpService.isHost
+            ? 0
+            : 1
+          : (gameState.activeSpyIndex ?? 0);
+      const mySpy = gameState.spies?.[mySpyIndex];
+      const mySpyNeighbors = mySpy
+        ? getAdjacentCharacters(gameState.board, mySpy.secretId).map(
             (c) => c.id,
           )
         : [];
       const isValidSpyTarget =
         Boolean(selectedId) &&
-        Boolean(currentSpy) &&
+        Boolean(mySpy) &&
         Boolean(selectedCharacter?.isAlive) &&
-        (currentSpyNeighbors.includes(selectedId!) ||
-          selectedId === currentSpy?.secretId);
+        (mySpyNeighbors.includes(selectedId!) ||
+          selectedId === mySpy?.secretId);
 
       actions.push({
         id: "capture_spy",
@@ -738,9 +786,15 @@ export default function App() {
         ? gameState.playerRole === "DETECTIVE"
         : isDetectiveTurn;
   const canPeekSpy1 =
-    gameState.mode === "SECRET_SERVICE" && gameState.activeSpyIndex === 0;
+    gameState.mode === "SECRET_SERVICE" &&
+    (gameState.opponent === "ONLINE"
+      ? mpService.isHost
+      : gameState.activeSpyIndex === 0);
   const canPeekSpy2 =
-    gameState.mode === "SECRET_SERVICE" && gameState.activeSpyIndex === 1;
+    gameState.mode === "SECRET_SERVICE" &&
+    (gameState.opponent === "ONLINE"
+      ? !mpService.isHost
+      : gameState.activeSpyIndex === 1);
 
   const killerNameText =
     gameState.opponent === "ONLINE"
@@ -789,7 +843,8 @@ export default function App() {
               ? gameState.spies && gameState.spies.length > 1
                 ? allChars.find((c) => c.id === gameState.spies![1].secretId)
                 : undefined
-              : gameState.opponent === "AI" &&
+              : (gameState.opponent === "AI" ||
+                    gameState.opponent === "ONLINE") &&
                   gameState.playerRole === "DETECTIVE"
                 ? undefined
                 : killerChar
@@ -797,9 +852,13 @@ export default function App() {
           detective={
             gameState.mode === "SECRET_SERVICE"
               ? gameState.spies && gameState.spies.length > 0
-                ? allChars.find((c) => c.id === gameState.spies![0].secretId)
+                ? gameState.opponent === "ONLINE" && !mpService.isHost
+                  ? allChars.find((c) => c.id === gameState.spies![1].secretId)
+                  : allChars.find((c) => c.id === gameState.spies![0].secretId)
                 : undefined
-              : gameState.opponent === "AI" && gameState.playerRole === "KILLER"
+              : (gameState.opponent === "AI" ||
+                    gameState.opponent === "ONLINE") &&
+                  gameState.playerRole === "KILLER"
                 ? undefined
                 : detectiveChar
           }
@@ -809,11 +868,46 @@ export default function App() {
         />
       )}
 
+      {/* Окно потери связи с соперником */}
+      {opponentDisconnectedNotice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 select-none">
+          <div className="w-full max-w-sm bg-zinc-900 border border-red-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
+            <div className="w-16 h-16 rounded-full bg-red-950 border border-red-700 flex items-center justify-center text-3xl mb-4">
+              ⚠️
+            </div>
+            <h2 className="text-xl font-black text-zinc-100 mb-2">
+              Соперник покинул игру
+            </h2>
+            <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
+              Связь потеряна. Партия завершена.
+            </p>
+            <button
+              onClick={() => {
+                setOpponentDisconnectedNotice(false);
+                mpService.disconnect();
+                setGameState(
+                  createInitialState("SKHVATKA", "AI", "DETECTIVE", 3),
+                );
+                setHasStartedEver(false);
+                setIsLobbyOpen(true);
+              }}
+              className="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
+            >
+              В главное меню ➔
+            </button>
+          </div>
+        </div>
+      )}
+
       {gameState.justCaughtSpyId &&
         !gameState.winner &&
         !isLobbyOpen &&
         gameState.spies?.find((s) => s.id === gameState.justCaughtSpyId)
-          ?.isAI === false && (
+          ?.isAI === false &&
+        (gameState.opponent !== "ONLINE" ||
+          (mpService.isHost
+            ? gameState.justCaughtSpyId === gameState.spies?.[0]?.id
+            : gameState.justCaughtSpyId === gameState.spies?.[1]?.id)) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4 select-none">
             {!isRevealConfirmed ? (
               <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
@@ -883,54 +977,85 @@ export default function App() {
           </div>
         )}
 
-      <div className="sticky top-0 z-40 w-full bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800 px-2 sm:px-4 pt-[max(0.5rem,env(safe-area-inset-top))] pb-1.5 sm:py-2 flex items-center justify-between shadow-xl">
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-          <button
-            onClick={() => setIsPauseOpen(true)}
-            className="text-[11px] sm:text-xs bg-zinc-900 active:bg-zinc-800 text-zinc-300 px-2 py-1 sm:py-1.5 rounded-lg border border-zinc-700 transition cursor-pointer flex items-center gap-1"
-          >
-            <span>☰</span>
-            <span className="hidden md:inline">Меню</span>
-          </button>
-          <span className="text-[10px] xs:text-xs sm:text-sm font-black tracking-wider text-zinc-200 uppercase flex flex-col">
-            <span>{currentModeTitle}</span>
-            {gameState.opponent === "ONLINE" && (
-              <span className="text-[8px] text-emerald-400 normal-case tracking-normal">
-                Комната #{mpService.roomCode}
+      {/* ШАПКА: 3-колоночный CSS Grid, монолитный фон без блюров */}
+      <header className="sticky top-0 z-40 w-full bg-zinc-950 border-b border-zinc-800 px-2 sm:px-4 pt-[max(0.4rem,env(safe-area-inset-top))] pb-1.5 sm:py-2 shadow-xl">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1 w-full max-w-5xl mx-auto">
+          {/* Левая колонка */}
+          <div className="flex items-center gap-1.5 min-w-0 pr-1">
+            <button
+              onClick={() => setIsPauseOpen(true)}
+              className="text-[11px] sm:text-xs bg-zinc-900 active:bg-zinc-800 text-zinc-300 px-2 py-1.5 rounded-lg border border-zinc-700 transition cursor-pointer flex items-center gap-1 font-bold shrink-0"
+            >
+              <span>☰</span>
+              <span className="hidden sm:inline">Меню</span>
+            </button>
+            <div className="flex flex-col min-w-0">
+              <span className="text-[10px] sm:text-xs font-black tracking-wider text-zinc-200 uppercase truncate leading-tight">
+                {currentModeTitle}
               </span>
-            )}
-          </span>
-        </div>
+              {gameState.opponent === "ONLINE" && (
+                <span className="text-[8px] text-emerald-400 font-mono mt-0.5 truncate leading-tight">
+                  #{mpService.roomCode}
+                </span>
+              )}
+            </div>
+          </div>
 
-        <div
-          className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] sm:text-xs font-black tracking-widest uppercase transition-all shadow-lg ${isAIThinking ? "bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse" : isKillerTurn ? "bg-red-950/80 border-red-600 text-red-100" : "bg-blue-950/80 border-blue-600 text-blue-100"}`}
-        >
-          <span className="relative flex h-2.5 w-2.5 items-center justify-center">
-            <span
-              className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping [animation-duration:2s] ${isKillerTurn ? "bg-red-500" : "bg-blue-500"}`}
-            />
-            <span
-              className={`relative inline-flex rounded-full h-2 w-2 shadow-md ${isKillerTurn ? "bg-red-500 shadow-red-500/80" : "bg-blue-500 shadow-blue-500/80"}`}
-            />
-          </span>
-          <span>
-            {gameState.opponent === "ONLINE" && !isHumanTurn
-              ? "Ход соперника..."
-              : currentRoleName}
-          </span>
-        </div>
+          {/* Центральная колонка: плашка хода */}
+          <div className="flex justify-center px-1 shrink-0">
+            <div
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] sm:text-xs font-black tracking-wider uppercase transition-all shadow-lg ${
+                isAIThinking
+                  ? "bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse"
+                  : isKillerTurn
+                    ? "bg-red-950/80 border-red-600 text-red-100"
+                    : "bg-blue-950/80 border-blue-600 text-blue-100"
+              }`}
+            >
+              <span className="relative flex h-2 w-2 shrink-0 items-center justify-center">
+                <span
+                  className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping [animation-duration:2s] ${
+                    isKillerTurn ? "bg-red-500" : "bg-blue-500"
+                  }`}
+                />
+                <span
+                  className={`relative inline-flex rounded-full h-1.5 w-1.5 shadow-md ${
+                    isKillerTurn
+                      ? "bg-red-500 shadow-red-500/80"
+                      : "bg-blue-500 shadow-blue-500/80"
+                  }`}
+                />
+              </span>
+              <span className="whitespace-nowrap">
+                {gameState.opponent === "ONLINE"
+                  ? isHumanTurn
+                    ? "Ваш ход"
+                    : "Ход соперника"
+                  : currentRoleName}
+              </span>
+            </div>
+          </div>
 
-        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-zinc-900 border border-zinc-800 font-mono text-[10px] sm:text-xs text-zinc-400 font-bold">
-          <span>{formatTimer(secondsElapsed)}</span>
-        </div>
+          {/* Правая колонка: таймер и заново */}
+          <div className="flex items-center justify-end gap-1.5 pl-1">
+            <div className="hidden min-[400px]:flex items-center px-1.5 py-1 rounded-lg bg-zinc-900 border border-zinc-800 font-mono text-[10px] text-zinc-400 font-bold shrink-0">
+              {formatTimer(secondsElapsed)}
+            </div>
 
-        <button
-          onClick={handleReset}
-          className="text-[11px] sm:text-xs bg-zinc-900 active:bg-zinc-800 text-zinc-300 px-2 py-1 sm:py-1.5 rounded-lg border border-zinc-700 transition cursor-pointer shrink-0 ml-1"
-        >
-          Заново
-        </button>
-      </div>
+            <button
+              onClick={handleReset}
+              disabled={gameState.opponent === "ONLINE" && !mpService.isHost}
+              className={`text-[10px] sm:text-xs px-2 py-1.5 rounded-lg border font-bold transition select-none shrink-0 ${
+                gameState.opponent === "ONLINE" && !mpService.isHost
+                  ? "bg-zinc-900/40 text-zinc-600 border-zinc-800 cursor-not-allowed opacity-50"
+                  : "bg-zinc-900 active:bg-zinc-800 text-zinc-300 border-zinc-700 cursor-pointer"
+              }`}
+            >
+              Заново
+            </button>
+          </div>
+        </div>
+      </header>
 
       <div className="w-full max-w-5xl p-2 sm:p-4 lg:p-6 flex flex-col items-center flex-1">
         <div className="w-full flex items-center justify-between text-[11px] text-zinc-400 mb-2 px-1">
@@ -1052,59 +1177,67 @@ export default function App() {
 
             {gameState.mode === "SECRET_SERVICE" && gameState.spies && (
               <div className="w-full max-w-[540px] mt-2 flex lg:hidden flex-col gap-2">
-                <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 flex items-center justify-between shadow-sm">
-                  <div>
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase block">
-                      Досье: {gameState.spies[0]?.name}
-                    </span>
-                    <span className="text-xs font-black text-emerald-400">
-                      {showSpyP1Role
-                        ? allChars.find(
-                            (c) => c.id === gameState.spies![0]?.secretId,
-                          )?.name
-                        : "••••••••"}
-                    </span>
-                  </div>
-                  <button
-                    onMouseDown={() => canPeekSpy1 && setShowSpyP1Role(true)}
-                    onMouseUp={() => setShowSpyP1Role(false)}
-                    onMouseLeave={() => setShowSpyP1Role(false)}
-                    onTouchStart={() => canPeekSpy1 && setShowSpyP1Role(true)}
-                    onTouchEnd={() => setShowSpyP1Role(false)}
-                    disabled={!canPeekSpy1}
-                    className={`px-2.5 py-1 rounded text-[10px] font-bold border select-none transition ${!canPeekSpy1 ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed" : "bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-zinc-300 border-zinc-700 cursor-pointer"}`}
-                  >
-                    {canPeekSpy1 ? "Зажать" : "Чужой ход"}
-                  </button>
-                </div>
-
-                {gameState.opponent === "PVP" && gameState.spies.length > 1 && (
+                {(gameState.opponent !== "ONLINE" || mpService.isHost) && (
                   <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 flex items-center justify-between shadow-sm">
                     <div>
                       <span className="text-[10px] font-bold text-zinc-500 uppercase block">
-                        Досье: {gameState.spies[1]?.name}
+                        Досье: {gameState.spies[0]?.name}
                       </span>
-                      <span className="text-xs font-black text-blue-400">
-                        {showSpyP2Role
+                      <span className="text-xs font-black text-emerald-400">
+                        {showSpyP1Role
                           ? allChars.find(
-                              (c) => c.id === gameState.spies![1]?.secretId,
+                              (c) => c.id === gameState.spies![0]?.secretId,
                             )?.name
                           : "••••••••"}
                       </span>
                     </div>
                     <button
-                      onMouseDown={() => canPeekSpy2 && setShowSpyP2Role(true)}
-                      onMouseUp={() => setShowSpyP2Role(false)}
-                      onMouseLeave={() => setShowSpyP2Role(false)}
-                      onTouchStart={() => canPeekSpy2 && setShowSpyP2Role(true)}
-                      onTouchEnd={() => setShowSpyP2Role(false)}
-                      disabled={!canPeekSpy2}
-                      className={`px-2.5 py-1 rounded text-[10px] font-bold border select-none transition ${!canPeekSpy2 ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed" : "bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-zinc-300 border-zinc-700 cursor-pointer"}`}
+                      onMouseDown={() => canPeekSpy1 && setShowSpyP1Role(true)}
+                      onMouseUp={() => setShowSpyP1Role(false)}
+                      onMouseLeave={() => setShowSpyP1Role(false)}
+                      onTouchStart={() => canPeekSpy1 && setShowSpyP1Role(true)}
+                      onTouchEnd={() => setShowSpyP1Role(false)}
+                      disabled={!canPeekSpy1}
+                      className={`px-2.5 py-1 rounded text-[10px] font-bold border select-none transition ${!canPeekSpy1 ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed" : "bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-zinc-300 border-zinc-700 cursor-pointer"}`}
                     >
-                      {canPeekSpy2 ? "Зажать" : "Чужой ход"}
+                      {canPeekSpy1 ? "Зажать" : "Чужой ход"}
                     </button>
                   </div>
                 )}
+
+                {(gameState.opponent === "PVP" ||
+                  (gameState.opponent === "ONLINE" && !mpService.isHost)) &&
+                  Boolean(gameState.spies && gameState.spies.length > 1) && (
+                    <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 flex items-center justify-between shadow-sm">
+                      <div>
+                        <span className="text-[10px] font-bold text-zinc-500 uppercase block">
+                          Досье: {gameState.spies[1]?.name}
+                        </span>
+                        <span className="text-xs font-black text-blue-400">
+                          {showSpyP2Role
+                            ? allChars.find(
+                                (c) => c.id === gameState.spies![1]?.secretId,
+                              )?.name
+                            : "••••••••"}
+                        </span>
+                      </div>
+                      <button
+                        onMouseDown={() =>
+                          canPeekSpy2 && setShowSpyP2Role(true)
+                        }
+                        onMouseUp={() => setShowSpyP2Role(false)}
+                        onMouseLeave={() => setShowSpyP2Role(false)}
+                        onTouchStart={() =>
+                          canPeekSpy2 && setShowSpyP2Role(true)
+                        }
+                        onTouchEnd={() => setShowSpyP2Role(false)}
+                        disabled={!canPeekSpy2}
+                        className={`px-2.5 py-1 rounded text-[10px] font-bold border select-none transition ${!canPeekSpy2 ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed" : "bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-zinc-300 border-zinc-700 cursor-pointer"}`}
+                      >
+                        {canPeekSpy2 ? "Зажать" : "Чужой ход"}
+                      </button>
+                    </div>
+                  )}
               </div>
             )}
           </div>
@@ -1136,59 +1269,67 @@ export default function App() {
 
             {gameState.mode === "SECRET_SERVICE" && gameState.spies && (
               <div className="w-full hidden lg:flex flex-col gap-2">
-                <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 flex items-center justify-between shadow-sm">
-                  <div>
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase block">
-                      Досье: {gameState.spies[0]?.name}
-                    </span>
-                    <span className="text-xs font-black text-emerald-400">
-                      {showSpyP1Role
-                        ? allChars.find(
-                            (c) => c.id === gameState.spies![0]?.secretId,
-                          )?.name
-                        : "••••••••"}
-                    </span>
-                  </div>
-                  <button
-                    onMouseDown={() => canPeekSpy1 && setShowSpyP1Role(true)}
-                    onMouseUp={() => setShowSpyP1Role(false)}
-                    onMouseLeave={() => setShowSpyP1Role(false)}
-                    onTouchStart={() => canPeekSpy1 && setShowSpyP1Role(true)}
-                    onTouchEnd={() => setShowSpyP1Role(false)}
-                    disabled={!canPeekSpy1}
-                    className={`px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-zinc-300 rounded text-[10px] font-bold border border-zinc-700 select-none cursor-pointer`}
-                  >
-                    {canPeekSpy1 ? "Зажать" : "Чужой ход"}
-                  </button>
-                </div>
-
-                {gameState.opponent === "PVP" && gameState.spies.length > 1 && (
+                {(gameState.opponent !== "ONLINE" || mpService.isHost) && (
                   <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 flex items-center justify-between shadow-sm">
                     <div>
                       <span className="text-[10px] font-bold text-zinc-500 uppercase block">
-                        Досье: {gameState.spies[1]?.name}
+                        Досье: {gameState.spies[0]?.name}
                       </span>
-                      <span className="text-xs font-black text-blue-400">
-                        {showSpyP2Role
+                      <span className="text-xs font-black text-emerald-400">
+                        {showSpyP1Role
                           ? allChars.find(
-                              (c) => c.id === gameState.spies![1]?.secretId,
+                              (c) => c.id === gameState.spies![0]?.secretId,
                             )?.name
                           : "••••••••"}
                       </span>
                     </div>
                     <button
-                      onMouseDown={() => canPeekSpy2 && setShowSpyP2Role(true)}
-                      onMouseUp={() => setShowSpyP2Role(false)}
-                      onMouseLeave={() => setShowSpyP2Role(false)}
-                      onTouchStart={() => canPeekSpy2 && setShowSpyP2Role(true)}
-                      onTouchEnd={() => setShowSpyP2Role(false)}
-                      disabled={!canPeekSpy2}
-                      className={`px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-zinc-300 rounded text-[10px] font-bold border border-zinc-700 select-none cursor-pointer`}
+                      onMouseDown={() => canPeekSpy1 && setShowSpyP1Role(true)}
+                      onMouseUp={() => setShowSpyP1Role(false)}
+                      onMouseLeave={() => setShowSpyP1Role(false)}
+                      onTouchStart={() => canPeekSpy1 && setShowSpyP1Role(true)}
+                      onTouchEnd={() => setShowSpyP1Role(false)}
+                      disabled={!canPeekSpy1}
+                      className={`px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-zinc-300 rounded text-[10px] font-bold border border-zinc-700 select-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed`}
                     >
-                      {canPeekSpy2 ? "Зажать" : "Чужой ход"}
+                      {canPeekSpy1 ? "Зажать" : "Чужой ход"}
                     </button>
                   </div>
                 )}
+
+                {(gameState.opponent === "PVP" ||
+                  (gameState.opponent === "ONLINE" && !mpService.isHost)) &&
+                  Boolean(gameState.spies && gameState.spies.length > 1) && (
+                    <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 flex items-center justify-between shadow-sm">
+                      <div>
+                        <span className="text-[10px] font-bold text-zinc-500 uppercase block">
+                          Досье: {gameState.spies[1]?.name}
+                        </span>
+                        <span className="text-xs font-black text-blue-400">
+                          {showSpyP2Role
+                            ? allChars.find(
+                                (c) => c.id === gameState.spies![1]?.secretId,
+                              )?.name
+                            : "••••••••"}
+                        </span>
+                      </div>
+                      <button
+                        onMouseDown={() =>
+                          canPeekSpy2 && setShowSpyP2Role(true)
+                        }
+                        onMouseUp={() => setShowSpyP2Role(false)}
+                        onMouseLeave={() => setShowSpyP2Role(false)}
+                        onTouchStart={() =>
+                          canPeekSpy2 && setShowSpyP2Role(true)
+                        }
+                        onTouchEnd={() => setShowSpyP2Role(false)}
+                        disabled={!canPeekSpy2}
+                        className={`px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-zinc-300 rounded text-[10px] font-bold border border-zinc-700 select-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed`}
+                      >
+                        {canPeekSpy2 ? "Зажать" : "Чужой ход"}
+                      </button>
+                    </div>
+                  )}
               </div>
             )}
 
@@ -1439,7 +1580,12 @@ export default function App() {
               </button>
               <button
                 onClick={handleReset}
-                className="flex-1 py-3.5 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg"
+                disabled={gameState.opponent === "ONLINE" && !mpService.isHost}
+                className={`flex-1 py-3.5 text-xs font-black uppercase tracking-wider rounded-xl transition shadow-lg ${
+                  gameState.opponent === "ONLINE" && !mpService.isHost
+                    ? "bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40"
+                    : "bg-amber-600 hover:bg-amber-500 text-zinc-950 cursor-pointer"
+                }`}
               >
                 Реванш ↻
               </button>

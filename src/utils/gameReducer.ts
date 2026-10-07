@@ -15,18 +15,23 @@ import {
   exonerateFromHand,
   cleanupDeadCharacters,
 } from "./gameLogic";
+
 export function gameReducer(state: GameState, action: GameAction): GameState {
-  // Валидация: если игра окончена, разрешаем только рестарт
   if (state.winner && action.type !== "RESTART_GAME") {
     return state;
   }
+
+  const isRemote = action.senderId === "remote";
 
   switch (action.type) {
     case "SHIFT_BOARD": {
       const { shiftType, index, direction } = action.payload;
 
-      // Валидация анти-отмены
-      if (isOppositeShift(state.lastShift, shiftType, index, direction)) {
+      // Блокируем анти-отмену ТОЛЬКО для локальных ходов. Удаленные ходы применяются безусловно.
+      if (
+        !isRemote &&
+        isOppositeShift(state.lastShift, shiftType, index, direction)
+      ) {
         return state;
       }
 
@@ -70,75 +75,44 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         log: [...state.log, actionText],
       };
     }
-    case "KILL_CHARACTER": {
+
+    case "KILL_CHARACTER":
       return killCharacter(state, action.payload.targetId);
-    }
-
-    case "ROB_NEIGHBOR": {
+    case "ROB_NEIGHBOR":
       return robNeighbor(state, action.payload.targetId);
-    }
-    case "ACCUSE": {
+    case "ACCUSE":
       return accuseCharacter(state, action.payload.targetId);
-    }
-
-    case "CAPTURE_SPY": {
-      const nextState = spyCatch(state, action.payload.targetId);
+    case "CAPTURE_SPY":
       return {
-        ...nextState,
+        ...spyCatch(state, action.payload.targetId),
         interrogationRadar: null,
         isHotseatCoverOpen: false,
       };
-    }
-
-    case "INTERROGATE": {
-      const nextState = spyInterrogate(state, action.payload.targetId);
+    case "INTERROGATE":
       return {
-        ...nextState,
+        ...spyInterrogate(state, action.payload.targetId),
         isHotseatCoverOpen: false,
       };
-    }
-
-    case "ESCAPE_MANIAC": {
+    case "ESCAPE_MANIAC":
       return escapeManiac(state);
-    }
-
-    case "FAST_DISGUISE": {
+    case "FAST_DISGUISE":
       return fastDisguise(state, action.payload.targetId);
-    }
-
-    case "DISGUISE": {
+    case "DISGUISE":
       return disguiseKiller(state);
-    }
-
-    case "EXONERATE": {
+    case "EXONERATE":
       return exonerateFromHand(state, action.payload.targetId);
-    }
-
-    case "CLEANUP": {
+    case "CLEANUP":
       return cleanupDeadCharacters(state);
-    }
 
     case "RESTART_GAME": {
-      const {
-        modeId,
-        opponent,
-        playerRole,
-        playerCount,
-        targetTrophies,
-        maxTurns,
-        state: remoteState,
-      } = action.payload;
-
-      // Если пришел сгенерированный стейт по сети от хоста — применяем его
-      if (remoteState) return remoteState;
-
+      if (action.payload.state) return action.payload.state;
       return createInitialState(
-        modeId,
-        opponent,
-        playerRole,
-        playerCount,
-        targetTrophies,
-        maxTurns,
+        action.payload.modeId,
+        action.payload.opponent,
+        action.payload.playerRole,
+        action.payload.playerCount,
+        action.payload.targetTrophies,
+        action.payload.maxTurns,
       );
     }
 

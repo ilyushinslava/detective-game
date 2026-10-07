@@ -571,7 +571,7 @@ export const MainMenu = ({
                 className="w-full py-3.5 bg-amber-500 disabled:bg-zinc-800 text-zinc-950 disabled:text-zinc-600 font-black uppercase tracking-widest rounded-2xl transition shadow-lg cursor-pointer disabled:cursor-not-allowed text-xs"
               >
                 {selectedOpponent === "ONLINE" && !mpService.isHost
-                  ? "Ожидание хоста..."
+                  ? "Ожиданиe хоста..."
                   : "▶ Начать партию"}
               </button>
             </div>

@@ -35,6 +35,13 @@
     return this.ctx;
   }
 
+  initAudio() {
+    const ctx = this.getContext();
+    if (ctx && ctx.state === "suspended") {
+      ctx.resume();
+    }
+  }
+
   playShift() {
     const ctx = this.getContext();
     if (!ctx) return;

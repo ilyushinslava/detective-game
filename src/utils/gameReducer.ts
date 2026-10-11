@@ -24,6 +24,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
   const isRemote = action.senderId === "remote";
 
   switch (action.type) {
+    // Специальный экшен для подготовки анимации сдвига (только обновляет lastShift)
+    case "PRE_SHIFT": {
+      return {
+        ...state,
+        lastShift: {
+          type: (action.payload as any).shiftType,
+          index: (action.payload as any).index,
+          direction: (action.payload as any).direction,
+        },
+      };
+    }
+
     case "SHIFT_BOARD": {
       const { shiftType, index, direction } = action.payload;
 
@@ -82,12 +94,27 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return robNeighbor(state, action.payload.targetId);
     case "ACCUSE":
       return accuseCharacter(state, action.payload.targetId);
-    case "CAPTURE_SPY":
+
+    case "CAPTURE_SPY": {
+      const result = spyCatch(state, action.payload.targetId);
+
+      // Жестко применяем переданный индекс или безопасно инкрементируем
+      const explicitNext = (action.payload as any).nextSpyIndex;
+      const safeNext =
+        explicitNext !== undefined
+          ? explicitNext
+          : ((state.activeSpyIndex ?? 0) + 1) % (state.spies?.length || 1);
+
       return {
-        ...spyCatch(state, action.payload.targetId),
+        ...result,
+        activeSpyIndex: safeNext,
+        detectiveSecretId:
+          result.spies?.[safeNext]?.secretId ?? result.detectiveSecretId,
         interrogationRadar: null,
         isHotseatCoverOpen: false,
       };
+    }
+
     case "INTERROGATE":
       return {
         ...spyInterrogate(state, action.payload.targetId),
@@ -104,16 +131,24 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case "CLEANUP":
       return cleanupDeadCharacters(state);
 
+    case "REQUEST_RESTART":
+      return { ...state, restartRequestedBy: action.payload.requestedBy };
+
+    case "REJECT_RESTART":
+      return { ...state, restartRequestedBy: null };
+
+    case "CONFIRM_RESTART":
+      return { ...state, restartRequestedBy: null };
+
+    case "SET_MATCH_POT":
+      return {
+        ...state,
+        matchPot: action.payload.pot,
+        matchBet: action.payload.bet,
+      };
+
     case "RESTART_GAME": {
       if (action.payload.state) return action.payload.state;
-      return createInitialState(
-        action.payload.modeId,
-        action.payload.opponent,
-        action.payload.playerRole,
-        action.payload.playerCount,
-        action.payload.targetTrophies,
-        action.payload.maxTurns,
-      );
     }
 
     default:

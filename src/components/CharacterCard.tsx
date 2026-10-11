@@ -1,14 +1,12 @@
 ﻿import { memo } from "react";
 import { motion } from "framer-motion";
-import type { Character } from "../types/game";
+import { type Character, type GameModeType, SPY_COLORS } from "../types/game";
 
 export interface CharacterCardProps {
+  mode: GameModeType;
   character: Character;
   isSelected: boolean;
-  isKillerAdjacent: boolean;
-  isDetectiveAdjacent: boolean;
-  showKillerHint: boolean;
-  showDetectiveHint: boolean;
+  neighborHighlightColor?: string | null;
   isUniformedOfficer?: boolean;
   isTargetVictim?: boolean;
   radarRingColor?: string | null;
@@ -17,14 +15,12 @@ export interface CharacterCardProps {
   onClick: () => void;
 }
 
-// 4 векторных силуэта в нуарном стиле для фона карточки
 const renderSilhouette = (id: string) => {
   const num = parseInt(id.replace("c", ""), 10) || 0;
   const variant = num % 4;
 
   switch (variant) {
     case 0:
-      // Детектив /
       return (
         <svg
           viewBox="0 0 120 120"
@@ -45,7 +41,6 @@ const renderSilhouette = (id: string) => {
         </svg>
       );
     case 1:
-      // Ретро-прическа / женский силуэт
       return (
         <svg
           viewBox="0 0 120 120"
@@ -61,7 +56,6 @@ const renderSilhouette = (id: string) => {
         </svg>
       );
     case 2:
-      // Строгий агент в костюме с пробором
       return (
         <svg
           viewBox="0 0 120 120"
@@ -79,7 +73,6 @@ const renderSilhouette = (id: string) => {
       );
     case 3:
     default:
-      // Кепка газетчика / воротник
       return (
         <svg
           viewBox="0 0 120 120"
@@ -102,12 +95,10 @@ const renderSilhouette = (id: string) => {
 
 export const CharacterCard = memo(
   ({
+    mode,
     character,
     isSelected,
-    isKillerAdjacent,
-    isDetectiveAdjacent,
-    showKillerHint,
-    showDetectiveHint,
+    neighborHighlightColor,
     isUniformedOfficer,
     isTargetVictim,
     radarRingColor,
@@ -117,6 +108,11 @@ export const CharacterCard = memo(
   }: CharacterCardProps) => {
     const isDead = !character.isAlive;
     const isExonerated = character.isExonerated && !isDead;
+    const isSecretService = mode === "SECRET_SERVICE";
+    const unmaskedColor =
+      character.unmaskedSpyIndex !== undefined
+        ? SPY_COLORS[character.unmaskedSpyIndex % SPY_COLORS.length]
+        : null;
 
     return (
       <motion.div
@@ -137,7 +133,9 @@ export const CharacterCard = memo(
                   ? "bg-red-950/40 border-red-700/80"
                   : "bg-zinc-900 border-amber-600/60"
               : isDead
-                ? "bg-zinc-950/95 border-zinc-900 opacity-50 shadow-inner"
+                ? isSecretService
+                  ? "bg-zinc-950/95 border-amber-900/40 opacity-70 shadow-inner"
+                  : "bg-zinc-950/95 border-zinc-900 opacity-50 shadow-inner"
                 : isTargetVictim
                   ? "bg-red-950/30 border-red-600 shadow-[0_0_12px_rgba(220,38,38,0.35)] animate-pulse"
                   : isExonerated
@@ -145,22 +143,16 @@ export const CharacterCard = memo(
                     : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
         } ${
           isSelected
-            ? "ring-1 sm:ring-2 ring-amber-400 border-amber-400 shadow-[0_0_14px_rgba(251,191,36,0.4)] scale-[1.02] z-20"
-            : ""
-        } ${
-          showKillerHint && isKillerAdjacent
-            ? "ring-1 ring-red-500/80 border-red-500"
-            : ""
-        } ${
-          showDetectiveHint && isDetectiveAdjacent
-            ? "ring-1 ring-blue-500/80 border-blue-500"
-            : ""
-        } ${
-          isRadarCenter && radarRingColor
-            ? `ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} shadow-[0_0_15px_currentColor] z-10`
-            : radarRingColor
-              ? `ring-1 ${radarRingColor} opacity-70 animate-pulse`
-              : ""
+            ? "ring-2 ring-white border-white shadow-[0_0_15px_rgba(255,255,255,0.8)] scale-95 z-30"
+            : (isRadarCenter || radarRingColor) && neighborHighlightColor
+              ? `${neighborHighlightColor} !border-white ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} ${isRadarCenter ? "shadow-[0_0_15px_currentColor]" : "animate-pulse"} z-20`
+              : isRadarCenter && radarRingColor
+                ? `ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} shadow-[0_0_15px_currentColor] z-10`
+                : radarRingColor
+                  ? `ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} opacity-80 animate-pulse z-10`
+                  : neighborHighlightColor
+                    ? `${neighborHighlightColor} z-10`
+                    : ""
         }`}
       >
         {/* Фоновый силуэт */}
@@ -188,8 +180,15 @@ export const CharacterCard = memo(
 
           <div className="flex items-center gap-0.5 text-[8px] sm:text-[10px] leading-none">
             {isDead && (
-              <span className="text-red-500 font-bold" title="Ликвидирован">
-                ☠
+              <span
+                className={
+                  isSecretService
+                    ? `${character.unmaskedSpyIndex === 0 ? "text-red-400" : character.unmaskedSpyIndex === 1 ? "text-blue-400" : "text-zinc-400"} font-bold`
+                    : "text-red-500 font-bold"
+                }
+                title={isSecretService ? "Разоблачен" : "Ликвидирован"}
+              >
+                {isSecretService ? "🎭" : "☠"}
               </span>
             )}
             {isTargetVictim && !isDead && (
@@ -228,7 +227,9 @@ export const CharacterCard = memo(
           <span
             className={`block text-[8.5px] xs:text-[9.5px] sm:text-xs font-bold leading-[1.1] tracking-tight break-normal whitespace-normal hyphens-none ${
               isDead
-                ? "text-zinc-600 line-through decoration-red-900/70"
+                ? isSecretService
+                  ? `${character.unmaskedSpyIndex === 0 ? "text-red-500/80 decoration-red-900/70" : character.unmaskedSpyIndex === 1 ? "text-blue-500/80 decoration-blue-900/70" : "text-zinc-500/80 decoration-zinc-700/70"} line-through`
+                  : "text-zinc-600 line-through decoration-red-900/70"
                 : isTargetVictim
                   ? "text-red-200 font-black"
                   : isExonerated
@@ -259,8 +260,18 @@ export const CharacterCard = memo(
                   : "СЕЙФ"}
             </span>
           ) : isDead ? (
-            <span className="text-[5.5px] xs:text-[6.5px] sm:text-[7.5px] font-mono font-bold tracking-wider text-red-400 bg-red-950/60 border border-red-900/60 px-1 py-0.5 rounded">
-              МЕРТВ
+            <span
+              className={`text-[5.5px] xs:text-[6.5px] sm:text-[7.5px] font-mono font-bold tracking-wider px-1 py-0.5 rounded border ${
+                isSecretService
+                  ? character.unmaskedSpyIndex === 0
+                    ? "text-red-400 border-red-800 bg-red-950/80"
+                    : character.unmaskedSpyIndex === 1
+                      ? "text-blue-400 border-blue-800 bg-blue-950/80"
+                      : "text-zinc-300 border-zinc-700 bg-zinc-900"
+                  : "text-red-400 bg-red-950/60 border-red-900/60"
+              }`}
+            >
+              {isSecretService ? "РАЗОБЛАЧЕН" : "МЕРТВ"}
             </span>
           ) : isTargetVictim ? (
             <span className="text-[5.5px] xs:text-[6.5px] sm:text-[7.5px] font-mono font-bold tracking-wider text-red-200 bg-red-950/90 border border-red-600 px-1 py-0.5 rounded shadow">

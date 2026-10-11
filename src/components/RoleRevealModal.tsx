@@ -13,6 +13,8 @@ interface RoleRevealModalProps {
   killer: Character | undefined;
   detective: Character | undefined;
   inspectorChoices: Character[];
+  role1Name?: string;
+  role2Name?: string;
   onSelectDetectiveRole: (id: string) => void;
   onComplete: () => void;
 }
@@ -24,37 +26,39 @@ export const RoleRevealModal = ({
   killer,
   detective,
   inspectorChoices,
+  role1Name: propRole1Name,
+  role2Name: propRole2Name,
   onSelectDetectiveRole,
   onComplete,
 }: RoleRevealModalProps) => {
-  let role1Name = "Бандит";
-  let role2Name = "Инспектор";
+  let role1Name = propRole1Name || "Бандит";
+  let role2Name = propRole2Name || "Инспектор";
   let role1Goal = "Ликвидация Инспектора или 14 жертв";
   let role2Goal = "Вычислить Бандита через допросы алиби";
 
   if (mode === "MANIAC_VS_OPERATIVE") {
-    role1Name = "Маньяк";
-    role2Name = "Оперативник";
+    role1Name = propRole1Name || "Маньяк";
+    role2Name = propRole2Name || "Оперативник";
     role1Goal = "Устранить 4 цели строго по открытому списку жертв";
     role2Goal = "Вычислить Маньяка до завершения серии из 4 смертей";
   } else if (mode === "THIEF_HUNT") {
-    role1Name = "Грабитель";
-    role2Name = "Полиция";
+    role1Name = propRole1Name || "Грабитель";
+    role2Name = propRole2Name || "Полиция";
     role1Goal = "Похитить 5 сокровищ у соседей и менять маски";
     role2Goal = "Выставлять патрули на улицы и арестовать Грабителя";
   } else if (mode === "SECRET_SERVICE") {
-    role1Name = "Агент «Восток»";
-    role2Name = "Агент «Запад»";
+    role1Name = propRole1Name || "Агент «Восток»";
+    role2Name = propRole2Name || "Агент «Запад»";
     role1Goal = "Собрать 3 трофея, разоблачая шпиона";
     role2Goal = "Собрать 3 трофея, разоблачая шпиона";
   } else if (mode === "EUROPOL_VS_OPG") {
-    role1Name = "ОПГ";
-    role2Name = "Европол";
+    role1Name = propRole1Name || "ОПГ";
+    role2Name = propRole2Name || "Европол";
     role1Goal = "Устранить ключевых свидетелей";
     role2Goal = "Арестовать главаря ОПГ";
   } else if (mode === "SPANISH_HEIST") {
-    role1Name = "Профессор";
-    role2Name = "Спецназ";
+    role1Name = propRole1Name || "Профессор";
+    role2Name = propRole2Name || "Спецназ";
     role1Goal = "Ограбить банк и сбежать";
     role2Goal = "Штурмовать здание и арестовать Профессора";
   }
@@ -79,6 +83,21 @@ export const RoleRevealModal = ({
     null,
   );
 
+  const isRedTheme = playerRole === "KILLER";
+  const currentRoleName = isRedTheme ? role1Name : role2Name;
+
+  const themeClasses = isRedTheme
+    ? {
+        text: "text-red-400",
+        border: "border-red-900/60",
+        button: "bg-red-600 hover:bg-red-500 active:bg-red-700",
+      }
+    : {
+        text: "text-blue-400",
+        border: "border-blue-900/60",
+        button: "bg-blue-600 hover:bg-blue-500 active:bg-blue-700",
+      };
+
   const handleConfirmChoices = () => {
     if (selectedInspectorId) {
       onSelectDetectiveRole(selectedInspectorId);
@@ -93,12 +112,17 @@ export const RoleRevealModal = ({
         {phase === "SECRET_SERVICE_SOLO" && (
           <>
             <div className="flex flex-col items-center justify-center flex-1 my-auto w-full">
-              <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-widest mb-2">
+              <span
+                className={`text-[11px] font-bold ${themeClasses.text} uppercase tracking-widest mb-2`}
+              >
                 Секретная служба: Ваше прикрытие
               </span>
-              <div className="w-full max-w-sm p-5 rounded-2xl bg-zinc-950 border border-emerald-900/60 shadow-xl mb-4">
+              <div
+                className={`w-full max-w-sm p-5 rounded-2xl bg-zinc-950 border ${themeClasses.border} shadow-xl mb-4`}
+              >
                 <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest block mb-1">
-                  Агент «Восток» (Шпион)
+                  Ваш позывной:{" "}
+                  <b className="text-zinc-300">{currentRoleName}</b>
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-black text-zinc-100">
                   {detective?.name ?? "Неизвестно"}
@@ -107,13 +131,26 @@ export const RoleRevealModal = ({
               <div className="p-3.5 bg-zinc-950/80 border border-zinc-800 rounded-xl text-xs text-zinc-400 space-y-1.5 text-left w-full font-mono max-w-sm">
                 <div>
                   • Формат:{" "}
-                  <b className="text-emerald-400">Куча-мала (3 шпиона)</b>
+                  <b className={themeClasses.text}>
+                    {opponent === "ONLINE"
+                      ? "Дуэль разведок"
+                      : "Куча-мала (3 шпиона)"}
+                  </b>
                 </div>
                 <div>
-                  • Ваша задача: <b>Собрать 4 трофея</b> (ловить чужих шпионов)
+                  • Ваша задача:{" "}
+                  <b>Собрать {opponent === "ONLINE" ? "3" : "4"} трофея</b>{" "}
+                  (ловить чужих шпионов)
                 </div>
                 <div>
-                  • Соперники: <b>Бот «Альфа»</b> и <b>Бот «Омега»</b>
+                  • Соперник{opponent === "ONLINE" ? "" : "и"}:{" "}
+                  <b className="text-zinc-200">
+                    {opponent === "ONLINE"
+                      ? isRedTheme
+                        ? role2Name
+                        : role1Name
+                      : "Бот «Альфа» и Бот «Омега»"}
+                  </b>
                 </div>
                 <div className="text-[10px] text-zinc-500 pt-1 border-t border-zinc-800">
                   Подсказка: опрашивайте соседей подозреваемых. Если шпион рядом
@@ -123,7 +160,7 @@ export const RoleRevealModal = ({
             </div>
             <button
               onClick={onComplete}
-              className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-zinc-950 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg"
+              className={`w-full py-4 ${themeClasses.button} text-zinc-950 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg`}
             >
               Начать шпионскую операцию →
             </button>
@@ -134,7 +171,7 @@ export const RoleRevealModal = ({
         {phase === "SPY_P1_PROMPT" && (
           <>
             <div className="flex flex-col items-center justify-center flex-1 my-auto">
-              <div className="w-14 h-14 rounded-full bg-emerald-950/70 border border-emerald-700 flex items-center justify-center text-emerald-400 font-black text-lg mb-4 shadow-lg">
+              <div className="w-14 h-14 rounded-full bg-red-950/70 border border-red-700 flex items-center justify-center text-red-400 font-black text-lg mb-4 shadow-lg">
                 1
               </div>
               <h2 className="text-2xl font-black uppercase tracking-wider text-zinc-100 mb-2">
@@ -147,7 +184,7 @@ export const RoleRevealModal = ({
             </div>
             <button
               onClick={() => setPhase("SPY_P1_REVEAL")}
-              className="w-full py-4 bg-emerald-800 hover:bg-emerald-700 text-emerald-100 text-xs font-bold uppercase tracking-wider rounded-xl border border-emerald-600 transition cursor-pointer shadow-lg"
+              className="w-full py-4 bg-red-800 hover:bg-red-700 text-red-100 text-xs font-bold uppercase tracking-wider rounded-xl border border-red-600 transition cursor-pointer shadow-lg"
             >
               Посмотреть тайную роль
             </button>
@@ -157,10 +194,10 @@ export const RoleRevealModal = ({
         {phase === "SPY_P1_REVEAL" && (
           <>
             <div className="flex flex-col items-center justify-center flex-1 my-auto w-full">
-              <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-widest mb-2">
+              <span className="text-[11px] font-bold text-red-400 uppercase tracking-widest mb-2">
                 Тайное прикрытие
               </span>
-              <div className="w-full max-w-sm p-5 rounded-2xl bg-zinc-950 border border-emerald-900/60 shadow-xl mb-4">
+              <div className="w-full max-w-sm p-5 rounded-2xl bg-zinc-950 border border-red-900/60 shadow-xl mb-4">
                 <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest block mb-1">
                   Агент «Восток»
                 </span>
@@ -231,7 +268,7 @@ export const RoleRevealModal = ({
             </div>
             <button
               onClick={onComplete}
-              className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-zinc-950 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg"
+              className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-zinc-950 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-lg"
             >
               Начать шпионскую дуэль →
             </button>

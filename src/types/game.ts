@@ -21,6 +21,7 @@ export interface Character {
   isVault?: boolean;
   isVaultCracked?: boolean;
   isVaultLocked?: boolean;
+  unmaskedSpyIndex?: number;
 }
 
 export interface LastShift {
@@ -78,6 +79,9 @@ export interface GameState {
   justCaughtSpyId?: string;
   interrogationRadar?: { targetId: string; interrogatorIndex: number } | null;
   isHotseatCoverOpen?: boolean;
+  matchBet?: number;
+  matchPot?: number;
+  restartRequestedBy?: "HOST" | "GUEST" | null;
 }
 export const SPY_COLORS = [
   {

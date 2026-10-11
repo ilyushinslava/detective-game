@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth, signInAnonymously } from "firebase/auth";
 import {
   getDatabase,
   ref,
@@ -25,8 +26,22 @@ const firebaseConfig = {
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const auth = getAuth(app);
 
+const authReady = signInAnonymously(auth);
 type ActionCallback = (action: GameAction) => void;
+
+export interface PublicRoomMeta {
+  roomCode: string;
+  hostId: string;
+  hostName: string;
+  mode: string;
+  bet: number;
+  playersCount: number;
+  maxPlayers: number;
+  isPrivate: boolean;
+  createdAt: number;
+}
 
 class MultiplayerService {
   public isHost: boolean = false;
@@ -61,8 +76,77 @@ class MultiplayerService {
     this.actionSubscribers.forEach((cb) => cb(action));
   }
 
+  public subscribeToPublicRooms(
+    callback: (rooms: PublicRoomMeta[]) => void,
+  ): () => void {
+    const publicRoomsRef = ref(db, "public_rooms");
+    const listener = onValue(
+      publicRoomsRef,
+      (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+          callback([]);
+          return;
+        }
+        const now = Date.now();
+        const activeRooms: PublicRoomMeta[] = [];
+
+        for (const [code, room] of Object.entries(data)) {
+          const r = room as PublicRoomMeta;
+          if (!r.isPrivate && r.playersCount < r.maxPlayers) {
+            if (now - r.createdAt < 30 * 60 * 1000) {
+              activeRooms.push(r);
+            }
+          }
+        }
+
+        activeRooms.sort((a, b) => b.createdAt - a.createdAt);
+        callback(activeRooms);
+      },
+      (error) => {
+        // Мягко глушим ошибку сокета при простое или переключении табов
+        console.warn("Public rooms sync paused:", error.message);
+      },
+    );
+
+    return () => {
+      try {
+        off(publicRoomsRef);
+      } catch {}
+    };
+  }
+
+  public async findQuickPlayRoom(bet: number = 250): Promise<string | null> {
+    try {
+      const snapshot = await get(ref(db, "public_rooms"));
+      if (!snapshot.exists()) return null;
+
+      const data = snapshot.val();
+      const now = Date.now();
+
+      for (const [code, room] of Object.entries(data)) {
+        const r = room as PublicRoomMeta;
+        if (
+          !r.isPrivate &&
+          r.bet === bet &&
+          r.playersCount < r.maxPlayers &&
+          now - r.createdAt < 30 * 60 * 1000
+        ) {
+          return code;
+        }
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
   public async createRoom(
     hostName: string,
+    mode: string,
+    bet: number = 250,
+    isPrivate: boolean = false,
+    maxPlayers: number = 2,
     onReady: (code: string) => void,
     onConnected: () => void,
     onError?: (err: any) => void,
@@ -75,11 +159,11 @@ class MultiplayerService {
     this.onPlayerConnected = onConnected;
 
     try {
+      await authReady;
       this.roomRef = ref(db, `rooms/${code}`);
       this.actionsRef = ref(db, `rooms/${code}/actions`);
       this.guestRef = ref(db, `rooms/${code}/guestId`);
 
-      // Если хост отключается (закрыл вкладку) — удаляем всю комнату
       onDisconnect(this.roomRef).remove();
 
       await set(this.roomRef, {
@@ -89,17 +173,32 @@ class MultiplayerService {
         guestId: "",
         guestName: "",
         createdAt: Date.now(),
+        mode: mode,
       });
+
+      if (!isPrivate) {
+        const publicRoomRef = ref(db, `public_rooms/${code}`);
+        onDisconnect(publicRoomRef).remove();
+        await set(publicRoomRef, {
+          roomCode: code,
+          hostId: this.myClientId,
+          hostName: this.hostName,
+          mode,
+          bet,
+          playersCount: 1,
+          maxPlayers,
+          isPrivate,
+          createdAt: Date.now(),
+        });
+      }
 
       onReady(code);
 
       let guestWasConnected = false;
 
-      // Слушаем подключение/отключение гостя
       onValue(this.guestRef, async (snapshot) => {
         const guestId = snapshot.val();
 
-        // Строгая проверка: строка, не пустая, не равна ID хоста
         if (
           typeof guestId === "string" &&
           guestId.length > 0 &&
@@ -112,11 +211,19 @@ class MultiplayerService {
           } catch {
             this.guestName = "Запад";
           }
+
+          // Обновляем счетчик игроков в публичном лобби
+          update(ref(db, `public_rooms/${code}`), { playersCount: 2 }).catch(
+            () => {},
+          );
+
           if (this.onPlayerConnected) this.onPlayerConnected();
-        }
-        // Если гость был, а теперь ID пустой — значит он отключился
-        else if (guestWasConnected && (!guestId || guestId === "")) {
+        } else if (guestWasConnected && (!guestId || guestId === "")) {
           guestWasConnected = false;
+          // Возвращаем счетчик обратно
+          update(ref(db, `public_rooms/${code}`), { playersCount: 1 }).catch(
+            () => {},
+          );
           if (this.onPlayerDisconnected) this.onPlayerDisconnected();
         }
       });
@@ -140,6 +247,7 @@ class MultiplayerService {
     this.onPlayerConnected = onConnected;
 
     try {
+      await authReady;
       this.roomRef = ref(db, `rooms/${code}`);
       const snapshot = await get(this.roomRef);
 
@@ -157,7 +265,11 @@ class MultiplayerService {
         status: "CONNECTED",
       });
 
-      // Если гость отключается — затираем только его ID
+      // Обновляем счетчик в публичном лобби
+      update(ref(db, `public_rooms/${code}`), { playersCount: 2 }).catch(
+        () => {},
+      );
+
       this.guestRef = ref(db, `rooms/${code}/guestId`);
       onDisconnect(this.guestRef).set("");
 
@@ -165,7 +277,6 @@ class MultiplayerService {
 
       let hostWasConnected = true;
 
-      // Слушаем удаление комнаты хостом
       onValue(this.roomRef, (snap) => {
         if (!snap.exists()) {
           if (hostWasConnected) {
@@ -233,7 +344,6 @@ class MultiplayerService {
   }
 
   public disconnect() {
-    // Строго отписываемся от всех событий перед занулением
     if (this.guestRef) {
       off(this.guestRef);
       this.guestRef = null;
@@ -246,12 +356,20 @@ class MultiplayerService {
       off(this.roomRef);
       if (this.isHost) {
         remove(this.roomRef).catch(() => {});
+        if (this.roomCode) {
+          remove(ref(db, `public_rooms/${this.roomCode}`)).catch(() => {});
+        }
       } else {
         update(this.roomRef, {
           guestId: "",
           guestName: "",
           status: "WAITING",
         }).catch(() => {});
+        if (this.roomCode) {
+          update(ref(db, `public_rooms/${this.roomCode}`), {
+            playersCount: 1,
+          }).catch(() => {});
+        }
       }
       this.roomRef = null;
     }

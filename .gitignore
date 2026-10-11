@@ -25,3 +25,8 @@ dist-ssr
 .env
 .env.local
 repomix*
+
+# Локальные выгрузки исходников и структуры проекта
+current-repomix.xml
+structure.txt
+структура.txt

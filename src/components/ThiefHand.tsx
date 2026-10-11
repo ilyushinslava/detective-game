@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ALL_CHARACTERS } from "../constants/characters";
 
 interface ThiefHandProps {
@@ -12,10 +11,7 @@ export const ThiefHand = ({
   isThiefTurn,
   onFastDisguise,
 }: ThiefHandProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-
   const canView = isThiefTurn;
-  const showContent = isOpen && canView;
 
   // Безопасный список карт
   const validCards = (handIds ?? []).map((id) => {
@@ -35,30 +31,18 @@ export const ThiefHand = ({
           <span className="text-xs font-black uppercase tracking-wider text-amber-400">
             Маски вора ({validCards.length} карт)
           </span>
-          {!canView && (
-            <span className="block text-[10px] text-zinc-500 font-mono">
-              Закрыто (чужой ход)
-            </span>
-          )}
         </div>
-
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          disabled={!canView}
-          className={`text-xs px-3 py-1.5 rounded-lg border font-bold transition select-none ${
-            canView
-              ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 cursor-pointer active:scale-95"
-              : "bg-zinc-950 text-zinc-600 border-zinc-900 cursor-not-allowed opacity-40"
-          }`}
-        >
-          {showContent ? "Скрыть карты" : "Показать карты"}
-        </button>
+        {!canView && (
+          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
+            Закрыто (чужой ход)
+          </span>
+        )}
       </div>
 
-      {showContent && (
+      {canView && (
         <div className="mt-3 pt-3 border-t border-zinc-800/80">
           <div className="text-[10px] text-zinc-400 mb-2 font-mono">
-            Нажмите на карту, чтобы применить быструю маскировку:
+            Нажмите на карту, чтобы применить действие «Конспирация»:
           </div>
           <div className="grid grid-cols-2 gap-2">
             {validCards.map((card) => (
@@ -79,7 +63,7 @@ export const ThiefHand = ({
                 </div>
 
                 <div className="text-[9px] text-zinc-400 group-hover:text-zinc-200 font-semibold">
-                  Сменить маску →
+                  Конспирация →
                 </div>
               </div>
             ))}

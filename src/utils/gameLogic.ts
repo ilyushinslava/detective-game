@@ -93,11 +93,6 @@ export function createInitialState(
 ): GameState {
   let boardSize = 5;
 
-  if (mode === "SECRET_SERVICE") {
-    if (playerCount >= 7) boardSize = 7;
-    else if (playerCount >= 5) boardSize = 6;
-  }
-
   const totalCells = boardSize * boardSize;
   const shuffledCharacters = shuffle(ALL_CHARACTERS);
 
@@ -647,11 +642,20 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
   const newBoard = state.board.map((row) =>
     row.map((c) => (c.id === targetId ? { ...c, isRobbed: true } : c)),
   );
+  let nextKillerId = state.killerSecretId;
+  let remainingDeck = [...state.evidenceDeck];
+
+  if (remainingDeck.length > 0) {
+    nextKillerId = remainingDeck[0];
+    remainingDeck = remainingDeck.slice(1);
+  }
 
   return {
     ...state,
     board: newBoard,
     trophiesKiller: newTrophies,
+    killerSecretId: nextKillerId,
+    evidenceDeck: remainingDeck,
     winner: isWin ? "KILLER" : null,
     currentTurn: "DETECTIVE",
     blockedShift: null,
@@ -954,10 +958,16 @@ export function spyCatch(state: GameState, targetId: string): GameState {
     const caughtSpy = newSpies[caughtSpyIndex];
 
     newBoard = state.board.map((row) =>
-      row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c)),
+      row.map((c) =>
+        c.id === targetId
+          ? { ...c, isAlive: false, unmaskedSpyIndex: caughtSpyIndex }
+          : c,
+      ),
     );
 
-    const newTrophies = activeSpy.trophies + 1;
+    const targetTrophies = state.spyTargetTrophies ?? 4;
+    const newTrophies = Math.min(targetTrophies, activeSpy.trophies + 1);
+
     newSpies[state.activeSpyIndex] = {
       ...activeSpy,
       trophies: newTrophies,
@@ -982,9 +992,9 @@ export function spyCatch(state: GameState, targetId: string): GameState {
     newSpies[caughtSpyIndex] = { ...caughtSpy, secretId: nextSecretId };
     justCaughtSpyId = caughtSpy.id;
 
-    logMsg = `🎯 Поимка! ${activeSpy.name} разоблачил резидента соперника (${targetName})! Трофей получен (${newTrophies}/${state.spyTargetTrophies ?? 4}).`;
+    logMsg = `🎯 Поимка! ${activeSpy.name} разоблачил резидента соперника (${targetName})! Трофей получен (${newTrophies}/${targetTrophies}).`;
 
-    if (newTrophies >= (state.spyTargetTrophies ?? 4)) {
+    if (newTrophies >= targetTrophies) {
       winner = activeSpy.isAI ? "KILLER" : "DETECTIVE";
       logMsg += ` 🏆 ${activeSpy.name} собрал все трофеи и победил!`;
     } else {

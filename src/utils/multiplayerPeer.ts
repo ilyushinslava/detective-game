@@ -28,7 +28,6 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-const authReady = signInAnonymously(auth);
 type ActionCallback = (action: GameAction) => void;
 
 export interface PublicRoomMeta {
@@ -48,12 +47,25 @@ class MultiplayerService {
   public roomCode: string | null = null;
   public myClientId: string =
     "client_" + Date.now() + "_" + Math.random().toString(16).slice(2, 6);
-
   public hostName: string = "Восток";
   public guestName: string = "Запад";
 
   private actionSubscribers: Set<ActionCallback> = new Set();
+  private authPromise: Promise<any> | null = null;
   private roomRef: DatabaseReference | null = null;
+
+  private async ensureAuth(): Promise<any> {
+    if (auth.currentUser) return auth.currentUser;
+    if (this.authPromise) return this.authPromise;
+
+    this.authPromise = signInAnonymously(auth).catch((err) => {
+      this.authPromise = null;
+      console.error("Firebase auth error:", err);
+      throw err;
+    });
+
+    return this.authPromise;
+  }
   private actionsRef: DatabaseReference | null = null;
   private guestRef: DatabaseReference | null = null;
 
@@ -79,45 +91,54 @@ class MultiplayerService {
   public subscribeToPublicRooms(
     callback: (rooms: PublicRoomMeta[]) => void,
   ): () => void {
-    const publicRoomsRef = ref(db, "public_rooms");
-    const listener = onValue(
-      publicRoomsRef,
-      (snapshot) => {
-        const data = snapshot.val();
-        if (!data) {
-          callback([]);
-          return;
-        }
-        const now = Date.now();
-        const activeRooms: PublicRoomMeta[] = [];
+    let isCancelled = false;
+    let unsubscribe: (() => void) | null = null;
 
-        for (const [code, room] of Object.entries(data)) {
-          const r = room as PublicRoomMeta;
-          if (!r.isPrivate && r.playersCount < r.maxPlayers) {
-            if (now - r.createdAt < 30 * 60 * 1000) {
-              activeRooms.push(r);
+    this.ensureAuth().then(() => {
+      if (isCancelled) return;
+
+      const publicRoomsRef = ref(db, "public_rooms");
+      unsubscribe = onValue(
+        publicRoomsRef,
+        (snapshot) => {
+          const data = snapshot.val();
+          if (!data) {
+            callback([]);
+            return;
+          }
+          const now = Date.now();
+          const activeRooms: PublicRoomMeta[] = [];
+
+          for (const [code, room] of Object.entries(data)) {
+            const r = room as PublicRoomMeta;
+            if (!r.isPrivate && r.playersCount < r.maxPlayers) {
+              if (now - r.createdAt < 30 * 60 * 1000) {
+                activeRooms.push(r);
+              }
             }
           }
-        }
 
-        activeRooms.sort((a, b) => b.createdAt - a.createdAt);
-        callback(activeRooms);
-      },
-      (error) => {
-        // Мягко глушим ошибку сокета при простое или переключении табов
-        console.warn("Public rooms sync paused:", error.message);
-      },
-    );
+          activeRooms.sort((a, b) => b.createdAt - a.createdAt);
+          callback(activeRooms);
+        },
+        (error) => {
+          // Мягко глушим ошибку сокета при простое или переключении табов
+          console.warn("Public rooms sync paused:", error.message);
+        },
+      );
+    }).catch((err) => {
+      console.error("Failed to subscribe to public rooms due to auth error", err);
+    });
 
     return () => {
-      try {
-        off(publicRoomsRef);
-      } catch {}
+      isCancelled = true;
+      if (unsubscribe) unsubscribe();
     };
   }
 
   public async findQuickPlayRoom(bet: number = 250): Promise<string | null> {
     try {
+      await this.ensureAuth();
       const snapshot = await get(ref(db, "public_rooms"));
       if (!snapshot.exists()) return null;
 
@@ -159,7 +180,7 @@ class MultiplayerService {
     this.onPlayerConnected = onConnected;
 
     try {
-      await authReady;
+      await this.ensureAuth();
       this.roomRef = ref(db, `rooms/${code}`);
       this.actionsRef = ref(db, `rooms/${code}/actions`);
       this.guestRef = ref(db, `rooms/${code}/guestId`);
@@ -247,7 +268,7 @@ class MultiplayerService {
     this.onPlayerConnected = onConnected;
 
     try {
-      await authReady;
+      await this.ensureAuth();
       this.roomRef = ref(db, `rooms/${code}`);
       const snapshot = await get(this.roomRef);
 

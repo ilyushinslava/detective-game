@@ -26,6 +26,7 @@ import { ActionPanel, type ActionItem } from "./components/ActionPanel";
 import { RoleCards } from "./components/RoleCards";
 import type { GameAction } from "./types/multiplayer";
 import { gameReducer } from "./utils/gameReducer";
+import { Toast } from "./components/Toast";
 
 const SPY_COLORS = [
   {
@@ -121,6 +122,7 @@ export default function App() {
     useState(false);
   const [isHandSheetOpen, setIsHandSheetOpen] = useState(false);
   const [unreadLogCount, setUnreadLogCount] = useState(0);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const prevLogLenRef = useRef(gameState.log.length);
   useEffect(() => {
@@ -162,7 +164,7 @@ export default function App() {
           (mpService.isHost ? "HOST" : "GUEST")
         ) {
           refundBet(gameStateRef.current.matchBet || 250);
-          alert("Соперник отклонил предложение о реванше.");
+          setToastMessage("Соперник отклонил предложение о реванше.");
         }
         return;
       }
@@ -1077,6 +1079,7 @@ export default function App() {
 
   return (
     <div className="fixed inset-0 w-full h-[100dvh] flex flex-col bg-zinc-950 overflow-hidden select-none">
+      <Toast message={toastMessage} type="info" onClose={() => setToastMessage(null)} />
       <div className="w-full h-full flex flex-col relative">
         {isLobbyOpen && (
           <MainMenu

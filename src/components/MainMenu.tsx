@@ -7,6 +7,7 @@ import { triggerHaptic } from "../utils/haptics";
 import { mpService, type PublicRoomMeta } from "../utils/multiplayerPeer";
 import { BottomNavigation } from "./BottomNavigation";
 import { usePlayerProfile } from "../utils/usePlayerProfile";
+import { Toast } from "./Toast";
 
 interface MainMenuProps {
   profile: UserProfile;
@@ -78,6 +79,7 @@ export const MainMenu = ({
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [editNameValue, setEditNameValue] = useState(profile.nickname);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -156,7 +158,7 @@ export const MainMenu = ({
         },
         (err) => {
           console.error(err);
-          alert("Ошибка создания комнаты");
+          setToastMessage("Ошибка создания комнаты");
           setIsCreating(false);
         },
       );
@@ -198,7 +200,7 @@ export const MainMenu = ({
       },
       () => {
         setIsCreating(false);
-        alert("Ошибка создания комнаты");
+        setToastMessage("Ошибка создания комнаты");
       },
     );
   };
@@ -222,7 +224,7 @@ export const MainMenu = ({
       () => {
         setIsWaitingForOpponent(true);
       },
-      () => alert("Комната не найдена или игра уже началась"),
+      () => setToastMessage("Комната не найдена или игра уже началась"),
     );
   };
 
@@ -233,6 +235,7 @@ export const MainMenu = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-zinc-950 flex items-center justify-center overflow-hidden font-sans select-none">
+      <Toast message={toastMessage} type="error" onClose={() => setToastMessage(null)} />
       <div className="w-full h-full md:h-auto md:max-h-[820px] max-w-[440px] md:max-w-[460px] bg-zinc-950 relative md:rounded-3xl md:border md:border-zinc-800/80 shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden">
         {/* HEADER */}
         <div className="w-full bg-zinc-900 border-b border-zinc-800 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 px-4 sm:px-6 flex items-center justify-between shadow-md z-10 shrink-0">

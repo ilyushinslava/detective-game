@@ -143,7 +143,7 @@ export const ModeSelectModal = ({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2.5 min-h-0">
+        <div className="flex-1 px-4 py-2 min-h-0 max-h-[55vh] overflow-y-auto pr-1 space-y-2.5 custom-scrollbar pb-2">
           <div className="bg-zinc-950/80 border border-zinc-800 rounded-xl p-2.5 flex flex-col gap-2.5">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] font-bold text-zinc-400 uppercase">

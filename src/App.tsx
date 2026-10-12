@@ -257,7 +257,7 @@ export default function App() {
             s.id !== remoteSpy?.id && s.secretId === action.payload.targetId,
         );
         if (isMiss) {
-          sounds.playBuzzer();
+          sounds.playExplosion();
           setErrorCardId(action.payload.targetId);
           setTimeout(() => setErrorCardId(null), 500);
         } else {
@@ -683,7 +683,7 @@ export default function App() {
     const isMiss =
       selectedId !== gameState.killerSecretId && !targetChar.hasBomb;
     if (isMiss) {
-      sounds.playBuzzer();
+      sounds.playExplosion();
       triggerHaptic("error");
       setErrorCardId(selectedId);
       setTimeout(() => setErrorCardId(null), 500);
@@ -1114,9 +1114,9 @@ export default function App() {
   }
 
   return (
-    <div className="fixed inset-0 w-full h-[100dvh] flex flex-col bg-black overflow-hidden select-none">
+    <div className="fixed inset-0 w-full h-[100dvh] flex flex-col bg-zinc-950 overflow-hidden select-none">
       <Toast message={toastMessage} type="info" onClose={() => setToastMessage(null)} />
-      <div className="w-full max-w-[430px] mx-auto h-full bg-zinc-950 shadow-2xl relative flex flex-col"> 
+      <div className="w-full max-w-7xl mx-auto h-full relative flex flex-col"> 
         {isLobbyOpen && (
           <MainMenu
             profile={profile}
@@ -1357,7 +1357,7 @@ export default function App() {
           )}
         </div>
 
-        <div className="flex-1 min-h-0 w-full flex flex-col items-center justify-between px-2 py-1 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 min-h-0 w-full flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-4 lg:gap-8 px-2 sm:px-4 lg:px-6 py-2 lg:py-4 overflow-y-auto lg:overflow-hidden custom-scrollbar">
           {/* 2. ИГРОВОЕ ПОЛЕ */}
           <main className="flex-1 min-h-0 w-full flex items-center justify-center overflow-visible">
             <div className="w-full flex flex-col items-center justify-center">
@@ -1398,7 +1398,7 @@ export default function App() {
           </main>
 
           {/* 3. КОНТЕКСТНАЯ ПАНЕЛЬ УПРАВЛЕНИЯ */}
-          <footer className="w-full shrink-0 flex flex-col gap-2 z-20 pb-[max(0.5rem,env(safe-area-inset-bottom))] px-1">
+          <footer className="w-full max-w-md lg:w-80 xl:w-96 shrink-0 flex flex-col gap-3 z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:pb-0 px-1 lg:px-0 lg:overflow-y-auto custom-scrollbar">
             <RoleCards
               mode={gameState.mode}
               role1Name={role1Name}

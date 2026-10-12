@@ -53,7 +53,7 @@ export const GameBoard = ({
   const rowsArray = Array.from({ length: numRows }, (_, i) => i);
 
   return (
-    <div className="relative w-full max-w-[min(100%,calc(100vh-260px))] sm:max-w-[400px] aspect-square flex flex-col items-center justify-center p-1 sm:p-2 select-none mx-auto">
+    <div className="relative w-full aspect-square max-h-[calc(100vh-180px)] max-w-[min(100%,calc(100vh-180px))] flex flex-col items-center justify-center p-1 sm:p-2 select-none mx-auto">
       {/* ВЕРХНИЕ КНОПКИ (Сдвиг колонок вверх) */}
       <div className="w-full flex items-center gap-0.5 sm:gap-1 mb-0.5 sm:mb-1 shrink-0">
         <div className="w-5 sm:w-7 shrink-0" />

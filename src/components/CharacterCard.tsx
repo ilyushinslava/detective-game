@@ -1,4 +1,4 @@
-﻿import { memo } from "react";
+﻿import { memo, useState } from "react";
 import { motion } from "framer-motion";
 import { type Character, type GameModeType, SPY_COLORS } from "../types/game";
 
@@ -120,6 +120,7 @@ export const CharacterCard = memo(
     isRadarCenter,
     isError = false,
   }: CharacterCardProps) => {
+    const [imgError, setImgError] = useState(false);
     const isDead = !character.isAlive;
     const isExonerated = character.isExonerated && !isDead;
     const isSecretService = mode === "SECRET_SERVICE";
@@ -169,10 +170,22 @@ export const CharacterCard = memo(
                     : ""
         }`}
       >
-        {/* Фоновый силуэт */}
+        {/* Фоновый силуэт / Портрет */}
         {!character.isVault && !isDead && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 opacity-40">
-            {renderSilhouette(character.id)}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+            {!imgError ? (
+              <img
+                src={new URL(`../assets/characters/${character.id}.webp`, import.meta.url).href}
+                alt={character.name}
+                className="w-full h-full object-cover rounded-md opacity-75 grayscale contrast-125 pointer-events-none"
+                onError={() => setImgError(true)}
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center opacity-40">
+                {renderSilhouette(character.id)}
+              </div>
+            )}
           </div>
         )}
 

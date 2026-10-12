@@ -744,6 +744,21 @@ export default function App() {
       return;
 
     const mySpyIndex = gameState.activeSpyIndex ?? 0;
+    const mySpy = gameState.spies![mySpyIndex];
+    const isMiss = !gameState.spies!.some(
+      (s) => s.id !== mySpy.id && s.secretId === selectedId,
+    );
+
+    if (isMiss) {
+      sounds.playBuzzer();
+      triggerHaptic("error");
+      setErrorCardId(selectedId);
+      setTimeout(() => setErrorCardId(null), 500);
+    } else {
+      sounds.playAccuse();
+      triggerHaptic("medium");
+    }
+
     const nextSpyIndex = (mySpyIndex + 1) % (gameState.spies?.length || 3);
 
     dispatchAction({
@@ -887,7 +902,7 @@ export default function App() {
             disabled:
               !isHumanTurn ||
               !selectedId ||
-              !killerAdjacentIds.includes(selectedId) ||
+              (!killerAdjacentIds.includes(selectedId) && selectedId !== gameState.killerSecretId) ||
               isGameOver ||
               Boolean(selectedCharacter?.isRobbed),
             className:
@@ -938,11 +953,20 @@ export default function App() {
           id: "accuse_basic",
           label: "Задержание",
           onClick: handleAccuse,
-          disabled:
-            !isHumanTurn ||
-            !selectedId ||
-            Boolean(selectedCharacter?.isDead) ||
-            isGameOver,
+          disabled: (() => {
+            if (!isHumanTurn || !selectedId || Boolean(selectedCharacter?.isDead) || isGameOver) return true;
+            let isAdjacent = detectiveAdjacentIds.includes(selectedId);
+            let isSelf = selectedId === gameState.detectiveSecretId;
+            if (gameState.mode === "THIEF_HUNT" && gameState.uniformedOfficers) {
+              const isNearOfficer = gameState.uniformedOfficers.some((offId) =>
+                getAdjacentCharacters(gameState.board, offId).map(c => c.id).includes(selectedId)
+              );
+              const isOfficerSelf = gameState.uniformedOfficers.includes(selectedId);
+              isAdjacent = isAdjacent || isNearOfficer;
+              isSelf = isSelf || isOfficerSelf;
+            }
+            return !isAdjacent && !isSelf;
+          })(),
           className:
             "py-2.5 bg-blue-900/80 active:bg-blue-800 disabled:opacity-50 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed",
         });
@@ -964,8 +988,11 @@ export default function App() {
     gameState.winner,
     gameState.evidenceDeck.length,
     gameState.detectiveSecretId,
+    gameState.killerSecretId,
     gameState.spies,
     gameState.activeSpyIndex,
+    gameState.uniformedOfficers,
+    gameState.board,
     isKillerTurn,
     isHumanTurn,
     selectedId,
@@ -1330,10 +1357,10 @@ export default function App() {
           )}
         </div>
 
-        <div className="flex-1 min-h-0 w-full flex flex-col items-center justify-between px-2 py-1 overflow-hidden">
+        <div className="flex-1 min-h-0 w-full flex flex-col items-center justify-between px-2 py-1 overflow-y-auto custom-scrollbar">
           {/* 2. ИГРОВОЕ ПОЛЕ */}
           <main className="flex-1 min-h-0 w-full flex items-center justify-center overflow-visible">
-            <div className="w-full max-w-[380px] flex flex-col items-center justify-center">
+            <div className="w-full flex flex-col items-center justify-center">
               <GameBoard
                 mode={gameState.mode}
                 board={gameState.board}

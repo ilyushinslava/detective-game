@@ -1114,7 +1114,7 @@ export default function App() {
   }
 
   return (
-    <div className="fixed inset-0 w-full h-[100dvh] flex flex-col bg-zinc-950 overflow-hidden select-none">
+    <div className="fixed inset-0 w-full h-[100dvh] flex flex-col bg-noir-city overflow-hidden select-none">
       <Toast message={toastMessage} type="info" onClose={() => setToastMessage(null)} />
       <div className="w-full max-w-7xl mx-auto h-full relative flex flex-col"> 
         {isLobbyOpen && (

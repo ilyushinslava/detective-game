@@ -234,9 +234,9 @@ export const MainMenu = ({
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-zinc-950 flex items-center justify-center overflow-hidden font-sans select-none">
+    <div className="fixed inset-0 z-50 bg-noir-city flex items-center justify-center overflow-hidden font-sans select-none">
       <Toast message={toastMessage} type="error" onClose={() => setToastMessage(null)} />
-      <div className="w-full h-full md:h-auto md:max-h-[820px] max-w-[440px] md:max-w-[460px] bg-zinc-950 relative md:rounded-3xl md:border md:border-zinc-800/80 shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden">
+      <div className="w-full h-full md:h-auto md:max-h-[820px] max-w-[440px] md:max-w-[460px] bg-zinc-950/90 backdrop-blur-md relative md:rounded-3xl md:border md:border-zinc-800/80 shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden">
         {/* HEADER */}
         <div className="w-full bg-zinc-900 border-b border-zinc-800 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 px-4 sm:px-6 flex items-center justify-between shadow-md z-10 shrink-0">
           <div className="flex items-center gap-3">

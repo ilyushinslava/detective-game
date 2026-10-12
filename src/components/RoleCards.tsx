@@ -28,10 +28,12 @@ export const RoleCards = ({
   isPVP,
 }: RoleCardsProps) => {
   const isSecretService = mode === "SECRET_SERVICE";
-  const containerClass = "grid grid-cols-2 gap-1.5 w-full";
-
   const showKillerCard = isPVP || canPeekKiller;
   const showDetectiveCard = isPVP || canPeekDetective;
+  const singleCard = (showKillerCard && !showDetectiveCard) || (!showKillerCard && showDetectiveCard);
+  const containerClass = singleCard
+    ? "grid grid-cols-1 w-full"
+    : "grid grid-cols-2 gap-1.5 w-full";
 
   return (
     <div className={containerClass}>

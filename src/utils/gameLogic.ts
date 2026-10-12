@@ -792,37 +792,42 @@ export function disguiseKiller(state: GameState): GameState {
   }
 
   const nextDeck = [...state.evidenceDeck];
-  const drawnId = nextDeck.shift();
+  
+  // Ищем в колоде живого персонажа, который реально присутствует на игровом поле
+  const boardAliveIds = new Set(
+    state.board
+      .flat()
+      .filter((c) => c.isAlive && c.id !== state.killerSecretId && c.id !== state.detectiveSecretId)
+      .map((c) => c.id)
+  );
 
-  if (!drawnId) return state;
+  const targetIndex = nextDeck.findIndex((id) => boardAliveIds.has(id));
 
-  const drawnChar = state.board.flat().find((c) => c.id === drawnId);
-  const isAlive = drawnChar?.isAlive ?? false;
-
-  if (isAlive) {
-    nextDeck.push(state.killerSecretId);
+  if (targetIndex === -1) {
     return {
       ...state,
-      killerSecretId: drawnId,
-      evidenceDeck: nextDeck,
-      currentTurn: "DETECTIVE",
-      blockedShift: null,
-      lastInterrogation: null,
-      log: [...state.log, "Преступник успешно сменил облик и ушел в тень."],
-    };
-  } else {
-    return {
-      ...state,
-      evidenceDeck: nextDeck,
       currentTurn: "DETECTIVE",
       blockedShift: null,
       lastInterrogation: null,
       log: [
         ...state.log,
-        "Провал маскировки: вытянута карта убитого. Преступник остался в прежнем облике.",
+        "Провал конспирации: в резерве нет доступных личностей с поля.",
       ],
     };
   }
+
+  const [drawnId] = nextDeck.splice(targetIndex, 1);
+  nextDeck.push(state.killerSecretId);
+
+  return {
+    ...state,
+    killerSecretId: drawnId,
+    evidenceDeck: nextDeck,
+    currentTurn: "DETECTIVE",
+    blockedShift: null,
+    lastInterrogation: null,
+    log: [...state.log, "Преступник успешно сменил облик и ушел в тень."],
+  };
 }
 
 export function canCleanupBoard(board: Character[][] | Character[]): boolean {
@@ -849,7 +854,6 @@ export function cleanupDeadCharacters(state: GameState): GameState {
 
   const numRows = state.board.length;
   const numCols = state.board[0].length;
-  const totalCells = numRows * numCols;
   const flatBoard = state.board.flat();
 
   const living = flatBoard.filter((c) => c.isAlive);
@@ -857,39 +861,7 @@ export function cleanupDeadCharacters(state: GameState): GameState {
 
   if (dead.length === 0) return state;
 
-  const currentBoardIds = new Set(flatBoard.map((c) => c.id));
-  const nextDeck = [...state.evidenceDeck];
-  const newCharacters: Character[] = [];
-
-  let drawnCount = 0;
-  while (
-    living.length + newCharacters.length < totalCells &&
-    nextDeck.length > 0
-  ) {
-    const candidateId = nextDeck.shift()!;
-    if (state.mode === "SECRET_SERVICE" || currentBoardIds.has(candidateId)) {
-      continue;
-    }
-
-    const baseChar = CHARACTERS_DATA.find((c) => c.id === candidateId);
-    newCharacters.push({
-      id: candidateId,
-      name: baseChar?.name ?? candidateId,
-      isAlive: true,
-      isExonerated: false,
-      isRobbed: false,
-      isShielded: false,
-      hasBomb: false,
-      isVault: false,
-      isVaultCracked: false,
-      isVaultLocked: false,
-    });
-    currentBoardIds.add(candidateId);
-    drawnCount++;
-  }
-
-  const remainingDead = dead.slice(drawnCount);
-  const reordered = [...living, ...newCharacters, ...remainingDead];
+  const reordered = [...living, ...dead];
 
   const updatedBoard: Character[][] = [];
   for (let r = 0; r < numRows; r++) {
@@ -907,7 +879,6 @@ export function cleanupDeadCharacters(state: GameState): GameState {
   return {
     ...state,
     board: updatedBoard,
-    evidenceDeck: nextDeck,
     currentTurn: nextTurn,
     activeSpyIndex: nextSpyIndex,
     blockedShift: null,
@@ -916,11 +887,7 @@ export function cleanupDeadCharacters(state: GameState): GameState {
     lastSpyInterrogation: null,
     log: [
       ...state.log,
-      `Обновление поля: убрано тел — ${dead.length}.${
-        drawnCount > 0
-          ? ` Прибыло новых подозреваемых из резерва: ${drawnCount}.`
-          : " Поле уплотнено."
-      }`,
+      `Зачистка поля: ликвидированные (${dead.length}) перемещены в конец сетки.`,
     ],
   };
 }

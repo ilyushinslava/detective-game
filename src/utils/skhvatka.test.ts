@@ -38,21 +38,20 @@ describe("Режим: Схватка (SKHVATKA)", () => {
     expect(typeof nextState.lastInterrogation?.isNear).toBe("boolean");
   });
 
- it("Конспирация Бандита (disguiseKiller): смена тайной личности", () => {
+ it("Конспирация Бандита (disguiseKiller): смена тайной личности на живого персонажа с поля", () => {
     const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
     const initialKillerId = state.killerSecretId;
 
-    // Находим живого персонажа, отличного от текущего бандита и инспектора
-    const aliveChar = state.board.flat().find(
+    const aliveCharOnBoard = state.board.flat().find(
       (c) => c.isAlive && c.id !== initialKillerId && c.id !== state.detectiveSecretId
     )!;
 
-    // Гарантируем, что верхняя карта колоды улик ведет на этого живого персонажа
-    state.evidenceDeck = [aliveChar.id, ...state.evidenceDeck.filter(id => id !== aliveChar.id)];
+    state.evidenceDeck = [aliveCharOnBoard.id, ...state.evidenceDeck.filter((id) => id !== aliveCharOnBoard.id)];
 
     const nextState = disguiseKiller(state);
 
-    expect(nextState.killerSecretId).toBe(aliveChar.id);
+    expect(nextState.killerSecretId).toBe(aliveCharOnBoard.id);
+    expect(nextState.board.flat().some((c) => c.id === nextState.killerSecretId && c.isAlive)).toBe(true);
     expect(nextState.currentTurn).toBe("DETECTIVE");
   });
 
@@ -70,6 +69,29 @@ describe("Режим: Схватка (SKHVATKA)", () => {
     expect(nextState.detectiveHand.length).toBe(initialHandSize); // Сбросили одну, добрали новую
     expect(nextState.lastInterrogation?.interrogator).toBe("DETECTIVE");
     expect(nextState.currentTurn).toBe("KILLER");
+  });
+
+  it("Попытка ликвидации персонажа не по соседству отклоняется (killCharacter)", () => {
+    const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
+    const neighbors = getAdjacentCharacters(state.board, state.killerSecretId).map(c => c.id);
+    const farCell = state.board.flat().find(c => c.id !== state.killerSecretId && !neighbors.includes(c.id))!;
+
+    const nextState = killCharacter(state, farCell.id);
+
+    expect(nextState).toBe(state);
+    expect(nextState.currentTurn).toBe("KILLER");
+  });
+
+  it("Попытка обвинения персонажа не по соседству отклоняется (accuseCharacter)", () => {
+    const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
+    state.currentTurn = "DETECTIVE";
+    const neighbors = getAdjacentCharacters(state.board, state.detectiveSecretId).map(c => c.id);
+    const farCell = state.board.flat().find(c => c.id !== state.detectiveSecretId && !neighbors.includes(c.id))!;
+
+    const nextState = accuseCharacter(state, farCell.id);
+
+    expect(nextState).toBe(state);
+    expect(nextState.currentTurn).toBe("DETECTIVE");
   });
 
   it("Победа Закона при успешном Задержании Бандита (accuseCharacter)", () => {

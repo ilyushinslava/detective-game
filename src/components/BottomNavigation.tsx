@@ -12,8 +12,8 @@ export const BottomNavigation = ({
   const tabs = [
     { id: "LOBBY", icon: "🏠", label: "Лобби", disabled: false },
     { id: "TABLES", icon: "📋", label: "Столы", disabled: false },
-    { id: "TOP", icon: "🏆", label: "Топ", disabled: true },
-    { id: "SHOP", icon: "🛒", label: "Магазин", disabled: true },
+    { id: "TOP", icon: "🏆", label: "Топ", disabled: false },
+    { id: "SHOP", icon: "🛒", label: "Магазин", disabled: false },
   ] as const;
 
   return (

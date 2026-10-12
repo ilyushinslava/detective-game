@@ -524,39 +524,105 @@ export const MainMenu = ({
 
           {/* TAB: TOP */}
           {activeTab === "TOP" && (
-            <div className="w-full max-w-lg md:max-w-xl px-4 my-auto flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-20 h-20 rounded-3xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-4xl mb-4 shadow-xl">
-                🏆
+            <div className="w-full h-full flex flex-col gap-3 px-4 py-2">
+              <div className="flex items-center justify-between shrink-0 mb-2">
+                <h2 className="text-lg font-black text-zinc-100 uppercase tracking-wider">
+                  Топ детективов
+                </h2>
+                <div className="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest">
+                  Сезон 1
+                </div>
               </div>
-              <div className="inline-block bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[9px] font-black px-2.5 py-1 rounded-full mb-3 uppercase tracking-widest">
-                Сезон 1 • Скоро
+              <div className="flex-1 overflow-y-auto space-y-2 pb-20 custom-scrollbar">
+                {[
+                  { rank: 1, name: "NoirHunter", avatar: "🕵️", league: "Магистр", wins: 142 },
+                  { rank: 2, name: "ShadowCat", avatar: "🐱", league: "Магистр", wins: 128 },
+                  { rank: 3, name: "IronClad", avatar: "🤖", league: "Шериф", wins: 95 },
+                  { rank: 4, name: "Whisper", avatar: "👻", league: "Шериф", wins: 88 },
+                  { rank: 5, name: "EagleEye", avatar: "🦅", league: "Сыщик", wins: 76 },
+                  { rank: 6, name: profile.nickname, avatar: profile.avatar, league: profile.rank, wins: profile.stats.wins, isMe: true },
+                  { rank: 7, name: "NightOwl", avatar: "🦉", league: "Сыщик", wins: 42 },
+                  { rank: 8, name: "Rookie99", avatar: "👶", league: "Стажёр", wins: 12 },
+                ].map((user) => (
+                  <div
+                    key={user.rank}
+                    className={`flex items-center justify-between p-3 rounded-2xl border transition-colors ${
+                      user.isMe
+                        ? "bg-amber-950/30 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+                        : "bg-zinc-900 border-zinc-800"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-6 text-center font-black text-sm ${user.rank <= 3 ? "text-amber-400" : "text-zinc-500"}`}>
+                        #{user.rank}
+                      </div>
+                      <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-lg border border-zinc-700">
+                        {user.avatar}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className={`text-xs font-black ${user.isMe ? "text-amber-400" : "text-zinc-100"}`}>
+                          {user.name}
+                        </span>
+                        <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5">
+                          {user.league}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right flex flex-col items-end">
+                      <span className="text-xs font-black text-emerald-400">
+                        {user.wins}
+                      </span>
+                      <span className="text-[8px] text-zinc-500 uppercase font-bold">
+                        Побед
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <h2 className="text-lg font-black text-zinc-100 uppercase tracking-wider mb-2">
-                Таблица лидеров
-              </h2>
-              <p className="text-xs text-zinc-400 max-w-xs leading-relaxed">
-                Рейтинговые матчи и начисление очков Лиги откроются после
-                завершения открытого тестирования механик.
-              </p>
             </div>
           )}
 
           {/* TAB: SHOP */}
           {activeTab === "SHOP" && (
-            <div className="w-full max-w-lg md:max-w-xl px-4 my-auto flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-20 h-20 rounded-3xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-4xl mb-4 shadow-xl">
-                🛒
+            <div className="w-full h-full flex flex-col gap-3 px-4 py-2">
+              <div className="flex items-center justify-between shrink-0 mb-2">
+                <h2 className="text-lg font-black text-zinc-100 uppercase tracking-wider">
+                  Черный рынок
+                </h2>
+                <div className="bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                  <span className="text-emerald-400 font-black text-[10px]">$</span>
+                  <span className="text-zinc-300 font-mono text-[10px] font-bold">
+                    {profile.cash.toLocaleString()}
+                  </span>
+                </div>
               </div>
-              <div className="inline-block bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[9px] font-black px-2.5 py-1 rounded-full mb-3 uppercase tracking-widest">
-                В разработке
+              <div className="flex-1 overflow-y-auto pb-20 custom-scrollbar">
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { id: 1, title: "Винтажная рубашка Нуар 1930", icon: "🃏", price: "500 $" },
+                    { id: 2, title: "Неоновый радар", icon: "📡", price: "300 $" },
+                    { id: 3, title: "Лицензия Детектива", icon: "📜", price: "Бесплатно" },
+                    { id: 4, title: "Кейс оперативника", icon: "💼", price: "Получить" },
+                  ].map((item) => (
+                    <div key={item.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 flex flex-col justify-between gap-3 hover:border-amber-500/50 transition">
+                      <div className="flex flex-col items-center text-center gap-2">
+                        <div className="w-14 h-14 rounded-2xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-3xl shadow-inner">
+                          {item.icon}
+                        </div>
+                        <span className="text-[10px] font-bold text-zinc-300 leading-tight h-6 flex items-center">
+                          {item.title}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setToastMessage("Доступно в полной версии")}
+                        className="w-full py-2 bg-zinc-800 hover:bg-amber-600 hover:text-zinc-950 text-zinc-300 text-[9px] font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
+                      >
+                        {item.price}
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <h2 className="text-lg font-black text-zinc-100 uppercase tracking-wider mb-2">
-                Черный рынок закрыт
-              </h2>
-              <p className="text-xs text-zinc-400 max-w-xs leading-relaxed">
-                Скины персонажей, рубашки карт и лицензии будут доступны в
-                следующем обновлении.
-              </p>
             </div>
           )}
         </div>

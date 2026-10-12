@@ -838,7 +838,7 @@ export default function App() {
     if (gameState.mode === "SECRET_SERVICE") {
       actions.push({
         id: "capture_spy",
-        label: "Арест",
+        label: "Разоблачение",
         onClick: handleCaptureSpy,
         disabled:
           !isHumanTurn ||
@@ -1078,9 +1078,9 @@ export default function App() {
   }
 
   return (
-    <div className="fixed inset-0 w-full h-[100dvh] flex flex-col bg-zinc-950 overflow-hidden select-none">
+    <div className="fixed inset-0 w-full h-[100dvh] flex flex-col bg-black overflow-hidden select-none">
       <Toast message={toastMessage} type="info" onClose={() => setToastMessage(null)} />
-      <div className="w-full h-full flex flex-col relative">
+      <div className="w-full max-w-[430px] mx-auto h-full bg-zinc-950 shadow-2xl relative flex flex-col"> 
         {isLobbyOpen && (
           <MainMenu
             profile={profile}

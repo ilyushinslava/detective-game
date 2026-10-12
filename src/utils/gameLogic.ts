@@ -935,10 +935,27 @@ export function spyCatch(state: GameState, targetId: string): GameState {
     return state;
 
   const activeSpy = state.spies[state.activeSpyIndex];
-  const isAdjacent = areAdjacent(state.board, activeSpy.secretId, targetId);
-  const isSelf = activeSpy.secretId === targetId;
+  let secretId = activeSpy.secretId;
+  const isOnBoard = state.board.flat().some((c) => c.id === secretId && c.isAlive);
+  if (!isOnBoard) {
+    const firstAlive = state.board.flat().find((c) => c.isAlive);
+    if (firstAlive) secretId = firstAlive.id;
+  }
 
-  if (!isAdjacent && !isSelf) return state;
+  const isAdjacent = areAdjacent(state.board, secretId, targetId);
+  const isSelf = secretId === targetId;
+  const nextIndex = (state.activeSpyIndex + 1) % state.spies.length;
+
+  if (!isAdjacent && !isSelf) {
+    return {
+      ...state,
+      activeSpyIndex: nextIndex,
+      detectiveSecretId: state.spies[nextIndex].secretId,
+      blockedShift: null,
+      lastSpyInterrogation: null,
+      log: [...state.log, `❌ Промах: ${activeSpy.name} попытался провести арест слишком далеко.`],
+    };
+  }
 
   const targetChar = state.board.flat().find((c) => c.id === targetId);
   const targetName = targetChar?.name ?? targetId;
@@ -1005,8 +1022,6 @@ export function spyCatch(state: GameState, targetId: string): GameState {
     logMsg = `🔍 Промах: ${activeSpy.name} объявил подозрение на ${targetName}. Никто из агентов не признал эту личность.`;
   }
 
-  const nextIndex = (state.activeSpyIndex + 1) % state.spies.length;
-
   return {
     ...state,
     board: newBoard,
@@ -1032,10 +1047,30 @@ export function spyInterrogate(state: GameState, targetId: string): GameState {
     return state;
 
   const activeSpy = state.spies[state.activeSpyIndex];
-  const isAdjacent = areAdjacent(state.board, activeSpy.secretId, targetId);
-  const isSelf = activeSpy.secretId === targetId;
+  let secretId = activeSpy.secretId;
+  const isOnBoard = state.board.flat().some((c) => c.id === secretId && c.isAlive);
+  if (!isOnBoard) {
+    const firstAlive = state.board.flat().find((c) => c.isAlive);
+    if (firstAlive) secretId = firstAlive.id;
+  }
 
-  if (!isAdjacent && !isSelf) return state;
+  const isAdjacent = areAdjacent(state.board, secretId, targetId);
+  const isSelf = secretId === targetId;
+  const nextIndex = (state.activeSpyIndex + 1) % state.spies.length;
+
+  if (!isAdjacent && !isSelf) {
+    return {
+      ...state,
+      activeSpyIndex: nextIndex,
+      blockedShift: null,
+      lastSpyInterrogation: null,
+      interrogationRadar: {
+        targetId,
+        interrogatorIndex: state.activeSpyIndex,
+      },
+      log: [...state.log, `📡 Сбой связи: ${activeSpy.name} попытался опросить цель вне зоны досягаемости.`],
+    };
+  }
 
   const targetChar = state.board.flat().find((c) => c.id === targetId);
   const targetName = targetChar?.name ?? targetId;
@@ -1048,8 +1083,6 @@ export function spyInterrogate(state: GameState, targetId: string): GameState {
       raisedHands.push(spy.name);
     }
   }
-
-  const nextIndex = (state.activeSpyIndex + 1) % state.spies.length;
 
   const logDetail =
     raisedHands.length > 0

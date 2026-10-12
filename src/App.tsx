@@ -742,21 +742,6 @@ export default function App() {
       return;
 
     const mySpyIndex = gameState.activeSpyIndex ?? 0;
-    const mySpy = gameState.spies![mySpyIndex];
-    const isMiss = !gameState.spies!.some(
-      (s) => s.id !== mySpy.id && s.secretId === selectedId,
-    );
-
-    if (isMiss) {
-      sounds.playBuzzer();
-      triggerHaptic("error");
-      setErrorCardId(selectedId);
-      setTimeout(() => setErrorCardId(null), 500);
-    } else {
-      sounds.playAccuse();
-      triggerHaptic("medium");
-    }
-
     const nextSpyIndex = (mySpyIndex + 1) % (gameState.spies?.length || 3);
 
     dispatchAction({
@@ -849,39 +834,10 @@ export default function App() {
     const isGameOver = gameState.winner !== null;
 
     if (gameState.mode === "SECRET_SERVICE") {
-      const mySpyIndex = gameState.activeSpyIndex ?? 0;
-      const mySpy = gameState.spies?.[mySpyIndex];
-      const mySpyNeighbors = mySpy
-        ? getAdjacentCharacters(gameState.board, mySpy.secretId).map(
-            (c) => c.id,
-          )
-        : [];
-      const isNeighborTarget =
-        Boolean(selectedId) &&
-        Boolean(mySpy) &&
-        Boolean(selectedCharacter?.isAlive) &&
-        (mySpyNeighbors.includes(selectedId!) ||
-          selectedId === mySpy?.secretId);
-
-      const triggerInvalidTargetFeedback = () => {
-        sounds.playBuzzer();
-        triggerHaptic("error");
-        if (selectedId) {
-          setErrorCardId(selectedId);
-          setTimeout(() => setErrorCardId(null), 500);
-        }
-      };
-
       actions.push({
         id: "capture_spy",
         label: "Арест",
-        onClick: () => {
-          if (!isNeighborTarget) {
-            triggerInvalidTargetFeedback();
-            return;
-          }
-          handleCaptureSpy();
-        },
+        onClick: handleCaptureSpy,
         disabled:
           !isHumanTurn ||
           !selectedId ||
@@ -893,13 +849,7 @@ export default function App() {
       actions.push({
         id: "interrogate_spy",
         label: "Опрос свидетелей",
-        onClick: () => {
-          if (!isNeighborTarget) {
-            triggerInvalidTargetFeedback();
-            return;
-          }
-          handleInterrogateSpy();
-        },
+        onClick: handleInterrogateSpy,
         disabled:
           !isHumanTurn ||
           !selectedId ||

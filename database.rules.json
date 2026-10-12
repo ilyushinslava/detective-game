@@ -1,16 +1,14 @@
 {
   "rules": {
-    ".read": false,
-    ".write": false,
     "rooms": {
-      "$roomId": {
+      "$roomCode": {
         ".read": "auth != null",
         ".write": "auth != null"
       }
     },
     "public_rooms": {
       ".read": "auth != null",
-      "$roomId": {
+      "$roomCode": {
         ".write": "auth != null"
       }
     }

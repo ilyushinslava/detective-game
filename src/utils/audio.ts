@@ -43,42 +43,42 @@
   }
 
   /* Сдвиг: глухой деревянный стук / скольжение плитки по столу */
-  playShift() {
+playShift() {
     const ctx = this.getContext();
     if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(110, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(45, ctx.currentTime + 0.05);
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(420, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.04);
     gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start();
-    osc.stop(ctx.currentTime + 0.05);
+    osc.stop(ctx.currentTime + 0.04);
   }
 
-  /* Ликвидация: плотный низкий хлопок с шумом (выстрел с глушителем) */
   playKill() {
     const ctx = this.getContext();
     if (!ctx) return;
     const now = ctx.currentTime;
-    // Низкочастотный суб-бас
-    const sub = ctx.createOscillator();
-    const subGain = ctx.createGain();
-    sub.type = "triangle";
-    sub.frequency.setValueAtTime(140, now);
-    sub.frequency.exponentialRampToValueAtTime(30, now + 0.18);
-    subGain.gain.setValueAtTime(0.35, now);
-    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-    sub.connect(subGain);
-    subGain.connect(ctx.destination);
-    sub.start(now);
-    sub.stop(now + 0.18);
+    
+    // Щелчок затвора
+    const osc = ctx.createOscillator();
+    const oscGain = ctx.createGain();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(800, now);
+    osc.frequency.exponentialRampToValueAtTime(100, now + 0.03);
+    oscGain.gain.setValueAtTime(0.1, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+    osc.connect(oscGain);
+    oscGain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.03);
 
-    // Шумовой транзиент через Lowpass
-    const bufferSize = Math.floor(ctx.sampleRate * 0.1);
+    // Шумовой взрыв
+    const bufferSize = ctx.sampleRate * 0.09;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
@@ -86,35 +86,37 @@
     noise.buffer = buffer;
     const filter = ctx.createBiquadFilter();
     filter.type = "lowpass";
-    filter.frequency.setValueAtTime(280, now);
-    filter.frequency.exponentialRampToValueAtTime(60, now + 0.1);
-    const noiseGain = ctx.createGain();
-    noiseGain.gain.setValueAtTime(0.3, now);
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+    filter.frequency.setValueAtTime(450, now);
+    filter.frequency.exponentialRampToValueAtTime(100, now + 0.09);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
     noise.connect(filter);
-    filter.connect(noiseGain);
-    noiseGain.connect(ctx.destination);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
     noise.start(now);
-    noise.stop(now + 0.1);
+    noise.stop(now + 0.09);
   }
 
-  /* Задержание: резкий металлический щелчок наручников / затвора */
   playAccuse() {
     const ctx = this.getContext();
     if (!ctx) return;
     const now = ctx.currentTime;
-    [0, 0.04].forEach((delay) => {
+    [950, 1300].forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(620, now + delay);
-      osc.frequency.exponentialRampToValueAtTime(220, now + delay + 0.04);
-      gain.gain.setValueAtTime(0.12, now + delay);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.04);
+      osc.type = "square";
+      osc.frequency.setValueAtTime(freq, now + i * 0.05);
+      osc.frequency.exponentialRampToValueAtTime(
+        freq * 0.8,
+        now + i * 0.05 + 0.06,
+      );
+      gain.gain.setValueAtTime(0.08, now + i * 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.06);
       osc.connect(gain);
       gain.connect(ctx.destination);
-      osc.start(now + delay);
-      osc.stop(now + delay + 0.04);
+      osc.start(now + i * 0.05);
+      osc.stop(now + i * 0.05 + 0.06);
     });
   }
 
@@ -136,22 +138,22 @@
     osc.stop(now + 0.3);
   }
 
-  /* Ошибка / промах: глухой тупой стук */
+  /* Ошибка / промах / холостой допрос: упругий деревянный щелчок с отсечкой */
   playBuzzer() {
     const ctx = this.getContext();
     if (!ctx) return;
     const now = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(85, now);
-    osc.frequency.exponentialRampToValueAtTime(40, now + 0.12);
-    gain.gain.setValueAtTime(0.2, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(110, now + 0.15);
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start(now);
-    osc.stop(now + 0.12);
+    osc.stop(now + 0.15);
   }
 
   /* Радар / допрос: мягкий аналоговый пинг */

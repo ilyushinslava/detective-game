@@ -28,9 +28,7 @@ export const RoleCards = ({
   isPVP,
 }: RoleCardsProps) => {
   const isSecretService = mode === "SECRET_SERVICE";
-  const containerClass = isSecretService
-    ? "flex flex-col gap-2 w-full"
-    : "flex flex-row gap-2 w-full";
+  const containerClass = "grid grid-cols-2 gap-1.5 w-full";
 
   const showKillerCard = isPVP || canPeekKiller;
   const showDetectiveCard = isPVP || canPeekDetective;

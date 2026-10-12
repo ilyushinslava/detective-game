@@ -1207,6 +1207,21 @@ export default function App() {
             >
               <span>☰</span>
             </button>
+            <button
+              onClick={() => {
+                setIsLogOpen(true);
+                setUnreadLogCount(0);
+              }}
+              className="relative w-8 h-8 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs shrink-0 cursor-pointer lg:hidden"
+              title="Блокнот расследования"
+            >
+              <span>📝</span>
+              {unreadLogCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[8px] font-black rounded-full w-4 h-4 flex items-center justify-center animate-pulse">
+                  {unreadLogCount}
+                </span>
+              )}
+            </button>
           </div>
 
           <div className="absolute left-1/2 -translate-x-1/2 flex justify-center shrink-0">

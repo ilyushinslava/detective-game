@@ -55,8 +55,8 @@ export const GameBoard = ({
   return (
     <div className="relative w-full aspect-square max-h-[calc(100vh-180px)] max-w-[min(100%,calc(100vh-180px))] flex flex-col items-center justify-center p-1 sm:p-2 select-none mx-auto">
       {/* ВЕРХНИЕ КНОПКИ (Сдвиг колонок вверх) */}
-      <div className="w-full flex items-center gap-0.5 sm:gap-1 mb-0.5 sm:mb-1 shrink-0">
-        <div className="w-5 sm:w-7 shrink-0" />
+      <div className="w-full flex items-center gap-0.5 sm:gap-1 mb-0.5 shrink-0">
+        <div className="w-4 sm:w-6 shrink-0" />
         <div
           className="grid gap-0.5 sm:gap-1 flex-1"
           style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
@@ -76,7 +76,7 @@ export const GameBoard = ({
                 key={`col-up-${colIdx}`}
                 disabled={isBlocked || isOpposite}
                 onClick={() => onShift("COL", colIdx, "BACKWARD")}
-                className={`w-full h-6 sm:h-7 shrink-0 rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 opacity-70 hover:opacity-100 p-0 ${
+                className={`w-full h-5 sm:h-6 shrink-0 rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 opacity-60 hover:opacity-100 p-0 ${
                   isOpposite
                     ? "invisible pointer-events-none"
                     : isBlocked
@@ -92,14 +92,14 @@ export const GameBoard = ({
             );
           })}
         </div>
-        <div className="w-6 sm:w-8 shrink-0" />
+        <div className="w-5 sm:w-7 shrink-0" />
       </div>
 
       {/* ЦЕНТРАЛЬНАЯ ЧАСТЬ: Левые кнопки + Единый Grid Доски + Правые кнопки */}
       <div className="w-full flex items-stretch gap-0.5 sm:gap-1">
         {/* ЛЕВЫЕ КНОПКИ (Сдвиг рядов влево) */}
         <div
-          className="w-5 sm:w-7 shrink-0 grid gap-0.5 sm:gap-1"
+          className="w-4 sm:w-6 shrink-0 grid gap-0.5 sm:gap-1"
           style={{ gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))` }}
         >
           {rowsArray.map((rIdx) => {
@@ -117,7 +117,7 @@ export const GameBoard = ({
                 key={`row-left-${rIdx}`}
                 disabled={isRowBlocked || isOppositeLeft}
                 onClick={() => onShift("ROW", rIdx, "BACKWARD")}
-                className={`w-full h-full rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 opacity-70 hover:opacity-100 p-0 ${
+                className={`w-full h-full rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 opacity-60 hover:opacity-100 p-0 ${
                   isOppositeLeft
                     ? "invisible pointer-events-none"
                     : isRowBlocked
@@ -187,7 +187,7 @@ export const GameBoard = ({
 
         {/* ПРАВЫЕ КНОПКИ (Сдвиг рядов вправо) */}
         <div
-          className="w-5 sm:w-7 shrink-0 grid gap-0.5 sm:gap-1"
+          className="w-4 sm:w-6 shrink-0 grid gap-0.5 sm:gap-1"
           style={{ gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))` }}
         >
           {rowsArray.map((rIdx) => {
@@ -205,7 +205,7 @@ export const GameBoard = ({
                 key={`row-right-${rIdx}`}
                 disabled={isRowBlocked || isOppositeRight}
                 onClick={() => onShift("ROW", rIdx, "FORWARD")}
-                className={`w-full h-full rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 opacity-70 hover:opacity-100 p-0 ${
+                className={`w-full h-full rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 opacity-60 hover:opacity-100 p-0 ${
                   isOppositeRight
                     ? "invisible pointer-events-none"
                     : isRowBlocked
@@ -226,8 +226,8 @@ export const GameBoard = ({
       </div>
 
       {/* НИЖНИЕ КНОПКИ (Сдвиг колонок вниз) */}
-      <div className="w-full flex items-center gap-0.5 sm:gap-1 mt-0.5 sm:mb-0 shrink-0">
-        <div className="w-5 sm:w-7 shrink-0" />
+      <div className="w-full flex items-center gap-0.5 sm:gap-1 mt-0.5 shrink-0">
+        <div className="w-4 sm:w-6 shrink-0" />
         <div
           className="grid gap-0.5 sm:gap-1 flex-1"
           style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
@@ -247,7 +247,7 @@ export const GameBoard = ({
                 key={`col-down-${colIdx}`}
                 disabled={isBlocked || isOpposite}
                 onClick={() => onShift("COL", colIdx, "FORWARD")}
-                className={`w-full h-6 sm:h-7 shrink-0 rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 opacity-70 hover:opacity-100 p-0 ${
+                className={`w-full h-5 sm:h-6 shrink-0 rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 opacity-60 hover:opacity-100 p-0 ${
                   isOpposite
                     ? "invisible pointer-events-none"
                     : isBlocked
@@ -263,7 +263,7 @@ export const GameBoard = ({
             );
           })}
         </div>
-        <div className="w-6 sm:w-8 shrink-0" />
+        <div className="w-5 sm:w-7 shrink-0" />
       </div>
     </div>
   );

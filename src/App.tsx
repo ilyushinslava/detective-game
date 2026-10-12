@@ -459,11 +459,11 @@ export default function App() {
 
   const killerAdjacentIds = getAdjacentCharacters(
     gameState.board,
-    spy2Id ?? gameState.killerSecretId,
+    gameState.mode === "SECRET_SERVICE" ? (spy1Id ?? gameState.killerSecretId) : (spy2Id ?? gameState.killerSecretId),
   ).map((c) => c.id);
   const detectiveAdjacentIds = getAdjacentCharacters(
     gameState.board,
-    spy1Id ?? gameState.detectiveSecretId,
+    gameState.mode === "SECRET_SERVICE" ? (spy2Id ?? gameState.detectiveSecretId) : (spy1Id ?? gameState.detectiveSecretId),
   ).map((c) => c.id);
 
   const radarTargetId = gameState.interrogationRadar?.targetId;

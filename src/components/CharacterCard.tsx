@@ -17,77 +17,91 @@ export interface CharacterCardProps {
 
 const renderSilhouette = (id: string) => {
   const num = parseInt(id.replace("c", ""), 10) || 0;
-  const variant = num % 4;
+  const variant = num % 8;
+
+  const svgClass = "w-full h-full opacity-25 text-zinc-400 fill-current pointer-events-none";
 
   switch (variant) {
-    case 0:
+    case 0: // Детектив в федоре
       return (
-        <svg
-          viewBox="0 0 120 120"
-          className="w-full h-full opacity-20 text-zinc-400 fill-current pointer-events-none"
-        >
-          <path d="M12 48 C28 42, 92 42, 108 48 C98 43, 85 41, 60 41 C35 41, 22 43, 12 48 Z" />
-          <path d="M34 43 C33 28, 38 18, 52 17 C58 14, 68 17, 72 20 C78 24, 82 32, 84 43 C74 40, 44 40, 34 43 Z" />
-          <path
-            d="M36 38 C48 36, 70 36, 82 38 L83 42 C71 40, 47 40, 35 42 Z"
-            opacity="0.6"
-          />
-          <path
-            d="M43 46 C43 58, 48 68, 60 70 C72 68, 77 58, 77 46 Z"
-            opacity="0.5"
-          />
-          <path d="M30 110 L44 76 L52 86 L60 72 L68 86 L76 76 L90 110 Z" />
-          <path d="M48 86 L60 110 L72 86 L60 88 Z" opacity="0.7" />
+        <svg viewBox="0 0 120 120" className={svgClass}>
+          <path d="M35 45 C40 20, 80 20, 85 45 Z" />
+          <path d="M15 45 C45 35, 75 35, 105 45 C105 50, 15 50, 15 45 Z" />
+          <path d="M45 50 L75 50 L70 75 C60 85, 50 80, 45 50 Z" opacity="0.6" />
+          <path d="M25 110 L40 75 L50 90 L60 80 L70 90 L80 75 L95 110 Z" />
         </svg>
       );
-    case 1:
+    case 1: // Роковая женщина
       return (
-        <svg
-          viewBox="0 0 120 120"
-          className="w-full h-full opacity-20 text-zinc-400 fill-current pointer-events-none"
-        >
-          <path d="M36 46 C32 26, 42 16, 60 16 C78 16, 88 26, 84 46 C88 56, 84 72, 80 76 C76 68, 78 54, 76 46 C72 32, 48 32, 44 46 C42 54, 44 68, 40 76 C36 72, 32 56, 36 46 Z" />
-          <path
-            d="M45 42 C45 58, 50 68, 60 70 C70 68, 75 58, 75 42 Z"
-            opacity="0.5"
-          />
-          <path d="M26 110 C28 88, 42 80, 52 80 C56 86, 64 86, 68 80 C78 80, 92 88, 94 110 Z" />
-          <path d="M54 70 L54 82 L66 82 L66 70 Z" opacity="0.6" />
+        <svg viewBox="0 0 120 120" className={svgClass}>
+          <path d="M30 30 C10 50, 20 90, 35 100 C35 70, 25 50, 45 35 C65 20, 90 30, 95 60 C100 90, 85 100, 85 100 C105 80, 105 40, 80 25 C55 10, 35 15, 30 30 Z" />
+          <path d="M45 40 C75 40, 85 60, 75 80 C60 90, 45 80, 45 40 Z" opacity="0.5" />
+          <path d="M55 85 C60 82, 65 82, 70 85 C65 88, 60 88, 55 85 Z" opacity="0.8" />
+          <path d="M35 110 C45 95, 75 95, 85 110 Z" />
         </svg>
       );
-    case 2:
+    case 2: // Гангстер с сигарой
       return (
-        <svg
-          viewBox="0 0 120 120"
-          className="w-full h-full opacity-20 text-zinc-400 fill-current pointer-events-none"
-        >
-          <path d="M38 34 C38 20, 48 16, 62 16 C76 16, 82 22, 82 34 C76 26, 66 24, 58 26 C48 28, 42 30, 38 34 Z" />
-          <path
-            d="M42 32 C42 52, 46 66, 60 68 C74 66, 78 52, 78 32 Z"
-            opacity="0.5"
-          />
-          <path d="M22 110 L38 72 L50 78 L52 110 Z" />
-          <path d="M98 110 L82 72 L70 78 L68 110 Z" />
-          <path d="M56 74 L64 74 L62 98 L60 104 L58 98 Z" opacity="0.8" />
+        <svg viewBox="0 0 120 120" className={svgClass}>
+          <path d="M30 40 C40 15, 75 20, 85 45 Z" />
+          <path d="M10 45 C40 30, 80 40, 110 55 C100 60, 20 55, 10 45 Z" />
+          <path d="M40 50 L75 55 L70 80 C60 90, 45 85, 40 50 Z" opacity="0.6" />
+          <path d="M65 80 L95 88 L93 92 L63 84 Z" />
+          <circle cx="96" cy="90" r="3" opacity="0.8" />
+          <path d="M20 110 L45 85 L60 100 L75 85 L100 110 Z" />
         </svg>
       );
-    case 3:
+    case 3: // Профессор в очках
+      return (
+        <svg viewBox="0 0 120 120" className={svgClass}>
+          <path d="M35 45 C35 15, 85 15, 85 45 C85 75, 75 90, 60 90 C45 90, 35 75, 35 45 Z" opacity="0.4" />
+          <circle cx="48" cy="55" r="8" fill="none" stroke="currentColor" strokeWidth="3" />
+          <circle cx="72" cy="55" r="8" fill="none" stroke="currentColor" strokeWidth="3" />
+          <path d="M56 55 L64 55" stroke="currentColor" strokeWidth="3" />
+          <path d="M30 110 L45 90 L60 105 L75 90 L90 110 Z" />
+          <path d="M55 105 L65 105 L60 120 Z" opacity="0.7" />
+        </svg>
+      );
+    case 4: // Офицер полиции
+      return (
+        <svg viewBox="0 0 120 120" className={svgClass}>
+          <path d="M25 35 C40 10, 80 10, 95 35 L85 45 L35 45 Z" />
+          <path d="M55 25 L65 25 L60 35 Z" opacity="0.8" />
+          <path d="M20 45 C50 40, 70 40, 100 45 C90 55, 30 55, 20 45 Z" />
+          <path d="M40 50 L80 50 L75 80 C60 90, 45 80, 40 50 Z" opacity="0.5" />
+          <path d="M20 110 L40 85 L80 85 L100 110 Z" />
+        </svg>
+      );
+    case 5: // Информатор в кепке
+      return (
+        <svg viewBox="0 0 120 120" className={svgClass}>
+          <path d="M25 40 C40 25, 80 25, 95 45 C70 40, 40 45, 20 50 Z" />
+          <path d="M35 48 C60 45, 80 48, 80 75 C60 85, 40 75, 35 48 Z" opacity="0.6" />
+          <path d="M15 110 C25 80, 45 75, 60 75 C75 75, 95 80, 105 110 Z" />
+          <path d="M30 110 L40 75 L50 95 L60 85 L70 95 L80 75 L90 110 Z" opacity="0.8" />
+        </svg>
+      );
+    case 6: // Влиятельная дама
+      return (
+        <svg viewBox="0 0 120 120" className={svgClass}>
+          <path d="M5 45 C40 15, 80 15, 115 45 C80 35, 40 35, 5 45 Z" />
+          <path d="M40 35 C50 15, 70 15, 80 35 Z" />
+          <path d="M45 45 C75 45, 80 65, 70 85 C60 95, 50 85, 45 45 Z" opacity="0.5" />
+          <circle cx="50" cy="90" r="2" />
+          <circle cx="56" cy="93" r="2" />
+          <circle cx="64" cy="93" r="2" />
+          <circle cx="70" cy="90" r="2" />
+          <path d="M30 110 C45 95, 75 95, 90 110 Z" />
+        </svg>
+      );
+    case 7: // Громила
     default:
       return (
-        <svg
-          viewBox="0 0 120 120"
-          className="w-full h-full opacity-20 text-zinc-400 fill-current pointer-events-none"
-        >
-          <path d="M30 38 C32 20, 50 14, 66 18 C78 22, 88 30, 88 40 C72 36, 48 36, 30 38 Z" />
-          <path
-            d="M26 40 C38 38, 76 38, 88 44 C74 42, 40 42, 26 40 Z"
-            opacity="0.7"
-          />
-          <path
-            d="M43 42 C43 56, 48 66, 59 67 C70 66, 75 56, 75 42 Z"
-            opacity="0.5"
-          />
-          <path d="M24 110 C26 86, 36 76, 46 72 L52 82 L60 74 L68 82 L74 72 C84 76, 94 86, 96 110 Z" />
+        <svg viewBox="0 0 120 120" className={svgClass}>
+          <path d="M35 30 C35 10, 75 10, 85 30 C95 50, 90 80, 75 90 C50 100, 30 80, 35 30 Z" opacity="0.6" />
+          <path d="M45 45 L75 45 L70 55 L50 55 Z" />
+          <path d="M65 55 L60 70 L65 75" stroke="currentColor" strokeWidth="2" fill="none" />
+          <path d="M25 110 L35 80 C50 95, 70 95, 85 80 L95 110 Z" />
         </svg>
       );
   }
@@ -157,13 +171,13 @@ export const CharacterCard = memo(
       >
         {/* Фоновый силуэт */}
         {!character.isVault && !isDead && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 opacity-40">
             {renderSilhouette(character.id)}
           </div>
         )}
 
         {/* Номер дела и иконки */}
-        <div className="flex items-center justify-between gap-0.5 z-10 w-full leading-none px-0.5">
+        <div className="flex items-center justify-between gap-0.5 z-10 w-full leading-none px-0.5 pt-0.5">
           <span
             className={`text-[7px] sm:text-[9px] font-mono font-bold tracking-tight ${
               isDead
@@ -179,18 +193,6 @@ export const CharacterCard = memo(
           </span>
 
           <div className="flex items-center gap-0.5 text-[8px] sm:text-[10px] leading-none">
-            {isDead && (
-              <span
-                className={
-                  isSecretService
-                    ? `${character.unmaskedSpyIndex === 0 ? "text-red-400" : character.unmaskedSpyIndex === 1 ? "text-blue-400" : "text-zinc-400"} font-bold`
-                    : "text-red-500 font-bold"
-                }
-                title={isSecretService ? "Разоблачен" : "Ликвидирован"}
-              >
-                {isSecretService ? "🎭" : "☠"}
-              </span>
-            )}
             {isTargetVictim && !isDead && (
               <span className="text-red-400 font-bold" title="Текущая цель">
                 🎯
@@ -222,10 +224,27 @@ export const CharacterCard = memo(
           </div>
         </div>
 
-        {/* Имя */}
-        <div className="text-center my-auto px-0.5 z-10 w-full flex items-center justify-center">
+        {/* Диагональные штампы */}
+        {isDead && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+            <div className="transform -rotate-12 border border-red-500 bg-red-950/95 text-red-200 font-black text-[9px] sm:text-[11px] uppercase px-1.5 py-0.5 tracking-wider shadow-md rounded">
+              {isSecretService ? "РАСКРЫТ" : "УБИТ"}
+            </div>
+          </div>
+        )}
+
+        {isExonerated && !isDead && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+            <div className="transform rotate-6 border-2 border-blue-500 bg-blue-950/90 text-blue-300 font-black text-[8px] sm:text-[10px] uppercase px-1.5 py-0.5 tracking-wider shadow-lg rounded-sm">
+              АЛИБИ
+            </div>
+          </div>
+        )}
+
+        {/* Имя (внизу с градиентом) */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent pt-4 pb-1 px-1 z-10 flex items-end justify-center">
           <span
-            className={`block text-[8.5px] xs:text-[9.5px] sm:text-xs font-bold leading-[1.1] tracking-tight break-normal whitespace-normal hyphens-none ${
+            className={`block text-[8.5px] xs:text-[9.5px] sm:text-xs font-bold leading-[1.1] tracking-tight break-normal whitespace-normal hyphens-none text-center ${
               isDead
                 ? isSecretService
                   ? `${character.unmaskedSpyIndex === 0 ? "text-red-500/80 decoration-red-900/70" : character.unmaskedSpyIndex === 1 ? "text-blue-500/80 decoration-blue-900/70" : "text-zinc-500/80 decoration-zinc-700/70"} line-through`
@@ -239,53 +258,6 @@ export const CharacterCard = memo(
           >
             {character.name}
           </span>
-        </div>
-
-        {/* Нижний бейдж */}
-        <div className="z-10 flex items-center justify-center w-full leading-none pb-0.5">
-          {character.isVault ? (
-            <span
-              className={`text-[6px] xs:text-[7px] sm:text-[8px] font-mono font-bold tracking-wider px-1 py-0.5 rounded border ${
-                character.isVaultCracked
-                  ? "text-amber-300 bg-amber-950/70 border-amber-700/60"
-                  : character.isVaultLocked
-                    ? "text-red-300 bg-red-950/70 border-red-700/60"
-                    : "text-zinc-400 bg-zinc-950 border-zinc-800"
-              }`}
-            >
-              {character.isVaultCracked
-                ? "ВЗЛОМАН"
-                : character.isVaultLocked
-                  ? "ТРЕВОГА"
-                  : "СЕЙФ"}
-            </span>
-          ) : isDead ? (
-            <span
-              className={`text-[5.5px] xs:text-[6.5px] sm:text-[7.5px] font-mono font-bold tracking-wider px-1 py-0.5 rounded border ${
-                isSecretService
-                  ? character.unmaskedSpyIndex === 0
-                    ? "text-red-400 border-red-800 bg-red-950/80"
-                    : character.unmaskedSpyIndex === 1
-                      ? "text-blue-400 border-blue-800 bg-blue-950/80"
-                      : "text-zinc-300 border-zinc-700 bg-zinc-900"
-                  : "text-red-400 bg-red-950/60 border-red-900/60"
-              }`}
-            >
-              {isSecretService ? "РАЗОБЛАЧЕН" : "МЕРТВ"}
-            </span>
-          ) : isTargetVictim ? (
-            <span className="text-[5.5px] xs:text-[6.5px] sm:text-[7.5px] font-mono font-bold tracking-wider text-red-200 bg-red-950/90 border border-red-600 px-1 py-0.5 rounded shadow">
-              ЦЕЛЬ
-            </span>
-          ) : isExonerated ? (
-            <span className="text-[5.5px] xs:text-[6.5px] sm:text-[7.5px] font-mono font-bold tracking-wider text-blue-300 bg-blue-950/80 border border-blue-600/70 px-1 py-0.5 rounded shadow-sm">
-              АЛИБИ
-            </span>
-          ) : (
-            <span className="text-[5.5px] xs:text-[6.5px] sm:text-[7.5px] font-mono text-zinc-500 uppercase tracking-tighter">
-              ПОДОЗРЕВАЕМЫЙ
-            </span>
-          )}
         </div>
       </motion.div>
     );

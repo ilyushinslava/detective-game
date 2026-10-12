@@ -77,6 +77,34 @@ describe("Режим: Секретная служба (SECRET_SERVICE)", () => {
     expect(nextState.activeSpyIndex).toBe((activeSpyIndex + 1) % nextState.spies!.length); // Ход передан
   });
 
+  it("Попытка разоблачения (spyCatch) на клетку не соседа не меняет стейт и не передает ход", () => {
+    const state = createInitialState("SECRET_SERVICE", "PVP", "DETECTIVE", 2, 3);
+    const activeSpyIndex = state.activeSpyIndex!;
+    const activeSpy = state.spies![activeSpyIndex];
+
+    const neighbors = getAdjacentCharacters(state.board, activeSpy.secretId).map(c => c.id);
+    const farCell = state.board.flat().find(c => c.id !== activeSpy.secretId && !neighbors.includes(c.id))!;
+
+    const nextState = spyCatch(state, farCell.id);
+
+    expect(nextState).toBe(state); // Стейт не изменился
+    expect(nextState.activeSpyIndex).toBe(activeSpyIndex); // Ход не передан
+  });
+
+  it("Попытка опроса (spyInterrogate) на клетку не соседа не меняет стейт и не передает ход", () => {
+    const state = createInitialState("SECRET_SERVICE", "PVP", "DETECTIVE", 2, 3);
+    const activeSpyIndex = state.activeSpyIndex!;
+    const activeSpy = state.spies![activeSpyIndex];
+
+    const neighbors = getAdjacentCharacters(state.board, activeSpy.secretId).map(c => c.id);
+    const farCell = state.board.flat().find(c => c.id !== activeSpy.secretId && !neighbors.includes(c.id))!;
+
+    const nextState = spyInterrogate(state, farCell.id);
+
+    expect(nextState).toBe(state); // Стейт не изменился
+    expect(nextState.activeSpyIndex).toBe(activeSpyIndex); // Ход не передан
+  });
+
   it("Условие победы: достижение targetTrophies приводит к winner != null", () => {
     const state = createInitialState("SECRET_SERVICE", "PVP", "DETECTIVE", 2, 3);
     const activeSpyIndex = state.activeSpyIndex!;

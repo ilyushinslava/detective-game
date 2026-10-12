@@ -1,22 +1,72 @@
 ﻿import { describe, it, expect } from "vitest";
-import { createInitialState, robNeighbor, setPolicePatrol } from "./gameLogic";
+import {
+  createInitialState,
+  robNeighbor,
+  setPolicePatrol,
+  fastDisguise,
+  accuseCharacter,
+  getAdjacentCharacters,
+} from "./gameLogic";
 import { getThiefAIMove, getPoliceAIMove } from "./aiLogic";
 
 describe("Режим: Охота на грабителя (THIEF_HUNT)", () => {
-  it("Вор успешно похищает сокровище и сменяет тайную личность", () => {
-    const state = createInitialState("THIEF_HUNT", "AI", "DETECTIVE");
+  it("Кража у соседа и у своей клетки (robNeighbor): увеличение trophiesKiller", () => {
+    const state = createInitialState("THIEF_HUNT", "PVP", "DETECTIVE");
     const startKiller = state.killerSecretId;
-    const target =
-      state.board[0][0].id !== startKiller
-        ? state.board[0][0].id
-        : state.board[0][1].id;
-
-    // Имитируем соседство
-    state.killerSecretId = state.board[0][0].id;
-    const nextState = robNeighbor(state, state.board[0][1].id);
+    
+    // Кража у самого себя
+    const nextState = robNeighbor(state, startKiller);
 
     expect(nextState.trophiesKiller).toBe(1);
-    expect(nextState.killerSecretId).not.toBe(startKiller);
+    expect(nextState.board.flat().find((c) => c.id === startKiller)?.isRobbed).toBe(true);
+    expect(nextState.killerSecretId).not.toBe(startKiller); // Личность сменилась из колоды
+    expect(nextState.currentTurn).toBe("DETECTIVE");
+  });
+
+  it("Быстрая конспирация из руки (fastDisguise): замена killerSecretId картой из killerHand", () => {
+    const state = createInitialState("THIEF_HUNT", "PVP", "DETECTIVE");
+    const initialKillerId = state.killerSecretId;
+    const maskToUse = state.killerHand![0];
+
+    const nextState = fastDisguise(state, maskToUse);
+
+    expect(nextState.killerSecretId).toBe(maskToUse);
+    expect(nextState.killerHand).not.toContain(maskToUse);
+    expect(nextState.killerHand).toContain(initialKillerId); // Старая личность ушла в руку
+    expect(nextState.currentTurn).toBe("DETECTIVE");
+  });
+
+  it("Задержание вора через патрульного (accuseCharacter): победа Полиции", () => {
+    const state = createInitialState("THIEF_HUNT", "PVP", "DETECTIVE");
+    state.currentTurn = "DETECTIVE";
+    
+    // Берем живого персонажа, который не является Грабителем или Детективом
+    const patrolOfficer = state.board.flat().find(
+      (c) => c.id !== state.killerSecretId && c.id !== state.detectiveSecretId
+    )!;
+    
+    // Явно назначаем его патрульным
+    state.uniformedOfficers = [patrolOfficer.id];
+    
+    // Искусственно ставим Вора рядом с патрульным
+    const neighbors = getAdjacentCharacters(state.board, patrolOfficer.id);
+    state.killerSecretId = neighbors[0].id;
+
+    // Полиция обвиняет Вора, находящегося рядом с патрульным
+    const nextState = accuseCharacter(state, state.killerSecretId);
+
+    expect(nextState.winner).toBe("DETECTIVE");
+  });
+
+  it("Попытка кражи у персонажа не по соседству отклоняется (robNeighbor)", () => {
+    const state = createInitialState("THIEF_HUNT", "PVP", "DETECTIVE");
+    const neighbors = getAdjacentCharacters(state.board, state.killerSecretId).map(c => c.id);
+    const farCell = state.board.flat().find(c => c.id !== state.killerSecretId && !neighbors.includes(c.id))!;
+
+    const nextState = robNeighbor(state, farCell.id);
+
+    expect(nextState).toBe(state);
+    expect(nextState.currentTurn).toBe("KILLER");
   });
 
   it("Полиция блокирует ряд или колонку патрулем", () => {

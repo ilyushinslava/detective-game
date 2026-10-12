@@ -1468,52 +1468,36 @@ export default function App() {
                 ))}
               </div>
 
-              {cleanupAction && (
-                <button
-                  onClick={cleanupAction.onClick}
-                  disabled={cleanupAction.disabled}
-                  className="w-full py-2 md:py-2.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-300 hover:text-zinc-200 text-[10px] md:text-xs font-bold uppercase rounded-xl border border-zinc-700/80 transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5 mt-1"
-                >
-                  <span>↻</span>
-                  <span>Зачистить</span>
-                </button>
-              )}
-            </div>
+              {/* Нижний ряд служебных кнопок: Зачистить и Досье делят ряд пополам на мобилке */}
+              <div className="grid grid-cols-2 gap-1.5 w-full mt-1">
+                {cleanupAction && (
+                  <button
+                    onClick={cleanupAction.onClick}
+                    disabled={cleanupAction.disabled}
+                    className={`${
+                      ((gameState.mode === "THIEF_HUNT" && (isPVP ? isKillerTurn : gameState.playerRole === "KILLER")) ||
+                       ((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && (isPVP ? isDetectiveTurn : gameState.playerRole === "DETECTIVE")))
+                        ? "col-span-1"
+                        : "col-span-2"
+                    } py-2 md:py-2.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-300 hover:text-zinc-200 text-[10px] md:text-xs font-bold uppercase rounded-xl border border-zinc-700/80 transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5`}
+                  >
+                    <span>↻</span>
+                    <span>Зачистить</span>
+                  </button>
+                )}
 
-            {/* Кнопка вызова шторки досье */}
-            {((gameState.mode === "THIEF_HUNT" &&
-              (isPVP ? isKillerTurn : gameState.playerRole === "KILLER")) ||
-              ((gameState.mode === "SKHVATKA" ||
-                gameState.mode === "MANIAC_VS_OPERATIVE") &&
-                (isPVP
-                  ? isDetectiveTurn
-                  : gameState.playerRole === "DETECTIVE"))) && (
-              <div className="lg:bg-zinc-900/50 lg:border lg:border-zinc-800 lg:p-4 lg:rounded-2xl w-full">
-                <div className="hidden lg:flex items-center justify-between mb-3">
-                  <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">
-                    Досье алиби (
-                    {gameState.mode === "THIEF_HUNT"
-                      ? (gameState.killerHand?.length ?? 0)
-                      : gameState.detectiveHand.length}{" "}
-                    карт)
-                  </span>
-                </div>
-                <button
-                  onClick={() => setIsHandSheetOpen(true)}
-                  className="w-full py-2 lg:py-3 bg-zinc-800 hover:bg-zinc-700 text-amber-400 lg:text-zinc-300 border border-zinc-700 rounded-lg lg:rounded-xl text-[11px] lg:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <span>🗂</span>
-                  <span className="lg:hidden">
-                    Открыть досье (
-                    {gameState.mode === "THIEF_HUNT"
-                      ? (gameState.killerHand?.length ?? 0)
-                      : gameState.detectiveHand.length}
-                    )
-                  </span>
-                  <span className="hidden lg:inline">Показать карты</span>
-                </button>
+                {((gameState.mode === "THIEF_HUNT" && (isPVP ? isKillerTurn : gameState.playerRole === "KILLER")) ||
+                  ((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && (isPVP ? isDetectiveTurn : gameState.playerRole === "DETECTIVE"))) && (
+                  <button
+                    onClick={() => setIsHandSheetOpen(true)}
+                    className={`${cleanupAction ? "col-span-1" : "col-span-2"} py-2 md:py-2.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer`}
+                  >
+                    <span>🗂</span>
+                    <span>Досье ({gameState.mode === "THIEF_HUNT" ? (gameState.killerHand?.length ?? 0) : gameState.detectiveHand.length})</span>
+                  </button>
+                )}
               </div>
-            )}
+            </div>
 
             {/* Десктопный лог (виден только на lg и выше) */}
             <div className="hidden lg:flex flex-col flex-1 min-h-0 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4">

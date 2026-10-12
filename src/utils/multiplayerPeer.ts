@@ -172,7 +172,7 @@ class MultiplayerService {
     onConnected: () => void,
     onError?: (err: any) => void,
   ) {
-    this.disconnect();
+    await this.disconnect();
     this.isHost = true;
     this.hostName = hostName.trim() || "Восток";
     const code = this.generateCode();
@@ -261,7 +261,7 @@ class MultiplayerService {
     onConnected: () => void,
     onError: () => void,
   ) {
-    this.disconnect();
+    await this.disconnect();
     this.isHost = false;
     this.roomCode = code;
     this.guestName = guestName.trim() || "Запад";
@@ -364,7 +364,7 @@ class MultiplayerService {
     });
   }
 
-  public disconnect() {
+  public async disconnect(): Promise<void> {
     if (this.guestRef) {
       off(this.guestRef);
       this.guestRef = null;
@@ -376,26 +376,36 @@ class MultiplayerService {
     if (this.roomRef) {
       off(this.roomRef);
       if (this.isHost) {
-        remove(this.roomRef).catch(() => {});
+        const promises = [remove(this.roomRef).catch(() => {})];
         if (this.roomCode) {
-          remove(ref(db, `public_rooms/${this.roomCode}`)).catch(() => {});
+          promises.push(remove(ref(db, `public_rooms/${this.roomCode}`)).catch(() => {}));
         }
+        await Promise.all(promises);
       } else {
-        update(this.roomRef, {
-          guestId: "",
-          guestName: "",
-          status: "WAITING",
-        }).catch(() => {});
+        const promises = [
+          update(this.roomRef, {
+            guestId: "",
+            guestName: "",
+            status: "WAITING",
+          }).catch(() => {})
+        ];
         if (this.roomCode) {
-          update(ref(db, `public_rooms/${this.roomCode}`), {
-            playersCount: 1,
-          }).catch(() => {});
+          promises.push(
+            update(ref(db, `public_rooms/${this.roomCode}`), {
+              playersCount: 1,
+            }).catch(() => {})
+          );
         }
+        await Promise.all(promises);
       }
       this.roomRef = null;
     }
     this.isHost = false;
     this.roomCode = null;
+  }
+
+  public async closeRoom(): Promise<void> {
+    await this.disconnect();
   }
 }
 

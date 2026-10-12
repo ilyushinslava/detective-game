@@ -291,7 +291,7 @@ describe("Ядро правил игры (gameLogic)", () => {
     }
   });
 
-  it("cleanupDeadCharacters удаляет убитых и добирает новые карты из evidenceDeck", () => {
+  it("cleanupDeadCharacters смещает убитых в конец поля без добора карт", () => {
     const board: Character[][] = Array(5)
       .fill(null)
       .map((_, r) =>
@@ -322,12 +322,16 @@ describe("Ядро правил игры (gameLogic)", () => {
 
     const nextState = cleanupDeadCharacters(state);
 
-    expect(nextState.evidenceDeck).toEqual([]);
+    expect(nextState.evidenceDeck).toEqual(["c25"]); // Колода не изменилась
     expect(nextState.board.flat().length).toBe(25);
-    expect(nextState.board.flat().some((c) => c.id === "c25")).toBe(true);
-    expect(
-      nextState.board.flat().some((c) => c.id === "c_0_0" && !c.isAlive),
-    ).toBe(false);
+    
+    // Проверяем, что мертвый персонаж оказался в самом конце
+    const flatBoard = nextState.board.flat();
+    expect(flatBoard[24].id).toBe("c_0_0");
+    expect(flatBoard[24].isAlive).toBe(false);
+    
+    // Проверяем, что первый персонаж теперь живой
+    expect(flatBoard[0].isAlive).toBe(true);
     expect(nextState.currentTurn).toBe("KILLER");
   });
 });

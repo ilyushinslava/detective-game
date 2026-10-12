@@ -826,6 +826,7 @@ export function disguiseKiller(state: GameState): GameState {
     currentTurn: "DETECTIVE",
     blockedShift: null,
     lastInterrogation: null,
+    disguisedNotification: { roleName: "Бандит", newSecretId: drawnId },
     log: [...state.log, "Преступник успешно сменил облик и ушел в тень."],
   };
 }
@@ -1090,6 +1091,7 @@ export function escapeManiac(state: GameState): GameState {
       currentTurn: "DETECTIVE",
       blockedShift: null,
       lastInterrogation: null,
+      disguisedNotification: { roleName: "Маньяк", newSecretId: drawnId },
       log: [
         ...state.log,
         "Маньяк успешно сбежал, сменил личность и добавил новую цель в список смертников!",
@@ -1123,6 +1125,7 @@ export function fastDisguise(state: GameState, handCardId: string): GameState {
     killerHand: newHand,
     currentTurn: "DETECTIVE",
     blockedShift: null,
+    disguisedNotification: { roleName: "Грабитель", newSecretId: handCardId },
     log: [...state.log, "Вор-виртуоз применил быструю маскировку."],
   };
 }

@@ -82,6 +82,7 @@ export interface GameState {
   matchBet?: number;
   matchPot?: number;
   restartRequestedBy?: "HOST" | "GUEST" | null;
+  disguisedNotification?: { roleName: string; newSecretId: string } | null;
 }
 export const SPY_COLORS = [
   {

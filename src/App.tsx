@@ -5,6 +5,7 @@ import { DetectiveHand } from "./components/DetectiveHand";
 import { ThiefHand } from "./components/ThiefHand";
 import { VictimList } from "./components/VictimList";
 import { RoleRevealModal } from "./components/RoleRevealModal";
+import { GameOverModal } from "./components/GameOverModal";
 import { MainMenu } from "./components/MainMenu";
 import { usePlayerProfile } from "./utils/usePlayerProfile";
 import { GAME_MODES } from "./components/ModeSelectModal";
@@ -1774,48 +1775,78 @@ export default function App() {
             </div>
           )}
 
-        {gameState.winner && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none">
-            <div className="w-full max-w-md bg-zinc-900 border border-amber-500/50 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
-              <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center text-4xl mb-4 shadow-[0_0_20px_rgba(245,158,11,0.4)]">
-                🏆
-              </div>
-              <span className="text-xs font-bold text-amber-500 uppercase tracking-widest block mb-1">
-                Операция завершена
-              </span>
-              <h2 className="text-2xl font-black text-zinc-100 mb-4">
-                Победил:{" "}
-                {gameState.mode === "SECRET_SERVICE"
-                  ? (gameState.spies?.find(
-                      (s) => s.trophies >= (gameState.spyTargetTrophies ?? 3),
-                    )?.name ?? "Шпион")
-                  : gameState.winner === "KILLER"
-                    ? role1Name
-                    : role2Name}
-              </h2>
-              <div className="w-full flex gap-3 mt-4">
-                <button
-                  onClick={() => {
-                    if (gameState.opponent === "ONLINE") mpService.disconnect();
-                    setGameState(
-                      createInitialState("SKHVATKA", "AI", "DETECTIVE", 3),
-                    );
-                    setHasStartedEver(false);
-                    setIsLobbyOpen(true);
-                  }}
-                  className="flex-1 py-3.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
-                >
-                  В меню ☰
-                </button>
-                <button
-                  onClick={handleReset}
-                  className="flex-1 py-3.5 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-xs font-black uppercase tracking-wider rounded-xl transition shadow-lg cursor-pointer"
-                >
-                  Реванш ↻
-                </button>
-              </div>
+        {gameState.disguisedNotification &&
+          !gameState.winner &&
+          !isLobbyOpen &&
+          (gameState.opponent !== "ONLINE" || gameState.playerRole === "KILLER") && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4 select-none">
+              {!isRevealConfirmed && gameState.opponent === "PVP" ? (
+                <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
+                  <div className="w-16 h-16 rounded-full bg-amber-950/80 border border-amber-700 flex items-center justify-center text-3xl mb-4">
+                    🎭
+                  </div>
+                  <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">
+                    Смена личности!
+                  </span>
+                  <h2 className="text-xl font-black text-zinc-100 mb-2">
+                    Передайте экран: {gameState.disguisedNotification.roleName}
+                  </h2>
+                  <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
+                    Убедитесь, что соперник не смотрит на экран.
+                  </p>
+                  <button
+                    onClick={() => setIsRevealConfirmed(true)}
+                    className="w-full py-3.5 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
+                  >
+                    Я держу телефон один ➔
+                  </button>
+                </div>
+              ) : (
+                <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
+                  <div className="w-16 h-16 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-3xl mb-4">
+                    🕵️
+                  </div>
+                  <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest block mb-1">
+                    Конспирация успешна
+                  </span>
+                  <h3 className="text-xl font-black text-zinc-100 mb-2">
+                    Ваша новая личность:
+                  </h3>
+                  <div className="w-full p-4 rounded-xl bg-zinc-950 border border-zinc-800 my-4">
+                    <div className="text-2xl font-black text-zinc-100">
+                      {
+                        allChars.find(
+                          (c) => c.id === gameState.disguisedNotification?.newSecretId
+                        )?.name
+                      }
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsRevealConfirmed(false);
+                      setGameState((prev) => ({
+                        ...prev,
+                        disguisedNotification: null,
+                      }));
+                    }}
+                    className="w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
+                  >
+                    Принять прикрытие ➔
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
+          )}
+
+        {gameState.winner && (
+          <GameOverModal
+            winner={gameState.winner}
+            mode={gameState.mode}
+            killer={killerChar}
+            detective={detectiveChar}
+            elapsedTime={formatTimer(secondsElapsed)}
+            onRestart={handleReset}
+          />
         )}
 
         {isPauseOpen && (

@@ -947,14 +947,7 @@ export function spyCatch(state: GameState, targetId: string): GameState {
   const nextIndex = (state.activeSpyIndex + 1) % state.spies.length;
 
   if (!isAdjacent && !isSelf) {
-    return {
-      ...state,
-      activeSpyIndex: nextIndex,
-      detectiveSecretId: state.spies[nextIndex].secretId,
-      blockedShift: null,
-      lastSpyInterrogation: null,
-      log: [...state.log, `❌ Промах: ${activeSpy.name} попытался провести арест слишком далеко.`],
-    };
+    return state;
   }
 
   const targetChar = state.board.flat().find((c) => c.id === targetId);
@@ -1059,17 +1052,7 @@ export function spyInterrogate(state: GameState, targetId: string): GameState {
   const nextIndex = (state.activeSpyIndex + 1) % state.spies.length;
 
   if (!isAdjacent && !isSelf) {
-    return {
-      ...state,
-      activeSpyIndex: nextIndex,
-      blockedShift: null,
-      lastSpyInterrogation: null,
-      interrogationRadar: {
-        targetId,
-        interrogatorIndex: state.activeSpyIndex,
-      },
-      log: [...state.log, `📡 Сбой связи: ${activeSpy.name} попытался опросить цель вне зоны досягаемости.`],
-    };
+    return state;
   }
 
   const targetChar = state.board.flat().find((c) => c.id === targetId);

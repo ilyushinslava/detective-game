@@ -836,6 +836,13 @@ export default function App() {
     const isGameOver = gameState.winner !== null;
 
     if (gameState.mode === "SECRET_SERVICE") {
+      const activeSpySecretId = gameState.spies?.[gameState.activeSpyIndex ?? 0]?.secretId;
+      const validNeighbors = activeSpySecretId
+        ? getAdjacentCharacters(gameState.board, activeSpySecretId).map((c) => c.id)
+        : [];
+      const isNeighbor = Boolean(selectedId && validNeighbors.includes(selectedId));
+      const isSelfOrNeighbor = Boolean(selectedId && (validNeighbors.includes(selectedId) || selectedId === activeSpySecretId));
+
       actions.push({
         id: "capture_spy",
         label: "Разоблачение",
@@ -843,6 +850,7 @@ export default function App() {
         disabled:
           !isHumanTurn ||
           !selectedId ||
+          !isNeighbor ||
           isGameOver ||
           !selectedCharacter?.isAlive,
         className:
@@ -855,6 +863,7 @@ export default function App() {
         disabled:
           !isHumanTurn ||
           !selectedId ||
+          !isSelfOrNeighbor ||
           isGameOver ||
           !selectedCharacter?.isAlive,
         className:
@@ -1163,18 +1172,14 @@ export default function App() {
 
         {/* 1. КОМПАКТНАЯ ШАПКА МАТЧА */}
         <header className="w-full px-4 sm:px-6 py-2.5 bg-zinc-900 border-b border-zinc-800 shrink-0 relative flex items-center justify-between z-30 pt-[max(0.6rem,env(safe-area-inset-top))]">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setIsPauseOpen(true)}
-              className="w-7 h-7 md:w-auto md:px-3 md:h-9 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs shrink-0 cursor-pointer gap-2"
+              className="w-8 h-8 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs shrink-0 cursor-pointer"
               title="Пауза и меню"
             >
               <span>☰</span>
-              <span className="hidden md:inline">Операции</span>
             </button>
-            <span className="hidden md:block text-sm font-black tracking-widest text-zinc-100 uppercase">
-              {currentModeTitle}
-            </span>
           </div>
 
           <div className="absolute left-1/2 -translate-x-1/2 flex justify-center shrink-0">
@@ -1325,10 +1330,10 @@ export default function App() {
           )}
         </div>
 
-        <div className="flex-1 min-h-0 w-full flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-6 px-2 sm:px-4 lg:px-6 py-3 overflow-hidden">
+        <div className="flex-1 min-h-0 w-full flex flex-col items-center justify-between px-2 py-1 overflow-hidden">
           {/* 2. ИГРОВОЕ ПОЛЕ */}
-          <main className="flex-1 min-h-0 w-full flex items-center justify-center p-2 overflow-visible">
-            <div className="w-full flex flex-col items-center justify-center">
+          <main className="flex-1 min-h-0 w-full flex items-center justify-center overflow-visible">
+            <div className="w-full max-w-[380px] flex flex-col items-center justify-center">
               <GameBoard
                 mode={gameState.mode}
                 board={gameState.board}
@@ -1366,7 +1371,7 @@ export default function App() {
           </main>
 
           {/* 3. КОНТЕКСТНАЯ ПАНЕЛЬ УПРАВЛЕНИЯ */}
-          <footer className="w-full lg:w-80 xl:w-96 shrink-0 flex flex-col gap-3 overflow-y-auto z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:pb-0 px-2 lg:px-0">
+          <footer className="w-full shrink-0 flex flex-col gap-2 z-20 pb-[max(0.5rem,env(safe-area-inset-bottom))] px-1">
             <RoleCards
               mode={gameState.mode}
               role1Name={role1Name}

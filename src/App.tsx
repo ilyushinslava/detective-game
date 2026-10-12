@@ -741,12 +741,7 @@ export default function App() {
     if (!selectedId || gameState.mode !== "SECRET_SERVICE" || !isHumanTurn)
       return;
 
-    const mySpyIndex =
-      gameState.opponent === "ONLINE"
-        ? mpService.isHost
-          ? 0
-          : 1
-        : (gameState.activeSpyIndex ?? 0);
+    const mySpyIndex = gameState.activeSpyIndex ?? 0;
     const mySpy = gameState.spies![mySpyIndex];
     const isMiss = !gameState.spies!.some(
       (s) => s.id !== mySpy.id && s.secretId === selectedId,
@@ -762,7 +757,7 @@ export default function App() {
       triggerHaptic("medium");
     }
 
-    const nextSpyIndex = (mySpyIndex + 1) % (gameState.spies?.length || 2);
+    const nextSpyIndex = (mySpyIndex + 1) % (gameState.spies?.length || 3);
 
     dispatchAction({
       type: "CAPTURE_SPY",
@@ -854,12 +849,7 @@ export default function App() {
     const isGameOver = gameState.winner !== null;
 
     if (gameState.mode === "SECRET_SERVICE") {
-      const mySpyIndex =
-        gameState.opponent === "ONLINE"
-          ? mpService.isHost
-            ? 0
-            : 1
-          : (gameState.activeSpyIndex ?? 0);
+      const mySpyIndex = gameState.activeSpyIndex ?? 0;
       const mySpy = gameState.spies?.[mySpyIndex];
       const mySpyNeighbors = mySpy
         ? getAdjacentCharacters(gameState.board, mySpy.secretId).map(

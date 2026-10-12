@@ -21,6 +21,11 @@ export const MultiplayerLobbyModal = ({
   const startCreatingRoom = () => {
     setStatus("CONNECTING");
     mpService.createRoom(
+      "Агент",
+      "SKHVATKA",
+      250,
+      true,
+      2,
       (code) => {
         setRoomCode(code);
         setStatus("WAITING");
@@ -61,6 +66,7 @@ export const MultiplayerLobbyModal = ({
     setStatus("CONNECTING");
     mpService.joinRoom(
       inputCode,
+      "Агент",
       () => {
         setStatus("CONNECTED");
         onGameStartReady(inputCode, false);

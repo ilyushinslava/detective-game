@@ -51,8 +51,33 @@ describe("Режим: Схватка (SKHVATKA)", () => {
     const nextState = disguiseKiller(state);
 
     expect(nextState.killerSecretId).toBe(aliveCharOnBoard.id);
+    expect(nextState.evidenceDeck[nextState.evidenceDeck.length - 1]).toBe(initialKillerId);
     expect(nextState.board.flat().some((c) => c.id === nextState.killerSecretId && c.isAlive)).toBe(true);
     expect(nextState.currentTurn).toBe("DETECTIVE");
+    expect(nextState.disguisedNotification).toEqual({
+      roleName: "Бандит",
+      newSecretId: aliveCharOnBoard.id,
+    });
+  });
+
+  it("Конспирация Бандита (disguiseKiller): провал при вытягивании мертвого персонажа", () => {
+    const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
+    const initialKillerId = state.killerSecretId;
+
+    const deadChar = state.board.flat().find(
+      (c) => c.id !== initialKillerId && c.id !== state.detectiveSecretId
+    )!;
+    deadChar.isAlive = false;
+
+    state.evidenceDeck = [deadChar.id, ...state.evidenceDeck.filter((id) => id !== deadChar.id)];
+
+    const nextState = disguiseKiller(state);
+
+    expect(nextState.killerSecretId).toBe(initialKillerId);
+    expect(nextState.evidenceDeck).not.toContain(deadChar.id);
+    expect(nextState.currentTurn).toBe("DETECTIVE");
+    expect(nextState.disguisedNotification).toBeUndefined();
+    expect(nextState.log[nextState.log.length - 1]).toContain("Провал конспирации");
   });
 
   it("Проверка алиби Инспектора (exonerateFromHand): выставление isExonerated и добор карты", () => {

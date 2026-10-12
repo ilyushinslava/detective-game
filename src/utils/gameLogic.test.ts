@@ -257,6 +257,19 @@ describe("Ядро правил игры (gameLogic)", () => {
     expect(nextState.currentTurn).toBe("KILLER");
   });
 
+  it("Колода улик SKHVATKA инициализируется из 20 доступных персонажей с доски", () => {
+    const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
+    const boardIds = state.board.flat().map((c) => c.id);
+
+    expect(state.evidenceDeck.length).toBe(20);
+    expect(state.evidenceDeck.every((id) => boardIds.includes(id))).toBe(true);
+    expect(state.evidenceDeck).not.toContain(state.killerSecretId);
+    expect(state.evidenceDeck).not.toContain(state.detectiveSecretId);
+    state.detectiveHand.forEach((cardId) => {
+      expect(state.evidenceDeck).not.toContain(cardId);
+    });
+  });
+
   it("spyCatch начисляет трофей при поимке другого шпиона и не начисляет на мирном", () => {
     let state = createInitialState("SECRET_SERVICE", "AI", "DETECTIVE");
     if (!state.spies) return;

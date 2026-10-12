@@ -150,6 +150,10 @@ export function createInitialState(
     inspectorChoices = chosenChoices.map((c) => c.id);
     detectiveSecretId = inspectorChoices[0];
     detectiveHand = inspectorChoices.slice(1);
+
+    const boardIds = boardCharacters.map((c) => c.id);
+    const excludedIds = new Set([killerSecretId, ...inspectorChoices]);
+    deck = shuffle(boardIds.filter((id) => !excludedIds.has(id)));
   } else if (mode === "MANIAC_VS_OPERATIVE") {
     const safeCandidates = shuffle(validDetectiveCandidates);
     detectiveSecretId = safeCandidates[0].id;
@@ -792,42 +796,38 @@ export function disguiseKiller(state: GameState): GameState {
   }
 
   const nextDeck = [...state.evidenceDeck];
-  
-  // Ищем в колоде живого персонажа, который реально присутствует на игровом поле
-  const boardAliveIds = new Set(
-    state.board
-      .flat()
-      .filter((c) => c.isAlive && c.id !== state.killerSecretId && c.id !== state.detectiveSecretId)
-      .map((c) => c.id)
-  );
+  const drawnId = nextDeck.shift();
 
-  const targetIndex = nextDeck.findIndex((id) => boardAliveIds.has(id));
+  if (!drawnId) return state;
 
-  if (targetIndex === -1) {
+  const drawnChar = state.board.flat().find((c) => c.id === drawnId);
+  const isAvailable =
+    drawnChar && drawnChar.isAlive && drawnId !== state.detectiveSecretId;
+
+  if (isAvailable) {
+    nextDeck.push(state.killerSecretId);
     return {
       ...state,
+      killerSecretId: drawnId,
+      evidenceDeck: nextDeck,
       currentTurn: "DETECTIVE",
       blockedShift: null,
       lastInterrogation: null,
-      log: [
-        ...state.log,
-        "Провал конспирации: в резерве нет доступных личностей с поля.",
-      ],
+      disguisedNotification: { roleName: "Бандит", newSecretId: drawnId },
+      log: [...state.log, "Преступник успешно сменил облик и ушел в тень."],
     };
   }
 
-  const [drawnId] = nextDeck.splice(targetIndex, 1);
-  nextDeck.push(state.killerSecretId);
-
   return {
     ...state,
-    killerSecretId: drawnId,
     evidenceDeck: nextDeck,
     currentTurn: "DETECTIVE",
     blockedShift: null,
     lastInterrogation: null,
-    disguisedNotification: { roleName: "Бандит", newSecretId: drawnId },
-    log: [...state.log, "Преступник успешно сменил облик и ушел в тень."],
+    log: [
+      ...state.log,
+      "Провал конспирации: персонаж выбыл или недоступен для маскировки.",
+    ],
   };
 }
 

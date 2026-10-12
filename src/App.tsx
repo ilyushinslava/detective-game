@@ -1313,15 +1313,6 @@ export default function App() {
           </div>
         </div>
 
-        {gameState.mode === "MANIAC_VS_OPERATIVE" && (
-          <div className="px-3 pt-1 shrink-0">
-            <VictimList
-              victimIds={gameState.victimList}
-              allCharacters={allChars}
-            />
-          </div>
-        )}
-
         {/* ФИКСИРОВАННАЯ ПОЛОСА ДОПРОСА (ВСЕГДА ЗАРЕЗЕРВИРОВАНА, ПОЛЕ НЕ ДВИГАЕТСЯ) */}
         <div className="w-full px-3 h-8 md:h-10 shrink-0 flex items-center justify-center">
           {gameState.lastInterrogation && !gameState.winner ? (
@@ -1372,9 +1363,9 @@ export default function App() {
           )}
         </div>
 
-        <div className="flex-1 min-h-0 w-full flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-4 lg:gap-8 px-2 sm:px-4 lg:px-6 py-2 lg:py-4 overflow-y-auto lg:overflow-hidden custom-scrollbar">
+        <div className="flex-1 min-h-0 w-full flex flex-col md:flex-row items-center md:items-center justify-center gap-4 md:gap-6 lg:gap-10 px-2 sm:px-4 md:px-6 py-2 md:py-4 overflow-y-auto md:overflow-hidden custom-scrollbar">
           {/* 2. ИГРОВОЕ ПОЛЕ */}
-          <main className="flex-1 min-h-0 w-full flex items-center justify-center overflow-visible">
+          <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-none flex items-center justify-center overflow-visible">
             <div className="w-full flex flex-col items-center justify-center">
               <GameBoard
                 mode={gameState.mode}
@@ -1413,7 +1404,13 @@ export default function App() {
           </main>
 
           {/* 3. КОНТЕКСТНАЯ ПАНЕЛЬ УПРАВЛЕНИЯ */}
-          <footer className="w-full max-w-md lg:w-80 xl:w-96 shrink-0 flex flex-col gap-3 z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:pb-0 px-1 lg:px-0 lg:overflow-y-auto custom-scrollbar">
+          <footer className="w-full max-w-md md:w-80 lg:w-96 shrink-0 flex flex-col justify-center gap-3 z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-0 px-1 md:px-0 md:my-auto">
+            {gameState.mode === "MANIAC_VS_OPERATIVE" && (
+              <VictimList
+                victimIds={gameState.victimList}
+                allCharacters={allChars}
+              />
+            )}
             <RoleCards
               mode={gameState.mode}
               role1Name={role1Name}
@@ -1449,18 +1446,18 @@ export default function App() {
 
             {/* Кнопки действий */}
             <div className="flex flex-col gap-2 w-full lg:bg-zinc-900/50 lg:border lg:border-zinc-800 lg:p-4 lg:rounded-2xl">
-              <div className="hidden lg:block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">
+              <div className="hidden md:block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
                 Действия ({actionPanelRoleName})
               </div>
-              <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5 lg:gap-2 w-full">
+              <div className="grid grid-cols-2 md:grid-cols-1 gap-2 w-full">
                 {targetActions.map((action) => (
                   <button
                     key={action.id}
                     onClick={action.onClick}
                     disabled={action.disabled}
-                    className={`${action.className} py-2 lg:py-3 px-2 rounded-lg lg:rounded-xl font-black text-[10px] lg:text-xs uppercase tracking-wider transition shadow flex items-center justify-center text-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                    className={`${action.className} py-2.5 md:py-3.5 px-3 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition shadow-md flex items-center justify-center text-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
                       targetActions.length === 1
-                        ? "col-span-2 lg:col-span-1"
+                        ? "col-span-2 md:col-span-1"
                         : "col-span-1"
                     }`}
                   >
@@ -1475,7 +1472,7 @@ export default function App() {
                 <button
                   onClick={cleanupAction.onClick}
                   disabled={cleanupAction.disabled}
-                  className="w-full py-1 lg:py-2.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-zinc-300 hover:text-zinc-200 text-[9px] lg:text-[11px] font-bold uppercase rounded-md lg:rounded-xl border border-zinc-700/80 transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5 mt-1"
+                  className="w-full py-2 md:py-2.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-300 hover:text-zinc-200 text-[10px] md:text-xs font-bold uppercase rounded-xl border border-zinc-700/80 transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5 mt-1"
                 >
                   <span>↻</span>
                   <span>Зачистить</span>

@@ -1,198 +1,98 @@
-﻿class SoundEffects {
-  private ctx: AudioContext | null = null;
-  private enabled: boolean = true;
+﻿// src/utils/audio.ts
+
+type SoundType =
+  | 'splash'
+  | 'slide'
+  | 'kill'
+  | 'disguise'
+  | 'radar'
+  | 'arrest'
+  | 'error'
+  | 'impact'
+  | 'gameStart'
+  | 'win'
+  | 'lose';
+
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+const getPath = (fileName: string) => `${basePath}/sounds/${fileName}`;
+
+const SOUND_LIBRARY: Record<SoundType, string[]> = {
+  splash: [getPath('splash.mp3')],
+  slide: [getPath('slide-1.mp3'), getPath('slide-2.mp3')],
+  kill: [getPath('kill-1.mp3'), getPath('kill-2.mp3')],
+  disguise: [getPath('disguise-1.mp3'), getPath('disguise-2.mp3'), getPath('disguise-3.mp3')],
+  radar: [getPath('radar-1.mp3'), getPath('radar-2.mp3')],
+  arrest: [getPath('arrest.mp3')],
+  error: [getPath('error.mp3')],
+  impact: [getPath('impact.mp3')],
+  gameStart: [getPath('game-start.mp3')],
+  win: [getPath('win.mp3')],
+  lose: [getPath('lose.mp3')],
+};
+
+class SoundController {
+  private isMuted: boolean = false;
+  private ambientAudio: HTMLAudioElement | null = null;
 
   constructor() {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("crime_city_sound");
-      if (saved !== null) this.enabled = saved === "true";
+    if (typeof window !== 'undefined') {
+      Object.values(SOUND_LIBRARY).flat().forEach((path) => {
+        const audio = new Audio(path);
+        audio.preload = 'auto';
+      });
     }
   }
 
-  setEnabled(value: boolean) {
-    this.enabled = value;
-    if (typeof window !== "undefined") {
-      localStorage.setItem("crime_city_sound", value ? "true" : "false");
+  public play(type: SoundType, volume = 0.75): void {
+    if (this.isMuted) return;
+
+    const variations = SOUND_LIBRARY[type];
+    if (!variations || variations.length === 0) return;
+
+    const randomIndex = Math.floor(Math.random() * variations.length);
+    const selectedPath = variations[randomIndex];
+
+    try {
+      const sound = new Audio(selectedPath);
+      sound.volume = Math.max(0, Math.min(1, volume));
+      sound.play().catch(() => {});
+    } catch (err) {
+      console.warn(`[Audio] Ошибка воспроизведения ${selectedPath}:`, err);
     }
   }
 
-  getEnabled(): boolean {
-    return this.enabled;
+  public playAmbient(volume = 0.25): void {
+    if (this.isMuted) return;
+
+    if (!this.ambientAudio) {
+      this.ambientAudio = new Audio(getPath('ambient.mp3'));
+      this.ambientAudio.loop = true;
+    }
+
+    this.ambientAudio.volume = volume;
+    this.ambientAudio.play().catch(() => {});
   }
 
-  private getContext(): AudioContext | null {
-    if (!this.enabled || typeof window === "undefined") return null;
-    if (!this.ctx) {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext })
-          .webkitAudioContext;
-      if (AudioCtx) this.ctx = new AudioCtx();
-    }
-    if (this.ctx && this.ctx.state === "suspended") {
-      this.ctx.resume();
-    }
-    return this.ctx;
-  }
-
-  initAudio() {
-    const ctx = this.getContext();
-    if (ctx && ctx.state === "suspended") {
-      ctx.resume();
+  public stopAmbient(): void {
+    if (this.ambientAudio) {
+      this.ambientAudio.pause();
+      this.ambientAudio.currentTime = 0;
     }
   }
 
-  /* Сдвиг: глухой деревянный стук / скольжение плитки по столу */
-playShift() {
-    const ctx = this.getContext();
-    if (!ctx) return;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(420, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.04);
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.04);
+  public toggleMute(): boolean {
+    this.isMuted = !this.isMuted;
+    if (this.isMuted && this.ambientAudio) {
+      this.ambientAudio.pause();
+    } else if (!this.isMuted && this.ambientAudio) {
+      this.ambientAudio.play().catch(() => {});
+    }
+    return this.isMuted;
   }
 
-  playKill() {
-    const ctx = this.getContext();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    
-    // Щелчок затвора
-    const osc = ctx.createOscillator();
-    const oscGain = ctx.createGain();
-    osc.type = "square";
-    osc.frequency.setValueAtTime(800, now);
-    osc.frequency.exponentialRampToValueAtTime(100, now + 0.03);
-    oscGain.gain.setValueAtTime(0.1, now);
-    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
-    osc.connect(oscGain);
-    oscGain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.03);
-
-    // Шумовой взрыв
-    const bufferSize = ctx.sampleRate * 0.09;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-    const filter = ctx.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.frequency.setValueAtTime(450, now);
-    filter.frequency.exponentialRampToValueAtTime(100, now + 0.09);
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.4, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    noise.start(now);
-    noise.stop(now + 0.09);
-  }
-
-  playAccuse() {
-    const ctx = this.getContext();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    [950, 1300].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "square";
-      osc.frequency.setValueAtTime(freq, now + i * 0.05);
-      osc.frequency.exponentialRampToValueAtTime(
-        freq * 0.8,
-        now + i * 0.05 + 0.06,
-      );
-      gain.gain.setValueAtTime(0.08, now + i * 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.06);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now + i * 0.05);
-      osc.stop(now + i * 0.05 + 0.06);
-    });
-  }
-
-  /* Взрыв / мина */
-  playExplosion() {
-    const ctx = this.getContext();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(90, now);
-    osc.frequency.exponentialRampToValueAtTime(25, now + 0.3);
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.3);
-  }
-
-  /* Ошибка / промах / холостой допрос: упругий деревянный щелчок с отсечкой */
-  playBuzzer() {
-    const ctx = this.getContext();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(220, now);
-    osc.frequency.exponentialRampToValueAtTime(110, now + 0.15);
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.15);
-  }
-
-  /* Радар / допрос: мягкий аналоговый пинг */
-  playRadar() {
-    const ctx = this.getContext();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(520, now);
-    osc.frequency.exponentialRampToValueAtTime(440, now + 0.25);
-    gain.gain.setValueAtTime(0.12, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.25);
-  }
-
-  /* Звук победы (фанфары) */
-  playVictory() {
-    const ctx = this.getContext();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
-    notes.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(freq, now + i * 0.15);
-      gain.gain.setValueAtTime(0.15, now + i * 0.15);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.8);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now + i * 0.15);
-      osc.stop(now + i * 0.15 + 0.8);
-    });
+  public getMuted(): boolean {
+    return this.isMuted;
   }
 }
 
-export const sounds = new SoundEffects();
+export const soundManager = new SoundController();

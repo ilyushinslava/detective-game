@@ -1,4 +1,5 @@
 ﻿import { useState, useRef, useEffect, useMemo } from "react";
+import { SplashScreen } from './components/SplashScreen';
 import type { GameModeType, OpponentType, Role } from "./types/game";
 import { GameBoard } from "./components/GameBoard";
 import { DetectiveHand } from "./components/DetectiveHand";
@@ -21,7 +22,7 @@ import {
   getDetectiveAIMove,
   getSecretServiceAIMove,
 } from "./utils/aiLogic";
-import { sounds } from "./utils/audio";
+import { soundManager } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
 import { ActionPanel, type ActionItem } from "./components/ActionPanel";
 import { RoleCards } from "./components/RoleCards";
@@ -87,6 +88,7 @@ const SPY_COLORS = [
 ];
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
   const [activeMode, setActiveMode] = useState<GameModeType>("SKHVATKA");
   const [isLobbyOpen, setIsLobbyOpen] = useState(true);
   const [hasStartedEver, setHasStartedEver] = useState(false);
@@ -228,11 +230,12 @@ export default function App() {
         return;
       }
 
-      if (action.type === "SHIFT_BOARD") sounds.playShift();
-      if (action.type === "KILL_CHARACTER") sounds.playKill();
-      if (action.type === "ROB_NEIGHBOR") sounds.playShift();
-      if (action.type === "INTERROGATE") sounds.playRadar();
-      if (action.type === "CLEANUP") sounds.playShift();
+      if (action.type === "SHIFT_BOARD") soundManager.play('slide');
+      if (action.type === "KILL_CHARACTER") soundManager.play('kill');
+      if (action.type === "ROB_NEIGHBOR") soundManager.play('slide');
+      if (action.type === "INTERROGATE") soundManager.play('radar');
+      if (action.type === "CLEANUP") soundManager.play('slide');
+      if (action.type === "DISGUISE" || action.type === "FAST_DISGUISE" || action.type === "ESCAPE_MANIAC") soundManager.play('disguise');
 
       if (action.type === "ACCUSE") {
         const targetChar = currentState.board
@@ -242,11 +245,11 @@ export default function App() {
           action.payload.targetId !== currentState.killerSecretId &&
           !targetChar?.hasBomb;
         if (isMiss) {
-          sounds.playBuzzer();
+          soundManager.play('error');
           setErrorCardId(action.payload.targetId);
           setTimeout(() => setErrorCardId(null), 500);
         } else {
-          sounds.playAccuse();
+          soundManager.play('arrest');
         }
       }
 
@@ -258,11 +261,11 @@ export default function App() {
             s.id !== remoteSpy?.id && s.secretId === action.payload.targetId,
         );
         if (isMiss) {
-          sounds.playExplosion();
+          soundManager.play('impact');
           setErrorCardId(action.payload.targetId);
           setTimeout(() => setErrorCardId(null), 500);
         } else {
-          sounds.playAccuse();
+          soundManager.play('arrest');
         }
       }
 
@@ -306,11 +309,7 @@ export default function App() {
     };
   }, [isLobbyOpen, gameState.opponent]);
 
-  useEffect(() => {
-    const initSound = () => sounds.initAudio();
-    window.addEventListener("pointerdown", initSound, { once: true });
-    return () => window.removeEventListener("pointerdown", initSound);
-  }, []);
+  // Инициализация звука теперь обрабатывается внутри SplashScreen
 
   useEffect(() => {
     if (logContainerRef.current) {
@@ -335,7 +334,7 @@ export default function App() {
 
   useEffect(() => {
     if (gameState.winner && !matchResultRecordedRef.current) {
-      sounds.playVictory();
+      soundManager.play(gameState.winner === gameState.playerRole ? 'win' : 'lose');
       triggerHaptic("success");
 
       let isLocalWin = false;
@@ -611,7 +610,7 @@ export default function App() {
     direction: "FORWARD" | "BACKWARD",
   ) => {
     if (gameState.winner || isFirstTurnKiller || !isHumanTurn) return;
-    sounds.playShift();
+    soundManager.play('slide');
     triggerHaptic("light");
     dispatchAction({
       type: "SHIFT_BOARD",
@@ -625,7 +624,7 @@ export default function App() {
   const handleKill = () => {
     if (!selectedId || gameState.currentTurn !== "KILLER" || !isHumanTurn)
       return;
-    sounds.playKill();
+    soundManager.play('kill');
     triggerHaptic("heavy");
     dispatchAction({
       type: "KILL_CHARACTER",
@@ -639,7 +638,7 @@ export default function App() {
   const handleRob = () => {
     if (!selectedId || gameState.currentTurn !== "KILLER" || !isHumanTurn)
       return;
-    sounds.playShift();
+    soundManager.play('slide');
     triggerHaptic("medium");
     dispatchAction({
       type: "ROB_NEIGHBOR",
@@ -652,7 +651,7 @@ export default function App() {
 
   const handleEscapeManiac = () => {
     if (gameState.currentTurn !== "KILLER" || !isHumanTurn) return;
-    sounds.playShift();
+    soundManager.play('disguise');
     triggerHaptic("medium");
     dispatchAction({
       type: "ESCAPE_MANIAC",
@@ -664,7 +663,7 @@ export default function App() {
 
   const handleFastDisguise = (id: string) => {
     if (gameState.currentTurn !== "KILLER" || !isHumanTurn) return;
-    sounds.playShift();
+    soundManager.play('disguise');
     triggerHaptic("medium");
     dispatchAction({
       type: "FAST_DISGUISE",
@@ -684,12 +683,12 @@ export default function App() {
     const isMiss =
       selectedId !== gameState.killerSecretId && !targetChar.hasBomb;
     if (isMiss) {
-      sounds.playExplosion();
+      soundManager.play('error');
       triggerHaptic("error");
       setErrorCardId(selectedId);
       setTimeout(() => setErrorCardId(null), 500);
     } else {
-      sounds.playAccuse();
+      soundManager.play('arrest');
       triggerHaptic("medium");
     }
 
@@ -705,7 +704,7 @@ export default function App() {
   const handleDisguise = () => {
     if (gameState.currentTurn !== "KILLER" || isFirstTurnKiller || !isHumanTurn)
       return;
-    sounds.playShift();
+    soundManager.play('disguise');
     triggerHaptic("medium");
     dispatchAction({
       type: "DISGUISE",
@@ -717,7 +716,7 @@ export default function App() {
 
   const handleExonerateFromHand = (id: string) => {
     if (gameState.currentTurn !== "DETECTIVE" || !isHumanTurn) return;
-    sounds.playShift();
+    soundManager.play('slide');
     triggerHaptic("light");
     dispatchAction({
       type: "EXONERATE",
@@ -730,7 +729,7 @@ export default function App() {
 
   const handleCleanup = () => {
     if (!isCleanupAvailable || isFirstTurnKiller || !isHumanTurn) return;
-    sounds.playShift();
+    soundManager.play('slide');
     triggerHaptic("medium");
     dispatchAction({
       type: "CLEANUP",
@@ -751,12 +750,12 @@ export default function App() {
     );
 
     if (isMiss) {
-      sounds.playBuzzer();
+      soundManager.play('error');
       triggerHaptic("error");
       setErrorCardId(selectedId);
       setTimeout(() => setErrorCardId(null), 500);
     } else {
-      sounds.playAccuse();
+      soundManager.play('arrest');
       triggerHaptic("medium");
     }
 
@@ -774,7 +773,7 @@ export default function App() {
   const handleInterrogateSpy = () => {
     if (!selectedId || gameState.mode !== "SECRET_SERVICE" || !isHumanTurn)
       return;
-    sounds.playRadar();
+    soundManager.play('radar');
     triggerHaptic("light");
     dispatchAction({
       type: "INTERROGATE",
@@ -1116,6 +1115,7 @@ export default function App() {
 
   return (
     <div className="fixed inset-0 w-full h-[100dvh] flex flex-col bg-noir-city overflow-hidden select-none">
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       <Toast message={toastMessage} type="info" onClose={() => setToastMessage(null)} />
       <div className="w-full max-w-7xl mx-auto h-full relative flex flex-col"> 
         {isLobbyOpen && (

@@ -38,14 +38,14 @@ export const RoleCards = ({
   return (
     <div className={containerClass}>
       {showKillerCard && (
-        <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-red-950/60 grid grid-cols-[1fr_88px] items-center gap-1.5">
-          <div className="flex flex-col min-w-0">
-            <div className="text-[9px] font-black text-red-400 uppercase bg-red-950/50 border border-red-900/50 px-1.5 py-0.5 rounded w-fit">
-              {role1Name}
-            </div>
-            <div className="text-[11px] font-mono font-bold text-zinc-300 truncate h-4 mt-0.5">
+        <div className="flex-1 p-1.5 sm:p-2 bg-zinc-950 rounded-lg border border-red-950/60 flex flex-col justify-between gap-1">
+          <div className="flex items-center justify-between w-full min-w-0 gap-1">
+            <span className="text-[8.5px] font-black text-red-400 uppercase bg-red-950/70 border border-red-900/50 px-1 py-0.5 rounded shrink-0">
+              {role1Name === "ОПЕРАТИВНИК" ? "ОПЕР" : role1Name}
+            </span>
+            <span className="text-[11px] font-mono font-bold text-zinc-300 truncate text-right flex-1 min-w-0">
               {killerNameText}
-            </div>
+            </span>
           </div>
           <button
             type="button"
@@ -56,7 +56,7 @@ export const RoleCards = ({
             onTouchEnd={onPeekKillerEnd}
             onContextMenu={(e) => e.preventDefault()}
             disabled={!canPeekKiller}
-            className={`w-[88px] shrink-0 h-8 rounded-lg text-[10px] font-bold border transition ${
+            className={`w-full h-6 sm:h-7 rounded text-[9px] sm:text-[10px] font-bold border transition flex items-center justify-center ${
               !canPeekKiller
                 ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
                 : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-300 border-red-700 cursor-pointer"
@@ -68,14 +68,14 @@ export const RoleCards = ({
       )}
 
       {showDetectiveCard && (
-        <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-blue-950/60 grid grid-cols-[1fr_88px] items-center gap-1.5">
-          <div className="flex flex-col min-w-0">
-            <div className="text-[9px] font-black text-blue-400 uppercase bg-blue-950/50 border border-blue-900/50 px-1.5 py-0.5 rounded w-fit">
-              {role2Name}
-            </div>
-            <div className="text-[11px] font-mono font-bold text-zinc-300 truncate h-4 mt-0.5">
+        <div className="flex-1 p-1.5 sm:p-2 bg-zinc-950 rounded-lg border border-blue-950/60 flex flex-col justify-between gap-1">
+          <div className="flex items-center justify-between w-full min-w-0 gap-1">
+            <span className="text-[8.5px] font-black text-blue-400 uppercase bg-blue-950/70 border border-blue-900/50 px-1 py-0.5 rounded shrink-0">
+              {role2Name === "ОПЕРАТИВНИК" ? "ОПЕР" : role2Name}
+            </span>
+            <span className="text-[11px] font-mono font-bold text-zinc-300 truncate text-right flex-1 min-w-0">
               {detectiveNameText}
-            </div>
+            </span>
           </div>
           <button
             type="button"
@@ -86,7 +86,7 @@ export const RoleCards = ({
             onTouchEnd={onPeekDetectiveEnd}
             onContextMenu={(e) => e.preventDefault()}
             disabled={!canPeekDetective}
-            className={`w-[88px] shrink-0 h-8 rounded-lg text-[10px] font-bold border transition ${
+            className={`w-full h-6 sm:h-7 rounded text-[9px] sm:text-[10px] font-bold border transition flex items-center justify-center ${
               !canPeekDetective
                 ? "bg-zinc-900 text-zinc-600 border-zinc-800 opacity-40 cursor-not-allowed"
                 : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-300 border-blue-700 cursor-pointer"

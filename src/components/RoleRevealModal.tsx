@@ -47,10 +47,10 @@ export const RoleRevealModal = ({
     role1Goal = "Похитить 5 сокровищ у соседей и менять маски";
     role2Goal = "Выставлять патрули на улицы и арестовать Грабителя";
   } else if (mode === "SECRET_SERVICE") {
-    role1Name = propRole1Name || "Агент «Восток»";
-    role2Name = propRole2Name || "Агент «Запад»";
-    role1Goal = "Собрать 3 трофея, разоблачая шпиона";
-    role2Goal = "Собрать 3 трофея, разоблачая шпиона";
+    role1Name = propRole1Name || "Агент 1";
+    role2Name = propRole2Name || "Агент 2";
+    role1Goal = "Собрать 4 трофея, разоблачая шпиона";
+    role2Goal = "Собрать 4 трофея, разоблачая шпиона";
   } else if (mode === "EUROPOL_VS_OPG") {
     role1Name = propRole1Name || "ОПГ";
     role2Name = propRole2Name || "Европол";
@@ -138,9 +138,7 @@ export const RoleRevealModal = ({
                   </b>
                 </div>
                 <div>
-                  • Ваша задача:{" "}
-                  <b>Собрать {opponent === "ONLINE" ? "3" : "4"} трофея</b>{" "}
-                  (ловить чужих шпионов)
+                  • Ваша задача: <b>Собрать 4 трофея</b> (ловить чужих шпионов)
                 </div>
                 <div>
                   • Соперник{opponent === "ONLINE" ? "" : "и"}:{" "}
@@ -207,7 +205,7 @@ export const RoleRevealModal = ({
               </div>
               <div className="p-3.5 bg-zinc-950/80 border border-zinc-800 rounded-xl text-xs text-zinc-400 space-y-1.5 text-left w-full font-mono max-w-sm">
                 <div>
-                  • Цель: <b>Собрать 3 трофея</b> для победы
+                  • Цель: <b>Собрать 4 трофея</b> для победы
                 </div>
                 <div>• Действия: Сдвиг, Допрос соседа, Поимка соседа</div>
               </div>
@@ -261,7 +259,7 @@ export const RoleRevealModal = ({
               </div>
               <div className="p-3.5 bg-zinc-950/80 border border-zinc-800 rounded-xl text-xs text-zinc-400 space-y-1.5 text-left w-full font-mono max-w-sm">
                 <div>
-                  • Цель: <b>Собрать 3 трофея</b> для победы
+                  • Цель: <b>Собрать 4 трофея</b> для победы
                 </div>
                 <div>• Действия: Сдвиг, Допрос соседа, Поимка соседа</div>
               </div>
@@ -295,7 +293,14 @@ export const RoleRevealModal = ({
                   • Роль: <b className="text-red-400">{role1Name}</b>
                 </div>
                 <div>• Задача: {role1Goal}</div>
-                <div>• Соперник: Бот-компьютер ({role2Name})</div>
+                <div>
+                  • Соперник:{" "}
+                  {opponent === "ONLINE"
+                    ? `Игрок в сети (${role2Name})`
+                    : opponent === "PVP"
+                      ? `Второй игрок (${role2Name})`
+                      : `Бот-компьютер (${role2Name})`}
+                </div>
               </div>
             </div>
             <button
@@ -332,7 +337,14 @@ export const RoleRevealModal = ({
                     убийств!
                   </div>
                 )}
-                <div>• Соперник: Бот-компьютер ({role1Name})</div>
+                <div>
+                  • Соперник:{" "}
+                  {opponent === "ONLINE"
+                    ? `Игрок в сети (${role1Name})`
+                    : opponent === "PVP"
+                      ? `Второй игрок (${role1Name})`
+                      : `Бот-компьютер (${role1Name})`}
+                </div>
               </div>
             </div>
             <button

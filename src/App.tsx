@@ -1323,7 +1323,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* ФИКСИРОВАННАЯ ПОЛОСА ДОПРОСА (ВСЕГДА ЗАРЕЗЕРВИРОВАНА, ПОЛЕ НЕ ДВИГАЕТСЯ) */}
+        {/* ФИКСИРОВАННАЯ ПОЛОСА ДОПРОСА / ЦЕЛИ МАНЬЯКА */}
         <div className="w-full px-3 h-8 md:h-10 shrink-0 flex items-center justify-center">
           {gameState.lastInterrogation && !gameState.winner ? (
             <div
@@ -1366,6 +1366,22 @@ export default function App() {
                 })}
               </div>
             </div>
+          ) : gameState.mode === "MANIAC_VS_OPERATIVE" && gameState.victimList.length > 0 && !gameState.winner ? (
+            <div className="w-full h-full px-2.5 rounded-lg border border-red-900/60 bg-red-950/40 flex items-center justify-between text-[10px] md:text-xs shadow-sm">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
+                <span className="text-red-400 font-bold uppercase tracking-wider shrink-0 text-[9px] md:text-[10px]">Цель:</span>
+                <span className="text-zinc-100 font-black truncate">
+                  {allChars.find((c) => c.id === gameState.victimList[0])?.name ?? gameState.victimList[0]}
+                </span>
+                <span className="text-[9px] font-mono text-red-400/80 shrink-0">
+                  (#{gameState.victimList[0].replace("c", "").padStart(2, "0")})
+                </span>
+              </div>
+              <div className="shrink-0 font-mono text-[9px] sm:text-[10px] text-zinc-400 uppercase ml-2">
+                Осталось: <b className="text-red-400">{gameState.victimList.length}/{Math.max(4, gameState.victimList.length + gameState.killCount)}</b>
+              </div>
+            </div>
           ) : (
             <div className="w-full h-full px-2.5 rounded-lg border border-dashed border-zinc-900 flex items-center justify-center text-[10px] text-zinc-600 font-mono">
               Оперативные показания: ожидание допроса
@@ -1373,16 +1389,16 @@ export default function App() {
           )}
         </div>
 
-        <div className="flex-1 min-h-0 w-full flex flex-col md:flex-row items-center md:items-center justify-center gap-4 md:gap-6 lg:gap-10 px-2 sm:px-4 md:px-6 py-2 md:py-4 overflow-y-auto md:overflow-hidden custom-scrollbar">
+        <div className="flex-1 min-h-0 w-full flex flex-col md:flex-row items-center justify-start md:justify-center gap-2 md:gap-6 lg:gap-10 px-2 sm:px-4 md:px-6 py-1 md:py-4 overflow-y-auto md:overflow-hidden custom-scrollbar">
           {/* 2. ИГРОВОЕ ПОЛЕ */}
-          <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-none flex flex-col items-center justify-center overflow-visible">
+          <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-none flex flex-col items-center justify-start md:justify-center">
             {/* ТИКЕР СОБЫТИЙ */}
             {gameState.log.length > 0 && (
-              <div className="w-full max-w-[min(100%,calc(100dvh-320px))] sm:max-w-[min(100%,calc(100dvh-260px))] md:max-w-[min(100%,min(72vh,600px))] mb-2 px-3 py-1.5 bg-zinc-900/80 border border-zinc-800 rounded-lg text-[10px] sm:text-xs font-mono text-amber-400/90 truncate text-center shadow-sm shrink-0">
+              <div className="w-full max-w-md md:max-w-xl mb-1 px-3 py-1 bg-zinc-900/90 border border-zinc-800 rounded-lg text-[10px] sm:text-xs font-mono text-amber-400/90 truncate text-center shadow-sm shrink-0">
                 {gameState.log[gameState.log.length - 1]}
               </div>
             )}
-            <div className="w-full flex flex-col items-center justify-center">
+            <div className="w-full flex-1 min-h-0 flex items-center justify-center overflow-hidden">
               <GameBoard
                 mode={gameState.mode}
                 board={gameState.board}
@@ -1421,12 +1437,6 @@ export default function App() {
 
           {/* 3. КОНТЕКСТНАЯ ПАНЕЛЬ УПРАВЛЕНИЯ */}
           <footer className="w-full max-w-md md:w-80 lg:w-96 shrink-0 flex flex-col justify-center gap-3 z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-0 px-1 md:px-0 md:my-auto">
-            {gameState.mode === "MANIAC_VS_OPERATIVE" && (
-              <VictimList
-                victimIds={gameState.victimList}
-                allCharacters={allChars}
-              />
-            )}
             <RoleCards
               mode={gameState.mode}
               role1Name={role1Name}
@@ -2186,6 +2196,19 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {/* ОВЕРЛЕЙ ПРЕДУПРЕЖДЕНИЯ О ЛАНДШАФТНОМ РЕЖИМЕ НА МОБИЛКАХ */}
+        <div className="mobile-landscape-overlay fixed inset-0 z-[200] bg-zinc-950 flex-col items-center justify-center text-center px-6 select-none">
+          <div className="w-20 h-20 mb-6 rounded-full border border-zinc-800 bg-zinc-900 flex items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.8)] animate-pulse">
+            <span className="text-4xl transform -rotate-90">📱</span>
+          </div>
+          <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100 mb-3">
+            Поверните устройство
+          </h2>
+          <p className="text-xs text-zinc-400 max-w-xs leading-relaxed">
+            Пожалуйста, верните устройство в вертикальное положение для продолжения операции.
+          </p>
+        </div>
       </div>
     </div>
   );

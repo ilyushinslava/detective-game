@@ -53,8 +53,7 @@ export const GameBoard = ({
   const rowsArray = Array.from({ length: numRows }, (_, i) => i);
 
   return (
-    <div className="relative w-full aspect-square max-h-[calc(100dvh-320px)] sm:max-h-[calc(100dvh-260px)] md:max-h-[min(72vh,600px)] max-w-[min(100%,calc(100dvh-320px))] sm:max-w-[min(100%,calc(100dvh-260px))] md:max-w-[min(100%,min(72vh,600px))] flex flex-col items-center justify-center p-0.5 sm:p-2 select-none mx-auto shrink-0">
-      {/* ВЕРХНИЕ КНОПКИ (Сдвиг колонок вверх) */}
+    <div className="relative w-full aspect-square max-w-[min(100%,calc(100dvh-250px))] max-h-[calc(100dvh-250px)] md:max-w-[min(68vh,560px)] md:max-h-[min(68vh,560px)] flex flex-col items-center justify-center p-0.5 sm:p-1.5 select-none mx-auto shrink-0">
       <div className="w-full flex items-center gap-0.5 sm:gap-1 mb-0.5 shrink-0">
         <div className="w-4 sm:w-6 shrink-0" />
         <div
@@ -76,8 +75,8 @@ export const GameBoard = ({
                 key={`col-up-${colIdx}`}
                 disabled={isBlocked || isOpposite}
                 onClick={() => onShift("COL", colIdx, "BACKWARD")}
-                className={`w-full h-5 sm:h-6 shrink-0 rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 opacity-60 hover:opacity-100 p-0 ${
-                  isOpposite
+                className={`w-full h-4 sm:h-6 shrink-0 rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 opacity-60 hover:opacity-100 p-0 ${
+              isOpposite
                     ? "invisible pointer-events-none"
                     : isBlocked
                       ? "bg-blue-950/80 text-blue-300 border-blue-500 cursor-not-allowed"
@@ -247,8 +246,7 @@ export const GameBoard = ({
                 key={`col-down-${colIdx}`}
                 disabled={isBlocked || isOpposite}
                 onClick={() => onShift("COL", colIdx, "FORWARD")}
-                className={`w-full h-5 sm:h-6 shrink-0 rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 opacity-60 hover:opacity-100 p-0 ${
-                  isOpposite
+                className={`w-full h-4 sm:h-6 shrink-0 rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 opacity-60 hover:opacity-100 p-0 ${ isOpposite
                     ? "invisible pointer-events-none"
                     : isBlocked
                       ? "bg-blue-950/80 text-blue-300 border-blue-500 cursor-not-allowed"

@@ -40,3 +40,13 @@ body {
     radial-gradient(circle at 50% 45%, rgba(120, 53, 15, 0.08) 0%, transparent 70%),
     radial-gradient(circle at 50% 50%, transparent 30%, rgba(0, 0, 0, 0.85) 100%);
 }
+/* Блокирующий экран для мобильных телефонов в горизонтальной ориентации */
+.mobile-landscape-overlay {
+  display: none;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .mobile-landscape-overlay {
+    display: flex !important;
+  }
+}

@@ -24,8 +24,8 @@ export const GameOverModal = ({
     killerTitle = 'Маньяк';
     detectiveTitle = 'Оперативник';
   } else if (mode === 'SECRET_SERVICE') {
-    killerTitle = 'Агент «Восток»';
-    detectiveTitle = 'Агент «Запад»';
+    killerTitle = 'Агент 1';
+    detectiveTitle = 'Агент 2';
   }
 
   const isKillerWin = winner === 'KILLER';

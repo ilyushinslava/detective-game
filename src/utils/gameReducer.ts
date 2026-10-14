@@ -23,8 +23,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
   const isRemote = action.senderId === "remote";
 
-  switch (action.type) {
-    // Специальный экшен для подготовки анимации сдвига (только обновляет lastShift)
+  const computeNextState = (): GameState => {
+    switch (action.type) {
+      // Специальный экшен для подготовки анимации сдвига (только обновляет lastShift)
     case "PRE_SHIFT": {
       return {
         ...state,
@@ -152,6 +153,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     default:
-      return state;
+        return state;
+    }
+  };
+
+  const nextState = computeNextState();
+  if (isRemote && action.nextTurn) {
+    return { ...nextState, currentTurn: action.nextTurn };
   }
+  return nextState;
 }

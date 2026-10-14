@@ -40,8 +40,8 @@ export const RoleCards = ({
       {showKillerCard && (
         <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-red-950/60 grid grid-cols-[1fr_88px] items-center gap-1.5">
           <div className="flex flex-col min-w-0">
-            <div className="text-[10px] font-bold text-red-400 truncate uppercase">
-              {isSecretService ? `ДОСЬЕ: ${role1Name}` : role1Name}
+            <div className="text-[9px] font-black text-red-400 uppercase bg-red-950/50 border border-red-900/50 px-1.5 py-0.5 rounded w-fit">
+              {role1Name}
             </div>
             <div className="text-[11px] font-mono font-bold text-zinc-300 truncate h-4 mt-0.5">
               {killerNameText}
@@ -70,8 +70,8 @@ export const RoleCards = ({
       {showDetectiveCard && (
         <div className="flex-1 p-2 bg-zinc-950 rounded-lg border border-blue-950/60 grid grid-cols-[1fr_88px] items-center gap-1.5">
           <div className="flex flex-col min-w-0">
-            <div className="text-[10px] font-bold text-blue-400 truncate uppercase">
-              {isSecretService ? `ДОСЬЕ: ${role2Name}` : role2Name}
+            <div className="text-[9px] font-black text-blue-400 uppercase bg-blue-950/50 border border-blue-900/50 px-1.5 py-0.5 rounded w-fit">
+              {role2Name}
             </div>
             <div className="text-[11px] font-mono font-bold text-zinc-300 truncate h-4 mt-0.5">
               {detectiveNameText}

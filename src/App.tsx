@@ -16,6 +16,7 @@ import {
   setInspectorRole,
   getAdjacentCharacters,
   canCleanupBoard,
+  CHARACTERS_DATA,
 } from "./utils/gameLogic";
 import {
   getKillerAIMove,
@@ -147,13 +148,16 @@ export default function App() {
   }, [gameState]);
 
   const dispatchAction = (action: GameAction) => {
-    if (
-      action.senderId === "local" &&
-      (gameState.opponent === "ONLINE" || Boolean(mpService.roomCode))
-    ) {
-      mpService.sendAction(action);
-    }
-    setGameState((prev) => gameReducer(prev, action));
+    setGameState((prev) => {
+      const nextState = gameReducer(prev, action);
+      if (
+        action.senderId === "local" &&
+        (prev.opponent === "ONLINE" || Boolean(mpService.roomCode))
+      ) {
+        mpService.sendAction({ ...action, nextTurn: nextState.currentTurn });
+      }
+      return nextState;
+    });
   };
 
   useEffect(() => {
@@ -230,42 +234,32 @@ export default function App() {
         return;
       }
 
-      if (action.type === "SHIFT_BOARD") soundManager.play('slide');
-      if (action.type === "KILL_CHARACTER") soundManager.play('kill');
-      if (action.type === "ROB_NEIGHBOR") soundManager.play('slide');
-      if (action.type === "INTERROGATE") soundManager.play('radar');
-      if (action.type === "CLEANUP") soundManager.play('slide');
-      if (action.type === "DISGUISE" || action.type === "FAST_DISGUISE" || action.type === "ESCAPE_MANIAC") soundManager.play('disguise');
+      if (action.senderId === "remote") {
+        if (action.type === "SHIFT_BOARD") soundManager.play('slide');
+        if (action.type === "KILL_CHARACTER") soundManager.play('kill');
+        if (action.type === "ROB_NEIGHBOR") soundManager.play('slide');
+        if (action.type === "INTERROGATE") soundManager.play('radar');
+        if (action.type === "CLEANUP") soundManager.play('slide');
+        if (action.type === "DISGUISE" || action.type === "FAST_DISGUISE" || action.type === "ESCAPE_MANIAC") soundManager.play('disguise');
 
-      if (action.type === "ACCUSE") {
-        const targetChar = currentState.board
-          .flat()
-          .find((c) => c.id === action.payload.targetId);
-        const isMiss =
-          action.payload.targetId !== currentState.killerSecretId &&
-          !targetChar?.hasBomb;
-        if (isMiss) {
-          soundManager.play('error');
-          setErrorCardId(action.payload.targetId);
-          setTimeout(() => setErrorCardId(null), 500);
-        } else {
-          soundManager.play('arrest');
+        if (action.type === "ACCUSE") {
+          if (action.payload?.isMiss) {
+            soundManager.play('error');
+            setErrorCardId(action.payload.errorCardId || action.payload.targetId);
+            setTimeout(() => setErrorCardId(null), 500);
+          } else {
+            soundManager.play('arrest');
+          }
         }
-      }
 
-      if (action.type === "CAPTURE_SPY") {
-        const remoteSpyIndex = mpService.isHost ? 1 : 0;
-        const remoteSpy = currentState.spies?.[remoteSpyIndex];
-        const isMiss = !currentState.spies?.some(
-          (s) =>
-            s.id !== remoteSpy?.id && s.secretId === action.payload.targetId,
-        );
-        if (isMiss) {
-          soundManager.play('impact');
-          setErrorCardId(action.payload.targetId);
-          setTimeout(() => setErrorCardId(null), 500);
-        } else {
-          soundManager.play('arrest');
+        if (action.type === "CAPTURE_SPY") {
+          if (action.payload?.isMiss) {
+            soundManager.play('error');
+            setErrorCardId(action.payload.errorCardId || action.payload.targetId);
+            setTimeout(() => setErrorCardId(null), 500);
+          } else {
+            soundManager.play('arrest');
+          }
         }
       }
 
@@ -424,10 +418,10 @@ export default function App() {
   };
 
   const allChars = gameState.board.flat();
-  const killerChar = allChars.find((c) => c.id === gameState.killerSecretId);
-  const detectiveChar = allChars.find(
-    (c) => c.id === gameState.detectiveSecretId,
-  );
+  const killerChar = allChars.find((c) => c.id === gameState.killerSecretId) 
+    ?? CHARACTERS_DATA.find((c) => c.id === gameState.killerSecretId);
+  const detectiveChar = allChars.find((c) => c.id === gameState.detectiveSecretId)
+    ?? CHARACTERS_DATA.find((c) => c.id === gameState.detectiveSecretId);
 
   const activeSpy =
     gameState.mode === "SECRET_SERVICE" && gameState.spies
@@ -476,14 +470,17 @@ export default function App() {
   }, [gameState.board, radarTargetId]);
 
   const radarColorClass = gameState.interrogationRadar
-    ? "ring-amber-400 border-amber-400"
+    ? `${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].ring} ${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].border}`
     : null;
 
   const currentModeTitle =
     GAME_MODES.find((m) => m.id === gameState.mode)?.title ?? "Схватка";
 
+  const isPVP = gameState.opponent === "PVP";
   const isKillerTurn = gameState.currentTurn === "KILLER";
   const isDetectiveTurn = gameState.currentTurn === "DETECTIVE";
+  const isKillerView = isPVP ? isKillerTurn : gameState.playerRole === "KILLER";
+  const isDetectiveView = isPVP ? isDetectiveTurn : gameState.playerRole === "DETECTIVE";
 
   let role1Name = "БАНДИТ";
   let role2Name = "ИНСПЕКТОР";
@@ -503,7 +500,7 @@ export default function App() {
     currentRoleName = gameState.spies[gameState.activeSpyIndex ?? 0].name;
   }
 
-  let actionPanelRoleName = currentRoleName;
+  let actionPanelRoleName = isKillerView ? role1Name : role2Name;
   if (gameState.mode === "SECRET_SERVICE") {
     if (gameState.opponent === "ONLINE") {
       const mySpyIndex = mpService.isHost ? 0 : 1;
@@ -511,6 +508,8 @@ export default function App() {
         gameState.spies?.[mySpyIndex]?.name ?? currentRoleName;
     } else if (gameState.opponent === "AI") {
       actionPanelRoleName = gameState.spies?.[0]?.name ?? currentRoleName;
+    } else {
+      actionPanelRoleName = currentRoleName;
     }
   }
 
@@ -638,7 +637,7 @@ export default function App() {
   const handleRob = () => {
     if (!selectedId || gameState.currentTurn !== "KILLER" || !isHumanTurn)
       return;
-    soundManager.play('slide');
+    soundManager.play('radar');
     triggerHaptic("medium");
     dispatchAction({
       type: "ROB_NEIGHBOR",
@@ -694,7 +693,7 @@ export default function App() {
 
     dispatchAction({
       type: "ACCUSE",
-      payload: { targetId: selectedId },
+      payload: { targetId: selectedId, isMiss, errorCardId: selectedId },
       senderId: "local",
       timestamp: Date.now(),
     });
@@ -763,7 +762,7 @@ export default function App() {
 
     dispatchAction({
       type: "CAPTURE_SPY",
-      payload: { targetId: selectedId, nextSpyIndex } as any,
+      payload: { targetId: selectedId, nextSpyIndex, isMiss, errorCardId: selectedId } as any,
       senderId: "local",
       timestamp: Date.now(),
     });
@@ -785,7 +784,7 @@ export default function App() {
   };
 
   const handleReset = () => {
-    if (gameState.opponent === "ONLINE") {
+    if (gameState.opponent === "ONLINE" && mpService.roomCode) {
       dispatchAction({
         type: "REQUEST_RESTART",
         payload: { requestedBy: mpService.isHost ? "HOST" : "GUEST" },
@@ -797,7 +796,7 @@ export default function App() {
         gameState.opponent,
         gameState.playerRole,
         gameState.spies?.length ?? 3,
-        gameState.spyTargetTrophies ?? 3,
+        4,
         gameState.maxTurns ?? 16,
       );
     }
@@ -893,7 +892,7 @@ export default function App() {
           "py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-50 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed",
       });
     } else {
-      if (isKillerTurn) {
+      if (isKillerView) {
         if (gameState.mode === "THIEF_HUNT") {
           actions.push({
             id: "rob_basic",
@@ -908,6 +907,14 @@ export default function App() {
             className:
               "py-2 bg-amber-900/80 active:bg-amber-800 disabled:opacity-50 text-amber-200 text-[11px] font-bold rounded-lg border border-amber-800 transition disabled:cursor-not-allowed",
           });
+          actions.push({
+            id: "disguise_thief",
+            label: "Конспирация",
+            onClick: () => setIsHandSheetOpen(true),
+            disabled: !isHumanTurn || isGameOver,
+            className:
+              "py-2 bg-amber-900/80 active:bg-amber-800 disabled:opacity-50 text-amber-200 text-[11px] font-bold rounded-lg border border-amber-800 transition disabled:cursor-not-allowed",
+          });
         } else {
           actions.push({
             id: "kill_basic",
@@ -917,7 +924,8 @@ export default function App() {
               !isHumanTurn ||
               !selectedId ||
               !killerAdjacentIds.includes(selectedId) ||
-              isGameOver,
+              isGameOver ||
+              (gameState.mode === "MANIAC_VS_OPERATIVE" && selectedId !== gameState.victimList[0]),
             className:
               "py-2 bg-red-900/80 active:bg-red-800 disabled:opacity-50 text-red-200 text-[11px] font-bold rounded-lg border border-red-800 transition disabled:cursor-not-allowed",
           });
@@ -972,14 +980,16 @@ export default function App() {
         });
       }
 
-      actions.push({
-        id: "cleanup_basic",
-        label: "Зачистить",
-        onClick: handleCleanup,
-        disabled: !isHumanTurn || !isCleanupAvailable || isFirstTurnKiller,
-        className:
-          "py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-50 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed",
-      });
+      if (gameState.mode !== "THIEF_HUNT") {
+        actions.push({
+          id: "cleanup_basic",
+          label: "Зачистить",
+          onClick: handleCleanup,
+          disabled: !isHumanTurn || !isCleanupAvailable || isFirstTurnKiller,
+          className:
+            "py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-50 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed",
+        });
+      }
     }
 
     return actions;
@@ -993,7 +1003,7 @@ export default function App() {
     gameState.activeSpyIndex,
     gameState.uniformedOfficers,
     gameState.board,
-    isKillerTurn,
+    isKillerView,
     isHumanTurn,
     selectedId,
     killerAdjacentIds,
@@ -1004,7 +1014,6 @@ export default function App() {
     selectedCharacter,
   ]);
 
-  const isPVP = gameState.opponent === "PVP";
   let canPeekKiller = false;
   let canPeekDetective = false;
 
@@ -1366,7 +1375,13 @@ export default function App() {
 
         <div className="flex-1 min-h-0 w-full flex flex-col md:flex-row items-center md:items-center justify-center gap-4 md:gap-6 lg:gap-10 px-2 sm:px-4 md:px-6 py-2 md:py-4 overflow-y-auto md:overflow-hidden custom-scrollbar">
           {/* 2. ИГРОВОЕ ПОЛЕ */}
-          <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-none flex items-center justify-center overflow-visible">
+          <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-none flex flex-col items-center justify-center overflow-visible">
+            {/* ТИКЕР СОБЫТИЙ */}
+            {gameState.log.length > 0 && (
+              <div className="w-full max-w-[min(100%,calc(100dvh-320px))] sm:max-w-[min(100%,calc(100dvh-260px))] md:max-w-[min(100%,min(72vh,600px))] mb-2 px-3 py-1.5 bg-zinc-900/80 border border-zinc-800 rounded-lg text-[10px] sm:text-xs font-mono text-amber-400/90 truncate text-center shadow-sm shrink-0">
+                {gameState.log[gameState.log.length - 1]}
+              </div>
+            )}
             <div className="w-full flex flex-col items-center justify-center">
               <GameBoard
                 mode={gameState.mode}
@@ -1476,8 +1491,7 @@ export default function App() {
                     onClick={cleanupAction.onClick}
                     disabled={cleanupAction.disabled}
                     className={`${
-                      ((gameState.mode === "THIEF_HUNT" && (isPVP ? isKillerTurn : gameState.playerRole === "KILLER")) ||
-                       ((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && (isPVP ? isDetectiveTurn : gameState.playerRole === "DETECTIVE")))
+                      ((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView)
                         ? "col-span-1"
                         : "col-span-2"
                     } py-2 md:py-2.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-300 hover:text-zinc-200 text-[10px] md:text-xs font-bold uppercase rounded-xl border border-zinc-700/80 transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5`}
@@ -1487,14 +1501,13 @@ export default function App() {
                   </button>
                 )}
 
-                {((gameState.mode === "THIEF_HUNT" && (isPVP ? isKillerTurn : gameState.playerRole === "KILLER")) ||
-                  ((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && (isPVP ? isDetectiveTurn : gameState.playerRole === "DETECTIVE"))) && (
+                {((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView) && (
                   <button
                     onClick={() => setIsHandSheetOpen(true)}
                     className={`${cleanupAction ? "col-span-1" : "col-span-2"} py-2 md:py-2.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer`}
                   >
                     <span>🗂</span>
-                    <span>Досье ({gameState.mode === "THIEF_HUNT" ? (gameState.killerHand?.length ?? 0) : gameState.detectiveHand.length})</span>
+                    <span>Досье ({gameState.detectiveHand.length})</span>
                   </button>
                 )}
               </div>
@@ -2080,8 +2093,7 @@ export default function App() {
                     </p>
                     <p>
                       <b className="text-amber-400">Цель:</b> первым накопить
-                      установленное количество трофеев (разоблаченных вражеских
-                      агентов).
+                      4 трофея (разоблаченных вражеских агентов).
                     </p>
                     <div>
                       <b className="text-zinc-200 block mb-1">

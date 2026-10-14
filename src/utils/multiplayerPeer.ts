@@ -47,8 +47,8 @@ class MultiplayerService {
   public roomCode: string | null = null;
   public myClientId: string =
     "client_" + Date.now() + "_" + Math.random().toString(16).slice(2, 6);
-  public hostName: string = "Восток";
-  public guestName: string = "Запад";
+  public hostName: string = "Агент 1";
+  public guestName: string = "Агент 2";
 
   private actionSubscribers: Set<ActionCallback> = new Set();
   private authPromise: Promise<any> | null = null;
@@ -174,7 +174,7 @@ class MultiplayerService {
   ) {
     await this.disconnect();
     this.isHost = true;
-    this.hostName = hostName.trim() || "Восток";
+    this.hostName = hostName.trim() || "Агент 1";
     const code = this.generateCode();
     this.roomCode = code;
     this.onPlayerConnected = onConnected;
@@ -264,7 +264,7 @@ class MultiplayerService {
     await this.disconnect();
     this.isHost = false;
     this.roomCode = code;
-    this.guestName = guestName.trim() || "Запад";
+    this.guestName = guestName.trim() || "Агент 2";
     this.onPlayerConnected = onConnected;
 
     try {

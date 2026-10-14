@@ -94,7 +94,7 @@ describe("UI Компоненты и Тексты", () => {
     
     expect(screen.getByText("БАНДИТ")).toBeDefined();
     expect(screen.getByText("ИНСПЕКТОР")).toBeDefined();
-    expect(screen.getAllByText("Зажать").length).toBe(2);
+    expect(screen.getAllByText(/РОЛЬ/i).length).toBe(2);
     cleanup();
   });
 

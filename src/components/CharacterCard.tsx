@@ -200,57 +200,50 @@ export const CharacterCard = memo(
         })()}
 
         {/* Номер дела и иконки */}
-        <div className="flex items-center justify-between gap-0.5 z-10 w-full leading-none px-0.5 pt-0.5">
+        <div className="flex items-center justify-between gap-0.5 z-10 w-full leading-none px-1 pt-1">
           <span
-            className={`text-[7px] sm:text-[9px] font-mono font-bold tracking-tight ${
+            className={`text-[8px] font-mono font-bold tracking-widest ${
               isDead
                 ? "text-zinc-600 line-through"
                 : isExonerated
-                  ? "text-blue-400"
+                  ? "text-cyan-400"
                   : "text-zinc-500"
             }`}
           >
             {character.isVault
-              ? "СЕЙФ"
+              ? "[СЕЙФ]"
               : `#${character.id.replace("c", "").padStart(2, "0")}`}
           </span>
 
-          <div className="flex items-center gap-0.5 text-[8px] sm:text-[10px] leading-none">
+          <div className="flex items-center gap-1 leading-none">
             {isTargetVictim && !isDead && (
-              <span className="text-red-400 font-bold" title="Текущая цель">
-                🎯
-              </span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-red-500 animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
             )}
             {isUniformedOfficer && !isDead && (
-              <span title="Офицер в форме">👮</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 text-cyan-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M8 11l4 3 4-3"/></svg>
             )}
             {isRadarCenter && !isDead && (
-              <span
-                className="text-zinc-100 font-bold animate-bounce"
-                title="Центр допроса"
-              >
-                📡
-              </span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-cyan-400 animate-pulse drop-shadow-[0_0_5px_rgba(6,182,212,0.8)]"><path d="M12 20v-8"/><path d="M8 12a4 4 0 0 1 8 0"/><path d="M4 12a8 8 0 0 1 16 0"/></svg>
             )}
             {character.isVault && (
               <span>
                 {character.isVaultCracked
-                  ? "🔓"
+                  ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 text-emerald-400"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
                   : character.isVaultLocked
-                    ? "🔒"
-                    : "🏦"}
+                    ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 text-red-500"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 text-amber-500"><rect x="4" y="10" width="16" height="10"/><polygon points="12 2 20 10 4 10"/></svg>}
               </span>
             )}
-            {character.isShielded && <span title="Бронежилет">🛡️</span>}
-            {character.hasBomb && <span title="Мина">💣</span>}
-            {character.isRobbed && <span title="Ограблен">💰</span>}
+            {character.isShielded && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 text-zinc-300"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
+            {character.hasBomb && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-amber-500 drop-shadow-[0_0_5px_rgba(245,158,11,0.8)]"><circle cx="11" cy="13" r="7"/><path d="M16 8l3-3"/><path d="M19 5a2 2 0 0 1 2 2"/></svg>}
+            {character.isRobbed && <span className="text-[7px] font-black text-amber-400 border border-amber-400/50 px-0.5 rounded-sm bg-amber-950/50">CR</span>}
           </div>
         </div>
 
         {/* Диагональные штампы */}
         {isDead && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-            <div className="transform -rotate-12 border border-red-500 bg-red-950/95 text-red-200 font-black text-[9px] sm:text-[11px] uppercase px-1.5 py-0.5 tracking-wider shadow-md rounded">
+            <div className="transform -rotate-12 border border-red-600 bg-red-950/90 text-red-500 font-black text-[9px] sm:text-[11px] uppercase px-2 py-0.5 tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.4)] rounded-sm backdrop-blur-sm">
               {isSecretService ? "РАСКРЫТ" : "УБИТ"}
             </div>
           </div>
@@ -258,25 +251,25 @@ export const CharacterCard = memo(
 
         {isExonerated && !isDead && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-            <div className="transform rotate-6 border-2 border-blue-500 bg-blue-950/90 text-blue-300 font-black text-[8px] sm:text-[10px] uppercase px-1.5 py-0.5 tracking-wider shadow-lg rounded-sm">
+            <div className="transform rotate-6 border border-cyan-500 bg-cyan-950/90 text-cyan-400 font-black text-[8px] sm:text-[10px] uppercase px-2 py-0.5 tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.4)] rounded-sm backdrop-blur-sm">
               АЛИБИ
             </div>
           </div>
         )}
 
         {/* Имя (внизу с градиентом) */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent pt-4 pb-1 px-1 z-10 flex items-end justify-center">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/80 to-transparent pt-5 pb-1.5 px-1 z-10 flex items-end justify-center">
           <span
-            className={`block text-[8.5px] xs:text-[9.5px] sm:text-xs font-bold leading-[1.1] tracking-tight break-normal whitespace-normal hyphens-none text-center ${
+            className={`block text-[8.5px] xs:text-[9.5px] sm:text-xs font-black tracking-wider break-normal whitespace-normal hyphens-none text-center uppercase ${
               isDead
                 ? isSecretService
-                  ? `${character.unmaskedSpyIndex === 0 ? "text-red-500/80 decoration-red-900/70" : character.unmaskedSpyIndex === 1 ? "text-blue-500/80 decoration-blue-900/70" : "text-zinc-500/80 decoration-zinc-700/70"} line-through`
+                  ? `${character.unmaskedSpyIndex === 0 ? "text-red-600 decoration-red-900" : character.unmaskedSpyIndex === 1 ? "text-cyan-600 decoration-cyan-900" : "text-zinc-600 decoration-zinc-800"} line-through`
                   : "text-zinc-600 line-through decoration-red-900/70"
                 : isTargetVictim
-                  ? "text-red-200 font-black"
+                  ? "text-red-400 drop-shadow-[0_0_5px_rgba(248,113,113,0.8)]"
                   : isExonerated
-                    ? "text-blue-100 font-extrabold"
-                    : "text-zinc-100"
+                    ? "text-cyan-300 drop-shadow-[0_0_5px_rgba(103,232,249,0.5)]"
+                    : "text-zinc-200"
             }`}
           >
             {character.name}

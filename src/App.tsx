@@ -868,7 +868,7 @@ export default function App() {
           isGameOver ||
           !selectedCharacter?.isAlive,
         className:
-          "py-2.5 bg-red-900/80 active:bg-red-800 disabled:opacity-40 text-red-100 text-[11px] font-black rounded-lg border border-red-700 transition cursor-pointer disabled:cursor-not-allowed",
+          "py-2.5 bg-gradient-to-r from-red-950 to-red-900 border border-red-700/80 text-red-100 shadow-[0_0_15px_rgba(220,38,38,0.25)] disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed",
       });
       actions.push({
         id: "interrogate_spy",
@@ -881,7 +881,7 @@ export default function App() {
           isGameOver ||
           !selectedCharacter?.isAlive,
         className:
-          "py-2.5 bg-blue-900/80 active:bg-blue-800 disabled:opacity-40 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition cursor-pointer disabled:cursor-not-allowed",
+          "py-2.5 bg-gradient-to-r from-cyan-950 to-cyan-900 border border-cyan-700/80 text-cyan-100 shadow-[0_0_15px_rgba(6,182,212,0.25)] disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed",
       });
       actions.push({
         id: "cleanup_ss",
@@ -889,7 +889,7 @@ export default function App() {
         onClick: handleCleanup,
         disabled: !isHumanTurn || !isCleanupAvailable,
         className:
-          "py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-50 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed",
+          "py-2 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
       });
     } else {
       if (isKillerView) {
@@ -905,7 +905,7 @@ export default function App() {
               isGameOver ||
               Boolean(selectedCharacter?.isRobbed),
             className:
-              "py-2 bg-amber-900/80 active:bg-amber-800 disabled:opacity-50 text-amber-200 text-[11px] font-bold rounded-lg border border-amber-800 transition disabled:cursor-not-allowed",
+              "py-2 bg-amber-950/80 border border-amber-700/80 text-amber-200 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
           });
           actions.push({
             id: "disguise_thief",
@@ -913,7 +913,7 @@ export default function App() {
             onClick: () => setIsHandSheetOpen(true),
             disabled: !isHumanTurn || isGameOver,
             className:
-              "py-2 bg-amber-900/80 active:bg-amber-800 disabled:opacity-50 text-amber-200 text-[11px] font-bold rounded-lg border border-amber-800 transition disabled:cursor-not-allowed",
+              "py-2 bg-amber-950/80 border border-amber-700/80 text-amber-200 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
           });
         } else {
           actions.push({
@@ -927,7 +927,7 @@ export default function App() {
               isGameOver ||
               (gameState.mode === "MANIAC_VS_OPERATIVE" && selectedId !== gameState.victimList[0]),
             className:
-              "py-2 bg-red-900/80 active:bg-red-800 disabled:opacity-50 text-red-200 text-[11px] font-bold rounded-lg border border-red-800 transition disabled:cursor-not-allowed",
+              "py-2 bg-gradient-to-r from-red-950 to-red-900 border border-red-700/80 text-red-100 shadow-[0_0_15px_rgba(220,38,38,0.25)] disabled:opacity-50 disabled:shadow-none text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
           });
         }
 
@@ -942,7 +942,7 @@ export default function App() {
               gameState.evidenceDeck.length === 0 ||
               isGameOver,
             className:
-              "py-2 bg-amber-900/80 active:bg-amber-800 disabled:opacity-50 text-amber-200 text-[11px] font-bold rounded-lg border border-amber-800 transition disabled:cursor-not-allowed",
+              "py-2 bg-amber-950/80 border border-amber-700/80 text-amber-200 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
           });
         }
         if (gameState.mode === "MANIAC_VS_OPERATIVE") {
@@ -953,7 +953,7 @@ export default function App() {
             disabled:
               !isHumanTurn || gameState.evidenceDeck.length < 2 || isGameOver,
             className:
-              "py-2 bg-amber-900/80 active:bg-amber-800 disabled:opacity-50 text-amber-200 text-[11px] font-bold rounded-lg border border-amber-800 transition disabled:cursor-not-allowed",
+              "py-2 bg-amber-950/80 border border-amber-700/80 text-amber-200 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
           });
         }
       } else {
@@ -976,7 +976,7 @@ export default function App() {
             return !isAdjacent && !isSelf;
           })(),
           className:
-            "py-2.5 bg-blue-900/80 active:bg-blue-800 disabled:opacity-50 text-blue-100 text-[11px] font-black rounded-lg border border-blue-700 transition disabled:cursor-not-allowed",
+            "py-2.5 bg-gradient-to-r from-cyan-950 to-cyan-900 border border-cyan-700/80 text-cyan-100 shadow-[0_0_15px_rgba(6,182,212,0.25)] disabled:opacity-50 disabled:shadow-none text-[11px] font-black rounded-xl transition disabled:cursor-not-allowed",
         });
       }
 
@@ -987,7 +987,7 @@ export default function App() {
           onClick: handleCleanup,
           disabled: !isHumanTurn || !isCleanupAvailable || isFirstTurnKiller,
           className:
-            "py-2 bg-zinc-800 active:bg-zinc-700 disabled:opacity-50 text-zinc-300 text-[11px] font-bold rounded-lg border border-zinc-700 transition disabled:cursor-not-allowed",
+            "py-2 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
         });
       }
     }

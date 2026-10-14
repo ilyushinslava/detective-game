@@ -1208,7 +1208,7 @@ export default function App() {
         )}
 
         {/* 1. КОМПАКТНАЯ ШАПКА МАТЧА */}
-        <header className="w-full px-4 sm:px-6 py-2.5 bg-zinc-900 border-b border-zinc-800 shrink-0 relative flex items-center justify-between z-30 pt-[max(0.6rem,env(safe-area-inset-top))]">
+        <header className="w-full px-4 sm:px-6 pb-2.5 bg-zinc-900 border-b border-zinc-800 shrink-0 relative flex items-center justify-between z-30 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsPauseOpen(true)}
@@ -1568,7 +1568,7 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="overflow-y-auto space-y-2 pb-6">
+              <div className="overflow-y-auto space-y-2 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
                 {(gameState.mode === "SKHVATKA" ||
                   gameState.mode === "MANIAC_VS_OPERATIVE") && (
                   <DetectiveHand
@@ -1627,7 +1627,7 @@ export default function App() {
 
               <div
                 ref={logContainerRef}
-                className="overflow-y-auto space-y-2 text-xs font-mono text-zinc-300 pr-1 pb-6"
+                className="overflow-y-auto space-y-2 text-xs font-mono text-zinc-300 pr-1 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
               >
                 {gameState.log.map((entry, idx) => (
                   <div

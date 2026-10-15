@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import type { GameModeType, OpponentType, Role } from "../types/game";
 import type { UserProfile } from "../types/profile";
 import { triggerHaptic, setHapticsEnabled } from "../utils/haptics";
@@ -140,6 +140,8 @@ export const MainMenu = ({
   const [isHapticsEnabled, setIsHapticsEnabled] = useState(() => {
     return localStorage.getItem("crime_city_haptics") !== "false";
   });
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(1);
 
   useEffect(() => {
     if (activeTab === "LOBBY" && screen !== 'HOME' && screen !== 'MODES' && screen !== 'MODE_DETAIL') setScreen('HOME');
@@ -379,7 +381,7 @@ export const MainMenu = ({
                 </div>
               </button>
 
-              <button onClick={() => setToastMessage("Интерактивный пролог в разработке")} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-center gap-2 px-2.5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
+              <button onClick={() => setIsTutorialOpen(true)} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-center gap-2 px-2.5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
                 <div className="text-zinc-400">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 sm:w-5 sm:h-5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                 </div>
@@ -447,7 +449,18 @@ export const MainMenu = ({
             <span className="px-2.5 py-1 bg-zinc-900 border border-zinc-800 rounded-md text-[9px] font-black text-zinc-400 uppercase tracking-widest">{activeModeData.time}</span>
           </div>
           <h1 className="text-2xl font-black text-white uppercase tracking-widest leading-tight mb-3">{activeModeData.title}</h1>
-          <p className="text-xs text-zinc-400 leading-relaxed mb-6">{activeModeData.description}</p>
+          <p className="text-xs text-zinc-400 leading-relaxed mb-4">{activeModeData.description}</p>
+          
+          <div className="flex flex-wrap gap-2 mb-6">
+            <div className="px-2.5 py-1.5 bg-zinc-900/80 border border-red-900/30 rounded-lg flex items-center gap-1.5">
+              <span className="w-1 h-1 rounded-full bg-red-500" />
+              <span className="text-[9px] font-black text-zinc-300 uppercase tracking-widest">{activeModeData.killerRoleName}: <span className="text-red-400">{activeModeData.id === 'SKHVATKA' ? '14 жертв' : activeModeData.id === 'MANIAC_VS_OPERATIVE' ? '4 жертвы' : activeModeData.id === 'THIEF_HUNT' ? '5 краж' : '4 трофея'}</span></span>
+            </div>
+            <div className="px-2.5 py-1.5 bg-zinc-900/80 border border-cyan-900/30 rounded-lg flex items-center gap-1.5">
+              <span className="w-1 h-1 rounded-full bg-cyan-500" />
+              <span className="text-[9px] font-black text-zinc-300 uppercase tracking-widest">{activeModeData.detectiveRoleName}: <span className="text-cyan-400">{activeModeData.id === 'SECRET_SERVICE' ? '4 трофея' : 'Арест'}</span></span>
+            </div>
+          </div>
 
           <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Состав игры</h3>
           <div className="grid grid-cols-3 gap-3 mb-6">
@@ -688,6 +701,17 @@ export const MainMenu = ({
           <span className="text-[10px] text-amber-500/80 font-bold uppercase tracking-widest">{profile.rank}</span>
         </div>
 
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-zinc-900/60 border border-white/[0.05] rounded-xl p-3 flex flex-col items-center text-center">
+            <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-1">Баланс CR</span>
+            <span className="text-sm font-black text-amber-500 font-mono drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">{profile.cash.toLocaleString()}</span>
+          </div>
+          <div className="bg-zinc-900/60 border border-white/[0.05] rounded-xl p-3 flex flex-col items-center text-center">
+            <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-1">Всего дел</span>
+            <span className="text-sm font-black text-zinc-100 font-mono">{profile.stats.wins + profile.stats.losses}</span>
+          </div>
+        </div>
+
         <div>
           <div className="flex justify-between text-[9px] font-mono text-zinc-400 uppercase tracking-widest mb-1.5">
             <span>Опыт расследований</span>
@@ -714,9 +738,32 @@ export const MainMenu = ({
             <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Винрейт</span>
           </div>
         </div>
+
+        <div className="bg-zinc-900/40 border border-white/[0.05] rounded-2xl p-4 flex items-center justify-between">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Вводный пролог</span>
+            <span className="text-[9px] text-zinc-500 font-mono mt-0.5">Обучение основам</span>
+          </div>
+          {localStorage.getItem("crime_city_tutorial") ? (
+             <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest px-2 py-1 bg-emerald-950/30 rounded border border-emerald-900/50">Пройдено</span>
+          ) : (
+             <button onClick={() => { setScreen('HOME'); setIsTutorialOpen(true); }} className="text-[9px] font-black text-cyan-400 hover:text-cyan-300 uppercase tracking-widest px-3 py-1.5 bg-cyan-950/50 rounded border border-cyan-900/50 transition cursor-pointer">Начать</button>
+          )}
+        </div>
       </div>
     </div>
   );
+
+  const handleFinishTutorial = () => {
+    const completed = localStorage.getItem("crime_city_tutorial");
+    if (!completed) {
+      if (onUpdateProfile) onUpdateProfile({ cash: profile.cash + 250 });
+      localStorage.setItem("crime_city_tutorial", "true");
+      setToastMessage("+250 CR за прохождение обучения!");
+    }
+    setIsTutorialOpen(false);
+    setTutorialStep(1);
+  };
 
   const renderScreen = () => {
     switch (screen) {
@@ -729,8 +776,50 @@ export const MainMenu = ({
     }
   };
 
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    if (touch.clientX <= 32) {
+      touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    } else {
+      touchStartRef.current = null;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+
+    if (deltaX > 60 && Math.abs(deltaY) < 40) {
+      triggerHaptic("light");
+      
+      if (isTutorialOpen) {
+        setIsTutorialOpen(false);
+      } else if (isSettingsOpen) {
+        setIsSettingsOpen(false);
+      } else if (isCreateRoomOpen) {
+        setIsCreateRoomOpen(false);
+      } else if (screen === 'MODE_DETAIL') {
+        setScreen('MODES');
+      } else if (screen === 'MODES') {
+        setScreen('HOME');
+      } else if (screen === 'TABLES' || screen === 'PROFILE') {
+        setScreen('HOME');
+        onTabChange('LOBBY');
+      }
+    }
+    touchStartRef.current = null;
+  };
+
   return (
-    <div className="fixed inset-0 z-50 bg-[#050608] flex justify-center overflow-hidden font-sans select-none text-zinc-100">
+    <div 
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      className="fixed inset-0 z-50 bg-[#050608] flex justify-center overflow-hidden font-sans select-none text-zinc-100"
+    >
       <Toast message={toastMessage} type="error" onClose={() => setToastMessage(null)} />
       
       {/* Ограничивающий фрейм мобильного интерфейса на ПК */}
@@ -739,6 +828,44 @@ export const MainMenu = ({
         <div className="w-full flex-1 min-h-0 flex flex-col relative overflow-hidden">
           {renderScreen()}
         </div>
+
+        {/* МОДАЛКА ОБУЧЕНИЯ (ПРОЛОГ) */}
+        {isTutorialOpen && (
+          <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 select-none">
+            <div className="w-full max-w-sm bg-zinc-900 border border-white/10 rounded-3xl p-6 flex flex-col items-center text-center shadow-[0_20px_50px_rgba(0,0,0,0.7)] relative overflow-hidden">
+              <div className="absolute top-0 left-0 h-1 bg-cyan-500 transition-all duration-300" style={{ width: `${(tutorialStep / 4) * 100}%` }} />
+              <button onClick={() => setIsTutorialOpen(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white transition cursor-pointer">✕</button>
+              <div className="w-12 h-12 rounded-full bg-cyan-950/50 border border-cyan-500/50 flex items-center justify-center text-cyan-400 mb-5 mt-2 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                {tutorialStep === 1 && <Icons.Crosshair />}
+                {tutorialStep === 2 && <Icons.Play />}
+                {tutorialStep === 3 && <Icons.Radar />}
+                {tutorialStep === 4 && <Icons.Shield />}
+              </div>
+              <h2 className="text-base font-black uppercase tracking-widest text-zinc-100 mb-3">
+                {tutorialStep === 1 && "Шаг 1: Соседство"}
+                {tutorialStep === 2 && "Шаг 2: Сдвиг ряда"}
+                {tutorialStep === 3 && "Шаг 3: Выстрел и Допрос"}
+                {tutorialStep === 4 && "Шаг 4: Задержание"}
+              </h2>
+              <p className="text-xs text-zinc-400 mb-8 min-h-[60px] leading-relaxed">
+                {tutorialStep === 1 && "Все взаимодействия в игре происходят только с соседними клетками (до 8 вокруг вас по горизонтали, вертикали и диагонали)."}
+                {tutorialStep === 2 && "Один раз за ход можно сдвинуть любой ряд или колонку на 1 клетку. Ушедший за край персонаж появляется с противоположной стороны."}
+                {tutorialStep === 3 && "Бандит стреляет в соседа. После выстрела Инспектор обязан честно ответить: находилась ли его тайная личность рядом с жертвой."}
+                {tutorialStep === 4 && "Инспектор побеждает, если успешно применит «Задержание» к тайной личности Бандита, находясь с ним по соседству."}
+              </p>
+              <div className="flex gap-2 w-full">
+                {tutorialStep > 1 && (
+                  <button onClick={() => setTutorialStep(s => s - 1)} className="px-5 py-3.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-black uppercase tracking-widest rounded-xl transition cursor-pointer">
+                    Назад
+                  </button>
+                )}
+                <button onClick={() => tutorialStep < 4 ? setTutorialStep(s => s + 1) : handleFinishTutorial()} className="flex-1 py-3.5 bg-gradient-to-r from-cyan-700 to-cyan-600 hover:from-cyan-600 hover:to-cyan-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                  {tutorialStep < 4 ? "Далее" : "Завершить"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* НИЖНИЙ НАВИГАЦИОННЫЙ ДОК */}
         {screen !== 'MODE_DETAIL' && (

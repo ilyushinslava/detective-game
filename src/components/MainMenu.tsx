@@ -257,121 +257,137 @@ export const MainMenu = ({
 
   // --- ЭКРАН 1: ГЛАВНАЯ (HOME) ---
   const renderHome = () => (
-    <div className="relative flex-1 flex flex-col bg-[#080a0f] bg-[url('/bg-main.jpg')] bg-cover object-[75%_top] sm:object-right-top overflow-y-auto custom-scrollbar pb-24">
-      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 via-60% to-[#080a0f] pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#080a0f]/90 via-[#080a0f]/50 to-transparent w-[75%] pointer-events-none" />
+    <div className="absolute inset-0 w-full h-full flex flex-col justify-between bg-[#080a0f] overflow-hidden">
+      {/* Сплошная маскирующая полоса под Dynamic Island для iOS PWA */}
+      <div className="absolute top-0 inset-x-0 h-[max(2.5rem,env(safe-area-inset-top))] bg-[#080a0f] z-20 pointer-events-none" />
 
-      <div className="relative z-10 flex flex-col min-h-full">
-        {/* Header Overlay */}
-        <div className="flex items-center justify-between px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0">
-          <button 
-            onClick={() => setIsSettingsOpen(true)}
-            className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white transition cursor-pointer shadow-lg active:scale-95"
-            title="Настройки"
-          >
-            <Icons.Settings />
-          </button>
-          
-          <div className="flex flex-col items-center drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-            <span className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">Позывной</span>
-            <span className="text-sm font-black tracking-widest text-zinc-100 uppercase">{profile.nickname}</span>
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <img 
+          src="./bg-main.png" 
+          alt="Astoria City Noir" 
+          className="w-full h-full object-cover object-[70%_top] opacity-90"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            if (!target.src.endsWith("/bg-main.png")) target.src = "/bg-main.png";
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#080a0f] via-transparent via-15% to-[#080a0f] to-85%" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#080a0f]/95 via-[#080a0f]/40 to-transparent w-[65%]" />
+      </div>
+
+      <div className="relative z-10 flex-1 flex flex-col justify-between pt-[max(4.5rem,env(safe-area-inset-top))] pb-[calc(4.5rem+env(safe-area-inset-bottom))] px-5">
+        <div>
+          {/* Header Overlay */}
+          <div className="flex items-center justify-between shrink-0 mb-4">
+            <button 
+              onClick={() => setIsSettingsOpen(true)}
+              className="w-10 h-10 rounded-full bg-black/75 border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white transition cursor-pointer shadow-lg active:scale-95"
+              title="Настройки"
+            >
+              <Icons.Settings />
+            </button>
+            
+            <div className="flex flex-col items-center drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+              <span className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">Позывной</span>
+              <span className="text-sm font-black tracking-widest text-zinc-100 uppercase">{profile.nickname}</span>
+            </div>
+
+            <div className="rounded-full bg-black/75 border border-white/10 px-3.5 py-1.5 flex items-center gap-1.5 shadow-lg">
+              <span className="text-amber-500 font-black text-[10px] tracking-wider">CR</span>
+              <span className="text-zinc-100 font-mono text-xs font-bold">{profile.cash.toLocaleString()}</span>
+            </div>
           </div>
 
-          <div className="rounded-full bg-black/60 backdrop-blur-md border border-white/10 px-3.5 py-1.5 flex items-center gap-1.5 shadow-lg">
-            <span className="text-amber-500 font-black text-[10px] tracking-wider">CR</span>
-            <span className="text-zinc-100 font-mono text-xs font-bold">{profile.cash.toLocaleString()}</span>
+          {/* Заголовок игры */}
+          <div className="max-w-[60%] text-left -rotate-3 select-none">
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tighter text-white uppercase leading-none drop-shadow-[0_4px_20px_rgba(0,0,0,1)]">
+              РЕКВИЕМ
+            </h1>
+            <div className="text-red-500 font-black text-xs sm:text-sm tracking-widest uppercase mt-1 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">
+              ПОСЛЕДНИЙ ВЫСТРЕЛ
+            </div>
+            <p className="text-[9px] font-bold tracking-widest text-zinc-400 uppercase mt-2 leading-tight drop-shadow-md">
+              Детективные игры в одной колоде
+            </p>
           </div>
         </div>
 
-        {/* Заголовок игры и кнопки поверх города */}
-        <div className="px-6 flex flex-col pt-16 sm:pt-24">
-          <div className="mb-4 sm:mb-6 max-w-[65%] text-left">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-widest text-white uppercase leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
-              РЕКВИЕМ:<br/>
-              <span className="text-red-500 drop-shadow-[0_0_25px_rgba(239,68,68,0.75)]">ПОСЛЕДНИЙ ВЫСТРЕЛ</span>
-            </h1>
-            <p className="text-[10px] font-bold tracking-widest text-zinc-300 uppercase mt-3 drop-shadow-md leading-relaxed">
-              Детективные игры<br/>в одной колоде
-            </p>
-          </div>
-
-          {/* Main Actions */}
-          <div className="flex flex-col gap-2 sm:gap-2.5 shrink-0 mb-6">
-            {hasActiveGame && (
-              <button
-                onClick={onResumeGame}
-                className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer"
-              >
-                <span className="font-black tracking-widest uppercase text-[10px] sm:text-xs">Продолжить дело</span>
-                <Icons.ArrowRight />
-              </button>
-            )}
-
+        {/* Main Actions */}
+        <div className="flex flex-col gap-2 sm:gap-2.5 shrink-0">
+          {hasActiveGame && (
             <button
-              onClick={handleQuickPlay}
-              disabled={isCreating}
-              className="w-full h-12 sm:h-[52px] rounded-full bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white font-black tracking-widest uppercase flex items-center justify-between px-6 border-t border-red-400/50 shadow-[0_10px_25px_rgba(220,38,38,0.5),inset_0_1px_2px_rgba(255,255,255,0.4)] hover:brightness-110 active:scale-[0.98] transition cursor-pointer disabled:opacity-50"
+              onClick={onResumeGame}
+              className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer"
             >
-              <div className="flex items-center gap-3">
-                <Icons.Play />
-                <span className="text-[11px] sm:text-xs">{isCreating ? "ПОИСК..." : "БЫСТРАЯ ИГРА"}</span>
+              <span className="font-black tracking-widest uppercase text-[10px] sm:text-xs">Продолжить дело</span>
+              <Icons.ArrowRight />
+            </button>
+          )}
+
+          <button
+            onClick={handleQuickPlay}
+            disabled={isCreating}
+            className="w-full h-12 sm:h-[52px] rounded-full bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white font-black tracking-widest uppercase flex items-center justify-between px-6 border-t border-red-400/50 shadow-[0_10px_25px_rgba(220,38,38,0.5),inset_0_1px_2px_rgba(255,255,255,0.4)] hover:brightness-110 active:scale-[0.98] transition cursor-pointer disabled:opacity-50"
+          >
+            <div className="flex items-center gap-3">
+              <Icons.Play />
+              <span className="text-[11px] sm:text-xs">{isCreating ? "ПОИСК..." : "БЫСТРАЯ ИГРА"}</span>
+            </div>
+            <span className="text-[10px] font-mono text-red-200/80">250 CR</span>
+          </button>
+
+          <div className="flex flex-col gap-2 sm:gap-2.5 mt-1">
+            <button onClick={() => { setSelectedOpponent("AI"); setScreen('MODES'); }} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
+              <div className="flex items-center gap-3.5">
+                <div className="w-5 h-5 flex items-center justify-center text-zinc-400 shrink-0"><Icons.Cards /></div>
+                <div className="flex flex-col items-start leading-tight">
+                  <span className="text-[10px] sm:text-xs font-black text-zinc-100 uppercase tracking-widest">СЦЕНАРИИ</span>
+                  <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Против ИИ • 4 дела</span>
+                </div>
               </div>
-              <span className="text-[10px] font-mono text-red-200/80">250 CR</span>
+              <Icons.ChevronRight />
             </button>
 
-            <div className="flex flex-col gap-2 sm:gap-2.5 mt-1">
-              <button onClick={() => { setSelectedOpponent("AI"); setScreen('MODES'); }} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
-                <div className="flex items-center gap-4">
-                  <div className="text-zinc-400"><Icons.Cards /></div>
-                  <div className="flex flex-col items-start">
-                    <span className="text-[10px] sm:text-xs font-black text-zinc-100 uppercase tracking-widest">СЦЕНАРИИ</span>
-                    <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Против ИИ • 4 дела</span>
-                  </div>
+            <button onClick={() => { setSelectedOpponent("PVP"); setScreen('MODES'); }} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
+              <div className="flex items-center gap-3.5">
+                <div className="w-5 h-5 flex items-center justify-center text-zinc-400 shrink-0"><Icons.Users /></div>
+                <div className="flex flex-col items-start leading-tight">
+                  <span className="text-[10px] sm:text-xs font-black text-zinc-100 uppercase tracking-widest">ДУЭЛЬ 1 НА 1</span>
+                  <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Игра на одном экране</span>
                 </div>
-                <Icons.ChevronRight />
-              </button>
-
-              <button onClick={() => { setSelectedOpponent("PVP"); setScreen('MODES'); }} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
-                <div className="flex items-center gap-4">
-                  <div className="text-zinc-400"><Icons.Users /></div>
-                  <div className="flex flex-col items-start">
-                    <span className="text-[10px] sm:text-xs font-black text-zinc-100 uppercase tracking-widest">ДУЭЛЬ 1 НА 1</span>
-                    <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Игра на одном экране</span>
-                  </div>
-                </div>
-                <Icons.ChevronRight />
-              </button>
-
-              <button onClick={() => { setScreen('TABLES'); onTabChange('TABLES'); }} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
-                <div className="flex items-center gap-4">
-                  <div className="text-zinc-400"><Icons.Users /></div>
-                  <div className="flex flex-col items-start">
-                    <span className="text-[10px] sm:text-xs font-black text-zinc-100 uppercase tracking-widest">СЕТЕВЫЕ СТОЛЫ</span>
-                    <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Открытые комнаты</span>
-                  </div>
-                </div>
-                <Icons.ChevronRight />
-              </button>
-
-              <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
-                <button onClick={onOpenRules} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-center gap-2 px-3 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
-                  <div className="text-zinc-400"><Icons.Shield /></div>
-                  <div className="flex flex-col items-start">
-                    <span className="text-[9px] sm:text-[10px] font-black text-zinc-100 uppercase tracking-widest">СПРАВОЧНИК ПРАВИЛ</span>
-                    <span className="text-[7px] sm:text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Регламент и механики</span>
-                  </div>
-                </button>
-
-                <button onClick={() => setToastMessage("Интерактивный пролог в разработке")} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-center gap-2 px-3 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
-                  <div className="text-zinc-400">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                  </div>
-                  <div className="flex flex-col items-start">
-                    <span className="text-[9px] sm:text-[10px] font-black text-zinc-100 uppercase tracking-widest">ОБУЧЕНИЕ</span>
-                    <span className="text-[7px] sm:text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Интерактивный пролог</span>
-                  </div>
-                </button>
               </div>
+              <Icons.ChevronRight />
+            </button>
+
+            <button onClick={() => { setScreen('TABLES'); onTabChange('TABLES'); }} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
+              <div className="flex items-center gap-3.5">
+                <div className="w-5 h-5 flex items-center justify-center text-zinc-400 shrink-0"><Icons.Users /></div>
+                <div className="flex flex-col items-start leading-tight">
+                  <span className="text-[10px] sm:text-xs font-black text-zinc-100 uppercase tracking-widest">СЕТЕВЫЕ СТОЛЫ</span>
+                  <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Открытые комнаты</span>
+                </div>
+              </div>
+              <Icons.ChevronRight />
+            </button>
+
+            <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+              <button onClick={onOpenRules} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-center gap-2 px-2.5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
+                <div className="text-zinc-400"><Icons.Shield /></div>
+                <div className="flex flex-col items-start">
+                  <span className="text-[9px] sm:text-[10px] font-black text-zinc-100 uppercase tracking-widest">СПРАВОЧНИК</span>
+                  <span className="text-[7px] sm:text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Правила</span>
+                </div>
+              </button>
+
+              <button onClick={() => setToastMessage("Интерактивный пролог в разработке")} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-center gap-2 px-2.5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
+                <div className="text-zinc-400">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 sm:w-5 sm:h-5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-[9px] sm:text-[10px] font-black text-zinc-100 uppercase tracking-widest">ОБУЧЕНИЕ</span>
+                  <span className="text-[7px] sm:text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Пролог</span>
+                </div>
+              </button>
             </div>
           </div>
         </div>
@@ -382,7 +398,7 @@ export const MainMenu = ({
   // --- ЭКРАН 2: ВЫБОР ИГРЫ (КАТАЛОГ СЦЕНАРИЕВ) ---
   const renderModes = () => (
     <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden">
-      <div className="flex items-center px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-4 shrink-0 border-b border-white/10 bg-zinc-950/50 backdrop-blur-md">
+      <div className="flex items-center px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-4 shrink-0 border-b border-white/10 bg-[#080a0f]">
         <button onClick={() => setScreen('HOME')} className="text-zinc-400 hover:text-white transition flex items-center gap-1 cursor-pointer">
           <Icons.ChevronLeft />
           <span className="text-[10px] font-black uppercase tracking-widest">Назад</span>
@@ -417,7 +433,7 @@ export const MainMenu = ({
   // --- ЭКРАН 3: КАРТОЧКА ДЕЛА И СТАРТ ---
   const renderModeDetail = () => (
     <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden relative">
-      <div className="flex items-center px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-4 shrink-0 border-b border-white/10 z-10 bg-zinc-950/80 backdrop-blur-xl">
+      <div className="flex items-center px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-4 shrink-0 border-b border-white/10 z-10 bg-[#080a0f]">
         <button onClick={() => setScreen('MODES')} className="text-zinc-400 hover:text-white transition flex items-center gap-1 cursor-pointer">
           <Icons.ChevronLeft />
           <span className="text-[10px] font-black uppercase tracking-widest">Назад</span>
@@ -515,9 +531,9 @@ export const MainMenu = ({
 
   // --- ЭКРАН 4: ОПЕРАТИВНЫЕ СТОЛЫ (ТАКТИЧЕСКИЙ ТЕРМИНАЛ) ---
   const renderTables = () => (
-    <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden">
+    <div className="flex-1 min-h-0 flex flex-col bg-[#080a0f] overflow-hidden">
       {/* Шапка терминала */}
-      <div className="flex items-center justify-between px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-zinc-950/60 backdrop-blur-xl">
+      <div className="flex items-center justify-between px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-[#080a0f]">
         <div className="flex flex-col">
           <span className="text-[9px] font-black tracking-widest text-zinc-500 uppercase">Сетевой эфир</span>
           <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase">Оперативные столы</h2>
@@ -545,10 +561,10 @@ export const MainMenu = ({
         ))}
       </div>
 
-      {/* Список столов или радар пустого эфира */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 custom-scrollbar pb-40">
+      {/* Список столов или радар пустого эфира (СТРОГО ОДИН БЛОК) */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3 custom-scrollbar flex flex-col">
         {filteredRooms.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-white/[0.08] rounded-3xl bg-zinc-900/30 backdrop-blur-md shadow-inner my-auto">
+          <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-white/[0.08] rounded-3xl bg-zinc-900/30 shadow-inner my-auto">
             <div className="relative mb-4 text-zinc-600">
               <Icons.Radar />
               <div className="absolute inset-0 rounded-full border border-cyan-500/30 animate-ping pointer-events-none" />
@@ -570,7 +586,7 @@ export const MainMenu = ({
           filteredRooms.map((room) => (
             <div 
               key={room.roomCode} 
-              className="bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl p-4 flex flex-col gap-3.5 hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] transition shadow-lg"
+              className="bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl p-4 flex flex-col gap-3.5 hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] transition shadow-lg"
             >
               <div className="flex items-start justify-between">
                 <div className="flex flex-col">
@@ -605,7 +621,7 @@ export const MainMenu = ({
       </div>
 
       {/* Нижняя консоль ввода шифра и создания */}
-      <div className="w-full shrink-0 border-t border-white/10 bg-black/85 backdrop-blur-2xl p-4 flex flex-col gap-2.5 pb-[max(5.5rem,env(safe-area-inset-bottom))] absolute bottom-0 z-20">
+      <div className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 p-4 flex flex-col gap-2.5 z-20">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <input
@@ -638,7 +654,7 @@ export const MainMenu = ({
   // --- ЭКРАН 5: ПРОФИЛЬ (ДОСЬЕ) ---
   const renderProfile = () => (
     <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden">
-      <div className="flex items-center px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-4 shrink-0 border-b border-white/10 bg-zinc-950/50 backdrop-blur-md">
+      <div className="flex items-center px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-4 shrink-0 border-b border-white/10 bg-[#080a0f]">
         <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase">Досье Агента</h2>
       </div>
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-7 custom-scrollbar pb-[max(6rem,env(safe-area-inset-bottom))]">
@@ -714,38 +730,40 @@ export const MainMenu = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#080a0f] flex items-center justify-center overflow-hidden font-sans select-none">
+    <div className="fixed inset-0 z-50 bg-[#080a0f] flex flex-col justify-between overflow-hidden font-sans select-none text-zinc-100">
       <Toast message={toastMessage} type="error" onClose={() => setToastMessage(null)} />
-      <div className="w-full h-full flex flex-col bg-[#080a0f] text-zinc-100 overflow-hidden relative md:max-w-[460px] md:border-x md:border-white/[0.05] shadow-[0_0_80px_rgba(0,0,0,0.8)]">
-        
+      
+      {/* Контент текущего экрана забирает всё доступное пространство */}
+      <div className="w-full flex-1 min-h-0 flex flex-col relative overflow-hidden">
         {renderScreen()}
+      </div>
 
-        {/* НИЖНИЙ НАВИГАЦИОННЫЙ ДОК (Скрыт в деталях дела, чтобы не перекрывать кнопку «Начать операцию») */}
-        {screen !== 'MODE_DETAIL' && (
-          <div className="fixed md:absolute bottom-0 inset-x-0 bg-black/75 backdrop-blur-2xl border-t border-white/10 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 px-6 flex justify-around items-center z-40">
-            <button 
-              onClick={() => { setScreen('HOME'); onTabChange('LOBBY'); }} 
-              className={`flex flex-col items-center gap-1.5 p-2 transition cursor-pointer ${screen === 'HOME' || screen === 'MODES' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
-            >
-              <Icons.Home />
-              <span className="text-[8px] font-black tracking-widest uppercase">Штаб</span>
-            </button>
-            <button 
-              onClick={() => { setScreen('TABLES'); onTabChange('TABLES'); }} 
-              className={`flex flex-col items-center gap-1.5 p-2 transition cursor-pointer ${screen === 'TABLES' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
-            >
-              <Icons.Cards />
-              <span className="text-[8px] font-black tracking-widest uppercase">Столы</span>
-            </button>
-            <button 
-              onClick={() => { setScreen('PROFILE'); onTabChange('TOP'); }} 
-              className={`flex flex-col items-center gap-1.5 p-2 transition cursor-pointer ${screen === 'PROFILE' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
-            >
-              <Icons.User />
-              <span className="text-[8px] font-black tracking-widest uppercase">Профиль</span>
-            </button>
-          </div>
-        )}
+      {/* НИЖНИЙ НАВИГАЦИОННЫЙ ДОК — естественный элемент потока в самом низу */}
+      {screen !== 'MODE_DETAIL' && (
+        <nav className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] px-6 flex justify-around items-center z-40">
+          <button 
+            onClick={() => { setScreen('HOME'); onTabChange('LOBBY'); }} 
+            className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'HOME' || screen === 'MODES' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+          >
+            <Icons.Home />
+            <span className="text-[8px] font-black tracking-widest uppercase">Штаб</span>
+          </button>
+          <button 
+            onClick={() => { setScreen('TABLES'); onTabChange('TABLES'); }} 
+            className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'TABLES' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+          >
+            <Icons.Cards />
+            <span className="text-[8px] font-black tracking-widest uppercase">Столы</span>
+          </button>
+          <button 
+            onClick={() => { setScreen('PROFILE'); onTabChange('TOP'); }} 
+            className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'PROFILE' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+          >
+            <Icons.User />
+            <span className="text-[8px] font-black tracking-widest uppercase">Профиль</span>
+          </button>
+        </nav>
+      )}
 
         {/* МОДАЛКА СОЗДАНИЯ КОМНАТЫ */}
         {isCreateRoomOpen && (
@@ -890,6 +908,5 @@ export const MainMenu = ({
           </div>
         )}
       </div>
-    </div>
   );
 };

@@ -1156,10 +1156,10 @@ export default function App() {
   }
 
   return (
-    <div className="fixed inset-0 w-full h-[100dvh] flex flex-col bg-noir-city overflow-hidden select-none">
+    <div className="fixed inset-0 w-full h-full flex flex-col bg-[#080a0f] overflow-hidden select-none">
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       <Toast message={toastMessage} type="info" onClose={() => setToastMessage(null)} />
-      <div className="w-full max-w-7xl mx-auto h-full relative flex flex-col"> 
+      <div className="w-full max-w-7xl mx-auto h-full relative flex flex-col overflow-hidden"> 
         {isLobbyOpen && (
           <MainMenu
             profile={profile}

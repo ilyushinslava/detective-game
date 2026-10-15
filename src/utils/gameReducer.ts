@@ -158,8 +158,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
   };
 
   const nextState = computeNextState();
-  if (isRemote && action.nextTurn) {
-    return { ...nextState, currentTurn: action.nextTurn };
+  if (isRemote) {
+    const finalState = { ...nextState };
+    if (action.nextTurn) finalState.currentTurn = action.nextTurn;
+    if (action.nextSpyIndex !== undefined) finalState.activeSpyIndex = action.nextSpyIndex;
+    return finalState;
   }
   return nextState;
 }

@@ -157,7 +157,11 @@ export default function App() {
         action.senderId === "local" &&
         (prev.opponent === "ONLINE" || Boolean(mpService.roomCode))
       ) {
-        mpService.sendAction({ ...action, nextTurn: nextState.currentTurn });
+        mpService.sendAction({ 
+          ...action, 
+          nextTurn: nextState.currentTurn,
+          nextSpyIndex: nextState.activeSpyIndex
+        });
       }
       return nextState;
     });
@@ -246,11 +250,11 @@ export default function App() {
           setActiveMode(newState.mode);
 
           if (newState.opponent === "ONLINE") {
-            return {
-              ...newState,
-              playerRole: mpService.isHost ? "KILLER" : "DETECTIVE",
-            };
-          }
+                    return {
+                      ...newState,
+                      playerRole: mpService.isHost ? "KILLER" : "DETECTIVE", // Строгая синхронизация ролей
+                    };
+                  }
           return newState;
         });
         setIsLobbyOpen(false);

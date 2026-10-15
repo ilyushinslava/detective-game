@@ -163,6 +163,7 @@ export function createInitialState(
       safeCandidates[2].id,
       safeCandidates[3].id,
     ];
+    inspectorChoices = []; // Строгая гарантия очистки для режима Маньяка
     const potentialVictims = boardCharacters
       .filter((c) => c.id !== killerSecretId && c.id !== detectiveSecretId)
       .map((c) => c.id);

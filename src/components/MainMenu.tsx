@@ -202,7 +202,7 @@ export const MainMenu = ({
         },
         () => {
           setIsWaitingForOpponent(false);
-          onStartGame(autoMode, "ONLINE", "DETECTIVE", isSecretService ? 2 : 2, isSecretService ? 4 : 3, 0, 250);
+          onStartGame(autoMode, "ONLINE", "KILLER", isSecretService ? 2 : 2, isSecretService ? 4 : 3, 0, 250);
         },
         (err) => {
           console.error(err);
@@ -229,7 +229,7 @@ export const MainMenu = ({
       },
       () => {
         setIsWaitingForOpponent(false);
-        onStartGame(createRoomMode, "ONLINE", "DETECTIVE", createRoomMode === "SECRET_SERVICE" ? 2 : 2, createRoomMode === "SECRET_SERVICE" ? 4 : 3, 0, createRoomBet);
+        onStartGame(createRoomMode, "ONLINE", "KILLER", createRoomMode === "SECRET_SERVICE" ? 2 : 2, createRoomMode === "SECRET_SERVICE" ? 4 : 3, 0, createRoomBet);
       },
       () => {
         setIsCreating(false);

@@ -58,11 +58,15 @@ class MultiplayerService {
     if (auth.currentUser) return auth.currentUser;
     if (this.authPromise) return this.authPromise;
 
-    this.authPromise = signInAnonymously(auth).catch((err) => {
-      this.authPromise = null;
-      console.error("Firebase auth error:", err);
-      throw err;
-    });
+    this.authPromise = signInAnonymously(auth)
+      .then((cred) => cred.user)
+      .catch((err) => {
+        console.warn("Firebase auth fallback:", err.message);
+        return null;
+      })
+      .finally(() => {
+        this.authPromise = null;
+      });
 
     return this.authPromise;
   }
@@ -346,6 +350,7 @@ class MultiplayerService {
 
     set(ref(db, `rooms/${this.roomCode}/actions`), {
       senderClientId: this.myClientId,
+      actionId: Date.now() + "_" + Math.random().toString(36).slice(2, 7),
       actionJson: JSON.stringify(action),
       timestamp: Date.now(),
     });
@@ -356,6 +361,7 @@ class MultiplayerService {
 
     set(ref(db, `rooms/${this.roomCode}/actions`), {
       senderClientId: this.myClientId,
+      actionId: Date.now() + "_" + Math.random().toString(36).slice(2, 7),
       actionJson: JSON.stringify({
         ...action,
         senderId: "remote",

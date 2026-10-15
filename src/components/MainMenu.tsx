@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import type { GameModeType, OpponentType, Role } from "../types/game";
 import type { UserProfile } from "../types/profile";
-import { triggerHaptic } from "../utils/haptics";
+import { triggerHaptic, setHapticsEnabled } from "../utils/haptics";
 import { mpService, type PublicRoomMeta } from "../utils/multiplayerPeer";
 import { usePlayerProfile } from "../utils/usePlayerProfile";
 import { soundManager } from "../utils/audio";
@@ -909,16 +909,8 @@ export const MainMenu = ({
                     onClick={() => {
                       const newVal = !isHapticsEnabled;
                       setIsHapticsEnabled(newVal);
-                      // Импорт setHapticsEnabled не требуется, так как в haptics.ts напрямую экспортируется и мы можем вызвать его, 
-                      // но для надежности обновим localStorage напрямую как в audio.ts
-                      localStorage.setItem("crime_city_haptics", newVal ? "true" : "false");
-                      if (typeof window !== 'undefined') {
-                        // Динамический импорт чтобы не добавлять лишних импортов в начало файла
-                        import('../utils/haptics').then(m => {
-                          m.setHapticsEnabled(newVal);
-                          if (newVal) m.triggerHaptic("medium");
-                        });
-                      }
+                      setHapticsEnabled(newVal);
+                      if (newVal) triggerHaptic("medium");
                     }}
                     className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isHapticsEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}
                   >

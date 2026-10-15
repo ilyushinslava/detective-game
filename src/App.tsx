@@ -2083,8 +2083,8 @@ export default function App() {
 
               <div className="overflow-y-auto space-y-3 text-left text-xs text-zinc-300 pr-1 pb-4 custom-scrollbar">
                 {/* БАЗОВЫЕ МЕХАНИКИ */}
-                <div className="p-3.5 bg-zinc-950 rounded-2xl border border-zinc-800 space-y-2">
-                  <span className="font-black text-amber-400 block text-xs uppercase tracking-wider">
+                <div className="p-3.5 bg-cyan-950/20 rounded-2xl border border-cyan-900/40 space-y-2">
+                  <span className="font-black text-cyan-400 block text-xs uppercase tracking-wider">
                     Базовые механики
                   </span>
                   <ul className="space-y-2 leading-relaxed">
@@ -2111,7 +2111,7 @@ export default function App() {
 
                 {/* 1. СХВАТКА */}
                 <details className="group bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden">
-                  <summary className="p-3.5 font-black text-amber-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
+                  <summary className="p-3.5 font-black text-zinc-200 group-hover:text-cyan-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
                     <span>1. Схватка (2 игрока, поле 5x5)</span>
                     <span className="text-zinc-500 group-open:rotate-180 transition-transform">
                       ▼
@@ -2124,7 +2124,7 @@ export default function App() {
                       поле.
                     </p>
                     <p>
-                      <b className="text-blue-400">Победа Оперативника:</b>{" "}
+                      <b className="text-cyan-400">Победа Оперативника:</b>{" "}
                       успешно применить «Задержание» к тайной личности
                       Преступника.
                     </p>
@@ -2181,7 +2181,7 @@ export default function App() {
 
                 {/* 2. МАНЬЯК ПРОТИВ ОПЕРАТИВНИКА */}
                 <details className="group bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden">
-                  <summary className="p-3.5 font-black text-amber-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
+                  <summary className="p-3.5 font-black text-zinc-200 group-hover:text-cyan-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
                     <span>2. Маньяк против оперативника</span>
                     <span className="text-zinc-500 group-open:rotate-180 transition-transform">
                       ▼
@@ -2194,7 +2194,7 @@ export default function App() {
                       Оперативника.
                     </p>
                     <p>
-                      <b className="text-blue-400">Победа Оперативника:</b>{" "}
+                      <b className="text-cyan-400">Победа Оперативника:</b>{" "}
                       раскрыть личность Маньяка действием «Задержание».
                     </p>
                     <p className="text-zinc-400">
@@ -2248,7 +2248,7 @@ export default function App() {
 
                 {/* 3. СЕКРЕТНАЯ СЛУЖБА */}
                 <details className="group bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden">
-                  <summary className="p-3.5 font-black text-amber-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
+                  <summary className="p-3.5 font-black text-zinc-200 group-hover:text-indigo-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
                     <span>3. Секретная служба</span>
                     <span className="text-zinc-500 group-open:rotate-180 transition-transform">
                       ▼
@@ -2260,7 +2260,7 @@ export default function App() {
                       себя (куча-мала) или дуэль разведок.
                     </p>
                     <p>
-                      <b className="text-amber-400">Цель:</b> первым накопить
+                      <b className="text-indigo-400">Цель:</b> первым накопить
                       4 трофея (разоблаченных вражеских агентов).
                     </p>
                     <div>
@@ -2290,7 +2290,7 @@ export default function App() {
 
                 {/* 4. ОХОТА НА ГРАБИТЕЛЯ */}
                 <details className="group bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden">
-                  <summary className="p-3.5 font-black text-amber-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
+                  <summary className="p-3.5 font-black text-zinc-200 group-hover:text-cyan-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
                     <span>4. Охота на грабителя</span>
                     <span className="text-zinc-500 group-open:rotate-180 transition-transform">
                       ▼
@@ -2302,7 +2302,7 @@ export default function App() {
                       все сокровища (5 краж).
                     </p>
                     <p>
-                      <b className="text-blue-400">Победа Начальника:</b>{" "}
+                      <b className="text-cyan-400">Победа Начальника:</b>{" "}
                       провести «Задержание» текущей активной личности Грабителя.
                     </p>
                     <p className="text-zinc-400">

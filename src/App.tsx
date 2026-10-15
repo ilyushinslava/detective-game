@@ -89,9 +89,10 @@ const SPY_COLORS = [
 ];
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
+  const hasSavedSession = Boolean(sessionStorage.getItem('mp_session'));
+  const [showSplash, setShowSplash] = useState(!hasSavedSession);
   const [activeMode, setActiveMode] = useState<GameModeType>("SKHVATKA");
-  const [isLobbyOpen, setIsLobbyOpen] = useState(true);
+  const [isLobbyOpen, setIsLobbyOpen] = useState(!hasSavedSession);
   const [hasStartedEver, setHasStartedEver] = useState(false);
   const {
     profile,
@@ -357,7 +358,7 @@ export default function App() {
 
   useEffect(() => {
     if (!isLobbyOpen && gameState.opponent === "ONLINE") {
-      let disconnectTimer: NodeJS.Timeout;
+      let disconnectTimer: NodeJS.Timeout | null = null;
 
       mpService.onPresenceChanged = (connected) => {
         setIsOpponentConnected(connected);
@@ -369,26 +370,20 @@ export default function App() {
             setOpponentDisconnectedNotice(true);
           }, 60000);
         } else {
-          clearTimeout(disconnectTimer);
+          if (disconnectTimer) clearTimeout(disconnectTimer);
           setOpponentDisconnectedNotice(false);
         }
       };
 
-      const handleDisconnect = () => {
-        if (
-          gameStateRef.current.restartRequestedBy ===
-          (mpService.isHost ? "HOST" : "GUEST") || !gameStateRef.current.winner
-        ) {
+      mpService.onRoomClosed = () => {
+        if (gameStateRef.current.restartRequestedBy === (mpService.isHost ? "HOST" : "GUEST") || !gameStateRef.current.winner) {
           refundBet(gameStateRef.current.matchBet || 250);
         }
         setOpponentDisconnectedNotice(true);
       };
-      
-      mpService.onPlayerDisconnected = handleDisconnect;
-      mpService.onRoomClosed = handleDisconnect;
 
       return () => {
-        clearTimeout(disconnectTimer);
+        if (disconnectTimer) clearTimeout(disconnectTimer);
         mpService.onPresenceChanged = null;
         mpService.onPlayerDisconnected = null;
         mpService.onRoomClosed = null;

@@ -125,6 +125,8 @@ class MultiplayerService {
 
       this.listenToActions();
 
+      if (this.onPresenceChanged) this.onPresenceChanged(true);
+
       if (data.gameState) {
         return JSON.parse(data.gameState);
       }
@@ -309,11 +311,7 @@ class MultiplayerService {
           if (this.onPlayerConnected) this.onPlayerConnected();
         } else if (guestWasConnected && (!guestId || guestId === "")) {
           guestWasConnected = false;
-          // Возвращаем счетчик обратно
-          update(ref(db, `public_rooms/${code}`), { playersCount: 1 }).catch(
-            () => {},
-          );
-          if (this.onPlayerDisconnected) this.onPlayerDisconnected();
+          update(ref(db, `public_rooms/${code}`), { playersCount: 1 }).catch(() => {});
         }
       });
 
@@ -359,7 +357,7 @@ class MultiplayerService {
         () => {},
       );
 
-      this.guestRef = ref(db, `rooms/${code}/guestId`);
+this.guestRef = ref(db, `rooms/${code}/guestId`);
       this.guestConnectedRef = ref(db, `rooms/${code}/guestConnected`);
       onDisconnect(this.guestConnectedRef).set(false).catch(() => {});
       await update(this.roomRef, { guestConnected: true });

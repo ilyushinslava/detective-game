@@ -257,25 +257,24 @@ export const MainMenu = ({
 
   // --- ЭКРАН 1: ГЛАВНАЯ (HOME) ---
   const renderHome = () => (
-    <div className="absolute inset-0 w-full h-full flex flex-col justify-between bg-[#080a0f] overflow-hidden">
-      {/* Сплошная маскирующая полоса под Dynamic Island для iOS PWA */}
-      <div className="absolute top-0 inset-x-0 h-[max(2.5rem,env(safe-area-inset-top))] bg-[#080a0f] z-20 pointer-events-none" />
-
+    <div className="relative flex-1 flex flex-col bg-[#080a0f] overflow-hidden">
+      {/* Фоновое изображение без срезания верхушек */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <img 
           src="./bg-main.png" 
           alt="Astoria City Noir" 
-          className="w-full h-full object-cover object-[70%_top] opacity-90"
+          className="w-full h-full object-cover object-[70%_top] opacity-95"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             if (!target.src.endsWith("/bg-main.png")) target.src = "/bg-main.png";
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#080a0f] via-transparent via-15% to-[#080a0f] to-85%" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#080a0f]/95 via-[#080a0f]/40 to-transparent w-[65%]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent via-20% to-[#080a0f] to-80%" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#080a0f]/95 via-[#080a0f]/40 to-transparent w-[60%]" />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col justify-between pt-[max(4.5rem,env(safe-area-inset-top))] pb-[calc(4.5rem+env(safe-area-inset-bottom))] px-5">
+      <div className="relative z-10 flex-1 flex flex-col justify-between pt-[max(1rem,env(safe-area-inset-top))] pb-3 px-5">
+
         <div>
           {/* Header Overlay */}
           <div className="flex items-center justify-between shrink-0 mb-4">
@@ -730,17 +729,19 @@ export const MainMenu = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#080a0f] flex flex-col justify-between overflow-hidden font-sans select-none text-zinc-100">
+    <div className="fixed inset-0 z-50 bg-[#050608] flex justify-center overflow-hidden font-sans select-none text-zinc-100">
       <Toast message={toastMessage} type="error" onClose={() => setToastMessage(null)} />
       
-      {/* Контент текущего экрана забирает всё доступное пространство */}
-      <div className="w-full flex-1 min-h-0 flex flex-col relative overflow-hidden">
-        {renderScreen()}
-      </div>
+      {/* Ограничивающий фрейм мобильного интерфейса на ПК */}
+      <div className="w-full max-w-md h-full flex flex-col justify-between bg-[#080a0f] md:border-x md:border-white/10 md:shadow-[0_0_80px_rgba(0,0,0,0.9)] relative overflow-hidden">
+        {/* Контент текущего экрана */}
+        <div className="w-full flex-1 min-h-0 flex flex-col relative overflow-hidden">
+          {renderScreen()}
+        </div>
 
-      {/* НИЖНИЙ НАВИГАЦИОННЫЙ ДОК — естественный элемент потока в самом низу */}
-      {screen !== 'MODE_DETAIL' && (
-        <nav className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] px-6 flex justify-around items-center z-40">
+        {/* НИЖНИЙ НАВИГАЦИОННЫЙ ДОК */}
+        {screen !== 'MODE_DETAIL' && (
+          <nav className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] px-6 flex justify-around items-center z-40">
           <button 
             onClick={() => { setScreen('HOME'); onTabChange('LOBBY'); }} 
             className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'HOME' || screen === 'MODES' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
@@ -907,6 +908,7 @@ export const MainMenu = ({
             </div>
           </div>
         )}
+      </div>
       </div>
   );
 };

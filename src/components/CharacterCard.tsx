@@ -202,12 +202,12 @@ export const CharacterCard = memo(
         {/* Номер дела и иконки */}
         <div className="flex items-center justify-between gap-0.5 z-10 w-full leading-none px-1 pt-1">
           <span
-            className={`text-[8px] font-mono font-bold tracking-widest ${
+            className={`text-[9px] sm:text-[10px] font-mono font-bold drop-shadow ${
               isDead
                 ? "text-zinc-600 line-through"
                 : isExonerated
                   ? "text-cyan-400"
-                  : "text-zinc-500"
+                  : "text-zinc-300"
             }`}
           >
             {character.isVault
@@ -242,7 +242,7 @@ export const CharacterCard = memo(
 
         {/* Диагональные штампы */}
         {isDead && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+          <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
             <div className="transform -rotate-12 border border-red-600 bg-red-950/90 text-red-500 font-black text-[9px] sm:text-[11px] uppercase px-2 py-0.5 tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.4)] rounded-sm backdrop-blur-sm">
               {isSecretService ? "РАСКРЫТ" : "УБИТ"}
             </div>
@@ -250,7 +250,7 @@ export const CharacterCard = memo(
         )}
 
         {isExonerated && !isDead && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+          <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
             <div className="transform rotate-6 border border-cyan-500 bg-cyan-950/90 text-cyan-400 font-black text-[8px] sm:text-[10px] uppercase px-2 py-0.5 tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.4)] rounded-sm backdrop-blur-sm">
               АЛИБИ
             </div>
@@ -258,9 +258,9 @@ export const CharacterCard = memo(
         )}
 
         {/* Имя (внизу с градиентом) */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/80 to-transparent pt-5 pb-1.5 px-1 z-10 flex items-end justify-center">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-6 pb-1.5 px-1 z-10 flex items-end justify-center">
           <span
-            className={`block text-[8.5px] xs:text-[9.5px] sm:text-xs font-black tracking-wider break-normal whitespace-normal hyphens-none text-center uppercase ${
+            className={`block text-[10px] sm:text-xs md:text-sm font-black uppercase leading-tight tracking-wide drop-shadow-md break-normal whitespace-normal hyphens-none text-center ${
               isDead
                 ? isSecretService
                   ? `${character.unmaskedSpyIndex === 0 ? "text-red-600 decoration-red-900" : character.unmaskedSpyIndex === 1 ? "text-cyan-600 decoration-cyan-900" : "text-zinc-600 decoration-zinc-800"} line-through`
@@ -269,7 +269,7 @@ export const CharacterCard = memo(
                   ? "text-red-400 drop-shadow-[0_0_5px_rgba(248,113,113,0.8)]"
                   : isExonerated
                     ? "text-cyan-300 drop-shadow-[0_0_5px_rgba(103,232,249,0.5)]"
-                    : "text-zinc-200"
+                    : "text-zinc-100"
             }`}
           >
             {character.name}

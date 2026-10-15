@@ -792,6 +792,10 @@ export function exonerateFromHand(state: GameState, id: string): GameState {
     evidenceDeck: nextDeck,
     currentTurn: "KILLER",
     blockedShift: null,
+    interrogationRadar: {
+      targetId: id,
+      interrogatorIndex: 0,
+    },
     lastInterrogation: {
       interrogator: "DETECTIVE",
       targetName: name,
@@ -821,7 +825,10 @@ export function disguiseKiller(state: GameState): GameState {
 
   const drawnChar = state.board.flat().find((c) => c.id === drawnId);
   const isAvailable =
-    drawnChar && drawnChar.isAlive && drawnId !== state.detectiveSecretId;
+    drawnChar &&
+    drawnChar.isAlive &&
+    !drawnChar.isExonerated &&
+    drawnId !== state.detectiveSecretId;
 
   if (isAvailable) {
     nextDeck.push(state.killerSecretId);
@@ -1094,9 +1101,9 @@ export function escapeManiac(state: GameState): GameState {
   if (!drawnId) return state;
 
   const drawnChar = state.board.flat().find((c) => c.id === drawnId);
-  const isAlive = drawnChar?.isAlive ?? false;
+  const isAvailable = Boolean(drawnChar && drawnChar.isAlive && !drawnChar.isExonerated);
 
-  if (isAlive) {
+  if (isAvailable) {
     nextDeck.push(state.killerSecretId);
     const newVictimId = nextDeck.shift();
 

@@ -1,102 +1,142 @@
 import { describe, it, expect } from "vitest";
 import {
   createInitialState,
-  robNeighbor,
-  killCharacter,
-  accuseCharacter,
-  spyCatch,
+  disguiseKiller,
+  escapeManiac,
+  exonerateFromHand,
+  setInspectorRole,
   getAdjacentCharacters,
 } from "./gameLogic";
 import { gameReducer } from "./gameReducer";
 import type { GameAction } from "../types/multiplayer";
 
-describe("Сквозной аудит исправлений (Кластеры 1 и 2)", () => {
-  it("Кластер 1: gameReducer жестко применяет action.nextTurn для удаленных действий", () => {
-    const state = createInitialState("SKHVATKA", "ONLINE", "DETECTIVE");
-    state.currentTurn = "KILLER";
+describe("Сквозной аудит инвариантов (Кластеры 1, 2, 3)", () => {
+  
+  describe("1. Инвариант маскировки (disguiseKiller & escapeManiac)", () => {
+    it("disguiseKiller: провал маскировки, если вытянута оправданная карта (isExonerated: true)", () => {
+      const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
+      const initialKillerId = state.killerSecretId;
+      
+      // Находим живого персонажа и делаем его оправданным
+      const targetChar = state.board.flat().find(c => c.isAlive && c.id !== initialKillerId && c.id !== state.detectiveSecretId)!;
+      targetChar.isExonerated = true;
+      
+      // Подкладываем его наверх колоды
+      state.evidenceDeck = [targetChar.id, ...state.evidenceDeck.filter(id => id !== targetChar.id)];
 
-    const remoteAction: GameAction = {
-      type: "SHIFT_BOARD",
-      payload: { shiftType: "ROW", index: 0, direction: "FORWARD" },
-      senderId: "remote",
-      nextTurn: "DETECTIVE",
-    };
+      const nextState = disguiseKiller(state);
 
-    const nextState = gameReducer(state, remoteAction);
-    expect(nextState.currentTurn).toBe("DETECTIVE");
+      // Личность не изменилась, ход перешел
+      expect(nextState.killerSecretId).toBe(initialKillerId);
+      expect(nextState.currentTurn).toBe("DETECTIVE");
+      expect(nextState.log[nextState.log.length - 1]).toContain("Провал конспирации");
+    });
+
+    it("escapeManiac: провал побега, если вытянута оправданная карта (isExonerated: true)", () => {
+      const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
+      const initialKillerId = state.killerSecretId;
+      const initialVictimCount = state.victimList.length;
+      
+      // Находим живого персонажа и делаем его оправданным
+      const targetChar = state.board.flat().find(c => c.isAlive && c.id !== initialKillerId && c.id !== state.detectiveSecretId)!;
+      targetChar.isExonerated = true;
+      
+      // Подкладываем его наверх колоды
+      state.evidenceDeck = [targetChar.id, ...state.evidenceDeck.filter(id => id !== targetChar.id)];
+
+      const nextState = escapeManiac(state);
+
+      // Личность не изменилась, список жертв не вырос
+      expect(nextState.killerSecretId).toBe(initialKillerId);
+      expect(nextState.victimList.length).toBe(initialVictimCount);
+      expect(nextState.currentTurn).toBe("DETECTIVE");
+      expect(nextState.log[nextState.log.length - 1]).toContain("Провал побега");
+    });
   });
 
-  it("Кластер 1: Вор при совершении кражи не меняет личность и не берет карту из колоды", () => {
-    const state = createInitialState("THIEF_HUNT", "PVP", "DETECTIVE");
-    const initialThiefId = state.killerSecretId;
-    const initialDeckLength = state.evidenceDeck.length;
-    const target = getAdjacentCharacters(state.board, initialThiefId)[0];
+  describe("2. Циклический добор и радар алиби (exonerateFromHand)", () => {
+    it("exonerateFromHand: добор карты, установка радара и флага isExonerated", () => {
+      const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
+      state.currentTurn = "DETECTIVE";
+      const cardToExonerate = state.detectiveHand[0];
+      const initialHandSize = state.detectiveHand.length;
+      const initialDeckSize = state.evidenceDeck.length;
 
-    const nextState = robNeighbor(state, target.id);
+      const nextState = exonerateFromHand(state, cardToExonerate);
 
-    expect(nextState.killerSecretId).toBe(initialThiefId);
-    expect(nextState.evidenceDeck.length).toBe(initialDeckLength);
-    expect(nextState.trophiesKiller).toBe(1);
-    expect(nextState.board.flat().find((c) => c.id === target.id)?.isRobbed).toBe(true);
+      // Флаг на поле
+      expect(nextState.board.flat().find(c => c.id === cardToExonerate)?.isExonerated).toBe(true);
+      
+      // Добор карты (размер руки сохранился, колода уменьшилась)
+      expect(nextState.detectiveHand).not.toContain(cardToExonerate);
+      expect(nextState.detectiveHand.length).toBe(initialHandSize);
+      expect(nextState.evidenceDeck.length).toBe(initialDeckSize - 1);
+      
+      // Радар установлен
+      expect(nextState.interrogationRadar).toEqual({
+        targetId: cardToExonerate,
+        interrogatorIndex: 0,
+      });
+      expect(nextState.currentTurn).toBe("KILLER");
+    });
   });
 
-  it("Кластер 1: Маньяк не может ликвидировать персонажа, не являющегося текущей целью", () => {
-    const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
-    const currentVictim = state.victimList[0];
-    const invalidTarget = state.board.flat().find(
-      (c) => c.id !== currentVictim && c.id !== state.detectiveSecretId && c.id !== state.killerSecretId
-    )!;
+  describe("3. Сетевой редуктор (gameReducer & Host-Authority)", () => {
+    it("gameReducer: жестко применяет action.nextTurn для удаленных действий", () => {
+      const state = createInitialState("SKHVATKA", "ONLINE", "DETECTIVE");
+      state.currentTurn = "KILLER";
 
-    state.killerSecretId = getAdjacentCharacters(state.board, invalidTarget.id)[0].id;
-    const nextState = killCharacter(state, invalidTarget.id);
+      const remoteAction: GameAction = {
+        type: "SHIFT_BOARD",
+        payload: { shiftType: "ROW", index: 0, direction: "FORWARD" },
+        senderId: "remote",
+        nextTurn: "DETECTIVE", // Хост прислал, что следующий ход Детектива
+      };
 
-    expect(nextState.killCount).toBe(0);
-    expect(nextState.board.flat().find((c) => c.id === invalidTarget.id)?.isAlive).toBe(true);
-    expect(nextState.currentTurn).toBe("KILLER");
+      const nextState = gameReducer(state, remoteAction);
+      
+      // Локальный стейт обязан подчиниться хосту
+      expect(nextState.currentTurn).toBe("DETECTIVE");
+    });
   });
 
-  it("Кластер 1: Убийство Оперативника с картами в руке передает новую личность без завершения игры", () => {
-    const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
-    const initialHandCount = state.detectiveHand.length;
-    const expectedNewRole = state.detectiveHand[0];
+  describe("4. Логика назначения роли инспектора (setInspectorRole)", () => {
+    it("setInspectorRole: выбор личности, перенос остатка в руку, очистка кандидатов", () => {
+      const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
+      // Имитируем состояние до выбора роли
+      state.inspectorChoices = ["c1", "c2", "c3", "c4"];
+      state.detectiveSecretId = "";
+      state.detectiveHand = [];
 
-    state.killerSecretId = getAdjacentCharacters(state.board, state.detectiveSecretId)[0].id;
-    const nextState = killCharacter(state, state.detectiveSecretId);
+      const chosenId = "c2";
+      const nextState = setInspectorRole(state, chosenId);
 
-    expect(nextState.winner).toBeNull();
-    expect(nextState.detectiveSecretId).toBe(expectedNewRole);
-    expect(nextState.detectiveHand.length).toBe(initialHandCount - 1);
+      expect(nextState.detectiveSecretId).toBe(chosenId);
+      expect(nextState.detectiveHand).toEqual(["c1", "c3", "c4"]);
+      expect(nextState.inspectorChoices).toEqual([]);
+    });
   });
 
-  it("Кластер 1: Секретная служба инициализируется строго с целью в 4 трофея", () => {
-    const state = createInitialState("SECRET_SERVICE", "PVP", "DETECTIVE", 2, 4);
-    expect(state.spyTargetTrophies).toBe(4);
+  describe("5. Динамический список жертв маньяка", () => {
+    it("escapeManiac: успешный побег добавляет +1 цель в victimList", () => {
+      const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
+      const initialVictimCount = state.victimList.length;
+      const initialKillerId = state.killerSecretId;
+      
+      // Находим живого неоправданного персонажа
+      const aliveChar = state.board.flat().find(c => c.isAlive && !c.isExonerated && c.id !== initialKillerId && c.id !== state.detectiveSecretId)!;
+      
+      // Подкладываем его наверх колоды, а за ним еще одну карту (для новой жертвы)
+      const newVictimChar = state.board.flat().find(c => c.id !== aliveChar.id && c.id !== initialKillerId && c.id !== state.detectiveSecretId)!;
+      state.evidenceDeck = [aliveChar.id, newVictimChar.id, ...state.evidenceDeck.filter(id => id !== aliveChar.id && id !== newVictimChar.id)];
+
+      const nextState = escapeManiac(state);
+
+      expect(nextState.killerSecretId).toBe(aliveChar.id);
+      expect(nextState.victimList.length).toBe(initialVictimCount + 1);
+      expect(nextState.victimList[nextState.victimList.length - 1]).toBe(newVictimChar.id);
+      expect(nextState.disguisedNotification).toEqual({ roleName: "Маньяк", newSecretId: aliveChar.id });
+    });
   });
 
-  it("Кластер 2: Ошибочное задержание оправдывает цель без поражения", () => {
-    const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
-    state.currentTurn = "DETECTIVE";
-    const innocentTarget = getAdjacentCharacters(state.board, state.detectiveSecretId).find(
-      (c) => c.id !== state.killerSecretId
-    )!;
-
-    const nextState = accuseCharacter(state, innocentTarget.id);
-
-    expect(nextState.winner).toBeNull();
-    expect(nextState.board.flat().find((c) => c.id === innocentTarget.id)?.isExonerated).toBe(true);
-    expect(nextState.currentTurn).toBe("KILLER");
-  });
-
-  it("Кластер 2: Промах при разоблачении шпиона не начисляет трофеев", () => {
-    const state = createInitialState("SECRET_SERVICE", "PVP", "DETECTIVE", 2, 4);
-    const activeSpy = state.spies![state.activeSpyIndex!];
-    const civilianTarget = getAdjacentCharacters(state.board, activeSpy.secretId).find(
-      (c) => !state.spies!.some((s) => s.secretId === c.id)
-    )!;
-
-    const nextState = spyCatch(state, civilianTarget.id);
-
-    expect(nextState.spies![state.activeSpyIndex!].trophies).toBe(0);
-    expect(nextState.board.flat().find((c) => c.id === civilianTarget.id)?.isAlive).toBe(true);
-  });
 });

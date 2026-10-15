@@ -296,7 +296,7 @@ export const MainMenu = ({
         <div className="px-6 flex flex-col pt-32 sm:pt-44">
           <div className="mb-6">
             <h1 className="text-3xl sm:text-4xl font-black tracking-widest text-white uppercase leading-none drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
-              АСТОРИЯ:<br/>
+              РЕКВИЕМ:<br/>
               <span className="text-red-500 drop-shadow-[0_0_25px_rgba(239,68,68,0.75)]">ПОСЛЕДНИЙ ВЫСТРЕЛ</span>
             </h1>
             <p className="text-[11px] font-bold tracking-widest text-zinc-300 uppercase mt-2 drop-shadow-md">

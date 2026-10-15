@@ -135,9 +135,10 @@ export const MainMenu = ({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isSoundEnabled, setIsSoundEnabled] = useState(!soundManager.getMuted());
+  const [isSfxEnabled, setIsSfxEnabled] = useState(soundManager.getSfxEnabled());
+  const [isAmbientEnabled, setIsAmbientEnabled] = useState(soundManager.getAmbientEnabled());
   const [isHapticsEnabled, setIsHapticsEnabled] = useState(() => {
-    return localStorage.getItem("crime_city_haptics") !== "disabled";
+    return localStorage.getItem("crime_city_haptics") !== "false";
   });
 
   useEffect(() => {
@@ -269,11 +270,11 @@ export const MainMenu = ({
             if (!target.src.endsWith("/bg-main.png")) target.src = "/bg-main.png";
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent via-20% to-[#080a0f] to-80%" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#080a0f]/20 to-[#080a0f]" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#080a0f]/95 via-[#080a0f]/40 to-transparent w-[60%]" />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col justify-between pt-[max(1rem,env(safe-area-inset-top))] pb-3 px-5">
+      <div className="relative z-10 flex-1 flex flex-col justify-between pt-[max(0.5rem,env(safe-area-inset-top))] pb-3 px-5">
 
         <div>
           {/* Header Overlay */}
@@ -340,8 +341,8 @@ export const MainMenu = ({
               <div className="flex items-center gap-3.5">
                 <div className="w-5 h-5 flex items-center justify-center text-zinc-400 shrink-0"><Icons.Cards /></div>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[10px] sm:text-xs font-black text-zinc-100 uppercase tracking-widest">СЦЕНАРИИ</span>
-                  <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Против ИИ • 4 дела</span>
+                  <span className="text-[10px] sm:text-xs font-black text-zinc-100 uppercase tracking-widest">ОДИНОЧНЫЕ ДЕЛА</span>
+                  <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Против ИИ • 4 сценария</span>
                 </div>
               </div>
               <Icons.ChevronRight />
@@ -351,8 +352,8 @@ export const MainMenu = ({
               <div className="flex items-center gap-3.5">
                 <div className="w-5 h-5 flex items-center justify-center text-zinc-400 shrink-0"><Icons.Users /></div>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[10px] sm:text-xs font-black text-zinc-100 uppercase tracking-widest">ДУЭЛЬ 1 НА 1</span>
-                  <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Игра на одном экране</span>
+                  <span className="text-[10px] sm:text-xs font-black text-zinc-100 uppercase tracking-widest">ЛОКАЛЬНАЯ ДУЭЛЬ</span>
+                  <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">2 игрока • 1 экран</span>
                 </div>
               </div>
               <Icons.ChevronRight />
@@ -362,8 +363,8 @@ export const MainMenu = ({
               <div className="flex items-center gap-3.5">
                 <div className="w-5 h-5 flex items-center justify-center text-zinc-400 shrink-0"><Icons.Users /></div>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[10px] sm:text-xs font-black text-zinc-100 uppercase tracking-widest">СЕТЕВЫЕ СТОЛЫ</span>
-                  <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Открытые комнаты</span>
+                  <span className="text-[10px] sm:text-xs font-black text-zinc-100 uppercase tracking-widest">СЕТЕВЫЕ ОПЕРАЦИИ</span>
+                  <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Мультиплеер • Лобби столов</span>
                 </div>
               </div>
               <Icons.ChevronRight />
@@ -374,7 +375,7 @@ export const MainMenu = ({
                 <div className="text-zinc-400"><Icons.Shield /></div>
                 <div className="flex flex-col items-start">
                   <span className="text-[9px] sm:text-[10px] font-black text-zinc-100 uppercase tracking-widest">СПРАВОЧНИК</span>
-                  <span className="text-[7px] sm:text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Правила</span>
+                  <span className="text-[7px] sm:text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Регламент правил</span>
                 </div>
               </button>
 
@@ -384,7 +385,7 @@ export const MainMenu = ({
                 </div>
                 <div className="flex flex-col items-start">
                   <span className="text-[9px] sm:text-[10px] font-black text-zinc-100 uppercase tracking-widest">ОБУЧЕНИЕ</span>
-                  <span className="text-[7px] sm:text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Пролог</span>
+                  <span className="text-[7px] sm:text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Вводный пролог</span>
                 </div>
               </button>
             </div>
@@ -861,7 +862,7 @@ export const MainMenu = ({
                 <h3 className="text-sm font-black text-zinc-100 uppercase tracking-widest">
                   Настройки системы
                 </h3>
-                <button onClick={() => setIsSettingsOpen(false)} className="text-zinc-500 hover:text-white transition">
+                <button onClick={() => setIsSettingsOpen(false)} className="text-zinc-500 hover:text-white transition cursor-pointer">
                   ✕
                 </button>
               </div>
@@ -870,16 +871,32 @@ export const MainMenu = ({
                 <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Звуковые эффекты</span>
-                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">SFX & Ambient</span>
+                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">Выстрелы, аресты, клики</span>
                   </div>
                   <button 
                     onClick={() => {
-                      const isMuted = soundManager.toggleMute();
-                      setIsSoundEnabled(!isMuted);
+                      const enabled = soundManager.toggleSfx();
+                      setIsSfxEnabled(enabled);
                     }}
-                    className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out ${isSoundEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}
+                    className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isSfxEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}
                   >
-                    <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isSoundEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                    <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isSfxEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Атмосферный эмбиент</span>
+                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">Фоновая музыка дождя</span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const enabled = soundManager.toggleAmbient();
+                      setIsAmbientEnabled(enabled);
+                    }}
+                    className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isAmbientEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}
+                  >
+                    <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isAmbientEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
                   </button>
                 </div>
 
@@ -892,10 +909,18 @@ export const MainMenu = ({
                     onClick={() => {
                       const newVal = !isHapticsEnabled;
                       setIsHapticsEnabled(newVal);
-                      localStorage.setItem("crime_city_haptics", newVal ? "enabled" : "disabled");
-                      if (newVal) triggerHaptic("medium");
+                      // Импорт setHapticsEnabled не требуется, так как в haptics.ts напрямую экспортируется и мы можем вызвать его, 
+                      // но для надежности обновим localStorage напрямую как в audio.ts
+                      localStorage.setItem("crime_city_haptics", newVal ? "true" : "false");
+                      if (typeof window !== 'undefined') {
+                        // Динамический импорт чтобы не добавлять лишних импортов в начало файла
+                        import('../utils/haptics').then(m => {
+                          m.setHapticsEnabled(newVal);
+                          if (newVal) m.triggerHaptic("medium");
+                        });
+                      }
                     }}
-                    className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out ${isHapticsEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}
+                    className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isHapticsEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}
                   >
                     <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isHapticsEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
                   </button>

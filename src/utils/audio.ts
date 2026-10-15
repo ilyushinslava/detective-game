@@ -31,11 +31,25 @@ const SOUND_LIBRARY: Record<SoundType, string[]> = {
 };
 
 class SoundController {
-  private isMuted: boolean = false;
+  private isSfxEnabled: boolean = true;
+  private isAmbientEnabled: boolean = true;
   private ambientAudio: HTMLAudioElement | null = null;
+  private currentAmbientVolume = 0.25;
 
   constructor() {
     if (typeof window !== 'undefined') {
+      if (typeof navigator !== 'undefined' && 'audioSession' in navigator) {
+        try {
+          (navigator as any).audioSession.type = 'ambient';
+        } catch {}
+      }
+
+      const savedSfx = localStorage.getItem('crime_city_sfx');
+      if (savedSfx !== null) this.isSfxEnabled = savedSfx === 'true';
+
+      const savedAmbient = localStorage.getItem('crime_city_ambient');
+      if (savedAmbient !== null) this.isAmbientEnabled = savedAmbient === 'true';
+
       Object.values(SOUND_LIBRARY).flat().forEach((path) => {
         const audio = new Audio(path);
         audio.preload = 'auto';
@@ -44,7 +58,7 @@ class SoundController {
   }
 
   public play(type: SoundType, volume = 0.75): void {
-    if (this.isMuted) return;
+    if (!this.isSfxEnabled) return;
 
     const variations = SOUND_LIBRARY[type];
     if (!variations || variations.length === 0) return;
@@ -62,36 +76,68 @@ class SoundController {
   }
 
   public playAmbient(volume = 0.25): void {
-    if (this.isMuted) return;
+    this.currentAmbientVolume = volume;
+    if (!this.isAmbientEnabled) return;
 
     if (!this.ambientAudio) {
       this.ambientAudio = new Audio(getPath('ambient.mp3'));
       this.ambientAudio.loop = true;
     }
 
-    this.ambientAudio.volume = volume;
+    this.ambientAudio.volume = this.currentAmbientVolume;
     this.ambientAudio.play().catch(() => {});
   }
 
   public stopAmbient(): void {
     if (this.ambientAudio) {
       this.ambientAudio.pause();
-      this.ambientAudio.currentTime = 0;
     }
   }
 
-  public toggleMute(): boolean {
-    this.isMuted = !this.isMuted;
-    if (this.isMuted && this.ambientAudio) {
+  public toggleSfx(): boolean {
+    this.isSfxEnabled = !this.isSfxEnabled;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('crime_city_sfx', this.isSfxEnabled ? 'true' : 'false');
+    }
+    return this.isSfxEnabled;
+  }
+
+  public toggleAmbient(): boolean {
+    this.isAmbientEnabled = !this.isAmbientEnabled;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('crime_city_ambient', this.isAmbientEnabled ? 'true' : 'false');
+    }
+    
+    if (!this.isAmbientEnabled && this.ambientAudio) {
       this.ambientAudio.pause();
-    } else if (!this.isMuted && this.ambientAudio) {
-      this.ambientAudio.play().catch(() => {});
+    } else if (this.isAmbientEnabled) {
+      this.playAmbient(this.currentAmbientVolume);
     }
-    return this.isMuted;
+    return this.isAmbientEnabled;
   }
 
+  public getSfxEnabled(): boolean {
+    return this.isSfxEnabled;
+  }
+
+  public getAmbientEnabled(): boolean {
+    return this.isAmbientEnabled;
+  }
+
+  // Оставлено для совместимости, если где-то используется напрямую
   public getMuted(): boolean {
-    return this.isMuted;
+    return !this.isSfxEnabled && !this.isAmbientEnabled;
+  }
+  public toggleMute(): boolean {
+    const isCurrentlyMuted = this.getMuted();
+    if (!isCurrentlyMuted) {
+      if (this.isSfxEnabled) this.toggleSfx();
+      if (this.isAmbientEnabled) this.toggleAmbient();
+    } else {
+      if (!this.isSfxEnabled) this.toggleSfx();
+      if (!this.isAmbientEnabled) this.toggleAmbient();
+    }
+    return this.getMuted();
   }
 }
 

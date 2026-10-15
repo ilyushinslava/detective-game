@@ -4,6 +4,7 @@ import type { UserProfile } from "../types/profile";
 import { triggerHaptic } from "../utils/haptics";
 import { mpService, type PublicRoomMeta } from "../utils/multiplayerPeer";
 import { usePlayerProfile } from "../utils/usePlayerProfile";
+import { soundManager } from "../utils/audio";
 import { Toast } from "./Toast";
 
 // --- ВЕКТОРНЫЕ ИКОНКИ (HUD) ---
@@ -133,6 +134,12 @@ export const MainMenu = ({
   const [editNameValue, setEditNameValue] = useState(profile.nickname);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSoundEnabled, setIsSoundEnabled] = useState(!soundManager.getMuted());
+  const [isHapticsEnabled, setIsHapticsEnabled] = useState(() => {
+    return localStorage.getItem("crime_city_haptics") !== "disabled";
+  });
+
   useEffect(() => {
     if (activeTab === "LOBBY" && screen !== 'HOME' && screen !== 'MODES' && screen !== 'MODE_DETAIL') setScreen('HOME');
     if (activeTab === "TABLES" && screen !== 'TABLES') setScreen('TABLES');
@@ -250,33 +257,17 @@ export const MainMenu = ({
 
   // --- ЭКРАН 1: ГЛАВНАЯ (HOME) ---
   const renderHome = () => (
-    <div className="relative flex-1 flex flex-col bg-[#080a0f] overflow-y-auto custom-scrollbar pb-[max(5.5rem,env(safe-area-inset-bottom))]">
-      {/* 
-        Слой фонового изображения:
-        Используем тег <img> с absolute inset-0 и object-cover, чтобы браузер гарантированно подгрузил 
-        картинку без проблем с CSS url() и базовыми путями Vite.
-      */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <img 
-          src="./bg-main.png" 
-          alt="Astoria City Noir" 
-          className="w-full h-full object-cover object-top opacity-85"
-          onError={(e) => {
-            // Если путь ./bg-main.png не сработал, пробуем корень
-            (e.target as HTMLImageElement).src = "/bg-main.png";
-          }}
-        />
-        {/* Градиентная маска: верх чистый, середина полупрозрачная, низ — глубокий чёрный */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/50 via-60% to-[#080a0f]" />
-      </div>
+    <div className="relative flex-1 flex flex-col bg-[#080a0f] bg-[url('/bg-main.jpg')] bg-cover object-[75%_top] sm:object-right-top overflow-y-auto custom-scrollbar pb-24">
+      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 via-60% to-[#080a0f] pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#080a0f]/90 via-[#080a0f]/50 to-transparent w-[75%] pointer-events-none" />
 
-      <div className="relative z-10 flex flex-col min-h-full justify-between">
+      <div className="relative z-10 flex flex-col min-h-full">
         {/* Header Overlay */}
         <div className="flex items-center justify-between px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0">
           <button 
-            onClick={onOpenRules}
+            onClick={() => setIsSettingsOpen(true)}
             className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white transition cursor-pointer shadow-lg active:scale-95"
-            title="Правила и настройки"
+            title="Настройки"
           >
             <Icons.Settings />
           </button>
@@ -293,25 +284,25 @@ export const MainMenu = ({
         </div>
 
         {/* Заголовок игры и кнопки поверх города */}
-        <div className="px-6 flex flex-col pt-32 sm:pt-44">
-          <div className="mb-6">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-widest text-white uppercase leading-none drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
+        <div className="px-6 flex flex-col pt-16 sm:pt-24">
+          <div className="mb-4 sm:mb-6 max-w-[65%] text-left">
+            <h1 className="text-3xl sm:text-4xl font-black tracking-widest text-white uppercase leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
               РЕКВИЕМ:<br/>
               <span className="text-red-500 drop-shadow-[0_0_25px_rgba(239,68,68,0.75)]">ПОСЛЕДНИЙ ВЫСТРЕЛ</span>
             </h1>
-            <p className="text-[11px] font-bold tracking-widest text-zinc-300 uppercase mt-2 drop-shadow-md">
-              Детективные игры в одной колоде
+            <p className="text-[10px] font-bold tracking-widest text-zinc-300 uppercase mt-3 drop-shadow-md leading-relaxed">
+              Детективные игры<br/>в одной колоде
             </p>
           </div>
 
-          {/* Стек кнопок */}
-          <div className="flex flex-col gap-3">
+          {/* Main Actions */}
+          <div className="flex flex-col gap-2 sm:gap-2.5 shrink-0 mb-6">
             {hasActiveGame && (
               <button
                 onClick={onResumeGame}
-                className="w-full h-14 bg-gradient-to-b from-zinc-800/80 to-zinc-950/90 backdrop-blur-xl border border-white/15 border-t-white/30 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:border-white/30 active:scale-[0.99] transition cursor-pointer"
+                className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer"
               >
-                <span className="font-black tracking-widest uppercase text-xs">Продолжить дело</span>
+                <span className="font-black tracking-widest uppercase text-[10px] sm:text-xs">Продолжить дело</span>
                 <Icons.ArrowRight />
               </button>
             )}
@@ -319,70 +310,69 @@ export const MainMenu = ({
             <button
               onClick={handleQuickPlay}
               disabled={isCreating}
-              className="w-full h-14 rounded-full bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white font-black tracking-widest uppercase flex items-center justify-between px-6 border-t border-red-400/50 shadow-[0_10px_25px_rgba(220,38,38,0.5),inset_0_1px_2px_rgba(255,255,255,0.4)] hover:brightness-110 active:scale-[0.98] transition cursor-pointer disabled:opacity-50"
+              className="w-full h-12 sm:h-[52px] rounded-full bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white font-black tracking-widest uppercase flex items-center justify-between px-6 border-t border-red-400/50 shadow-[0_10px_25px_rgba(220,38,38,0.5),inset_0_1px_2px_rgba(255,255,255,0.4)] hover:brightness-110 active:scale-[0.98] transition cursor-pointer disabled:opacity-50"
             >
               <div className="flex items-center gap-3">
                 <Icons.Play />
-                <span className="text-sm">{isCreating ? "ПОИСК..." : "ИГРАТЬ"}</span>
+                <span className="text-[11px] sm:text-xs">{isCreating ? "ПОИСК..." : "БЫСТРАЯ ИГРА"}</span>
               </div>
-              <span className="text-[10px] font-mono text-red-200/90">250 CR</span>
+              <span className="text-[10px] font-mono text-red-200/80">250 CR</span>
             </button>
 
-            <button 
-              onClick={() => { setSelectedOpponent("AI"); setScreen('MODES'); }} 
-              className="w-full h-14 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer"
-            >
-              <div className="flex items-center gap-4">
-                <div className="text-zinc-400"><Icons.Cards /></div>
-                <div className="flex flex-col items-start">
-                  <span className="text-xs font-black text-zinc-100 uppercase tracking-widest">Выбрать игру</span>
-                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Против ИИ • 4 сценария</span>
+            <div className="flex flex-col gap-2 sm:gap-2.5 mt-1">
+              <button onClick={() => { setSelectedOpponent("AI"); setScreen('MODES'); }} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="text-zinc-400"><Icons.Cards /></div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-[10px] sm:text-xs font-black text-zinc-100 uppercase tracking-widest">СЦЕНАРИИ</span>
+                    <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Против ИИ • 4 дела</span>
+                  </div>
                 </div>
-              </div>
-              <Icons.ChevronRight />
-            </button>
+                <Icons.ChevronRight />
+              </button>
 
-            <button 
-              onClick={() => { setSelectedOpponent("PVP"); setScreen('MODES'); }} 
-              className="w-full h-14 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer"
-            >
-              <div className="flex items-center gap-4">
-                <div className="text-zinc-400"><Icons.Users /></div>
-                <div className="flex flex-col items-start">
-                  <span className="text-xs font-black text-zinc-100 uppercase tracking-widest">Локально 1v1</span>
-                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Дуэль на одном экране</span>
+              <button onClick={() => { setSelectedOpponent("PVP"); setScreen('MODES'); }} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="text-zinc-400"><Icons.Users /></div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-[10px] sm:text-xs font-black text-zinc-100 uppercase tracking-widest">ДУЭЛЬ 1 НА 1</span>
+                    <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Игра на одном экране</span>
+                  </div>
                 </div>
-              </div>
-              <Icons.ChevronRight />
-            </button>
+                <Icons.ChevronRight />
+              </button>
 
-            <button 
-              onClick={() => { setScreen('TABLES'); onTabChange('TABLES'); }} 
-              className="w-full h-14 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer"
-            >
-              <div className="flex items-center gap-4">
-                <div className="text-zinc-400"><Icons.Crosshair /></div>
-                <div className="flex flex-col items-start">
-                  <span className="text-xs font-black text-zinc-100 uppercase tracking-widest">Сетевые столы</span>
-                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Комнаты игроков</span>
+              <button onClick={() => { setScreen('TABLES'); onTabChange('TABLES'); }} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="text-zinc-400"><Icons.Users /></div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-[10px] sm:text-xs font-black text-zinc-100 uppercase tracking-widest">СЕТЕВЫЕ СТОЛЫ</span>
+                    <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Открытые комнаты</span>
+                  </div>
                 </div>
-              </div>
-              <Icons.ChevronRight />
-            </button>
+                <Icons.ChevronRight />
+              </button>
 
-            <button 
-              onClick={onOpenRules} 
-              className="w-full h-14 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer mb-2"
-            >
-              <div className="flex items-center gap-4">
-                <div className="text-zinc-400"><Icons.Shield /></div>
-                <div className="flex flex-col items-start">
-                  <span className="text-xs font-black text-zinc-100 uppercase tracking-widest">Правила</span>
-                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Интерактивное досье</span>
-                </div>
+              <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+                <button onClick={onOpenRules} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-center gap-2 px-3 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
+                  <div className="text-zinc-400"><Icons.Shield /></div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-[9px] sm:text-[10px] font-black text-zinc-100 uppercase tracking-widest">СПРАВОЧНИК ПРАВИЛ</span>
+                    <span className="text-[7px] sm:text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Регламент и механики</span>
+                  </div>
+                </button>
+
+                <button onClick={() => setToastMessage("Интерактивный пролог в разработке")} className="w-full h-11 sm:h-12 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-center gap-2 px-3 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
+                  <div className="text-zinc-400">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-[9px] sm:text-[10px] font-black text-zinc-100 uppercase tracking-widest">ОБУЧЕНИЕ</span>
+                    <span className="text-[7px] sm:text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Интерактивный пролог</span>
+                  </div>
+                </button>
               </div>
-              <Icons.ChevronRight />
-            </button>
+            </div>
           </div>
         </div>
       </div>
@@ -836,9 +826,65 @@ export const MainMenu = ({
                   setIsWaitingForOpponent(false);
                   setIsCreating(false);
                 }}
-                className="w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-white/10 rounded-xl text-[10px] font-black tracking-widest uppercase transition pointer-events-auto cursor-pointer z-50"
+                className="w-full py-3.5 bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 border border-white/5 rounded-xl text-[10px] font-black tracking-widest uppercase transition pointer-events-auto cursor-pointer z-50"
               >
                 Прервать операцию
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* МОДАЛКА НАСТРОЕК */}
+        {isSettingsOpen && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#080a0f]/90 backdrop-blur-md p-4">
+            <div className="bg-zinc-900/90 backdrop-blur-2xl border border-white/10 p-6 rounded-3xl w-full max-w-sm flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.7)]">
+              <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3">
+                <h3 className="text-sm font-black text-zinc-100 uppercase tracking-widest">
+                  Настройки системы
+                </h3>
+                <button onClick={() => setIsSettingsOpen(false)} className="text-zinc-500 hover:text-white transition">
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Звуковые эффекты</span>
+                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">SFX & Ambient</span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const isMuted = soundManager.toggleMute();
+                      setIsSoundEnabled(!isMuted);
+                    }}
+                    className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out ${isSoundEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}
+                  >
+                    <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isSoundEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Тактильный отклик</span>
+                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">Haptics / Вибрация</span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const newVal = !isHapticsEnabled;
+                      setIsHapticsEnabled(newVal);
+                      localStorage.setItem("crime_city_haptics", newVal ? "enabled" : "disabled");
+                      if (newVal) triggerHaptic("medium");
+                    }}
+                    className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out ${isHapticsEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}
+                  >
+                    <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isHapticsEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+              </div>
+
+              <button onClick={() => setIsSettingsOpen(false)} className="w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-[10px] font-black tracking-widest uppercase transition border border-white/5 cursor-pointer">
+                Закрыть
               </button>
             </div>
           </div>

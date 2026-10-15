@@ -130,8 +130,48 @@ export default function App() {
   const [isChoiceSheetMinimized, setIsChoiceSheetMinimized] = useState(false);
   const [isInspectorPassConfirmed, setIsInspectorPassConfirmed] = useState(false);
   const [rematchTimer, setRematchTimer] = useState(15);
+  const [isOpponentConnected, setIsOpponentConnected] = useState(true);
 
   const prevLogLenRef = useRef(gameState.log.length);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const saved = sessionStorage.getItem('mp_session');
+      if (saved) {
+        try {
+          const { roomCode, myClientId, isHost, playerRole } = JSON.parse(saved);
+          const restoredState = await mpService.restoreSession(roomCode, myClientId, isHost);
+          if (restoredState) {
+            setGameState(restoredState);
+            setActiveMode(restoredState.mode);
+            setIsLobbyOpen(false);
+            setHasStartedEver(true);
+            setIsIntroPhase(false);
+            setToastMessage("Сессия восстановлена");
+          } else {
+            sessionStorage.removeItem('mp_session');
+          }
+        } catch (e) {
+          sessionStorage.removeItem('mp_session');
+        }
+      }
+    };
+    checkSession();
+  }, []);
+
+  useEffect(() => {
+    if (gameState.opponent === "ONLINE" && !isLobbyOpen && mpService.roomCode) {
+      sessionStorage.setItem('mp_session', JSON.stringify({
+        roomCode: mpService.roomCode,
+        myClientId: mpService.myClientId,
+        isHost: mpService.isHost,
+        playerRole: gameState.playerRole
+      }));
+      if (mpService.isHost) {
+        mpService.saveGameState(gameState);
+      }
+    }
+  }, [gameState, isLobbyOpen]);
   useEffect(() => {
     if (gameState.log.length > prevLogLenRef.current) {
       if (!isLogOpen) {
@@ -317,25 +357,43 @@ export default function App() {
 
   useEffect(() => {
     if (!isLobbyOpen && gameState.opponent === "ONLINE") {
+      let disconnectTimer: NodeJS.Timeout;
+
+      mpService.onPresenceChanged = (connected) => {
+        setIsOpponentConnected(connected);
+        if (!connected) {
+          disconnectTimer = setTimeout(() => {
+            if (gameStateRef.current.restartRequestedBy === (mpService.isHost ? "HOST" : "GUEST") || !gameStateRef.current.winner) {
+              refundBet(gameStateRef.current.matchBet || 250);
+            }
+            setOpponentDisconnectedNotice(true);
+          }, 60000);
+        } else {
+          clearTimeout(disconnectTimer);
+          setOpponentDisconnectedNotice(false);
+        }
+      };
+
       const handleDisconnect = () => {
         if (
           gameStateRef.current.restartRequestedBy ===
-          (mpService.isHost ? "HOST" : "GUEST")
+          (mpService.isHost ? "HOST" : "GUEST") || !gameStateRef.current.winner
         ) {
           refundBet(gameStateRef.current.matchBet || 250);
         }
         setOpponentDisconnectedNotice(true);
       };
+      
       mpService.onPlayerDisconnected = handleDisconnect;
       mpService.onRoomClosed = handleDisconnect;
-    }
 
-    return () => {
-      if (!isLobbyOpen && gameState.opponent === "ONLINE") {
+      return () => {
+        clearTimeout(disconnectTimer);
+        mpService.onPresenceChanged = null;
         mpService.onPlayerDisconnected = null;
         mpService.onRoomClosed = null;
-      }
-    };
+      };
+    }
   }, [isLobbyOpen, gameState.opponent]);
 
   // Инициализация звука теперь обрабатывается внутри SplashScreen
@@ -1416,6 +1474,13 @@ export default function App() {
           </div>
         </header>
 
+        {!isOpponentConnected && !opponentDisconnectedNotice && gameState.opponent === "ONLINE" && (
+          <div className="w-full bg-amber-950/80 border-b border-amber-700/80 text-amber-200 text-[10px] font-black uppercase tracking-widest py-2 flex justify-center items-center gap-2 shadow-inner z-20">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+            Соперник переподключается... (ожидание)
+          </div>
+        )}
+
         {/* СТАТУС БАНКА / ТРОФЕЕВ */}
         <div className="w-full px-3 md:px-6 py-1.5 md:py-2 bg-zinc-950/90 border-b border-zinc-900 flex items-center justify-between text-[10px] md:text-xs text-zinc-400 shrink-0">
           {gameState.mode === "SECRET_SERVICE" ? (
@@ -1867,6 +1932,7 @@ export default function App() {
               </p>
               <button
                 onClick={() => {
+                  sessionStorage.removeItem('mp_session');
                   setOpponentDisconnectedNotice(false);
                   mpService.disconnect();
                   setGameState(
@@ -2054,7 +2120,11 @@ export default function App() {
               </button>
               <button
                 onClick={() => {
-                  if (gameState.opponent === "ONLINE") mpService.disconnect();
+                  sessionStorage.removeItem('mp_session');
+                  if (gameState.opponent === "ONLINE") {
+                    if (!gameState.winner) refundBet(gameState.matchBet || 250);
+                    mpService.disconnect();
+                  }
                   setGameState(
                     createInitialState("SKHVATKA", "AI", "DETECTIVE", 3),
                   );

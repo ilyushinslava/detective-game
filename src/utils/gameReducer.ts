@@ -60,7 +60,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         currentRoleName =
           state.currentTurn === "KILLER" ? "МАНЬЯК" : "ОПЕРАТИВНИК";
       } else if (state.mode === "THIEF_HUNT") {
-        currentRoleName = state.currentTurn === "KILLER" ? "ВОР" : "СЫЩИК";
+        currentRoleName = state.currentTurn === "KILLER" ? "ГРАБИТЕЛЬ" : "ПОЛИЦИЯ";
       }
 
       if (

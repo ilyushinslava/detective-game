@@ -316,7 +316,7 @@ export function setInspectorRole(
     detectiveSecretId: chosenId,
     detectiveHand: remainingHand,
     inspectorChoices: [],
-    log: [...state.log, "Инспектор определился с тайным досье прикрытия."],
+    log: [...state.log, "Инспектор выбрал тайную личность. Карты сформировали досье алиби."],
   };
 }
 
@@ -458,7 +458,7 @@ export function killCharacter(state: GameState, targetId: string): GameState {
       targetName: killedName,
       isNear,
     };
-    interrogationLog = ` Допрос: Инспектор ${isNear ? "находился" : "НЕ находился"} рядом с убитым.`;
+    interrogationLog = ` Опрос свидетелей: Инспектор ${isNear ? "находился" : "НЕ находился"} рядом с убитым.`;
   }
 
   return {
@@ -686,8 +686,8 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
     blockedShift: null,
     log: [
       ...state.log,
-      `Вор похитил сокровище у ${targetChar.name}! Добыча: ${newTrophies}/5.${
-        isWin ? " Вор украл всё и победил!" : ""
+      `Грабитель похитил сокровище у ${targetChar.name}! Добыча: ${newTrophies}/5.${
+        isWin ? " Грабитель украл всё и победил!" : ""
       }`,
     ],
   };
@@ -819,8 +819,8 @@ export function exonerateFromHand(state: GameState, id: string): GameState {
     },
     log: [
       ...state.log,
-      `Из досье сыщика подтверждено алиби для: ${name}.`,
-      `Допрос: Преступник ${isNear ? "находится" : "НЕ находится"} рядом с ${name}.`,
+      `Проверка алиби: с подозреваемого ${name} сняты обвинения.`,
+      `Опрос свидетелей: Бандит ${isNear ? "находится" : "НЕ находится"} рядом.`,
     ],
   };
 }
@@ -1012,14 +1012,14 @@ export function spyCatch(state: GameState, targetId: string): GameState {
     newSpies[caughtSpyIndex] = { ...caughtSpy, secretId: nextSecretId };
     justCaughtSpyId = caughtSpy.id;
 
-    logMsg = `🎯 Поимка! ${activeSpy.name} разоблачил резидента соперника (${targetName})! Трофей получен (${newTrophies}/${targetTrophies}).`;
+    logMsg = `🎯 Разоблачение! ${activeSpy.name} разоблачил резидента соперника (${targetName})! Трофей получен (${newTrophies}/${targetTrophies}).`;
 
     if (newTrophies >= targetTrophies) {
       winner = activeSpy.isAI ? "KILLER" : "DETECTIVE";
       logMsg += ` 🏆 ${activeSpy.name} собрал все трофеи и победил!`;
     } else {
       justCaughtSpyId = caughtSpy.id;
-      logMsg += ` Пойманный сменил прикрытие.`;
+      logMsg += ` Разоблаченный агент принял новую тайную личность из резерва.`;
     }
   } else {
     logMsg = `🔍 Промах: ${activeSpy.name} объявил подозрение на ${targetName}. Никто из агентов не признал эту личность.`;
@@ -1097,7 +1097,7 @@ export function spyInterrogate(state: GameState, targetId: string): GameState {
     },
     log: [
       ...state.log,
-      `📡 Допрос: ${activeSpy.name} опросил окружение ${targetName}. ${logDetail}`,
+      `📡 Опрос свидетелей: ${activeSpy.name} опросил окружение ${targetName}. ${logDetail}`,
     ],
   };
 }
@@ -1178,7 +1178,7 @@ export function fastDisguise(state: GameState, handCardId: string): GameState {
     currentTurn: "DETECTIVE",
     blockedShift: null,
     disguisedNotification: { roleName: "Грабитель", newSecretId: handCardId },
-    log: [...state.log, "Вор-виртуоз применил быструю маскировку."],
+    log: [...state.log, "Грабитель-виртуоз применил быструю маскировку."],
   };
 }
 
@@ -1210,7 +1210,7 @@ export function swearInOfficer(
     blockedShift: null,
     log: [
       ...state.log,
-      `Полиция призвала к присяге нового офицера. Пользуясь суматохой, Вор украл сокровище! Добыча: ${newTrophies}/5.`,
+      `Полиция призвала к присяге нового офицера. Пользуясь суматохой, Грабитель украл сокровище! Добыча: ${newTrophies}/5.`,
     ],
   };
 }

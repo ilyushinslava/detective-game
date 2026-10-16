@@ -8,6 +8,7 @@
         "build": "tsc && vite build",
         "preview": "vite preview",
         "test": "vitest run",
+        "optimize:assets": "node scripts/optimize-images.mjs",
         "audit:all": "vitest run && tsc --noEmit && vite build",
         "predeploy": "npm run build",
         "deploy": "gh-pages -d dist"

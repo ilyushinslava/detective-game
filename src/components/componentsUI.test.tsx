@@ -98,20 +98,18 @@ describe("UI Компоненты и Тексты", () => {
     cleanup();
   });
 
-  it("GameOverModal: Нейтральные названия Агент 1 / Агент 2 вместо Восток/Запад", () => {
+  it("GameOverModal: Нейтральные позывные Фантом / Призрак вместо Восток/Запад", () => {
     render(
       <GameOverModal
         winner="KILLER"
         mode="SECRET_SERVICE"
-        killer={undefined}
-        detective={undefined}
         elapsedTime="00:00"
-        onRestart={vi.fn()}
+        onRestart={() => {}}
       />
     );
-    
-    expect(screen.getByText("Агент 1")).toBeDefined();
-    expect(screen.getByText("Агент 2")).toBeDefined();
+
+    expect(screen.getByText("Фантом")).toBeDefined();
+    expect(screen.getByText("Призрак")).toBeDefined();
     cleanup();
   });
 });

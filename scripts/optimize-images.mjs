@@ -28,22 +28,24 @@ async function optimizeCharacters() {
 }
 
 async function optimizeBackground() {
-  const bgPath = path.resolve('public/bg-main.png');
-  if (!fs.existsSync(bgPath)) return;
+  const posters = ['public/bg-main.png', 'public/splash-bg.png'];
 
-  const inputBuffer = fs.readFileSync(bgPath);
-  const originalSize = inputBuffer.length;
+  for (const relPath of posters) {
+    const fullPath = path.resolve(relPath);
+    if (!fs.existsSync(fullPath)) continue;
 
-  console.log('Оптимизация фонового постера bg-main.png...');
+    const inputBuffer = fs.readFileSync(fullPath);
+    const originalSize = inputBuffer.length;
+    console.log(`Оптимизация постера ${path.basename(relPath)}...`);
 
-  const outputBuffer = await sharp(inputBuffer)
-    .resize(1920, 1080, { fit: 'inside', withoutEnlargement: true })
-    .png({ quality: 85, compressionLevel: 9, effort: 7 })
-    .toBuffer();
+    const outputBuffer = await sharp(inputBuffer)
+      .resize(1920, 1080, { fit: 'inside', withoutEnlargement: true })
+      .png({ quality: 85, compressionLevel: 9, effort: 7 })
+      .toBuffer();
 
-  fs.writeFileSync(bgPath, outputBuffer);
-
-  console.log(`✓ bg-main.png: ${(originalSize / (1024 * 1024)).toFixed(2)} MB -> ${(outputBuffer.length / 1024).toFixed(0)} KB`);
+    fs.writeFileSync(fullPath, outputBuffer);
+    console.log(`✓ ${path.basename(relPath)}: ${(originalSize / (1024 * 1024)).toFixed(2)} MB -> ${(outputBuffer.length / 1024).toFixed(0)} KB`);
+  }
 }
 
 async function run() {

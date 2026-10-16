@@ -20,6 +20,7 @@ interface GameBoardProps {
   radarCellIds?: string[];
   radarColorClass?: string | null;
   errorCardId?: string | null;
+  myCharacterId?: string | null;
   onShift: (
     type: "ROW" | "COL",
     index: number,
@@ -44,6 +45,7 @@ export const GameBoard = ({
   radarCellIds = [],
   radarColorClass = null,
   errorCardId = null,
+  myCharacterId = null,
   onShift,
   onSelectCharacter,
 }: GameBoardProps) => {
@@ -53,9 +55,9 @@ export const GameBoard = ({
   const rowsArray = Array.from({ length: numRows }, (_, i) => i);
 
   return (
-    <div className="relative w-full aspect-square max-w-[min(100%,calc(100dvh-250px))] max-h-[calc(100dvh-250px)] md:max-w-[min(68vh,560px)] md:max-h-[min(68vh,560px)] flex flex-col items-center justify-center p-0.5 sm:p-1.5 select-none mx-auto shrink-0">
+    <div className="relative w-full aspect-square max-w-[min(100%,calc(100dvh-280px))] max-h-[calc(100dvh-280px)] md:max-w-[min(68vh,560px)] md:max-h-[min(68vh,560px)] flex flex-col items-center justify-center p-0.5 sm:p-1.5 select-none mx-auto shrink-0">
       <div className="w-full flex items-center gap-0.5 sm:gap-1 mb-0.5 shrink-0">
-        <div className="w-4 sm:w-6 shrink-0" />
+        <div className="w-3.5 sm:w-6 shrink-0" />
         <div
           className="grid gap-0.5 sm:gap-1 flex-1"
           style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
@@ -75,7 +77,7 @@ export const GameBoard = ({
                 key={`col-up-${colIdx}`}
                 disabled={isBlocked || isOpposite}
                 onClick={(e) => { e.currentTarget.blur(); onShift("COL", colIdx, "BACKWARD"); }}
-                className={`w-full h-4 sm:h-6 shrink-0 rounded text-[9px] sm:text-xs font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
+                className={`w-full h-3.5 sm:h-6 shrink-0 rounded text-[8px] sm:text-xs font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
                   isOpposite
                     ? "invisible pointer-events-none"
                     : isBlocked
@@ -91,14 +93,14 @@ export const GameBoard = ({
             );
           })}
         </div>
-        <div className="w-5 sm:w-7 shrink-0" />
+        <div className="w-4 sm:w-7 shrink-0" />
       </div>
 
       {/* ЦЕНТРАЛЬНАЯ ЧАСТЬ: Левые кнопки + Единый Grid Доски + Правые кнопки */}
       <div className="w-full flex items-stretch gap-0.5 sm:gap-1">
         {/* ЛЕВЫЕ КНОПКИ (Сдвиг рядов влево) */}
         <div
-          className="w-4 sm:w-6 shrink-0 grid gap-0.5 sm:gap-1"
+          className="w-3.5 sm:w-6 shrink-0 grid gap-0.5 sm:gap-1"
           style={{ gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))` }}
         >
           {rowsArray.map((rIdx) => {
@@ -116,7 +118,7 @@ export const GameBoard = ({
                 key={`row-left-${rIdx}`}
                 disabled={isRowBlocked || isOppositeLeft}
                 onClick={(e) => { e.currentTarget.blur(); onShift("ROW", rIdx, "BACKWARD"); }}
-                className={`w-full h-full rounded text-[9px] sm:text-xs font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
+                className={`w-full h-full rounded text-[8px] sm:text-xs font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
                   isOppositeLeft
                     ? "invisible pointer-events-none"
                     : isRowBlocked
@@ -144,14 +146,15 @@ export const GameBoard = ({
           }}
         >
           {board.flat().map((character) => {
+            const hasRedZone = (showKillerHints && killerAdjacentIds.includes(character.id)) || (radarCellIds.includes(character.id) && Boolean(radarColorClass?.includes("red")));
+            const hasBlueZone = (showDetectiveHints && detectiveAdjacentIds.includes(character.id)) || (radarCellIds.includes(character.id) && !radarColorClass?.includes("red"));
+            const isOverlapZone = Boolean(hasRedZone && hasBlueZone);
+
             let neighborColor = null;
             if (showKillerHints && killerAdjacentIds.includes(character.id)) {
               neighborColor =
                 "border-red-500 ring-1 ring-red-500/80 shadow-[0_0_15px_rgba(239,68,68,0.4)]";
-            } else if (
-              showDetectiveHints &&
-              detectiveAdjacentIds.includes(character.id)
-            ) {
+            } else if (showDetectiveHints && detectiveAdjacentIds.includes(character.id)) {
               neighborColor =
                 "border-cyan-500 ring-1 ring-cyan-500/80 shadow-[0_0_15px_rgba(6,182,212,0.4)]";
             }
@@ -177,6 +180,8 @@ export const GameBoard = ({
                     radarCellIds.includes(character.id) ? radarColorClass : null
                   }
                   isError={character.id === errorCardId}
+                  myCharacterId={myCharacterId}
+                  isOverlapZone={isOverlapZone}
                   onClick={() => onSelectCharacter(character.id)}
                 />
               </motion.div>
@@ -186,7 +191,7 @@ export const GameBoard = ({
 
         {/* ПРАВЫЕ КНОПКИ (Сдвиг рядов вправо) */}
         <div
-          className="w-4 sm:w-6 shrink-0 grid gap-0.5 sm:gap-1"
+          className="w-3.5 sm:w-6 shrink-0 grid gap-0.5 sm:gap-1"
           style={{ gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))` }}
         >
           {rowsArray.map((rIdx) => {
@@ -204,7 +209,7 @@ export const GameBoard = ({
                 key={`row-right-${rIdx}`}
                 disabled={isRowBlocked || isOppositeRight}
                 onClick={(e) => { e.currentTarget.blur(); onShift("ROW", rIdx, "FORWARD"); }}
-                className={`w-full h-full rounded text-[9px] sm:text-xs font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
+                className={`w-full h-full rounded text-[8px] sm:text-xs font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
                   isOppositeRight
                     ? "invisible pointer-events-none"
                     : isRowBlocked
@@ -226,7 +231,7 @@ export const GameBoard = ({
 
       {/* НИЖНИЕ КНОПКИ (Сдвиг колонок вниз) */}
       <div className="w-full flex items-center gap-0.5 sm:gap-1 mt-0.5 shrink-0">
-        <div className="w-4 sm:w-6 shrink-0" />
+        <div className="w-3.5 sm:w-6 shrink-0" />
         <div
           className="grid gap-0.5 sm:gap-1 flex-1"
           style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
@@ -246,7 +251,7 @@ export const GameBoard = ({
                 key={`col-down-${colIdx}`}
                 disabled={isBlocked || isOpposite}
                 onClick={(e) => { e.currentTarget.blur(); onShift("COL", colIdx, "FORWARD"); }}
-                className={`w-full h-4 sm:h-6 shrink-0 rounded text-[9px] sm:text-xs font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${ isOpposite
+                className={`w-full h-3.5 sm:h-6 shrink-0 rounded text-[8px] sm:text-xs font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${ isOpposite
                     ? "invisible pointer-events-none"
                     : isBlocked
                       ? "bg-zinc-900/80 text-red-500 border-red-900/50 cursor-not-allowed"
@@ -261,7 +266,7 @@ export const GameBoard = ({
             );
           })}
         </div>
-        <div className="w-5 sm:w-7 shrink-0" />
+        <div className="w-4 sm:w-7 shrink-0" />
       </div>
     </div>
   );

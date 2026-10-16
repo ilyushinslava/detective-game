@@ -18,6 +18,8 @@ export interface CharacterCardProps {
   radarRingColor?: string | null;
   isRadarCenter?: boolean;
   isError?: boolean;
+  isMyCharacter?: boolean;
+  isOverlapZone?: boolean;
   onClick: () => void;
 }
 
@@ -125,6 +127,8 @@ export const CharacterCard = memo(
     onClick,
     isRadarCenter,
     isError = false,
+    isOverlapZone = false,
+    isMyCharacter = false,
   }: CharacterCardProps) => {
     const [imgError, setImgError] = useState(false);
     const isDead = !character.isAlive;
@@ -165,12 +169,12 @@ export const CharacterCard = memo(
         } ${
           isSelected
             ? "ring-2 ring-white border-white shadow-[0_0_15px_rgba(255,255,255,0.8)] scale-95 z-30"
-            : (isRadarCenter || radarRingColor) && neighborHighlightColor
-              ? `${neighborHighlightColor} !border-white ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor}${isRadarCenter ? "shadow-[0_0_16px_rgba(6,182,212,0.65)]" : "shadow-[0_0_10px_rgba(6,182,212,0.3)]"} z-20`
+            : isOverlapZone || ((isRadarCenter || radarRingColor) && neighborHighlightColor)
+              ? "border-purple-500 ring-1 ring-purple-400/80 shadow-[0_0_12px_rgba(168,85,247,0.45)] z-20"
               : isRadarCenter && radarRingColor
-                ? `ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} shadow-[0_0_16px_rgba(6,182,212,0.65)] z-10`
+                ? `ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} z-10`
                 : radarRingColor
-                  ? `ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} shadow-[0_0_10px_rgba(6,182,212,0.3)] z-10`
+                  ? `ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} z-10`
                   : neighborHighlightColor
                     ? `${neighborHighlightColor} z-10`
                     : ""
@@ -201,19 +205,26 @@ export const CharacterCard = memo(
 
         {/* Номер дела и иконки */}
         <div className="flex items-center justify-between gap-0.5 z-10 w-full leading-none px-1 pt-1">
-          <span
-            className={`text-[9px] sm:text-[10px] font-mono font-bold drop-shadow ${
-              isDead
-                ? "text-zinc-600 line-through"
-                : isExonerated
-                  ? "text-cyan-400"
-                  : "text-zinc-300"
-            }`}
-          >
-            {character.isVault
-              ? "[СЕЙФ]"
-              : `#${character.id.replace("c", "").padStart(2, "0")}`}
-          </span>
+          <div className="flex items-center gap-1">
+            <span
+              className={`text-[9px] sm:text-[10px] font-mono font-bold drop-shadow ${
+                isDead
+                  ? "text-zinc-600 line-through"
+                  : isExonerated
+                    ? "text-cyan-400"
+                    : "text-zinc-300"
+              }`}
+            >
+              {character.isVault
+                ? "[СЕЙФ]"
+                : `#${character.id.replace("c", "").padStart(2, "0")}`}
+            </span>
+            {isMyCharacter && !isDead && (
+              <span className="text-[7.5px] font-black uppercase px-1 py-[1px] rounded bg-amber-500/20 border border-amber-500/60 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.5)] tracking-wider">
+                ВЫ
+              </span>
+            )}
+          </div>
 
           <div className="flex items-center gap-1 leading-none">
             {isTargetVictim && !isDead && (

@@ -1,15 +1,1 @@
-{
-  "name": "Реквием: последний выстрел",
-  "short_name": "Реквием",
-  "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#09090b",
-  "theme_color": "#18181b",
-  "icons": [
-    {
-      "src": "apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png"
-    }
-  ]
-}
+{"name":"detective-game","short_name":"detective-game","start_url":"/detective-game/","display":"standalone","background_color":"#ffffff","theme_color":"#42b883","lang":"en","scope":"/detective-game/"}

@@ -991,7 +991,7 @@ export default function App() {
           isGameOver ||
           !selectedCharacter?.isAlive,
         className:
-          "py-2.5 bg-gradient-to-r from-red-950 to-red-900 border border-red-700/80 text-red-100 shadow-[0_0_15px_rgba(220,38,38,0.25)] disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed",
+          "py-2.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
       });
       actions.push({
         id: "interrogate_spy",
@@ -1004,7 +1004,7 @@ export default function App() {
           isGameOver ||
           !selectedCharacter?.isAlive,
         className:
-          "py-2.5 bg-gradient-to-r from-cyan-950 to-cyan-900 border border-cyan-700/80 text-cyan-100 shadow-[0_0_15px_rgba(6,182,212,0.25)] disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed",
+          "py-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
       });
       actions.push({
         id: "cleanup_ss",
@@ -1012,7 +1012,7 @@ export default function App() {
         onClick: handleCleanup,
         disabled: !isHumanTurn || !isCleanupAvailable,
         className:
-          "py-2 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
+          "py-2 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed flex items-center justify-center gap-2",
       });
     } else {
       if (isKillerView) {
@@ -1028,7 +1028,7 @@ export default function App() {
               isGameOver ||
               Boolean(selectedCharacter?.isRobbed),
             className:
-              "py-2 bg-amber-950/80 border border-amber-700/80 text-amber-200 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
+              "py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
           actions.push({
             id: "disguise_thief",
@@ -1036,7 +1036,7 @@ export default function App() {
             onClick: () => setIsHandSheetOpen(true),
             disabled: !isHumanTurn || isGameOver,
             className:
-              "py-2 bg-amber-950/80 border border-amber-700/80 text-amber-200 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
+              "py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
         } else {
           actions.push({
@@ -1050,7 +1050,7 @@ export default function App() {
               isGameOver ||
               (gameState.mode === "MANIAC_VS_OPERATIVE" && selectedId !== gameState.victimList[0]),
             className:
-              "py-2 bg-gradient-to-r from-red-950 to-red-900 border border-red-700/80 text-red-100 shadow-[0_0_15px_rgba(220,38,38,0.25)] disabled:opacity-50 disabled:shadow-none text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
+              "py-2.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
         }
 
@@ -1065,7 +1065,7 @@ export default function App() {
               gameState.evidenceDeck.length === 0 ||
               isGameOver,
             className:
-              "py-2 bg-amber-950/80 border border-amber-700/80 text-amber-200 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
+              "py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
         }
         if (gameState.mode === "MANIAC_VS_OPERATIVE") {
@@ -1076,7 +1076,7 @@ export default function App() {
             disabled:
               !isHumanTurn || gameState.evidenceDeck.length < 2 || isGameOver,
             className:
-              "py-2 bg-amber-950/80 border border-amber-700/80 text-amber-200 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
+              "py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
         }
       } else {
@@ -1099,7 +1099,7 @@ export default function App() {
             return !isAdjacent && !isSelf;
           })(),
           className:
-            "py-2.5 bg-gradient-to-r from-cyan-950 to-cyan-900 border border-cyan-700/80 text-cyan-100 shadow-[0_0_15px_rgba(6,182,212,0.25)] disabled:opacity-50 disabled:shadow-none text-[11px] font-black rounded-xl transition disabled:cursor-not-allowed",
+            "py-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
         });
 
         if (gameState.mode === "THIEF_HUNT") {
@@ -1108,7 +1108,7 @@ export default function App() {
             label: "Вызов патруля",
             onClick: handleSwearInOfficer,
             disabled: !isHumanTurn || !selectedId || !gameState.uniformedOfficers?.includes(selectedId) || isGameOver || gameState.evidenceDeck.length === 0,
-            className: "py-2.5 bg-gradient-to-r from-blue-950 to-blue-900 border border-blue-700/80 text-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.25)] disabled:opacity-40 text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed",
+            className: "py-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
         }
       }
@@ -1118,9 +1118,9 @@ export default function App() {
           id: "cleanup_basic",
           label: "Зачистить",
           onClick: handleCleanup,
-          disabled: !isHumanTurn || !isCleanupAvailable || isFirstTurnKiller,
+          disabled: !isHumanTurn || !isCleanupAvailable,
           className:
-            "py-2 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
+            "py-2 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed flex items-center justify-center gap-2",
         });
       }
     }
@@ -1736,15 +1736,28 @@ export default function App() {
                     key={action.id}
                     onClick={action.onClick}
                     disabled={action.disabled}
-                    className={`${action.className} py-2.5 md:py-3.5 px-3 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition shadow-md flex items-center justify-center text-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                    className={`${action.className} ${
                       targetActions.length === 1
                         ? "col-span-2 md:col-span-1"
                         : "col-span-1"
                     }`}
                   >
-                    {selectedCharacter && !action.disabled
-                      ? `${action.label}`
-                      : action.label}
+                    {(action.id === 'kill_basic' || action.id === 'capture_spy') && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
+                    )}
+                    {(action.id === 'accuse_basic' || action.id === 'patrol_call') && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    )}
+                    {action.id === 'interrogate_spy' && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                    )}
+                    {(action.id === 'disguise_skhvatka' || action.id === 'escape_maniac' || action.id === 'disguise_thief') && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0"><path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6"></path></svg>
+                    )}
+                    {action.id === 'rob_basic' && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                    )}
+                    <span>{selectedCharacter && !action.disabled ? `${action.label}` : action.label}</span>
                   </button>
                 ))}
               </div>

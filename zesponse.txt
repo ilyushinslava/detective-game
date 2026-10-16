@@ -1,121 +1,370 @@
-PS C:\Projects\detective-game> npm i -D vite-plugin-pwa
-npm warn deprecated glob@11.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+Изменение 1
+Файл: `src/App.tsx`
 
-added 258 packages, and audited 633 packages in 22s
+НАЙТИ:
 
-150 packages are looking for funding
-  run `npm fund` for details
+```tsx
+      actions.push({
+        id: "capture_spy",
+        label: "Разоблачение",
+        onClick: handleCaptureSpy,
+        disabled:
+          !isHumanTurn ||
+          !selectedId ||
+          !isNeighbor ||
+          isGameOver ||
+          !selectedCharacter?.isAlive,
+        className:
+          "py-2.5 bg-gradient-to-r from-red-950 to-red-900 border border-red-700/80 text-red-100 shadow-[0_0_15px_rgba(220,38,38,0.25)] disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed",
+      });
+      actions.push({
+        id: "interrogate_spy",
+        label: "Опрос свидетелей",
+        onClick: handleInterrogateSpy,
+        disabled:
+          !isHumanTurn ||
+          !selectedId ||
+          !isSelfOrNeighbor ||
+          isGameOver ||
+          !selectedCharacter?.isAlive,
+        className:
+          "py-2.5 bg-gradient-to-r from-cyan-950 to-cyan-900 border border-cyan-700/80 text-cyan-100 shadow-[0_0_15px_rgba(6,182,212,0.25)] disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed",
+      });
+      actions.push({
+        id: "cleanup_ss",
+        label: "Зачистить",
+        onClick: handleCleanup,
+        disabled: !isHumanTurn || !isCleanupAvailable,
+        className:
+          "py-2 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
+      });
+    } else {
+      if (isKillerView) {
+        if (gameState.mode === "THIEF_HUNT") {
+          actions.push({
+            id: "rob_basic",
+            label: "Кража",
+            onClick: handleRob,
+            disabled:
+              !isHumanTurn ||
+              !selectedId ||
+              (!killerAdjacentIds.includes(selectedId) && selectedId !== gameState.killerSecretId) ||
+              isGameOver ||
+              Boolean(selectedCharacter?.isRobbed),
+            className:
+              "py-2 bg-amber-950/80 border border-amber-700/80 text-amber-200 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
+          });
+          actions.push({
+            id: "disguise_thief",
+            label: "Конспирация",
+            onClick: () => setIsHandSheetOpen(true),
+            disabled: !isHumanTurn || isGameOver,
+            className:
+              "py-2 bg-amber-950/80 border border-amber-700/80 text-amber-200 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
+          });
+        } else {
+          actions.push({
+            id: "kill_basic",
+            label: "Ликвидация",
+            onClick: handleKill,
+            disabled:
+              !isHumanTurn ||
+              !selectedId ||
+              !killerAdjacentIds.includes(selectedId) ||
+              isGameOver ||
+              (gameState.mode === "MANIAC_VS_OPERATIVE" && selectedId !== gameState.victimList[0]),
+            className:
+              "py-2 bg-gradient-to-r from-red-950 to-red-900 border border-red-700/80 text-red-100 shadow-[0_0_15px_rgba(220,38,38,0.25)] disabled:opacity-50 disabled:shadow-none text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
+          });
+        }
 
-20 vulnerabilities (4 moderate, 14 high, 2 critical)
+        if (gameState.mode === "SKHVATKA") {
+          actions.push({
+            id: "disguise_skhvatka",
+            label: "Конспирация",
+            onClick: handleDisguise,
+            disabled:
+              !isHumanTurn ||
+              isFirstTurnKiller ||
+              gameState.evidenceDeck.length === 0 ||
+              isGameOver,
+            className:
+              "py-2 bg-amber-950/80 border border-amber-700/80 text-amber-200 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
+          });
+        }
+        if (gameState.mode === "MANIAC_VS_OPERATIVE") {
+          actions.push({
+            id: "escape_maniac",
+            label: "Конспирация",
+            onClick: handleEscapeManiac,
+            disabled:
+              !isHumanTurn || gameState.evidenceDeck.length < 2 || isGameOver,
+            className:
+              "py-2 bg-amber-950/80 border border-amber-700/80 text-amber-200 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
+          });
+        }
+      } else {
+        actions.push({
+          id: "accuse_basic",
+          label: "Задержание",
+          onClick: handleAccuse,
+          disabled: (() => {
+            if (!isHumanTurn || !selectedId || Boolean(selectedCharacter?.isDead) || isGameOver) return true;
+            let isAdjacent = detectiveAdjacentIds.includes(selectedId);
+            let isSelf = selectedId === gameState.detectiveSecretId;
+            if (gameState.mode === "THIEF_HUNT" && gameState.uniformedOfficers) {
+              const isNearOfficer = gameState.uniformedOfficers.some((offId) =>
+                getAdjacentCharacters(gameState.board, offId).map(c => c.id).includes(selectedId)
+              );
+              const isOfficerSelf = gameState.uniformedOfficers.includes(selectedId);
+              isAdjacent = isAdjacent || isNearOfficer;
+              isSelf = isSelf || isOfficerSelf;
+            }
+            return !isAdjacent && !isSelf;
+          })(),
+          className:
+            "py-2.5 bg-gradient-to-r from-cyan-950 to-cyan-900 border border-cyan-700/80 text-cyan-100 shadow-[0_0_15px_rgba(6,182,212,0.25)] disabled:opacity-50 disabled:shadow-none text-[11px] font-black rounded-xl transition disabled:cursor-not-allowed",
+        });
 
-To address issues that do not require attention, run:
-  npm audit fix
+        if (gameState.mode === "THIEF_HUNT") {
+          actions.push({
+            id: "patrol_call",
+            label: "Вызов патруля",
+            onClick: handleSwearInOfficer,
+            disabled: !isHumanTurn || !selectedId || !gameState.uniformedOfficers?.includes(selectedId) || isGameOver || gameState.evidenceDeck.length === 0,
+            className: "py-2.5 bg-gradient-to-r from-blue-950 to-blue-900 border border-blue-700/80 text-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.25)] disabled:opacity-40 text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed",
+          });
+        }
+      }
 
-To address all issues (including breaking changes), run:
-  npm audit fix --force
+      if (gameState.mode !== "THIEF_HUNT") {
+        actions.push({
+          id: "cleanup_basic",
+          label: "Зачистить",
+          onClick: handleCleanup,
+          disabled: !isHumanTurn || !isCleanupAvailable || isFirstTurnKiller,
+          className:
+            "py-2 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed",
+        });
+      }
+    }
 
-Run `npm audit` for details.
-PS C:\Projects\detective-game> npm run audit:all
+    return actions;
+  }, [
 
-> detective-game@0.0.0 audit:all
-> vitest run && tsc --noEmit && vite build
+```
 
+ЗАМЕНИТЬ НА:
 
- RUN  v1.6.1 C:/Projects/detective-game
+```tsx
+      actions.push({
+        id: "capture_spy",
+        label: "Разоблачение",
+        onClick: handleCaptureSpy,
+        disabled:
+          !isHumanTurn ||
+          !selectedId ||
+          !isNeighbor ||
+          isGameOver ||
+          !selectedCharacter?.isAlive,
+        className:
+          "py-2.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+      });
+      actions.push({
+        id: "interrogate_spy",
+        label: "Опрос свидетелей",
+        onClick: handleInterrogateSpy,
+        disabled:
+          !isHumanTurn ||
+          !selectedId ||
+          !isSelfOrNeighbor ||
+          isGameOver ||
+          !selectedCharacter?.isAlive,
+        className:
+          "py-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+      });
+      actions.push({
+        id: "cleanup_ss",
+        label: "Зачистить",
+        onClick: handleCleanup,
+        disabled: !isHumanTurn || !isCleanupAvailable,
+        className:
+          "py-2 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed flex items-center justify-center gap-2",
+      });
+    } else {
+      if (isKillerView) {
+        if (gameState.mode === "THIEF_HUNT") {
+          actions.push({
+            id: "rob_basic",
+            label: "Кража",
+            onClick: handleRob,
+            disabled:
+              !isHumanTurn ||
+              !selectedId ||
+              (!killerAdjacentIds.includes(selectedId) && selectedId !== gameState.killerSecretId) ||
+              isGameOver ||
+              Boolean(selectedCharacter?.isRobbed),
+            className:
+              "py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          });
+          actions.push({
+            id: "disguise_thief",
+            label: "Конспирация",
+            onClick: () => setIsHandSheetOpen(true),
+            disabled: !isHumanTurn || isGameOver,
+            className:
+              "py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          });
+        } else {
+          actions.push({
+            id: "kill_basic",
+            label: "Ликвидация",
+            onClick: handleKill,
+            disabled:
+              !isHumanTurn ||
+              !selectedId ||
+              !killerAdjacentIds.includes(selectedId) ||
+              isGameOver ||
+              (gameState.mode === "MANIAC_VS_OPERATIVE" && selectedId !== gameState.victimList[0]),
+            className:
+              "py-2.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          });
+        }
 
- ✓ src/utils/rulesAudit.test.ts (4)
- ✓ src/utils/thiefHunt.test.ts (5)
- ✓ src/utils/secretService.test.ts (3)
- ✓ src/utils/skhvatka.test.ts (6)
- ✓ src/utils/gameLogic.test.ts (4)
- ✓ src/utils/maniac.test.ts (6)
- ✓ src/utils/comprehensiveRules.test.ts (14)
- ✓ src/utils/audioDispatcher.test.ts (3)
- ✓ src/utils/networkReducer.test.ts (3)
- ✓ src/utils/clusterAudit.test.ts (6)
- ✓ src/utils/aiLogic.test.ts (4)
- ✓ src/components/componentsUI.test.tsx (4)
+        if (gameState.mode === "SKHVATKA") {
+          actions.push({
+            id: "disguise_skhvatka",
+            label: "Конспирация",
+            onClick: handleDisguise,
+            disabled:
+              !isHumanTurn ||
+              isFirstTurnKiller ||
+              gameState.evidenceDeck.length === 0 ||
+              isGameOver,
+            className:
+              "py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          });
+        }
+        if (gameState.mode === "MANIAC_VS_OPERATIVE") {
+          actions.push({
+            id: "escape_maniac",
+            label: "Конспирация",
+            onClick: handleEscapeManiac,
+            disabled:
+              !isHumanTurn || gameState.evidenceDeck.length < 2 || isGameOver,
+            className:
+              "py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          });
+        }
+      } else {
+        actions.push({
+          id: "accuse_basic",
+          label: "Задержание",
+          onClick: handleAccuse,
+          disabled: (() => {
+            if (!isHumanTurn || !selectedId || Boolean(selectedCharacter?.isDead) || isGameOver) return true;
+            let isAdjacent = detectiveAdjacentIds.includes(selectedId);
+            let isSelf = selectedId === gameState.detectiveSecretId;
+            if (gameState.mode === "THIEF_HUNT" && gameState.uniformedOfficers) {
+              const isNearOfficer = gameState.uniformedOfficers.some((offId) =>
+                getAdjacentCharacters(gameState.board, offId).map(c => c.id).includes(selectedId)
+              );
+              const isOfficerSelf = gameState.uniformedOfficers.includes(selectedId);
+              isAdjacent = isAdjacent || isNearOfficer;
+              isSelf = isSelf || isOfficerSelf;
+            }
+            return !isAdjacent && !isSelf;
+          })(),
+          className:
+            "py-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+        });
 
- Test Files  12 passed (12)
-      Tests  62 passed (62)
-   Start at  09:36:41
-   Duration  2.67s (transform 1.46s, setup 1ms, collect 2.98s, tests 229ms, environment 1.18s, prepare 3.65s)
+        if (gameState.mode === "THIEF_HUNT") {
+          actions.push({
+            id: "patrol_call",
+            label: "Вызов патруля",
+            onClick: handleSwearInOfficer,
+            disabled: !isHumanTurn || !selectedId || !gameState.uniformedOfficers?.includes(selectedId) || isGameOver || gameState.evidenceDeck.length === 0,
+            className: "py-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          });
+        }
+      }
 
-vite v5.4.21 building for production...
-✓ 472 modules transformed.
-dist/registerSW.js                    0.16 kB
-dist/manifest.webmanifest             0.20 kB
-dist/index.html                       1.75 kB │ gzip:  0.77 kB
-dist/assets/c42-CQhUEZT_.webp        33.18 kB
-dist/assets/c25-DNc7mE5T.webp        34.18 kB
-dist/assets/c41-Di-1wqm1.webp        36.67 kB
-dist/assets/c35-C2tjh_92.webp        36.89 kB
-dist/assets/c19-BdzAo-gH.webp        39.89 kB
-dist/assets/c38-BlSpMhIE.webp        40.90 kB
-dist/assets/c50-PtQYylqn.webp        41.68 kB
-dist/assets/c33-0Tm1qEDw.webp        43.11 kB
-dist/assets/c32-BjIpnR4z.webp        43.64 kB
-dist/assets/c17-CuuUwZ95.webp        44.03 kB
-dist/assets/c43-DxyRV2QH.webp        45.77 kB
-dist/assets/c31-DKNzvZSV.webp        47.81 kB
-dist/assets/c48-BOwVDZ6g.webp        48.66 kB
-dist/assets/c28-CrsVDkba.webp        49.34 kB
-dist/assets/c18-C5sHTI-E.webp        51.74 kB
-dist/assets/c49-Da0bdyiX.webp        54.35 kB
-dist/assets/c2-D7GBLq8Z.webp         54.74 kB
-dist/assets/c27-CeKqP3FI.webp        55.11 kB
-dist/assets/c44-CVD1ZjGx.webp        59.05 kB
-dist/assets/c26-MAqFC7ft.webp        60.71 kB
-dist/assets/c29-s9dqP6R8.webp        61.73 kB
-dist/assets/c46-CNeRKEMI.webp        62.63 kB
-dist/assets/c22-DBFCNbmz.webp        65.28 kB
-dist/assets/c40-j3wrpear.webp        65.36 kB
-dist/assets/c23-fxSeT1Ky.webp        67.41 kB
-dist/assets/c34-CKTKTr99.webp        68.59 kB
-dist/assets/c45-D5vJJ7xB.webp        69.63 kB
-dist/assets/c30-c7NYkCvx.webp        72.03 kB
-dist/assets/c37-B3FFiish.webp        73.45 kB
-dist/assets/c47-ti7pCvGL.webp        75.11 kB
-dist/assets/c21-Bjqxs-pV.webp        83.49 kB
-dist/assets/c39-B6HKJGbV.webp       108.05 kB
-dist/assets/c36-p_Dv0649.webp       111.36 kB
-dist/assets/c24-B4yie2E_.webp       112.62 kB
-dist/assets/c20-COv467sb.webp       113.60 kB
-dist/assets/c1-H4vwD6wi.webp        536.62 kB
-dist/assets/c14-CsyCFflr.webp       539.69 kB
-dist/assets/c12-YjXm4Fab.webp       557.37 kB
-dist/assets/c8-CywUPhRo.webp        587.67 kB
-dist/assets/c7-DrhHAhA_.webp        605.96 kB
-dist/assets/c4-tL6PzjtJ.webp        631.37 kB
-dist/assets/c16-A6jHx7BH.webp       647.42 kB
-dist/assets/c9-Cu79fRrc.webp        656.40 kB
-dist/assets/c15-CFtAdMiW.webp       660.99 kB
-dist/assets/c10-DRZyCmd4.webp       667.85 kB
-dist/assets/c3-CJDYdvuj.webp        711.11 kB
-dist/assets/c13-D1pPZCIe.webp     1,172.49 kB
-dist/assets/c5-DCmRekTl.webp      1,306.43 kB
-dist/assets/c6-BYPmph4N.webp      1,917.06 kB
-dist/assets/c11-BZGvC9vh.webp     2,294.62 kB
-dist/assets/index-BgyYUeSt.css       72.54 kB │ gzip: 11.21 kB
-dist/assets/motion-CcBl-MgG.js      119.20 kB │ gzip: 39.25 kB
-dist/assets/vendor-DU_8atRf.js      133.93 kB │ gzip: 43.12 kB
-dist/assets/index-Bwzg9H7S.js       220.97 kB │ gzip: 52.35 kB
-dist/assets/firebase-gyRto6eg.js    343.42 kB │ gzip: 73.22 kB
-✓ built in 3.14s
-error during build:
-Error:
-  Configure "workbox.maximumFileSizeToCacheInBytes" to change the limit: the default value is 2 MiB.
-  Check https://vite-pwa-org.netlify.app/guide/faq.html#missing-assets-from-sw-precache-manifest for more information.
-  Assets exceeding the limit:
-  - bg-main.png is 2.16 MB, and won't be precached.
-  - assets/c11-BZGvC9vh.webp is 2.29 MB, and won't be precached.
+      if (gameState.mode !== "THIEF_HUNT") {
+        actions.push({
+          id: "cleanup_basic",
+          label: "Зачистить",
+          onClick: handleCleanup,
+          disabled: !isHumanTurn || !isCleanupAvailable,
+          className:
+            "py-2 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed flex items-center justify-center gap-2",
+        });
+      }
+    }
 
-    at logWorkboxResult (file:///C:/Projects/detective-game/node_modules/vite-plugin-pwa/dist/chunk-G4TAN34B.js:44:13)
-    at generateServiceWorker (file:///C:/Projects/detective-game/node_modules/vite-plugin-pwa/dist/index.js:209:3)
-    at async _generateSW (file:///C:/Projects/detective-game/node_modules/vite-plugin-pwa/dist/index.js:234:5)
-    at async Object.handler (file:///C:/Projects/detective-game/node_modules/vite-plugin-pwa/dist/index.js:427:13)
-    at async PluginDriver.hookParallel (file:///C:/Projects/detective-game/node_modules/rollup/dist/es/shared/node-entry.js:23222:17)
-    at async Object.close (file:///C:/Projects/detective-game/node_modules/rollup/dist/es/shared/node-entry.js:24243:13)
-    at async build (file:///C:/Projects/detective-game/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:65732:17)
-    at async CAC.<anonymous> (file:///C:/Projects/detective-game/node_modules/vite/dist/node/cli.js:829:5)
-PS C:\Projects\detective-game>
+    return actions;
+  }, [
+
+```
+
+Изменение 2
+Файл: `src/App.tsx`
+
+НАЙТИ:
+
+```tsx
+              <div className="grid grid-cols-2 md:grid-cols-1 gap-2 w-full">
+                {targetActions.map((action) => (
+                  <button
+                    key={action.id}
+                    onClick={action.onClick}
+                    disabled={action.disabled}
+                    className={`${action.className} py-2.5 md:py-3.5 px-3 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition shadow-md flex items-center justify-center text-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                      targetActions.length === 1
+                        ? "col-span-2 md:col-span-1"
+                        : "col-span-1"
+                    }`}
+                  >
+                    {selectedCharacter && !action.disabled
+                      ? `${action.label}`
+                      : action.label}
+                  </button>
+                ))}
+              </div>
+
+```
+
+ЗАМЕНИТЬ НА:
+
+```tsx
+              <div className="grid grid-cols-2 md:grid-cols-1 gap-2 w-full">
+                {targetActions.map((action) => (
+                  <button
+                    key={action.id}
+                    onClick={action.onClick}
+                    disabled={action.disabled}
+                    className={`${action.className} ${
+                      targetActions.length === 1
+                        ? "col-span-2 md:col-span-1"
+                        : "col-span-1"
+                    }`}
+                  >
+                    {(action.id === 'kill_basic' || action.id === 'capture_spy') && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
+                    )}
+                    {(action.id === 'accuse_basic' || action.id === 'patrol_call') && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    )}
+                    {action.id === 'interrogate_spy' && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                    )}
+                    {(action.id === 'disguise_skhvatka' || action.id === 'escape_maniac' || action.id === 'disguise_thief') && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0"><path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6"></path></svg>
+                    )}
+                    {action.id === 'rob_basic' && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                    )}
+                    <span>{selectedCharacter && !action.disabled ? `${action.label}` : action.label}</span>
+                  </button>
+                ))}
+              </div>

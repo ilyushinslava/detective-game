@@ -6,6 +6,7 @@ import { mpService, type PublicRoomMeta } from "../utils/multiplayerPeer";
 import { usePlayerProfile } from "../utils/usePlayerProfile";
 import { soundManager } from "../utils/audio";
 import { Toast } from "./Toast";
+import { TutorialScreen } from "./TutorialScreen";
 
 // --- ВЕКТОРНЫЕ ИКОНКИ (HUD) ---
 const Icons = {
@@ -265,7 +266,7 @@ export const MainMenu = ({
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <img 
           src="./bg-main.png" 
-          alt="Astoria City Noir" 
+          alt="Реквием: последний выстрел" 
           className="w-full h-full object-cover object-[70%_top] opacity-95"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
@@ -829,44 +830,6 @@ export const MainMenu = ({
           {renderScreen()}
         </div>
 
-        {/* МОДАЛКА ОБУЧЕНИЯ (ПРОЛОГ) */}
-        {isTutorialOpen && (
-          <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 select-none">
-            <div className="w-full max-w-sm bg-zinc-900 border border-white/10 rounded-3xl p-6 flex flex-col items-center text-center shadow-[0_20px_50px_rgba(0,0,0,0.7)] relative overflow-hidden">
-              <div className="absolute top-0 left-0 h-1 bg-cyan-500 transition-all duration-300" style={{ width: `${(tutorialStep / 4) * 100}%` }} />
-              <button onClick={() => setIsTutorialOpen(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white transition cursor-pointer">✕</button>
-              <div className="w-12 h-12 rounded-full bg-cyan-950/50 border border-cyan-500/50 flex items-center justify-center text-cyan-400 mb-5 mt-2 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-                {tutorialStep === 1 && <Icons.Crosshair />}
-                {tutorialStep === 2 && <Icons.Play />}
-                {tutorialStep === 3 && <Icons.Radar />}
-                {tutorialStep === 4 && <Icons.Shield />}
-              </div>
-              <h2 className="text-base font-black uppercase tracking-widest text-zinc-100 mb-3">
-                {tutorialStep === 1 && "Шаг 1: Соседство"}
-                {tutorialStep === 2 && "Шаг 2: Сдвиг ряда"}
-                {tutorialStep === 3 && "Шаг 3: Выстрел и Допрос"}
-                {tutorialStep === 4 && "Шаг 4: Задержание"}
-              </h2>
-              <p className="text-xs text-zinc-400 mb-8 min-h-[60px] leading-relaxed">
-                {tutorialStep === 1 && "Все взаимодействия в игре происходят только с соседними клетками (до 8 вокруг вас по горизонтали, вертикали и диагонали)."}
-                {tutorialStep === 2 && "Один раз за ход можно сдвинуть любой ряд или колонку на 1 клетку. Ушедший за край персонаж появляется с противоположной стороны."}
-                {tutorialStep === 3 && "Бандит стреляет в соседа. После выстрела Инспектор обязан честно ответить: находилась ли его тайная личность рядом с жертвой."}
-                {tutorialStep === 4 && "Инспектор побеждает, если успешно применит «Задержание» к тайной личности Бандита, находясь с ним по соседству. В режиме Охоты задержание также проводят открытые патрульные, а их ротация отдает сокровище Вору."}
-              </p>
-              <div className="flex gap-2 w-full">
-                {tutorialStep > 1 && (
-                  <button onClick={() => setTutorialStep(s => s - 1)} className="px-5 py-3.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-black uppercase tracking-widest rounded-xl transition cursor-pointer">
-                    Назад
-                  </button>
-                )}
-                <button onClick={() => tutorialStep < 4 ? setTutorialStep(s => s + 1) : handleFinishTutorial()} className="flex-1 py-3.5 bg-gradient-to-r from-cyan-700 to-cyan-600 hover:from-cyan-600 hover:to-cyan-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-                  {tutorialStep < 4 ? "Далее" : "Завершить"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* НИЖНИЙ НАВИГАЦИОННЫЙ ДОК */}
         {screen !== 'MODE_DETAIL' && (
           <nav className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] px-6 flex justify-around items-center z-40">
@@ -979,6 +942,14 @@ export const MainMenu = ({
               </button>
             </div>
           </div>
+        )}
+
+        {/* ЭКРАН ОБУЧЕНИЯ (ПРОЛОГ) */}
+        {isTutorialOpen && (
+          <TutorialScreen 
+            onExit={() => setIsTutorialOpen(false)} 
+            onFinish={handleFinishTutorial} 
+          />
         )}
 
         {/* МОДАЛКА НАСТРОЕК */}

@@ -144,7 +144,7 @@ export const CharacterCard = memo(
             : {}
         }
         transition={{ duration: 0.4 }}
-        className={`relative w-full aspect-square rounded-md sm:rounded-xl p-0.5 sm:p-1.5 flex flex-col justify-between border select-none transition-all duration-150 cursor-pointer overflow-hidden ${
+        className={`relative w-full aspect-square rounded-md sm:rounded-xl p-0.5 sm:p-1.5 flex flex-col justify-between border select-none transition-colors duration-150 cursor-pointer overflow-hidden ${
           isError
             ? "bg-zinc-800/90 border-zinc-500 ring-2 ring-zinc-500/50 shadow-[0_0_12px_rgba(113,113,122,0.4)] z-30"
             : character.isVault
@@ -158,7 +158,7 @@ export const CharacterCard = memo(
                   ? "bg-zinc-950/95 border-amber-900/40 opacity-70 shadow-inner"
                   : "bg-zinc-950/95 border-zinc-900 opacity-50 shadow-inner"
                 : isTargetVictim
-                  ? "bg-red-950/30 border-red-600 shadow-[0_0_12px_rgba(220,38,38,0.35)] animate-pulse"
+                  ? "bg-red-950/30 border-red-600 shadow-[0_0_12px_rgba(220,38,38,0.35)]"
                   : isExonerated
                     ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
                     : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
@@ -166,11 +166,11 @@ export const CharacterCard = memo(
           isSelected
             ? "ring-2 ring-white border-white shadow-[0_0_15px_rgba(255,255,255,0.8)] scale-95 z-30"
             : (isRadarCenter || radarRingColor) && neighborHighlightColor
-              ? `${neighborHighlightColor} !border-white ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} ${isRadarCenter ? "shadow-[0_0_15px_currentColor]" : "animate-pulse"} z-20`
+              ? `${neighborHighlightColor} !border-white ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor}${isRadarCenter ? "shadow-[0_0_16px_rgba(6,182,212,0.65)]" : "shadow-[0_0_10px_rgba(6,182,212,0.3)]"} z-20`
               : isRadarCenter && radarRingColor
-                ? `ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} shadow-[0_0_15px_currentColor] z-10`
+                ? `ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} shadow-[0_0_16px_rgba(6,182,212,0.65)] z-10`
                 : radarRingColor
-                  ? `ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} opacity-80 animate-pulse z-10`
+                  ? `ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} shadow-[0_0_10px_rgba(6,182,212,0.3)] z-10`
                   : neighborHighlightColor
                     ? `${neighborHighlightColor} z-10`
                     : ""

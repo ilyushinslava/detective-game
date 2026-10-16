@@ -39,11 +39,11 @@ export const RoleCards = ({
     <div className={containerClass}>
       {showKillerCard && (
         <div className="flex-1 p-2 bg-zinc-900/60 backdrop-blur-md rounded-xl border border-white/10 flex flex-col justify-between gap-1.5 shadow-lg">
-          <div className="flex items-center justify-between w-full min-w-0 gap-1">
-            <span className="text-[8.5px] font-black text-red-400 uppercase bg-red-950/50 border border-red-900/50 px-1.5 py-0.5 rounded-sm shrink-0 tracking-widest">
+          <div className="flex items-start justify-between w-full gap-2">
+            <span className="text-[8.5px] font-black text-red-400 uppercase bg-red-950/50 border border-red-900/50 px-1.5 py-0.5 rounded-sm shrink-0 tracking-widest mt-0.5">
               {role1Name === "ОПЕРАТИВНИК" ? "ОПЕР" : role1Name}
             </span>
-            <span className="text-[10px] font-black text-zinc-200 truncate text-right flex-1 min-w-0 uppercase tracking-wider">
+            <span className="text-[10px] font-black text-zinc-100 text-right uppercase tracking-wider leading-tight break-words">
               {killerNameText}
             </span>
           </div>
@@ -73,11 +73,11 @@ export const RoleCards = ({
 
       {showDetectiveCard && (
         <div className="flex-1 p-2 bg-zinc-900/60 backdrop-blur-md rounded-xl border border-white/10 flex flex-col justify-between gap-1.5 shadow-lg">
-          <div className="flex items-center justify-between w-full min-w-0 gap-1">
-            <span className="text-[8.5px] font-black text-cyan-400 uppercase bg-cyan-950/50 border border-cyan-900/50 px-1.5 py-0.5 rounded-sm shrink-0 tracking-widest">
+          <div className="flex items-start justify-between w-full gap-2">
+            <span className="text-[8.5px] font-black text-cyan-400 uppercase bg-cyan-950/50 border border-cyan-900/50 px-1.5 py-0.5 rounded-sm shrink-0 tracking-widest mt-0.5">
               {role2Name === "ОПЕРАТИВНИК" ? "ОПЕР" : role2Name}
             </span>
-            <span className="text-[10px] font-black text-zinc-200 truncate text-right flex-1 min-w-0 uppercase tracking-wider">
+            <span className="text-[10px] font-black text-zinc-100 text-right uppercase tracking-wider leading-tight break-words">
               {detectiveNameText}
             </span>
           </div>

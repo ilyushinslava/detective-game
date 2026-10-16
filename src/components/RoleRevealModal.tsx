@@ -180,6 +180,7 @@ export const RoleRevealModal = ({
 
   const [selectedInspectorId, setSelectedInspectorId] = useState<string | null>(null);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+  const [fullscreenImage, setFullscreenImage] = useState<{ url: string; name: string; id: string } | null>(null);
 
   // Онлайн-ожидание и АФК-таймер
   const [isWaitingRemote, setIsWaitingRemote] = useState(false);
@@ -248,13 +249,13 @@ export const RoleRevealModal = ({
         text: "text-red-500",
         border: "border-red-500/60",
         shadow: "shadow-[0_0_25px_rgba(239,68,68,0.25)]",
-        button: "bg-gradient-to-r from-red-700 via-red-600 to-red-800 hover:from-red-600 hover:to-red-500 shadow-[0_0_20px_rgba(220,38,38,0.45)]",
+        button: "bg-gradient-to-r from-red-700 via-red-600 to-red-800 hover:from-red-600 hover:to-red-500 shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-white/25",
       }
     : {
         text: "text-cyan-400",
         border: "border-cyan-500/60",
         shadow: "shadow-[0_0_25px_rgba(6,182,212,0.25)]",
-        button: "bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.45)]",
+        button: "bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 shadow-[0_10px_25px_rgba(6,182,212,0.5)] border-t border-white/25",
       };
 
   const renderCharacterCard = (char: Character | undefined, titleLabel: string, isRed: boolean) => {
@@ -267,21 +268,24 @@ export const RoleRevealModal = ({
       : "border-cyan-500/60 shadow-[0_0_30px_rgba(6,182,212,0.3)]";
 
     return (
-      <div className={`relative w-full rounded-3xl overflow-hidden border ${border} bg-zinc-950 h-[230px] sm:h-[260px] flex flex-col justify-between p-5 mb-3.5 select-none shrink-0 shadow-2xl`}>
+      <div 
+        className={`relative w-full rounded-3xl overflow-hidden border ${border} bg-zinc-950 h-[190px] sm:h-[220px] flex flex-col justify-between p-5 mb-3.5 select-none shrink-0 shadow-2xl cursor-pointer group`}
+        onClick={() => imageAsset && char && setFullscreenImage({ url: imageAsset, name: char.name, id: char.id })}
+      >
         {imageAsset ? (
           <img
             src={imageAsset}
             alt={char?.name || "Личность"}
-            className="absolute inset-0 w-full h-full object-cover object-center pt-4 opacity-60 grayscale contrast-125 pointer-events-none"
+            className="absolute inset-0 w-full h-full object-cover object-center pt-4 opacity-60 grayscale contrast-125 group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center p-6 pt-10">
             {renderSilhouetteSvg(char?.id || "c0")}
           </div>
         )}
-        <div className={`absolute bottom-0 left-0 right-0 h-[40%] bg-gradient-to-t ${gradient} pointer-events-none`} />
+        <div className={`absolute bottom-0 left-0 right-0 h-[60%] bg-gradient-to-t ${gradient} pointer-events-none`} />
 
-        <div className="relative z-10 flex items-center justify-between">
+        <div className="relative z-10 flex items-center justify-between pointer-events-none">
           <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border ${isRed ? "bg-red-950/90 text-red-300 border-red-700/60" : "bg-cyan-950/90 text-cyan-300 border-cyan-700/60"}`}>
             {titleLabel}
           </span>
@@ -290,10 +294,11 @@ export const RoleRevealModal = ({
           </span>
         </div>
 
-        <div className="relative z-10 text-left">
-          <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 block mb-1">
-            Тайная личность
-          </span>
+        <div className="relative z-10 text-left pointer-events-none flex flex-col justify-end h-full">
+          <div className="flex items-center gap-1.5 mb-2 opacity-80">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 text-zinc-300"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest">Нажмите для просмотра полного фото</span>
+          </div>
           <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-wider leading-none drop-shadow-md">
             {char?.name ?? "Неизвестно"}
           </h2>
@@ -325,13 +330,13 @@ export const RoleRevealModal = ({
         tiles.push({
           id: "shift",
           label: "Сдвиг",
-          icon: <Icons.Shift className="w-6 h-6 text-zinc-400" />,
+          icon: <Icons.Shift className="w-6 h-6 text-sky-400" />,
           desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
         });
         tiles.push({
           id: "disguise",
           label: "Конспирация",
-          icon: <Icons.Eye className="w-6 h-6 text-zinc-400" />,
+          icon: <Icons.Eye className="w-6 h-6 text-amber-400" />,
           desc: "Взять карту из колоды и сменить тайную личность.",
         });
       } else {
@@ -344,13 +349,13 @@ export const RoleRevealModal = ({
         tiles.push({
           id: "shift",
           label: "Сдвиг",
-          icon: <Icons.Shift className="w-6 h-6 text-zinc-400" />,
+          icon: <Icons.Shift className="w-6 h-6 text-sky-400" />,
           desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
         });
         tiles.push({
           id: "alibi",
           label: "Проверка алиби",
-          icon: <Icons.Folder className="w-6 h-6 text-zinc-400" />,
+          icon: <Icons.Folder className="w-6 h-6 text-blue-400" />,
           desc: "Выложить доказательство из руки на поле и опросить преступника.",
         });
       }
@@ -365,13 +370,13 @@ export const RoleRevealModal = ({
         tiles.push({
           id: "shift",
           label: "Сдвиг",
-          icon: <Icons.Shift className="w-6 h-6 text-zinc-400" />,
+          icon: <Icons.Shift className="w-6 h-6 text-sky-400" />,
           desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
         });
         tiles.push({
           id: "escape",
           label: "Побег",
-          icon: <Icons.Eye className="w-6 h-6 text-zinc-400" />,
+          icon: <Icons.Eye className="w-6 h-6 text-amber-400" />,
           desc: "Взять карту из колоды и сменить тайную личность.",
         });
       } else {
@@ -384,13 +389,13 @@ export const RoleRevealModal = ({
         tiles.push({
           id: "shift",
           label: "Сдвиг",
-          icon: <Icons.Shift className="w-6 h-6 text-zinc-400" />,
+          icon: <Icons.Shift className="w-6 h-6 text-sky-400" />,
           desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
         });
         tiles.push({
           id: "alibi",
           label: "Проверка алиби",
-          icon: <Icons.Folder className="w-6 h-6 text-zinc-400" />,
+          icon: <Icons.Folder className="w-6 h-6 text-blue-400" />,
           desc: "Выложить доказательство из руки на поле и опросить преступника.",
         });
       }
@@ -405,13 +410,13 @@ export const RoleRevealModal = ({
         tiles.push({
           id: "shift",
           label: "Сдвиг",
-          icon: <Icons.Shift className="w-6 h-6 text-zinc-400" />,
+          icon: <Icons.Shift className="w-6 h-6 text-sky-400" />,
           desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
         });
         tiles.push({
           id: "disguise_thief",
           label: "Смена маски",
-          icon: <Icons.Eye className="w-6 h-6 text-zinc-400" />,
+          icon: <Icons.Eye className="w-6 h-6 text-amber-400" />,
           desc: "Взять карту из колоды и сменить тайную личность.",
         });
       } else {
@@ -424,13 +429,13 @@ export const RoleRevealModal = ({
         tiles.push({
           id: "shift",
           label: "Сдвиг",
-          icon: <Icons.Shift className="w-6 h-6 text-zinc-400" />,
+          icon: <Icons.Shift className="w-6 h-6 text-sky-400" />,
           desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
         });
         tiles.push({
           id: "patrol",
           label: "Вызов патруля",
-          icon: <Icons.Badge className="w-6 h-6 text-zinc-400" />,
+          icon: <Icons.Badge className="w-6 h-6 text-indigo-400" />,
           desc: "Заменить открытого патрульного картой из колоды (грабитель получает 1 сокровище).",
         });
       }
@@ -444,13 +449,13 @@ export const RoleRevealModal = ({
       tiles.push({
         id: "shift",
         label: "Сдвиг",
-        icon: <Icons.Shift className="w-6 h-6 text-zinc-400" />,
+        icon: <Icons.Shift className="w-6 h-6 text-sky-400" />,
         desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
       });
       tiles.push({
         id: "interrogate_spy",
         label: "Опрос свидетелей",
-        icon: <Icons.Radar className="w-6 h-6 text-zinc-400" />,
+        icon: <Icons.Radar className="w-6 h-6 text-cyan-400" />,
         desc: "Узнать, находится ли тайная личность соперника рядом с выбранной целью.",
       });
     }
@@ -537,7 +542,24 @@ export const RoleRevealModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#080a0f]/95 backdrop-blur-xl p-4 select-none">
-      <div className="w-full max-w-lg h-[92dvh] max-h-[820px] bg-zinc-950 border border-white/10 rounded-3xl p-5 sm:p-7 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col justify-between text-center overflow-y-auto custom-scrollbar">
+      {fullscreenImage && (
+        <div className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 select-none" onClick={() => setFullscreenImage(null)}>
+          <button 
+            onClick={() => setFullscreenImage(null)}
+            className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
+          >
+            ✕
+          </button>
+          <div className="relative w-full max-w-sm aspect-[3/4] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.8)]" onClick={(e) => e.stopPropagation()}>
+            <img src={fullscreenImage.url} alt={fullscreenImage.name} className="w-full h-full object-cover grayscale contrast-125" />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-20 flex flex-col items-center text-center">
+              <span className="text-xs font-mono text-zinc-400 mb-2">#{fullscreenImage.id.replace("c", "").padStart(2, "0")}</span>
+              <h2 className="text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">{fullscreenImage.name}</h2>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="w-full max-w-lg h-[92dvh] max-h-[85vh] bg-zinc-950 border border-white/10 rounded-3xl p-5 sm:p-7 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col justify-between text-center overflow-y-auto custom-scrollbar">
         
         {/* Одиночная Секретная служба */}
         {phase === "SECRET_SERVICE_SOLO" && (
@@ -640,7 +662,7 @@ export const RoleRevealModal = ({
               </div>
               {getActionTiles(mode, "KILLER")}
             </div>
-            <button onClick={onComplete} className="w-full h-14 mt-4 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_0_20px_rgba(6,182,212,0.45)] flex items-center justify-center gap-2 cursor-pointer shrink-0">
+            <button onClick={onComplete} className="w-full h-14 mt-4 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_10px_25px_rgba(6,182,212,0.5)] border-t border-white/25 flex items-center justify-center gap-2 cursor-pointer shrink-0">
               <span>Начать шпионскую дуэль</span> <Icons.ArrowRight className="w-4 h-4" />
             </button>
           </>
@@ -854,7 +876,7 @@ export const RoleRevealModal = ({
               </div>
               {mode !== "SKHVATKA" && getActionTiles(mode, "DETECTIVE")}
             </div>
-            <button onClick={onComplete} className="w-full h-14 mt-4 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_0_20px_rgba(6,182,212,0.45)] flex items-center justify-center gap-2 cursor-pointer shrink-0">
+            <button onClick={onComplete} className="w-full h-14 mt-4 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_10px_25px_rgba(6,182,212,0.5)] border-t border-white/25 flex items-center justify-center gap-2 cursor-pointer shrink-0">
               <span>{mode === "SKHVATKA" ? "Принять дело" : "Начать партию"}</span> <Icons.ArrowRight className="w-4 h-4" />
             </button>
           </>
@@ -902,7 +924,7 @@ export const RoleRevealModal = ({
             <button
               onClick={handleConfirmChoices}
               disabled={!selectedInspectorId}
-              className="w-full h-14 mt-4 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 disabled:from-zinc-800 disabled:to-zinc-900 disabled:text-zinc-600 disabled:shadow-none text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer disabled:cursor-not-allowed shadow-[0_0_20px_rgba(6,182,212,0.45)] flex items-center justify-center gap-2 shrink-0"
+              className="w-full h-14 mt-4 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 disabled:from-zinc-800 disabled:to-zinc-900 disabled:text-zinc-600 disabled:shadow-none text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer disabled:cursor-not-allowed shadow-[0_10px_25px_rgba(6,182,212,0.5)] border-t border-white/25 flex items-center justify-center gap-2 shrink-0"
             >
               <span>Подтвердить личность</span> <Icons.ArrowRight className="w-4 h-4" />
             </button>

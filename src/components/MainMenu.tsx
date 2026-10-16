@@ -859,8 +859,8 @@ export const MainMenu = ({
 
         {/* МОДАЛКА СОЗДАНИЯ КОМНАТЫ */}
         {isCreateRoomOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#080a0f]/90 backdrop-blur-md p-4">
-            <div className="bg-zinc-900/90 backdrop-blur-2xl border border-white/15 p-6 rounded-3xl w-full max-w-sm flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.7)]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#080a0f]/90 backdrop-blur-md p-4" onClick={() => setIsCreateRoomOpen(false)}>
+            <div className="bg-zinc-900/90 backdrop-blur-2xl border border-white/15 p-6 rounded-3xl w-full max-w-sm flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.7)]" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-sm font-black text-zinc-100 uppercase tracking-widest mb-5 border-b border-white/10 pb-3">
                 Протокол: Новая операция
               </h3>
@@ -954,8 +954,8 @@ export const MainMenu = ({
 
         {/* МОДАЛКА НАСТРОЕК */}
         {isSettingsOpen && (
-          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#080a0f]/90 backdrop-blur-md p-4">
-            <div className="bg-zinc-900/90 backdrop-blur-2xl border border-white/10 p-6 rounded-3xl w-full max-w-sm flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.7)]">
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#080a0f]/90 backdrop-blur-md p-4" onClick={() => setIsSettingsOpen(false)}>
+            <div className="bg-zinc-900/90 backdrop-blur-2xl border border-white/10 p-6 rounded-3xl w-full max-w-sm flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.7)]" onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3">
                 <h3 className="text-sm font-black text-zinc-100 uppercase tracking-widest">
                   Настройки системы

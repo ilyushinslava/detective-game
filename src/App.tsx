@@ -31,6 +31,11 @@ import type { GameAction } from "./types/multiplayer";
 import { gameReducer } from "./utils/gameReducer";
 import { Toast } from "./components/Toast";
 
+const characterImages = import.meta.glob<{ default: string }>(
+  "./assets/characters/*.webp",
+  { eager: true }
+);
+
 const SPY_COLORS = [
   {
     text: "text-red-400",
@@ -133,6 +138,11 @@ export default function App() {
   const [rematchTimer, setRematchTimer] = useState(15);
   const [isOpponentConnected, setIsOpponentConnected] = useState(true);
   const [activeAccordionIndex, setActiveAccordionIndex] = useState<number | null>(null);
+  const [fullscreenImage, setFullscreenImage] = useState<{ url: string; name: string; id: string } | null>(null);
+
+  const [isSfxEnabled, setIsSfxEnabled] = useState(soundManager.getSfxEnabled());
+  const [isAmbientEnabled, setIsAmbientEnabled] = useState(soundManager.getAmbientEnabled());
+  const [isHapticsEnabled, setIsHapticsEnabled] = useState(() => localStorage.getItem("crime_city_haptics") !== "false");
 
   const prevLogLenRef = useRef(gameState.log.length);
   const rulesTouchStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -2047,31 +2057,44 @@ export default function App() {
                   <h3 className="text-xl font-black text-zinc-100 mb-2">
                     Шпионская маскировка провалена. Ваша новая личность:
                   </h3>
-                  <div className="w-full p-4 rounded-xl bg-zinc-950 border border-zinc-800 my-4">
-                    <div className="text-2xl font-black text-zinc-100">
-                      {
-                        allChars.find(
-                          (c) =>
-                            c.id ===
-                            gameState.spies?.find(
-                              (s) => s.id === gameState.justCaughtSpyId,
-                            )?.secretId,
-                        )?.name
-                      }
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setIsRevealConfirmed(false);
-                      setGameState((prev) => ({
-                        ...prev,
-                        justCaughtSpyId: undefined,
-                      }));
-                    }}
-                    className="w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
-                  >
-                    Принять личность ➔
-                  </button>
+                  {(() => {
+                    const newSpyChar = allChars.find(c => c.id === gameState.spies?.find(s => s.id === gameState.justCaughtSpyId)?.secretId);
+                    const newSpyImg = newSpyChar ? characterImages[`./assets/characters/${newSpyChar.id}.webp`]?.default : null;
+                    return (
+                      <>
+                        <div 
+                          className="relative w-full h-48 rounded-2xl overflow-hidden border border-zinc-700 my-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] cursor-pointer group"
+                          onClick={() => newSpyImg && newSpyChar && setFullscreenImage({ url: newSpyImg, name: newSpyChar.name, id: newSpyChar.id })}
+                        >
+                          {newSpyImg ? (
+                            <img src={newSpyImg} alt={newSpyChar?.name} className="absolute inset-0 w-full h-full object-cover opacity-75 grayscale contrast-125 group-hover:scale-105 transition-transform duration-500" />
+                          ) : (
+                            <div className="absolute inset-0 bg-zinc-800 flex items-center justify-center text-zinc-500">Нет фото</div>
+                          )}
+                          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-3 pt-12 flex flex-col items-center">
+                            <span className="text-[10px] font-mono text-zinc-400 mb-1">#{newSpyChar?.id.replace("c", "").padStart(2, "0")}</span>
+                            <span className="text-xl font-black text-zinc-100 uppercase tracking-wider leading-tight text-center mb-1">{newSpyChar?.name}</span>
+                            <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2 py-1 rounded-full border border-white/10">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 text-zinc-400"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                              <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest">Тапните для полного фото</span>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setIsRevealConfirmed(false);
+                            setGameState((prev) => ({
+                              ...prev,
+                              justCaughtSpyId: undefined,
+                            }));
+                          }}
+                          className="w-full py-3.5 bg-gradient-to-r from-zinc-700 to-zinc-600 hover:from-zinc-600 hover:to-zinc-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-[0_10px_25px_rgba(0,0,0,0.5)] border-t border-white/25"
+                        >
+                          Принять личность ➔
+                        </button>
+                      </>
+                    );
+                  })()}
                 </div>
               )}
             </div>
@@ -2114,27 +2137,44 @@ export default function App() {
                   <h3 className="text-xl font-black text-zinc-100 mb-2">
                     Ваша новая личность:
                   </h3>
-                  <div className="w-full p-4 rounded-xl bg-zinc-950 border border-zinc-800 my-4">
-                    <div className="text-2xl font-black text-zinc-100">
-                      {
-                        allChars.find(
-                          (c) => c.id === gameState.disguisedNotification?.newSecretId
-                        )?.name
-                      }
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setIsRevealConfirmed(false);
-                      setGameState((prev) => ({
-                        ...prev,
-                        disguisedNotification: null,
-                      }));
-                    }}
-                    className="w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
-                  >
-                    Принять личность ➔
-                  </button>
+                  {(() => {
+                    const newChar = allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId);
+                    const newImg = newChar ? characterImages[`./assets/characters/${newChar.id}.webp`]?.default : null;
+                    return (
+                      <>
+                        <div 
+                          className="relative w-full h-48 rounded-2xl overflow-hidden border border-zinc-700 my-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] cursor-pointer group"
+                          onClick={() => newImg && newChar && setFullscreenImage({ url: newImg, name: newChar.name, id: newChar.id })}
+                        >
+                          {newImg ? (
+                            <img src={newImg} alt={newChar?.name} className="absolute inset-0 w-full h-full object-cover opacity-75 grayscale contrast-125 group-hover:scale-105 transition-transform duration-500" />
+                          ) : (
+                            <div className="absolute inset-0 bg-zinc-800 flex items-center justify-center text-zinc-500">Нет фото</div>
+                          )}
+                          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-3 pt-12 flex flex-col items-center">
+                            <span className="text-[10px] font-mono text-zinc-400 mb-1">#{newChar?.id.replace("c", "").padStart(2, "0")}</span>
+                            <span className="text-xl font-black text-zinc-100 uppercase tracking-wider leading-tight text-center mb-1">{newChar?.name}</span>
+                            <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2 py-1 rounded-full border border-white/10">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 text-zinc-400"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                              <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest">Тапните для полного фото</span>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setIsRevealConfirmed(false);
+                            setGameState((prev) => ({
+                              ...prev,
+                              disguisedNotification: null,
+                            }));
+                          }}
+                          className="w-full py-3.5 bg-gradient-to-r from-zinc-700 to-zinc-600 hover:from-zinc-600 hover:to-zinc-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-[0_10px_25px_rgba(0,0,0,0.5)] border-t border-white/25"
+                        >
+                          Принять личность ➔
+                        </button>
+                      </>
+                    );
+                  })()}
                 </div>
               )}
             </div>
@@ -2152,11 +2192,12 @@ export default function App() {
         )}
 
         {isPauseOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none">
-            <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col gap-3">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none" onClick={() => setIsPauseOpen(false)}>
+            <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
               <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100 mb-4">
                 Пауза
               </h2>
+              
               <button
                 onClick={() => setIsPauseOpen(false)}
                 className="w-full py-3.5 bg-amber-600 hover:bg-amber-500 text-zinc-950 font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
@@ -2183,10 +2224,37 @@ export default function App() {
                   setIsPauseOpen(false);
                   setIsLobbyOpen(true);
                 }}
-                className="w-full py-3.5 bg-red-950/80 hover:bg-red-900 text-red-400 font-bold uppercase tracking-wider rounded-xl border border-red-900/50 transition cursor-pointer mt-2"
+                className="w-full py-3.5 bg-red-950/80 hover:bg-red-900 text-red-400 font-bold uppercase tracking-wider rounded-xl border border-red-900/50 transition cursor-pointer"
               >
                 Покинуть игру
               </button>
+
+              <div className="w-full flex items-center gap-3 my-2 opacity-50">
+                <div className="h-px bg-white/20 flex-1" />
+                <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Параметры связи</span>
+                <div className="h-px bg-white/20 flex-1" />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
+                  <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Звуки (SFX)</span>
+                  <button onClick={() => setIsSfxEnabled(soundManager.toggleSfx())} className={`w-10 h-5 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isSfxEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}>
+                    <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isSfxEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
+                  <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Эмбиент</span>
+                  <button onClick={() => setIsAmbientEnabled(soundManager.toggleAmbient())} className={`w-10 h-5 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isAmbientEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}>
+                    <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isAmbientEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
+                  <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Вибрация</span>
+                  <button onClick={() => { const newVal = !isHapticsEnabled; setIsHapticsEnabled(newVal); setHapticsEnabled(newVal); if (newVal) triggerHaptic("medium"); }} className={`w-10 h-5 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isHapticsEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}>
+                    <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isHapticsEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -2512,6 +2580,25 @@ export default function App() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ПОЛНОЭКРАННЫЙ ПРОСМОТР ФОТО */}
+        {fullscreenImage && (
+          <div className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 select-none" onClick={() => setFullscreenImage(null)}>
+            <button 
+              onClick={() => setFullscreenImage(null)}
+              className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
+            >
+              ✕
+            </button>
+            <div className="relative w-full max-w-sm aspect-[3/4] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.8)]" onClick={(e) => e.stopPropagation()}>
+              <img src={fullscreenImage.url} alt={fullscreenImage.name} className="w-full h-full object-cover grayscale contrast-125" />
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-20 flex flex-col items-center text-center">
+                <span className="text-xs font-mono text-zinc-400 mb-2">#{fullscreenImage.id.replace("c", "").padStart(2, "0")}</span>
+                <h2 className="text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">{fullscreenImage.name}</h2>
               </div>
             </div>
           </div>

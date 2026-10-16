@@ -79,4 +79,53 @@ describe("Режим: Маньяк против оперативника (MANIAC
 
     expect(nextState.winner).toBe("DETECTIVE");
   });
+
+  it("Запрет обвинения мертвых персонажей", () => {
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
+    state.currentTurn = "DETECTIVE";
+    const targetId = getAdjacentCharacters(state.board, state.detectiveSecretId)[0].id;
+    state.board = state.board.map(row => row.map(c => c.id === targetId ? { ...c, isAlive: false } : c));
+
+    const nextState = accuseCharacter(state, targetId);
+
+    expect(nextState).toBe(state);
+  });
+
+  it("Стабильное прохождение цепочки из 4 убийств с добором целей и победой Маньяка", () => {
+    let state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
+    state.evidenceDeck = state.board.flat().filter(c => c.isAlive && c.id !== state.detectiveSecretId && c.id !== state.killerSecretId).map(c => c.id);
+    state.victimList = [state.evidenceDeck.shift()!];
+
+    for (let i = 1; i <= 4; i++) {
+      const targetId = state.victimList[0];
+      state.killerSecretId = getAdjacentCharacters(state.board, targetId)[0].id;
+      state = killCharacter(state, targetId);
+
+      if (i < 4) {
+        expect(state.winner).toBeNull();
+        expect(state.victimList.length).toBeGreaterThan(0);
+      } else {
+        expect(state.winner).toBe("KILLER");
+      }
+    }
+  });
+
+  it("Ложное задержание при 1 оставшейся цели: список жертв пополняется из колоды", () => {
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
+    state.currentTurn = "DETECTIVE";
+    
+    const singleVictim = state.victimList[0];
+    state.victimList = [singleVictim];
+    
+    const validNextTarget = state.board.flat().find(c => c.isAlive && c.id !== state.detectiveSecretId && c.id !== state.killerSecretId && c.id !== singleVictim)!;
+    state.evidenceDeck = [validNextTarget.id];
+
+    const wrongTarget = getAdjacentCharacters(state.board, state.detectiveSecretId).find(c => c.id !== state.killerSecretId)!;
+
+    const nextState = accuseCharacter(state, wrongTarget.id);
+
+    expect(nextState.victimList.length).toBe(1);
+    expect(nextState.victimList[0]).toBe(validNextTarget.id);
+    expect(nextState.evidenceDeck).toContain(singleVictim);
+  });
 });

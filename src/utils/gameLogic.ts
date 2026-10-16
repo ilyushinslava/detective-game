@@ -401,6 +401,9 @@ export function killCharacter(state: GameState, targetId: string): GameState {
   );
 
   let newVictimList = [...state.victimList];
+  let newEvidenceDeck = [...state.evidenceDeck];
+  const newKillCount = state.killCount + 1;
+
   if (state.mode === "MANIAC_VS_OPERATIVE" && targetId === newVictimList[0]) {
     newVictimList.shift();
 
@@ -411,6 +414,17 @@ export function killCharacter(state: GameState, targetId: string): GameState {
         newVictimList.shift();
       } else {
         break;
+      }
+    }
+
+    if (newVictimList.length === 0 && newKillCount < 4) {
+      while (newEvidenceDeck.length > 0) {
+        const drawnId = newEvidenceDeck.shift()!;
+        const drawnChar = newBoard.flat().find((c) => c.id === drawnId);
+        if (drawnChar && drawnChar.isAlive && drawnId !== state.detectiveSecretId && drawnId !== state.killerSecretId) {
+          newVictimList.push(drawnId);
+          break;
+        }
       }
     }
   }
@@ -436,10 +450,8 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     }
   }
 
-  const newKillCount = state.killCount + 1;
-
   if (!winner) {
-    if (state.mode === "MANIAC_VS_OPERATIVE" && newVictimList.length === 0) {
+    if (state.mode === "MANIAC_VS_OPERATIVE" && newKillCount >= 4) {
       winner = "KILLER";
     } else if (state.mode === "EUROPOL_VS_OPG" && newKillCount >= 6) {
       winner = "KILLER";
@@ -465,6 +477,7 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     ...state,
     board: newBoard,
     victimList: newVictimList,
+    evidenceDeck: newEvidenceDeck,
     detectiveHand: newDetectiveHand,
     detectiveSecretId: newDetectiveSecretId,
     killCount: newKillCount,
@@ -711,9 +724,11 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
   if (!isAdjacent && !isSelf) return state;
 
   const targetChar = state.board.flat().find((c) => c.id === targetId);
-  const targetName = targetChar?.name ?? targetId;
+  if (!targetChar || !targetChar.isAlive) return state;
 
-  if (targetChar?.hasBomb) {
+  const targetName = targetChar.name;
+
+  if (targetChar.hasBomb) {
     const isDetKilled = targetId === state.detectiveSecretId;
     const newBoard = state.board.map((row) =>
       row.map((c) =>
@@ -767,6 +782,17 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
     const returnedVictim = nextVictims.pop()!;
     nextDeck.push(returnedVictim);
     logMsg = `Ошибка следствия: одна из целей маньяка скрылась в колоде.`;
+
+    if (nextVictims.length === 0 && state.killCount < 4) {
+      while (nextDeck.length > 0) {
+        const drawnId = nextDeck.shift()!;
+        const drawnChar = newBoard.flat().find((c) => c.id === drawnId);
+        if (drawnChar && drawnChar.isAlive && drawnId !== state.detectiveSecretId && drawnId !== state.killerSecretId) {
+          nextVictims.push(drawnId);
+          break;
+        }
+      }
+    }
   }
 
   return {

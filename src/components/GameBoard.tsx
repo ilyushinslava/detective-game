@@ -74,13 +74,13 @@ export const GameBoard = ({
               <button
                 key={`col-up-${colIdx}`}
                 disabled={isBlocked || isOpposite}
-                onClick={() => onShift("COL", colIdx, "BACKWARD")}
-                className={`w-full h-4 sm:h-6 shrink-0 rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 p-0 ${
+                onClick={(e) => { e.currentTarget.blur(); onShift("COL", colIdx, "BACKWARD"); }}
+                className={`w-full h-4 sm:h-6 shrink-0 rounded text-[9px] sm:text-xs font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
                   isOpposite
                     ? "invisible pointer-events-none"
                     : isBlocked
                       ? "bg-zinc-900/80 text-red-500 border-red-900/50 cursor-not-allowed"
-                      : "bg-zinc-950/80 border-white/10 hover:border-cyan-500/50 hover:text-cyan-400 text-zinc-500 cursor-pointer shadow-inner"
+                      : "bg-zinc-950/80 border-white/10 hover:border-white/20 focus:outline-none focus:bg-transparent active:bg-white/20 text-zinc-400 cursor-pointer shadow-inner touch-manipulation select-none"
                 }`}
                 title={
                   isBlocked ? "Патруль полиции блокирует сдвиг" : "Сдвиг вверх"
@@ -115,13 +115,13 @@ export const GameBoard = ({
               <button
                 key={`row-left-${rIdx}`}
                 disabled={isRowBlocked || isOppositeLeft}
-                onClick={() => onShift("ROW", rIdx, "BACKWARD")}
-                className={`w-full h-full rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 p-0 ${
+                onClick={(e) => { e.currentTarget.blur(); onShift("ROW", rIdx, "BACKWARD"); }}
+                className={`w-full h-full rounded text-[9px] sm:text-xs font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
                   isOppositeLeft
                     ? "invisible pointer-events-none"
                     : isRowBlocked
                       ? "bg-zinc-900/80 text-red-500 border-red-900/50 cursor-not-allowed"
-                      : "bg-zinc-950/80 border-white/10 hover:border-cyan-500/50 hover:text-cyan-400 text-zinc-500 cursor-pointer shadow-inner"
+                      : "bg-zinc-950/80 border-white/10 hover:border-white/20 focus:outline-none focus:bg-transparent active:bg-white/20 text-zinc-400 cursor-pointer shadow-inner touch-manipulation select-none"
                 }`}
                 title={
                   isRowBlocked
@@ -203,13 +203,13 @@ export const GameBoard = ({
               <button
                 key={`row-right-${rIdx}`}
                 disabled={isRowBlocked || isOppositeRight}
-                onClick={() => onShift("ROW", rIdx, "FORWARD")}
-                className={`w-full h-full rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 p-0 ${
+                onClick={(e) => { e.currentTarget.blur(); onShift("ROW", rIdx, "FORWARD"); }}
+                className={`w-full h-full rounded text-[9px] sm:text-xs font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
                   isOppositeRight
                     ? "invisible pointer-events-none"
                     : isRowBlocked
                       ? "bg-zinc-900/80 text-red-500 border-red-900/50 cursor-not-allowed"
-                      : "bg-zinc-950/80 border-white/10 hover:border-cyan-500/50 hover:text-cyan-400 text-zinc-500 cursor-pointer shadow-inner"
+                      : "bg-zinc-950/80 border-white/10 hover:border-white/20 focus:outline-none focus:bg-transparent active:bg-white/20 text-zinc-400 cursor-pointer shadow-inner touch-manipulation select-none"
                 }`}
                 title={
                   isRowBlocked
@@ -245,12 +245,12 @@ export const GameBoard = ({
               <button
                 key={`col-down-${colIdx}`}
                 disabled={isBlocked || isOpposite}
-                onClick={() => onShift("COL", colIdx, "FORWARD")}
-                className={`w-full h-4 sm:h-6 shrink-0 rounded text-[9px] sm:text-xs font-bold transition flex items-center justify-center border active:scale-90 p-0 ${ isOpposite
+                onClick={(e) => { e.currentTarget.blur(); onShift("COL", colIdx, "FORWARD"); }}
+                className={`w-full h-4 sm:h-6 shrink-0 rounded text-[9px] sm:text-xs font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${ isOpposite
                     ? "invisible pointer-events-none"
                     : isBlocked
                       ? "bg-zinc-900/80 text-red-500 border-red-900/50 cursor-not-allowed"
-                      : "bg-zinc-950/80 border-white/10 hover:border-cyan-500/50 hover:text-cyan-400 text-zinc-500 cursor-pointer shadow-inner"
+                      : "bg-zinc-950/80 border-white/10 hover:border-white/20 focus:outline-none focus:bg-transparent active:bg-white/20 text-zinc-400 cursor-pointer shadow-inner touch-manipulation select-none"
                 }`}
                 title={
                   isBlocked ? "Патруль полиции блокирует сдвиг" : "Сдвиг вниз"

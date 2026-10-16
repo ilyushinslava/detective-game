@@ -257,22 +257,22 @@ export const CharacterCard = memo(
           </div>
         )}
 
-        {/* Имя (внизу с градиентом) */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-6 pb-1.5 px-1 z-10 flex items-end justify-center">
+        {/* Имя (компактный бейдж внизу, полный текст целыми словами) */}
+        <div className="absolute bottom-0.5 inset-x-0.5 z-10 flex items-end justify-center pointer-events-none">
           <span
-            className={`block text-[10px] sm:text-xs md:text-sm font-black uppercase leading-tight tracking-wide drop-shadow-md break-normal whitespace-normal hyphens-none text-center ${
+            className={`block w-full text-[7.5px] sm:text-[8.5px] font-bold text-zinc-200 leading-[1.05] tracking-tight uppercase text-center px-1 py-0.5 rounded-sm bg-black/75 backdrop-blur-[2px] break-normal whitespace-pre-line hyphens-none ${
               isDead
                 ? isSecretService
-                  ? `${character.unmaskedSpyIndex === 0 ? "text-red-600 decoration-red-900" : character.unmaskedSpyIndex === 1 ? "text-cyan-600 decoration-cyan-900" : "text-zinc-600 decoration-zinc-800"} line-through`
-                  : "text-zinc-600 line-through decoration-red-900/70"
+                  ? `${character.unmaskedSpyIndex === 0 ? "text-red-400" : character.unmaskedSpyIndex === 1 ? "text-cyan-400" : "text-zinc-400"} line-through`
+                  : "text-zinc-400 line-through"
                 : isTargetVictim
-                  ? "text-red-400 drop-shadow-[0_0_5px_rgba(248,113,113,0.8)]"
+                  ? "text-red-300"
                   : isExonerated
-                    ? "text-cyan-300 drop-shadow-[0_0_5px_rgba(103,232,249,0.5)]"
-                    : "text-zinc-100"
+                    ? "text-cyan-200"
+                    : ""
             }`}
           >
-            {character.name}
+            {character.name.replace(" ", "\n")}
           </span>
         </div>
       </motion.div>

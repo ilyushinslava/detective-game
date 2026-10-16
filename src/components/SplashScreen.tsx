@@ -49,39 +49,29 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
   return (
     <div
       onClick={handleStart}
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black transition-opacity duration-700 select-none cursor-pointer ${
+      className={`fixed inset-0 z-[100] flex flex-col justify-end bg-black transition-opacity duration-700 select-none cursor-pointer pb-[max(4rem,env(safe-area-inset-bottom))] ${
         isFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
-      <div className="relative flex flex-col items-center">
-        {/* Нуарный силуэтный логотип */}
-        <div className="w-24 h-24 mb-6 rounded-full border border-zinc-800 bg-zinc-950/80 flex items-center justify-center shadow-[0_0_50px_rgba(255,255,255,0.06)] animate-pulse">
-          <svg
-            className="w-14 h-14 text-zinc-300"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1.5}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"
-            />
-          </svg>
-        </div>
+      {/* Полноэкранный арт-фон */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <img 
+          src="./splash-bg.png" 
+          alt="Astoria City Noir" 
+          className="w-full h-full object-cover opacity-95"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            if (!target.src.endsWith("/splash-bg.png")) target.src = "/splash-bg.png";
+          }}
+        />
+        {/* Градиент снизу для читаемости кнопки */}
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/50 to-transparent" />
+      </div>
 
-        {/* Заголовок игры */}
-        <h1 className="text-3xl font-extrabold tracking-widest text-zinc-100 uppercase mb-2">
-          СХВАТКА
-        </h1>
-        <p className="text-xs uppercase tracking-[0.3em] text-zinc-500 mb-12">
-          Город греха и тайн
-        </p>
-
-        {/* Призыв к взаимодействию для разблокировки звука */}
+      <div className="relative z-10 w-full px-6 flex justify-center mb-6">
+        {/* Призыв к взаимодействию для инициализации звука */}
         {!hasStarted && (
-          <div className="text-xs tracking-wider uppercase text-zinc-400 border border-zinc-800 bg-zinc-900/50 px-5 py-2.5 rounded-full hover:bg-zinc-800 transition-colors animate-bounce">
+          <div className="text-[10px] sm:text-xs font-black tracking-widest uppercase text-white/90 border border-white/20 bg-black/40 backdrop-blur-md px-8 py-3.5 rounded-full hover:bg-white/10 transition-all animate-bounce shadow-[0_0_25px_rgba(0,0,0,0.6)]">
             Коснитесь, чтобы войти
           </div>
         )}

@@ -90,6 +90,7 @@ export function createInitialState(
   playerCount: number = 3,
   targetTrophies: number = 3,
   maxTurns: number = 16,
+  playerName?: string,
 ): GameState {
   let boardSize = 5;
 
@@ -201,14 +202,14 @@ export function createInitialState(
       spies = [
         {
           id: "p1",
-          name: "Агент «Восток»",
+          name: playerName ? `${playerName} (Агент 1)` : "Агент 1",
           secretId: deck.shift()!,
           trophies: 0,
           isAI: false,
         },
         {
           id: "p2",
-          name: "Агент «Запад»",
+          name: "Агент 2",
           secretId: deck.shift()!,
           trophies: 0,
           isAI: false,
@@ -229,7 +230,7 @@ export function createInitialState(
       spies = [
         {
           id: "p1",
-          name: "Агент «Восток»",
+          name: playerName || "Агент",
           secretId: deck.shift()!,
           trophies: 0,
           isAI: false,
@@ -749,20 +750,34 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
     };
   }
 
-  const newBoard = state.board.map((row) =>
-    row.map((c) => (c.id === targetId ? { ...c, isExonerated: true } : c)),
-  );
+  let newBoard = state.board;
+  let nextVictims = [...state.victimList];
+  let nextDeck = [...state.evidenceDeck];
+  let logMsg = `Ложная проверка: ${targetName} не преступник, подозрения сняты.`;
+
+  if (state.mode === "THIEF_HUNT") {
+    logMsg = `Ложная проверка: ${targetName} не грабитель.`;
+  } else {
+    newBoard = state.board.map((row) =>
+      row.map((c) => (c.id === targetId ? { ...c, isExonerated: true } : c)),
+    );
+  }
+
+  if (state.mode === "MANIAC_VS_OPERATIVE" && nextVictims.length > 0) {
+    const returnedVictim = nextVictims.pop()!;
+    nextDeck.push(returnedVictim);
+    logMsg = `Ошибка следствия: одна из целей маньяка скрылась в колоде.`;
+  }
 
   return {
     ...state,
     board: newBoard,
+    victimList: nextVictims,
+    evidenceDeck: nextDeck,
     currentTurn: "KILLER",
     blockedShift: null,
     lastInterrogation: null,
-    log: [
-      ...state.log,
-      `Ложная проверка: ${targetName} не преступник, подозрения сняты.`,
-    ],
+    log: [...state.log, logMsg],
   };
 }
 
@@ -1182,23 +1197,11 @@ export function swearInOfficer(
     id === oldOfficerId ? newOfficerId : id,
   );
 
-  const unrobbed = state.board.flat().filter((c) => !c.isRobbed);
-  let newBoard = state.board;
-  let newTrophies = state.trophiesKiller ?? 0;
-  let isWin = false;
-
-  if (unrobbed.length > 0) {
-    const randomTarget = unrobbed[Math.floor(Math.random() * unrobbed.length)];
-    newBoard = state.board.map((row) =>
-      row.map((c) => (c.id === randomTarget.id ? { ...c, isRobbed: true } : c)),
-    );
-    newTrophies += 1;
-    isWin = newTrophies >= 5;
-  }
+  const newTrophies = (state.trophiesKiller ?? 0) + 1;
+  const isWin = newTrophies >= 5;
 
   return {
     ...state,
-    board: newBoard,
     uniformedOfficers: newOfficers,
     evidenceDeck: nextDeck,
     trophiesKiller: newTrophies,

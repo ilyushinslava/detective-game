@@ -14,6 +14,7 @@ import {
   disguiseKiller,
   exonerateFromHand,
   cleanupDeadCharacters,
+  swearInOfficer,
 } from "./gameLogic";
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
@@ -131,6 +132,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return exonerateFromHand(state, action.payload.targetId);
     case "CLEANUP":
       return cleanupDeadCharacters(state);
+    case "SWEAR_IN_OFFICER":
+      return swearInOfficer(state, action.payload.targetId);
 
     case "REQUEST_RESTART":
       return { ...state, restartRequestedBy: action.payload.requestedBy };

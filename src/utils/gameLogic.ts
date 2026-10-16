@@ -198,7 +198,25 @@ export function createInitialState(
   } else if (mode === "SECRET_SERVICE") {
     deck = shuffle(boardCharacters.map((c) => c.id));
 
-    if (opponent === "PVP" || opponent === "ONLINE") {
+    if (opponent === "PVP") {
+      spies = [
+        {
+          id: "p1",
+          name: "Фантом",
+          secretId: deck.shift()!,
+          trophies: 0,
+          isAI: false,
+        },
+        {
+          id: "p2",
+          name: "Призрак",
+          secretId: deck.shift()!,
+          trophies: 0,
+          isAI: false,
+        },
+      ];
+      spyTargetTrophies = targetTrophies;
+    } else if (opponent === "ONLINE") {
       spies = [
         {
           id: "p1",
@@ -272,6 +290,21 @@ export function createInitialState(
   ]);
   deck = deck.filter(id => !finalExcluded.has(id));
 
+  let modeTitle = mode as string;
+  if (mode === "SKHVATKA") modeTitle = "Схватка (Городская дуэль)";
+  else if (mode === "MANIAC_VS_OPERATIVE") modeTitle = "Маньяк против оперативника (Спецоперация)";
+  else if (mode === "THIEF_HUNT") modeTitle = "Охота на грабителя (План-перехват)";
+  else if (mode === "SECRET_SERVICE") modeTitle = "Секретная служба";
+
+  let formatDesc = "";
+  if (mode === "SECRET_SERVICE") {
+    if (opponent === "PVP") formatDesc = "Дуэль разведок (Локально: Фантом против Призрака, поле 5x5)";
+    else if (opponent === "ONLINE") formatDesc = "Сетевая дуэль разведок (2 агента, поле 5x5)";
+    else formatDesc = `Война разведок (${playerCount} агента, поле 5x5)`;
+  } else {
+    formatDesc = opponent === "AI" ? "Против бота" : opponent === "ONLINE" ? "Сетевая игра" : "Вдвоем";
+  }
+
   return {
     board,
     boardSize,
@@ -299,7 +332,7 @@ export function createInitialState(
     maxTurns,
     lastSpyInterrogation: null,
     log: [
-      `Операция началась (${mode}). Режим: ${mode === "SECRET_SERVICE" ? `Куча-мала (${playerCount} игр., поле ${boardSize}x${boardSize})` : opponent === "AI" ? "Против бота" : "Вдвоем"}.`,
+      `Операция началась: ${modeTitle}. Режим: ${formatDesc}.`,
       "Раунд 1: Первый ход.",
     ],
   };

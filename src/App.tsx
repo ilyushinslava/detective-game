@@ -319,7 +319,14 @@ export default function App() {
       }
 
       if (action.senderId === "remote") {
-        setIsIntroPhase(false); // Сбрасываем интро, если уже пошли игровые ходы от соперника
+        if (
+          action.type !== "SET_MATCH_POT" &&
+          action.type !== "MATCH_STARTED" &&
+          action.type !== "RESTART_GAME" &&
+          action.type !== "PLAYER_READY"
+        ) {
+          setIsIntroPhase(false); // Сбрасываем интро, если уже пошли игровые ходы от соперника
+        }
 
         if (action.type === "SHIFT_BOARD") soundManager.play('slide');
         if (action.type === "KILL_CHARACTER") soundManager.play('kill');
@@ -360,9 +367,7 @@ export default function App() {
     });
 
     mpService.onRoomClosed = () => {
-      if (!mpService.isHost) {
-        setOpponentDisconnectedNotice(true);
-      }
+      setOpponentDisconnectedNotice(true);
     };
 
     return () => {
@@ -599,6 +604,20 @@ export default function App() {
   const isKillerView = isPVP ? isKillerTurn : gameState.playerRole === "KILLER";
   const isDetectiveView = isPVP ? isDetectiveTurn : gameState.playerRole === "DETECTIVE";
 
+  let myCharacterId: string | null = null;
+  // В локальном PVP бейдж "ВЫ" строго отключен, так как оба игрока смотрят в один экран
+  if (!isPVP) {
+    if (gameState.mode === "SECRET_SERVICE" && gameState.spies) {
+      if (gameState.opponent === "ONLINE") {
+        myCharacterId = mpService.isHost ? gameState.spies[0].secretId : gameState.spies[1].secretId;
+      } else if (gameState.opponent === "AI") {
+        myCharacterId = gameState.spies[0].secretId;
+      }
+    } else {
+      myCharacterId = gameState.playerRole === "KILLER" ? gameState.killerSecretId : gameState.detectiveSecretId;
+    }
+  }
+
   let role1Name = "БАНДИТ";
   let role2Name = "ИНСПЕКТОР";
   if (gameState.mode === "MANIAC_VS_OPERATIVE") {
@@ -608,8 +627,8 @@ export default function App() {
     role1Name = gameState.spies?.[0]?.name ?? "Агент 1";
     role2Name = gameState.spies?.[1]?.name ?? "Агент 2";
   } else if (gameState.mode === "THIEF_HUNT") {
-    role1Name = "ВОР";
-    role2Name = "СЫЩИК";
+    role1Name = "ГРАБИТЕЛЬ";
+    role2Name = "ПОЛИЦИЯ";
   }
 
   let currentRoleName = isKillerTurn ? role1Name : role2Name;
@@ -680,7 +699,7 @@ export default function App() {
       playerCount,
       targetTrophies,
       maxTurns,
-      profile.nickname
+      opponent === "PVP" ? undefined : profile.nickname
     );
 
     if (
@@ -693,14 +712,9 @@ export default function App() {
     }
 
     if (opponent === "ONLINE" && mpService.isHost) {
+      newState.matchPot = betAmount * 2;
+      newState.matchBet = betAmount;
       mpService.broadcastMatchStart(newState);
-      setTimeout(() => {
-        dispatchAction({
-          type: "SET_MATCH_POT",
-          payload: { pot: betAmount * 2, bet: betAmount },
-          senderId: "local",
-        });
-      }, 200);
     }
 
     setActiveMode(modeId);
@@ -979,164 +993,164 @@ export default function App() {
   }, [gameState.board, selectedId]);
 
   const availableActions = useMemo<ActionItem[]>(() => {
-    const actions: ActionItem[] = [];
-    const isGameOver = gameState.winner !== null;
+        const actions: ActionItem[] = [];
+        const isGameOver = gameState.winner !== null;
 
-    if (gameState.mode === "SECRET_SERVICE") {
-      const activeSpySecretId = gameState.spies?.[gameState.activeSpyIndex ?? 0]?.secretId;
-      const validNeighbors = activeSpySecretId
-        ? getAdjacentCharacters(gameState.board, activeSpySecretId).map((c) => c.id)
-        : [];
-      const isNeighbor = Boolean(selectedId && validNeighbors.includes(selectedId));
-      const isSelfOrNeighbor = Boolean(selectedId && (validNeighbors.includes(selectedId) || selectedId === activeSpySecretId));
+        if (gameState.mode === "SECRET_SERVICE") {
+          const activeSpySecretId = gameState.spies?.[gameState.activeSpyIndex ?? 0]?.secretId;
+          const validNeighbors = activeSpySecretId
+            ? getAdjacentCharacters(gameState.board, activeSpySecretId).map((c) => c.id)
+            : [];
+          const isNeighbor = Boolean(selectedId && validNeighbors.includes(selectedId));
+          const isSelfOrNeighbor = Boolean(selectedId && (validNeighbors.includes(selectedId) || selectedId === activeSpySecretId));
 
-      actions.push({
-        id: "capture_spy",
-        label: "Разоблачение",
-        onClick: handleCaptureSpy,
-        disabled:
-          !isHumanTurn ||
-          !selectedId ||
-          !isNeighbor ||
-          isGameOver ||
-          !selectedCharacter?.isAlive,
-        className:
-          "py-2.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-      });
-      actions.push({
-        id: "interrogate_spy",
-        label: "Опрос свидетелей",
-        onClick: handleInterrogateSpy,
-        disabled:
-          !isHumanTurn ||
-          !selectedId ||
-          !isSelfOrNeighbor ||
-          isGameOver ||
-          !selectedCharacter?.isAlive,
-        className:
-          "py-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-      });
-      actions.push({
-        id: "cleanup_ss",
-        label: "Зачистить",
-        onClick: handleCleanup,
-        disabled: !isHumanTurn || !isCleanupAvailable,
-        className:
-          "py-2 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed flex items-center justify-center gap-2",
-      });
-    } else {
-      if (isKillerView) {
-        if (gameState.mode === "THIEF_HUNT") {
           actions.push({
-            id: "rob_basic",
-            label: "Кража",
-            onClick: handleRob,
+            id: "capture_spy",
+            label: "Разоблачение",
+            onClick: handleCaptureSpy,
             disabled:
               !isHumanTurn ||
               !selectedId ||
-              (!killerAdjacentIds.includes(selectedId) && selectedId !== gameState.killerSecretId) ||
+              !isNeighbor ||
               isGameOver ||
-              Boolean(selectedCharacter?.isRobbed),
+              !selectedCharacter?.isAlive,
             className:
-              "py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              "py-2 sm:py-2.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
           actions.push({
-            id: "disguise_thief",
-            label: "Конспирация",
-            onClick: () => setIsHandSheetOpen(true),
-            disabled: !isHumanTurn || isGameOver,
+            id: "interrogate_spy",
+            label: "Опрос свидетелей",
+            onClick: handleInterrogateSpy,
+            disabled:
+              !isHumanTurn ||
+              !selectedId ||
+              !isSelfOrNeighbor ||
+              isGameOver ||
+              !selectedCharacter?.isAlive,
             className:
-              "py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              "py-2 sm:py-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          });
+          actions.push({
+            id: "cleanup_ss",
+            label: "Зачистить",
+            onClick: handleCleanup,
+            disabled: !isHumanTurn || !isCleanupAvailable,
+            className:
+              "py-1.5 sm:py-2 md:py-2.5 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[9px] sm:text-[10px] md:text-xs font-bold rounded-xl transition disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
         } else {
-          actions.push({
-            id: "kill_basic",
-            label: "Ликвидация",
-            onClick: handleKill,
-            disabled:
-              !isHumanTurn ||
-              !selectedId ||
-              !killerAdjacentIds.includes(selectedId) ||
-              isGameOver ||
-              (gameState.mode === "MANIAC_VS_OPERATIVE" && selectedId !== gameState.victimList[0]),
-            className:
-              "py-2.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-          });
-        }
-
-        if (gameState.mode === "SKHVATKA") {
-          actions.push({
-            id: "disguise_skhvatka",
-            label: "Конспирация",
-            onClick: handleDisguise,
-            disabled:
-              !isHumanTurn ||
-              isFirstTurnKiller ||
-              gameState.evidenceDeck.length === 0 ||
-              isGameOver,
-            className:
-              "py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-          });
-        }
-        if (gameState.mode === "MANIAC_VS_OPERATIVE") {
-          actions.push({
-            id: "escape_maniac",
-            label: "Конспирация",
-            onClick: handleEscapeManiac,
-            disabled:
-              !isHumanTurn || gameState.evidenceDeck.length < 2 || isGameOver,
-            className:
-              "py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-          });
-        }
-      } else {
-        actions.push({
-          id: "accuse_basic",
-          label: "Задержание",
-          onClick: handleAccuse,
-          disabled: (() => {
-            if (!isHumanTurn || !selectedId || Boolean(selectedCharacter?.isDead) || isGameOver) return true;
-            let isAdjacent = detectiveAdjacentIds.includes(selectedId);
-            let isSelf = selectedId === gameState.detectiveSecretId;
-            if (gameState.mode === "THIEF_HUNT" && gameState.uniformedOfficers) {
-              const isNearOfficer = gameState.uniformedOfficers.some((offId) =>
-                getAdjacentCharacters(gameState.board, offId).map(c => c.id).includes(selectedId)
-              );
-              const isOfficerSelf = gameState.uniformedOfficers.includes(selectedId);
-              isAdjacent = isAdjacent || isNearOfficer;
-              isSelf = isSelf || isOfficerSelf;
+          if (isKillerView) {
+            if (gameState.mode === "THIEF_HUNT") {
+              actions.push({
+                id: "rob_basic",
+                label: "Кража",
+                onClick: handleRob,
+                disabled:
+                  !isHumanTurn ||
+                  !selectedId ||
+                  (!killerAdjacentIds.includes(selectedId) && selectedId !== gameState.killerSecretId) ||
+                  isGameOver ||
+                  Boolean(selectedCharacter?.isRobbed),
+                className:
+                  "py-2 sm:py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              });
+              actions.push({
+                id: "disguise_thief",
+                label: "Конспирация",
+                onClick: () => setIsHandSheetOpen(true),
+                disabled: !isHumanTurn || isGameOver,
+                className:
+                  "py-2 sm:py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              });
+            } else {
+              actions.push({
+                id: "kill_basic",
+                label: "Ликвидация",
+                onClick: handleKill,
+                disabled:
+                  !isHumanTurn ||
+                  !selectedId ||
+                  !killerAdjacentIds.includes(selectedId) ||
+                  isGameOver ||
+                  (gameState.mode === "MANIAC_VS_OPERATIVE" && selectedId !== gameState.victimList[0]),
+                className:
+                  "py-2 sm:py-2.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              });
             }
-            return !isAdjacent && !isSelf;
-          })(),
-          className:
-            "py-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-        });
 
-        if (gameState.mode === "THIEF_HUNT") {
-          actions.push({
-            id: "patrol_call",
-            label: "Вызов патруля",
-            onClick: handleSwearInOfficer,
-            disabled: !isHumanTurn || !selectedId || !gameState.uniformedOfficers?.includes(selectedId) || isGameOver || gameState.evidenceDeck.length === 0,
-            className: "py-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-          });
+            if (gameState.mode === "SKHVATKA") {
+              actions.push({
+                id: "disguise_skhvatka",
+                label: "Конспирация",
+                onClick: handleDisguise,
+                disabled:
+                  !isHumanTurn ||
+                  isFirstTurnKiller ||
+                  gameState.evidenceDeck.length === 0 ||
+                  isGameOver,
+                className:
+                  "py-2 sm:py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              });
+            }
+            if (gameState.mode === "MANIAC_VS_OPERATIVE") {
+              actions.push({
+                id: "escape_maniac",
+                label: "Конспирация",
+                onClick: handleEscapeManiac,
+                disabled:
+                  !isHumanTurn || gameState.evidenceDeck.length < 2 || isGameOver,
+                className:
+                  "py-2 sm:py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              });
+            }
+          } else {
+            actions.push({
+              id: "accuse_basic",
+              label: "Задержание",
+              onClick: handleAccuse,
+              disabled: (() => {
+                if (!isHumanTurn || !selectedId || Boolean(selectedCharacter?.isDead) || isGameOver) return true;
+                let isAdjacent = detectiveAdjacentIds.includes(selectedId);
+                let isSelf = selectedId === gameState.detectiveSecretId;
+                if (gameState.mode === "THIEF_HUNT" && gameState.uniformedOfficers) {
+                  const isNearOfficer = gameState.uniformedOfficers.some((offId) =>
+                    getAdjacentCharacters(gameState.board, offId).map(c => c.id).includes(selectedId)
+                  );
+                  const isOfficerSelf = gameState.uniformedOfficers.includes(selectedId);
+                  isAdjacent = isAdjacent || isNearOfficer;
+                  isSelf = isSelf || isOfficerSelf;
+                }
+                return !isAdjacent && !isSelf;
+              })(),
+              className:
+                "py-2 sm:py-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+            });
+
+            if (gameState.mode === "THIEF_HUNT") {
+              actions.push({
+                id: "patrol_call",
+                label: "Вызов патруля",
+                onClick: handleSwearInOfficer,
+                disabled: !isHumanTurn || !selectedId || !gameState.uniformedOfficers?.includes(selectedId) || isGameOver || gameState.evidenceDeck.length === 0,
+                className: "py-2 sm:py-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              });
+            }
+          }
+
+          if (gameState.mode !== "THIEF_HUNT") {
+            actions.push({
+              id: "cleanup_basic",
+              label: "Зачистить",
+              onClick: handleCleanup,
+              disabled: !isHumanTurn || !isCleanupAvailable,
+              className:
+                "py-1.5 sm:py-2 md:py-2.5 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[9px] sm:text-[10px] md:text-xs font-bold rounded-xl transition disabled:cursor-not-allowed flex items-center justify-center gap-2",
+            });
+          }
         }
-      }
 
-      if (gameState.mode !== "THIEF_HUNT") {
-        actions.push({
-          id: "cleanup_basic",
-          label: "Зачистить",
-          onClick: handleCleanup,
-          disabled: !isHumanTurn || !isCleanupAvailable,
-          className:
-            "py-2 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[11px] font-bold rounded-xl transition disabled:cursor-not-allowed flex items-center justify-center gap-2",
-        });
-      }
-    }
-
-    return actions;
-  }, [
+        return actions;
+      }, [
     gameState.mode,
     gameState.winner,
     gameState.evidenceDeck.length,
@@ -1290,14 +1304,14 @@ export default function App() {
             playerRole={gameState.playerRole}
             role1Name={
               gameState.mode === "SECRET_SERVICE"
-                ? gameState.spies?.[0]?.name || "Агент 1"
+                ? (gameState.opponent === "PVP" ? "Фантом" : (gameState.spies?.[0]?.name || "Агент 1"))
                 : mpService.isHost
                   ? profile.nickname || "Бандит"
                   : "Бандит"
             }
             role2Name={
               gameState.mode === "SECRET_SERVICE"
-                ? gameState.spies?.[1]?.name || "Агент 2"
+                ? (gameState.opponent === "PVP" ? "Призрак" : (gameState.spies?.[1]?.name || "Агент 2"))
                 : !mpService.isHost
                   ? profile.nickname || "Инспектор"
                   : "Инспектор"
@@ -1691,6 +1705,7 @@ export default function App() {
                 radarCellIds={radarCellIds}
                 radarColorClass={radarColorClass}
                 errorCardId={errorCardId}
+                myCharacterId={myCharacterId}
                 onShift={handleShift}
                 onSelectCharacter={(id) =>
                   isHumanTurn &&
@@ -1701,7 +1716,7 @@ export default function App() {
           </main>
 
           {/* 3. КОНТЕКСТНАЯ ПАНЕЛЬ УПРАВЛЕНИЯ */}
-          <footer className="w-full max-w-md md:w-80 lg:w-96 shrink-0 flex flex-col justify-center gap-3 z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-0 px-1 md:px-0 md:my-auto">
+          <footer className="w-full max-w-md md:w-80 lg:w-96 shrink-0 flex flex-col justify-center gap-3 z-20 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-0 px-1 md:px-0 md:my-auto">
             <RoleCards
               mode={gameState.mode}
               role1Name={role1Name}
@@ -1782,7 +1797,7 @@ export default function App() {
                       ((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView)
                         ? "col-span-1"
                         : "col-span-2"
-                    } py-2 md:py-2.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-300 hover:text-zinc-200 text-[10px] md:text-xs font-bold uppercase rounded-xl border border-zinc-700/80 transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5`}
+                    } py-1.5 sm:py-2 md:py-2.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-300 hover:text-zinc-200 text-[9px] sm:text-[10px] md:text-xs font-bold uppercase rounded-xl border border-zinc-700/80 transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5`}
                   >
                     <span>↻</span>
                     <span>Зачистить</span>
@@ -1792,7 +1807,7 @@ export default function App() {
                 {((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView) && (
                   <button
                     onClick={() => setIsHandSheetOpen(true)}
-                    className={`${cleanupAction ? "col-span-1" : "col-span-2"} py-2 md:py-2.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer`}
+                    className={`${cleanupAction ? "col-span-1" : "col-span-2"} py-1.5 sm:py-2 md:py-2.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer`}
                   >
                     <span>🗂</span>
                     <span>Досье ({gameState.detectiveHand.length})</span>
@@ -2211,11 +2226,11 @@ export default function App() {
                 Справочник правил
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   sessionStorage.removeItem('mp_session');
                   if (gameState.opponent === "ONLINE") {
                     if (!gameState.winner) refundBet(gameState.matchBet || 250);
-                    mpService.disconnect();
+                    await mpService.leaveRoom();
                   }
                   setGameState(
                     createInitialState("SKHVATKA", "AI", "DETECTIVE", 3, 3, 16, profile.nickname),
@@ -2481,7 +2496,7 @@ export default function App() {
                       <div className="p-3.5 pt-1 border-t border-zinc-800/60 space-y-2.5 leading-relaxed text-[11px]">
                         <p>
                           <b className="text-zinc-100">Форматы:</b> каждый сам за
-                          себя (куча-мала) или дуэль разведок.
+                          себя («Война разведок») или дуэль разведок.
                         </p>
                         <p>
                           <b className="text-indigo-400">Цель:</b> первым накопить

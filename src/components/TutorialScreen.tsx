@@ -69,7 +69,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   );
 
   const { radarTargetId, radarCellIds, radarColorClass } = useMemo(() => {
-    const tacticalRadarClass = "!ring-0 outline outline-2 outline-dashed outline-cyan-400/80 outline-offset-1 animate-pulse";
+    const tacticalRadarClass = "ring-cyan-500/80 border-cyan-500";
     
     if (lesson === 2 && step === 3 && killedTargetId) {
       const neighborIds = getAdjacentCharacters(board, killedTargetId).map((c) => c.id);
@@ -219,6 +219,11 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       (lesson === 3 && step === 2 && selectedId) ||
       (lesson === 4 && step === 3 && selectedId)
     ) {
+      const targetId = selectedId;
+      const newBoard = board.map((row) =>
+        row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c))
+      );
+      setBoard(newBoard);
       soundManager.play("arrest");
       triggerHaptic("success");
       setStep(lesson === 3 ? 3 : 4);
@@ -228,40 +233,17 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   return (
     <div className="fixed inset-0 z-[100] bg-[#080a0f] flex flex-col overflow-hidden font-sans select-none text-zinc-100 h-full w-full">
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-            ${
-              lesson === 1 && step === 2
-                ? `
-                button[title="Сдвиг влево"]:nth-of-type(3) {
-                  position: relative; z-index: 30;
-                  box-shadow: 0 0 15px rgba(37,99,235,0.9) !important;
-                  border-color: #60a5fa !important;
-                  background-color: rgba(37,99,235,0.2) !important;
-                  color: white !important;
-                  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
-                }
-              `
-                : ""
-            }
-            ${
-              lesson === 4 && step === 1
-                ? `
-                button[title="Сдвиг влево"]:nth-of-type(2) {
-                  position: relative; z-index: 30;
-                  box-shadow: 0 0 15px rgba(37,99,235,0.9) !important;
-                  border-color: #60a5fa !important;
-                  background-color: rgba(37,99,235,0.2) !important;
-                  color: white !important;
-                  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
-                }
-              `
-                : ""
-            }
-          `,
-        }}
-      />
+      <style>{`
+        .tutorial-highlight-l1s2 button[title="Сдвиг влево"]:nth-of-type(3),
+        .tutorial-highlight-l4s1 button[title="Сдвиг влево"]:nth-of-type(2) {
+          position: relative; z-index: 30;
+          box-shadow: 0 0 15px rgba(37,99,235,0.9) !important;
+          border-color: #60a5fa !important;
+          background-color: rgba(37,99,235,0.2) !important;
+          color: white !important;
+          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+        }
+      `}</style>
 
       {/* Шапка */}
       <div className="w-full flex items-center justify-between px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-[#080a0f] z-20">
@@ -482,7 +464,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                 exit={{ opacity: 0, y: 10 }}
               >
                 <h3 className="text-lg font-black text-white uppercase tracking-widest mb-1.5">
-                  Бандит приблизился! Ваш ход
+                  Бандит приблизился! Ваш ход: Задержание
                 </h3>
                 <p className="text-[10px] sm:text-xs text-zinc-400 leading-relaxed font-mono">
                   После сдвига 3-го ряда <b className="text-zinc-200">{playerCharName}</b> оказалась прямо под подозреваемой!
@@ -525,20 +507,20 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
         </div>
 
         {/* Доска */}
-        <div className="flex-1 min-h-0 w-full flex items-center justify-center pointer-events-auto">
+        <div className={`flex-1 min-h-0 w-full flex items-center justify-center pointer-events-auto ${lesson === 1 && step === 2 ? 'tutorial-highlight-l1s2' : ''} ${lesson === 4 && step === 1 ? 'tutorial-highlight-l4s1' : ''}`}>
           <GameBoard
             mode="SKHVATKA"
             board={board}
             selectedCharacterId={selectedId}
             killerAdjacentIds={lesson === 1 || lesson === 2 ? adjacentIds : []}
             detectiveAdjacentIds={
-              lesson === 3 ? [L4_KILLER_ID] : lesson === 4 ? [L4_KILLER_ID] : []
+              lesson === 3 ? [L4_KILLER_ID] : (lesson === 4 && step === 2) ? playerAdjacentIds : []
             }
             showKillerHints={
               (lesson === 1 && step === 1) || (lesson === 2 && step === 1)
             }
             showDetectiveHints={
-              (lesson === 3 && step === 1) || (lesson === 4 && !isEnemyTurn && (step === 1 || step === 2))
+              (lesson === 3 && step === 1) || (lesson === 4 && step === 2)
             }
             radarTargetId={radarTargetId}
             radarCellIds={radarCellIds}

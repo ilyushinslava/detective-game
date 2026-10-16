@@ -31,8 +31,8 @@ export const GameOverModal = ({
     killerTitle = 'Маньяк';
     detectiveTitle = 'Оперативник';
   } else if (mode === 'SECRET_SERVICE') {
-    killerTitle = 'Агент 1';
-    detectiveTitle = 'Агент 2';
+    killerTitle = 'Фантом';
+    detectiveTitle = 'Призрак';
   }
 
   const isKillerWin = winner === 'KILLER';
@@ -92,10 +92,10 @@ export const GameOverModal = ({
 
         <button
           onClick={onRestart}
-          className={`w-full h-14 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition shadow-lg ${
+          className={`w-full h-14 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition shadow-lg border-t border-white/25 ${
             isKillerWin
-              ? 'bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]'
-              : 'bg-gradient-to-r from-cyan-700 to-cyan-600 hover:from-cyan-600 hover:to-cyan-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)]'
+              ? 'bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)]'
+              : 'bg-gradient-to-r from-cyan-700 to-cyan-600 hover:from-cyan-600 hover:to-cyan-500 text-white shadow-[0_10px_25px_rgba(6,182,212,0.5)]'
           }`}
         >
           <span>Новое расследование</span>

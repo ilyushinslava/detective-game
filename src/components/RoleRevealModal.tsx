@@ -158,8 +158,8 @@ export const RoleRevealModal = ({
     role1Goal = "Похитить 5 сокровищ у соседей и менять маски";
     role2Goal = "Выставлять патрули на улицы и арестовать Грабителя";
   } else if (mode === "SECRET_SERVICE") {
-    role1Name = propRole1Name || "Агент 1";
-    role2Name = propRole2Name || "Агент 2";
+    role1Name = propRole1Name || "Фантом";
+    role2Name = propRole2Name || "Призрак";
     role1Goal = "Собрать 4 трофея, разоблачая шпиона";
     role2Goal = "Собрать 4 трофея, разоблачая шпиона";
   }
@@ -185,24 +185,54 @@ export const RoleRevealModal = ({
   // Онлайн-ожидание и АФК-таймер
   const [isWaitingRemote, setIsWaitingRemote] = useState(false);
   const [afkSecondsLeft, setAfkSecondsLeft] = useState(30);
+  const [isRemoteReady, setIsRemoteReady] = useState(false);
   const remoteReadyRef = useRef(false);
+  const isWaitingRemoteRef = useRef(false);
+  const completedRef = useRef(false);
+  const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  const completeOnce = () => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    onCompleteRef.current();
+  };
+
+  useEffect(() => {
+    isWaitingRemoteRef.current = isWaitingRemote;
+  }, [isWaitingRemote]);
 
   useEffect(() => {
     if (opponent !== "ONLINE") return;
 
-    const unsubscribe = mpService.subscribeToActions((action: any) => {
-      if (action.type === "PLAYER_READY") {
+    const checkAndComplete = (ready: boolean) => {
+      if (ready) {
         remoteReadyRef.current = true;
-        if (isWaitingRemote) {
-          onComplete();
+        setIsRemoteReady(true);
+        if (isWaitingRemoteRef.current) {
+          completeOnce();
         }
+      }
+    };
+
+    const unsubscribeActions = mpService.subscribeToActions((action: any) => {
+      if (action.type === "PLAYER_READY") {
+        checkAndComplete(true);
       }
     });
 
+    const unsubscribePresence = mpService.subscribeToOpponentReady((ready) => {
+      checkAndComplete(ready);
+    });
+
     return () => {
-      unsubscribe();
+      unsubscribeActions();
+      unsubscribePresence();
     };
-  }, [opponent, isWaitingRemote, onComplete]);
+  }, [opponent]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
@@ -233,11 +263,11 @@ export const RoleRevealModal = ({
     if (selectedInspectorId) {
       onSelectDetectiveRole(selectedInspectorId);
     }
+    isWaitingRemoteRef.current = true;
+    mpService.setPlayerReady(true);
     mpService.sendAction({ type: "PLAYER_READY", senderId: "local" } as any);
-    if (remoteReadyRef.current) {
-      onComplete();
-    } else {
-      setIsWaitingRemote(true);
+    if (remoteReadyRef.current || isRemoteReady) {
+      completeOnce();
     }
   };
 
@@ -594,7 +624,7 @@ export const RoleRevealModal = ({
                 1
               </div>
               <h2 className="text-xl font-black uppercase tracking-widest text-zinc-100 mb-3">
-                Агент «Восток»
+                Фантом
               </h2>
               <p className="text-[10px] font-mono text-zinc-500 max-w-xs leading-relaxed uppercase tracking-widest">
                 Убедитесь, что второй игрок не смотрит на экран перед раскрытием вашей тайной личности.
@@ -612,7 +642,7 @@ export const RoleRevealModal = ({
               <span className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-3">
                 Тайная личность
               </span>
-              {renderCharacterCard(detective, "Агент «Восток»", true)}
+              {renderCharacterCard(detective, "Фантом", true)}
               <div className="w-full text-left space-y-2 mt-1">
                 <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Цель операции</span>
@@ -622,7 +652,7 @@ export const RoleRevealModal = ({
               {getActionTiles(mode, "DETECTIVE")}
             </div>
             <button onClick={() => setPhase("SPY_P2_PROMPT")} className="w-full h-14 mt-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-white/10 text-[10px] font-black uppercase tracking-widest rounded-full transition flex items-center justify-center gap-2 cursor-pointer shrink-0">
-              <Icons.Lock className="w-4 h-4" /> <span>Скрыть и передать Агенту «Запад»</span>
+              <Icons.Lock className="w-4 h-4" /> <span>Скрыть и передать Призраку</span>
             </button>
           </>
         )}
@@ -635,10 +665,10 @@ export const RoleRevealModal = ({
                 2
               </div>
               <h2 className="text-xl font-black uppercase tracking-widest text-zinc-100 mb-3">
-                Агент «Запад»
+                Призрак
               </h2>
               <p className="text-[10px] font-mono text-zinc-500 max-w-xs leading-relaxed uppercase tracking-widest">
-                Агент «Восток» передал устройство. Ознакомьтесь с вашей тайной ролью.
+                Фантом передал устройство. Ознакомьтесь с вашей тайной ролью.
               </p>
             </div>
             <button onClick={() => setPhase("SPY_P2_REVEAL")} className="w-full h-14 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-white/10 text-[10px] font-black uppercase tracking-widest rounded-full transition flex items-center justify-center gap-2 cursor-pointer shrink-0">
@@ -653,7 +683,7 @@ export const RoleRevealModal = ({
               <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-3">
                 Тайная личность
               </span>
-              {renderCharacterCard(killer, "Агент «Запад»", false)}
+              {renderCharacterCard(killer, "Призрак", false)}
               <div className="w-full text-left space-y-2 mt-1">
                 <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Цель операции</span>
@@ -690,6 +720,7 @@ export const RoleRevealModal = ({
               {getActionTiles(mode, "KILLER")}
             </div>
             <button
+              data-testid="ready-button"
               onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
               className="w-full h-14 mt-4 bg-gradient-to-r from-red-700 via-red-600 to-red-800 hover:from-red-600 hover:to-red-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_0_20px_rgba(220,38,38,0.45)] flex items-center justify-center gap-2 cursor-pointer shrink-0"
             >
@@ -731,6 +762,7 @@ export const RoleRevealModal = ({
               {mode !== "SKHVATKA" && getActionTiles(mode, "DETECTIVE")}
             </div>
             <button
+              data-testid="ready-button"
               onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
               className="w-full h-14 mt-4 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_0_20px_rgba(6,182,212,0.45)] flex items-center justify-center gap-2 cursor-pointer shrink-0"
             >

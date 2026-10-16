@@ -47,10 +47,12 @@ class MultiplayerService {
   public roomCode: string | null = null;
   public myClientId: string =
     "client_" + Date.now() + "_" + Math.random().toString(16).slice(2, 6);
-  public hostName: string = "Агент 1";
-  public guestName: string = "Агент 2";
+  public hostName: string = "Игрок 1";
+  public guestName: string = "Игрок 2";
 
   private actionSubscribers: Set<ActionCallback> = new Set();
+  private processedActionIds: Set<string> = new Set();
+  private connectedRef: DatabaseReference | null = null;
   private authPromise: Promise<any> | null = null;
   private roomRef: DatabaseReference | null = null;
 
@@ -100,28 +102,35 @@ class MultiplayerService {
       if (data.status === "CLOSED" || (!data.hostConnected && !data.guestConnected)) throw new Error("Room dead");
 
       this.hostName = data.hostName;
-      this.guestName = data.guestName || "Агент 2";
+      this.guestName = data.guestName || "Игрок 2";
 
       this.actionsRef = ref(db, `rooms/${code}/actions`);
       this.guestRef = ref(db, `rooms/${code}/guestId`);
 
       if (isHost) {
         this.hostConnectedRef = ref(db, `rooms/${code}/hostConnected`);
-        onDisconnect(this.hostConnectedRef).set(false).catch(() => {});
-        await update(this.roomRef, { hostConnected: true });
-        
         onValue(ref(db, `rooms/${code}/guestConnected`), (s) => {
           if (this.onPresenceChanged) this.onPresenceChanged(s.val() === true);
         });
       } else {
         this.guestConnectedRef = ref(db, `rooms/${code}/guestConnected`);
-        onDisconnect(this.guestConnectedRef).set(false).catch(() => {});
-        await update(this.roomRef, { guestConnected: true });
-
         onValue(ref(db, `rooms/${code}/hostConnected`), (s) => {
           if (this.onPresenceChanged) this.onPresenceChanged(s.val() === true);
         });
       }
+
+      this.connectedRef = ref(db, ".info/connected");
+      onValue(this.connectedRef, (s) => {
+        if (s.val() === true) {
+          if (isHost && this.hostConnectedRef && this.roomRef) {
+            onDisconnect(this.hostConnectedRef).set(false).catch(() => {});
+            update(this.roomRef, { hostConnected: true }).catch(() => {});
+          } else if (!isHost && this.guestConnectedRef && this.roomRef) {
+            onDisconnect(this.guestConnectedRef).set(false).catch(() => {});
+            update(this.roomRef, { guestConnected: true }).catch(() => {});
+          }
+        }
+      });
 
       this.listenToActions();
 
@@ -238,7 +247,7 @@ class MultiplayerService {
   ) {
     await this.disconnect();
     this.isHost = true;
-    this.hostName = hostName.trim() || "Агент 1";
+    this.hostName = hostName.trim() || "Игрок 1";
     const code = this.generateCode();
     this.roomCode = code;
     this.onPlayerConnected = onConnected;
@@ -250,11 +259,23 @@ class MultiplayerService {
       this.guestRef = ref(db, `rooms/${code}/guestId`);
 
       this.hostConnectedRef = ref(db, `rooms/${code}/hostConnected`);
-      onDisconnect(this.hostConnectedRef).set(false).catch(() => {});
-      await update(this.roomRef, { hostConnected: true });
       
       onValue(ref(db, `rooms/${code}/guestConnected`), (s) => {
         if (this.onPresenceChanged) this.onPresenceChanged(s.val() === true);
+      });
+
+      this.connectedRef = ref(db, ".info/connected");
+      onValue(this.connectedRef, (s) => {
+        if (s.val() === true && this.hostConnectedRef && this.roomRef) {
+          onDisconnect(this.hostConnectedRef).set(false).catch(() => {});
+          update(this.roomRef, { hostConnected: true }).catch(() => {});
+        }
+      });
+
+      onValue(this.roomRef, (snap) => {
+        if (!snap.exists() || snap.val()?.status === "CLOSED") {
+          if (this.onRoomClosed) this.onRoomClosed();
+        }
       });
 
       await set(this.roomRef, {
@@ -266,6 +287,7 @@ class MultiplayerService {
         createdAt: Date.now(),
         mode: mode,
       });
+      await remove(this.actionsRef);
 
       if (!isPrivate) {
         const publicRoomRef = ref(db, `public_rooms/${code}`);
@@ -298,9 +320,9 @@ class MultiplayerService {
           guestWasConnected = true;
           try {
             const nameSnap = await get(ref(db, `rooms/${code}/guestName`));
-            this.guestName = nameSnap.val() || "Запад";
+            this.guestName = nameSnap.val() || "Игрок 2";
           } catch {
-            this.guestName = "Запад";
+            this.guestName = "Игрок 2";
           }
 
           // Обновляем счетчик игроков в публичном лобби
@@ -330,7 +352,7 @@ class MultiplayerService {
     await this.disconnect();
     this.isHost = false;
     this.roomCode = code;
-    this.guestName = guestName.trim() || "Агент 2";
+    this.guestName = guestName.trim() || "Игрок 2";
     this.onPlayerConnected = onConnected;
 
     try {
@@ -344,12 +366,13 @@ class MultiplayerService {
       }
 
       const data = snapshot.val();
-      this.hostName = data.hostName || "Восток";
+      this.hostName = data.hostName || "Игрок 1";
 
       await update(this.roomRef, {
         guestId: this.myClientId,
         guestName: this.guestName,
         status: "CONNECTED",
+        guestConnected: true,
       });
 
       // Обновляем счетчик в публичном лобби
@@ -357,25 +380,26 @@ class MultiplayerService {
         () => {},
       );
 
-this.guestRef = ref(db, `rooms/${code}/guestId`);
+      this.guestRef = ref(db, `rooms/${code}/guestId`);
       this.guestConnectedRef = ref(db, `rooms/${code}/guestConnected`);
-      onDisconnect(this.guestConnectedRef).set(false).catch(() => {});
-      await update(this.roomRef, { guestConnected: true });
 
       onValue(ref(db, `rooms/${code}/hostConnected`), (s) => {
         if (this.onPresenceChanged) this.onPresenceChanged(s.val() === true);
       });
 
+      this.connectedRef = ref(db, ".info/connected");
+      onValue(this.connectedRef, (s) => {
+        if (s.val() === true && this.guestConnectedRef && this.roomRef) {
+          onDisconnect(this.guestConnectedRef).set(false).catch(() => {});
+          update(this.roomRef, { guestConnected: true }).catch(() => {});
+        }
+      });
+
       if (this.onPlayerConnected) this.onPlayerConnected();
 
-      let hostWasConnected = true;
-
       onValue(this.roomRef, (snap) => {
-        if (!snap.exists()) {
-          if (hostWasConnected) {
-            hostWasConnected = false;
-            if (this.onRoomClosed) this.onRoomClosed();
-          }
+        if (!snap.exists() || snap.val()?.status === "CLOSED") {
+          if (this.onRoomClosed) this.onRoomClosed();
         }
       });
 
@@ -397,8 +421,20 @@ this.guestRef = ref(db, `rooms/${code}/guestId`);
 
       if (data.actionJson) {
         try {
-          const parsed = JSON.parse(data.actionJson);
-          this.notifySubscribers(parsed as GameAction);
+          const parsed = JSON.parse(data.actionJson) as GameAction;
+          
+          if (parsed.type === "MATCH_STARTED" || parsed.type === "RESTART_GAME") {
+            this.processedActionIds.clear();
+          } else if (data.actionId) {
+            if (this.processedActionIds.has(data.actionId)) return;
+            this.processedActionIds.add(data.actionId);
+            if (this.processedActionIds.size > 100) {
+              const first = this.processedActionIds.values().next().value;
+              if (first) this.processedActionIds.delete(first);
+            }
+          }
+
+          this.notifySubscribers(parsed);
         } catch (e) {
           console.error("Action parse error", e);
         }
@@ -406,18 +442,42 @@ this.guestRef = ref(db, `rooms/${code}/guestId`);
     });
   }
 
+  public setPlayerReady(isReady: boolean = true) {
+    if (!this.roomCode) return;
+    update(
+      ref(db, `rooms/${this.roomCode}`),
+      this.isHost ? { hostReady: isReady } : { guestReady: isReady }
+    ).catch(() => {});
+  }
+
+  public subscribeToOpponentReady(callback: (ready: boolean) => void): () => void {
+    if (!this.roomCode) return () => {};
+    const readyKey = this.isHost ? "guestReady" : "hostReady";
+    const targetRef = ref(db, `rooms/${this.roomCode}/${readyKey}`);
+    const unsubscribe = onValue(targetRef, (snapshot) => {
+      callback(snapshot.val() === true);
+    });
+    return () => {
+      off(targetRef);
+    };
+  }
+
   public broadcastMatchStart(state: any) {
     if (!this.roomCode) return;
+    this.processedActionIds.clear();
+    Promise.resolve(update(ref(db, `rooms/${this.roomCode}`), { hostReady: false, guestReady: false })).catch(() => {});
+    const actionId = `${this.myClientId}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const action: GameAction = {
       type: "MATCH_STARTED",
       payload: { state },
       senderId: "remote",
       timestamp: Date.now(),
+      actionId,
     } as any;
 
     set(ref(db, `rooms/${this.roomCode}/actions`), {
       senderClientId: this.myClientId,
-      actionId: Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+      actionId,
       actionJson: JSON.stringify(action),
       timestamp: Date.now(),
     });
@@ -425,20 +485,38 @@ this.guestRef = ref(db, `rooms/${code}/guestId`);
 
   public sendAction(action: GameAction) {
     if (!this.roomCode) return;
+    const actionId = `${this.myClientId}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
     set(ref(db, `rooms/${this.roomCode}/actions`), {
       senderClientId: this.myClientId,
-      actionId: Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+      actionId,
       actionJson: JSON.stringify({
         ...action,
         senderId: "remote",
+        actionId,
       }),
       timestamp: Date.now(),
     });
   }
 
-  public async disconnect(): Promise<void> {
+  public async disconnect(intentionalLeave: boolean = false): Promise<void> {
+    this.processedActionIds.clear();
     try {
+      if (this.roomRef) {
+        if (this.isHost) {
+  await update(this.roomRef, { hostConnected: false, status: "CLOSED" }).catch(() => {});
+} else if (!intentionalLeave) {
+  await update(this.roomRef, {
+    guestConnected: false,
+    guestId: "",
+    status: "WAITING",
+  }).catch(() => {});
+}
+      }
+      if (this.connectedRef) {
+        off(this.connectedRef);
+        this.connectedRef = null;
+      }
       if (this.hostConnectedRef) {
         off(this.hostConnectedRef);
         onDisconnect(this.hostConnectedRef).cancel().catch(() => {});
@@ -471,13 +549,7 @@ this.guestRef = ref(db, `rooms/${code}/guestId`);
           }
           await Promise.all(promises);
         } else {
-          const promises = [
-            update(this.roomRef, {
-              guestId: "",
-              guestName: "",
-              status: "WAITING",
-            }).catch(() => {})
-          ];
+          const promises = [];
           if (this.roomCode) {
             promises.push(
               update(ref(db, `public_rooms/${this.roomCode}`), {
@@ -497,6 +569,17 @@ this.guestRef = ref(db, `rooms/${code}/guestId`);
       this.onPresenceChanged = null;
     }
   }
+
+  public async leaveRoom(): Promise<void> {
+  if (this.roomRef) {
+    await Promise.resolve(update(this.roomRef, {
+      status: "CLOSED",
+      hostConnected: false,
+      guestConnected: false,
+    })).catch(() => {});
+  }
+  await this.disconnect(true);
+}
 
   public async closeRoom(): Promise<void> {
     await this.disconnect();

@@ -16,6 +16,10 @@ vi.mock("firebase/app", () => ({
 vi.mock("firebase/auth", () => ({
   getAuth: vi.fn(),
   signInAnonymously: vi.fn(() => Promise.resolve({ user: { uid: "123" } })),
+  onAuthStateChanged: vi.fn((_auth, callback) => {
+    callback({ uid: "123" });
+    return () => {};
+  }),
 }));
 
 vi.mock("firebase/database", () => ({

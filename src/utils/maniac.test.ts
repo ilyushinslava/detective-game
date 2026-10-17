@@ -110,22 +110,47 @@ describe("Режим: Маньяк против оперативника (MANIAC
     }
   });
 
-  it("Ложное задержание при 1 оставшейся цели: список жертв пополняется из колоды", () => {
+  it("Автодобор victimList до 4 карт после убийства", () => {
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
+    state.victimList = [state.victimList[0]]; // Оставляем 1 цель
+    const aliveOthers = state.board.flat().filter(c => c.isAlive && c.id !== state.killerSecretId && c.id !== state.detectiveSecretId && c.id !== state.victimList[0]);
+    state.evidenceDeck = aliveOthers.map(c => c.id).slice(0, 5);
+    state.killerSecretId = getAdjacentCharacters(state.board, state.victimList[0])[0].id;
+
+    const nextState = killCharacter(state, state.victimList[0]);
+
+    expect(nextState.victimList.length).toBe(4);
+  });
+
+  it("Завершение игры победой Оперативника, если список жертв и колода исчерпаны", () => {
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
+    const targetId = state.victimList[0];
+    state.victimList = [targetId];
+    state.evidenceDeck = []; // Пустая колода
+    state.killCount = 2; // Меньше 4
+    state.killerSecretId = getAdjacentCharacters(state.board, targetId)[0].id;
+
+    const nextState = killCharacter(state, targetId);
+
+    expect(nextState.victimList.length).toBe(0);
+    expect(nextState.winner).toBe("DETECTIVE");
+  });
+
+  it("Ложное задержание: список жертв пополняется из колоды до 4", () => {
     const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
     state.currentTurn = "DETECTIVE";
-    
+
     const singleVictim = state.victimList[0];
     state.victimList = [singleVictim];
-    
-    const validNextTarget = state.board.flat().find(c => c.isAlive && c.id !== state.detectiveSecretId && c.id !== state.killerSecretId && c.id !== singleVictim)!;
-    state.evidenceDeck = [validNextTarget.id];
+
+    const validTargets = state.board.flat().filter(c => c.isAlive && c.id !== state.detectiveSecretId && c.id !== state.killerSecretId && c.id !== singleVictim);
+    state.evidenceDeck = validTargets.map(c => c.id).slice(0, 4);
 
     const wrongTarget = getAdjacentCharacters(state.board, state.detectiveSecretId).find(c => c.id !== state.killerSecretId)!;
 
     const nextState = accuseCharacter(state, wrongTarget.id);
 
-    expect(nextState.victimList.length).toBe(1);
-    expect(nextState.victimList[0]).toBe(validNextTarget.id);
-    expect(nextState.evidenceDeck).toContain(singleVictim);
+    // singleVictim вернется в колоду, затем мы доберем до 4 целей
+    expect(nextState.victimList.length).toBe(4);
   });
 });

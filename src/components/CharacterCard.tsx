@@ -207,7 +207,7 @@ export const CharacterCard = memo(
         <div className="flex items-center justify-between gap-0.5 z-10 w-full leading-none px-1 pt-1">
           <div className="flex items-center gap-1">
             <span
-              className={`text-[9px] sm:text-[10px] font-mono font-bold drop-shadow ${
+              className={`text-[9px] sm:text-[10px] md:text-xs font-mono font-bold drop-shadow ${
                 isDead
                   ? "text-zinc-600 line-through"
                   : isExonerated
@@ -220,7 +220,7 @@ export const CharacterCard = memo(
                 : `#${character.id.replace("c", "").padStart(2, "0")}`}
             </span>
             {isMyCharacter && !isDead && (
-              <span className="text-[7.5px] font-black uppercase px-1 py-[1px] rounded bg-amber-500/20 border border-amber-500/60 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.5)] tracking-wider">
+              <span className="text-[7.5px] md:text-[9px] font-black uppercase px-1 md:px-1.5 py-[1px] md:py-0.5 rounded bg-amber-500/20 border border-amber-500/60 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.5)] tracking-wider">
                 ВЫ
               </span>
             )}
@@ -228,33 +228,33 @@ export const CharacterCard = memo(
 
           <div className="flex items-center gap-1 leading-none">
             {isTargetVictim && !isDead && (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-red-500 animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-red-500 animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
             )}
             {isUniformedOfficer && !isDead && (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 text-cyan-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M8 11l4 3 4-3"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-cyan-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M8 11l4 3 4-3"/></svg>
             )}
             {isRadarCenter && !isDead && (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-cyan-400 animate-pulse drop-shadow-[0_0_5px_rgba(6,182,212,0.8)]"><path d="M12 20v-8"/><path d="M8 12a4 4 0 0 1 8 0"/><path d="M4 12a8 8 0 0 1 16 0"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-cyan-400 animate-pulse drop-shadow-[0_0_5px_rgba(6,182,212,0.8)]"><path d="M12 20v-8"/><path d="M8 12a4 4 0 0 1 8 0"/><path d="M4 12a8 8 0 0 1 16 0"/></svg>
             )}
             {character.isVault && (
               <span>
                 {character.isVaultCracked
-                  ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 text-emerald-400"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                  ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-emerald-400"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
                   : character.isVaultLocked
-                    ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 text-red-500"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                    : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 text-amber-500"><rect x="4" y="10" width="16" height="10"/><polygon points="12 2 20 10 4 10"/></svg>}
+                    ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-red-500"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-amber-500"><rect x="4" y="10" width="16" height="10"/><polygon points="12 2 20 10 4 10"/></svg>}
               </span>
             )}
-            {character.isShielded && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 text-zinc-300"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
-            {character.hasBomb && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-amber-500 drop-shadow-[0_0_5px_rgba(245,158,11,0.8)]"><circle cx="11" cy="13" r="7"/><path d="M16 8l3-3"/><path d="M19 5a2 2 0 0 1 2 2"/></svg>}
-            {character.isRobbed && <span className="text-[7px] font-black text-amber-400 border border-amber-400/50 px-0.5 rounded-sm bg-amber-950/50">CR</span>}
+            {character.isShielded && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-zinc-300"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
+            {character.hasBomb && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-amber-500 drop-shadow-[0_0_5px_rgba(245,158,11,0.8)]"><circle cx="11" cy="13" r="7"/><path d="M16 8l3-3"/><path d="M19 5a2 2 0 0 1 2 2"/></svg>}
+            {character.isRobbed && <span className="text-[7px] md:text-[8px] font-black text-amber-400 border border-amber-400/50 px-0.5 rounded-sm bg-amber-950/50">CR</span>}
           </div>
         </div>
 
         {/* Диагональные штампы */}
         {isDead && (
           <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
-            <div className="transform -rotate-12 border border-red-600 bg-red-950/90 text-red-500 font-black text-[9px] sm:text-[11px] uppercase px-2 py-0.5 tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.4)] rounded-sm backdrop-blur-sm">
+            <div className="transform -rotate-12 border border-red-600 bg-red-950/90 text-red-500 font-black text-[9px] sm:text-[11px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.4)] rounded-sm backdrop-blur-sm">
               {isSecretService ? "РАСКРЫТ" : "УБИТ"}
             </div>
           </div>
@@ -262,7 +262,7 @@ export const CharacterCard = memo(
 
         {isExonerated && !isDead && (
           <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
-            <div className="transform rotate-6 border border-cyan-500 bg-cyan-950/90 text-cyan-400 font-black text-[8px] sm:text-[10px] uppercase px-2 py-0.5 tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.4)] rounded-sm backdrop-blur-sm">
+            <div className="transform rotate-6 border border-cyan-500 bg-cyan-950/90 text-cyan-400 font-black text-[8px] sm:text-[10px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.4)] rounded-sm backdrop-blur-sm">
               АЛИБИ
             </div>
           </div>
@@ -271,7 +271,7 @@ export const CharacterCard = memo(
         {/* Имя (компактный бейдж внизу, полный текст целыми словами) */}
         <div className="absolute bottom-0.5 inset-x-0.5 z-10 flex items-end justify-center pointer-events-none">
           <span
-            className={`block w-full text-[7.5px] sm:text-[8.5px] font-bold text-zinc-200 leading-[1.05] tracking-tight uppercase text-center px-1 py-0.5 rounded-sm bg-black/75 backdrop-blur-[2px] break-normal whitespace-pre-line hyphens-none ${
+            className={`block w-full text-[7.5px] sm:text-[8.5px] md:text-[11px] font-bold text-zinc-200 leading-[1.05] md:leading-tight tracking-tight uppercase text-center px-1 py-0.5 rounded-sm bg-black/75 backdrop-blur-[2px] break-normal whitespace-pre-line hyphens-none ${
               isDead
                 ? isSecretService
                   ? `${character.unmaskedSpyIndex === 0 ? "text-red-400" : character.unmaskedSpyIndex === 1 ? "text-cyan-400" : "text-zinc-400"} line-through`

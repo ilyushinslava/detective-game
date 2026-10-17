@@ -3,13 +3,31 @@
     "rooms": {
       "$roomCode": {
         ".read": "auth != null",
-        ".write": "auth != null"
+        ".write": "auth != null && (!data.exists() || !newData.exists() || data.child('hostId').val() === auth.uid || data.child('guestId').val() === auth.uid || !data.hasChild('guestId') || data.child('guestId').val() === '')",
+        "hostId": {
+          ".validate": "!data.exists() || data.val() === newData.val()"
+        },
+        "createdAt": {
+          ".validate": "!data.exists() || data.val() === newData.val()"
+        },
+        "gameState": {
+          ".write": "auth != null && (data.parent().child('hostId').val() === auth.uid || !data.parent().hasChild('hostId'))"
+        },
+        "actions": {
+          ".write": "auth != null && data.parent().exists()"
+        }
       }
     },
     "public_rooms": {
       ".read": "auth != null",
       "$roomCode": {
-        ".write": "auth != null"
+        ".write": "auth != null && (!data.exists() || !newData.exists() || data.child('hostId').val() === auth.uid || newData.hasChild('playersCount'))"
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
       }
     }
   }

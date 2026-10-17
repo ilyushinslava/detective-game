@@ -1005,149 +1005,149 @@ export default function App() {
           const isSelfOrNeighbor = Boolean(selectedId && (validNeighbors.includes(selectedId) || selectedId === activeSpySecretId));
 
           actions.push({
-            id: "capture_spy",
-            label: "Разоблачение",
-            onClick: handleCaptureSpy,
+        id: "capture_spy",
+        label: "Разоблачение",
+        onClick: handleCaptureSpy,
+        disabled:
+          !isHumanTurn ||
+          !selectedId ||
+          !isNeighbor ||
+          isGameOver ||
+          !selectedCharacter?.isAlive,
+        className:
+          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+      });
+      actions.push({
+        id: "interrogate_spy",
+        label: "Опрос свидетелей",
+        onClick: handleInterrogateSpy,
+        disabled:
+          !isHumanTurn ||
+          !selectedId ||
+          !isSelfOrNeighbor ||
+          isGameOver ||
+          !selectedCharacter?.isAlive,
+        className:
+          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+      });
+      actions.push({
+        id: "cleanup_ss",
+        label: "Зачистить",
+        onClick: handleCleanup,
+        disabled: !isHumanTurn || !isCleanupAvailable,
+        className:
+          "py-1.5 sm:py-2 md:py-3.5 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[9px] sm:text-[10px] md:text-xs font-bold rounded-xl transition disabled:cursor-not-allowed flex items-center justify-center gap-2",
+      });
+    } else {
+      if (isKillerView) {
+        if (gameState.mode === "THIEF_HUNT") {
+          actions.push({
+            id: "rob_basic",
+            label: "Кража",
+            onClick: handleRob,
             disabled:
               !isHumanTurn ||
               !selectedId ||
-              !isNeighbor ||
+              (!killerAdjacentIds.includes(selectedId) && selectedId !== gameState.killerSecretId) ||
               isGameOver ||
-              !selectedCharacter?.isAlive,
+              Boolean(selectedCharacter?.isRobbed),
             className:
-              "py-2 sm:py-2.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
           actions.push({
-            id: "interrogate_spy",
-            label: "Опрос свидетелей",
-            onClick: handleInterrogateSpy,
-            disabled:
-              !isHumanTurn ||
-              !selectedId ||
-              !isSelfOrNeighbor ||
-              isGameOver ||
-              !selectedCharacter?.isAlive,
+            id: "disguise_thief",
+            label: "Конспирация",
+            onClick: () => setIsHandSheetOpen(true),
+            disabled: !isHumanTurn || isGameOver,
             className:
-              "py-2 sm:py-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-          });
-          actions.push({
-            id: "cleanup_ss",
-            label: "Зачистить",
-            onClick: handleCleanup,
-            disabled: !isHumanTurn || !isCleanupAvailable,
-            className:
-              "py-1.5 sm:py-2 md:py-2.5 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[9px] sm:text-[10px] md:text-xs font-bold rounded-xl transition disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
         } else {
-          if (isKillerView) {
-            if (gameState.mode === "THIEF_HUNT") {
-              actions.push({
-                id: "rob_basic",
-                label: "Кража",
-                onClick: handleRob,
-                disabled:
-                  !isHumanTurn ||
-                  !selectedId ||
-                  (!killerAdjacentIds.includes(selectedId) && selectedId !== gameState.killerSecretId) ||
-                  isGameOver ||
-                  Boolean(selectedCharacter?.isRobbed),
-                className:
-                  "py-2 sm:py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-              });
-              actions.push({
-                id: "disguise_thief",
-                label: "Конспирация",
-                onClick: () => setIsHandSheetOpen(true),
-                disabled: !isHumanTurn || isGameOver,
-                className:
-                  "py-2 sm:py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-              });
-            } else {
-              actions.push({
-                id: "kill_basic",
-                label: "Ликвидация",
-                onClick: handleKill,
-                disabled:
-                  !isHumanTurn ||
-                  !selectedId ||
-                  !killerAdjacentIds.includes(selectedId) ||
-                  isGameOver ||
-                  (gameState.mode === "MANIAC_VS_OPERATIVE" && selectedId !== gameState.victimList[0]),
-                className:
-                  "py-2 sm:py-2.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-              });
-            }
-
-            if (gameState.mode === "SKHVATKA") {
-              actions.push({
-                id: "disguise_skhvatka",
-                label: "Конспирация",
-                onClick: handleDisguise,
-                disabled:
-                  !isHumanTurn ||
-                  isFirstTurnKiller ||
-                  gameState.evidenceDeck.length === 0 ||
-                  isGameOver,
-                className:
-                  "py-2 sm:py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-              });
-            }
-            if (gameState.mode === "MANIAC_VS_OPERATIVE") {
-              actions.push({
-                id: "escape_maniac",
-                label: "Конспирация",
-                onClick: handleEscapeManiac,
-                disabled:
-                  !isHumanTurn || gameState.evidenceDeck.length < 2 || isGameOver,
-                className:
-                  "py-2 sm:py-2.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-              });
-            }
-          } else {
-            actions.push({
-              id: "accuse_basic",
-              label: "Задержание",
-              onClick: handleAccuse,
-              disabled: (() => {
-                if (!isHumanTurn || !selectedId || Boolean(selectedCharacter?.isDead) || isGameOver) return true;
-                let isAdjacent = detectiveAdjacentIds.includes(selectedId);
-                let isSelf = selectedId === gameState.detectiveSecretId;
-                if (gameState.mode === "THIEF_HUNT" && gameState.uniformedOfficers) {
-                  const isNearOfficer = gameState.uniformedOfficers.some((offId) =>
-                    getAdjacentCharacters(gameState.board, offId).map(c => c.id).includes(selectedId)
-                  );
-                  const isOfficerSelf = gameState.uniformedOfficers.includes(selectedId);
-                  isAdjacent = isAdjacent || isNearOfficer;
-                  isSelf = isSelf || isOfficerSelf;
-                }
-                return !isAdjacent && !isSelf;
-              })(),
-              className:
-                "py-2 sm:py-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-            });
-
-            if (gameState.mode === "THIEF_HUNT") {
-              actions.push({
-                id: "patrol_call",
-                label: "Вызов патруля",
-                onClick: handleSwearInOfficer,
-                disabled: !isHumanTurn || !selectedId || !gameState.uniformedOfficers?.includes(selectedId) || isGameOver || gameState.evidenceDeck.length === 0,
-                className: "py-2 sm:py-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-              });
-            }
-          }
-
-          if (gameState.mode !== "THIEF_HUNT") {
-            actions.push({
-              id: "cleanup_basic",
-              label: "Зачистить",
-              onClick: handleCleanup,
-              disabled: !isHumanTurn || !isCleanupAvailable,
-              className:
-                "py-1.5 sm:py-2 md:py-2.5 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[9px] sm:text-[10px] md:text-xs font-bold rounded-xl transition disabled:cursor-not-allowed flex items-center justify-center gap-2",
-            });
-          }
+          actions.push({
+            id: "kill_basic",
+            label: "Ликвидация",
+            onClick: handleKill,
+            disabled:
+              !isHumanTurn ||
+              !selectedId ||
+              !killerAdjacentIds.includes(selectedId) ||
+              isGameOver ||
+              (gameState.mode === "MANIAC_VS_OPERATIVE" && selectedId !== gameState.victimList[0]),
+            className:
+              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          });
         }
+
+        if (gameState.mode === "SKHVATKA") {
+          actions.push({
+            id: "disguise_skhvatka",
+            label: "Конспирация",
+            onClick: handleDisguise,
+            disabled:
+              !isHumanTurn ||
+              isFirstTurnKiller ||
+              gameState.evidenceDeck.length === 0 ||
+              isGameOver,
+            className:
+              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          });
+        }
+        if (gameState.mode === "MANIAC_VS_OPERATIVE") {
+          actions.push({
+            id: "escape_maniac",
+            label: "Конспирация",
+            onClick: handleEscapeManiac,
+            disabled:
+              !isHumanTurn || gameState.evidenceDeck.length < 2 || isGameOver,
+            className:
+              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          });
+        }
+      } else {
+        actions.push({
+          id: "accuse_basic",
+          label: "Задержание",
+          onClick: handleAccuse,
+          disabled: (() => {
+            if (!isHumanTurn || !selectedId || Boolean(selectedCharacter?.isDead) || isGameOver) return true;
+            let isAdjacent = detectiveAdjacentIds.includes(selectedId);
+            let isSelf = selectedId === gameState.detectiveSecretId;
+            if (gameState.mode === "THIEF_HUNT" && gameState.uniformedOfficers) {
+              const isNearOfficer = gameState.uniformedOfficers.some((offId) =>
+                getAdjacentCharacters(gameState.board, offId).map(c => c.id).includes(selectedId)
+              );
+              const isOfficerSelf = gameState.uniformedOfficers.includes(selectedId);
+              isAdjacent = isAdjacent || isNearOfficer;
+              isSelf = isSelf || isOfficerSelf;
+            }
+            return !isAdjacent && !isSelf;
+          })(),
+          className:
+            "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+        });
+
+        if (gameState.mode === "THIEF_HUNT") {
+          actions.push({
+            id: "patrol_call",
+            label: "Вызов патруля",
+            onClick: handleSwearInOfficer,
+            disabled: !isHumanTurn || !selectedId || !gameState.uniformedOfficers?.includes(selectedId) || isGameOver || gameState.evidenceDeck.length === 0,
+            className: "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          });
+        }
+      }
+
+      if (gameState.mode !== "THIEF_HUNT") {
+        actions.push({
+          id: "cleanup_basic",
+          label: "Зачистить",
+          onClick: handleCleanup,
+          disabled: !isHumanTurn || !isCleanupAvailable,
+          className:
+            "py-1.5 sm:py-2 md:py-3.5 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[9px] sm:text-[10px] md:text-xs font-bold rounded-xl transition disabled:cursor-not-allowed flex items-center justify-center gap-2",
+        });
+      }
+    }
 
         return actions;
       }, [
@@ -1479,7 +1479,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsPauseOpen(true)}
-              className="w-8 h-8 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs shrink-0 cursor-pointer"
+              className="w-8 h-8 md:w-11 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer"
               title="Пауза и меню"
             >
               <span>☰</span>
@@ -1489,7 +1489,7 @@ export default function App() {
                 setIsLogOpen(true);
                 setUnreadLogCount(0);
               }}
-              className="relative w-8 h-8 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs shrink-0 cursor-pointer lg:hidden"
+              className="relative w-8 h-8 md:w-11 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer lg:hidden"
               title="Блокнот расследования"
             >
               <span>📝</span>
@@ -1503,7 +1503,7 @@ export default function App() {
 
           <div className="absolute left-1/2 -translate-x-1/2 flex justify-center shrink-0">
             <div
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-black tracking-wider uppercase transition-all shadow ${pillClasses}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 md:px-5 md:py-2.5 rounded-full border text-[10px] md:text-xs font-black tracking-wider uppercase transition-all shadow ${pillClasses}`}
             >
               <span className="relative flex h-2 w-2 shrink-0 items-center justify-center">
                 <span
@@ -1524,12 +1524,12 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center justify-center bg-zinc-950 border border-zinc-800 rounded-lg px-3 h-9 text-xs font-mono text-zinc-400">
+            <div className="hidden md:flex items-center justify-center bg-zinc-950 border border-zinc-800 rounded-lg px-3 h-9 md:h-11 text-xs md:text-sm font-mono text-zinc-400">
               {formatTimer(secondsElapsed)}
             </div>
             <button
               onClick={handleReset}
-              className="px-3 h-7 md:h-9 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center text-[10px] md:text-xs font-bold cursor-pointer shrink-0"
+              className="px-3 h-7 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center text-[10px] md:text-sm font-bold cursor-pointer shrink-0"
             >
               Заново
             </button>
@@ -1579,14 +1579,8 @@ export default function App() {
             <div className="flex items-center flex-wrap gap-x-1">
               <span>Жертвы:</span>
               <b className="text-red-400">
-                {gameState.killCount}/
-                {gameState.mode === "MANIAC_VS_OPERATIVE" ? (gameState.victimList.length + gameState.killCount) : 14}
+                {gameState.killCount}/{gameState.mode === "MANIAC_VS_OPERATIVE" ? 4 : 14}
               </b>
-              {gameState.mode === "MANIAC_VS_OPERATIVE" && (gameState.victimList.length + gameState.killCount) > 4 && (
-                <span className="text-[8px] font-bold text-amber-500 bg-amber-950/50 px-1 py-0.5 rounded border border-amber-700/50 uppercase tracking-wider">
-                  (+{(gameState.victimList.length + gameState.killCount) - 4} за побег)
-                </span>
-              )}
               <span className="ml-1">| Улики: {gameState.evidenceDeck.length}</span>
             </div>
           )}
@@ -1603,10 +1597,10 @@ export default function App() {
         </div>
 
         {/* ФИКСИРОВАННАЯ ПОЛОСА ДОПРОСА / ЦЕЛИ МАНЬЯКА */}
-        <div className="w-full px-3 h-8 md:h-10 shrink-0 flex items-center justify-center">
+        <div className="w-full px-3 h-8 md:h-12 shrink-0 flex items-center justify-center">
           {gameState.lastInterrogation && !gameState.winner ? (
             <div
-              className={`w-full h-full px-2.5 rounded-lg border flex items-center justify-between text-[10px] md:text-xs shadow-sm ${gameState.lastInterrogation.isNear ? "bg-red-950/80 border-red-700 text-red-200" : "bg-zinc-900/90 border-zinc-800 text-zinc-300"}`}
+              className={`w-full h-full px-2.5 rounded-lg border flex items-center justify-between text-[10px] md:text-sm shadow-sm ${gameState.lastInterrogation.isNear ? "bg-red-950/80 border-red-700 text-red-200" : "bg-zinc-900/90 border-zinc-800 text-zinc-300"}`}
             >
               <span className="font-semibold truncate mr-2">
                 {gameState.lastInterrogation.interrogator === "DETECTIVE"
@@ -1614,13 +1608,13 @@ export default function App() {
                   : `Жертва (${gameState.lastInterrogation.targetName}): законник рядом?`}
               </span>
               <span
-                className={`shrink-0 px-2 py-0.5 rounded text-[9px] font-black uppercase border ${gameState.lastInterrogation.isNear ? "bg-red-900 text-red-100 border-red-500 animate-pulse" : "bg-blue-950 text-blue-300 border-blue-700"}`}
+                className={`shrink-0 px-2 py-0.5 rounded text-[9px] md:text-xs font-black uppercase border ${gameState.lastInterrogation.isNear ? "bg-red-900 text-red-100 border-red-500 animate-pulse" : "bg-blue-950 text-blue-300 border-blue-700"}`}
               >
                 {gameState.lastInterrogation.isNear ? "Враг рядом" : "Вне зоны"}
               </span>
             </div>
           ) : gameState.lastSpyInterrogation && !gameState.winner ? (
-            <div className="w-full h-full px-2.5 rounded-lg border border-zinc-800 bg-zinc-900/90 flex items-center justify-between text-[10px] md:text-xs shadow-sm">
+            <div className="w-full h-full px-2.5 rounded-lg border border-zinc-800 bg-zinc-900/90 flex items-center justify-between text-[10px] md:text-sm shadow-sm">
               <span className="font-bold text-zinc-300 truncate mr-2">
                 Допрос:{" "}
                 <b className="text-zinc-100">
@@ -1636,7 +1630,7 @@ export default function App() {
                   return (
                     <span
                       key={spy.id}
-                      className={`px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase border ${hasContact ? "bg-red-950 text-red-400 border-red-700 animate-pulse" : "bg-zinc-950 text-zinc-500 border-zinc-800"}`}
+                      className={`px-1.5 py-0.5 rounded text-[8.5px] md:text-[10px] font-black uppercase border ${hasContact ? "bg-red-950 text-red-400 border-red-700 animate-pulse" : "bg-zinc-950 text-zinc-500 border-zinc-800"}`}
                     >
                       {spy.name.replace("Агент «", "").replace("»", "")}:{" "}
                       {hasContact ? "РЯДОМ" : "НЕТ"}
@@ -1646,34 +1640,34 @@ export default function App() {
               </div>
             </div>
           ) : gameState.mode === "MANIAC_VS_OPERATIVE" && gameState.victimList.length > 0 && !gameState.winner ? (
-            <div className="w-full h-full px-2.5 rounded-lg border border-red-900/60 bg-red-950/40 flex items-center justify-between text-[10px] md:text-xs shadow-sm">
+            <div className="w-full h-full px-2.5 rounded-lg border border-red-900/60 bg-red-950/40 flex items-center justify-between text-[10px] md:text-sm shadow-sm">
               <div className="flex items-center gap-1.5 min-w-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
-                <span className="text-red-400 font-bold uppercase tracking-wider shrink-0 text-[9px] md:text-[10px]">Цель:</span>
+                <span className="text-red-400 font-bold uppercase tracking-wider shrink-0 text-[9px] md:text-xs">Цель:</span>
                 <span className="text-zinc-100 font-black truncate">
                   {allChars.find((c) => c.id === gameState.victimList[0])?.name ?? gameState.victimList[0]}
                 </span>
-                <span className="text-[9px] font-mono text-red-400/80 shrink-0">
+                <span className="text-[9px] md:text-xs font-mono text-red-400/80 shrink-0">
                   (#{gameState.victimList[0].replace("c", "").padStart(2, "0")})
                 </span>
               </div>
-              <div className="shrink-0 font-mono text-[9px] sm:text-[10px] text-zinc-400 uppercase ml-2 flex items-center gap-1">
+              <div className="shrink-0 font-mono text-[9px] sm:text-[10px] md:text-xs text-zinc-400 uppercase ml-2 flex items-center gap-1">
                 <span>В очереди:</span> <b className="text-red-400">{gameState.victimList.length}</b>
               </div>
             </div>
           ) : (
-            <div className="w-full h-full px-2.5 rounded-lg border border-dashed border-zinc-900 flex items-center justify-center text-[10px] text-zinc-600 font-mono">
+            <div className="w-full h-full px-2.5 rounded-lg border border-dashed border-zinc-900 flex items-center justify-center text-[10px] md:text-sm text-zinc-600 font-mono">
               Оперативные показания: ожидание допроса
             </div>
           )}
         </div>
 
-        <div className="flex-1 min-h-0 w-full flex flex-col md:flex-row items-center justify-start md:justify-center gap-2 md:gap-6 lg:gap-10 px-2 sm:px-4 md:px-6 py-1 md:py-4 overflow-y-auto md:overflow-hidden custom-scrollbar">
+        <div className="flex-1 min-h-0 w-full flex flex-col landscape:flex-row items-center justify-start landscape:justify-between gap-2 md:gap-6 lg:gap-8 px-2 sm:px-4 md:px-6 py-1 md:py-4 overflow-y-auto landscape:overflow-hidden custom-scrollbar">
           {/* 2. ИГРОВОЕ ПОЛЕ */}
-          <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-none flex flex-col items-center justify-start md:justify-center">
+          <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-3xl landscape:max-w-none flex flex-col items-center justify-center">
             {/* ТИКЕР СОБЫТИЙ */}
             {gameState.log.length > 0 && (
-              <div className="w-full max-w-md md:max-w-xl mb-1 px-3 py-1 bg-zinc-900/90 border border-zinc-800 rounded-lg text-[10px] sm:text-xs font-mono text-amber-400/90 truncate text-center shadow-sm shrink-0">
+              <div className="w-full max-w-md md:max-w-xl mb-1 px-3 py-1 md:py-2 bg-zinc-900/90 border border-zinc-800 rounded-lg text-[10px] sm:text-xs md:text-xs font-mono text-amber-400/90 truncate text-center shadow-sm shrink-0">
                 {gameState.log[gameState.log.length - 1]}
               </div>
             )}
@@ -1716,7 +1710,7 @@ export default function App() {
           </main>
 
           {/* 3. КОНТЕКСТНАЯ ПАНЕЛЬ УПРАВЛЕНИЯ */}
-          <footer className="w-full max-w-md md:w-80 lg:w-96 shrink-0 flex flex-col justify-center gap-3 z-20 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-0 px-1 md:px-0 md:my-auto">
+          <footer className="w-full max-w-md md:max-w-2xl landscape:w-80 landscape:xl:w-96 shrink-0 flex flex-col justify-center gap-3 md:gap-4 z-20 pb-[max(0.5rem,env(safe-area-inset-bottom))] landscape:pb-0 px-1 md:px-4 landscape:px-0 landscape:my-auto">
             <RoleCards
               mode={gameState.mode}
               role1Name={role1Name}
@@ -1755,7 +1749,7 @@ export default function App() {
               <div className="hidden md:block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
                 Действия ({actionPanelRoleName})
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-1 gap-2 w-full">
+              <div className="grid grid-cols-2 landscape:grid-cols-1 gap-2 w-full">
                 {targetActions.map((action) => (
                   <button
                     key={action.id}
@@ -1768,19 +1762,19 @@ export default function App() {
                     }`}
                   >
                     {(action.id === 'kill_basic' || action.id === 'capture_spy') && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
                     )}
                     {(action.id === 'accuse_basic' || action.id === 'patrol_call') && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                     )}
                     {action.id === 'interrogate_spy' && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle><line x1="12" y1="2" x2="12" y2="12"></line></svg>
                     )}
                     {(action.id === 'disguise_skhvatka' || action.id === 'escape_maniac' || action.id === 'disguise_thief') && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0"><path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6"></path></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6"></path></svg>
                     )}
                     {action.id === 'rob_basic' && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
                     )}
                     <span>{selectedCharacter && !action.disabled ? `${action.label}` : action.label}</span>
                   </button>
@@ -1797,7 +1791,7 @@ export default function App() {
                       ((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView)
                         ? "col-span-1"
                         : "col-span-2"
-                    } py-1.5 sm:py-2 md:py-2.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-300 hover:text-zinc-200 text-[9px] sm:text-[10px] md:text-xs font-bold uppercase rounded-xl border border-zinc-700/80 transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5`}
+                    } py-1.5 sm:py-2 md:py-3.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-300 hover:text-zinc-200 text-[9px] sm:text-[10px] md:text-xs font-bold uppercase rounded-xl border border-zinc-700/80 transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5`}
                   >
                     <span>↻</span>
                     <span>Зачистить</span>
@@ -1807,7 +1801,7 @@ export default function App() {
                 {((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView) && (
                   <button
                     onClick={() => setIsHandSheetOpen(true)}
-                    className={`${cleanupAction ? "col-span-1" : "col-span-2"} py-1.5 sm:py-2 md:py-2.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer`}
+                    className={`${cleanupAction ? "col-span-1" : "col-span-2"} py-1.5 sm:py-2 md:py-3.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer`}
                   >
                     <span>🗂</span>
                     <span>Досье ({gameState.detectiveHand.length})</span>
@@ -1817,7 +1811,7 @@ export default function App() {
             </div>
 
             {/* Десктопный лог (виден только на lg и выше) */}
-            <div className="hidden lg:flex flex-col flex-1 min-h-0 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4">
+            <div className="hidden landscape:lg:flex flex-col flex-1 min-h-0 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3 shrink-0">
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                   Протокол событий ({gameState.log.length})

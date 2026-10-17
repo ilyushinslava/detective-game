@@ -53,8 +53,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
         isFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
-      {/* Ограничивающий фрейм: 100% на смартфонах, аккуратный max-w-md на ПК */}
-      <div className="relative w-full max-w-md h-full flex flex-col justify-end pb-[max(4rem,env(safe-area-inset-bottom))] md:border-x md:border-white/10 md:shadow-[0_0_80px_rgba(0,0,0,0.9)] overflow-hidden">
+      {/* Адаптивный постер: на мобилках во весь экран, на планшетах и ПК держит пропорции 9/19.5 и центрируется без обрезки низа */}
+      <div className="relative h-full aspect-[9/19.5] max-w-full flex flex-col justify-end pb-[max(2.5rem,env(safe-area-inset-bottom))] md:pb-8 overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.9)]">
         {/* Арт-фон постера */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-black">
           <img 
@@ -67,12 +67,12 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             }}
           />
           {/* Градиент снизу для читаемости кнопки */}
-          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/60 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/50 to-transparent" />
         </div>
 
-        <div className="relative z-10 w-full px-6 flex justify-center mb-6">
+        <div className="relative z-10 w-full px-6 flex justify-center mb-4 md:mb-6">
           {!hasStarted && (
-            <div className="text-[10px] sm:text-xs font-black tracking-widest uppercase text-white/90 border border-white/20 bg-black/50 backdrop-blur-md px-8 py-3.5 rounded-full hover:bg-white/10 transition-all animate-bounce shadow-[0_0_25px_rgba(0,0,0,0.8)]">
+            <div className="text-[10px] sm:text-xs md:text-sm font-black tracking-widest uppercase text-white/90 border border-white/20 bg-black/60 backdrop-blur-md px-8 md:px-10 py-3 md:py-3.5 rounded-full hover:bg-white/10 transition-all animate-bounce shadow-[0_0_25px_rgba(0,0,0,0.8)]">
               Коснитесь, чтобы войти
             </div>
           )}

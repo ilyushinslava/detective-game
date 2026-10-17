@@ -47,10 +47,10 @@ describe("Игровые правила (Rules Audit)", () => {
     state.detectiveSecretId = targetId; // Искусственно удовлетворяем условие соседства
     
     const newState = accuseCharacter(state, targetId);
-    
-    expect(newState.victimList.length).toBe(initialVictimCount - 1);
-    expect(newState.evidenceDeck.length).toBe(initialDeckCount + 1);
-    expect(newState.evidenceDeck[newState.evidenceDeck.length - 1]).toBe(lastVictim);
+
+    // Цель возвращается в колоду, но автодобор сразу восстанавливает пул жертв до 4
+    expect(newState.victimList.length).toBe(4);
+    expect(newState.evidenceDeck).toContain(lastVictim);
   });
 
   it("SKHVATKA vs MANIAC_VS_OPERATIVE: Ликвидация невиновного создает объект lastInterrogation только в Схватке", () => {

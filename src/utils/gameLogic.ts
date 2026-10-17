@@ -450,14 +450,17 @@ export function killCharacter(state: GameState, targetId: string): GameState {
       }
     }
 
-    if (newVictimList.length === 0 && newKillCount < 4) {
-      while (newEvidenceDeck.length > 0) {
-        const drawnId = newEvidenceDeck.shift()!;
-        const drawnChar = newBoard.flat().find((c) => c.id === drawnId);
-        if (drawnChar && drawnChar.isAlive && drawnId !== state.detectiveSecretId && drawnId !== state.killerSecretId) {
-          newVictimList.push(drawnId);
-          break;
-        }
+    while (newVictimList.length < 4 && newEvidenceDeck.length > 0) {
+      const drawnId = newEvidenceDeck.shift()!;
+      const drawnChar = newBoard.flat().find((c) => c.id === drawnId);
+      if (
+        drawnChar &&
+        drawnChar.isAlive &&
+        drawnId !== state.detectiveSecretId &&
+        drawnId !== state.killerSecretId &&
+        !newVictimList.includes(drawnId)
+      ) {
+        newVictimList.push(drawnId);
       }
     }
   }
@@ -484,8 +487,12 @@ export function killCharacter(state: GameState, targetId: string): GameState {
   }
 
   if (!winner) {
-    if (state.mode === "MANIAC_VS_OPERATIVE" && newKillCount >= 4) {
-      winner = "KILLER";
+    if (state.mode === "MANIAC_VS_OPERATIVE") {
+      if (newKillCount >= 4) {
+        winner = "KILLER";
+      } else if (newVictimList.length === 0) {
+        winner = "DETECTIVE";
+      }
     } else if (state.mode === "EUROPOL_VS_OPG" && newKillCount >= 6) {
       winner = "KILLER";
     } else if (state.mode === "SKHVATKA" && newKillCount >= 14) {
@@ -802,6 +809,7 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
   let nextVictims = [...state.victimList];
   let nextDeck = [...state.evidenceDeck];
   let logMsg = `Ложная проверка: ${targetName} не преступник, подозрения сняты.`;
+  let nextWinner = state.winner;
 
   if (state.mode === "THIEF_HUNT") {
     logMsg = `Ложная проверка: ${targetName} не грабитель.`;
@@ -816,15 +824,23 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
     nextDeck.push(returnedVictim);
     logMsg = `Ошибка следствия: одна из целей маньяка скрылась в колоде.`;
 
-    if (nextVictims.length === 0 && state.killCount < 4) {
-      while (nextDeck.length > 0) {
-        const drawnId = nextDeck.shift()!;
-        const drawnChar = newBoard.flat().find((c) => c.id === drawnId);
-        if (drawnChar && drawnChar.isAlive && drawnId !== state.detectiveSecretId && drawnId !== state.killerSecretId) {
-          nextVictims.push(drawnId);
-          break;
-        }
+    while (nextVictims.length < 4 && nextDeck.length > 0) {
+      const drawnId = nextDeck.shift()!;
+      const drawnChar = newBoard.flat().find((c) => c.id === drawnId);
+      if (
+        drawnChar &&
+        drawnChar.isAlive &&
+        drawnId !== state.detectiveSecretId &&
+        drawnId !== state.killerSecretId &&
+        !nextVictims.includes(drawnId)
+      ) {
+        nextVictims.push(drawnId);
       }
+    }
+
+    if (nextVictims.length === 0 && state.killCount < 4) {
+      nextWinner = "DETECTIVE";
+      logMsg += " У маньяка не осталось целей. Победа Оперативника!";
     }
   }
 
@@ -833,6 +849,7 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
     board: newBoard,
     victimList: nextVictims,
     evidenceDeck: nextDeck,
+    winner: nextWinner,
     currentTurn: "KILLER",
     blockedShift: null,
     lastInterrogation: null,

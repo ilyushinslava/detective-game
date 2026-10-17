@@ -253,7 +253,8 @@ class MultiplayerService {
     this.onPlayerConnected = onConnected;
 
     try {
-      await this.ensureAuth();
+       const user = await this.ensureAuth();
+      const uid = user.uid;
       this.roomRef = ref(db, `rooms/${code}`);
       this.actionsRef = ref(db, `rooms/${code}/actions`);
       this.guestRef = ref(db, `rooms/${code}/guestId`);
@@ -279,7 +280,7 @@ class MultiplayerService {
       });
 
       await set(this.roomRef, {
-        hostId: this.myClientId,
+        hostId: uid,
         hostName: this.hostName,
         status: "WAITING",
         guestId: "",
@@ -294,7 +295,7 @@ class MultiplayerService {
         onDisconnect(publicRoomRef).remove();
         await set(publicRoomRef, {
           roomCode: code,
-          hostId: this.myClientId,
+          hostId: uid,
           hostName: this.hostName,
           mode,
           bet,
@@ -356,7 +357,8 @@ class MultiplayerService {
     this.onPlayerConnected = onConnected;
 
     try {
-      await this.ensureAuth();
+      const user = await this.ensureAuth();
+      const uid = user.uid;
       this.roomRef = ref(db, `rooms/${code}`);
       const snapshot = await get(this.roomRef);
 
@@ -369,7 +371,7 @@ class MultiplayerService {
       this.hostName = data.hostName || "Игрок 1";
 
       await update(this.roomRef, {
-        guestId: this.myClientId,
+        guestId: uid,
         guestName: this.guestName,
         status: "CONNECTED",
         guestConnected: true,

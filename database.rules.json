@@ -3,7 +3,7 @@
     "rooms": {
       "$roomCode": {
         ".read": "auth != null",
-        ".write": "auth != null && (!data.exists() || !newData.exists() || data.child('hostId').val() === auth.uid || data.child('guestId').val() === auth.uid || !data.hasChild('guestId') || data.child('guestId').val() === '')",
+        ".write": "auth != null && ((!data.exists() && newData.child('hostId').val() === auth.uid) || (data.exists() && !newData.exists() && data.child('hostId').val() === auth.uid) || (data.exists() && newData.exists() && (data.child('hostId').val() === auth.uid || data.child('guestId').val() === auth.uid || ((!data.hasChild('guestId') || data.child('guestId').val() === '') && newData.child('guestId').val() === auth.uid))))",
         "hostId": {
           ".validate": "!data.exists() || data.val() === newData.val()"
         },
@@ -11,17 +11,17 @@
           ".validate": "!data.exists() || data.val() === newData.val()"
         },
         "gameState": {
-          ".write": "auth != null && (data.parent().child('hostId').val() === auth.uid || !data.parent().hasChild('hostId'))"
+          ".write": "auth != null && auth.uid === data.parent().child('hostId').val()"
         },
         "actions": {
-          ".write": "auth != null && data.parent().exists()"
+          ".write": "auth != null && data.parent().exists() && (auth.uid === data.parent().child('hostId').val() || auth.uid === data.parent().child('guestId').val())"
         }
       }
     },
     "public_rooms": {
       ".read": "auth != null",
       "$roomCode": {
-        ".write": "auth != null && (!data.exists() || !newData.exists() || data.child('hostId').val() === auth.uid || newData.hasChild('playersCount'))"
+        ".write": "auth != null && ((!data.exists() && newData.child('hostId').val() === auth.uid) || (data.exists() && !newData.exists() && data.child('hostId').val() === auth.uid) || (data.exists() && newData.exists() && (data.child('hostId').val() === auth.uid || (newData.child('hostId').val() === data.child('hostId').val() && newData.child('roomCode').val() === data.child('roomCode').val() && newData.child('bet').val() === data.child('bet').val() && newData.child('mode').val() === data.child('mode').val() && newData.child('createdAt').val() === data.child('createdAt').val()))))"
       }
     },
     "users": {

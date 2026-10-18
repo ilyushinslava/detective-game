@@ -10,8 +10,8 @@ const Icons = {
 interface GameOverModalProps {
   winner: Role;
   mode: GameModeType;
-  killer: Character | undefined;
-  detective: Character | undefined;
+  killer?: Character | undefined;
+  detective?: Character | undefined;
   elapsedTime: string;
   onRestart: () => void;
 }

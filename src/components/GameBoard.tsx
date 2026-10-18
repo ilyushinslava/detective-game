@@ -177,12 +177,12 @@ export const GameBoard = ({
                   isTargetVictim={character.id === targetVictimId}
                   isRadarCenter={character.id === radarTargetId}
                   radarRingColor={
-                    radarCellIds.includes(character.id) ? radarColorClass : null
-                  }
-                  isError={character.id === errorCardId}
-                  myCharacterId={myCharacterId}
-                  isOverlapZone={isOverlapZone}
-                  onClick={() => onSelectCharacter(character.id)}
+              radarCellIds.includes(character.id) ? radarColorClass : null
+            }
+            isError={character.id === errorCardId}
+            isMyCharacter={character.id === myCharacterId}
+            isOverlapZone={isOverlapZone}
+            onClick={() => onSelectCharacter(character.id)}
                 />
               </motion.div>
             );

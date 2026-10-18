@@ -1,3 +1,5 @@
+import type { Role } from "./game";
+
 export type GameAction =
   | { type: "SHIFT_BOARD"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
   | { type: "KILL_CHARACTER"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
@@ -17,4 +19,6 @@ export type GameAction =
   | { type: "CONFIRM_RESTART"; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
   | { type: "REJECT_RESTART"; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
   | { type: "SET_MATCH_POT"; payload: { pot: number; bet: number }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "PLAYER_READY"; senderId?: string; timestamp?: number; actionId?: string };
+  | { type: "PLAYER_READY"; senderId?: string; timestamp?: number; actionId?: string }
+  | { type: "SWEAR_IN_OFFICER"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "SET_INSPECTOR_ROLE"; payload: { chosenId: string }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string };

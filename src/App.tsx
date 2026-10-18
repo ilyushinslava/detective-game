@@ -25,7 +25,7 @@ import {
 } from "./utils/aiLogic";
 import { soundManager } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
-import { ActionPanel, type ActionItem } from "./components/ActionPanel";
+import type { ActionItem } from "./components/ActionPanel";
 import { RoleCards } from "./components/RoleCards";
 import type { GameAction } from "./types/multiplayer";
 import { gameReducer } from "./utils/gameReducer";
@@ -102,7 +102,6 @@ export default function App() {
   const {
     profile,
     updateProfile,
-    reserveBet,
     refundBet,
     awardPrize,
     recordMatchResult,
@@ -810,7 +809,7 @@ export default function App() {
     if (!selectedId || gameState.currentTurn !== "DETECTIVE" || !isHumanTurn)
       return;
     const targetChar = gameState.board.flat().find((c) => c.id === selectedId);
-    if (!targetChar || targetChar.isDead) return;
+    if (!targetChar || !targetChar.isAlive) return;
 
     const isMiss =
       selectedId !== gameState.killerSecretId && !targetChar.hasBomb;
@@ -1109,7 +1108,7 @@ export default function App() {
           label: "Задержание",
           onClick: handleAccuse,
           disabled: (() => {
-            if (!isHumanTurn || !selectedId || Boolean(selectedCharacter?.isDead) || isGameOver) return true;
+            if (!isHumanTurn || !selectedId || !selectedCharacter?.isAlive || isGameOver) return true;
             let isAdjacent = detectiveAdjacentIds.includes(selectedId);
             let isSelf = selectedId === gameState.detectiveSecretId;
             if (gameState.mode === "THIEF_HUNT" && gameState.uniformedOfficers) {

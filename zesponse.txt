@@ -1,57 +1,173 @@
-Файл: src/components/SplashScreen.tsx
+Ниже представлены минимальные и точные изменения для устранения ошибок
+TypeScript, конфликтов интерфейсов и неиспользуемых переменных, блокирующих
+сборку проекта.
+
+Файл: src/types/multiplayer.ts
 
 НАЙТИ:
 
-      {/* Ограничивающий фрейм: 100% на смартфонах, аккуратный max-w-md на ПК */}
-      <div className="relative w-full max-w-md h-full flex flex-col justify-end pb-[max(4rem,env(safe-area-inset-bottom))] md:border-x md:border-white/10 md:shadow-[0_0_80px_rgba(0,0,0,0.9)] overflow-hidden">
-        {/* Арт-фон постера */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-black">
-          <img 
-            src="./splash-bg.png" 
-            alt="Astoria City Noir" 
-            className="w-full h-full object-cover object-top opacity-95"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              if (!target.src.endsWith("/splash-bg.png")) target.src = "/splash-bg.png";
-            }}
-          />
-          {/* Градиент снизу для читаемости кнопки */}
-          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/60 to-transparent" />
-        </div>
-
-        <div className="relative z-10 w-full px-6 flex justify-center mb-6">
-          {!hasStarted && (
-            <div className="text-[10px] sm:text-xs font-black tracking-widest uppercase text-white/90 border border-white/20 bg-black/50 backdrop-blur-md px-8 py-3.5 rounded-full hover:bg-white/10 transition-all animate-bounce shadow-[0_0_25px_rgba(0,0,0,0.8)]">
-              Коснитесь, чтобы войти
-            </div>
-          )}
-        </div>
-      </div>
+export type GameAction =
 
 ЗАМЕНИТЬ НА:
 
-      {/* Полноэкранный постер на смартфонах и планшетах, центрирование на сверхшироких ПК */}
-      <div className="relative w-full 2xl:max-w-5xl 2xl:mx-auto h-full flex flex-col justify-end pb-[max(4rem,env(safe-area-inset-bottom))] 2xl:border-x 2xl:border-white/10 2xl:shadow-[0_0_80px_rgba(0,0,0,0.9)] overflow-hidden">
-        {/* Арт-фон постера */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-black">
-          <img 
-            src="./splash-bg.png" 
-            alt="Astoria City Noir" 
-            className="w-full h-full object-cover object-top opacity-95"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              if (!target.src.endsWith("/splash-bg.png")) target.src = "/splash-bg.png";
-            }}
-          />
-          {/* Градиент снизу для читаемости кнопки */}
-          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/60 to-transparent" />
-        </div>
+import type { Role } from "./game";
 
-        <div className="relative z-10 w-full px-6 flex justify-center mb-6">
-          {!hasStarted && (
-            <div className="text-[10px] sm:text-xs md:text-sm font-black tracking-widest uppercase text-white/90 border border-white/20 bg-black/50 backdrop-blur-md px-8 md:px-10 py-3.5 md:py-4.5 rounded-full hover:bg-white/10 transition-all animate-bounce shadow-[0_0_25px_rgba(0,0,0,0.8)]">
-              Коснитесь, чтобы войти
-            </div>
-          )}
-        </div>
-      </div>
+export type GameAction =
+
+НАЙТИ:
+
+  | { type: "SET_MATCH_POT"; payload: { pot: number; bet: number }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "PLAYER_READY"; senderId?: string; timestamp?: number; actionId?: string };
+
+ЗАМЕНИТЬ НА:
+
+  | { type: "SET_MATCH_POT"; payload: { pot: number; bet: number }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "PLAYER_READY"; senderId?: string; timestamp?: number; actionId?: string }
+  | { type: "SWEAR_IN_OFFICER"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "SET_INSPECTOR_ROLE"; payload: { chosenId: string }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string };
+
+Файл: src/components/GameBoard.tsx
+
+НАЙТИ:
+
+            radarRingColor={
+              radarCellIds.includes(character.id) ? radarColorClass : null
+            }
+            isError={character.id === errorCardId}
+            myCharacterId={myCharacterId}
+            isOverlapZone={isOverlapZone}
+            onClick={() => onSelectCharacter(character.id)}
+
+ЗАМЕНИТЬ НА:
+
+            radarRingColor={
+              radarCellIds.includes(character.id) ? radarColorClass : null
+            }
+            isError={character.id === errorCardId}
+            isMyCharacter={character.id === myCharacterId}
+            isOverlapZone={isOverlapZone}
+            onClick={() => onSelectCharacter(character.id)}
+
+Файл: src/components/GameOverModal.tsx
+
+НАЙТИ:
+
+interface GameOverModalProps {
+  winner: Role;
+  mode: GameModeType;
+  killer: Character | undefined;
+  detective: Character | undefined;
+  elapsedTime: string;
+  onRestart: () => void;
+}
+
+ЗАМЕНИТЬ НА:
+
+interface GameOverModalProps {
+  winner: Role;
+  mode: GameModeType;
+  killer?: Character | undefined;
+  detective?: Character | undefined;
+  elapsedTime: string;
+  onRestart: () => void;
+}
+
+Файл: src/App.tsx
+
+НАЙТИ:
+
+import { soundManager } from "./utils/audio";
+import { triggerHaptic } from "./utils/haptics";
+import { ActionPanel, type ActionItem } from "./components/ActionPanel";
+import { RoleCards } from "./components/RoleCards";
+import type { GameAction } from "./types/multiplayer";
+
+ЗАМЕНИТЬ НА:
+
+import { soundManager } from "./utils/audio";
+import { triggerHaptic } from "./utils/haptics";
+import type { ActionItem } from "./components/ActionPanel";
+import { RoleCards } from "./components/RoleCards";
+import type { GameAction } from "./types/multiplayer";
+
+НАЙТИ:
+
+  const {
+    profile,
+    updateProfile,
+    reserveBet,
+    refundBet,
+    awardPrize,
+    recordMatchResult,
+  } = usePlayerProfile();
+
+ЗАМЕНИТЬ НА:
+
+  const {
+    profile,
+    updateProfile,
+    refundBet,
+    awardPrize,
+    recordMatchResult,
+  } = usePlayerProfile();
+
+НАЙТИ:
+
+  const handleAccuse = () => {
+    if (!selectedId || gameState.currentTurn !== "DETECTIVE" || !isHumanTurn)
+      return;
+    const targetChar = gameState.board.flat().find((c) => c.id === selectedId);
+    if (!targetChar || targetChar.isDead) return;
+
+    const isMiss =
+
+ЗАМЕНИТЬ НА:
+
+  const handleAccuse = () => {
+    if (!selectedId || gameState.currentTurn !== "DETECTIVE" || !isHumanTurn)
+      return;
+    const targetChar = gameState.board.flat().find((c) => c.id === selectedId);
+    if (!targetChar || !targetChar.isAlive) return;
+
+    const isMiss =
+
+НАЙТИ:
+
+        actions.push({
+          id: "accuse_basic",
+          label: "Задержание",
+          onClick: handleAccuse,
+          disabled: (() => {
+            if (!isHumanTurn || !selectedId || Boolean(selectedCharacter?.isDead) || isGameOver) return true;
+            let isAdjacent = detectiveAdjacentIds.includes(selectedId);
+
+ЗАМЕНИТЬ НА:
+
+        actions.push({
+          id: "accuse_basic",
+          label: "Задержание",
+          onClick: handleAccuse,
+          disabled: (() => {
+            if (!isHumanTurn || !selectedId || !selectedCharacter?.isAlive || isGameOver) return true;
+            let isAdjacent = detectiveAdjacentIds.includes(selectedId);
+
+Отчёт о проверках:
+
+1.  src/types/multiplayer.ts: Добавлен импорт Role и недостающие типы экшенов,
+    что устраняет ошибку Cannot find name 'Role' и Type '"SWEAR_IN_OFFICER"' is
+    not comparable to type....
+2.  src/components/GameBoard.tsx: Исправлена передача пропса myCharacterId на
+    isMyCharacter, что соответствует интерфейсу CharacterCardProps и включает
+    отображение бейджа "ВЫ".
+3.  src/components/GameOverModal.tsx: Пропсы killer и detective сделаны
+    опциональными, что устраняет ошибку в componentsUI.test.tsx.
+4.  src/App.tsx: Устранены ошибки обращения к несуществующему свойству isDead
+    (заменено на !isAlive). Удалены неиспользуемые импорты (ActionPanel) и
+    переменные (reserveBet), что позволяет пройти строгую проверку
+    noUnusedLocals.
+
+Дальнейшие шаги для пользователя: Выполнить команду npx tsc --noEmit для
+подтверждения отсутствия ошибок компиляции TypeScript. Также рекомендуется
+переименовать файл src/components/toast.tsx в src/components/Toast.tsx
+средствами ОС или Git (git mv src/components/toast.tsx
+src/components/Toast.tsx), чтобы устранить проблему с регистром (AUD-02).

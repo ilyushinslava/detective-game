@@ -10,7 +10,8 @@ import {
   spyCatch,
   spyInterrogate,
   robNeighbor,
-  setPolicePatrol,
+  fastDisguise,
+  swearInOfficer,
 } from "./gameLogic";
 
 function getAllValidShifts(
@@ -270,13 +271,22 @@ export function getSecretServiceAIMove(state: GameState): GameState {
 export function getThiefAIMove(state: GameState): GameState {
   if (state.winner) return state;
 
+  const selfChar = state.board.flat().find((c) => c.id === state.killerSecretId);
   const neighbors = getAdjacentCharacters(state.board, state.killerSecretId);
-  const validTargets = neighbors.filter((c) => c.isAlive && !c.isRobbed);
+  const possibleTargets = [...neighbors];
+  if (selfChar) possibleTargets.push(selfChar);
+
+  const validTargets = possibleTargets.filter((c) => c.isAlive && !c.isRobbed);
 
   if (validTargets.length > 0) {
     const target =
       validTargets[Math.floor(Math.random() * validTargets.length)];
     return robNeighbor(state, target.id);
+  }
+
+  if (state.killerHand && state.killerHand.length > 0 && Math.random() < 0.35) {
+    const maskId = state.killerHand[Math.floor(Math.random() * state.killerHand.length)];
+    return fastDisguise(state, maskId);
   }
 
   const validShifts = getAllValidShifts(
@@ -316,12 +326,39 @@ export function getThiefAIMove(state: GameState): GameState {
 export function getPoliceAIMove(state: GameState): GameState {
   if (state.winner) return state;
 
-  const shouldPatrol = Math.random() < 0.5;
-  if (shouldPatrol) {
-    const types: ("ROW" | "COL")[] = ["ROW", "COL"];
-    const randomType = types[Math.floor(Math.random() * types.length)];
-    const randomIndex = Math.floor(Math.random() * 5);
-    return setPolicePatrol(state, randomType, randomIndex);
+  const zoneIds = new Set<string>();
+  
+  const detNeighbors = getAdjacentCharacters(state.board, state.detectiveSecretId);
+  detNeighbors.forEach((c) => zoneIds.add(c.id));
+  
+  if (state.uniformedOfficers) {
+    state.uniformedOfficers.forEach((officerId) => {
+      const offNeighbors = getAdjacentCharacters(state.board, officerId);
+      offNeighbors.forEach((c) => zoneIds.add(c.id));
+    });
+  }
+
+  const suspects = state.board.flat().filter(
+    (c) =>
+      c.isAlive &&
+      zoneIds.has(c.id) &&
+      c.id !== state.detectiveSecretId &&
+      !(state.uniformedOfficers && state.uniformedOfficers.includes(c.id))
+  );
+
+  if (suspects.length > 0 && Math.random() < 0.7) {
+    const target = suspects[Math.floor(Math.random() * suspects.length)];
+    return accuseCharacter(state, target.id);
+  }
+
+  if (
+    state.uniformedOfficers &&
+    state.uniformedOfficers.length > 0 &&
+    state.evidenceDeck.length > 0 &&
+    Math.random() < 0.4
+  ) {
+    const officerId = state.uniformedOfficers[Math.floor(Math.random() * state.uniformedOfficers.length)];
+    return swearInOfficer(state, officerId);
   }
 
   const validShifts = getAllValidShifts(
@@ -351,5 +388,9 @@ export function getPoliceAIMove(state: GameState): GameState {
     };
   }
 
-  return setPolicePatrol(state, "ROW", 0);
+  return {
+    ...state,
+    currentTurn: "KILLER",
+    log: [...state.log, "Полиция пропустила ход."],
+  };
 }

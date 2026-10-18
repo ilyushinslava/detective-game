@@ -22,6 +22,8 @@ import {
   getKillerAIMove,
   getDetectiveAIMove,
   getSecretServiceAIMove,
+  getThiefAIMove,
+  getPoliceAIMove,
 } from "./utils/aiLogic";
 import { soundManager } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
@@ -497,6 +499,10 @@ export default function App() {
           if (prev.winner) return prev;
           if (prev.mode === "SECRET_SERVICE")
             return getSecretServiceAIMove(prev);
+          if (prev.mode === "THIEF_HUNT") {
+            if (prev.currentTurn === "KILLER") return getThiefAIMove(prev);
+            return getPoliceAIMove(prev);
+          }
           if (prev.currentTurn === "KILLER") return getKillerAIMove(prev);
           return getDetectiveAIMove(prev);
         });

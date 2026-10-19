@@ -134,10 +134,6 @@ export const CharacterCard = memo(
     const isDead = !character.isAlive;
     const isExonerated = character.isExonerated && !isDead;
     const isSecretService = mode === "SECRET_SERVICE";
-    const unmaskedColor =
-      character.unmaskedSpyIndex !== undefined
-        ? SPY_COLORS[character.unmaskedSpyIndex % SPY_COLORS.length]
-        : null;
 
     return (
       <motion.div

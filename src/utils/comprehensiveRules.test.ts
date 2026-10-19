@@ -3,15 +3,12 @@ import {
   createInitialState,
   killCharacter,
   disguiseKiller,
-  exonerateFromHand,
   accuseCharacter,
   getAdjacentCharacters,
   escapeManiac,
   robNeighbor,
   fastDisguise,
-  swearInOfficer,
   spyCatch,
-  spyInterrogate,
 } from "./gameLogic";
 
 describe("Математическая строгость и инварианты", () => {

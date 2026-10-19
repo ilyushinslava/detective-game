@@ -1,4 +1,4 @@
-﻿import type { GameModeType, OpponentType, Role } from "../types/game";
+﻿import type { GameModeType } from "../types/game";
 
 export interface GameModeInfo {
   id: GameModeType;

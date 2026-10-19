@@ -3,7 +3,6 @@ import type { GameModeType, OpponentType, Role } from "../types/game";
 import type { UserProfile } from "../types/profile";
 import { triggerHaptic, setHapticsEnabled } from "../utils/haptics";
 import { mpService, type PublicRoomMeta } from "../utils/multiplayerPeer";
-import { usePlayerProfile } from "../utils/usePlayerProfile";
 import { soundManager } from "../utils/audio";
 import { Toast } from "./Toast";
 import { TutorialScreen } from "./TutorialScreen";
@@ -139,7 +138,7 @@ export const MainMenu = ({
   const [roomFilter, setRoomFilter] = useState<string>("ALL");
   const [isCreateRoomOpen, setIsCreateRoomOpen] = useState(false);
   const [createRoomMode, setCreateRoomMode] = useState<GameModeType>("SKHVATKA");
-  const [createRoomBet, setCreateRoomBet] = useState<number>(250);
+  const [createRoomBet] = useState<number>(250);
   const [createRoomIsPrivate, setCreateRoomIsPrivate] = useState<boolean>(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
@@ -155,7 +154,7 @@ export const MainMenu = ({
     return localStorage.getItem("crime_city_haptics") !== "false";
   });
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
-  const [tutorialStep, setTutorialStep] = useState(1);
+  const [, setTutorialStep] = useState(1);
 
   useEffect(() => {
     if (activeTab === "LOBBY" && screen !== 'HOME' && screen !== 'MODES' && screen !== 'MODE_DETAIL') setScreen('HOME');

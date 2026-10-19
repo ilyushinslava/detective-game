@@ -5,7 +5,6 @@ import {
   escapeManiac,
   exonerateFromHand,
   setInspectorRole,
-  getAdjacentCharacters,
 } from "./gameLogic";
 import { gameReducer } from "./gameReducer";
 import type { GameAction } from "../types/multiplayer";

@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { soundManager } from "./audio";
-import { gameReducer } from "./gameReducer";
 import { createInitialState } from "./gameLogic";
 import type { GameAction } from "../types/multiplayer";
 
@@ -33,7 +32,7 @@ describe("Аудио Диспетчер (Sound Dispatcher)", () => {
   });
 
   it("Промахи в задержании вызывают 'error'", () => {
-    const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
+    const _state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
     
     const action: GameAction = {
       type: "ACCUSE",

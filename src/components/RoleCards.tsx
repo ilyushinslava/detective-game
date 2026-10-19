@@ -27,7 +27,6 @@ export const RoleCards = ({
   onPeekDetectiveEnd,
   isPVP,
 }: RoleCardsProps) => {
-  const isSecretService = mode === "SECRET_SERVICE";
   const showKillerCard = isPVP || canPeekKiller;
   const showDetectiveCard = isPVP || canPeekDetective;
   const singleCard = (showKillerCard && !showDetectiveCard) || (!showKillerCard && showDetectiveCard);

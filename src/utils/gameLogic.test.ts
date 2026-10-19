@@ -2,7 +2,6 @@
 import {
   isOppositeShift,
   getAdjacentCharacters,
-  canCleanupBoard,
   createInitialState,
   cleanupDeadCharacters,
 } from "./gameLogic";
@@ -59,6 +58,7 @@ describe("Ядро правил игры (gameLogic)", () => {
 
     const state: GameState = {
       mode: "SKHVATKA", opponent: "AI", playerRole: "DETECTIVE", board,
+      boardSize: 5, victimList: [],
       currentTurn: "DETECTIVE", killerSecretId: "c_1_1", detectiveSecretId: "c_2_2",
       detectiveHand: [], evidenceDeck: ["c25"], killCount: 1, winner: null,
       log: [], lastShift: null, lastInterrogation: null,

@@ -335,7 +335,6 @@ export function createInitialState(
     maxTurns,
     lastInterrogation: null,
     lastSpyInterrogation: null,
-    lastTraitQuestion: null,
     log: mode === "LINE_UP"
       ? ["Операция началась: Очная ставка (Line-Up). Сформировано досье подозреваемых."]
       : [

@@ -185,7 +185,7 @@ class MultiplayerService {
           const now = Date.now();
           const activeRooms: PublicRoomMeta[] = [];
 
-          for (const [code, room] of Object.entries(data)) {
+          for (const [, room] of Object.entries(data)) {
             const r = room as PublicRoomMeta;
             if (!r.isPrivate && r.playersCount < r.maxPlayers) {
               if (now - r.createdAt < 30 * 60 * 1000) {
@@ -467,7 +467,7 @@ class MultiplayerService {
     if (!this.roomCode) return () => {};
     const readyKey = this.isHost ? "guestReady" : "hostReady";
     const targetRef = ref(db, `rooms/${this.roomCode}/${readyKey}`);
-    const unsubscribe = onValue(targetRef, (snapshot) => {
+    onValue(targetRef, (snapshot) => {
       callback(snapshot.val() === true);
     });
     return () => {

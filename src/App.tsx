@@ -8,7 +8,6 @@ import { RoleRevealModal } from "./components/RoleRevealModal";
 import { GameOverModal } from "./components/GameOverModal";
 import { MainMenu } from "./components/MainMenu";
 import { usePlayerProfile } from "./utils/usePlayerProfile";
-import { GAME_MODES } from "./components/ModeSelectModal";
 import { mpService } from "./utils/multiplayerPeer";
 import {
   createInitialState,
@@ -34,15 +33,8 @@ import { DuelQuestionCatalogModal } from "./components/duel/DuelQuestionCatalogM
 import { DuelCandidatesSheet } from "./components/duel/DuelCandidatesSheet";
 import { DuelAccuseModal } from "./components/duel/DuelAccuseModal";
 import { DUEL_CHARACTERS } from "./constants/duelCharacters";
-import { filterCandidates } from "./utils/duelLogic";
-import type { DuelHistoryEntry } from "./types/duel";
-import { I18nProvider } from "./i18n/context";
-import { DuelQuestionCatalogModal } from "./components/duel/DuelQuestionCatalogModal";
-import { DuelCandidatesSheet } from "./components/duel/DuelCandidatesSheet";
-import { DuelAccuseModal } from "./components/duel/DuelAccuseModal";
-import { DUEL_CHARACTERS } from "./constants/duelCharacters";
 import { DUEL_QUESTIONS } from "./constants/duelQuestions";
-import { askDuelQuestion, accuseDuelTarget, filterCandidates } from "./utils/duelLogic";
+import { filterCandidates } from "./utils/duelLogic";
 import type { DuelHistoryEntry } from "./types/duel";
 
 const characterImages = import.meta.glob<{ default: string }>(
@@ -207,8 +199,7 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = mpService.subscribeToActions((action: GameAction) => {
-      if (action.type === "REJECT_RESTART") {
-        setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
+if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTART_GAME") {        setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
         if (
           gameStateRef.current.restartRequestedBy ===
           (mpService.isHost ? "HOST" : "GUEST")
@@ -252,8 +243,8 @@ export default function App() {
         return;
       }
 
-      if (action.type === "RESTART_GAME" || action.type === "MATCH_STARTED") {
-        matchResultRecordedRef.current = false;
+if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTART_GAME") {
+          matchResultRecordedRef.current = false;
         setGameState((prev) => {
           const newState =
             action.type === "MATCH_STARTED"
@@ -492,11 +483,6 @@ export default function App() {
   const rawDetective = CHARACTERS_DATA.find((c) => c.id === gameState.detectiveSecretId);
   const detectiveChar = allChars.find((c) => c.id === gameState.detectiveSecretId)
     ?? (rawDetective ? ({ ...rawDetective, isAlive: true, isExonerated: false } as typeof allChars[0]) : undefined);
-
-  const activeSpy =
-    gameState.mode === "SECRET_SERVICE" && gameState.spies
-      ? gameState.spies[gameState.activeSpyIndex ?? 0]
-      : null;
 
   const inspectorChoices = (gameState.inspectorChoices ?? [])
     .map((id) => allChars.find((c) => c.id === id))
@@ -1304,9 +1290,8 @@ export default function App() {
   );
 
   return (
-    <I18nProvider>
-      <div className="fixed inset-0 w-full h-full flex flex-col bg-[#080a0f] overflow-hidden select-none">
-        {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+    <div className="fixed inset-0 w-full h-full flex flex-col bg-[#080a0f] overflow-hidden select-none">
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       {/* МОДАЛЬНЫЕ ОКНА РЕЖИМА "ОЧНАЯ СТАВКА" */}
         <DuelQuestionCatalogModal 
           isOpen={isQuestionCatalogOpen} 
@@ -2688,7 +2673,7 @@ export default function App() {
         {/* ОВЕРЛЕЙ ПРЕДУПРЕЖДЕНИЯ О ЛАНДШАФТНОМ РЕЖИМЕ НА МОБИЛКАХ */}
         <div className="mobile-landscape-overlay fixed inset-0 z-[200] bg-zinc-950 flex-col items-center justify-center text-center px-6 select-none">
           <div className="w-20 h-20 mb-6 rounded-full border border-zinc-800 bg-zinc-900 flex items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.8)] animate-pulse">
-            <span className="text-4xl transform -rotate-90">??</span>
+            <span className="text-4xl transform -rotate-90">📱</span>
           </div>
           <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100 mb-3">
             Поверните устройство
@@ -2699,6 +2684,5 @@ export default function App() {
         </div>
       </div>
     </div>
-    </I18nProvider>
   );
 }

@@ -11,8 +11,6 @@ export type GameModeType =
 export type Role = "KILLER" | "DETECTIVE";
 export type OpponentType = "PVP" | "AI" | "ONLINE";
 
-export type LineUpTrait = 'isFemale' | 'hasHat' | 'hasGlasses' | 'hasBeard';
-
 export interface Character {
   id: string;
   name: string;
@@ -25,10 +23,6 @@ export interface Character {
   isVaultCracked?: boolean;
   isVaultLocked?: boolean;
   unmaskedSpyIndex?: number;
-  isFemale?: boolean;
-  hasHat?: boolean;
-  hasGlasses?: boolean;
-  hasBeard?: boolean;
 }
 
 export interface LastShift {
@@ -90,7 +84,6 @@ export interface GameState {
   matchPot?: number;
   restartRequestedBy?: "HOST" | "GUEST" | null;
   disguisedNotification?: { roleName: string; newSecretId: string } | null;
-  lastTraitQuestion?: { trait: LineUpTrait; answer: boolean; askerRole: Role } | null;
 }
 export const SPY_COLORS = [
   {

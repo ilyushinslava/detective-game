@@ -39,8 +39,6 @@ describe("Игровые правила (Rules Audit)", () => {
     let state = createInitialState("MANIAC_VS_OPERATIVE", "PVP");
     state.currentTurn = "DETECTIVE";
     
-    const initialVictimCount = state.victimList.length;
-    const initialDeckCount = state.evidenceDeck.length;
     const lastVictim = state.victimList[state.victimList.length - 1];
     
     const targetId = state.board.flat().find(c => c.id !== state.killerSecretId)!.id;

@@ -1,7 +1,4 @@
-﻿let isHapticsEnabled = true;
-
-export const setHapticsEnabled = (enabled: boolean) => {
-  isHapticsEnabled = enabled;
+﻿export const setHapticsEnabled = (enabled: boolean) => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('crime_city_haptics', enabled ? 'true' : 'false');
   }

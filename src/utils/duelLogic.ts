@@ -1,7 +1,7 @@
 import { DUEL_CHARACTERS } from "../constants/duelCharacters";
 import { DUEL_QUESTIONS } from "../constants/duelQuestions";
-import type { DuelCharacter, DuelHistoryEntry, DuelQuestion } from "../types/duel";
-import type { Role, OpponentType } from "../types/game";
+import type { DuelCharacter, DuelHistoryEntry } from "../types/duel";
+import type { Role } from "../types/game";
 
 export interface DuelState {
   board: DuelCharacter[];

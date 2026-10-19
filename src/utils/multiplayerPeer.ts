@@ -10,6 +10,9 @@ import {
   onDisconnect,
   remove,
   update,
+  push,
+  onChildAdded,
+  runTransaction,
   type DatabaseReference,
 } from "firebase/database";
 import type { GameAction } from "../types/multiplayer";
@@ -273,8 +276,9 @@ class MultiplayerService {
         }
       });
 
-      onValue(this.roomRef, (snap) => {
-        if (!snap.exists() || snap.val()?.status === "CLOSED") {
+      const statusRef = ref(db, `rooms/${code}/status`);
+      onValue(statusRef, (snap) => {
+        if (!snap.exists() || snap.val() === "CLOSED") {
           if (this.onRoomClosed) this.onRoomClosed();
         }
       });
@@ -360,27 +364,33 @@ class MultiplayerService {
       const user = await this.ensureAuth();
       const uid = user.uid;
       this.roomRef = ref(db, `rooms/${code}`);
-      const snapshot = await get(this.roomRef);
 
-      if (!snapshot.exists()) {
+      // Защита от гонки через транзакцию
+      const txnResult = await runTransaction(this.roomRef, (currentData) => {
+        if (!currentData) return currentData;
+        if (currentData.status === "CLOSED") return; // Отказ
+        if (currentData.guestId && currentData.guestId !== "" && currentData.guestId !== uid) {
+          return; // Комната уже занята другим гостем
+        }
+        return {
+          ...currentData,
+          guestId: uid,
+          guestName: this.guestName,
+          status: "CONNECTED",
+          guestConnected: true,
+        };
+      });
+
+      if (!txnResult.committed || !txnResult.snapshot.exists()) {
         onError();
         return;
       }
 
-      const data = snapshot.val();
+      const data = txnResult.snapshot.val();
       this.hostName = data.hostName || "Игрок 1";
 
-      await update(this.roomRef, {
-        guestId: uid,
-        guestName: this.guestName,
-        status: "CONNECTED",
-        guestConnected: true,
-      });
-
       // Обновляем счетчик в публичном лобби
-      update(ref(db, `public_rooms/${code}`), { playersCount: 2 }).catch(
-        () => {},
-      );
+      update(ref(db, `public_rooms/${code}`), { playersCount: 2 }).catch(() => {});
 
       this.guestRef = ref(db, `rooms/${code}/guestId`);
       this.guestConnectedRef = ref(db, `rooms/${code}/guestConnected`);
@@ -399,8 +409,9 @@ class MultiplayerService {
 
       if (this.onPlayerConnected) this.onPlayerConnected();
 
-      onValue(this.roomRef, (snap) => {
-        if (!snap.exists() || snap.val()?.status === "CLOSED") {
+      const statusRef = ref(db, `rooms/${code}/status`);
+      onValue(statusRef, (snap) => {
+        if (!snap.exists() || snap.val() === "CLOSED") {
           if (this.onRoomClosed) this.onRoomClosed();
         }
       });
@@ -415,7 +426,7 @@ class MultiplayerService {
   private listenToActions() {
     if (!this.actionsRef) return;
 
-    onValue(this.actionsRef, (snapshot) => {
+    onChildAdded(this.actionsRef, (snapshot) => {
       const data = snapshot.val();
       if (!data) return;
 
@@ -477,7 +488,7 @@ class MultiplayerService {
       actionId,
     } as any;
 
-    set(ref(db, `rooms/${this.roomCode}/actions`), {
+    push(ref(db, `rooms/${this.roomCode}/actions`), {
       senderClientId: this.myClientId,
       actionId,
       actionJson: JSON.stringify(action),
@@ -489,7 +500,7 @@ class MultiplayerService {
     if (!this.roomCode) return;
     const actionId = `${this.myClientId}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
-    set(ref(db, `rooms/${this.roomCode}/actions`), {
+    push(ref(db, `rooms/${this.roomCode}/actions`), {
       senderClientId: this.myClientId,
       actionId,
       actionJson: JSON.stringify({

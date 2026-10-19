@@ -35,6 +35,10 @@ class SoundController {
   private isAmbientEnabled: boolean = true;
   private ambientAudio: HTMLAudioElement | null = null;
   private currentAmbientVolume = 0.25;
+  
+  private audioPool: Map<string, HTMLAudioElement[]> = new Map();
+  private poolIndex: Map<string, number> = new Map();
+  private readonly POOL_SIZE = 2;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -50,10 +54,18 @@ class SoundController {
       const savedAmbient = localStorage.getItem('crime_city_ambient');
       if (savedAmbient !== null) this.isAmbientEnabled = savedAmbient === 'true';
 
-      Object.values(SOUND_LIBRARY).flat().forEach((path) => {
-        const audio = new Audio(path);
-        audio.preload = 'auto';
-      });
+      if (typeof Audio !== 'undefined') {
+        Object.values(SOUND_LIBRARY).flat().forEach((path) => {
+          const pool: HTMLAudioElement[] = [];
+          for (let i = 0; i < this.POOL_SIZE; i++) {
+            const audio = new Audio(path);
+            audio.preload = 'auto';
+            pool.push(audio);
+          }
+          this.audioPool.set(path, pool);
+          this.poolIndex.set(path, 0);
+        });
+      }
     }
   }
 
@@ -67,9 +79,21 @@ class SoundController {
     const selectedPath = variations[randomIndex];
 
     try {
-      const sound = new Audio(selectedPath);
-      sound.volume = Math.max(0, Math.min(1, volume));
-      sound.play().catch(() => {});
+      const pool = this.audioPool.get(selectedPath);
+      if (pool && pool.length > 0) {
+        const index = this.poolIndex.get(selectedPath) || 0;
+        const sound = pool[index];
+        
+        this.poolIndex.set(selectedPath, (index + 1) % this.POOL_SIZE);
+
+        sound.currentTime = 0;
+        sound.volume = Math.max(0, Math.min(1, volume));
+        sound.play().catch(() => {});
+      } else if (typeof Audio !== 'undefined') {
+        const sound = new Audio(selectedPath);
+        sound.volume = Math.max(0, Math.min(1, volume));
+        sound.play().catch(() => {});
+      }
     } catch (err) {
       console.warn(`[Audio] Ошибка воспроизведения ${selectedPath}:`, err);
     }

@@ -368,6 +368,7 @@ export default function App() {
     });
 
     mpService.onRoomClosed = () => {
+      setIsIntroPhase(false);
       setOpponentDisconnectedNotice(true);
     };
 
@@ -400,6 +401,7 @@ export default function App() {
         if (gameStateRef.current.restartRequestedBy === (mpService.isHost ? "HOST" : "GUEST") || !gameStateRef.current.winner) {
           refundBet(gameStateRef.current.matchBet || 250);
         }
+        setIsIntroPhase(false);
         setOpponentDisconnectedNotice(true);
       };
 
@@ -1315,9 +1317,10 @@ export default function App() {
             mode={gameState.mode}
             opponent={gameState.opponent}
             playerRole={gameState.playerRole}
-            onCancelMatch={() => {
+            isOpponentConnected={isOpponentConnected}
+            onCancelMatch={async () => {
               sessionStorage.removeItem('mp_session');
-              mpService.disconnect();
+              await mpService.leaveRoom();
               setGameState(createInitialState("SKHVATKA", "AI", "DETECTIVE", 3, 3, 16, profile.nickname));
               setHasStartedEver(false);
               setIsIntroPhase(false);

@@ -124,6 +124,7 @@ interface RoleRevealModalProps {
   inspectorChoices: Character[];
   role1Name?: string;
   role2Name?: string;
+  isOpponentConnected?: boolean;
   onSelectDetectiveRole: (id: string) => void;
   onComplete: () => void;
   onCancelMatch?: () => void;
@@ -138,6 +139,7 @@ export const RoleRevealModal = ({
   inspectorChoices,
   role1Name: propRole1Name,
   role2Name: propRole2Name,
+  isOpponentConnected = true,
   onSelectDetectiveRole,
   onComplete,
   onCancelMatch,
@@ -234,23 +236,25 @@ export const RoleRevealModal = ({
     };
   }, [opponent]);
 
+  const onCancelMatchRef = useRef(onCancelMatch);
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    if (isWaitingRemote) {
-      timer = setInterval(() => {
-        setAfkSecondsLeft((prev) => {
-          if (prev <= 1) {
-            if (onCancelMatch) onCancelMatch();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+    onCancelMatchRef.current = onCancelMatch;
+  }, [onCancelMatch]);
+
+  useEffect(() => {
+    if (!isWaitingRemote) return;
+
+    if (afkSecondsLeft <= 0) {
+      onCancelMatchRef.current?.();
+      return;
     }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [isWaitingRemote, onCancelMatch]);
+
+    const timer = setInterval(() => {
+      setAfkSecondsLeft((prev) => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isWaitingRemote, afkSecondsLeft]);
 
   const handleConfirmChoices = () => {
     if (selectedInspectorId) {
@@ -610,10 +614,11 @@ export const RoleRevealModal = ({
               {getActionTiles(mode, playerRole)}
             </div>
             <button
+              disabled={opponent === "ONLINE" && !isOpponentConnected}
               onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
-              className={`w-full h-14 mt-4 ${themeClasses.button} text-white text-xs font-black uppercase tracking-widest rounded-full transition flex items-center justify-center gap-2 cursor-pointer shrink-0`}
+              className={`w-full h-14 mt-4 ${themeClasses.button} disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-full transition flex items-center justify-center gap-2 cursor-pointer shrink-0`}
             >
-              <span>{opponent === "ONLINE" ? "ГОТОВ" : "Начать операцию"}</span> <Icons.ArrowRight className="w-4 h-4" />
+              <span>{opponent === "ONLINE" ? (!isOpponentConnected ? "СОПЕРНИК НЕ В СЕТИ" : "ГОТОВ") : "Начать операцию"}</span> <Icons.ArrowRight className="w-4 h-4" />
             </button>
           </>
         )}
@@ -723,10 +728,11 @@ export const RoleRevealModal = ({
             </div>
             <button
               data-testid="ready-button"
+              disabled={opponent === "ONLINE" && !isOpponentConnected}
               onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
-              className="w-full h-14 mt-4 bg-gradient-to-r from-red-700 via-red-600 to-red-800 hover:from-red-600 hover:to-red-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_0_20px_rgba(220,38,38,0.45)] flex items-center justify-center gap-2 cursor-pointer shrink-0"
+              className="w-full h-14 mt-4 bg-gradient-to-r from-red-700 via-red-600 to-red-800 hover:from-red-600 hover:to-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_0_20px_rgba(220,38,38,0.45)] flex items-center justify-center gap-2 cursor-pointer shrink-0"
             >
-              <span>{opponent === "ONLINE" ? "ГОТОВ" : "Начать операцию"}</span> <Icons.ArrowRight className="w-4 h-4" />
+              <span>{opponent === "ONLINE" ? (!isOpponentConnected ? "СОПЕРНИК НЕ В СЕТИ" : "ГОТОВ") : "Начать операцию"}</span> <Icons.ArrowRight className="w-4 h-4" />
             </button>
           </>
         )}
@@ -765,10 +771,11 @@ export const RoleRevealModal = ({
             </div>
             <button
               data-testid="ready-button"
+              disabled={opponent === "ONLINE" && !isOpponentConnected}
               onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
-              className="w-full h-14 mt-4 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_0_20px_rgba(6,182,212,0.45)] flex items-center justify-center gap-2 cursor-pointer shrink-0"
+              className="w-full h-14 mt-4 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_0_20px_rgba(6,182,212,0.45)] flex items-center justify-center gap-2 cursor-pointer shrink-0"
             >
-              <span>{opponent === "ONLINE" ? "ГОТОВ" : (mode === "SKHVATKA" ? "Принять дело" : "Начать расследование")}</span> <Icons.ArrowRight className="w-4 h-4" />
+              <span>{opponent === "ONLINE" ? (!isOpponentConnected ? "СОПЕРНИК НЕ В СЕТИ" : "ГОТОВ") : (mode === "SKHVATKA" ? "Принять дело" : "Начать расследование")}</span> <Icons.ArrowRight className="w-4 h-4" />
             </button>
           </>
         )}

@@ -5,6 +5,8 @@ import App from "../App";
 import { RoleRevealModal } from "../components/RoleRevealModal";
 import { mpService } from "./multiplayerPeer";
 import { createInitialState } from "./gameLogic";
+import { gameReducer } from "./gameReducer";
+import { I18nProvider } from "../i18n/context";
 import * as database from "firebase/database";
 
 vi.mock("firebase/app", () => ({
@@ -66,7 +68,11 @@ describe("Сетевой протокол и синхронизация (Multipl
       return () => {};
     });
 
-    render(<App />);
+    render(
+      <I18nProvider>
+        <App />
+      </I18nProvider>
+    );
 
     act(() => {
       actionCallback?.({
@@ -158,5 +164,72 @@ describe("Сетевой протокол и синхронизация (Multipl
         matchBet: 250,
       })
     );
+  });
+
+  it("Синхронизация выбора личности: экшен SET_INSPECTOR_ROLE обновляет detectiveSecretId", () => {
+    const state = createInitialState("SKHVATKA", "ONLINE", "KILLER");
+    const chosenId = state.inspectorChoices![1];
+
+    const action: any = {
+      type: "SET_INSPECTOR_ROLE",
+      payload: { chosenId },
+      senderId: "remote",
+    };
+
+    const nextState = gameReducer(state, action);
+
+    expect(nextState.detectiveSecretId).toBe(chosenId);
+    expect(nextState.inspectorChoices).toEqual([]);
+    expect(nextState.detectiveHand).not.toContain(chosenId);
+  });
+
+  it("Идентичность поля: Гость принимает раскладку Хоста из MATCH_STARTED", () => {
+    const hostState = createInitialState("SKHVATKA", "ONLINE", "KILLER");
+    const guestState = createInitialState("SKHVATKA", "ONLINE", "DETECTIVE");
+
+    const action: any = {
+      type: "MATCH_STARTED",
+      payload: { state: hostState },
+      senderId: "remote",
+    };
+
+    const nextState = gameReducer(guestState, action);
+
+    expect(nextState.board).toEqual(hostState.board);
+    expect(nextState.killerSecretId).toBe(hostState.killerSecretId);
+  });
+
+  it("АФК-таймер готовности: по истечении 15 секунд срабатывает onCancelMatch", () => {
+    vi.useFakeTimers();
+    const onCancelMatchMock = vi.fn();
+
+    render(
+      <RoleRevealModal
+        mode="SKHVATKA"
+        opponent="ONLINE"
+        playerRole="KILLER"
+        killer={undefined}
+        detective={undefined}
+        inspectorChoices={[]}
+        onSelectDetectiveRole={vi.fn()}
+        onComplete={vi.fn()}
+        onCancelMatch={onCancelMatchMock}
+      />
+    );
+
+    const readyButtons = screen.getAllByTestId("ready-button");
+    const readyButton = readyButtons[readyButtons.length - 1];
+
+    act(() => {
+      fireEvent.click(readyButton);
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(16000);
+    });
+
+    expect(onCancelMatchMock).toHaveBeenCalledTimes(1);
+
+    vi.useRealTimers();
   });
 });

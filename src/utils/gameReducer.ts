@@ -16,6 +16,8 @@ import {
   cleanupDeadCharacters,
   swearInOfficer,
   setInspectorRole,
+  interrogateTrait,
+  accuseLineUp,
 } from "./gameLogic";
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
@@ -137,6 +139,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return swearInOfficer(state, action.payload.targetId);
     case "SET_INSPECTOR_ROLE":
       return setInspectorRole(state, action.payload.chosenId);
+    case "INTERROGATE_TRAIT":
+      return interrogateTrait(state, action.payload.trait);
+    case "ACCUSE_LINE_UP":
+      return accuseLineUp(state, action.payload.targetId);
 
     case "REQUEST_RESTART":
       return { ...state, restartRequestedBy: action.payload.requestedBy };
@@ -154,8 +160,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         matchBet: action.payload.bet,
       };
 
+    case "MATCH_STARTED":
     case "RESTART_GAME": {
-      if (action.payload.state) return action.payload.state;
+      if (action.payload?.state) return action.payload.state;
+      return state;
     }
 
     default:
@@ -165,6 +173,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
   const nextState = computeNextState();
   if (isRemote) {
+    if (action.type === "MATCH_STARTED" || action.type === "RESTART_GAME") {
+      return nextState;
+    }
     const finalState = { ...nextState };
     if (action.nextTurn) finalState.currentTurn = action.nextTurn;
     if (action.nextSpyIndex !== undefined) finalState.activeSpyIndex = action.nextSpyIndex;

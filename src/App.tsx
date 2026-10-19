@@ -1,6 +1,6 @@
 ﻿import { useState, useRef, useEffect, useMemo } from "react";
 import { SplashScreen } from './components/SplashScreen';
-import { type GameModeType, type OpponentType, type Role, SPY_COLORS } from "./types/game";
+import { type GameModeType, type OpponentType, type Role, type LineUpTrait, SPY_COLORS } from "./types/game";
 import { GameBoard } from "./components/GameBoard";
 import { DetectiveHand } from "./components/DetectiveHand";
 import { ThiefHand } from "./components/ThiefHand";
@@ -83,6 +83,7 @@ export default function App() {
   const [isOpponentConnected, setIsOpponentConnected] = useState(true);
   const [activeAccordionIndex, setActiveAccordionIndex] = useState<number | null>(null);
   const [fullscreenImage, setFullscreenImage] = useState<{ url: string; name: string; id: string } | null>(null);
+  const [isTraitModalOpen, setIsTraitModalOpen] = useState(false);
 
   const [isSfxEnabled, setIsSfxEnabled] = useState(soundManager.getSfxEnabled());
   const [isAmbientEnabled, setIsAmbientEnabled] = useState(soundManager.getAmbientEnabled());
@@ -277,6 +278,8 @@ export default function App() {
         if (action.type === "CLEANUP") soundManager.play('slide');
         if (action.type === "DISGUISE" || action.type === "FAST_DISGUISE" || action.type === "ESCAPE_MANIAC") soundManager.play('disguise');
         if (action.type === "EXONERATE") soundManager.play('radar');
+        if (action.type === "INTERROGATE_TRAIT") soundManager.play('radar');
+        if (action.type === "ACCUSE_LINE_UP") soundManager.play('arrest');
 
         if (action.type === "ACCUSE") {
           if (action.payload?.isMiss) {
@@ -574,6 +577,9 @@ export default function App() {
   } else if (gameState.mode === "THIEF_HUNT") {
     role1Name = "ГРАБИТЕЛЬ";
     role2Name = "ПОЛИЦИЯ";
+  } else if (gameState.mode === "LINE_UP") {
+    role1Name = "ПОДОЗРЕВАЕМЫЙ";
+    role2Name = "СЛЕДОВАТЕЛЬ";
   }
 
   let currentRoleName = isKillerTurn ? role1Name : role2Name;
@@ -879,6 +885,39 @@ export default function App() {
     setSelectedId(null);
   };
 
+  const handleInterrogateTrait = (trait: LineUpTrait) => {
+    soundManager.play('radar');
+    triggerHaptic("light");
+    dispatchAction({
+      type: "INTERROGATE_TRAIT",
+      payload: { trait },
+      senderId: "local",
+      timestamp: Date.now(),
+    } as any);
+    setIsTraitModalOpen(false);
+  };
+
+  const handleAccuseLineUp = () => {
+    if (!selectedId || !isHumanTurn) return;
+    const targetSecretId = gameState.currentTurn === "DETECTIVE" ? gameState.killerSecretId : gameState.detectiveSecretId;
+    if (selectedId === targetSecretId) {
+      soundManager.play('arrest');
+      triggerHaptic("success");
+    } else {
+      soundManager.play('error');
+      triggerHaptic("error");
+      setErrorCardId(selectedId);
+      setTimeout(() => setErrorCardId(null), 500);
+    }
+    dispatchAction({
+      type: "ACCUSE_LINE_UP",
+      payload: { targetId: selectedId },
+      senderId: "local",
+      timestamp: Date.now(),
+    } as any);
+    setSelectedId(null);
+  };
+
   const handleReset = () => {
     if (gameState.opponent === "ONLINE" && mpService.roomCode) {
       dispatchAction({
@@ -946,7 +985,22 @@ export default function App() {
         const actions: ActionItem[] = [];
         const isGameOver = gameState.winner !== null;
 
-        if (gameState.mode === "SECRET_SERVICE") {
+        if (gameState.mode === "LINE_UP") {
+          actions.push({
+            id: "interrogate_trait",
+            label: "Опрос свидетеля",
+            onClick: () => setIsTraitModalOpen(true),
+            disabled: !isHumanTurn || isGameOver,
+            className: "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          });
+          actions.push({
+            id: "accuse_line_up",
+            label: "Задержание",
+            onClick: handleAccuseLineUp,
+            disabled: !isHumanTurn || !selectedId || !selectedCharacter?.isAlive || isGameOver,
+            className: "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          });
+        } else if (gameState.mode === "SECRET_SERVICE") {
           const activeSpySecretId = gameState.spies?.[gameState.activeSpyIndex ?? 0]?.secretId;
           const validNeighbors = activeSpySecretId
             ? getAdjacentCharacters(gameState.board, activeSpySecretId).map((c) => c.id)
@@ -1442,7 +1496,7 @@ export default function App() {
               className="w-8 h-8 md:w-11 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer"
               title="Пауза и меню"
             >
-              <span>☰</span>
+              <span>?</span>
             </button>
             <button
               onClick={() => {
@@ -1452,7 +1506,7 @@ export default function App() {
               className="relative w-8 h-8 md:w-11 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer lg:hidden"
               title="Блокнот расследования"
             >
-              <span>📝</span>
+              <span>??</span>
               {unreadLogCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[8px] font-black rounded-full w-4 h-4 flex items-center justify-center animate-pulse">
                   {unreadLogCount}
@@ -1545,7 +1599,7 @@ export default function App() {
             </div>
           )}
           <div className="flex items-center gap-1.5 text-zinc-500 font-medium">
-            <span className="hidden md:inline">⚔️ Режим:</span>
+            <span className="hidden md:inline">?? Режим:</span>
             <span>
               {gameState.opponent === "ONLINE"
                 ? "онлайн"
@@ -1558,7 +1612,21 @@ export default function App() {
 
         {/* ФИКСИРОВАННАЯ ПОЛОСА ДОПРОСА / ЦЕЛИ МАНЬЯКА */}
         <div className="w-full px-3 h-8 md:h-12 shrink-0 flex items-center justify-center">
-          {gameState.lastInterrogation && !gameState.winner ? (
+          {gameState.mode === "LINE_UP" && gameState.lastTraitQuestion && !gameState.winner ? (
+            <div className="w-full h-full px-2.5 rounded-lg border border-zinc-800 bg-zinc-900/90 flex items-center justify-between text-[10px] md:text-sm shadow-sm">
+              <span className="font-bold text-zinc-300 truncate mr-2">
+                {gameState.lastTraitQuestion.askerRole === "DETECTIVE" ? "Следователь" : "Подозреваемый"} спросил:{" "}
+                <b className="text-zinc-100">
+                  {gameState.lastTraitQuestion.trait === "isFemale" ? "Женский пол" :
+                   gameState.lastTraitQuestion.trait === "hasHat" ? "Шляпа" :
+                   gameState.lastTraitQuestion.trait === "hasGlasses" ? "Очки" : "Борода"}
+                </b>
+              </span>
+              <span className={`shrink-0 px-2 py-0.5 rounded text-[9px] md:text-xs font-black uppercase border ${gameState.lastTraitQuestion.answer ? "bg-emerald-950 text-emerald-400 border-emerald-700" : "bg-red-950 text-red-400 border-red-700"}`}>
+                {gameState.lastTraitQuestion.answer ? "ДА" : "НЕТ"}
+              </span>
+            </div>
+          ) : gameState.lastInterrogation && !gameState.winner ? (
             <div
               className={`w-full h-full px-2.5 rounded-lg border flex items-center justify-between text-[10px] md:text-sm shadow-sm ${gameState.lastInterrogation.isNear ? "bg-red-950/80 border-red-700 text-red-200" : "bg-zinc-900/90 border-zinc-800 text-zinc-300"}`}
             >
@@ -1721,13 +1789,13 @@ export default function App() {
                         : "col-span-1"
                     }`}
                   >
-                    {(action.id === 'kill_basic' || action.id === 'capture_spy') && (
+                    {(action.id === 'kill_basic' || action.id === 'capture_spy' || action.id === 'accuse_line_up') && (
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
                     )}
                     {(action.id === 'accuse_basic' || action.id === 'patrol_call') && (
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                     )}
-                    {action.id === 'interrogate_spy' && (
+                    {(action.id === 'interrogate_spy' || action.id === 'interrogate_trait') && (
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle><line x1="12" y1="2" x2="12" y2="12"></line></svg>
                     )}
                     {(action.id === 'disguise_skhvatka' || action.id === 'escape_maniac' || action.id === 'disguise_thief') && (
@@ -1753,7 +1821,7 @@ export default function App() {
                         : "col-span-2"
                     } py-1.5 sm:py-2 md:py-3.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-300 hover:text-zinc-200 text-[9px] sm:text-[10px] md:text-xs font-bold uppercase rounded-xl border border-zinc-700/80 transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5`}
                   >
-                    <span>↻</span>
+                    <span>?</span>
                     <span>Зачистить</span>
                   </button>
                 )}
@@ -1763,7 +1831,7 @@ export default function App() {
                     onClick={() => setIsHandSheetOpen(true)}
                     className={`${cleanupAction ? "col-span-1" : "col-span-2"} py-1.5 sm:py-2 md:py-3.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer`}
                   >
-                    <span>🗂</span>
+                    <span>??</span>
                     <span>Досье ({gameState.detectiveHand.length})</span>
                   </button>
                 )}
@@ -1776,7 +1844,7 @@ export default function App() {
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                   Протокол событий ({gameState.log.length})
                 </span>
-                <span className="text-xs">▼</span>
+                <span className="text-xs">Ў</span>
               </div>
               <div
                 ref={logContainerRef}
@@ -1811,7 +1879,7 @@ export default function App() {
                   onClick={() => setIsHandSheetOpen(false)}
                   className="w-7 h-7 rounded-full bg-zinc-800 text-zinc-400 font-bold flex items-center justify-center text-xs"
                 >
-                  ✕
+                  ?
                 </button>
               </div>
 
@@ -1859,7 +1927,7 @@ export default function App() {
               <div className="w-12 h-1 bg-zinc-700 rounded-full mx-auto mb-3" />
               <div className="flex items-center justify-between border-b border-zinc-800 pb-2 mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-base">📝</span>
+                  <span className="text-base">??</span>
                   <h3 className="text-sm font-black text-zinc-100 uppercase tracking-wider">
                     Блокнот расследования ({gameState.log.length})
                   </h3>
@@ -1868,7 +1936,7 @@ export default function App() {
                   onClick={() => setIsLogOpen(false)}
                   className="w-7 h-7 rounded-full bg-zinc-800 text-zinc-400 font-bold flex items-center justify-center text-xs"
                 >
-                  ✕
+                  ?
                 </button>
               </div>
 
@@ -1896,7 +1964,7 @@ export default function App() {
             <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/95 p-4 select-none">
               <div className="w-full max-w-sm bg-zinc-900 border border-amber-500/50 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
                 <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center text-3xl mb-4">
-                  🤝
+                  ??
                 </div>
                 <h2 className="text-xl font-black text-zinc-100 mb-2">
                   Реванш?
@@ -1951,7 +2019,7 @@ export default function App() {
           <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/95 p-4 select-none">
             <div className="w-full max-w-sm bg-zinc-900 border border-red-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
               <div className="w-16 h-16 rounded-full bg-red-950 border border-red-700 flex items-center justify-center text-3xl mb-4">
-                ⚠️
+                ??
               </div>
               <h2 className="text-xl font-black text-zinc-100 mb-2">
                 Соперник покинул игру
@@ -1972,7 +2040,7 @@ export default function App() {
                 }}
                 className="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
               >
-                В главное меню ➔
+                В главное меню ?
               </button>
             </div>
           </div>
@@ -1991,7 +2059,7 @@ export default function App() {
               {!isRevealConfirmed && gameState.opponent === "PVP" ? (
                 <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
                   <div className="w-16 h-16 rounded-full bg-red-950/80 border border-red-700 flex items-center justify-center text-3xl mb-4">
-                    🔒
+                    ??
                   </div>
                   <span className="text-xs font-bold text-red-400 uppercase tracking-widest block mb-1">
                     Агент разоблачен!
@@ -2011,13 +2079,13 @@ export default function App() {
                     onClick={() => setIsRevealConfirmed(true)}
                     className="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
                   >
-                    Я держу телефон один ➔
+                    Я держу телефон один ?
                   </button>
                 </div>
               ) : (
                 <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
                   <div className="w-16 h-16 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-3xl mb-4">
-                    🎭
+                    ??
                   </div>
                   <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest block mb-1">
                     Вас раскрыли!
@@ -2058,7 +2126,7 @@ export default function App() {
                           }}
                           className="w-full py-3.5 bg-gradient-to-r from-zinc-700 to-zinc-600 hover:from-zinc-600 hover:to-zinc-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-[0_10px_25px_rgba(0,0,0,0.5)] border-t border-white/25"
                         >
-                          Принять личность ➔
+                          Принять личность ?
                         </button>
                       </>
                     );
@@ -2076,7 +2144,7 @@ export default function App() {
               {!isRevealConfirmed && gameState.opponent === "PVP" ? (
                 <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
                   <div className="w-16 h-16 rounded-full bg-amber-950/80 border border-amber-700 flex items-center justify-center text-3xl mb-4">
-                    🎭
+                    ??
                   </div>
                   <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">
                     Смена личности!
@@ -2091,13 +2159,13 @@ export default function App() {
                     onClick={() => setIsRevealConfirmed(true)}
                     className="w-full py-3.5 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
                   >
-                    Я держу телефон один ➔
+                    Я держу телефон один ?
                   </button>
                 </div>
               ) : (
                 <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
                   <div className="w-16 h-16 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-3xl mb-4">
-                    🕵️
+                    ???
                   </div>
                   <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest block mb-1">
                     Конспирация успешна
@@ -2138,7 +2206,7 @@ export default function App() {
                           }}
                           className="w-full py-3.5 bg-gradient-to-r from-zinc-700 to-zinc-600 hover:from-zinc-600 hover:to-zinc-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-[0_10px_25px_rgba(0,0,0,0.5)] border-t border-white/25"
                         >
-                          Принять личность ➔
+                          Принять личность ?
                         </button>
                       </>
                     );
@@ -2147,6 +2215,38 @@ export default function App() {
               )}
             </div>
           )}
+
+        {isTraitModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none" onClick={() => setIsTraitModalOpen(false)}>
+            <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
+              <div>
+                <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100 mb-1">Очная ставка: опрос</h2>
+                <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">Выберите внешний признак для проверки тайной личности соперника</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={() => handleInterrogateTrait('isFemale')} className="py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl border border-zinc-700 flex flex-col items-center gap-2 transition cursor-pointer">
+                  <span className="text-2xl">??</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider">Женский пол</span>
+                </button>
+                <button onClick={() => handleInterrogateTrait('hasHat')} className="py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl border border-zinc-700 flex flex-col items-center gap-2 transition cursor-pointer">
+                  <span className="text-2xl">??</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider">Шляпа / Убор</span>
+                </button>
+                <button onClick={() => handleInterrogateTrait('hasGlasses')} className="py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl border border-zinc-700 flex flex-col items-center gap-2 transition cursor-pointer">
+                  <span className="text-2xl">??</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider">Очки</span>
+                </button>
+                <button onClick={() => handleInterrogateTrait('hasBeard')} className="py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl border border-zinc-700 flex flex-col items-center gap-2 transition cursor-pointer">
+                  <span className="text-2xl">??</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider">Борода / Усы</span>
+                </button>
+              </div>
+              <button onClick={() => setIsTraitModalOpen(false)} className="w-full py-3.5 bg-zinc-950 hover:bg-black text-zinc-400 font-bold uppercase tracking-wider rounded-xl transition cursor-pointer mt-2">
+                Отмена
+              </button>
+            </div>
+          </div>
+        )}
 
         {gameState.winner && !gameState.restartRequestedBy && (
           <GameOverModal
@@ -2158,7 +2258,6 @@ export default function App() {
             onRestart={handleReset}
           />
         )}
-
         {isPauseOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none" onClick={() => setIsPauseOpen(false)}>
             <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
@@ -2217,7 +2316,15 @@ export default function App() {
                 </div>
                 <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
                   <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Вибрация</span>
-                  <button onClick={() => { const newVal = !isHapticsEnabled; setIsHapticsEnabled(newVal); setHapticsEnabled(newVal); if (newVal) triggerHaptic("medium"); }} className={`w-10 h-5 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isHapticsEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}>
+                  <button
+                    onClick={() => {
+                      const newVal = !isHapticsEnabled;
+                      setIsHapticsEnabled(newVal);
+                      localStorage.setItem("crime_city_haptics", newVal ? "true" : "false");
+                      if (newVal) triggerHaptic("medium");
+                    }}
+                    className={`w-10 h-5 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isHapticsEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}
+                  >
                     <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isHapticsEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                   </button>
                 </div>
@@ -2258,7 +2365,7 @@ export default function App() {
                   onClick={() => setIsRulesOpen(false)}
                   className="text-zinc-500 hover:text-zinc-300 font-bold text-lg cursor-pointer p-1"
                 >
-                  ✕
+                  ?
                 </button>
               </div>
 
@@ -2295,7 +2402,7 @@ export default function App() {
                   <div onClick={() => setActiveAccordionIndex(prev => prev === 1 ? null : 1)} className="p-3.5 font-black text-zinc-200 group-hover:text-cyan-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
                     <span>1. Схватка (2 игрока, поле 5x5)</span>
                     <span className={`text-zinc-500 transition-transform duration-300 ${activeAccordionIndex === 1 ? 'rotate-180' : ''}`}>
-                      ▼
+                      Ў
                     </span>
                   </div>
                   <div className={`grid transition-[grid-template-rows,opacity] duration-500 ease-out ${activeAccordionIndex === 1 ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
@@ -2369,7 +2476,7 @@ export default function App() {
                   <div onClick={() => setActiveAccordionIndex(prev => prev === 2 ? null : 2)} className="p-3.5 font-black text-zinc-200 group-hover:text-cyan-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
                     <span>2. Маньяк против оперативника</span>
                     <span className={`text-zinc-500 transition-transform duration-300 ${activeAccordionIndex === 2 ? 'rotate-180' : ''}`}>
-                      ▼
+                      Ў
                     </span>
                   </div>
                   <div className={`grid transition-[grid-template-rows,opacity] duration-500 ease-out ${activeAccordionIndex === 2 ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
@@ -2440,7 +2547,7 @@ export default function App() {
                   <div onClick={() => setActiveAccordionIndex(prev => prev === 3 ? null : 3)} className="p-3.5 font-black text-zinc-200 group-hover:text-indigo-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
                     <span>3. Секретная служба</span>
                     <span className={`text-zinc-500 transition-transform duration-300 ${activeAccordionIndex === 3 ? 'rotate-180' : ''}`}>
-                      ▼
+                      Ў
                     </span>
                   </div>
                   <div className={`grid transition-[grid-template-rows,opacity] duration-500 ease-out ${activeAccordionIndex === 3 ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
@@ -2486,7 +2593,7 @@ export default function App() {
                   <div onClick={() => setActiveAccordionIndex(prev => prev === 4 ? null : 4)} className="p-3.5 font-black text-zinc-200 group-hover:text-cyan-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
                     <span>4. Охота на грабителя</span>
                     <span className={`text-zinc-500 transition-transform duration-300 ${activeAccordionIndex === 4 ? 'rotate-180' : ''}`}>
-                      ▼
+                      Ў
                     </span>
                   </div>
                   <div className={`grid transition-[grid-template-rows,opacity] duration-500 ease-out ${activeAccordionIndex === 4 ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
@@ -2559,7 +2666,7 @@ export default function App() {
               onClick={() => setFullscreenImage(null)}
               className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
             >
-              ✕
+              ?
             </button>
             <div className="relative w-full max-w-sm aspect-[3/4] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.8)]" onClick={(e) => e.stopPropagation()}>
               <img src={fullscreenImage.url} alt={fullscreenImage.name} className="w-full h-full object-cover grayscale contrast-125" />
@@ -2574,7 +2681,7 @@ export default function App() {
         {/* ОВЕРЛЕЙ ПРЕДУПРЕЖДЕНИЯ О ЛАНДШАФТНОМ РЕЖИМЕ НА МОБИЛКАХ */}
         <div className="mobile-landscape-overlay fixed inset-0 z-[200] bg-zinc-950 flex-col items-center justify-center text-center px-6 select-none">
           <div className="w-20 h-20 mb-6 rounded-full border border-zinc-800 bg-zinc-900 flex items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.8)] animate-pulse">
-            <span className="text-4xl transform -rotate-90">📱</span>
+            <span className="text-4xl transform -rotate-90">??</span>
           </div>
           <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100 mb-3">
             Поверните устройство

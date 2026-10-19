@@ -114,7 +114,6 @@ export const MainMenu = ({
   onResumeGame,
   onOpenRules,
 }: MainMenuProps) => {
-  const { refundBet } = usePlayerProfile();
   const { t, lang, setLang } = useTranslation();
   
   const [screen, setScreen] = useState<ScreenType>('HOME');
@@ -938,7 +937,6 @@ export const MainMenu = ({
               <button
                 onClick={() => {
                   mpService.disconnect();
-                  refundBet(createRoomBet || 250);
                   setIsWaitingForOpponent(false);
                   setIsCreating(false);
                 }}

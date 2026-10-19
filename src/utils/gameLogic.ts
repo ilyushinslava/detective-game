@@ -1091,7 +1091,7 @@ export function spyCatch(state: GameState, targetId: string): GameState {
     logMsg = `🎯 Разоблачение! ${activeSpy.name} разоблачил резидента соперника (${targetName})! Трофей получен (${newTrophies}/${targetTrophies}).`;
 
     if (newTrophies >= targetTrophies) {
-      winner = activeSpy.isAI ? "KILLER" : "DETECTIVE";
+      winner = state.activeSpyIndex === 0 ? "KILLER" : "DETECTIVE";
       logMsg += ` 🏆 ${activeSpy.name} собрал все трофеи и победил!`;
     } else {
       justCaughtSpyId = caughtSpy.id;

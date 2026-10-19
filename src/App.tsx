@@ -1,6 +1,6 @@
 ﻿import { useState, useRef, useEffect, useMemo } from "react";
 import { SplashScreen } from './components/SplashScreen';
-import type { GameModeType, OpponentType, Role } from "./types/game";
+import { type GameModeType, type OpponentType, type Role, SPY_COLORS } from "./types/game";
 import { GameBoard } from "./components/GameBoard";
 import { DetectiveHand } from "./components/DetectiveHand";
 import { ThiefHand } from "./components/ThiefHand";
@@ -39,63 +39,6 @@ const characterImages = import.meta.glob<{ default: string }>(
   { eager: true }
 );
 
-const SPY_COLORS = [
-  {
-    text: "text-red-400",
-    bg: "bg-red-950",
-    border: "border-red-500",
-    ring: "ring-red-500/80",
-  },
-  {
-    text: "text-blue-400",
-    bg: "bg-blue-950",
-    border: "border-blue-500",
-    ring: "ring-blue-500/80",
-  },
-  {
-    text: "text-sky-400",
-    bg: "bg-sky-950",
-    border: "border-sky-500",
-    ring: "ring-sky-500/80",
-  },
-  {
-    text: "text-purple-400",
-    bg: "bg-purple-950",
-    border: "border-purple-500",
-    ring: "ring-purple-500/80",
-  },
-  {
-    text: "text-rose-400",
-    bg: "bg-rose-950",
-    border: "border-rose-500",
-    ring: "ring-rose-500/80",
-  },
-  {
-    text: "text-lime-400",
-    bg: "bg-lime-950",
-    border: "border-lime-500",
-    ring: "ring-lime-500/80",
-  },
-  {
-    text: "text-cyan-400",
-    bg: "bg-cyan-950",
-    border: "border-cyan-500",
-    ring: "ring-cyan-500/80",
-  },
-  {
-    text: "text-orange-400",
-    bg: "bg-orange-950",
-    border: "border-orange-500",
-    ring: "ring-orange-500/80",
-  },
-  {
-    text: "text-fuchsia-400",
-    bg: "bg-fuchsia-950",
-    border: "border-fuchsia-500",
-    ring: "ring-fuchsia-500/80",
-  },
-];
-
 export default function App() {
   const hasSavedSession = Boolean(sessionStorage.getItem('mp_session'));
   const [showSplash, setShowSplash] = useState(!hasSavedSession);
@@ -105,7 +48,6 @@ export default function App() {
   const {
     profile,
     updateProfile,
-    refundBet,
     awardPrize,
     recordMatchResult,
   } = usePlayerProfile();
@@ -232,7 +174,6 @@ export default function App() {
             if (timer) clearInterval(timer);
             dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
             setGameState((s) => ({ ...s, restartRequestedBy: undefined }));
-            refundBet(gameStateRef.current.matchBet || 250);
             setToastMessage("Время ожидания реванша истекло");
             return 0;
           }
@@ -255,7 +196,6 @@ export default function App() {
           gameStateRef.current.restartRequestedBy ===
           (mpService.isHost ? "HOST" : "GUEST")
         ) {
-          refundBet(gameStateRef.current.matchBet || 250);
           setToastMessage("Соперник отклонил предложение о реванше.");
         }
         return;
@@ -387,9 +327,6 @@ export default function App() {
         setIsOpponentConnected(connected);
         if (!connected) {
           disconnectTimer = setTimeout(() => {
-            if (gameStateRef.current.restartRequestedBy === (mpService.isHost ? "HOST" : "GUEST") || !gameStateRef.current.winner) {
-              refundBet(gameStateRef.current.matchBet || 250);
-            }
             setOpponentDisconnectedNotice(true);
           }, 60000);
         } else {
@@ -399,9 +336,6 @@ export default function App() {
       };
 
       mpService.onRoomClosed = () => {
-        if (gameStateRef.current.restartRequestedBy === (mpService.isHost ? "HOST" : "GUEST") || !gameStateRef.current.winner) {
-          refundBet(gameStateRef.current.matchBet || 250);
-        }
         setIsIntroPhase(false);
         setOpponentDisconnectedNotice(true);
       };
@@ -1088,7 +1022,7 @@ export default function App() {
               !selectedId ||
               !killerAdjacentIds.includes(selectedId) ||
               isGameOver ||
-              (gameState.mode === "MANIAC_VS_OPERATIVE" && selectedId !== gameState.victimList[0]),
+              (gameState.mode === "MANIAC_VS_OPERATIVE" && selectedId !== gameState.victimList[0] && selectedId !== gameState.detectiveSecretId),
             className:
               "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
@@ -2004,7 +1938,6 @@ export default function App() {
                 onClick={() => {
                   dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
                   setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
-                  refundBet(gameState.matchBet || 250);
                 }}
                 className="w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
               >
@@ -2249,7 +2182,6 @@ export default function App() {
                 onClick={async () => {
                   sessionStorage.removeItem('mp_session');
                   if (gameState.opponent === "ONLINE") {
-                    if (!gameState.winner) refundBet(gameState.matchBet || 250);
                     await mpService.leaveRoom();
                   }
                   setGameState(

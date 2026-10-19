@@ -1,25 +1,34 @@
 import type { Role } from "./game";
 
-export type GameAction =
-  | { type: "SHIFT_BOARD"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "KILL_CHARACTER"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "ROB_NEIGHBOR"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "ACCUSE"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "CAPTURE_SPY"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "INTERROGATE"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "ESCAPE_MANIAC"; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "FAST_DISGUISE"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "DISGUISE"; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "EXONERATE"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "CLEANUP"; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "RESTART_GAME"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "MATCH_STARTED"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "PRE_SHIFT"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "REQUEST_RESTART"; payload: { requestedBy: "HOST" | "GUEST" }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "CONFIRM_RESTART"; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "REJECT_RESTART"; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "SET_MATCH_POT"; payload: { pot: number; bet: number }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "PLAYER_READY"; senderId?: string; timestamp?: number; actionId?: string }
-  | { type: "SWEAR_IN_OFFICER"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "SET_INSPECTOR_ROLE"; payload: { chosenId: string }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  ;
+export type BaseGameAction = {
+  senderId?: string;
+  timestamp?: number;
+  actionId?: string;
+  nextTurn?: Role;
+  nextSpyIndex?: number;
+  targetId?: string;
+};
+
+export type GameAction = BaseGameAction & (
+  | { type: "SHIFT_BOARD"; payload: any }
+  | { type: "KILL_CHARACTER"; payload: any }
+  | { type: "ROB_NEIGHBOR"; payload: any }
+  | { type: "ACCUSE"; payload: any }
+  | { type: "CAPTURE_SPY"; payload: any }
+  | { type: "INTERROGATE"; payload: any }
+  | { type: "ESCAPE_MANIAC" }
+  | { type: "FAST_DISGUISE"; payload: any }
+  | { type: "DISGUISE" }
+  | { type: "EXONERATE"; payload: any }
+  | { type: "CLEANUP" }
+  | { type: "RESTART_GAME"; payload?: any }
+  | { type: "MATCH_STARTED"; payload: { state: any } }
+  | { type: "PRE_SHIFT"; payload: any }
+  | { type: "REQUEST_RESTART"; payload: { requestedBy: "HOST" | "GUEST" } }
+  | { type: "CONFIRM_RESTART" }
+  | { type: "REJECT_RESTART" }
+  | { type: "SET_MATCH_POT"; payload: { pot: number; bet: number } }
+  | { type: "PLAYER_READY" }
+  | { type: "SWEAR_IN_OFFICER"; payload: any }
+  | { type: "SET_INSPECTOR_ROLE"; payload: { chosenId: string } }
+);

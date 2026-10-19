@@ -73,10 +73,22 @@ const GAME_MODES = [
     killerRoleName: "Агент 1",
     detectiveRoleName: "Агент 2",
   },
+  {
+    id: "LINE_UP" as GameModeType,
+    title: "Очная ставка",
+    players: "2 игрока",
+    time: "8 мин",
+    difficulty: "Средняя",
+    description: "Интеллектуальная детективная дуэль: 25 подозреваемых, каталог вопросов с дедукцией и штрафы за ложные обвинения.",
+    isAvailable: true,
+    killerRoleName: "Подозреваемый",
+    detectiveRoleName: "Следователь",
+  },
 ];
 
 const ROOM_FILTERS = [
   { id: "ALL", label: "Все" },
+  { id: "LINE_UP", label: "Дуэль" },
   { id: "SKHVATKA", label: "Схватка" },
   { id: "SECRET_SERVICE", label: "Спецслужбы" },
   { id: "MANIAC_VS_OPERATIVE", label: "Маньяк" },
@@ -879,6 +891,7 @@ export const MainMenu = ({
                     onChange={(e) => setCreateRoomMode(e.target.value as GameModeType)}
                     className="w-full bg-zinc-950/80 border border-white/15 rounded-xl px-4 py-3 text-xs font-black tracking-widest text-zinc-200 focus:border-red-500 outline-none appearance-none transition uppercase shadow-inner cursor-pointer"
                   >
+                    <option value="LINE_UP">Очная ставка (Дуэль)</option>
                     <option value="SKHVATKA">Схватка</option>
                     <option value="SECRET_SERVICE">Секретная служба</option>
                     <option value="MANIAC_VS_OPERATIVE">Маньяк против оперативника</option>

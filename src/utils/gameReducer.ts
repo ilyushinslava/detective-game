@@ -5,7 +5,6 @@ import {
   accuseCharacter,
   spyCatch,
   spyInterrogate,
-  createInitialState,
   isOppositeShift,
   killCharacter,
   robNeighbor,
@@ -16,8 +15,6 @@ import {
   cleanupDeadCharacters,
   swearInOfficer,
   setInspectorRole,
-  interrogateTrait,
-  accuseLineUp,
 } from "./gameLogic";
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
@@ -139,10 +136,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return swearInOfficer(state, action.payload.targetId);
     case "SET_INSPECTOR_ROLE":
       return setInspectorRole(state, action.payload.chosenId);
-    case "INTERROGATE_TRAIT":
-      return interrogateTrait(state, action.payload.trait);
-    case "ACCUSE_LINE_UP":
-      return accuseLineUp(state, action.payload.targetId);
 
     case "REQUEST_RESTART":
       return { ...state, restartRequestedBy: action.payload.requestedBy };
@@ -177,8 +170,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return nextState;
     }
     const finalState = { ...nextState };
-    if (action.nextTurn) finalState.currentTurn = action.nextTurn;
-    if (action.nextSpyIndex !== undefined) finalState.activeSpyIndex = action.nextSpyIndex;
+    if ((action as any).nextTurn) finalState.currentTurn = (action as any).nextTurn;
+    if ((action as any).nextSpyIndex !== undefined) finalState.activeSpyIndex = (action as any).nextSpyIndex;
     return finalState;
   }
   return nextState;

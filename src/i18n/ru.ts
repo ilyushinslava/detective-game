@@ -1,0 +1,37 @@
+export const ru = {
+  nav: {
+    hq: "Штаб",
+    tables: "Столы",
+    profile: "Профиль",
+  },
+  menu: {
+    title: "РЕКВИЕМ",
+    subtitle: "ПОСЛЕДНИЙ ВЫСТРЕЛ",
+    desc: "Детективные игры в одной колоде",
+    resume: "ПРОДОЛЖИТЬ ДЕЛО",
+    quickPlay: "БЫСТРАЯ ИГРА",
+    searching: "ПОИСК...",
+    soloCases: "ОДИНОЧНЫЕ ДЕЛА",
+    soloDesc: "Против ИИ • 4 сценария",
+    localDuel: "ЛОКАЛЬНАЯ ДУЭЛЬ",
+    localDesc: "2 игрока • 1 экран",
+    onlineOps: "СЕТЕВЫЕ ОПЕРАЦИИ",
+    onlineDesc: "Мультиплеер • Лобби столов",
+    rulebook: "СПРАВОЧНИК",
+    rulebookDesc: "Регламент правил",
+    tutorial: "ОБУЧЕНИЕ",
+    tutorialDesc: "Вводный пролог",
+  },
+  settings: {
+    title: "Настройки системы",
+    sfx: "Звуковые эффекты",
+    sfxDesc: "Выстрелы, аресты, клики",
+    ambient: "Атмосферный эмбиент",
+    ambientDesc: "Фоновая музыка дождя",
+    haptics: "Тактильный отклик",
+    hapticsDesc: "Haptics / Вибрация",
+    language: "Язык интерфейса",
+    languageDesc: "RU / EN",
+    close: "Закрыть",
+  }
+};

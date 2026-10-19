@@ -333,6 +333,7 @@ export function createInitialState(
     activeSpyIndex,
     spyTargetTrophies,
     maxTurns,
+    lastInterrogation: null,
     lastSpyInterrogation: null,
     lastTraitQuestion: null,
     log: mode === "LINE_UP"
@@ -815,7 +816,7 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
   let nextVictims = [...state.victimList];
   let nextDeck = [...state.evidenceDeck];
   let logMsg = `Ложная проверка: ${targetName} не преступник, подозрения сняты.`;
-  let nextWinner = state.winner;
+  let nextWinner: Role | null = null;
 
   if (state.mode === "THIEF_HUNT") {
     logMsg = `Ложная проверка: ${targetName} не грабитель.`;
@@ -1262,65 +1263,6 @@ export function fastDisguise(state: GameState, handCardId: string): GameState {
     disguisedNotification: { roleName: "Грабитель", newSecretId: handCardId },
     log: [...state.log, "Грабитель-виртуоз применил быструю маскировку."],
   };
-}
-
-export function interrogateTrait(state: GameState, trait: import("../types/game").LineUpTrait): GameState {
-  if (state.winner || state.mode !== "LINE_UP") return state;
-
-  const targetSecretId = state.currentTurn === "DETECTIVE" ? state.killerSecretId : state.detectiveSecretId;
-  const targetChar = state.board.flat().find(c => c.id === targetSecretId);
-  const traitValue = Boolean(targetChar?.[trait]);
-
-  const traitNames: Record<import("../types/game").LineUpTrait, string> = {
-    isFemale: "Женский пол",
-    hasHat: "Головной убор / Шляпа",
-    hasGlasses: "Очки",
-    hasBeard: "Борода / Усы"
-  };
-
-  const roleName = state.currentTurn === "DETECTIVE" ? "Следователь" : "Подозреваемый";
-  const answerStr = traitValue ? "ДА" : "НЕТ";
-
-  return {
-    ...state,
-    currentTurn: state.currentTurn === "DETECTIVE" ? "KILLER" : "DETECTIVE",
-    blockedShift: null,
-    lastTraitQuestion: { trait, answer: traitValue, askerRole: state.currentTurn },
-    log: [
-      ...state.log,
-      `Очная ставка: ${roleName} запросил признак "${traitNames[trait]}". Ответ: ${answerStr}.`
-    ]
-  };
-}
-
-export function accuseLineUp(state: GameState, targetId: string): GameState {
-  if (state.winner || state.mode !== "LINE_UP") return state;
-
-  const targetSecretId = state.currentTurn === "DETECTIVE" ? state.killerSecretId : state.detectiveSecretId;
-  const targetChar = state.board.flat().find(c => c.id === targetId);
-  const targetName = targetChar?.name ?? "Неизвестный";
-  const roleName = state.currentTurn === "DETECTIVE" ? "Следователь" : "Подозреваемый";
-
-  if (targetId === targetSecretId) {
-    return {
-      ...state,
-      winner: state.currentTurn,
-      log: [
-        ...state.log,
-        `Точное опознание! ${targetName} является разыскиваемой целью. Победа ${roleName}!`
-      ]
-    };
-  } else {
-    const oppositeRole = state.currentTurn === "DETECTIVE" ? "KILLER" : "DETECTIVE";
-    return {
-      ...state,
-      winner: oppositeRole,
-      log: [
-        ...state.log,
-        `Ошибка следствия! ${targetName} не является целью. Ложное обвинение приводит к поражению ${roleName}!`
-      ]
-    };
-  }
 }
 
 export function swearInOfficer(

@@ -137,6 +137,7 @@ describe("Сетевой протокол и синхронизация (Multipl
   });
 
   it("Намеренный выход leaveRoom переводит комнату в статус CLOSED", async () => {
+    mpService.isHost = true;
     mpService.roomCode = "1234";
     mpService.roomRef = {} as any;
 

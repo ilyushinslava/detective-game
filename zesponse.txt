@@ -1,173 +1,370 @@
-Ниже представлены минимальные и точные изменения для устранения ошибок
-TypeScript, конфликтов интерфейсов и неиспользуемых переменных, блокирующих
-сборку проекта.
+Ниже представлены точные изменения для устранения ошибок типов и предупреждений
+о неиспользуемых переменных.
 
 Файл: src/types/multiplayer.ts
 
 НАЙТИ:
 
 export type GameAction =
+  | { type: "SHIFT_BOARD"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "KILL_CHARACTER"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "ROB_NEIGHBOR"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "ACCUSE"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "CAPTURE_SPY"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "INTERROGATE"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "ESCAPE_MANIAC"; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "FAST_DISGUISE"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "DISGUISE"; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "EXONERATE"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "CLEANUP"; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "RESTART_GAME"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "MATCH_STARTED"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "PRE_SHIFT"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "REQUEST_RESTART"; payload: { requestedBy: "HOST" | "GUEST" }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "CONFIRM_RESTART"; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "REJECT_RESTART"; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "SET_MATCH_POT"; payload: { pot: number; bet: number }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "PLAYER_READY"; senderId?: string; timestamp?: number; actionId?: string }
+  | { type: "SWEAR_IN_OFFICER"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "SET_INSPECTOR_ROLE"; payload: { chosenId: string }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "INTERROGATE_TRAIT"; payload: { trait: import("./game").LineUpTrait }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
+  | { type: "ACCUSE_LINE_UP"; payload: { targetId: string }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string };
 
 ЗАМЕНИТЬ НА:
 
 import type { Role } from "./game";
 
-export type GameAction =
+export type BaseGameAction = {
+  senderId?: string;
+  timestamp?: number;
+  actionId?: string;
+  nextTurn?: Role;
+  nextSpyIndex?: number;
+  targetId?: string;
+};
+
+export type GameAction = BaseGameAction & (
+  | { type: "SHIFT_BOARD"; payload: any }
+  | { type: "KILL_CHARACTER"; payload: any }
+  | { type: "ROB_NEIGHBOR"; payload: any }
+  | { type: "ACCUSE"; payload: any }
+  | { type: "CAPTURE_SPY"; payload: any }
+  | { type: "INTERROGATE"; payload: any }
+  | { type: "ESCAPE_MANIAC" }
+  | { type: "FAST_DISGUISE"; payload: any }
+  | { type: "DISGUISE" }
+  | { type: "EXONERATE"; payload: any }
+  | { type: "CLEANUP" }
+  | { type: "RESTART_GAME"; payload?: any }
+  | { type: "MATCH_STARTED"; payload: { state: any } }
+  | { type: "PRE_SHIFT"; payload: any }
+  | { type: "REQUEST_RESTART"; payload: { requestedBy: "HOST" | "GUEST" } }
+  | { type: "CONFIRM_RESTART" }
+  | { type: "REJECT_RESTART" }
+  | { type: "SET_MATCH_POT"; payload: { pot: number; bet: number } }
+  | { type: "PLAYER_READY" }
+  | { type: "SWEAR_IN_OFFICER"; payload: any }
+  | { type: "SET_INSPECTOR_ROLE"; payload: { chosenId: string } }
+  | { type: "INTERROGATE_TRAIT"; payload: { trait: import("./game").LineUpTrait } }
+  | { type: "ACCUSE_LINE_UP"; payload: { targetId: string } }
+);
+
+Файл: src/utils/gameLogic.ts
 
 НАЙТИ:
 
-  | { type: "SET_MATCH_POT"; payload: { pot: number; bet: number }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "PLAYER_READY"; senderId?: string; timestamp?: number; actionId?: string };
+    activeSpyIndex,
+    spyTargetTrophies,
+    maxTurns,
+    lastSpyInterrogation: null,
+    lastTraitQuestion: null,
+    log: mode === "LINE_UP"
 
 ЗАМЕНИТЬ НА:
 
-  | { type: "SET_MATCH_POT"; payload: { pot: number; bet: number }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "PLAYER_READY"; senderId?: string; timestamp?: number; actionId?: string }
-  | { type: "SWEAR_IN_OFFICER"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "SET_INSPECTOR_ROLE"; payload: { chosenId: string }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string };
+    activeSpyIndex,
+    spyTargetTrophies,
+    maxTurns,
+    lastInterrogation: null,
+    lastSpyInterrogation: null,
+    lastTraitQuestion: null,
+    log: mode === "LINE_UP"
 
-Файл: src/components/GameBoard.tsx
+Файл: src/utils/gameLogic.ts
 
 НАЙТИ:
 
-            radarRingColor={
-              radarCellIds.includes(character.id) ? radarColorClass : null
-            }
-            isError={character.id === errorCardId}
-            myCharacterId={myCharacterId}
-            isOverlapZone={isOverlapZone}
-            onClick={() => onSelectCharacter(character.id)}
+  let logMsg = `Ложная проверка: ${targetName} не преступник, подозрения сняты.`;
+  let nextWinner = state.winner;
+
+  if (state.mode === "THIEF_HUNT") {
 
 ЗАМЕНИТЬ НА:
 
-            radarRingColor={
-              radarCellIds.includes(character.id) ? radarColorClass : null
-            }
-            isError={character.id === errorCardId}
-            isMyCharacter={character.id === myCharacterId}
-            isOverlapZone={isOverlapZone}
-            onClick={() => onSelectCharacter(character.id)}
+  let logMsg = `Ложная проверка: ${targetName} не преступник, подозрения сняты.`;
+  let nextWinner: Role | null = null;
 
-Файл: src/components/GameOverModal.tsx
+  if (state.mode === "THIEF_HUNT") {
+
+Файл: src/utils/gameReducer.ts
 
 НАЙТИ:
 
-interface GameOverModalProps {
-  winner: Role;
-  mode: GameModeType;
-  killer: Character | undefined;
-  detective: Character | undefined;
-  elapsedTime: string;
-  onRestart: () => void;
-}
+import {
+  shiftBoard,
+  accuseCharacter,
+  spyCatch,
+  spyInterrogate,
+  createInitialState,
+  isOppositeShift,
+  killCharacter,
 
 ЗАМЕНИТЬ НА:
 
-interface GameOverModalProps {
-  winner: Role;
-  mode: GameModeType;
-  killer?: Character | undefined;
-  detective?: Character | undefined;
-  elapsedTime: string;
-  onRestart: () => void;
-}
+import {
+  shiftBoard,
+  accuseCharacter,
+  spyCatch,
+  spyInterrogate,
+  isOppositeShift,
+  killCharacter,
+
+Файл: src/utils/gameReducer.ts
+
+НАЙТИ:
+
+  const nextState = computeNextState();
+  if (isRemote) {
+    if (action.type === "MATCH_STARTED" || action.type === "RESTART_GAME") {
+      return nextState;
+    }
+    const finalState = { ...nextState };
+    if (action.nextTurn) finalState.currentTurn = action.nextTurn;
+    if (action.nextSpyIndex !== undefined) finalState.activeSpyIndex = action.nextSpyIndex;
+    return finalState;
+  }
+  return nextState;
+
+ЗАМЕНИТЬ НА:
+
+  const nextState = computeNextState();
+  if (isRemote) {
+    if (action.type === "MATCH_STARTED" || action.type === "RESTART_GAME") {
+      return nextState;
+    }
+    const finalState = { ...nextState };
+    if ((action as any).nextTurn) finalState.currentTurn = (action as any).nextTurn;
+    if ((action as any).nextSpyIndex !== undefined) finalState.activeSpyIndex = (action as any).nextSpyIndex;
+    return finalState;
+  }
+  return nextState;
 
 Файл: src/App.tsx
 
 НАЙТИ:
 
-import { soundManager } from "./utils/audio";
-import { triggerHaptic } from "./utils/haptics";
-import { ActionPanel, type ActionItem } from "./components/ActionPanel";
-import { RoleCards } from "./components/RoleCards";
-import type { GameAction } from "./types/multiplayer";
-
-ЗАМЕНИТЬ НА:
-
+import { VictimList } from "./components/VictimList";
+import { RoleRevealModal } from "./components/RoleRevealModal";
+import { GameOverModal } from "./components/GameOverModal";
+import { MainMenu } from "./components/MainMenu";
+import { usePlayerProfile } from "./utils/usePlayerProfile";
+import { GAME_MODES } from "./components/ModeSelectModal";
+import { mpService } from "./utils/multiplayerPeer";
+import {
+  createInitialState,
+  setInspectorRole,
+  getAdjacentCharacters,
+  canCleanupBoard,
+  CHARACTERS_DATA,
+} from "./utils/gameLogic";
+import {
+  getKillerAIMove,
+  getDetectiveAIMove,
+  getSecretServiceAIMove,
+  getThiefAIMove,
+  getPoliceAIMove,
+} from "./utils/aiLogic";
 import { soundManager } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
 import type { ActionItem } from "./components/ActionPanel";
 import { RoleCards } from "./components/RoleCards";
 import type { GameAction } from "./types/multiplayer";
-
-НАЙТИ:
-
-  const {
-    profile,
-    updateProfile,
-    reserveBet,
-    refundBet,
-    awardPrize,
-    recordMatchResult,
-  } = usePlayerProfile();
+import { gameReducer } from "./utils/gameReducer";
+import { Toast } from "./components/Toast";
+import { DuelQuestionCatalogModal } from "./components/duel/DuelQuestionCatalogModal";
+import { DuelCandidatesSheet } from "./components/duel/DuelCandidatesSheet";
+import { DuelAccuseModal } from "./components/duel/DuelAccuseModal";
+import { DUEL_CHARACTERS } from "./constants/duelCharacters";
+import { askDuelQuestion, accuseDuelTarget, filterCandidates } from "./utils/duelLogic";
+import type { DuelHistoryEntry } from "./types/duel";
+import { I18nProvider } from "./i18n/context";
 
 ЗАМЕНИТЬ НА:
 
-  const {
-    profile,
-    updateProfile,
-    refundBet,
-    awardPrize,
-    recordMatchResult,
-  } = usePlayerProfile();
+import { RoleRevealModal } from "./components/RoleRevealModal";
+import { GameOverModal } from "./components/GameOverModal";
+import { MainMenu } from "./components/MainMenu";
+import { usePlayerProfile } from "./utils/usePlayerProfile";
+import { GAME_MODES } from "./components/ModeSelectModal";
+import { mpService } from "./utils/multiplayerPeer";
+import {
+  createInitialState,
+  getAdjacentCharacters,
+  canCleanupBoard,
+  CHARACTERS_DATA,
+} from "./utils/gameLogic";
+import {
+  getKillerAIMove,
+  getDetectiveAIMove,
+  getSecretServiceAIMove,
+  getThiefAIMove,
+  getPoliceAIMove,
+} from "./utils/aiLogic";
+import { soundManager } from "./utils/audio";
+import { triggerHaptic } from "./utils/haptics";
+import type { ActionItem } from "./components/ActionPanel";
+import { RoleCards } from "./components/RoleCards";
+import type { GameAction } from "./types/multiplayer";
+import { gameReducer } from "./utils/gameReducer";
+import { Toast } from "./components/Toast";
+import { DuelQuestionCatalogModal } from "./components/duel/DuelQuestionCatalogModal";
+import { DuelCandidatesSheet } from "./components/duel/DuelCandidatesSheet";
+import { DuelAccuseModal } from "./components/duel/DuelAccuseModal";
+import { DUEL_CHARACTERS } from "./constants/duelCharacters";
+import { filterCandidates } from "./utils/duelLogic";
+import type { DuelHistoryEntry } from "./types/duel";
+import { I18nProvider } from "./i18n/context";
+
+Файл: src/App.tsx
 
 НАЙТИ:
 
-  const handleAccuse = () => {
-    if (!selectedId || gameState.currentTurn !== "DETECTIVE" || !isHumanTurn)
-      return;
-    const targetChar = gameState.board.flat().find((c) => c.id === selectedId);
-    if (!targetChar || targetChar.isDead) return;
-
-    const isMiss =
+  const hasSavedSession = Boolean(sessionStorage.getItem('mp_session'));
+  const [showSplash, setShowSplash] = useState(!hasSavedSession);
+  const [activeMode, setActiveMode] = useState<GameModeType>("SKHVATKA");
+  const [isLobbyOpen, setIsLobbyOpen] = useState(!hasSavedSession);
 
 ЗАМЕНИТЬ НА:
 
-  const handleAccuse = () => {
-    if (!selectedId || gameState.currentTurn !== "DETECTIVE" || !isHumanTurn)
-      return;
-    const targetChar = gameState.board.flat().find((c) => c.id === selectedId);
-    if (!targetChar || !targetChar.isAlive) return;
+  const hasSavedSession = Boolean(sessionStorage.getItem('mp_session'));
+  const [showSplash, setShowSplash] = useState(!hasSavedSession);
+  const [, setActiveMode] = useState<GameModeType>("SKHVATKA");
+  const [isLobbyOpen, setIsLobbyOpen] = useState(!hasSavedSession);
 
-    const isMiss =
+Файл: src/App.tsx
 
 НАЙТИ:
 
-        actions.push({
-          id: "accuse_basic",
-          label: "Задержание",
-          onClick: handleAccuse,
-          disabled: (() => {
-            if (!isHumanTurn || !selectedId || Boolean(selectedCharacter?.isDead) || isGameOver) return true;
-            let isAdjacent = detectiveAdjacentIds.includes(selectedId);
+        try {
+          const { roomCode, myClientId, isHost, playerRole } = JSON.parse(saved);
+          const restoredState = await mpService.restoreSession(roomCode, myClientId, isHost);
 
 ЗАМЕНИТЬ НА:
 
-        actions.push({
-          id: "accuse_basic",
-          label: "Задержание",
-          onClick: handleAccuse,
-          disabled: (() => {
-            if (!isHumanTurn || !selectedId || !selectedCharacter?.isAlive || isGameOver) return true;
-            let isAdjacent = detectiveAdjacentIds.includes(selectedId);
+        try {
+          const { roomCode, myClientId, isHost } = JSON.parse(saved);
+          const restoredState = await mpService.restoreSession(roomCode, myClientId, isHost);
 
-Отчёт о проверках:
+Файл: src/App.tsx
 
-1.  src/types/multiplayer.ts: Добавлен импорт Role и недостающие типы экшенов,
-    что устраняет ошибку Cannot find name 'Role' и Type '"SWEAR_IN_OFFICER"' is
-    not comparable to type....
-2.  src/components/GameBoard.tsx: Исправлена передача пропса myCharacterId на
-    isMyCharacter, что соответствует интерфейсу CharacterCardProps и включает
-    отображение бейджа "ВЫ".
-3.  src/components/GameOverModal.tsx: Пропсы killer и detective сделаны
-    опциональными, что устраняет ошибку в componentsUI.test.tsx.
-4.  src/App.tsx: Устранены ошибки обращения к несуществующему свойству isDead
-    (заменено на !isAlive). Удалены неиспользуемые импорты (ActionPanel) и
-    переменные (reserveBet), что позволяет пройти строгую проверку
-    noUnusedLocals.
+НАЙТИ:
 
-Дальнейшие шаги для пользователя: Выполнить команду npx tsc --noEmit для
-подтверждения отсутствия ошибок компиляции TypeScript. Также рекомендуется
-переименовать файл src/components/toast.tsx в src/components/Toast.tsx
-средствами ОС или Git (git mv src/components/toast.tsx
-src/components/Toast.tsx), чтобы устранить проблему с регистром (AUD-02).
+  useEffect(() => {
+    const unsubscribe = mpService.subscribeToActions((action: GameAction) => {
+      const currentState = gameStateRef.current;
+
+      if (action.type === "REJECT_RESTART") {
+
+ЗАМЕНИТЬ НА:
+
+  useEffect(() => {
+    const unsubscribe = mpService.subscribeToActions((action: GameAction) => {
+      if (action.type === "REJECT_RESTART") {
+
+Файл: src/App.tsx
+
+НАЙТИ:
+
+  const activeSpy =
+    gameState.mode === "SECRET_SERVICE" && gameState.spies
+      ? gameState.spies[gameState.activeSpyIndex ?? 0]
+      : null;
+  const currentSpyName = activeSpy?.name ?? "Шпион";
+
+  const inspectorChoices = (gameState.inspectorChoices ?? [])
+
+ЗАМЕНИТЬ НА:
+
+  const activeSpy =
+    gameState.mode === "SECRET_SERVICE" && gameState.spies
+      ? gameState.spies[gameState.activeSpyIndex ?? 0]
+      : null;
+
+  const inspectorChoices = (gameState.inspectorChoices ?? [])
+
+Файл: src/App.tsx
+
+НАЙТИ:
+
+  const radarColorClass = gameState.interrogationRadar
+    ? (gameState.mode === "SECRET_SERVICE" ? `${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].ring} ${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].border}` : "ring-cyan-500/80 border-cyan-500")
+    : null;
+
+  const currentModeTitle =
+    GAME_MODES.find((m) => m.id === gameState.mode)?.title ?? "Схватка";
+
+  const isPVP = gameState.opponent === "PVP";
+
+ЗАМЕНИТЬ НА:
+
+  const radarColorClass = gameState.interrogationRadar
+    ? (gameState.mode === "SECRET_SERVICE" ? `${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].ring} ${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].border}` : "ring-cyan-500/80 border-cyan-500")
+    : null;
+
+  const isPVP = gameState.opponent === "PVP";
+
+Файл: src/App.tsx
+
+НАЙТИ:
+
+  const handlePeekStart = () => {
+    if (!isHumanTurn) return;
+    if (gameState.mode === "SECRET_SERVICE") {
+      if (gameState.activeSpyIndex === 0) setShowSpyP1Role(true);
+      else setShowSpyP2Role(true);
+    } else {
+      if (isKillerTurn) setShowKillerRole(true);
+      else setShowDetectiveRole(true);
+    }
+  };
+
+  const handlePeekEnd = () => {
+    setShowKillerRole(false);
+    setShowDetectiveRole(false);
+    setShowSpyP1Role(false);
+    setShowSpyP2Role(false);
+  };
+
+  const isPeeking =
+    showKillerRole || showDetectiveRole || showSpyP1Role || showSpyP2Role;
+  let peekName = "••••••••";
+  if (isPeeking) {
+    if (gameState.mode === "SECRET_SERVICE") {
+      const spyIdx = gameState.activeSpyIndex === 0 ? 0 : 1;
+      peekName =
+        allChars.find((c) => c.id === gameState.spies?.[spyIdx]?.secretId)
+          ?.name || "";
+    } else {
+      peekName = isKillerTurn
+        ? killerChar?.name || ""
+        : detectiveChar?.name || "";
+    }
+  }
+
+  return (
+    <I18nProvider>
+
+ЗАМЕНИТЬ НА:
+
+  return (
+    <I18nProvider>

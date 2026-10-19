@@ -184,7 +184,7 @@ export const RoleRevealModal = ({
 
   // Онлайн-ожидание и АФК-таймер
   const [isWaitingRemote, setIsWaitingRemote] = useState(false);
-  const [afkSecondsLeft, setAfkSecondsLeft] = useState(30);
+  const [afkSecondsLeft, setAfkSecondsLeft] = useState(15);
   const [isRemoteReady, setIsRemoteReady] = useState(false);
   const remoteReadyRef = useRef(false);
   const isWaitingRemoteRef = useRef(false);

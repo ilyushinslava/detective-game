@@ -619,7 +619,10 @@ export default function App() {
         myCharacterId = gameState.spies[0].secretId;
       }
     } else {
-      myCharacterId = gameState.playerRole === "KILLER" ? gameState.killerSecretId : gameState.detectiveSecretId;
+      const isSelectingInspector = gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) && gameState.playerRole === "DETECTIVE";
+      if (!isSelectingInspector) {
+        myCharacterId = gameState.playerRole === "KILLER" ? gameState.killerSecretId : gameState.detectiveSecretId;
+      }
     }
   }
 
@@ -1312,6 +1315,14 @@ export default function App() {
             mode={gameState.mode}
             opponent={gameState.opponent}
             playerRole={gameState.playerRole}
+            onCancelMatch={() => {
+              sessionStorage.removeItem('mp_session');
+              mpService.disconnect();
+              setGameState(createInitialState("SKHVATKA", "AI", "DETECTIVE", 3, 3, 16, profile.nickname));
+              setHasStartedEver(false);
+              setIsIntroPhase(false);
+              setIsLobbyOpen(true);
+            }}
             role1Name={
               gameState.mode === "SECRET_SERVICE"
                 ? (gameState.opponent === "PVP" ? "Фантом" : (gameState.spies?.[0]?.name || "Агент 1"))
@@ -1999,7 +2010,7 @@ export default function App() {
         )}
 
         {opponentDisconnectedNotice && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 select-none">
+          <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/95 p-4 select-none">
             <div className="w-full max-w-sm bg-zinc-900 border border-red-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
               <div className="w-16 h-16 rounded-full bg-red-950 border border-red-700 flex items-center justify-center text-3xl mb-4">
                 ⚠️
@@ -2199,7 +2210,7 @@ export default function App() {
             </div>
           )}
 
-        {gameState.winner && (
+        {gameState.winner && !gameState.restartRequestedBy && (
           <GameOverModal
             winner={gameState.winner}
             mode={gameState.mode}

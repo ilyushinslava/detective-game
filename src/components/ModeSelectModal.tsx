@@ -57,6 +57,17 @@ export const GAME_MODES: GameModeInfo[] = [
     killerRoleName: "Агент «Восток»",
     detectiveRoleName: "Агент «Запад»",
   },
+  {
+    id: "LINE_UP",
+    title: "Очная ставка",
+    players: "2 игрока",
+    time: "10 минут",
+    difficulty: "Легкая",
+    description: "Интеллектуальная дуэль на дедукцию: опрашивайте свидетелей по внешним признакам (пол, шляпа, очки, борода) и раскройте тайную личность соперника.",
+    isAvailable: true,
+    killerRoleName: "Подозреваемый",
+    detectiveRoleName: "Следователь",
+  },
 ];
 
 export const ModeSelectModal = () => {

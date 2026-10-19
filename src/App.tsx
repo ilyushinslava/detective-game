@@ -676,7 +676,12 @@ export default function App() {
   }
 
   const handleSelectInspectorRole = (chosenId: string) => {
-    setGameState((prev) => setInspectorRole(prev, chosenId));
+    dispatchAction({
+      type: "SET_INSPECTOR_ROLE",
+      payload: { chosenId },
+      senderId: "local",
+      timestamp: Date.now(),
+    } as any);
   };
 
   const handleStartNewGame = (

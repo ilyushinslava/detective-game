@@ -268,6 +268,8 @@ export const RoleRevealModal = ({
     mpService.sendAction({ type: "PLAYER_READY", senderId: "local" } as any);
     if (remoteReadyRef.current || isRemoteReady) {
       completeOnce();
+    } else {
+      setIsWaitingRemote(true);
     }
   };
 

@@ -22,5 +22,4 @@ export type GameAction =
   | { type: "PLAYER_READY"; senderId?: string; timestamp?: number; actionId?: string }
   | { type: "SWEAR_IN_OFFICER"; payload: any; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
   | { type: "SET_INSPECTOR_ROLE"; payload: { chosenId: string }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "INTERROGATE_TRAIT"; payload: { trait: import("./game").LineUpTrait }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string }
-  | { type: "ACCUSE_LINE_UP"; payload: { targetId: string }; senderId?: string; timestamp?: number; nextTurn?: Role; nextSpyIndex?: number; targetId?: string; actionId?: string };
+  ;

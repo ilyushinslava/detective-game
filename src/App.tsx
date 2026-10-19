@@ -1,6 +1,6 @@
 ﻿import { useState, useRef, useEffect, useMemo } from "react";
 import { SplashScreen } from './components/SplashScreen';
-import { type GameModeType, type OpponentType, type Role, type LineUpTrait, SPY_COLORS } from "./types/game";
+import { type GameModeType, type OpponentType, type Role, SPY_COLORS } from "./types/game";
 import { GameBoard } from "./components/GameBoard";
 import { DetectiveHand } from "./components/DetectiveHand";
 import { ThiefHand } from "./components/ThiefHand";
@@ -83,7 +83,6 @@ export default function App() {
   const [isOpponentConnected, setIsOpponentConnected] = useState(true);
   const [activeAccordionIndex, setActiveAccordionIndex] = useState<number | null>(null);
   const [fullscreenImage, setFullscreenImage] = useState<{ url: string; name: string; id: string } | null>(null);
-  const [isTraitModalOpen, setIsTraitModalOpen] = useState(false);
 
   const [isSfxEnabled, setIsSfxEnabled] = useState(soundManager.getSfxEnabled());
   const [isAmbientEnabled, setIsAmbientEnabled] = useState(soundManager.getAmbientEnabled());
@@ -278,8 +277,6 @@ export default function App() {
         if (action.type === "CLEANUP") soundManager.play('slide');
         if (action.type === "DISGUISE" || action.type === "FAST_DISGUISE" || action.type === "ESCAPE_MANIAC") soundManager.play('disguise');
         if (action.type === "EXONERATE") soundManager.play('radar');
-        if (action.type === "INTERROGATE_TRAIT") soundManager.play('radar');
-        if (action.type === "ACCUSE_LINE_UP") soundManager.play('arrest');
 
         if (action.type === "ACCUSE") {
           if (action.payload?.isMiss) {
@@ -885,39 +882,6 @@ export default function App() {
     setSelectedId(null);
   };
 
-  const handleInterrogateTrait = (trait: LineUpTrait) => {
-    soundManager.play('radar');
-    triggerHaptic("light");
-    dispatchAction({
-      type: "INTERROGATE_TRAIT",
-      payload: { trait },
-      senderId: "local",
-      timestamp: Date.now(),
-    } as any);
-    setIsTraitModalOpen(false);
-  };
-
-  const handleAccuseLineUp = () => {
-    if (!selectedId || !isHumanTurn) return;
-    const targetSecretId = gameState.currentTurn === "DETECTIVE" ? gameState.killerSecretId : gameState.detectiveSecretId;
-    if (selectedId === targetSecretId) {
-      soundManager.play('arrest');
-      triggerHaptic("success");
-    } else {
-      soundManager.play('error');
-      triggerHaptic("error");
-      setErrorCardId(selectedId);
-      setTimeout(() => setErrorCardId(null), 500);
-    }
-    dispatchAction({
-      type: "ACCUSE_LINE_UP",
-      payload: { targetId: selectedId },
-      senderId: "local",
-      timestamp: Date.now(),
-    } as any);
-    setSelectedId(null);
-  };
-
   const handleReset = () => {
     if (gameState.opponent === "ONLINE" && mpService.roomCode) {
       dispatchAction({
@@ -985,22 +949,7 @@ export default function App() {
         const actions: ActionItem[] = [];
         const isGameOver = gameState.winner !== null;
 
-        if (gameState.mode === "LINE_UP") {
-          actions.push({
-            id: "interrogate_trait",
-            label: "Опрос свидетеля",
-            onClick: () => setIsTraitModalOpen(true),
-            disabled: !isHumanTurn || isGameOver,
-            className: "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-          });
-          actions.push({
-            id: "accuse_line_up",
-            label: "Задержание",
-            onClick: handleAccuseLineUp,
-            disabled: !isHumanTurn || !selectedId || !selectedCharacter?.isAlive || isGameOver,
-            className: "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-          });
-        } else if (gameState.mode === "SECRET_SERVICE") {
+        if (gameState.mode === "SECRET_SERVICE") {
           const activeSpySecretId = gameState.spies?.[gameState.activeSpyIndex ?? 0]?.secretId;
           const validNeighbors = activeSpySecretId
             ? getAdjacentCharacters(gameState.board, activeSpySecretId).map((c) => c.id)
@@ -1612,21 +1561,7 @@ export default function App() {
 
         {/* ФИКСИРОВАННАЯ ПОЛОСА ДОПРОСА / ЦЕЛИ МАНЬЯКА */}
         <div className="w-full px-3 h-8 md:h-12 shrink-0 flex items-center justify-center">
-          {gameState.mode === "LINE_UP" && gameState.lastTraitQuestion && !gameState.winner ? (
-            <div className="w-full h-full px-2.5 rounded-lg border border-zinc-800 bg-zinc-900/90 flex items-center justify-between text-[10px] md:text-sm shadow-sm">
-              <span className="font-bold text-zinc-300 truncate mr-2">
-                {gameState.lastTraitQuestion.askerRole === "DETECTIVE" ? "Следователь" : "Подозреваемый"} спросил:{" "}
-                <b className="text-zinc-100">
-                  {gameState.lastTraitQuestion.trait === "isFemale" ? "Женский пол" :
-                   gameState.lastTraitQuestion.trait === "hasHat" ? "Шляпа" :
-                   gameState.lastTraitQuestion.trait === "hasGlasses" ? "Очки" : "Борода"}
-                </b>
-              </span>
-              <span className={`shrink-0 px-2 py-0.5 rounded text-[9px] md:text-xs font-black uppercase border ${gameState.lastTraitQuestion.answer ? "bg-emerald-950 text-emerald-400 border-emerald-700" : "bg-red-950 text-red-400 border-red-700"}`}>
-                {gameState.lastTraitQuestion.answer ? "ДА" : "НЕТ"}
-              </span>
-            </div>
-          ) : gameState.lastInterrogation && !gameState.winner ? (
+          {gameState.lastInterrogation && !gameState.winner ? (
             <div
               className={`w-full h-full px-2.5 rounded-lg border flex items-center justify-between text-[10px] md:text-sm shadow-sm ${gameState.lastInterrogation.isNear ? "bg-red-950/80 border-red-700 text-red-200" : "bg-zinc-900/90 border-zinc-800 text-zinc-300"}`}
             >
@@ -1789,13 +1724,13 @@ export default function App() {
                         : "col-span-1"
                     }`}
                   >
-                    {(action.id === 'kill_basic' || action.id === 'capture_spy' || action.id === 'accuse_line_up') && (
+                    {(action.id === 'kill_basic' || action.id === 'capture_spy') && (
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
                     )}
                     {(action.id === 'accuse_basic' || action.id === 'patrol_call') && (
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                     )}
-                    {(action.id === 'interrogate_spy' || action.id === 'interrogate_trait') && (
+                    {action.id === 'interrogate_spy' && (
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle><line x1="12" y1="2" x2="12" y2="12"></line></svg>
                     )}
                     {(action.id === 'disguise_skhvatka' || action.id === 'escape_maniac' || action.id === 'disguise_thief') && (
@@ -2215,38 +2150,6 @@ export default function App() {
               )}
             </div>
           )}
-
-        {isTraitModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none" onClick={() => setIsTraitModalOpen(false)}>
-            <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
-              <div>
-                <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100 mb-1">Очная ставка: опрос</h2>
-                <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">Выберите внешний признак для проверки тайной личности соперника</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <button onClick={() => handleInterrogateTrait('isFemale')} className="py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl border border-zinc-700 flex flex-col items-center gap-2 transition cursor-pointer">
-                  <span className="text-2xl">??</span>
-                  <span className="text-[10px] font-black uppercase tracking-wider">Женский пол</span>
-                </button>
-                <button onClick={() => handleInterrogateTrait('hasHat')} className="py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl border border-zinc-700 flex flex-col items-center gap-2 transition cursor-pointer">
-                  <span className="text-2xl">??</span>
-                  <span className="text-[10px] font-black uppercase tracking-wider">Шляпа / Убор</span>
-                </button>
-                <button onClick={() => handleInterrogateTrait('hasGlasses')} className="py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl border border-zinc-700 flex flex-col items-center gap-2 transition cursor-pointer">
-                  <span className="text-2xl">??</span>
-                  <span className="text-[10px] font-black uppercase tracking-wider">Очки</span>
-                </button>
-                <button onClick={() => handleInterrogateTrait('hasBeard')} className="py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl border border-zinc-700 flex flex-col items-center gap-2 transition cursor-pointer">
-                  <span className="text-2xl">??</span>
-                  <span className="text-[10px] font-black uppercase tracking-wider">Борода / Усы</span>
-                </button>
-              </div>
-              <button onClick={() => setIsTraitModalOpen(false)} className="w-full py-3.5 bg-zinc-950 hover:bg-black text-zinc-400 font-bold uppercase tracking-wider rounded-xl transition cursor-pointer mt-2">
-                Отмена
-              </button>
-            </div>
-          </div>
-        )}
 
         {gameState.winner && !gameState.restartRequestedBy && (
           <GameOverModal

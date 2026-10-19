@@ -32,6 +32,7 @@ import { RoleCards } from "./components/RoleCards";
 import type { GameAction } from "./types/multiplayer";
 import { gameReducer } from "./utils/gameReducer";
 import { Toast } from "./components/Toast";
+import { I18nProvider } from "./i18n/context";
 
 const characterImages = import.meta.glob<{ default: string }>(
   "./assets/characters/*.webp",
@@ -1295,8 +1296,9 @@ export default function App() {
   }
 
   return (
-    <div className="fixed inset-0 w-full h-full flex flex-col bg-[#080a0f] overflow-hidden select-none">
-      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+    <I18nProvider>
+      <div className="fixed inset-0 w-full h-full flex flex-col bg-[#080a0f] overflow-hidden select-none">
+        {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       <Toast message={toastMessage} type="info" onClose={() => setToastMessage(null)} />
       <div className="w-full max-w-7xl mx-auto h-full relative flex flex-col overflow-hidden"> 
         {isLobbyOpen && (
@@ -2651,5 +2653,6 @@ export default function App() {
         </div>
       </div>
     </div>
+    </I18nProvider>
   );
 }

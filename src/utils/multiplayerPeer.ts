@@ -573,15 +573,21 @@ class MultiplayerService {
   }
 
   public async leaveRoom(): Promise<void> {
-  if (this.roomRef) {
-    await Promise.resolve(update(this.roomRef, {
-      status: "CLOSED",
-      hostConnected: false,
-      guestConnected: false,
-    })).catch(() => {});
+    if (this.roomRef) {
+      if (this.isHost) {
+        await update(this.roomRef, {
+          status: "CLOSED",
+          hostConnected: false,
+        }).catch(() => {});
+      } else {
+        await update(this.roomRef, {
+          guestConnected: false,
+          guestId: "",
+        }).catch(() => {});
+      }
+    }
+    await this.disconnect(true);
   }
-  await this.disconnect(true);
-}
 
   public async closeRoom(): Promise<void> {
     await this.disconnect();

@@ -7,6 +7,7 @@ import { usePlayerProfile } from "../utils/usePlayerProfile";
 import { soundManager } from "../utils/audio";
 import { Toast } from "./Toast";
 import { TutorialScreen } from "./TutorialScreen";
+import { useTranslation } from "../i18n/context";
 
 // --- ВЕКТОРНЫЕ ИКОНКИ (HUD) ---
 const Icons = {
@@ -114,6 +115,7 @@ export const MainMenu = ({
   onOpenRules,
 }: MainMenuProps) => {
   const { refundBet } = usePlayerProfile();
+  const { t, lang, setLang } = useTranslation();
   
   const [screen, setScreen] = useState<ScreenType>('HOME');
   const [selectedMode, setSelectedMode] = useState<GameModeType>("SKHVATKA");
@@ -304,13 +306,13 @@ export const MainMenu = ({
           {/* Заголовок игры */}
           <div className="max-w-[60%] text-left -rotate-3 select-none">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter text-white uppercase leading-none drop-shadow-[0_4px_20px_rgba(0,0,0,1)]">
-              РЕКВИЕМ
+              {t.menu.title}
             </h1>
             <div className="text-red-500 font-black text-xs sm:text-sm tracking-widest uppercase mt-1 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">
-              ПОСЛЕДНИЙ ВЫСТРЕЛ
+              {t.menu.subtitle}
             </div>
             <p className="text-[9px] font-bold tracking-widest text-zinc-400 uppercase mt-2 leading-tight drop-shadow-md">
-              Детективные игры в одной колоде
+              {t.menu.desc}
             </p>
           </div>
         </div>
@@ -322,7 +324,7 @@ export const MainMenu = ({
               onClick={onResumeGame}
               className="w-full h-11 sm:h-12 md:h-16 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 md:px-6 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer"
             >
-              <span className="font-black tracking-widest uppercase text-[10px] sm:text-xs md:text-sm">Продолжить дело</span>
+              <span className="font-black tracking-widest uppercase text-[10px] sm:text-xs md:text-sm">{t.menu.resume}</span>
               <Icons.ArrowRight />
             </button>
           )}
@@ -334,7 +336,7 @@ export const MainMenu = ({
           >
             <div className="flex items-center gap-3">
               <Icons.Play />
-              <span className="text-[11px] sm:text-xs md:text-sm">{isCreating ? "ПОИСК..." : "БЫСТРАЯ ИГРА"}</span>
+              <span className="text-[11px] sm:text-xs md:text-sm">{isCreating ? t.menu.searching : t.menu.quickPlay}</span>
             </div>
             <span className="text-[10px] md:text-xs font-mono text-red-200/80">250 CR</span>
           </button>
@@ -344,8 +346,8 @@ export const MainMenu = ({
               <div className="flex items-center gap-3.5">
                 <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-zinc-400 shrink-0"><Icons.Cards /></div>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[10px] sm:text-xs md:text-sm font-black text-zinc-100 uppercase tracking-widest">ОДИНОЧНЫЕ ДЕЛА</span>
-                  <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Против ИИ • 4 сценария</span>
+                  <span className="text-[10px] sm:text-xs md:text-sm font-black text-zinc-100 uppercase tracking-widest">{t.menu.soloCases}</span>
+                  <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{t.menu.soloDesc}</span>
                 </div>
               </div>
               <Icons.ChevronRight />
@@ -355,8 +357,8 @@ export const MainMenu = ({
               <div className="flex items-center gap-3.5">
                 <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-zinc-400 shrink-0"><Icons.Users /></div>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[10px] sm:text-xs md:text-sm font-black text-zinc-100 uppercase tracking-widest">ЛОКАЛЬНАЯ ДУЭЛЬ</span>
-                  <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">2 игрока • 1 экран</span>
+                  <span className="text-[10px] sm:text-xs md:text-sm font-black text-zinc-100 uppercase tracking-widest">{t.menu.localDuel}</span>
+                  <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{t.menu.localDesc}</span>
                 </div>
               </div>
               <Icons.ChevronRight />
@@ -366,8 +368,8 @@ export const MainMenu = ({
               <div className="flex items-center gap-3.5">
                 <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-zinc-400 shrink-0"><Icons.Users /></div>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[10px] sm:text-xs md:text-sm font-black text-zinc-100 uppercase tracking-widest">СЕТЕВЫЕ ОПЕРАЦИИ</span>
-                  <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Мультиплеер • Лобби столов</span>
+                  <span className="text-[10px] sm:text-xs md:text-sm font-black text-zinc-100 uppercase tracking-widest">{t.menu.onlineOps}</span>
+                  <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{t.menu.onlineDesc}</span>
                 </div>
               </div>
               <Icons.ChevronRight />
@@ -377,8 +379,8 @@ export const MainMenu = ({
               <button onClick={onOpenRules} className="w-full h-11 sm:h-12 md:h-16 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-center gap-2 px-2.5 md:px-4 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
                 <div className="text-zinc-400"><Icons.Shield /></div>
                 <div className="flex flex-col items-start">
-                  <span className="text-[9px] sm:text-[10px] md:text-xs font-black text-zinc-100 uppercase tracking-widest">СПРАВОЧНИК</span>
-                  <span className="text-[7px] sm:text-[8px] md:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Регламент правил</span>
+                  <span className="text-[9px] sm:text-[10px] md:text-xs font-black text-zinc-100 uppercase tracking-widest">{t.menu.rulebook}</span>
+                  <span className="text-[7px] sm:text-[8px] md:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{t.menu.rulebookDesc}</span>
                 </div>
               </button>
 
@@ -387,8 +389,8 @@ export const MainMenu = ({
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                 </div>
                 <div className="flex flex-col items-start">
-                  <span className="text-[9px] sm:text-[10px] md:text-xs font-black text-zinc-100 uppercase tracking-widest">ОБУЧЕНИЕ</span>
-                  <span className="text-[7px] sm:text-[8px] md:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Вводный пролог</span>
+                  <span className="text-[9px] sm:text-[10px] md:text-xs font-black text-zinc-100 uppercase tracking-widest">{t.menu.tutorial}</span>
+                  <span className="text-[7px] sm:text-[8px] md:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{t.menu.tutorialDesc}</span>
                 </div>
               </button>
             </div>
@@ -842,21 +844,21 @@ export const MainMenu = ({
             className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'HOME' || screen === 'MODES' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             <Icons.Home />
-            <span className="text-[8px] md:text-[10px] font-black tracking-widest uppercase">Штаб</span>
+            <span className="text-[8px] md:text-[10px] font-black tracking-widest uppercase">{t.nav.hq}</span>
           </button>
           <button 
             onClick={() => { setScreen('TABLES'); onTabChange('TABLES'); }} 
             className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'TABLES' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             <Icons.Cards />
-            <span className="text-[8px] md:text-[10px] font-black tracking-widest uppercase">Столы</span>
+            <span className="text-[8px] md:text-[10px] font-black tracking-widest uppercase">{t.nav.tables}</span>
           </button>
           <button 
             onClick={() => { setScreen('PROFILE'); onTabChange('TOP'); }} 
             className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'PROFILE' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             <Icons.User />
-            <span className="text-[8px] md:text-[10px] font-black tracking-widest uppercase">Профиль</span>
+            <span className="text-[8px] md:text-[10px] font-black tracking-widest uppercase">{t.nav.profile}</span>
           </button>
         </nav>
         )}
@@ -962,7 +964,7 @@ export const MainMenu = ({
             <div className="bg-zinc-900/90 backdrop-blur-2xl border border-white/10 p-6 rounded-3xl w-full max-w-sm flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.7)]" onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3">
                 <h3 className="text-sm font-black text-zinc-100 uppercase tracking-widest">
-                  Настройки системы
+                  {t.settings.title}
                 </h3>
                 <button onClick={() => setIsSettingsOpen(false)} className="text-zinc-500 hover:text-white transition cursor-pointer">
                   ✕
@@ -972,8 +974,8 @@ export const MainMenu = ({
               <div className="space-y-4 mb-6">
                 <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Звуковые эффекты</span>
-                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">Выстрелы, аресты, клики</span>
+                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.sfx}</span>
+                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">{t.settings.sfxDesc}</span>
                   </div>
                   <button 
                     onClick={() => {
@@ -988,8 +990,8 @@ export const MainMenu = ({
 
                 <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Атмосферный эмбиент</span>
-                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">Фоновая музыка дождя</span>
+                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.ambient}</span>
+                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">{t.settings.ambientDesc}</span>
                   </div>
                   <button 
                     onClick={() => {
@@ -1004,8 +1006,8 @@ export const MainMenu = ({
 
                 <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Тактильный отклик</span>
-                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">Haptics / Вибрация</span>
+                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.haptics}</span>
+                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">{t.settings.hapticsDesc}</span>
                   </div>
                   <button 
                     onClick={() => {
@@ -1019,10 +1021,31 @@ export const MainMenu = ({
                     <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isHapticsEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
                   </button>
                 </div>
+
+                <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.language}</span>
+                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">Выберите язык / Select language</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={() => setLang('ru')}
+                      className={`px-3 py-1 rounded-md text-[10px] font-black transition-colors cursor-pointer ${lang === 'ru' ? 'bg-red-600 text-white shadow-md' : 'bg-zinc-800 text-zinc-400 hover:text-white'}`}
+                    >
+                      RU
+                    </button>
+                    <button 
+                      onClick={() => setLang('en')}
+                      className={`px-3 py-1 rounded-md text-[10px] font-black transition-colors cursor-pointer ${lang === 'en' ? 'bg-red-600 text-white shadow-md' : 'bg-zinc-800 text-zinc-400 hover:text-white'}`}
+                    >
+                      EN
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <button onClick={() => setIsSettingsOpen(false)} className="w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-[10px] font-black tracking-widest uppercase transition border border-white/5 cursor-pointer">
-                Закрыть
+                {t.settings.close}
               </button>
             </div>
           </div>

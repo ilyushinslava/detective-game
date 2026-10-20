@@ -89,8 +89,17 @@ export default function App() {
         setIsDevPanelOpen((prev) => !prev);
       }
     };
+    const handleUserInteraction = () => {
+      soundManager.unlockAudioContext();
+    };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("pointerdown", handleUserInteraction, { once: true, passive: true });
+    window.addEventListener("keydown", handleUserInteraction, { once: true, passive: true });
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("pointerdown", handleUserInteraction);
+      window.removeEventListener("keydown", handleUserInteraction);
+    };
   }, []);
 
   const [isPauseOpen, setIsPauseOpen] = useState(false);
@@ -314,7 +323,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
           setIsIntroPhase(false); // Сбрасываем интро, если уже пошли игровые ходы от соперника
         }
 
-        const isStale = Boolean(action.timestamp && (Date.now() - action.timestamp > 1200));
+        const isStale = Boolean(action.timestamp && (Date.now() - action.timestamp > 5000));
 
         if (!isStale) {
           if (action.type === "SHIFT_BOARD") soundManager.play('slide');
@@ -482,16 +491,35 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
       const timer = setTimeout(() => {
         setGameState((prev) => {
           if (prev.winner) return prev;
-          if (prev.mode === "LINE_UP")
-            return getDuelAIMove(prev);
-          if (prev.mode === "SECRET_SERVICE")
-            return getSecretServiceAIMove(prev);
-          if (prev.mode === "THIEF_HUNT") {
-            if (prev.currentTurn === "KILLER") return getThiefAIMove(prev);
-            return getPoliceAIMove(prev);
+          let nextState = prev;
+          if (prev.mode === "LINE_UP") {
+            nextState = getDuelAIMove(prev);
+          } else if (prev.mode === "SECRET_SERVICE") {
+            nextState = getSecretServiceAIMove(prev);
+          } else if (prev.mode === "THIEF_HUNT") {
+            nextState = prev.currentTurn === "KILLER" ? getThiefAIMove(prev) : getPoliceAIMove(prev);
+          } else if (prev.currentTurn === "KILLER") {
+            nextState = getKillerAIMove(prev);
+          } else {
+            nextState = getDetectiveAIMove(prev);
           }
-          if (prev.currentTurn === "KILLER") return getKillerAIMove(prev);
-          return getDetectiveAIMove(prev);
+
+          // Озвучка действий ИИ
+          if (nextState.killCount > prev.killCount) {
+            soundManager.play('kill');
+          } else if ((nextState.trophiesKiller ?? 0) > (prev.trophiesKiller ?? 0)) {
+            soundManager.play('steal');
+          } else if (nextState.interrogationRadar !== prev.interrogationRadar || nextState.lastSpyInterrogation !== prev.lastSpyInterrogation) {
+            soundManager.play('radar');
+          } else if (nextState.blockedShift && nextState.blockedShift !== prev.blockedShift) {
+            soundManager.play('patrol');
+          } else if (nextState.killerSecretId !== prev.killerSecretId) {
+            soundManager.play('disguise');
+          } else if (nextState.lastShift !== prev.lastShift && nextState.lastShift !== null) {
+            soundManager.play('slide');
+          }
+
+          return nextState;
         });
         setIsAIThinking(false);
         setSelectedId(null);

@@ -40,6 +40,12 @@ class SoundController {
   private ambientAudio: HTMLAudioElement | null = null;
   private currentAmbientVolume = 0.25;
   
+  // Web Audio API
+  private ctx: AudioContext | null = null;
+  private bufferCache: Map<string, AudioBuffer> = new Map();
+  private isDecodingMap: Map<string, Promise<AudioBuffer | null>> = new Map();
+
+  // HTMLAudio fallback pool
   private audioPool: Map<string, HTMLAudioElement[]> = new Map();
   private poolIndex: Map<string, number> = new Map();
   private readonly POOL_SIZE = 2;
@@ -58,6 +64,11 @@ class SoundController {
       const savedAmbient = localStorage.getItem('crime_city_ambient');
       if (savedAmbient !== null) this.isAmbientEnabled = savedAmbient === 'true';
 
+      // Инициализация Web Audio контекста и предзагрузка
+      this.initAudioContext();
+      this.preloadAllBuffers();
+
+      // Fallback пул HTMLAudio
       if (typeof Audio !== 'undefined') {
         Object.values(SOUND_LIBRARY).flat().forEach((path) => {
           const pool: HTMLAudioElement[] = [];
@@ -70,6 +81,70 @@ class SoundController {
           this.poolIndex.set(path, 0);
         });
       }
+
+      // Глобальный триггер разблокировки AudioContext при первом касании/клике
+      const unlock = () => {
+        this.unlockAudioContext();
+        window.removeEventListener('pointerdown', unlock);
+        window.removeEventListener('keydown', unlock);
+      };
+      window.addEventListener('pointerdown', unlock, { once: true, passive: true });
+      window.addEventListener('keydown', unlock, { once: true, passive: true });
+    }
+  }
+
+  private initAudioContext(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtx && !this.ctx) {
+        this.ctx = new AudioCtx();
+      }
+    } catch (e) {
+      console.warn('[Audio] Web Audio API не поддерживается:', e);
+    }
+  }
+
+  public unlockAudioContext(): void {
+    this.initAudioContext();
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+  }
+
+  private async fetchAndDecode(path: string): Promise<AudioBuffer | null> {
+    if (this.bufferCache.has(path)) {
+      return this.bufferCache.get(path)!;
+    }
+    if (this.isDecodingMap.has(path)) {
+      return this.isDecodingMap.get(path)!;
+    }
+
+    const decodePromise = (async () => {
+      try {
+        const response = await fetch(path);
+        const arrayBuffer = await response.arrayBuffer();
+        if (!this.ctx) return null;
+        const decoded = await this.ctx.decodeAudioData(arrayBuffer);
+        this.bufferCache.set(path, decoded);
+        return decoded;
+      } catch (err) {
+        console.warn(`[Audio] Ошибка декодирования ${path}:`, err);
+        return null;
+      } finally {
+        this.isDecodingMap.delete(path);
+      }
+    })();
+
+    this.isDecodingMap.set(path, decodePromise);
+    return decodePromise;
+  }
+
+  private preloadAllBuffers(): void {
+    if (!this.ctx) return;
+    const allPaths = Array.from(new Set(Object.values(SOUND_LIBRARY).flat()));
+    for (const path of allPaths) {
+      this.fetchAndDecode(path).catch(() => {});
     }
   }
 
@@ -82,6 +157,36 @@ class SoundController {
     const randomIndex = Math.floor(Math.random() * variations.length);
     const selectedPath = variations[randomIndex];
 
+    // Приоритет 1: Web Audio API (нулевая задержка, полифония, микширование)
+    if (this.ctx) {
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
+
+      const cachedBuffer = this.bufferCache.get(selectedPath);
+      if (cachedBuffer) {
+        try {
+          const source = this.ctx.createBufferSource();
+          source.buffer = cachedBuffer;
+
+          const gainNode = this.ctx.createGain();
+          gainNode.gain.value = Math.max(0, Math.min(1, volume));
+
+          source.connect(gainNode);
+          gainNode.connect(this.ctx.destination);
+
+          source.start(0);
+          return;
+        } catch (e) {
+          console.warn('[Audio] Ошибка воспроизведения через Web Audio API, переключение на fallback:', e);
+        }
+      } else {
+        // Фоновая подгрузка в кеш для последующих вызовов
+        this.fetchAndDecode(selectedPath).catch(() => {});
+      }
+    }
+
+    // Приоритет 2: HTMLAudioElement fallback
     try {
       const pool = this.audioPool.get(selectedPath);
       if (pool && pool.length > 0) {
@@ -152,10 +257,10 @@ class SoundController {
     return this.isAmbientEnabled;
   }
 
-  // Оставлено для совместимости, если где-то используется напрямую
   public getMuted(): boolean {
     return !this.isSfxEnabled && !this.isAmbientEnabled;
   }
+
   public toggleMute(): boolean {
     const isCurrentlyMuted = this.getMuted();
     if (!isCurrentlyMuted) {

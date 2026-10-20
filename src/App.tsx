@@ -25,7 +25,6 @@ import {
 } from "./utils/aiLogic";
 import { soundManager } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
-import type { ActionItem } from "./components/ActionPanel";
 import { RoleCards } from "./components/RoleCards";
 import type { GameAction } from "./types/multiplayer";
 import { gameReducer } from "./utils/gameReducer";
@@ -36,9 +35,15 @@ import { DuelQuestionCatalogModal } from "./components/duel/DuelQuestionCatalogM
 import { DuelCandidatesSheet } from "./components/duel/DuelCandidatesSheet";
 import { DuelAccuseModal } from "./components/duel/DuelAccuseModal";
 import { DUEL_CHARACTERS } from "./constants/duelCharacters";
-import { DUEL_QUESTIONS } from "./constants/duelQuestions";
 import { filterCandidates } from "./utils/duelLogic";
-import type { DuelHistoryEntry } from "./types/duel";
+
+interface ActionItem {
+  id: string;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  className?: string;
+}
 
 const characterImages = import.meta.glob<{ default: string }>(
   "./assets/characters/*.webp",
@@ -191,8 +196,14 @@ export default function App() {
         action.senderId === "local" &&
         (prev.opponent === "ONLINE" || Boolean(mpService.roomCode))
       ) {
+        const caughtSpy = nextState.justCaughtSpyId
+          ? nextState.spies?.find((s) => s.id === nextState.justCaughtSpyId)
+          : undefined;
         mpService.sendAction({ 
-          ...action, 
+          ...action,
+          payload: caughtSpy
+            ? { ...action.payload, nextSecretId: caughtSpy.secretId }
+            : (action as any).payload,
           nextTurn: nextState.currentTurn,
           nextSpyIndex: nextState.activeSpyIndex
         });
@@ -1341,6 +1352,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
             hasActiveGame={!gameState.winner && gameState.log.length > 2}
             onResumeGame={handleResumeGame}
             onOpenRules={() => setIsRulesOpen(true)}
+            onOpenDevPanel={() => setIsDevPanelOpen(true)}
           />
         )}
 

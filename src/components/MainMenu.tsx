@@ -823,7 +823,7 @@ export const MainMenu = ({
     if (!completed) {
       if (onUpdateProfile) onUpdateProfile({ cash: profile.cash + 250 });
       localStorage.setItem("crime_city_tutorial", "true");
-      setToastMessage("+250 CR за прохождение обучения!");
+      setToastMessage("+250 за прохождение обучения!");
     }
     setIsTutorialOpen(false);
     setTutorialStep(1);

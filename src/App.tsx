@@ -1643,12 +1643,16 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
               <span className="ml-2">| Вопросов: {(gameState.duelHistory || []).length}</span>
             </div>
           ) : gameState.mode === "THIEF_HUNT" ? (
-            <div>
-              Добыча:{" "}
+            <div className="flex items-center gap-1.5">
+              <span>Добыча:</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-amber-400 shrink-0">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
+              </svg>
               <b className="text-amber-400">
                 {gameState.trophiesKiller ?? 0}/5
-              </b>{" "}
-              | Улики: {gameState.evidenceDeck.length}
+              </b>
+              <span className="ml-1">| Улики: {gameState.evidenceDeck.length}</span>
             </div>
           ) : (
             <div className="flex items-center flex-wrap gap-x-1">
@@ -2012,9 +2016,15 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                 <h2 className="text-xl font-black text-zinc-100 mb-2">
                   Реванш?
                 </h2>
-                <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
-                  Соперник предлагает сыграть еще раз. Ставка:{" "}
-                  {gameState.matchBet || 250} $.
+                <p className="text-xs text-zinc-400 mb-6 leading-relaxed flex items-center justify-center gap-1.5">
+                  <span>Соперник предлагает сыграть еще раз. Ставка:</span>
+                  <span className="inline-flex items-center gap-1 font-mono font-bold text-amber-400">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-amber-400 shrink-0">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
+                    </svg>
+                    {gameState.matchBet || 250}
+                  </span>
                 </p>
                 <div className="w-full flex gap-3">
                   <button

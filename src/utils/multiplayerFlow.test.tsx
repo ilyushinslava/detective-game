@@ -38,6 +38,9 @@ vi.mock("firebase/database", () => ({
   })),
   remove: vi.fn(() => Promise.resolve()),
   update: vi.fn(() => Promise.resolve()),
+  push: vi.fn(() => Promise.resolve({ key: "mock_action_id" })),
+  onChildAdded: vi.fn(() => vi.fn()),
+  runTransaction: vi.fn((_, updateFn) => Promise.resolve({ committed: true, snapshot: { exists: () => true, val: () => (updateFn ? updateFn({}) : {}) } })),
 }));
 
 vi.mock("./audio", () => ({
@@ -232,5 +235,29 @@ describe("Сетевой протокол и синхронизация (Multipl
     expect(onCancelMatchMock).toHaveBeenCalledTimes(1);
 
     vi.useRealTimers();
+  });
+  it("Реванш после завершения партии: gameReducer не отбрасывает REQUEST_RESTART и MATCH_STARTED при наличии winner", () => {
+    const state = createInitialState("SKHVATKA", "ONLINE", "KILLER");
+    state.winner = "DETECTIVE";
+
+    const requestAction: any = {
+      type: "REQUEST_RESTART",
+      payload: { requestedBy: "GUEST" },
+      senderId: "remote",
+    };
+
+    const afterRequest = gameReducer(state, requestAction);
+    expect(afterRequest.restartRequestedBy).toBe("GUEST");
+
+    const newState = createInitialState("SKHVATKA", "ONLINE", "KILLER");
+    const restartAction: any = {
+      type: "MATCH_STARTED",
+      payload: { state: newState },
+      senderId: "remote",
+    };
+
+    const afterRestart = gameReducer(afterRequest, restartAction);
+    expect(afterRestart.winner).toBeNull();
+    expect(afterRestart.board).toEqual(newState.board);
   });
 });

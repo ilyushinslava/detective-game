@@ -84,13 +84,10 @@ export function usePlayerProfile() {
               const merged: UserProfile = {
                 ...prev,
                 ...remoteData,
-                stats: {
-                  wins: Math.max(prev.stats?.wins || 0, remoteData.stats?.wins || 0),
-                  losses: Math.max(prev.stats?.losses || 0, remoteData.stats?.losses || 0),
-                },
+                stats: remoteData.stats || prev.stats,
                 cash: typeof remoteData.cash === "number" ? remoteData.cash : prev.cash,
-                xp: Math.max(prev.xp, remoteData.xp ?? 0),
-                level: Math.max(prev.level, remoteData.level ?? 1),
+                xp: typeof remoteData.xp === "number" ? remoteData.xp : prev.xp,
+                level: typeof remoteData.level === "number" ? remoteData.level : prev.level,
               };
               localStorage.setItem("crime_city_profile", JSON.stringify(merged));
               return merged;
@@ -129,18 +126,13 @@ export function usePlayerProfile() {
 
   const reserveBet = (amount: number): boolean => {
     if (amount <= 0) return true;
-    let success = false;
-    setProfile((prev) => {
-      if (prev.cash >= amount) {
-        success = true;
-        const next = { ...prev, cash: prev.cash - amount };
-        localStorage.setItem("crime_city_profile", JSON.stringify(next));
-        syncToCloud(next);
-        return next;
-      }
-      return prev;
-    });
-    return success;
+    if (profile.cash < amount) return false;
+
+    const next = { ...profile, cash: profile.cash - amount };
+    setProfile(next);
+    localStorage.setItem("crime_city_profile", JSON.stringify(next));
+    syncToCloud(next);
+    return true;
   };
 
   const refundBet = (amount: number) => {

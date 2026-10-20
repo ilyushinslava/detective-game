@@ -17,14 +17,26 @@ export interface DuelState {
   winReason?: "ACCUSATION" | "TIE_BREAK_PENALTIES" | "TIE_BREAK_CANDIDATES" | "TIE_BREAK_DRAW";
 }
 
+function shuffleArray<T>(array: T[]): T[] {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
 export function createInitialDuelState(): DuelState {
-  const chars = [...DUEL_CHARACTERS];
-  const shuffled = [...chars].sort(() => Math.random() - 0.5);
+  const clonedCharacters = DUEL_CHARACTERS.map((c) => ({
+    ...c,
+    attributes: { ...c.attributes },
+  }));
+  const shuffled = shuffleArray(clonedCharacters);
   const detectiveSecretId = shuffled[0].id;
   const killerSecretId = shuffled[1].id;
 
   return {
-    board: chars,
+    board: clonedCharacters,
     killerSecretId,
     detectiveSecretId,
     currentTurn: "DETECTIVE",

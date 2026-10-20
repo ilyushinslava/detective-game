@@ -134,11 +134,20 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ? explicitNext
           : ((state.activeSpyIndex ?? 0) + 1) % (state.spies?.length || 1);
 
+      let nextSpies = result.spies;
+      const nextSecretId = (action.payload as any)?.nextSecretId;
+      if (nextSecretId && result.justCaughtSpyId && nextSpies) {
+        nextSpies = nextSpies.map((s) =>
+          s.id === result.justCaughtSpyId ? { ...s, secretId: nextSecretId } : s
+        );
+      }
+
       return {
         ...result,
+        spies: nextSpies,
         activeSpyIndex: safeNext,
         detectiveSecretId:
-          result.spies?.[safeNext]?.secretId ?? result.detectiveSecretId,
+          nextSpies?.[safeNext]?.secretId ?? result.detectiveSecretId,
         interrogationRadar: null,
         isHotseatCoverOpen: false,
       };

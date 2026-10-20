@@ -56,6 +56,7 @@ class MultiplayerService {
 
   private actionSubscribers: Set<ActionCallback> = new Set();
   private processedActionIds: Set<string> = new Set();
+  private sessionRestoredAt: number = 0;
   private connectedRef: DatabaseReference | null = null;
   private authPromise: Promise<any> | null = null;
   private roomRef: DatabaseReference | null = null;
@@ -138,6 +139,7 @@ class MultiplayerService {
         }
       });
 
+      this.sessionRestoredAt = Date.now();
       this.listenToActions();
 
       if (this.onPresenceChanged) this.onPresenceChanged(true);
@@ -437,6 +439,10 @@ class MultiplayerService {
 
       if (data.senderClientId === this.myClientId) return;
 
+      if (this.sessionRestoredAt > 0 && data.timestamp && data.timestamp < this.sessionRestoredAt) {
+        return;
+      }
+
       if (data.actionJson) {
         try {
           const parsed = JSON.parse(data.actionJson) as GameAction;
@@ -483,6 +489,12 @@ class MultiplayerService {
 
   public broadcastMatchStart(state: any) {
     if (!this.roomCode) return;
+    if (this.actionsRef) {
+      remove(this.actionsRef).catch(() => {});
+    } else if (this.roomCode) {
+      remove(ref(db, `rooms/${this.roomCode}/actions`)).catch(() => {});
+    }
+    if (!this.roomCode) return;
     this.processedActionIds.clear();
     set(ref(db, `rooms/${this.roomCode}/gameState`), JSON.stringify(state)).catch(() => {});
     update(ref(db, `rooms/${this.roomCode}`), {
@@ -527,6 +539,7 @@ class MultiplayerService {
 
   public async disconnect(intentionalLeave: boolean = false): Promise<void> {
     this.processedActionIds.clear();
+    this.sessionRestoredAt = 0;
     try {
       if (this.roomRef) {
         if (this.isHost) {

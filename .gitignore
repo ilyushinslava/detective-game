@@ -32,3 +32,10 @@ structure.txt
 структура.txt
 Response*.txt
 repomix-*.txt
+
+# Local Dev & Backups
+*.bak
+patcher.cjs
+patcher_*.cjs
+*.txt
+

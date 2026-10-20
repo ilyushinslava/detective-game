@@ -8,6 +8,7 @@
   SpyPlayer,
 } from "../types/game";
 import { ALL_CHARACTERS } from "../constants/characters";
+import { DUEL_CHARACTERS } from "../constants/duelCharacters";
 
 export const CHARACTERS_DATA = ALL_CHARACTERS;
 
@@ -95,7 +96,8 @@ export function createInitialState(
   let boardSize = 5;
 
   const totalCells = boardSize * boardSize;
-  const shuffledCharacters = shuffle(ALL_CHARACTERS);
+  const sourcePool = mode === "LINE_UP" ? DUEL_CHARACTERS : ALL_CHARACTERS;
+  const shuffledCharacters = shuffle(sourcePool);
 
   const boardCharacters = shuffledCharacters.slice(0, totalCells).map((c) => ({
     ...c,
@@ -270,8 +272,8 @@ export function createInitialState(
     detectiveSecretId = spies[0].secretId;
     killerSecretId = spies[1].secretId;
   } else if (mode === "LINE_UP") {
-    const detCandidates = candidatePool.filter(c => c.id !== killerSecretId);
-    detectiveSecretId = detCandidates[Math.floor(Math.random() * detCandidates.length)].id;
+    killerSecretId = shuffledCharacters[0].id;
+    detectiveSecretId = shuffledCharacters[1].id;
   } else {
     const chosenDet =
       validDetectiveCandidates[
@@ -335,6 +337,9 @@ export function createInitialState(
     maxTurns,
     lastInterrogation: null,
     lastSpyInterrogation: null,
+    duelHistory: mode === "LINE_UP" ? [] : undefined,
+    duelPenalties: mode === "LINE_UP" ? { DETECTIVE: 0, KILLER: 0 } : undefined,
+    accusedTargets: mode === "LINE_UP" ? { DETECTIVE: [], KILLER: [] } : undefined,
     log: mode === "LINE_UP"
       ? ["Операция началась: Очная ставка (Line-Up). Сформировано досье подозреваемых."]
       : [

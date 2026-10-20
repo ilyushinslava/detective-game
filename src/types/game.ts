@@ -1,4 +1,6 @@
 ﻿// src/types/game.ts
+import type { DuelHistoryEntry } from "./duel";
+
 export type GameModeType =
   | "SKHVATKA"
   | "MANIAC_VS_OPERATIVE"
@@ -84,6 +86,9 @@ export interface GameState {
   matchPot?: number;
   restartRequestedBy?: "HOST" | "GUEST" | null;
   disguisedNotification?: { roleName: string; newSecretId: string } | null;
+  duelHistory?: DuelHistoryEntry[];
+  duelPenalties?: Record<Role, number>;
+  accusedTargets?: Record<Role, string[]>;
 }
 export const SPY_COLORS = [
   {

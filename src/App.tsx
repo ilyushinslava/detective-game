@@ -21,6 +21,7 @@ import {
   getSecretServiceAIMove,
   getThiefAIMove,
   getPoliceAIMove,
+  getDuelAIMove,
 } from "./utils/aiLogic";
 import { soundManager } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
@@ -107,9 +108,6 @@ export default function App() {
   const [isQuestionCatalogOpen, setIsQuestionCatalogOpen] = useState(false);
   const [isCandidatesSheetOpen, setIsCandidatesSheetOpen] = useState(false);
   const [isAccuseModalOpen, setIsAccuseModalOpen] = useState(false);
-  const [duelHistory, setDuelHistory] = useState<DuelHistoryEntry[]>([]);
-  const [duelPenalties, setDuelPenalties] = useState<Record<Role, number>>({ DETECTIVE: 0, KILLER: 0 });
-  const [accusedTargets, setAccusedTargets] = useState<Record<Role, string[]>>({ DETECTIVE: [], KILLER: [] });
 
   const [isSfxEnabled, setIsSfxEnabled] = useState(soundManager.getSfxEnabled());
   const [isAmbientEnabled, setIsAmbientEnabled] = useState(soundManager.getAmbientEnabled());
@@ -472,6 +470,8 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
       const timer = setTimeout(() => {
         setGameState((prev) => {
           if (prev.winner) return prev;
+          if (prev.mode === "LINE_UP")
+            return getDuelAIMove(prev);
           if (prev.mode === "SECRET_SERVICE")
             return getSecretServiceAIMove(prev);
           if (prev.mode === "THIEF_HUNT") {
@@ -715,9 +715,6 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
     setSelectedId(null);
     setSelectedInspectorChoiceId(null);
     setIsRevealConfirmed(false);
-    setDuelHistory([]);
-    setDuelPenalties({ DETECTIVE: 0, KILLER: 0 });
-    setAccusedTargets({ DETECTIVE: [], KILLER: [] });
     setIsInspectorPassConfirmed(false);
     setShowKillerRole(false);
     setShowDetectiveRole(false);
@@ -736,63 +733,22 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
   const handleSelectDuelQuestion = (questionId: string) => {
     soundManager.play('radar');
     triggerHaptic("light");
-    
-    // Синхронизируем локальный стейт с duelLogic
-    const targetSecretId = gameState.currentTurn === "DETECTIVE" ? gameState.killerSecretId : gameState.detectiveSecretId;
-    const targetChar = DUEL_CHARACTERS.find((c) => c.id === targetSecretId);
-    if (!targetChar) return;
-
-    const q = DUEL_QUESTIONS.find((item) => item.id === questionId);
-    if (!q) return;
-
-    const answer = q.check(targetChar.attributes);
-    const entry: DuelHistoryEntry = {
-      id: `hist_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      askerRole: gameState.currentTurn,
-      questionId: q.id,
-      questionText: q.text,
-      answer,
+    dispatchAction({
+      type: "DUEL_ASK_QUESTION",
+      payload: { questionId },
+      senderId: "local",
       timestamp: Date.now(),
-    };
-
-    setDuelHistory((prev) => [...prev, entry]);
-    const nextTurn: Role = gameState.currentTurn === "DETECTIVE" ? "KILLER" : "DETECTIVE";
-    
-    setGameState((prev) => ({
-      ...prev,
-      currentTurn: nextTurn,
-      log: [
-        ...prev.log,
-        `Опрос: ${gameState.currentTurn === "DETECTIVE" ? "Следователь" : "Подозреваемый"} задал вопрос: "${q.text}". Ответ: ${answer ? "ДА" : "НЕТ"}.`
-      ]
-    }));
+    });
   };
 
   const handleConfirmDuelAccusation = () => {
     if (!selectedId) return;
-    const currentRole = gameState.currentTurn;
-    const targetSecretId = currentRole === "DETECTIVE" ? gameState.killerSecretId : gameState.detectiveSecretId;
-
-    if (selectedId === targetSecretId) {
-      soundManager.play('arrest');
-      triggerHaptic("success");
-      setGameState((prev) => ({
-        ...prev,
-        winner: currentRole,
-        log: [...prev.log, `Точное обвинение! ${currentRole === "DETECTIVE" ? "Следователь" : "Подозреваемый"} раскрыл секретную личность!`]
-      }));
-    } else {
-      soundManager.play('error');
-      triggerHaptic("error");
-      setDuelPenalties((prev) => ({ ...prev, [currentRole]: prev[currentRole] + 1 }));
-      setAccusedTargets((prev) => ({ ...prev, [currentRole]: [...prev[currentRole], selectedId] }));
-      const nextTurn: Role = currentRole === "DETECTIVE" ? "KILLER" : "DETECTIVE";
-      setGameState((prev) => ({
-        ...prev,
-        currentTurn: nextTurn,
-        log: [...prev.log, `Ложное обвинение! ${currentRole === "DETECTIVE" ? "Следователь" : "Подозреваемый"} получает +1 штраф. Ход переходит оппоненту.`]
-      }));
-    }
+    dispatchAction({
+      type: "DUEL_ACCUSE",
+      payload: { targetId: selectedId },
+      senderId: "local",
+      timestamp: Date.now(),
+    });
     setIsAccuseModalOpen(false);
     setSelectedId(null);
   };
@@ -1083,7 +1039,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
           });
           actions.push({
             id: "duel_candidates",
-            label: `Кандидаты (${filterCandidates(DUEL_CHARACTERS, duelHistory, gameState.currentTurn).length})`,
+            label: `Кандидаты (${filterCandidates(DUEL_CHARACTERS, gameState.duelHistory || [], gameState.currentTurn).length})`,
             onClick: () => setIsCandidatesSheetOpen(true),
             disabled: isGameOver,
             className: "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
@@ -1358,7 +1314,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
           isOpen={isCandidatesSheetOpen} 
           onClose={() => setIsCandidatesSheetOpen(false)}
           allCharacters={DUEL_CHARACTERS}
-          history={duelHistory}
+          history={gameState.duelHistory || []}
           playerRole={gameState.playerRole}
           onSelectCandidate={(id) => {
             setSelectedId(id);
@@ -1369,7 +1325,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
         <DuelAccuseModal 
           isOpen={isAccuseModalOpen} 
           targetCharacter={DUEL_CHARACTERS.find((c) => c.id === selectedId) ?? null}
-          alreadyAccused={Boolean(selectedId && accusedTargets[gameState.currentTurn]?.includes(selectedId))}
+          alreadyAccused={Boolean(selectedId && (gameState.accusedTargets?.[gameState.currentTurn] || []).includes(selectedId))}
           onClose={() => setIsAccuseModalOpen(false)}
           onConfirmAccusation={handleConfirmDuelAccusation}
         />
@@ -1682,9 +1638,9 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
           ) : gameState.mode === "LINE_UP" ? (
             <div className="flex items-center gap-3">
               <span className="text-red-400 font-bold">Штрафы:</span>
-              <span>Следствие: <b className="text-zinc-200">{duelPenalties.DETECTIVE}</b></span>
-              <span>Подозреваемый: <b className="text-zinc-200">{duelPenalties.KILLER}</b></span>
-              <span className="ml-2">| Вопросов: {duelHistory.length}</span>
+              <span>Следствие: <b className="text-zinc-200">{gameState.duelPenalties?.DETECTIVE ?? 0}</b></span>
+              <span>Подозреваемый: <b className="text-zinc-200">{gameState.duelPenalties?.KILLER ?? 0}</b></span>
+              <span className="ml-2">| Вопросов: {(gameState.duelHistory || []).length}</span>
             </div>
           ) : gameState.mode === "THIEF_HUNT" ? (
             <div>

@@ -1,5 +1,7 @@
 import type { GameState } from "../types/game";
 import type { GameAction } from "../types/multiplayer";
+import { DUEL_QUESTIONS } from "../constants/duelQuestions";
+import { DUEL_CHARACTERS } from "../constants/duelCharacters";
 import {
   shiftBoard,
   accuseCharacter,
@@ -172,6 +174,78 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return swearInOfficer(state, action.payload.targetId);
     case "SET_INSPECTOR_ROLE":
       return setInspectorRole(state, action.payload.chosenId);
+
+    case "DUEL_ASK_QUESTION": {
+      const { questionId } = action.payload;
+      const q = DUEL_QUESTIONS.find((item) => item.id === questionId);
+      if (!q) return state;
+
+      const targetSecretId = state.currentTurn === "DETECTIVE" ? state.killerSecretId : state.detectiveSecretId;
+      const targetChar = DUEL_CHARACTERS.find((c) => c.id === targetSecretId);
+      if (!targetChar) return state;
+
+      const answer = q.check(targetChar.attributes);
+      const entry = {
+        id: `hist_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        askerRole: state.currentTurn,
+        questionId: q.id,
+        questionText: q.text,
+        answer,
+        timestamp: Date.now(),
+      };
+
+      const nextTurn = state.currentTurn === "DETECTIVE" ? "KILLER" : "DETECTIVE";
+      const roleName = state.currentTurn === "DETECTIVE" ? "Следователь" : "Подозреваемый";
+
+      return {
+        ...state,
+        duelHistory: [...(state.duelHistory || []), entry],
+        currentTurn: nextTurn,
+        log: [
+          ...state.log,
+          `Опрос: ${roleName} спросил: "${q.text}". Ответ: ${answer ? "ДА" : "НЕТ"}.`,
+        ],
+      };
+    }
+
+    case "DUEL_ACCUSE": {
+      const { targetId } = action.payload;
+      const currentRole = state.currentTurn;
+      const targetSecretId = currentRole === "DETECTIVE" ? state.killerSecretId : state.detectiveSecretId;
+      const roleName = currentRole === "DETECTIVE" ? "Следователь" : "Подозреваемый";
+
+      if (targetId === targetSecretId) {
+        return {
+          ...state,
+          winner: currentRole,
+          log: [
+            ...state.log,
+            `Точное обвинение! ${roleName} вычислил личность оппонента! Победа!`,
+          ],
+        };
+      }
+
+      const nextTurn = currentRole === "DETECTIVE" ? "KILLER" : "DETECTIVE";
+      const currentPenalties = state.duelPenalties || { DETECTIVE: 0, KILLER: 0 };
+      const currentAccused = state.accusedTargets || { DETECTIVE: [], KILLER: [] };
+
+      return {
+        ...state,
+        duelPenalties: {
+          ...currentPenalties,
+          [currentRole]: currentPenalties[currentRole] + 1,
+        },
+        accusedTargets: {
+          ...currentAccused,
+          [currentRole]: [...(currentAccused[currentRole] || []), targetId],
+        },
+        currentTurn: nextTurn,
+        log: [
+          ...state.log,
+          `Ложное обвинение! ${roleName} получает +1 штраф. Ход переходит оппоненту.`,
+        ],
+      };
+    }
 
     case "REQUEST_RESTART":
       return { ...state, restartRequestedBy: action.payload.requestedBy };

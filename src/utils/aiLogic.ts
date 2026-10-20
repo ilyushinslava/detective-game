@@ -1,4 +1,7 @@
 ﻿import type { GameState, LastShift, Character } from "../types/game";
+import { DUEL_QUESTIONS } from "../constants/duelQuestions";
+import { DUEL_CHARACTERS } from "../constants/duelCharacters";
+import { filterCandidates } from "./duelLogic";
 import {
   getAdjacentCharacters,
   isOppositeShift,
@@ -404,5 +407,78 @@ export function getPoliceAIMove(state: GameState): GameState {
     ...state,
     currentTurn: "KILLER",
     log: [...state.log, "Полиция пропустила ход."],
+  };
+}
+
+
+export function getDuelAIMove(state: GameState): GameState {
+  if (state.winner || state.mode !== "LINE_UP") return state;
+
+  const botRole = state.currentTurn;
+  const history = state.duelHistory || [];
+  const candidates = filterCandidates(DUEL_CHARACTERS, history, botRole);
+  const alreadyAccused = state.accusedTargets?.[botRole] || [];
+
+  // Если остался 1 кандидат или среди кандидатов есть единственный не обвиненный - обвиняем
+  const unaccusedCandidates = candidates.filter(c => !alreadyAccused.includes(c.id));
+  if (unaccusedCandidates.length === 1 && Math.random() < 0.85) {
+    const targetId = unaccusedCandidates[0].id;
+    const targetSecretId = botRole === "DETECTIVE" ? state.killerSecretId : state.detectiveSecretId;
+    const nextTurn = botRole === "DETECTIVE" ? "KILLER" : "DETECTIVE";
+
+    if (targetId === targetSecretId) {
+      return {
+        ...state,
+        winner: botRole,
+        log: [...state.log, `🤖 Бот (${botRole === "DETECTIVE" ? "Следователь" : "Подозреваемый"}) выдвинул точное обвинение против #${targetId.replace("c","")}! Победа!`],
+      };
+    } else {
+      const nextPenalties = {
+        ...(state.duelPenalties || { DETECTIVE: 0, KILLER: 0 }),
+        [botRole]: ((state.duelPenalties?.[botRole] ?? 0) + 1),
+      };
+      const nextAccused = {
+        ...(state.accusedTargets || { DETECTIVE: [], KILLER: [] }),
+        [botRole]: [...alreadyAccused, targetId],
+      };
+      return {
+        ...state,
+        duelPenalties: nextPenalties,
+        accusedTargets: nextAccused,
+        currentTurn: nextTurn,
+        log: [...state.log, `🤖 Бот (${botRole === "DETECTIVE" ? "Следователь" : "Подозреваемый"}) ошибся с обвинением (+1 штраф). Ход переходит оппоненту.`],
+      };
+    }
+  }
+
+  // Иначе бот выбирает незаданный вопрос
+  const askedQuestionIds = new Set(history.filter(h => h.askerRole === botRole).map(h => h.questionId));
+  const availableQuestions = DUEL_QUESTIONS.filter(q => !askedQuestionIds.has(q.id));
+  const chosenQuestion = availableQuestions.length > 0
+    ? availableQuestions[Math.floor(Math.random() * availableQuestions.length)]
+    : DUEL_QUESTIONS[Math.floor(Math.random() * DUEL_QUESTIONS.length)];
+
+  const targetSecretId = botRole === "DETECTIVE" ? state.killerSecretId : state.detectiveSecretId;
+  const targetChar = DUEL_CHARACTERS.find(c => c.id === targetSecretId);
+  const answer = targetChar ? chosenQuestion.check(targetChar.attributes) : false;
+
+  const entry = {
+    id: `hist_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    askerRole: botRole,
+    questionId: chosenQuestion.id,
+    questionText: chosenQuestion.text,
+    answer,
+    timestamp: Date.now(),
+  };
+
+  const nextTurn = botRole === "DETECTIVE" ? "KILLER" : "DETECTIVE";
+  return {
+    ...state,
+    duelHistory: [...history, entry],
+    currentTurn: nextTurn,
+    log: [
+      ...state.log,
+      `🤖 Бот задал вопрос: "${chosenQuestion.text}". Ответ: ${answer ? "ДА" : "НЕТ"}.`,
+    ],
   };
 }

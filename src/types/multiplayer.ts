@@ -31,6 +31,6 @@ export type GameAction = BaseGameAction & (
   | { type: "PLAYER_READY" }
   | { type: "SWEAR_IN_OFFICER"; payload: any }
   | { type: "SET_INSPECTOR_ROLE"; payload: { chosenId: string } }
-  | { type: "DUEL_ASK_QUESTION"; payload: { attribute: string; value: any }; senderId?: string }
-  | { type: "DUEL_ACCUSE"; payload: { targetId: number }; senderId?: string }
+  | { type: "DUEL_ASK_QUESTION"; payload: { questionId: string }; senderId?: string }
+  | { type: "DUEL_ACCUSE"; payload: { targetId: string }; senderId?: string }
 );

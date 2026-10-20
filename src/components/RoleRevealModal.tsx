@@ -139,7 +139,7 @@ export const RoleRevealModal = ({
   inspectorChoices,
   role1Name: propRole1Name,
   role2Name: propRole2Name,
-  _isOpponentConnected = true,
+  isOpponentConnected: _isOpponentConnected = true,
   onSelectDetectiveRole,
   onComplete,
   onCancelMatch,
@@ -400,13 +400,13 @@ export const RoleRevealModal = ({
         tiles.push({
           id: "target_kill",
           label: "Заказная цель",
-          icon: <Icons.Target className={`w-6 h-6 ${colorClass}`} />,
+          icon: <Icons.Target className="w-6 h-6 text-red-400" />,
           desc: "Ликвидировать текущую цель строго по открытому списку из 4 жертв.",
         });
         tiles.push({
           id: "shift",
           label: "Сдвиг",
-          icon: <Icons.Shift className="w-6 h-6 text-sky-400" />,
+          icon: <Icons.Shift className="w-6 h-6 text-rose-500" />,
           desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
         });
         tiles.push({
@@ -419,7 +419,7 @@ export const RoleRevealModal = ({
         tiles.push({
           id: "accuse",
           label: "Задержание",
-          icon: <Icons.Shield className={`w-6 h-6 ${colorClass}`} />,
+          icon: <Icons.Shield className="w-6 h-6 text-cyan-400" />,
           desc: "Обвинить соседнюю клетку. Если это преступник — победа.",
         });
         tiles.push({
@@ -440,13 +440,13 @@ export const RoleRevealModal = ({
         tiles.push({
           id: "steal",
           label: "Кража",
-          icon: <Icons.Coins className={`w-6 h-6 ${colorClass}`} />,
+          icon: <Icons.Coins className="w-6 h-6 text-amber-400" />,
           desc: "Украсть сокровище из сейфа у себя или соседней клетки. Цель — 5 сокровищ.",
         });
         tiles.push({
           id: "shift",
           label: "Сдвиг",
-          icon: <Icons.Shift className="w-6 h-6 text-sky-400" />,
+          icon: <Icons.Shift className="w-6 h-6 text-rose-500" />,
           desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
         });
         tiles.push({
@@ -459,7 +459,7 @@ export const RoleRevealModal = ({
         tiles.push({
           id: "accuse_thief",
           label: "Задержание",
-          icon: <Icons.Shield className={`w-6 h-6 ${colorClass}`} />,
+          icon: <Icons.Shield className="w-6 h-6 text-cyan-400" />,
           desc: "Обвинить клетку рядом со своей тайной личностью или любым из патрульных.",
         });
         tiles.push({
@@ -479,19 +479,19 @@ export const RoleRevealModal = ({
       tiles.push({
         id: "capture_spy",
         label: "Разоблачение",
-        icon: <Icons.Target className={`w-6 h-6 ${colorClass}`} />,
+        icon: <Icons.Target className={`w-6 h-6 ${isRed ? "text-red-400" : "text-cyan-400"}`} />,
         desc: "Вскрыть соседнего подозреваемого. Если это чужой агент — забрать трофей.",
       });
       tiles.push({
         id: "shift",
         label: "Сдвиг",
-        icon: <Icons.Shift className="w-6 h-6 text-sky-400" />,
+        icon: <Icons.Shift className={`w-6 h-6 ${isRed ? "text-rose-500" : "text-sky-400"}`} />,
         desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
       });
       tiles.push({
         id: "interrogate_spy",
         label: "Опрос свидетелей",
-        icon: <Icons.Radar className="w-6 h-6 text-cyan-400" />,
+        icon: <Icons.Radar className={`w-6 h-6 ${isRed ? "text-amber-400" : "text-cyan-400"}`} />,
         desc: "Узнать, находится ли тайная личность соперника рядом с выбранной целью.",
       });
     }
@@ -601,7 +601,7 @@ export const RoleRevealModal = ({
         {phase === "SECRET_SERVICE_SOLO" && (
           <>
             <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className={`text-[10px] font-black ${themeClasses.text} uppercase tracking-widest mb-3`}>
+              <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border mb-3 ${isRedTheme ? "bg-red-950/90 text-red-300 border-red-700/60 shadow-[0_0_15px_rgba(239,68,68,0.25)]" : "bg-cyan-950/90 text-cyan-300 border-cyan-700/60 shadow-[0_0_15px_rgba(6,182,212,0.25)]"}`}>
                 Секретная служба: Ваша личность
               </span>
               {renderCharacterCard(detective, currentRoleName, false)}
@@ -646,7 +646,7 @@ export const RoleRevealModal = ({
         {phase === "SPY_P1_REVEAL" && (
           <>
             <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-3">
+              <span className="text-[10px] font-black text-red-300 uppercase tracking-widest px-3 py-1 rounded-full bg-red-950/90 border border-red-700/60 shadow-[0_0_15px_rgba(239,68,68,0.25)] mb-3">
                 Тайная личность
               </span>
               {renderCharacterCard(detective, "Фантом", true)}
@@ -687,7 +687,7 @@ export const RoleRevealModal = ({
         {phase === "SPY_P2_REVEAL" && (
           <>
             <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-3">
+              <span className="text-[10px] font-black text-cyan-300 uppercase tracking-widest px-3 py-1 rounded-full bg-cyan-950/90 border border-cyan-700/60 shadow-[0_0_15px_rgba(6,182,212,0.25)] mb-3">
                 Тайная личность
               </span>
               {renderCharacterCard(killer, "Призрак", false)}
@@ -709,7 +709,7 @@ export const RoleRevealModal = ({
         {phase === "SOLO_KILLER" && (
           <>
             <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-3">
+              <span className="text-[10px] font-black text-red-300 uppercase tracking-widest px-3 py-1 rounded-full bg-red-950/90 border border-red-700/60 shadow-[0_0_15px_rgba(239,68,68,0.25)] mb-3">
                 Ваша секретная личность
               </span>
               {renderCharacterCard(killer, role1Name, true)}
@@ -740,7 +740,7 @@ export const RoleRevealModal = ({
         {phase === "SOLO_DETECTIVE_REVEAL" && (
           <>
             <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-3">
+              <span className="text-[10px] font-black text-cyan-300 uppercase tracking-widest px-3 py-1 rounded-full bg-cyan-950/90 border border-cyan-700/60 shadow-[0_0_15px_rgba(6,182,212,0.25)] mb-3">
                 {mode === "SKHVATKA" ? "Ориентировка" : "Ваша секретная личность"}
               </span>
               {mode === "SKHVATKA" ? (
@@ -892,7 +892,7 @@ export const RoleRevealModal = ({
         {phase === "DETECTIVE_REVEAL" && (
           <>
             <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-3">
+              <span className="text-[10px] font-black text-cyan-300 uppercase tracking-widest px-3 py-1 rounded-full bg-cyan-950/90 border border-cyan-700/60 shadow-[0_0_15px_rgba(6,182,212,0.25)] mb-3">
                 {mode === "SKHVATKA" ? "Ориентировка" : "Тайная личность"}
               </span>
               {mode === "SKHVATKA" ? (

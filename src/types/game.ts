@@ -104,10 +104,16 @@ export const SPY_COLORS = [
     ring: "ring-cyan-500/80",
   },
   {
-    text: "text-sky-400",
-    bg: "bg-sky-950",
-    border: "border-sky-500",
-    ring: "ring-sky-500/80",
+    text: "text-amber-400",
+    bg: "bg-amber-950",
+    border: "border-amber-500",
+    ring: "ring-amber-500/80",
+  },
+  {
+    text: "text-emerald-400",
+    bg: "bg-emerald-950",
+    border: "border-emerald-500",
+    ring: "ring-emerald-500/80",
   },
   {
     text: "text-purple-400",
@@ -126,12 +132,6 @@ export const SPY_COLORS = [
     bg: "bg-lime-950",
     border: "border-lime-500",
     ring: "ring-lime-500/80",
-  },
-  {
-    text: "text-cyan-400",
-    bg: "bg-cyan-950",
-    border: "border-cyan-500",
-    ring: "ring-cyan-500/80",
   },
   {
     text: "text-orange-400",

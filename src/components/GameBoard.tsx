@@ -151,8 +151,12 @@ export const GameBoard = ({
           }}
         >
           {board.flat().map((character) => {
-            const hasRedZone = (showKillerHints && killerAdjacentIds.includes(character.id)) || (radarCellIds.includes(character.id) && Boolean(radarColorClass?.includes("red")));
-            const hasBlueZone = (showDetectiveHints && detectiveAdjacentIds.includes(character.id)) || (radarCellIds.includes(character.id) && !radarColorClass?.includes("red"));
+            const isSelected = selectedCharacterId === character.id;
+            const isRadarCell = radarCellIds.includes(character.id);
+            const isRadarTarget = character.id === radarTargetId;
+
+            const hasRedZone = (showKillerHints && killerAdjacentIds.includes(character.id)) || (isRadarCell && Boolean(radarColorClass?.includes("red")));
+            const hasBlueZone = (showDetectiveHints && detectiveAdjacentIds.includes(character.id)) || (isRadarCell && !radarColorClass?.includes("red"));
             const isOverlapZone = Boolean(hasRedZone && hasBlueZone);
 
             let neighborColor = null;
@@ -164,31 +168,56 @@ export const GameBoard = ({
                 "border-cyan-500 ring-1 ring-cyan-500/80 shadow-[0_0_15px_rgba(6,182,212,0.4)]";
             }
 
+            const radarBorderColor = radarColorClass?.includes("red")
+              ? "border-red-400/90 text-red-400"
+              : "border-cyan-400/90 text-cyan-400";
+
             return (
               <motion.div
                 key={character.id}
                 layout
                 transition={{ type: "spring", stiffness: 300, damping: 28 }}
-                className="w-full h-full"
+                className="w-full h-full relative"
               >
+                {/* СЛОЙ 1: Карточка персонажа с подсветкой тайной роли */}
                 <CharacterCard
                   mode={mode}
                   character={character}
-                  isSelected={selectedCharacterId === character.id}
+                  isSelected={isSelected}
                   neighborHighlightColor={neighborColor}
                   isUniformedOfficer={uniformedOfficerIds?.includes(
                     character.id,
                   )}
                   isTargetVictim={character.id === targetVictimId}
-                  isRadarCenter={character.id === radarTargetId}
-                  radarRingColor={
-              radarCellIds.includes(character.id) ? radarColorClass : null
-            }
-            isError={character.id === errorCardId}
-            isMyCharacter={character.id === myCharacterId}
-            isOverlapZone={isOverlapZone}
-            onClick={() => onSelectCharacter(character.id)}
+                  isRadarCenter={isRadarTarget}
+                  radarRingColor={null}
+                  isError={character.id === errorCardId}
+                  isMyCharacter={character.id === myCharacterId}
+                  isOverlapZone={isOverlapZone}
+                  onClick={() => onSelectCharacter(character.id)}
                 />
+
+                {/* СЛОЙ 2 (Радар): Декоративный оверлей с пунктирной рамкой (Color Blending) */}
+                {(isRadarCell || isRadarTarget) && (
+                  <div
+                    className={`absolute inset-0 rounded-2xl border-2 border-dashed ${radarBorderColor} pointer-events-none animate-pulse z-20 ${
+                      isRadarTarget
+                        ? "bg-cyan-500/10 shadow-[0_0_20px_rgba(6,182,212,0.35)]"
+                        : ""
+                    }`}
+                  >
+                    {isRadarTarget && (
+                      <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-cyan-950/90 border border-cyan-400 flex items-center justify-center shadow-[0_0_8px_rgba(6,182,212,0.8)]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* СЛОЙ 3 (Фокус выбора): Акцентный контур активной клетки */}
+                {isSelected && (
+                  <div className="absolute inset-0 rounded-2xl ring-2 ring-amber-400 ring-offset-1 ring-offset-zinc-950 pointer-events-none z-30 shadow-[0_0_15px_rgba(251,191,36,0.6)]" />
+                )}
               </motion.div>
             );
           })}

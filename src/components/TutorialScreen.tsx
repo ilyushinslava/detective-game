@@ -296,7 +296,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
         row.map((c) => (c.id === targetId ? { ...c, isRobbed: true } : c))
       );
       setBoard(newBoard);
-      soundManager.play("slide");
+      soundManager.play("steal");
       triggerHaptic("medium");
       setStep(3);
       setSelectedId(null);

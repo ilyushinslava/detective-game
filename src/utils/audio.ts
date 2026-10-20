@@ -11,7 +11,9 @@ type SoundType =
   | 'impact'
   | 'gameStart'
   | 'win'
-  | 'lose';
+  | 'lose'
+  | 'patrol'
+  | 'steal';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const getPath = (fileName: string) => `${basePath}/sounds/${fileName}`;
@@ -19,7 +21,7 @@ const getPath = (fileName: string) => `${basePath}/sounds/${fileName}`;
 const SOUND_LIBRARY: Record<SoundType, string[]> = {
   splash: [getPath('splash.mp3')],
   slide: [getPath('slide-1.mp3'), getPath('slide-2.mp3')],
-  kill: [getPath('kill-1.mp3'), getPath('kill-2.mp3')],
+  kill: [getPath('kill-1.mp3'), getPath('kill-2.mp3'), getPath('shot-distant.mp3')],
   disguise: [getPath('disguise-1.mp3'), getPath('disguise-2.mp3'), getPath('disguise-3.mp3')],
   radar: [getPath('radar-1.mp3'), getPath('radar-2.mp3')],
   arrest: [getPath('arrest.mp3')],
@@ -28,6 +30,8 @@ const SOUND_LIBRARY: Record<SoundType, string[]> = {
   gameStart: [getPath('game-start.mp3')],
   win: [getPath('win.mp3')],
   lose: [getPath('lose.mp3')],
+  patrol: [getPath('patrol-siren.mp3')],
+  steal: [getPath('coin-steal.mp3'), getPath('coin-steal2.mp3')],
 };
 
 class SoundController {

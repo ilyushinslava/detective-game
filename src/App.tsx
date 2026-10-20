@@ -319,7 +319,8 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
         if (!isStale) {
           if (action.type === "SHIFT_BOARD") soundManager.play('slide');
           if (action.type === "KILL_CHARACTER") soundManager.play('kill');
-          if (action.type === "ROB_NEIGHBOR") soundManager.play('slide');
+          if (action.type === "ROB_NEIGHBOR") soundManager.play('steal');
+          if (action.type === "SWEAR_IN_OFFICER") soundManager.play('patrol');
           if (action.type === "INTERROGATE") soundManager.play('radar');
           if (action.type === "CLEANUP") soundManager.play('slide');
           if (action.type === "DISGUISE" || action.type === "FAST_DISGUISE" || action.type === "ESCAPE_MANIAC") soundManager.play('disguise');
@@ -801,7 +802,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
   const handleRob = () => {
     if (!selectedId || gameState.currentTurn !== "KILLER" || !isHumanTurn)
       return;
-    soundManager.play('slide');
+    soundManager.play('steal');
     triggerHaptic("medium");
     dispatchAction({
       type: "ROB_NEIGHBOR",
@@ -904,7 +905,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
 
   const handleSwearInOfficer = () => {
     if (!selectedId || gameState.currentTurn !== "DETECTIVE" || !isHumanTurn) return;
-    soundManager.play('slide');
+    soundManager.play('patrol');
     triggerHaptic("medium");
     dispatchAction({
       type: "SWEAR_IN_OFFICER",

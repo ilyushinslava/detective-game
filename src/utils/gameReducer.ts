@@ -18,11 +18,38 @@ import {
 } from "./gameLogic";
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
-  if (state.winner && action.type !== "RESTART_GAME") {
+  const RESTART_CONTROL_ACTIONS = [
+    "RESTART_GAME",
+    "MATCH_STARTED",
+    "REQUEST_RESTART",
+    "CONFIRM_RESTART",
+    "REJECT_RESTART"
+  ];
+
+  if (state.winner && !RESTART_CONTROL_ACTIONS.includes(action.type)) {
     return state;
   }
 
   const isRemote = action.senderId === "remote";
+
+  const SYSTEM_ACTIONS = [
+    "MATCH_STARTED", "RESTART_GAME", "PRE_SHIFT", "REQUEST_RESTART", 
+    "CONFIRM_RESTART", "REJECT_RESTART", "SET_MATCH_POT", "PLAYER_READY", 
+    "SET_INSPECTOR_ROLE", "CLEANUP"
+  ];
+  
+  if (isRemote && state.opponent === "ONLINE" && !SYSTEM_ACTIONS.includes(action.type)) {
+    if (state.mode === "SECRET_SERVICE") {
+      const localSpyIndex = state.playerRole === "KILLER" ? 0 : 1;
+      if (state.activeSpyIndex !== undefined && state.activeSpyIndex === localSpyIndex) {
+        return state;
+      }
+    } else if (state.playerRole) {
+      if (state.currentTurn === state.playerRole) {
+        return state;
+      }
+    }
+  }
 
   const computeNextState = (): GameState => {
     switch (action.type) {

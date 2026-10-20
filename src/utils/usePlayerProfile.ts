@@ -88,7 +88,7 @@ export function usePlayerProfile() {
                   wins: Math.max(prev.stats?.wins || 0, remoteData.stats?.wins || 0),
                   losses: Math.max(prev.stats?.losses || 0, remoteData.stats?.losses || 0),
                 },
-                cash: Math.max(prev.cash, remoteData.cash ?? 0),
+                cash: typeof remoteData.cash === "number" ? remoteData.cash : prev.cash,
                 xp: Math.max(prev.xp, remoteData.xp ?? 0),
                 level: Math.max(prev.level, remoteData.level ?? 1),
               };

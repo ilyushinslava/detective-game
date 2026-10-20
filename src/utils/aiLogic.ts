@@ -348,7 +348,13 @@ export function getPoliceAIMove(state: GameState): GameState {
 
   if (suspects.length > 0 && Math.random() < 0.7) {
     const target = suspects[Math.floor(Math.random() * suspects.length)];
-    return accuseCharacter(state, target.id);
+    const resultState = accuseCharacter(state, target.id);
+    if (resultState !== state) {
+      return {
+        ...resultState,
+        currentTurn: "KILLER",
+      };
+    }
   }
 
   if (
@@ -358,7 +364,13 @@ export function getPoliceAIMove(state: GameState): GameState {
     Math.random() < 0.4
   ) {
     const officerId = state.uniformedOfficers[Math.floor(Math.random() * state.uniformedOfficers.length)];
-    return swearInOfficer(state, officerId);
+    const resultState = swearInOfficer(state, officerId);
+    if (resultState !== state) {
+      return {
+        ...resultState,
+        currentTurn: "KILLER",
+      };
+    }
   }
 
   const validShifts = getAllValidShifts(

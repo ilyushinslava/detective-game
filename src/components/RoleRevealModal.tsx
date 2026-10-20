@@ -200,6 +200,7 @@ export const RoleRevealModal = ({
   const completeOnce = () => {
     if (completedRef.current) return;
     completedRef.current = true;
+    setIsWaitingRemote(false);
     onCompleteRef.current();
   };
 
@@ -242,10 +243,12 @@ export const RoleRevealModal = ({
   }, [onCancelMatch]);
 
   useEffect(() => {
-    if (!isWaitingRemote) return;
+    if (!isWaitingRemote || completedRef.current) return;
 
     if (afkSecondsLeft <= 0) {
-      onCancelMatchRef.current?.();
+      if (!completedRef.current) {
+        onCancelMatchRef.current?.();
+      }
       return;
     }
 
@@ -267,10 +270,9 @@ export const RoleRevealModal = ({
     if (selectedInspectorId) {
       onSelectDetectiveRole(selectedInspectorId);
     }
-    isWaitingRemoteRef.current = true;
     mpService.setPlayerReady(true);
     mpService.sendAction({ type: "PLAYER_READY", senderId: "local" } as any);
-    if (remoteReadyRef.current || isRemoteReady) {
+    if (remoteReadyRef.current) {
       completeOnce();
     } else {
       setIsWaitingRemote(true);
@@ -614,11 +616,11 @@ export const RoleRevealModal = ({
               {getActionTiles(mode, playerRole)}
             </div>
             <button
-              disabled={opponent === "ONLINE" && !isOpponentConnected}
+              disabled={false}
               onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
               className={`w-full h-14 mt-4 ${themeClasses.button} disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-full transition flex items-center justify-center gap-2 cursor-pointer shrink-0`}
             >
-              <span>{opponent === "ONLINE" ? (!isOpponentConnected ? "СОПЕРНИК НЕ В СЕТИ" : "ГОТОВ") : "Начать операцию"}</span> <Icons.ArrowRight className="w-4 h-4" />
+              <span>{opponent === "ONLINE" ? "ГОТОВ" : "Начать операцию"}</span> <Icons.ArrowRight className="w-4 h-4" />
             </button>
           </>
         )}
@@ -728,11 +730,11 @@ export const RoleRevealModal = ({
             </div>
             <button
               data-testid="ready-button"
-              disabled={opponent === "ONLINE" && !isOpponentConnected}
+              disabled={false}
               onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
               className="w-full h-14 mt-4 bg-gradient-to-r from-red-700 via-red-600 to-red-800 hover:from-red-600 hover:to-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_0_20px_rgba(220,38,38,0.45)] flex items-center justify-center gap-2 cursor-pointer shrink-0"
             >
-              <span>{opponent === "ONLINE" ? (!isOpponentConnected ? "СОПЕРНИК НЕ В СЕТИ" : "ГОТОВ") : "Начать операцию"}</span> <Icons.ArrowRight className="w-4 h-4" />
+              <span>{opponent === "ONLINE" ? "ГОТОВ" : "Начать операцию"}</span> <Icons.ArrowRight className="w-4 h-4" />
             </button>
           </>
         )}
@@ -771,11 +773,11 @@ export const RoleRevealModal = ({
             </div>
             <button
               data-testid="ready-button"
-              disabled={opponent === "ONLINE" && !isOpponentConnected}
+              disabled={false}
               onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
               className="w-full h-14 mt-4 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_0_20px_rgba(6,182,212,0.45)] flex items-center justify-center gap-2 cursor-pointer shrink-0"
             >
-              <span>{opponent === "ONLINE" ? (!isOpponentConnected ? "СОПЕРНИК НЕ В СЕТИ" : "ГОТОВ") : (mode === "SKHVATKA" ? "Принять дело" : "Начать расследование")}</span> <Icons.ArrowRight className="w-4 h-4" />
+              <span>{opponent === "ONLINE" ? "ГОТОВ" : (mode === "SKHVATKA" ? "Принять дело" : "Начать расследование")}</span> <Icons.ArrowRight className="w-4 h-4" />
             </button>
           </>
         )}

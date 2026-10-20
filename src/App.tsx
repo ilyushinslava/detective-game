@@ -29,6 +29,8 @@ import { RoleCards } from "./components/RoleCards";
 import type { GameAction } from "./types/multiplayer";
 import { gameReducer } from "./utils/gameReducer";
 import { Toast } from "./components/Toast";
+import { DevPanel } from "./components/DevPanel";
+import { PauseModal } from "./components/PauseModal";
 import { DuelQuestionCatalogModal } from "./components/duel/DuelQuestionCatalogModal";
 import { DuelCandidatesSheet } from "./components/duel/DuelCandidatesSheet";
 import { DuelAccuseModal } from "./components/duel/DuelAccuseModal";
@@ -55,6 +57,7 @@ export default function App() {
     recordMatchResult,
   } = usePlayerProfile();
   const matchResultRecordedRef = useRef(false);
+  const lastKillSoundTimeRef = useRef(0);
   const [activeTab, setActiveTab] = useState<
     "LOBBY" | "TABLES" | "TOP" | "SHOP"
   >("LOBBY");
@@ -63,6 +66,7 @@ export default function App() {
     createInitialState("SKHVATKA", "AI", "DETECTIVE", 3, 3, 16, profile.nickname),
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedInspectorChoiceId, setSelectedInspectorChoiceId] = useState<string | null>(null);
   const [isRevealConfirmed, setIsRevealConfirmed] = useState(false);
   const [isIntroPhase, setIsIntroPhase] = useState(false);
   const [showKillerRole, setShowKillerRole] = useState(false);
@@ -73,7 +77,18 @@ export default function App() {
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [isAIThinking, setIsAIThinking] = useState(false);
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
+    useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Backquote") {
+        setIsDevPanelOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const [isPauseOpen, setIsPauseOpen] = useState(false);
+  const [isDevPanelOpen, setIsDevPanelOpen] = useState(false);
   const [isRulesOpen, setIsRulesOpen] = useState(false);
   const [opponentDisconnectedNotice, setOpponentDisconnectedNotice] =
     useState(false);
@@ -107,19 +122,30 @@ export default function App() {
       const saved = sessionStorage.getItem('mp_session');
       if (saved) {
         try {
-          const { roomCode, myClientId, isHost } = JSON.parse(saved);
+          const { roomCode, myClientId, isHost, playerRole, mode: savedMode } = JSON.parse(saved);
           const restoredState = await mpService.restoreSession(roomCode, myClientId, isHost);
-          if (restoredState) {
-            setGameState(restoredState);
-            setActiveMode(restoredState.mode);
+          if (restoredState && restoredState.board) {
+            const actualMode = restoredState.mode || savedMode || "SKHVATKA";
+            const targetRole = playerRole || (isHost ? "KILLER" : "DETECTIVE");
+            setGameState({
+              ...restoredState,
+              mode: actualMode,
+              opponent: "ONLINE",
+              playerRole: targetRole,
+              inspectorChoices: actualMode === "SKHVATKA" ? (restoredState.inspectorChoices || []) : [],
+            });
+            setActiveMode(actualMode);
             setIsLobbyOpen(false);
             setHasStartedEver(true);
             setIsIntroPhase(false);
+            setIsOpponentConnected(true);
+            setOpponentDisconnectedNotice(false);
             setToastMessage("Сессия восстановлена");
           } else {
             sessionStorage.removeItem('mp_session');
           }
         } catch (e) {
+          console.warn("Session restore skipped:", e);
           sessionStorage.removeItem('mp_session');
         }
       }
@@ -133,7 +159,8 @@ export default function App() {
         roomCode: mpService.roomCode,
         myClientId: mpService.myClientId,
         isHost: mpService.isHost,
-        playerRole: gameState.playerRole
+        playerRole: gameState.playerRole,
+        mode: gameState.mode
       }));
       if (mpService.isHost) {
         mpService.saveGameState(gameState);
@@ -199,7 +226,8 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = mpService.subscribeToActions((action: GameAction) => {
-if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTART_GAME") {        setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
+if (action.type === "REJECT_RESTART") {
+        setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
         if (
           gameStateRef.current.restartRequestedBy ===
           (mpService.isHost ? "HOST" : "GUEST")
@@ -244,23 +272,21 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
       }
 
 if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTART_GAME") {
-          matchResultRecordedRef.current = false;
-        setGameState((prev) => {
-          const newState =
-            action.type === "MATCH_STARTED"
-              ? action.payload.state
-              : gameReducer(prev, action);
-
-          setActiveMode(newState.mode);
-
-          if (newState.opponent === "ONLINE") {
-                    return {
-                      ...newState,
-                      playerRole: mpService.isHost ? "KILLER" : "DETECTIVE", // Строгая синхронизация ролей
-                    };
-                  }
-          return newState;
-        });
+        matchResultRecordedRef.current = false;
+        const incomingState = (action as any).payload?.state || (action as any).payload;
+        if (incomingState && incomingState.board) {
+          const targetRole = mpService.isHost ? "KILLER" : "DETECTIVE";
+          setGameState({
+            ...incomingState,
+            opponent: "ONLINE",
+            playerRole: targetRole,
+            inspectorChoices: incomingState.mode === "SKHVATKA" ? (incomingState.inspectorChoices || []) : [],
+              restartRequestedBy: undefined,
+          });
+          setActiveMode(incomingState.mode);
+          setIsOpponentConnected(true);
+          setOpponentDisconnectedNotice(false);
+        }
         setIsLobbyOpen(false);
         setHasStartedEver(true);
         setIsIntroPhase(true);
@@ -278,35 +304,38 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
           setIsIntroPhase(false); // Сбрасываем интро, если уже пошли игровые ходы от соперника
         }
 
-        if (action.type === "SHIFT_BOARD") soundManager.play('slide');
-        if (action.type === "KILL_CHARACTER") soundManager.play('kill');
-        if (action.type === "ROB_NEIGHBOR") soundManager.play('slide');
-        if (action.type === "INTERROGATE") soundManager.play('radar');
-        if (action.type === "CLEANUP") soundManager.play('slide');
-        if (action.type === "DISGUISE" || action.type === "FAST_DISGUISE" || action.type === "ESCAPE_MANIAC") soundManager.play('disguise');
-        if (action.type === "EXONERATE") soundManager.play('radar');
+        const isStale = Boolean(action.timestamp && (Date.now() - action.timestamp > 1200));
+
+        if (!isStale) {
+          if (action.type === "SHIFT_BOARD") soundManager.play('slide');
+          if (action.type === "KILL_CHARACTER") soundManager.play('kill');
+          if (action.type === "ROB_NEIGHBOR") soundManager.play('slide');
+          if (action.type === "INTERROGATE") soundManager.play('radar');
+          if (action.type === "CLEANUP") soundManager.play('slide');
+          if (action.type === "DISGUISE" || action.type === "FAST_DISGUISE" || action.type === "ESCAPE_MANIAC") soundManager.play('disguise');
+          if (action.type === "EXONERATE") soundManager.play('radar');
+        }
 
         if (action.type === "ACCUSE") {
           if (action.payload?.isMiss) {
-            soundManager.play('error');
+            if (!isStale) soundManager.play('error');
             setErrorCardId(action.payload.errorCardId || action.payload.targetId);
             setTimeout(() => setErrorCardId(null), 500);
           } else {
-            soundManager.play('arrest');
+            if (!isStale) soundManager.play('arrest');
           }
         }
 
         if (action.type === "CAPTURE_SPY") {
           if (action.payload?.isMiss) {
-            soundManager.play('error');
+            if (!isStale) soundManager.play('error');
             setErrorCardId(action.payload.errorCardId || action.payload.targetId);
             setTimeout(() => setErrorCardId(null), 500);
           } else {
-            soundManager.play('arrest');
+            if (!isStale) soundManager.play('arrest');
           }
         }
       }
-
       setGameState((prev) => {
         const nextState = gameReducer(prev, { ...action, senderId: "remote" });
         if (!mpService.isHost && action.nextTurn) {
@@ -542,6 +571,12 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
     ? (gameState.mode === "SECRET_SERVICE" ? `${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].ring} ${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].border}` : "ring-cyan-500/80 border-cyan-500")
     : null;
 
+  const effectiveRadarTargetId = selectedInspectorChoiceId || gameState.interrogationRadar?.targetId || null;
+  const effectiveRadarCellIds = selectedInspectorChoiceId ? [selectedInspectorChoiceId] : radarCellIds;
+  const effectiveRadarColorClass = selectedInspectorChoiceId
+    ? "ring-4 ring-cyan-400 shadow-[0_0_25px_rgba(6,182,212,0.9)] scale-105 z-20 border-cyan-400"
+    : radarColorClass;
+
   const isPVP = gameState.opponent === "PVP";
   const isKillerTurn = gameState.currentTurn === "KILLER";
   const isDetectiveTurn = gameState.currentTurn === "DETECTIVE";
@@ -558,8 +593,8 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
         myCharacterId = gameState.spies[0].secretId;
       }
     } else {
-      const isSelectingInspector = gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) && gameState.playerRole === "DETECTIVE";
-      if (!isSelectingInspector) {
+      const isInspectorPending = gameState.mode === "SKHVATKA" && gameState.playerRole === "DETECTIVE" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0);
+      if (!isInspectorPending) {
         myCharacterId = gameState.playerRole === "KILLER" ? gameState.killerSecretId : gameState.detectiveSecretId;
       }
     }
@@ -675,6 +710,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
     setActiveMode(modeId);
     setGameState(newState);
     setSelectedId(null);
+    setSelectedInspectorChoiceId(null);
     setIsRevealConfirmed(false);
     setDuelHistory([]);
     setDuelPenalties({ DETECTIVE: 0, KILLER: 0 });
@@ -778,7 +814,10 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
   const handleKill = () => {
     if (!selectedId || gameState.currentTurn !== "KILLER" || !isHumanTurn)
       return;
-    soundManager.play('kill');
+    if (Date.now() - lastKillSoundTimeRef.current > 300) {
+      soundManager.play('kill');
+      lastKillSoundTimeRef.current = Date.now();
+    }
     triggerHaptic("heavy");
     dispatchAction({
       type: "KILL_CHARACTER",
@@ -949,6 +988,19 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
       timestamp: Date.now(),
     });
     setSelectedId(null);
+  };
+
+  const handleExitToMenu = async () => {
+    sessionStorage.removeItem('mp_session');
+    if (gameState.opponent === "ONLINE") {
+      await mpService.leaveRoom();
+    }
+    setGameState(
+      createInitialState("SKHVATKA", "AI", "DETECTIVE", 3, 3, 16, profile.nickname),
+    );
+    setHasStartedEver(false);
+    setIsPauseOpen(false);
+    setIsLobbyOpen(true);
   };
 
   const handleReset = () => {
@@ -1410,8 +1462,8 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
         )}
 
         {/* ВЫБОР РОЛИ ИНСПЕКТОРА В СХВАТКЕ (СТРОГО В СВОЙ ХОД ПОСЛЕ ВЫСТРЕЛА БАНДИТА) */}
-        {gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) && isDetectiveView && isDetectiveTurn && !gameState.winner && !isIntroPhase && (
-          <div className="fixed inset-0 z-[100] flex flex-col items-center justify-end sm:justify-center p-4 select-none pointer-events-none overflow-hidden">
+        {gameState.mode === "SKHVATKA" && Boolean(gameState.mode === "SKHVATKA" && gameState.inspectorChoices && gameState.inspectorChoices.length > 0 && gameState.killCount > 0) && isDetectiveView && isDetectiveTurn && !gameState.winner && !isIntroPhase && (
+          <div className="fixed inset-0 z-40 flex flex-col items-center justify-end sm:justify-center p-4 select-none pointer-events-none overflow-hidden pt-16">
             {gameState.opponent === "PVP" && !isInspectorPassConfirmed ? (
               <div className="absolute inset-0 bg-[#080a0f]/95 backdrop-blur-xl flex items-center justify-center p-4 pointer-events-auto">
                 <div className="w-full max-w-sm bg-zinc-950 border border-white/10 rounded-3xl p-6 text-center shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col items-center">
@@ -1456,7 +1508,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                 </div>
 
                 {/* Развернутая панель */}
-                <div className={`relative w-full max-w-md bg-zinc-950 border border-cyan-500/30 rounded-3xl p-5 sm:p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col text-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform pointer-events-auto ${isChoiceSheetMinimized ? "translate-y-[110%] opacity-0" : "translate-y-0 opacity-100"}`}>
+                <div className={`relative w-full max-w-md bg-zinc-950/80 backdrop-blur-md border border-cyan-500/30 rounded-3xl p-5 sm:p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col text-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform pointer-events-auto ${isChoiceSheetMinimized ? "translate-y-[110%] opacity-0" : "translate-y-0 opacity-100"}`}>
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">
                       Оперативное назначение
@@ -1477,11 +1529,11 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                   </p>
                   <div className="grid grid-cols-2 gap-3 w-full mb-6">
                     {inspectorChoices.map((char) => {
-                      const isSelected = selectedId === char.id;
+                      const isSelected = selectedInspectorChoiceId === char.id;
                       return (
                         <div
                           key={char.id}
-                          onClick={() => setSelectedId(char.id)}
+                          onClick={() => setSelectedInspectorChoiceId(char.id)}
                           className={`relative flex flex-col justify-between p-4 rounded-2xl border text-left cursor-pointer transition select-none min-h-[105px] overflow-hidden ${
                             isSelected
                               ? "bg-cyan-950/40 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.35)] scale-[1.02]"
@@ -1501,14 +1553,14 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                   </div>
                   <button
                     onClick={() => {
-                      if (selectedId) {
-                        handleSelectInspectorRole(selectedId);
-                        setSelectedId(null);
+                      if (selectedInspectorChoiceId) {
+                        handleSelectInspectorRole(selectedInspectorChoiceId);
+                        setSelectedInspectorChoiceId(null);
                         setIsChoiceSheetMinimized(false);
                         setIsInspectorPassConfirmed(false);
                       }
                     }}
-                    disabled={!selectedId || !inspectorChoices.some(c => c.id === selectedId)}
+                    disabled={!selectedInspectorChoiceId || !inspectorChoices.some(c => c.id === selectedInspectorChoiceId)}
                     className="w-full h-14 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 disabled:from-zinc-800 disabled:to-zinc-900 disabled:text-zinc-600 disabled:shadow-none text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer disabled:cursor-not-allowed shadow-[0_0_20px_rgba(6,182,212,0.45)] flex items-center justify-center gap-2 shrink-0"
                   >
                     <span>Подтвердить личность</span>
@@ -1519,15 +1571,20 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
           </div>
         )}
 
-        {/* 1. КОМПАКТНАЯ ШАПКА МАТЧА */}
-        <header className="w-full px-4 sm:px-6 pb-2.5 bg-zinc-950 border-b border-zinc-800 shrink-0 relative flex items-center justify-between z-30 pt-[max(0.75rem,env(safe-area-inset-top))]">
+        {!isLobbyOpen && (
+        <>
+          {/* 1. КОМПАКТНАЯ ШАПКА МАТЧА */}
+        <header className="w-full px-4 sm:px-6 pb-2.5 bg-zinc-950 border-b border-zinc-800 shrink-0 relative flex items-center justify-between z-50 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsPauseOpen(true)}
               className="w-8 h-8 md:w-11 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer"
               title="Пауза и меню"
             >
-              <span>?</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
+                <rect x="6" y="4" width="4" height="16"/>
+                <rect x="14" y="4" width="4" height="16"/>
+              </svg>
             </button>
             <button
               onClick={() => {
@@ -1537,7 +1594,12 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
               className="relative w-8 h-8 md:w-11 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer lg:hidden"
               title="Блокнот расследования"
             >
-              <span>??</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
               {unreadLogCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[8px] font-black rounded-full w-4 h-4 flex items-center justify-center animate-pulse">
                   {unreadLogCount}
@@ -1580,6 +1642,8 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
             </button>
           </div>
         </header>
+        </>
+      )}
 
         {!isOpponentConnected && !opponentDisconnectedNotice && gameState.opponent === "ONLINE" && (
           <div className="w-full bg-amber-950/80 border-b border-amber-700/80 text-amber-200 text-[10px] font-black uppercase tracking-widest py-2 flex justify-center items-center gap-2 shadow-inner z-20">
@@ -1637,7 +1701,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
             </div>
           )}
           <div className="flex items-center gap-1.5 text-zinc-500 font-medium">
-            <span className="hidden md:inline">?? Режим:</span>
+            <span className="hidden md:inline">Режим:</span>
             <span>
               {gameState.opponent === "ONLINE"
                 ? "онлайн"
@@ -1747,9 +1811,9 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                     ? gameState.victimList[0]
                     : null
                 }
-                radarTargetId={gameState.interrogationRadar?.targetId ?? null}
-                radarCellIds={radarCellIds}
-                radarColorClass={radarColorClass}
+                radarTargetId={effectiveRadarTargetId}
+                radarCellIds={effectiveRadarCellIds}
+                radarColorClass={effectiveRadarColorClass}
                 errorCardId={errorCardId}
                 myCharacterId={myCharacterId}
                 onShift={handleShift}
@@ -1845,7 +1909,6 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                         : "col-span-2"
                     } py-1.5 sm:py-2 md:py-3.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-300 hover:text-zinc-200 text-[9px] sm:text-[10px] md:text-xs font-bold uppercase rounded-xl border border-zinc-700/80 transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5`}
                   >
-                    <span>?</span>
                     <span>Зачистить</span>
                   </button>
                 )}
@@ -1855,7 +1918,6 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                     onClick={() => setIsHandSheetOpen(true)}
                     className={`${cleanupAction ? "col-span-1" : "col-span-2"} py-1.5 sm:py-2 md:py-3.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer`}
                   >
-                    <span>??</span>
                     <span>Досье ({gameState.detectiveHand.length})</span>
                   </button>
                 )}
@@ -1868,7 +1930,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                   Протокол событий ({gameState.log.length})
                 </span>
-                <span className="text-xs">Ў</span>
+                <span className="text-xs">📋</span>
               </div>
               <div
                 ref={logContainerRef}
@@ -1951,7 +2013,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
               <div className="w-12 h-1 bg-zinc-700 rounded-full mx-auto mb-3" />
               <div className="flex items-center justify-between border-b border-zinc-800 pb-2 mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-base">??</span>
+                  <span className="text-base">📋</span>
                   <h3 className="text-sm font-black text-zinc-100 uppercase tracking-wider">
                     Блокнот расследования ({gameState.log.length})
                   </h3>
@@ -1987,9 +2049,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
             (mpService.isHost ? "HOST" : "GUEST") && (
             <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/95 p-4 select-none">
               <div className="w-full max-w-sm bg-zinc-900 border border-amber-500/50 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center text-3xl mb-4">
-                  ??
-                </div>
+                <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center text-amber-500 mb-4 shadow-[0_0_20px_rgba(245,158,11,0.3)]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-8 h-8"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg></div>
                 <h2 className="text-xl font-black text-zinc-100 mb-2">
                   Реванш?
                 </h2>
@@ -2042,9 +2102,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
         {opponentDisconnectedNotice && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/95 p-4 select-none">
             <div className="w-full max-w-sm bg-zinc-900 border border-red-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
-              <div className="w-16 h-16 rounded-full bg-red-950 border border-red-700 flex items-center justify-center text-3xl mb-4">
-                ??
-              </div>
+              <div className="w-16 h-16 rounded-full bg-red-950 border border-red-700 flex items-center justify-center text-red-500 mb-4 shadow-[0_0_20px_rgba(239,68,68,0.3)]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-8 h-8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
               <h2 className="text-xl font-black text-zinc-100 mb-2">
                 Соперник покинул игру
               </h2>
@@ -2064,7 +2122,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                 }}
                 className="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
               >
-                В главное меню ?
+                В главное меню
               </button>
             </div>
           </div>
@@ -2082,9 +2140,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4 select-none">
               {!isRevealConfirmed && gameState.opponent === "PVP" ? (
                 <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-full bg-red-950/80 border border-red-700 flex items-center justify-center text-3xl mb-4">
-                    ??
-                  </div>
+                  <div className="w-16 h-16 rounded-full bg-red-950/80 border border-red-700 flex items-center justify-center text-red-400 mb-4 shadow-[0_0_20px_rgba(239,68,68,0.3)]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8"><circle cx="12" cy="12" r="10"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></div>
                   <span className="text-xs font-bold text-red-400 uppercase tracking-widest block mb-1">
                     Агент разоблачен!
                   </span>
@@ -2103,14 +2159,12 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                     onClick={() => setIsRevealConfirmed(true)}
                     className="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
                   >
-                    Я держу телефон один ?
+                    Я держу телефон один
                   </button>
                 </div>
               ) : (
                 <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-3xl mb-4">
-                    ??
-                  </div>
+                  <div className="w-16 h-16 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-cyan-400 mb-4 shadow-[0_0_20px_rgba(6,182,212,0.3)]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8"><path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6"/></svg></div>
                   <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest block mb-1">
                     Вас раскрыли!
                   </span>
@@ -2150,7 +2204,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                           }}
                           className="w-full py-3.5 bg-gradient-to-r from-zinc-700 to-zinc-600 hover:from-zinc-600 hover:to-zinc-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-[0_10px_25px_rgba(0,0,0,0.5)] border-t border-white/25"
                         >
-                          Принять личность ?
+                          Принять личность
                         </button>
                       </>
                     );
@@ -2167,9 +2221,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4 select-none">
               {!isRevealConfirmed && gameState.opponent === "PVP" ? (
                 <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-full bg-amber-950/80 border border-amber-700 flex items-center justify-center text-3xl mb-4">
-                    ??
-                  </div>
+                  <div className="w-16 h-16 rounded-full bg-amber-950/80 border border-amber-700 flex items-center justify-center text-amber-400 mb-4 shadow-[0_0_20px_rgba(245,158,11,0.3)]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
                   <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">
                     Смена личности!
                   </span>
@@ -2188,9 +2240,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                 </div>
               ) : (
                 <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-3xl mb-4">
-                    ???
-                  </div>
+                  <div className="w-16 h-16 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-amber-400 mb-4 shadow-[0_0_20px_rgba(245,158,11,0.3)]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8"><path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6"/></svg></div>
                   <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest block mb-1">
                     Конспирация успешна
                   </span>
@@ -2248,82 +2298,29 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
             detective={detectiveChar}
             elapsedTime={formatTimer(secondsElapsed)}
             onRestart={handleReset}
+            onExitToMenu={handleExitToMenu}
+            playerRole={gameState.opponent === "PVP" ? undefined : gameState.playerRole}
           />
         )}
-        {isPauseOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none" onClick={() => setIsPauseOpen(false)}>
-            <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
-              <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100 mb-4">
-                Пауза
-              </h2>
-              
-              <button
-                onClick={() => setIsPauseOpen(false)}
-                className="w-full py-3.5 bg-amber-600 hover:bg-amber-500 text-zinc-950 font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
-              >
-                Продолжить
-              </button>
-              <button
-                onClick={() => setIsRulesOpen(true)}
-                className="w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold uppercase tracking-wider rounded-xl transition cursor-pointer"
-              >
-                Справочник правил
-              </button>
-              <button
-                onClick={async () => {
-                  sessionStorage.removeItem('mp_session');
-                  if (gameState.opponent === "ONLINE") {
-                    await mpService.leaveRoom();
-                  }
-                  setGameState(
-                    createInitialState("SKHVATKA", "AI", "DETECTIVE", 3, 3, 16, profile.nickname),
-                  );
-                  setHasStartedEver(false);
-                  setIsPauseOpen(false);
-                  setIsLobbyOpen(true);
-                }}
-                className="w-full py-3.5 bg-red-950/80 hover:bg-red-900 text-red-400 font-bold uppercase tracking-wider rounded-xl border border-red-900/50 transition cursor-pointer"
-              >
-                Покинуть игру
-              </button>
-
-              <div className="w-full flex items-center gap-3 my-2 opacity-50">
-                <div className="h-px bg-white/20 flex-1" />
-                <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Параметры связи</span>
-                <div className="h-px bg-white/20 flex-1" />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
-                  <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Звуки (SFX)</span>
-                  <button onClick={() => setIsSfxEnabled(soundManager.toggleSfx())} className={`w-10 h-5 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isSfxEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}>
-                    <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isSfxEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
-                  </button>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
-                  <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Эмбиент</span>
-                  <button onClick={() => setIsAmbientEnabled(soundManager.toggleAmbient())} className={`w-10 h-5 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isAmbientEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}>
-                    <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isAmbientEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
-                  </button>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
-                  <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Вибрация</span>
-                  <button
-                    onClick={() => {
-                      const newVal = !isHapticsEnabled;
-                      setIsHapticsEnabled(newVal);
-                      localStorage.setItem("crime_city_haptics", newVal ? "true" : "false");
-                      if (newVal) triggerHaptic("medium");
-                    }}
-                    className={`w-10 h-5 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isHapticsEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}
-                  >
-                    <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isHapticsEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <PauseModal
+          isOpen={isPauseOpen}
+          onClose={() => setIsPauseOpen(false)}
+          onResume={() => setIsPauseOpen(false)}
+          onOpenRules={() => setIsRulesOpen(true)}
+          onLeaveGame={handleExitToMenu}
+          onOpenDevPanel={() => setIsDevPanelOpen(true)}
+          isSfxEnabled={isSfxEnabled}
+          isAmbientEnabled={isAmbientEnabled}
+          isHapticsEnabled={isHapticsEnabled}
+          onToggleSfx={() => setIsSfxEnabled(soundManager.toggleSfx())}
+          onToggleAmbient={() => setIsAmbientEnabled(soundManager.toggleAmbient())}
+          onToggleHaptics={() => {
+            const newVal = !isHapticsEnabled;
+            setIsHapticsEnabled(newVal);
+            localStorage.setItem("crime_city_haptics", newVal ? "true" : "false");
+            if (newVal) triggerHaptic("medium");
+          }}
+        />
 
         {isRulesOpen && (
           <div 
@@ -2682,6 +2679,91 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
             Пожалуйста, верните устройство в вертикальное положение для продолжения операции.
           </p>
         </div>
+              <DevPanel
+          isOpen={isDevPanelOpen}
+          onClose={() => setIsDevPanelOpen(false)}
+          onForceWin={(winner, forcedMode) => {
+            setGameState((prev) => ({
+              ...prev,
+              mode: forcedMode || prev.mode,
+              winner,
+              log: [...prev.log, `[DEV] Принудительная победа: ${winner} (${forcedMode || prev.mode})`],
+            }));
+          }}
+          onTriggerInspectorChoice={() => {
+            setGameState((prev) => {
+              const all = prev.board.flat();
+              const choices = all.slice(0, 4).map((c) => c.id);
+              return {
+                ...prev,
+                mode: "SKHVATKA",
+                currentTurn: "DETECTIVE",
+                playerRole: "DETECTIVE",
+                killCount: Math.max(prev.killCount, 1),
+                inspectorChoices: choices,
+                log: [...prev.log, "[DEV] Принудительный выбор личности Инспектора"],
+              };
+            });
+            setIsChoiceSheetMinimized(false);
+            setIsIntroPhase(false);
+          }}
+          onResetToMenu={handleExitToMenu}
+          onAddCash={(amount) => {
+            awardPrize(amount);
+          }}
+          onResetCash={() => {
+            updateProfile({ cash: 0 });
+          }}
+          onToggleTurn={() => {
+            setGameState((prev) => ({
+              ...prev,
+              currentTurn: prev.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER",
+              log: [...prev.log, "[DEV] Переключение очередности хода"],
+            }));
+          }}
+          onAddKill={() => {
+            setGameState((prev) => ({
+              ...prev,
+              killCount: prev.killCount + 1,
+              log: [...prev.log, `[DEV] +1 Убийство (всего: ${prev.killCount + 1})`],
+            }));
+          }}
+          onTriggerIntro={() => {
+            setIsIntroPhase(true);
+          }}
+          onTriggerRestartRequest={() => {
+            setGameState((prev) => ({
+              ...prev,
+              restartRequestedBy: prev.playerRole === "KILLER" ? "GUEST" : "HOST",
+            }));
+          }}
+          onTriggerOpponentLeft={() => {
+            setOpponentDisconnectedNotice(true);
+          }}
+          onTriggerDisguiseModal={() => {
+            setGameState((prev) => ({
+              ...prev,
+              disguisedNotification: { roleName: "Бандит", newSecretId: prev.board[0][0].id },
+            }));
+          }}
+          onTriggerCaughtSpyModal={() => {
+            setGameState((prev) => ({
+              ...prev,
+              justCaughtSpyId: prev.spies?.[0]?.id || "p1",
+            }));
+          }}
+          onTriggerGameOver={() => {
+            setGameState((prev) => ({
+              ...prev,
+              winner: prev.winner || "KILLER",
+            }));
+          }}
+          onClearSession={() => {
+            sessionStorage.clear();
+            localStorage.clear();
+            window.location.reload();
+          }}
+        />
       </div>
     </div>
   );

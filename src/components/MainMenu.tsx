@@ -113,6 +113,7 @@ interface MainMenuProps {
   hasActiveGame: boolean;
   onResumeGame: () => void;
   onOpenRules: () => void;
+  onOpenDevPanel?: () => void;
 }
 
 export const MainMenu = ({
@@ -124,6 +125,7 @@ export const MainMenu = ({
   hasActiveGame,
   onResumeGame,
   onOpenRules,
+  onOpenDevPanel,
 }: MainMenuProps) => {
   const { t, lang, setLang } = useTranslation();
   
@@ -307,7 +309,7 @@ export const MainMenu = ({
               <span className="text-sm font-black tracking-widest text-zinc-100 uppercase">{profile.nickname}</span>
             </div>
 
-            <div className="rounded-full bg-black/75 border border-white/10 px-3.5 py-1.5 flex items-center gap-1.5 shadow-lg">
+            <div onClick={() => onOpenDevPanel?.()} className="rounded-full bg-black/75 border border-white/10 hover:border-amber-500/50 hover:bg-amber-950/20 px-3.5 py-1.5 flex items-center gap-1.5 shadow-lg cursor-pointer transition active:scale-95" title="Баланс / DEV">
               <span className="text-amber-500 font-black text-[10px] tracking-wider">CR</span>
               <span className="text-zinc-100 font-mono text-xs font-bold">{profile.cash.toLocaleString()}</span>
             </div>

@@ -14,7 +14,10 @@
           ".write": "auth != null && auth.uid === data.parent().child('hostId').val()"
         },
         "actions": {
-          ".write": "auth != null && data.parent().exists() && (auth.uid === data.parent().child('hostId').val() || auth.uid === data.parent().child('guestId').val())"
+          ".write": "auth != null && data.parent().exists() && (auth.uid === data.parent().child('hostId').val() || auth.uid === data.parent().child('guestId').val())",
+          "$actionId": {
+            ".validate": "newData.hasChildren(['actionJson', 'senderClientId']) && newData.child('actionJson').isString() && newData.child('actionJson').val().length < 1000 && newData.child('senderClientId').isString() && newData.child('senderClientId').val().length < 100"
+          }
         }
       }
     },
@@ -28,7 +31,7 @@
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid",
-        ".validate": "newData.hasChildren(['coins', 'rating']) && newData.child('coins').isNumber() && newData.child('coins').val() >= 0 && newData.child('rating').isNumber() && newData.child('rating').val() >= 0"
+        ".validate": "newData.hasChildren(['cash', 'xp', 'level']) && newData.child('cash').isNumber() && newData.child('cash').val() >= 0 && newData.child('xp').isNumber() && newData.child('xp').val() >= 0 && newData.child('level').isNumber() && newData.child('level').val() >= 1"
       }
     }
   }

@@ -337,8 +337,8 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   // --- ЭКРАН 1: КАТАЛОГ ДЕЛ (СТАРТОВОЕ МЕНЮ ОБУЧЕНИЯ) ---
   if (currentModule === "MENU") {
     return (
-      <div className="fixed inset-0 z-[100] bg-[#080a0f] flex flex-col items-center justify-between overflow-hidden font-sans select-none text-zinc-100 h-full w-full">
-        <div className="w-full max-w-xl h-full flex flex-col relative overflow-hidden">
+      <div className="fixed inset-0 z-[100] bg-[#050608] flex justify-center overflow-hidden font-sans select-none text-zinc-100 h-full w-full">
+        <div className="w-full max-w-lg md:max-w-xl mx-auto h-full flex flex-col justify-between relative overflow-hidden bg-[#080a0f] md:border-x md:border-white/10 shadow-2xl">
           {/* Шапка */}
           <div className="flex items-center justify-between px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-[#080a0f]">
             <button
@@ -434,7 +434,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
           </div>
 
           {/* Нижняя кнопка */}
-          <div className="p-4 border-t border-white/10 shrink-0">
+          <div className="p-4 border-t border-white/10 shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <button
               onClick={onFinish}
               className="w-full h-12 rounded-full bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-800 text-white font-black tracking-widest uppercase text-xs shadow-lg transition active:scale-98 cursor-pointer"
@@ -448,8 +448,8 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-[#080a0f] flex flex-col items-center justify-between overflow-hidden font-sans select-none text-zinc-100 h-full w-full">
-      <div className="w-full max-w-xl h-full flex flex-col relative overflow-hidden">
+    <div className="fixed inset-0 z-[100] bg-[#050608] flex justify-center overflow-hidden font-sans select-none text-zinc-100 h-full w-full">
+      <div className="w-full max-w-lg md:max-w-xl mx-auto h-full flex flex-col justify-between relative overflow-hidden bg-[#080a0f] md:border-x md:border-white/10 shadow-2xl">
         <style>{`
           .tutorial-highlight-l1s2 button[title*="Сдвиг влево"]:nth-of-type(3),
           .tutorial-highlight-l4s1 button[title*="Сдвиг влево"]:nth-of-type(2) {
@@ -669,7 +669,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
           </div>
 
           {/* Нижняя панель действий */}
-          <div className="h-20 shrink-0 w-full flex items-center justify-center px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-[#080a0f] to-transparent z-20">
+          <div className="h-20 shrink-0 w-full flex items-center justify-center px-6 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-[#080a0f] to-transparent z-20">
             <AnimatePresence mode="wait">
               {/* СХВАТКА КНОПКИ */}
               {currentModule === "SKHVATKA" && lesson === 1 && step === 3 && (

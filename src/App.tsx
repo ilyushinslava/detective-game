@@ -90,6 +90,7 @@ export default function App() {
   const [isPauseOpen, setIsPauseOpen] = useState(false);
   const [isDevPanelOpen, setIsDevPanelOpen] = useState(false);
   const [isRulesOpen, setIsRulesOpen] = useState(false);
+  const [rulesTab, setRulesTab] = useState<'MAIN' | 'ROLES' | 'TOKENS'>('MAIN');
   const [opponentDisconnectedNotice, setOpponentDisconnectedNotice] =
     useState(false);
   const [isHandSheetOpen, setIsHandSheetOpen] = useState(false);
@@ -568,7 +569,9 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
   }, [gameState.board, radarTargetId]);
 
   const radarColorClass = gameState.interrogationRadar
-    ? (gameState.mode === "SECRET_SERVICE" ? `${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].ring} ${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].border}` : "ring-cyan-500/80 border-cyan-500")
+    ? (gameState.mode === "SECRET_SERVICE" 
+        ? `${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].border} ring-2 ${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].ring}` 
+        : "border-cyan-400 ring-2 ring-cyan-500/70")
     : null;
 
   const effectiveRadarTargetId = selectedInspectorChoiceId || gameState.interrogationRadar?.targetId || null;
@@ -1168,7 +1171,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
               !selectedId ||
               !killerAdjacentIds.includes(selectedId) ||
               isGameOver ||
-              (gameState.mode === "MANIAC_VS_OPERATIVE" && selectedId !== gameState.victimList[0] && selectedId !== gameState.detectiveSecretId),
+              (gameState.mode === "MANIAC_VS_OPERATIVE" && selectedId !== gameState.victimList[0]),
             className:
               "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
@@ -1318,11 +1321,11 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
   } else if (gameState.mode === "SECRET_SERVICE") {
     const isP1Turn = gameState.activeSpyIndex === 0;
     if (isP1Turn) {
-      pillClasses = "bg-red-950/80 border-red-600 text-red-100";
+      pillClasses = "bg-red-950/90 border-red-600 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.3)]";
       dotClasses = "bg-red-500 shadow-red-500/80";
     } else {
-      pillClasses = "bg-blue-950/80 border-blue-600 text-blue-100";
-      dotClasses = "bg-blue-500 shadow-blue-500/80";
+      pillClasses = "bg-cyan-950/90 border-cyan-500 text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.3)]";
+      dotClasses = "bg-cyan-400 shadow-cyan-400/80";
     }
   } else {
     if (isKillerTurn) {
@@ -1965,7 +1968,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                   onClick={() => setIsHandSheetOpen(false)}
                   className="w-7 h-7 rounded-full bg-zinc-800 text-zinc-400 font-bold flex items-center justify-center text-xs"
                 >
-                  ?
+                  ✕
                 </button>
               </div>
 
@@ -2022,7 +2025,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                   onClick={() => setIsLogOpen(false)}
                   className="w-7 h-7 rounded-full bg-zinc-800 text-zinc-400 font-bold flex items-center justify-center text-xs"
                 >
-                  ?
+                  ✕
                 </button>
               </div>
 
@@ -2235,7 +2238,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                     onClick={() => setIsRevealConfirmed(true)}
                     className="w-full py-3.5 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
                   >
-                    Я держу телефон один ?
+                    Я держу телефон один ➔
                   </button>
                 </div>
               ) : (
@@ -2280,7 +2283,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                           }}
                           className="w-full py-3.5 bg-gradient-to-r from-zinc-700 to-zinc-600 hover:from-zinc-600 hover:to-zinc-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-[0_10px_25px_rgba(0,0,0,0.5)] border-t border-white/25"
                         >
-                          Принять личность ?
+                          Принять личность ➔
                         </button>
                       </>
                     );
@@ -2345,304 +2348,168 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
             }}
             className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-md p-3 sm:p-4 select-none"
           >
-            <div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[90vh]">
-              <div className="flex justify-between items-center mb-4 shrink-0 border-b border-zinc-800 pb-3">
-                <h2 className="text-base sm:text-lg font-black uppercase tracking-wider text-zinc-100">
+            <div className="w-full max-w-lg bg-zinc-950 border border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[90vh]">
+              {/* Шапка и кнопка закрытия */}
+              <div className="flex justify-between items-center mb-3 shrink-0 border-b border-white/10 pb-2.5">
+                <h2 className="text-sm font-black uppercase tracking-widest text-zinc-100">
                   Справочник правил
                 </h2>
                 <button
                   onClick={() => setIsRulesOpen(false)}
                   className="text-zinc-500 hover:text-zinc-300 font-bold text-lg cursor-pointer p-1"
                 >
-                  ?
+                  ✕
                 </button>
               </div>
 
-              <div className="overflow-y-auto space-y-3 text-left text-xs text-zinc-300 pr-1 pb-4 custom-scrollbar">
-                {/* БАЗОВЫЕ МЕХАНИКИ */}
-                <div className="p-3.5 bg-cyan-950/20 rounded-2xl border border-cyan-900/40 space-y-2">
-                  <span className="font-black text-cyan-400 block text-xs uppercase tracking-wider">
-                    Базовые механики
+              {/* Табы навигации: Основные / Роли / Токены */}
+              <div className="flex bg-zinc-900/80 p-1 rounded-xl border border-white/10 mb-3 shrink-0">
+                {(['MAIN', 'ROLES', 'TOKENS'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setRulesTab(tab)}
+                    className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition cursor-pointer ${
+                      rulesTab === tab
+                        ? "bg-red-600 text-white shadow-md shadow-red-600/30"
+                        : "text-zinc-500 hover:text-zinc-300"
+                    }`}
+                  >
+                    {tab === 'MAIN' ? 'Основные' : tab === 'ROLES' ? 'Роли' : 'Токены'}
+                  </button>
+                ))}
+              </div>
+
+              {/* Горизонтальный арт-баннер */}
+              <div className="relative w-full h-24 sm:h-28 rounded-2xl overflow-hidden mb-4 shrink-0 border border-white/10 shadow-lg">
+                <img
+                  src="./bg-main.png"
+                  alt="Реквием: Правила"
+                  className="w-full h-full object-cover object-[center_35%] opacity-70"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
+                <div className="absolute bottom-2.5 left-3.5 right-3.5 flex justify-between items-end">
+                  <div>
+                    <span className="text-[9px] font-mono font-bold text-red-400 uppercase tracking-widest block">
+                      РЕГЛАМЕНТ ОПЕРАЦИИ
+                    </span>
+                    <span className="text-sm font-black text-white uppercase tracking-wider">
+                      Городская дуэль
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-zinc-400">
+                    5x5 • 2 игрока
                   </span>
-                  <ul className="space-y-2 leading-relaxed">
-                    <li>
-                      <b className="text-zinc-100">• Соседство:</b> клетки,
-                      прилегающие по горизонтали, вертикали и диагонали (до 8
-                      соседних клеток). Сквозь края поля механики не действуют.
-                    </li>
-                    <li>
-                      <b className="text-zinc-100">• Смещение ряда (рядов):</b>{" "}
-                      сдвиг строки или столбца на 1 клетку. Вышедшая за пределы
-                      поля карта перемещается в освободившийся противоположный
-                      конец. Запрещено отменять предыдущий сдвиг противника.
-                    </li>
-                    <li>
-                      <b className="text-zinc-100">• Зачистить:</b> специальная
-                      перестройка поля при накоплении ликвидированных
-                      персонажей. Ликвидированные карты смещаются к краю, а
-                      заполненные ими линии выводятся из активной зоны для
-                      сжатия игрового пространства.
-                    </li>
-                  </ul>
                 </div>
+              </div>
 
-                {/* 1. СХВАТКА */}
-                <div className="group bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden">
-                  <div onClick={() => setActiveAccordionIndex(prev => prev === 1 ? null : 1)} className="p-3.5 font-black text-zinc-200 group-hover:text-cyan-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
-                    <span>1. Схватка (2 игрока, поле 5x5)</span>
-                    <span className={`text-zinc-500 transition-transform duration-300 ${activeAccordionIndex === 1 ? 'rotate-180' : ''}`}>
-                      Ў
+              {/* Содержимое табов */}
+              <div className="overflow-y-auto space-y-3.5 text-left text-xs text-zinc-300 pr-1 pb-4 custom-scrollbar flex-1 min-h-0">
+                {rulesTab === 'MAIN' && (
+                  <>
+                    <span className="font-black text-zinc-400 block text-[10px] uppercase tracking-widest">
+                      ЦЕЛИ ИГРЫ
                     </span>
-                  </div>
-                  <div className={`grid transition-[grid-template-rows,opacity] duration-500 ease-out ${activeAccordionIndex === 1 ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                    <div className="overflow-hidden min-h-0">
-                      <div className="p-3.5 pt-1 border-t border-zinc-800/60 space-y-2.5 leading-relaxed text-[11px]">
-                        <p>
-                          <b className="text-red-400">Победа Преступника:</b>{" "}
-                          ликвидировать Оперативника или устранить 14 персонажей на
-                          поле.
-                        </p>
-                        <p>
-                          <b className="text-cyan-400">Победа Оперативника:</b>{" "}
-                          успешно применить «Задержание» к тайной личности
-                          Преступника.
-                        </p>
-                        <p className="p-2 rounded-lg bg-zinc-900/60 border border-zinc-800 text-zinc-400">
-                          <b className="text-zinc-200">Первый раунд:</b> Преступник
-                          обязан выполнить «Ликвидацию» рядом с собой. Затем
-                          Оперативник выбирает тайную личность из 4 карт в руке.
-                        </p>
-                        <div>
-                          <b className="text-zinc-200 block mb-1">
-                            Действия Преступника:
-                          </b>
-                          <ul className="list-disc pl-4 space-y-1">
-                            <li>
-                              <b>Смещение ряда / Зачистить.</b>
-                            </li>
-                            <li>
-                              <b>Ликвидация:</b> устранить соседнего персонажа. При
-                              ликвидации невиновного проводится «Опрос свидетелей»
-                              (Оперативник отвечает, находится ли он рядом с
-                              жертвой: «Да» или «Нет»).
-                            </li>
-                            <li>
-                              <b>Конспирация:</b> взять карту из колоды. Если
-                              персонаж жив — принять его личность, а прошлую карту
-                              выложить на поле как невиновную. Если ликвидирован —
-                              сброс.
-                            </li>
-                          </ul>
-                        </div>
-                        <div>
-                          <b className="text-zinc-200 block mb-1">
-                            Действия Оперативника:
-                          </b>
-                          <ul className="list-disc pl-4 space-y-1">
-                            <li>
-                              <b>Смещение ряда / Зачистить.</b>
-                            </li>
-                            <li>
-                              <b>Задержание:</b> указать на соседнего персонажа (или
-                              на себя для блефа). Совпало — победа; нет — игра
-                              продолжается.
-                            </li>
-                            <li>
-                              <b>Проверка алиби:</b> взять карту из колоды, выложить
-                              карту с руки на живого подозреваемого на поле и
-                              провести «Опрос свидетелей» (Преступник отвечает,
-                              соседствует ли он с ним).
-                            </li>
-                          </ul>
-                        </div>
+                    <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-red-900/40 flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-red-950/80 border border-red-500/60 flex items-center justify-center text-red-400 shrink-0 shadow-[0_0_12px_rgba(239,68,68,0.3)]">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs font-black text-red-400 uppercase tracking-wider block mb-1">
+                          Бандит:
+                        </span>
+                        <ul className="text-[11px] text-zinc-300 font-medium space-y-0.5 leading-snug">
+                          <li>• Убить инспектора</li>
+                          <li>• или убить 14 любых подозреваемых</li>
+                        </ul>
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* 2. МАНЬЯК ПРОТИВ ОПЕРАТИВНИКА */}
-                <div className="group bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden">
-                  <div onClick={() => setActiveAccordionIndex(prev => prev === 2 ? null : 2)} className="p-3.5 font-black text-zinc-200 group-hover:text-cyan-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
-                    <span>2. Маньяк против оперативника</span>
-                    <span className={`text-zinc-500 transition-transform duration-300 ${activeAccordionIndex === 2 ? 'rotate-180' : ''}`}>
-                      Ў
-                    </span>
-                  </div>
-                  <div className={`grid transition-[grid-template-rows,opacity] duration-500 ease-out ${activeAccordionIndex === 2 ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                    <div className="overflow-hidden min-h-0">
-                      <div className="p-3.5 pt-1 border-t border-zinc-800/60 space-y-2.5 leading-relaxed text-[11px]">
-                        <p>
-                          <b className="text-red-400">Победа Маньяка:</b>{" "}
-                          ликвидировать всех жертв из списка (4 цели) или устранить
-                          Оперативника.
-                        </p>
-                        <p>
-                          <b className="text-cyan-400">Победа Оперативника:</b>{" "}
-                          раскрыть личность Маньяка действием «Задержание».
-                        </p>
-                        <p className="text-zinc-400">
-                          <b className="text-zinc-200">Особенности:</b> у Маньяка
-                          открытый заказ из 4 целей. У Оперативника рука из 3 карт
-                          (его жизни).
-                        </p>
-                        <div>
-                          <b className="text-zinc-200 block mb-1">
-                            Действия Маньяка:
-                          </b>
-                          <ul className="list-disc pl-4 space-y-1">
-                            <li>
-                              <b>Смещение ряда / Зачистить.</b>
-                            </li>
-                            <li>
-                              <b>Ликвидация:</b> устранить соседнюю цель. Если цель
-                              из списка — открывается следующая. Если убит персонаж
-                              из руки Оперативника — карта сбрасывается. Если убит
-                              сам Оперативник — тот обязан сменить карту; если карт
-                              нет — проигрыш. Опрос свидетелей при убийстве
-                              невиновного не проводится.
-                            </li>
-                            <li>
-                              <b>Конспирация:</b> сменить личность по правилам
-                              колоды (требуется от 2 карт в колоде); в список жертв
-                              добавляется +1 цель.
-                            </li>
-                          </ul>
-                        </div>
-                        <div>
-                          <b className="text-zinc-200 block mb-1">
-                            Действия Оперативника:
-                          </b>
-                          <ul className="list-disc pl-4 space-y-1">
-                            <li>
-                              <b>Смещение ряда / Зачистить.</b>
-                            </li>
-                            <li>
-                            <b>Задержание:</b> проверить соседа. Ошибка следствия возвращает
-                            одну скрытую цель маньяка под низ колоды.
-                          </li>
-                            <li>
-                              <b>Проверка алиби:</b> сыграть карту с руки на поле с
-                              опросом Маньяка на соседство.
-                            </li>
-                          </ul>
-                        </div>
+                    <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-cyan-900/40 flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/60 flex items-center justify-center text-cyan-400 shrink-0 shadow-[0_0_12px_rgba(6,182,212,0.3)]">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs font-black text-cyan-400 uppercase tracking-wider block mb-1">
+                          Инспектор:
+                        </span>
+                        <ul className="text-[11px] text-zinc-300 font-medium space-y-0.5 leading-snug">
+                          <li>• Поймать бандита (Задержание)</li>
+                        </ul>
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* 3. СЕКРЕТНАЯ СЛУЖБА */}
-                <div className="group bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden">
-                  <div onClick={() => setActiveAccordionIndex(prev => prev === 3 ? null : 3)} className="p-3.5 font-black text-zinc-200 group-hover:text-indigo-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
-                    <span>3. Секретная служба</span>
-                    <span className={`text-zinc-500 transition-transform duration-300 ${activeAccordionIndex === 3 ? 'rotate-180' : ''}`}>
-                      Ў
+                    <span className="font-black text-zinc-400 block text-[10px] uppercase tracking-widest pt-2">
+                      ПЕРВЫЙ ХОД И СЦЕНАРИЙ
                     </span>
-                  </div>
-                  <div className={`grid transition-[grid-template-rows,opacity] duration-500 ease-out ${activeAccordionIndex === 3 ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                    <div className="overflow-hidden min-h-0">
-                      <div className="p-3.5 pt-1 border-t border-zinc-800/60 space-y-2.5 leading-relaxed text-[11px]">
-                        <p>
-                          <b className="text-zinc-100">Форматы:</b> каждый сам за
-                          себя («Война разведок») или дуэль разведок.
-                        </p>
-                        <p>
-                          <b className="text-indigo-400">Цель:</b> первым накопить
-                          4 трофея (разоблаченных вражеских агентов).
-                        </p>
-                        <div>
-                          <b className="text-zinc-200 block mb-1">
-                            Действия агента:
-                          </b>
-                          <ul className="list-disc pl-4 space-y-1">
-                            <li>
-                              <b>Смещение ряда / Зачистить.</b>
-                            </li>
-                            <li>
-                              <b>Разоблачение:</b> объявить соседнего подозреваемого. Если
-                              это тайная личность соперника — тот вскрывается,
-                              считается ликвидированным, отдает карту в трофеи и
-                              берет новую личность. Союзников разоблачать нельзя.
-                            </li>
-                            <li>
-                              <b>Опрос свидетелей:</b> выбрать соседнего персонажа.
-                              Все игроки, чьи личности находятся по соседству с
-                              выбранной целью (включая активного игрока), обязаны
-                              подтвердить статус соседства.
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 4. ОХОТА НА ГРАБИТЕЛЯ */}
-                <div className="group bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden">
-                  <div onClick={() => setActiveAccordionIndex(prev => prev === 4 ? null : 4)} className="p-3.5 font-black text-zinc-200 group-hover:text-cyan-400 text-xs uppercase cursor-pointer hover:bg-zinc-900/50 transition flex justify-between items-center">
-                    <span>4. Охота на грабителя</span>
-                    <span className={`text-zinc-500 transition-transform duration-300 ${activeAccordionIndex === 4 ? 'rotate-180' : ''}`}>
-                      Ў
-                    </span>
-                  </div>
-                  <div className={`grid transition-[grid-template-rows,opacity] duration-500 ease-out ${activeAccordionIndex === 4 ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                    <div className="overflow-hidden min-h-0">
-                      <div className="p-3.5 pt-1 border-t border-zinc-800/60 space-y-2.5 leading-relaxed text-[11px]">
-                        <p>
-                          <b className="text-red-400">Победа Грабителя:</b> собрать
-                          все сокровища (5 краж).
-                        </p>
-                        <p>
-                          <b className="text-cyan-400">Победа Начальника:</b>{" "}
-                          провести «Задержание» текущей активной личности Грабителя.
-                        </p>
-                        <p className="text-zinc-400">
-                        <b className="text-zinc-200">Особенности:</b> персонажи не
-                        ликвидируются, «Зачистить» недоступно. У Начальника 1
-                        тайная личность и 2 открытых патрульных. У Грабителя рука
-                        из 3 карт масок. Зона задержания и подсветка при просмотре роли действуют вокруг Начальника и обоих патрульных.
+                    <div className="p-3 rounded-xl bg-zinc-900/40 border border-white/5 flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-red-950 border border-red-500/60 text-red-400 text-xs font-black flex items-center justify-center shrink-0">1</span>
+                      <p className="text-[11px] text-zinc-300 leading-relaxed font-mono">
+                        <b className="text-white">Раунд 1 (Бандит):</b> совершает первую ликвидацию вслепую рядом со своей тайной личностью.
                       </p>
-                        <div>
-                          <b className="text-zinc-200 block mb-1">
-                            Действия Грабителя:
-                          </b>
-                          <ul className="list-disc pl-4 space-y-1">
-                            <li>
-                              <b>Смещение ряда.</b>
-                            </li>
-                            <li>
-                              <b>Кража:</b> забрать сокровище у себя или соседней
-                              клетки.
-                            </li>
-                            <li>
-                              <b>Конспирация:</b> вернуть активную личность в руку и
-                              выложить новую взамен.
-                            </li>
-                          </ul>
-                        </div>
-                        <div>
-                          <b className="text-zinc-200 block mb-1">
-                            Действия Начальника:
-                          </b>
-                          <ul className="list-disc pl-4 space-y-1">
-                            <li>
-                              <b>Смещение ряда.</b>
-                            </li>
-                            <li>
-                              <b>Задержание:</b> обвинить клетку рядом со своей
-                              тайной личностью или любым патрульным.
-                            </li>
-                            <li>
-                            <b>Вызов патруля:</b> заменить одного из открытых
-                            патрульных картой из колоды (при этом Вор
-                            немедленно получает 1 сокровище в зачет победы).
-                          </li>
-                          </ul>
-                        </div>
-                      </div>
                     </div>
-                  </div>
-                </div>
+
+                    <div className="p-3 rounded-xl bg-zinc-900/40 border border-white/5 flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-cyan-950 border border-cyan-500/60 text-cyan-400 text-xs font-black flex items-center justify-center shrink-0">2</span>
+                      <p className="text-[11px] text-zinc-300 leading-relaxed font-mono">
+                        <b className="text-white">Раунд 1 (Инспектор):</b> после выстрела оценивает радар и выбирает тайную личность из 4 карт прикрытия.
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-zinc-900/40 border border-white/5 flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-zinc-800 border border-white/20 text-zinc-300 text-xs font-black flex items-center justify-center shrink-0">3</span>
+                      <p className="text-[11px] text-zinc-300 leading-relaxed font-mono">
+                        <b className="text-white">Смещение рядов:</b> 1 раз за ход можно сместить ряд или колонку. Запрещено отменять последний ход соперника.
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                {rulesTab === 'ROLES' && (
+                  <>
+                    <div className="p-3.5 bg-red-950/20 border border-red-900/40 rounded-2xl space-y-2">
+                      <span className="text-xs font-black uppercase text-red-400 tracking-wider block">Действия Бандита</span>
+                      <ul className="space-y-1.5 text-[11px] leading-relaxed">
+                        <li>• <b className="text-zinc-100">Ликвидация:</b> устранить соседа. Невиновный свидетель отвечает, рядом ли Инспектор.</li>
+                        <li>• <b className="text-zinc-100">Смещение ряда:</b> маневр для выхода на цель или уклонения.</li>
+                        <li>• <b className="text-zinc-100">Конспирация:</b> взять карту из колоды и скрытно сменить тайную личность.</li>
+                      </ul>
+                    </div>
+
+                    <div className="p-3.5 bg-cyan-950/20 border border-cyan-900/40 rounded-2xl space-y-2">
+                      <span className="text-xs font-black uppercase text-cyan-400 tracking-wider block">Действия Инспектора</span>
+                      <ul className="space-y-1.5 text-[11px] leading-relaxed">
+                        <li>• <b className="text-zinc-100">Задержание:</b> указать на соседа. Точное попадание приносит немедленную победу.</li>
+                        <li>• <b className="text-zinc-100">Проверка алиби:</b> выложить карту из руки на поле и опросить Бандита на соседство.</li>
+                        <li>• <b className="text-zinc-100">Зачистить:</b> сдвинуть ликвидированных в конец сетки при накоплении тел.</li>
+                      </ul>
+                    </div>
+                  </>
+                )}
+
+                {rulesTab === 'TOKENS' && (
+                  <>
+                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-2">
+                      <span className="text-xs font-black uppercase text-cyan-300 tracking-wider block">Маркер «Алиби»</span>
+                      <p className="text-[11px] text-zinc-300 leading-relaxed">
+                        Снимает подозрения с невиновного персонажа. Преступник не может использовать оправданного персонажа для маскировки.
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-2">
+                      <span className="text-xs font-black uppercase text-cyan-400 tracking-wider block">Пунктирный Радар</span>
+                      <p className="text-[11px] text-zinc-300 leading-relaxed">
+                        Зона 3х3 вокруг опрошенного свидетеля или места преступления. Информирует о наличии или отсутствии цели в квадрате.
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-2">
+                      <span className="text-xs font-black uppercase text-amber-400 tracking-wider block">Жетон Валюты (CR)</span>
+                      <p className="text-[11px] text-zinc-300 leading-relaxed">
+                        Кредиты Синдиката. Используются для ставок в сетевых операциях и определяют трофеи в режиме «Охота на грабителя».
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -2655,7 +2522,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
               onClick={() => setFullscreenImage(null)}
               className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
             >
-              ?
+              ✕
             </button>
             <div className="relative w-full max-w-sm aspect-[3/4] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.8)]" onClick={(e) => e.stopPropagation()}>
               <img src={fullscreenImage.url} alt={fullscreenImage.name} className="w-full h-full object-cover grayscale contrast-125" />

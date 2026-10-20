@@ -69,7 +69,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   );
 
   const { radarTargetId, radarCellIds, radarColorClass } = useMemo(() => {
-    const tacticalRadarClass = "ring-cyan-500/80 border-cyan-500";
+    const tacticalRadarClass = "border-cyan-400 ring-2 ring-cyan-500/70";
     
     if (lesson === 2 && step === 3 && killedTargetId) {
       const neighborIds = getAdjacentCharacters(board, killedTargetId).map((c) => c.id);
@@ -221,7 +221,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     ) {
       const targetId = selectedId;
       const newBoard = board.map((row) =>
-        row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c))
+        row.map((c) => (c.id === targetId ? { ...c, isExonerated: true } : c))
       );
       setBoard(newBoard);
       soundManager.play("arrest");
@@ -232,16 +232,17 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-[#080a0f] flex flex-col overflow-hidden font-sans select-none text-zinc-100 h-full w-full">
+    <div className="fixed inset-0 z-[100] bg-[#080a0f] flex flex-col items-center justify-between overflow-hidden font-sans select-none text-zinc-100 h-full w-full">
+      <div className="w-full max-w-xl h-full flex flex-col relative overflow-hidden">
       <style>{`
-        .tutorial-highlight-l1s2 button[title="Сдвиг влево"]:nth-of-type(3),
-        .tutorial-highlight-l4s1 button[title="Сдвиг влево"]:nth-of-type(2) {
+        .tutorial-highlight-l1s2 button[title*="Сдвиг влево"]:nth-of-type(3),
+        .tutorial-highlight-l4s1 button[title*="Сдвиг влево"]:nth-of-type(2) {
           position: relative; z-index: 30;
-          box-shadow: 0 0 15px rgba(37,99,235,0.9) !important;
-          border-color: #60a5fa !important;
-          background-color: rgba(37,99,235,0.2) !important;
+          box-shadow: 0 0 20px rgba(6,182,212,0.95) !important;
+          border-color: #22d3ee !important;
+          background-color: rgba(6,182,212,0.3) !important;
           color: white !important;
-          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+          animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
         }
       `}</style>
 
@@ -634,6 +635,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
             )}
           </AnimatePresence>
         </div>
+      </div>
       </div>
     </div>
   );

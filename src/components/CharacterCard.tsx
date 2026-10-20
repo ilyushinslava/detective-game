@@ -162,19 +162,26 @@ export const CharacterCard = memo(
                   : isExonerated
                     ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
                     : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
-        } ${
-          isSelected
-            ? "ring-2 ring-white border-white shadow-[0_0_15px_rgba(255,255,255,0.8)] scale-95 z-30"
-            : isOverlapZone || ((isRadarCenter || radarRingColor) && neighborHighlightColor)
-              ? "border-purple-500 ring-1 ring-purple-400/80 shadow-[0_0_12px_rgba(168,85,247,0.45)] z-20"
-              : isRadarCenter && radarRingColor
-                ? `ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} z-10`
-                : radarRingColor
-                  ? `ring-2 ring-offset-1 ring-offset-zinc-950 ${radarRingColor} z-10`
-                  : neighborHighlightColor
-                    ? `${neighborHighlightColor} z-10`
-                    : ""
-        }`}
+        } ${(() => {
+          const hasRadar = Boolean(isRadarCenter || radarRingColor);
+          const hasNeighbor = Boolean(neighborHighlightColor);
+          
+          if (isSelected) {
+            return `ring-2 ring-white border-white shadow-[0_0_18px_rgba(255,255,255,0.9)] scale-95 z-30 ${
+              hasRadar ? "border-dashed" : ""
+            }`;
+          }
+          if (hasRadar && hasNeighbor) {
+            return "border-2 border-dashed border-cyan-400 ring-2 ring-purple-500/80 shadow-[0_0_15px_rgba(168,85,247,0.5)] z-25";
+          }
+          if (hasRadar) {
+            return `border-2 border-dashed ${radarRingColor || "border-cyan-400 ring-2 ring-cyan-500/60 shadow-[0_0_12px_rgba(6,182,212,0.5)]"} z-20 animate-pulse`;
+          }
+          if (hasNeighbor) {
+            return `${neighborHighlightColor} z-10`;
+          }
+          return "";
+        })()}`}
       >
         {/* Фоновый силуэт / Портрет */}
         {!character.isVault && !isDead && (() => {
@@ -243,7 +250,14 @@ export const CharacterCard = memo(
             )}
             {character.isShielded && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-zinc-300"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
             {character.hasBomb && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-amber-500 drop-shadow-[0_0_5px_rgba(245,158,11,0.8)]"><circle cx="11" cy="13" r="7"/><path d="M16 8l3-3"/><path d="M19 5a2 2 0 0 1 2 2"/></svg>}
-            {character.isRobbed && <span className="text-[7px] md:text-[8px] font-black text-amber-400 border border-amber-400/50 px-0.5 rounded-sm bg-amber-950/50">CR</span>}
+            {character.isRobbed && (
+              <span className="flex items-center justify-center p-0.5 rounded bg-amber-950/70 border border-amber-400/60 shadow-[0_0_6px_rgba(245,158,11,0.4)]" title="Ограблен">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-amber-400">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
+                </svg>
+              </span>
+            )}
           </div>
         </div>
 

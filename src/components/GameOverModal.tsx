@@ -39,7 +39,7 @@ interface GameOverModalProps {
   detective?: Character | undefined;
   elapsedTime: string;
   onRestart: () => void;
-  onExitToMenu: () => void;
+  onExitToMenu?: () => void;
   playerRole?: Role;
 }
 

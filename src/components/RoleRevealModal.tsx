@@ -139,7 +139,7 @@ export const RoleRevealModal = ({
   inspectorChoices,
   role1Name: propRole1Name,
   role2Name: propRole2Name,
-  isOpponentConnected = true,
+  _isOpponentConnected = true,
   onSelectDetectiveRole,
   onComplete,
   onCancelMatch,
@@ -187,7 +187,6 @@ export const RoleRevealModal = ({
   // Онлайн-ожидание и АФК-таймер
   const [isWaitingRemote, setIsWaitingRemote] = useState(false);
   const [afkSecondsLeft, setAfkSecondsLeft] = useState(15);
-  const [isRemoteReady, setIsRemoteReady] = useState(false);
   const remoteReadyRef = useRef(false);
   const isWaitingRemoteRef = useRef(false);
   const completedRef = useRef(false);
@@ -214,7 +213,6 @@ export const RoleRevealModal = ({
     const checkAndComplete = (ready: boolean) => {
       if (ready) {
         remoteReadyRef.current = true;
-        setIsRemoteReady(true);
         if (isWaitingRemoteRef.current) {
           completeOnce();
         }
@@ -355,20 +353,20 @@ export const RoleRevealModal = ({
 
     const tiles: ActionTileItem[] = [];
     const isRed = role === "KILLER";
-    const colorClass = isRed ? "text-red-500" : "text-cyan-400";
+    const colorClass = isRed ? "text-red-400" : "text-cyan-400";
 
     if (currentMode === "SKHVATKA") {
       if (isRed) {
         tiles.push({
           id: "kill",
           label: "Ликвидация",
-          icon: <Icons.Target className={`w-6 h-6 ${colorClass}`} />,
+          icon: <Icons.Target className="w-6 h-6 text-red-400" />,
           desc: "Устранить соседнего персонажа (включая диагональ). При убийстве невиновного проводится опрос соперника.",
         });
         tiles.push({
           id: "shift",
           label: "Сдвиг",
-          icon: <Icons.Shift className="w-6 h-6 text-sky-400" />,
+          icon: <Icons.Shift className="w-6 h-6 text-rose-500" />,
           desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
         });
         tiles.push({
@@ -521,8 +519,8 @@ export const RoleRevealModal = ({
                 onClick={() => setActiveTooltip((prev) => (prev === t.id ? null : t.id))}
                 className={`rounded-2xl p-3 flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer border ${
                   isCurrent
-                    ? "bg-zinc-800/90 border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.15)] scale-[1.02]"
-                    : "bg-zinc-900/60 border-white/5 hover:border-white/20 active:scale-95"
+                    ? "bg-zinc-800/90 border-white/50 shadow-[0_0_15px_rgba(255,255,255,0.2)] scale-[1.02]"
+                    : "bg-zinc-900/80 border-white/10 hover:border-white/30 active:scale-95 shadow-md"
                 }`}
               >
                 {t.icon}

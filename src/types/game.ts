@@ -87,16 +87,16 @@ export interface GameState {
 }
 export const SPY_COLORS = [
   {
-    text: "text-emerald-400",
-    bg: "bg-emerald-950",
-    border: "border-emerald-500",
-    ring: "ring-emerald-500/80",
+    text: "text-red-400",
+    bg: "bg-red-950",
+    border: "border-red-500",
+    ring: "ring-red-500/80",
   },
   {
-    text: "text-amber-400",
-    bg: "bg-amber-950",
-    border: "border-amber-500",
-    ring: "ring-amber-500/80",
+    text: "text-cyan-400",
+    bg: "bg-cyan-950",
+    border: "border-cyan-500",
+    ring: "ring-cyan-500/80",
   },
   {
     text: "text-sky-400",

@@ -16,7 +16,7 @@
         "actions": {
           ".write": "auth != null && data.parent().exists() && (auth.uid === data.parent().child('hostId').val() || auth.uid === data.parent().child('guestId').val())",
           "$actionId": {
-            ".validate": "newData.hasChildren(['actionJson', 'senderClientId']) && newData.child('actionJson').isString() && newData.child('actionJson').val().length < 1000 && newData.child('senderClientId').isString() && newData.child('senderClientId').val().length < 100"
+            ".validate": "newData.hasChildren(['actionJson', 'senderClientId']) && newData.child('actionJson').isString() && newData.child('actionJson').val().length < 25000 && newData.child('senderClientId').isString() && newData.child('senderClientId').val().length < 100"
           }
         },
         "guestId": {
@@ -29,7 +29,7 @@
           ".write": "auth != null && (data.parent().child('guestId').val() === auth.uid || data.parent().child('hostId').val() === auth.uid)"
         },
         "guestReady": {
-          ".write": "auth != null && data.parent().child('guestId').val() === auth.uid"
+          ".write": "auth != null && (data.parent().child('guestId').val() === auth.uid || data.parent().child('hostId').val() === auth.uid)"
         },
         "hostConnected": {
           ".write": "auth != null && data.parent().child('hostId').val() === auth.uid"

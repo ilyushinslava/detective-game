@@ -144,21 +144,15 @@ export const CharacterCard = memo(
         className={`relative w-full aspect-square rounded-md sm:rounded-xl p-0.5 sm:p-1.5 flex flex-col justify-between border select-none transition-colors duration-150 cursor-pointer overflow-hidden ${
           isError
             ? "bg-zinc-800/90 border-zinc-500 ring-2 ring-zinc-500/50 shadow-[0_0_12px_rgba(113,113,122,0.4)] z-30"
-            : character.isVault
-              ? character.isVaultCracked
-                ? "bg-amber-950/40 border-amber-500 shadow-[inset_0_0_12px_rgba(245,158,11,0.25)]"
-                : character.isVaultLocked
-                  ? "bg-red-950/40 border-red-700/80"
-                  : "bg-zinc-900 border-amber-600/60"
-              : isDead
-                ? isSecretService
-                  ? "bg-zinc-950/95 border-amber-900/40 opacity-70 shadow-inner"
-                  : "bg-zinc-950/95 border-zinc-900 opacity-50 shadow-inner"
-                : isTargetVictim
-                  ? "bg-red-950/30 border-red-600 shadow-[0_0_12px_rgba(220,38,38,0.35)]"
-                  : isExonerated
-                    ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
-                    : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
+            : isDead
+              ? isSecretService
+                ? "bg-zinc-950/95 border-amber-900/40 opacity-70 shadow-inner"
+                : "bg-zinc-950/95 border-zinc-900 opacity-50 shadow-inner"
+              : isTargetVictim
+                ? "bg-red-950/30 border-red-600 shadow-[0_0_12px_rgba(220,38,38,0.35)]"
+                : isExonerated
+                  ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
+                  : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
         } ${(() => {
           const hasRadar = Boolean(isRadarCenter || radarRingColor);
           const hasNeighbor = Boolean(neighborHighlightColor);
@@ -180,7 +174,7 @@ export const CharacterCard = memo(
           return "";
         })()}`}
       >
-        {!character.isVault && !isDead && (() => {
+        {!isDead && (() => {
           const imageAsset = characterImages[`../assets/characters/${character.id}.webp`]?.default;
           return (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
@@ -212,9 +206,7 @@ export const CharacterCard = memo(
                     : "text-zinc-300"
               }`}
             >
-              {character.isVault
-                ? "[СЕЙФ]"
-                : `#${character.id.replace("c", "").padStart(2, "0")}`}
+              {`#${character.id.replace("c", "").padStart(2, "0")}`}
             </span>
             {isMyCharacter && !isDead && (
               <span className="text-[7.5px] md:text-[9px] font-black uppercase px-1 md:px-1.5 py-[1px] md:py-0.5 rounded bg-amber-500/20 border border-amber-500/60 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.5)] tracking-wider">
@@ -233,17 +225,6 @@ export const CharacterCard = memo(
             {isRadarCenter && !isDead && (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-cyan-400 animate-pulse drop-shadow-[0_0_5px_rgba(6,182,212,0.8)]"><path d="M12 20v-8"/><path d="M8 12a4 4 0 0 1 8 0"/><path d="M4 12a8 8 0 0 1 16 0"/></svg>
             )}
-            {character.isVault && (
-              <span>
-                {character.isVaultCracked
-                  ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-emerald-400"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-                  : character.isVaultLocked
-                    ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-red-500"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                    : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-amber-500"><rect x="4" y="10" width="16" height="10"/><polygon points="12 2 20 10 4 10"/></svg>}
-              </span>
-            )}
-            {character.isShielded && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-zinc-300"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
-            {character.hasBomb && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-amber-500 drop-shadow-[0_0_5px_rgba(245,158,11,0.8)]"><circle cx="11" cy="13" r="7"/><path d="M16 8l3-3"/><path d="M19 5a2 2 0 0 1 2 2"/></svg>}
             {character.isRobbed && (
               <span className="flex items-center justify-center p-0.5 rounded bg-amber-950/70 border border-amber-400/60 shadow-[0_0_6px_rgba(245,158,11,0.4)]" title="Ограблен">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-amber-400">

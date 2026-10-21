@@ -285,6 +285,10 @@ if (action.type === "REJECT_RESTART") {
           setHasStartedEver(true);
           setIsIntroPhase(true);
           setSecondsElapsed(0);
+          setSelectedId(null);
+          setSelectedInspectorChoiceId(null);
+          setIsChoiceSheetMinimized(false);
+          setIsInspectorPassConfirmed(false);
         }
         return;
       }
@@ -1057,6 +1061,9 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
       setHasStartedEver(true);
       setIsIntroPhase(true);
       setSecondsElapsed(0);
+      setSelectedId(null);
+      setSelectedInspectorChoiceId(null);
+      setIsChoiceSheetMinimized(false);
       setIsInspectorPassConfirmed(false);
     }
   };

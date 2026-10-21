@@ -23,7 +23,6 @@ export type GameAction = BaseGameAction & (
   | { type: "CLEANUP" }
   | { type: "RESTART_GAME"; payload?: any }
   | { type: "MATCH_STARTED"; payload: { state: any } }
-  | { type: "PRE_SHIFT"; payload: any }
   | { type: "REQUEST_RESTART"; payload: { requestedBy: "HOST" | "GUEST" } }
   | { type: "CONFIRM_RESTART" }
   | { type: "REJECT_RESTART" }

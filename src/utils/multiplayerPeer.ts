@@ -520,11 +520,15 @@ class MultiplayerService {
           masked.detectiveHand = [];
         }
 
-        // В Схватке до выбора Инспектора не светим дефолтный detectiveSecretId и варианты выбора
+        // В Схватке до выбора Инспектора не светим дефолтный detectiveSecretId
         if (rawState.mode === "SKHVATKA") {
           if (rawState.killCount === 0 || (rawState.inspectorChoices && rawState.inspectorChoices.length > 0)) {
             masked.detectiveSecretId = null;
             masked.detectiveHand = [];
+          }
+          // Варианты выбора скрываем только если противник играет за Бандита (KILLER).
+          // Если гость — Инспектор (DETECTIVE, когда hostRole === "KILLER"), оставляем choices.
+          if (hostRole === "DETECTIVE") {
             masked.inspectorChoices = [];
           }
         }

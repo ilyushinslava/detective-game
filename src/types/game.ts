@@ -19,11 +19,6 @@ export interface Character {
   isAlive: boolean;
   isExonerated: boolean;
   isRobbed?: boolean;
-  isShielded?: boolean;
-  hasBomb?: boolean;
-  isVault?: boolean;
-  isVaultCracked?: boolean;
-  isVaultLocked?: boolean;
   unmaskedSpyIndex?: number;
 }
 

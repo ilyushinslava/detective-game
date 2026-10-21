@@ -260,4 +260,33 @@ describe("Сетевой протокол и синхронизация (Multipl
     expect(afterRestart.winner).toBeNull();
     expect(afterRestart.board).toEqual(newState.board);
   });
+
+  it("Маскирование broadcastMatchStart: гость-Инспектор получает inspectorChoices, если хост — Бандит", () => {
+    mpService.roomCode = "1234";
+    const state = createInitialState("SKHVATKA", "ONLINE", "KILLER");
+
+    // Убеждаемся, что у хоста-Бандита сформированы варианты для Инспектора
+    expect(state.inspectorChoices).toBeDefined();
+    expect(state.inspectorChoices!.length).toBe(4);
+
+    mpService.broadcastMatchStart(state);
+
+    // database.set вызывается для сохранения gameState в RTDB
+    expect(database.set).toHaveBeenCalled();
+
+    const setCalls = vi.mocked(database.set).mock.calls;
+    const gameStateCall = setCalls.find((call) => {
+      const pathArg = (call[0] as any)?.path;
+      return typeof pathArg === "string" && pathArg.includes("gameState");
+    });
+
+    expect(gameStateCall).toBeDefined();
+    const savedState = JSON.parse(gameStateCall![1] as string);
+
+    // inspectorChoices должен передаваться гостю-Инспектору без затирания
+    expect(savedState.inspectorChoices).toEqual(state.inspectorChoices);
+    // При этом секреты самого хоста-Бандита должны быть скрыты
+    expect(savedState.killerSecretId).toBeNull();
+    expect(savedState.killerHand).toEqual([]);
+  });
 });

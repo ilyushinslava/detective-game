@@ -35,7 +35,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
   const isRemote = action.senderId === "remote";
 
   const SYSTEM_ACTIONS = [
-    "MATCH_STARTED", "RESTART_GAME", "PRE_SHIFT", "REQUEST_RESTART", 
+    "MATCH_STARTED", "RESTART_GAME", "REQUEST_RESTART", 
     "CONFIRM_RESTART", "REJECT_RESTART", "SET_MATCH_POT", "PLAYER_READY", 
     "SET_INSPECTOR_ROLE", "CLEANUP"
   ];
@@ -55,18 +55,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
   const computeNextState = (): GameState => {
     switch (action.type) {
-      // Специальный экшен для подготовки анимации сдвига (только обновляет lastShift)
-    case "PRE_SHIFT": {
-      return {
-        ...state,
-        lastShift: {
-          type: (action.payload as any).shiftType,
-          index: (action.payload as any).index,
-          direction: (action.payload as any).direction,
-        },
-      };
-    }
-
     case "SHIFT_BOARD": {
       const { shiftType, index, direction } = action.payload;
 

@@ -341,6 +341,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
             if (!isStale) soundManager.play('error');
             setErrorCardId(action.payload.errorCardId || action.payload.targetId);
             setTimeout(() => setErrorCardId(null), 500);
+            setToastMessage("Соперник ошибся: ложное обвинение!");
           } else {
             if (!isStale) soundManager.play('arrest');
           }
@@ -351,6 +352,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
             if (!isStale) soundManager.play('error');
             setErrorCardId(action.payload.errorCardId || action.payload.targetId);
             setTimeout(() => setErrorCardId(null), 500);
+            setToastMessage("Соперник ошибся: шпион не обнаружен!");
           } else {
             if (!isStale) soundManager.play('arrest');
           }
@@ -517,6 +519,13 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
             soundManager.play('disguise');
           } else if (nextState.lastShift !== prev.lastShift && nextState.lastShift !== null) {
             soundManager.play('slide');
+          }
+
+          if (nextState.log.length > prev.log.length) {
+            const lastLog = nextState.log[nextState.log.length - 1];
+            if (lastLog.includes("ошибочно") || lastLog.includes("Ложный") || lastLog.includes("мимо")) {
+              setToastMessage(lastLog);
+            }
           }
 
           return nextState;
@@ -2428,58 +2437,46 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                 {rulesTab === 'MAIN' && (
                   <>
                     <span className="font-black text-zinc-400 block text-[10px] uppercase tracking-widest">
-                      ЦЕЛИ ИГРЫ
+                      РЕГЛАМЕНТ 4 РЕЖИМОВ ИГРЫ
                     </span>
-                    <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-red-900/40 flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-red-950/80 border border-red-500/60 flex items-center justify-center text-red-400 shrink-0 shadow-[0_0_12px_rgba(239,68,68,0.3)]">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="text-xs font-black text-red-400 uppercase tracking-wider block mb-1">
-                          Бандит:
-                        </span>
-                        <ul className="text-[11px] text-zinc-300 font-medium space-y-0.5 leading-snug">
-                          <li>• Убить инспектора</li>
-                          <li>• или убить 14 любых подозреваемых</li>
-                        </ul>
-                      </div>
-                    </div>
 
-                    <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-cyan-900/40 flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/60 flex items-center justify-center text-cyan-400 shrink-0 shadow-[0_0_12px_rgba(6,182,212,0.3)]">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-cyan-900/40 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-cyan-400 uppercase tracking-wider">1. Схватка</span>
+                        <span className="text-[9px] font-mono text-zinc-500 uppercase">Дуэль 1 на 1</span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="text-xs font-black text-cyan-400 uppercase tracking-wider block mb-1">
-                          Инспектор:
-                        </span>
-                        <ul className="text-[11px] text-zinc-300 font-medium space-y-0.5 leading-snug">
-                          <li>• Поймать бандита (Задержание)</li>
-                        </ul>
-                      </div>
-                    </div>
-
-                    <span className="font-black text-zinc-400 block text-[10px] uppercase tracking-widest pt-2">
-                      ПЕРВЫЙ ХОД И СЦЕНАРИЙ
-                    </span>
-                    <div className="p-3 rounded-xl bg-zinc-900/40 border border-white/5 flex items-start gap-3">
-                      <span className="w-6 h-6 rounded-full bg-red-950 border border-red-500/60 text-red-400 text-xs font-black flex items-center justify-center shrink-0">1</span>
-                      <p className="text-[11px] text-zinc-300 leading-relaxed font-mono">
-                        <b className="text-white">Раунд 1 (Бандит):</b> совершает первую ликвидацию вслепую рядом со своей тайной личностью.
+                      <p className="text-[11px] text-zinc-300 leading-relaxed">
+                        Бандит ликвидирует цели рядом с собой. Инспектор сканирует показания свидетелей радаром и задерживает преступника. Победа Бандита: устранение Инспектора или 14 жертв.
                       </p>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-zinc-900/40 border border-white/5 flex items-start gap-3">
-                      <span className="w-6 h-6 rounded-full bg-cyan-950 border border-cyan-500/60 text-cyan-400 text-xs font-black flex items-center justify-center shrink-0">2</span>
-                      <p className="text-[11px] text-zinc-300 leading-relaxed font-mono">
-                        <b className="text-white">Раунд 1 (Инспектор):</b> после выстрела оценивает радар и выбирает тайную личность из 4 карт прикрытия.
+                    <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-red-900/40 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-red-400 uppercase tracking-wider">2. Маньяк против Оперативника</span>
+                        <span className="text-[9px] font-mono text-zinc-500 uppercase">Спецоперация</span>
+                      </div>
+                      <p className="text-[11px] text-zinc-300 leading-relaxed">
+                        Маньяк устраняет 4 открытые жертвы строго по очереди. Оперативник должен вычислить и задержать Маньяка до завершения кровавой серии.
                       </p>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-zinc-900/40 border border-white/5 flex items-start gap-3">
-                      <span className="w-6 h-6 rounded-full bg-zinc-800 border border-white/20 text-zinc-300 text-xs font-black flex items-center justify-center shrink-0">3</span>
-                      <p className="text-[11px] text-zinc-300 leading-relaxed font-mono">
-                        <b className="text-white">Смещение рядов:</b> 1 раз за ход можно сместить ряд или колонку. Запрещено отменять последний ход соперника.
+                    <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-amber-900/40 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-amber-400 uppercase tracking-wider">3. Охота на грабителя</span>
+                        <span className="text-[9px] font-mono text-zinc-500 uppercase">План-перехват</span>
+                      </div>
+                      <p className="text-[11px] text-zinc-300 leading-relaxed">
+                        Грабитель похищает 5 жетонов у соседей и меняет маски из руки. Полиция выставляет патрули, блокируя сдвиги улиц, и арестовывает вора.
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-purple-900/40 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-purple-400 uppercase tracking-wider">4. Секретная служба</span>
+                        <span className="text-[9px] font-mono text-zinc-500 uppercase">Контрразведка</span>
+                      </div>
+                      <p className="text-[11px] text-zinc-300 leading-relaxed">
+                        Шпионские дуэли: взаимный допрос связных радаром и разоблачение тайных резидентов. Цель — собрать 4 трофея за раскрытие агентов.
                       </p>
                     </div>
                   </>
@@ -2487,46 +2484,64 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
 
                 {rulesTab === 'ROLES' && (
                   <>
-                    <div className="p-3.5 bg-red-950/20 border border-red-900/40 rounded-2xl space-y-2">
-                      <span className="text-xs font-black uppercase text-red-400 tracking-wider block">Действия Бандита</span>
-                      <ul className="space-y-1.5 text-[11px] leading-relaxed">
-                        <li>• <b className="text-zinc-100">Ликвидация:</b> устранить соседа. Невиновный свидетель отвечает, рядом ли Инспектор.</li>
-                        <li>• <b className="text-zinc-100">Смещение ряда:</b> маневр для выхода на цель или уклонения.</li>
-                        <li>• <b className="text-zinc-100">Конспирация:</b> взять карту из колоды и скрытно сменить тайную личность.</li>
-                      </ul>
+                    <span className="font-black text-zinc-400 block text-[10px] uppercase tracking-widest">
+                      МЕХАНИКА ХОДА И МАНЕВРЫ
+                    </span>
+
+                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-1.5">
+                      <span className="text-xs font-black uppercase text-zinc-100 tracking-wider block">Тактический сдвиг</span>
+                      <p className="text-[11px] text-zinc-300 leading-relaxed">
+                        1 раз за ход игрок может циклически сместить свободный ряд или колонку на 1 клетку. Вышедшая за край карта появляется с противоположной стороны. Запрещено отменять ход соперника.
+                      </p>
                     </div>
 
-                    <div className="p-3.5 bg-cyan-950/20 border border-cyan-900/40 rounded-2xl space-y-2">
-                      <span className="text-xs font-black uppercase text-cyan-400 tracking-wider block">Действия Инспектора</span>
-                      <ul className="space-y-1.5 text-[11px] leading-relaxed">
-                        <li>• <b className="text-zinc-100">Задержание:</b> указать на соседа. Точное попадание приносит немедленную победу.</li>
-                        <li>• <b className="text-zinc-100">Проверка алиби:</b> выложить карту из руки на поле и опросить Бандита на соседство.</li>
-                        <li>• <b className="text-zinc-100">Зачистить:</b> сдвинуть ликвидированных в конец сетки при накоплении тел.</li>
-                      </ul>
+                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-1.5">
+                      <span className="text-xs font-black uppercase text-zinc-100 tracking-wider block">Правило соседства (8 клеток)</span>
+                      <p className="text-[11px] text-zinc-300 leading-relaxed">
+                        Все взаимодействия (выстрел, арест, кража, допрос) проводятся строго в пределах 8 соседних клеток вокруг тайной роли (включая диагонали).
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-1.5">
+                      <span className="text-xs font-black uppercase text-zinc-100 tracking-wider block">Конспирация</span>
+                      <p className="text-[11px] text-zinc-300 leading-relaxed">
+                        Смена тайной личности на свободного жителя сетки без алиби для ухода от преследования следствия.
+                      </p>
                     </div>
                   </>
                 )}
 
                 {rulesTab === 'TOKENS' && (
                   <>
-                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-2">
-                      <span className="text-xs font-black uppercase text-cyan-300 tracking-wider block">Маркер «Алиби»</span>
+                    <span className="font-black text-zinc-400 block text-[10px] uppercase tracking-widest">
+                      ТАКТИЧЕСКИЕ ИНДИКАТОРЫ
+                    </span>
+
+                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-1.5">
+                      <span className="text-xs font-black uppercase text-cyan-400 tracking-wider block">Тактический Радар</span>
                       <p className="text-[11px] text-zinc-300 leading-relaxed">
-                        Снимает подозрения с невиновного персонажа. Преступник не может использовать оправданного персонажа для маскировки.
+                        Бегущий неоновый векторный контур 3×3 вокруг цели допроса. Фиксирует, находится ли объект охоты в секторе сканирования.
                       </p>
                     </div>
 
-                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-2">
-                      <span className="text-xs font-black uppercase text-cyan-400 tracking-wider block">Пунктирный Радар</span>
+                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-1.5">
+                      <span className="text-xs font-black uppercase text-blue-400 tracking-wider block">Штамп «Алиби»</span>
                       <p className="text-[11px] text-zinc-300 leading-relaxed">
-                        Зона 3х3 вокруг опрошенного свидетеля или места преступления. Информирует о наличии или отсутствии цели в квадрате.
+                        Синий штамп невиновного жителя. Снимает подозрения и блокирует выбор персонажа для преступной маскировки.
                       </p>
                     </div>
 
-                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-2">
-                      <span className="text-xs font-black uppercase text-amber-400 tracking-wider block">Жетон Валюты (CR)</span>
+                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-1.5">
+                      <span className="text-xs font-black uppercase text-amber-400 tracking-wider block">Штамп «Арестован / Раскрыт»</span>
                       <p className="text-[11px] text-zinc-300 leading-relaxed">
-                        Кредиты Синдиката. Используются для ставок в сетевых операциях и определяют трофеи в режиме «Охота на грабителя».
+                        Индикатор задержанного преступника или разоблаченного агента. Исключает путаницу с невиновными свидетелями.
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-1.5">
+                      <span className="text-xs font-black uppercase text-amber-400 tracking-wider block">Жетон Синдиката</span>
+                      <p className="text-[11px] text-zinc-300 leading-relaxed">
+                        Золотой знак валюты. Отражает добычу вора в «Охоте на грабителя» и ставки в оперативных столах.
                       </p>
                     </div>
                   </>

@@ -474,7 +474,8 @@ export const MainMenu = ({
                 <h3 className="text-xs md:text-base font-black text-zinc-100 uppercase tracking-widest mb-1 truncate">{mode.title}</h3>
                 <div className="flex items-center gap-3 text-[9px] md:text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-1.5">
                   <span className="flex items-center gap-1"><Icons.Users /> {mode.players}</span>
-                  <span className="flex items-center gap-1"><Icons.Clock /> {mode.time}</span>
+                  <span className="text-zinc-500">•</span>
+                  <span>Сетка 5×5</span>
                 </div>
                 <p className="text-[10px] md:text-xs text-zinc-400 line-clamp-2 leading-relaxed">{mode.description}</p>
               </div>
@@ -502,8 +503,8 @@ export const MainMenu = ({
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-950/80 border border-red-500/50 text-red-200 text-xs font-bold">
               {activeModeData.players}
             </span>
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900/80 border border-white/10 text-zinc-300 text-xs font-bold">
-              {activeModeData.time}
+            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900/80 border border-white/10 text-zinc-300 text-xs font-bold font-mono">
+              Сетка 5×5
             </span>
           </div>
 
@@ -520,18 +521,18 @@ export const MainMenu = ({
           <div className="grid grid-cols-3 gap-2.5 mb-6">
             <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
               <Icons.CardsDeck className="w-6 h-6 text-zinc-300 mb-0.5" />
-              <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">25 карт</span>
+              <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">25 жителей</span>
               <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">подозреваемых</span>
             </div>
             <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
               <Icons.EvidenceCards className="w-6 h-6 text-cyan-400 mb-0.5" />
-              <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">25 карт</span>
+              <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">База улик</span>
               <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">доказательств</span>
             </div>
             <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
               <Icons.TokensGroup className="w-6 h-6 text-amber-400 mb-0.5" />
-              <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">6 жетонов</span>
-              <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">улик / алиби</span>
+              <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">Радар и алиби</span>
+              <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">статусы сетки</span>
             </div>
           </div>
 

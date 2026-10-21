@@ -264,16 +264,36 @@ export const CharacterCard = memo(
         {/* Диагональные штампы */}
         {isDead && (
           <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
-            <div className="transform -rotate-12 border border-red-600 bg-red-950/90 text-red-500 font-black text-[9px] sm:text-[11px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.4)] rounded-sm backdrop-blur-sm">
-              {isSecretService ? "РАСКРЫТ" : "УБИТ"}
+            <div className={`transform -rotate-12 border font-black text-[9px] sm:text-[11px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest rounded-sm backdrop-blur-sm ${
+              isSecretService || character.unmaskedSpyIndex !== undefined
+                ? "border-amber-600 bg-amber-950/90 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.4)]"
+                : (character as any).isArrested
+                  ? "border-cyan-600 bg-cyan-950/90 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+                  : "border-red-600 bg-red-950/90 text-red-500 shadow-[0_0_15px_rgba(220,38,38,0.4)]"
+            }`}>
+              {isSecretService || character.unmaskedSpyIndex !== undefined
+                ? "РАСКРЫТ"
+                : (character as any).isArrested
+                  ? "АРЕСТОВАН"
+                  : "УБИТ"}
             </div>
           </div>
         )}
 
-        {isExonerated && !isDead && (
+        {/* Штамп АЛИБИ строго для невиновных оправданных жителей */}
+        {isExonerated && !isDead && !(character as any).isArrested && (
           <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
             <div className="transform rotate-6 border border-cyan-500 bg-cyan-950/90 text-cyan-400 font-black text-[8px] sm:text-[10px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.4)] rounded-sm backdrop-blur-sm">
               АЛИБИ
+            </div>
+          </div>
+        )}
+
+        {/* Штамп АРЕСТОВАН для живых задержанных преступников */}
+        {(character as any).isArrested && !isDead && (
+          <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
+            <div className="transform -rotate-12 border border-amber-600 bg-amber-950/90 text-amber-400 font-black text-[8px] sm:text-[10px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(245,158,11,0.4)] rounded-sm backdrop-blur-sm">
+              {isSecretService ? "РАСКРЫТ" : "АРЕСТОВАН"}
             </div>
           </div>
         )}

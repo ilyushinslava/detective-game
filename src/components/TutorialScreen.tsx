@@ -154,12 +154,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       }
     }
 
-    if (currentModule === "SECRET_SERVICE" && interrogatedTargetId && scanResult === "NEAR") {
+    if (currentModule === "SECRET_SERVICE" && interrogatedTargetId) {
       const neighborIds = getAdjacentCharacters(board, interrogatedTargetId).map((c) => c.id);
       return {
         radarTargetId: interrogatedTargetId,
         radarCellIds: [interrogatedTargetId, ...neighborIds],
-        radarColorClass: "border-cyan-400 ring-2 ring-cyan-500/80",
+        radarColorClass: scanResult === "NEAR" ? "border-red-400 ring-2 ring-red-500/80" : "border-cyan-400 ring-2 ring-cyan-500/80",
       };
     }
 
@@ -402,6 +402,26 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     }
   };
 
+  const getHudStatus = () => {
+    if (currentModule === "SECRET_SERVICE") {
+      if (scanResult === "NEAR") return <span className="text-red-400 font-bold animate-pulse">Допрос: ВРАГ РЯДОМ (ДА)</span>;
+      if (scanResult === "FAR") return <span className="text-cyan-400 font-bold">Допрос: ВНЕ ЗОНЫ (НЕТ) — шпиона рядом нет. Опросите другого свидетеля</span>;
+      return <span className="text-zinc-300 font-bold">Оперативные показания: выберите соседа для опроса</span>;
+    }
+    if (currentModule === "SKHVATKA") {
+      if (lesson === 2 && step >= 3) return <span className="text-cyan-400 font-bold">Опрос свидетелей: ИНСПЕКТОР ВНЕ ЗОНЫ</span>;
+      if (lesson === 3) return <span className="text-amber-400 font-bold">Радар свидетеля: СЕКТОР 3×3 (сужение круга поиска)</span>;
+    }
+    if (currentModule === "MANIAC") {
+      return <span className="text-red-400 font-bold">Текущая цель заказа: {targetVictimName} (клетка [1,2])</span>;
+    }
+    if (currentModule === "THIEF") {
+      if (step === 4) return <span className="text-emerald-400 font-bold">Маскировка успешна: принято новое прикрытие</span>;
+      return <span className="text-amber-400 font-bold">Операция Вора: Похищение сокровищ без ликвидаций</span>;
+    }
+    return <span className="text-zinc-500 font-bold">Ожидание...</span>;
+  };
+
   // --- ЭКРАН 1: КАТАЛОГ ДЕЛ (СТАРТОВОЕ МЕНЮ ОБУЧЕНИЯ) ---
   if (currentModule === "MENU") {
     return (
@@ -586,7 +606,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "SKHVATKA" && lesson === 3 && step === 1 && (
                 <motion.div key="l3s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-base font-black text-white uppercase tracking-wider mb-1">Урок 3: Задержание</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Инспектор (ВЫ) в [2,2]. Свидетель в [1,2]. <b className="text-cyan-400">ВЫБЕРИТЕ любого соседа без алиби в зоне радара.</b></p>
+                  <p className="text-xs text-zinc-400 font-mono">Инспектор (ВЫ) в [2,2]. Свидетель сузил круг радаром 3×3. Выберите любого соседа Инспектора без алиби в зоне радара ([1,1], [1,3] или [2,3]).</p>
                 </motion.div>
               )}
               {currentModule === "SKHVATKA" && lesson === 3 && step === 2 && (
@@ -672,7 +692,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "THIEF" && step === 4 && (
                 <motion.div key="thief4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-base font-black text-emerald-400 uppercase tracking-wider mb-1">Лицо изменено!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Вор принял новое прикрытие (Марк Вайс). Метка «ВЫ» переместилась на новую клетку.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Вор принял новое прикрытие ({newDisguiseChar?.name ?? "Марк Вайс"}). Метка «ВЫ» переместилась на новую клетку.</p>
                 </motion.div>
               )}
 
@@ -713,6 +733,13 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               )}
             </AnimatePresence>
           </div>
+
+          {/* Оперативная HUD-плашка */}
+          {currentModule !== "MENU" && (
+            <div className="h-8 md:h-10 w-full shrink-0 flex items-center justify-center bg-zinc-950/80 border-y border-white/5 shadow-sm px-4 z-20 text-[10px] md:text-xs">
+              {getHudStatus()}
+            </div>
+          )}
 
           {/* Игровое поле */}
           <div className={`flex-1 min-h-0 w-full flex items-center justify-center ${
@@ -886,7 +913,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               )}
 
               {/* СЕКРЕТНАЯ СЛУЖБА КНОПКИ */}
-              {currentModule === "SECRET_SERVICE" && step === 2 && scanResult !== "FAR" && (
+              {currentModule === "SECRET_SERVICE" && step === 2 && Boolean(selectedId) && (
                 <motion.button
                   key="interrogate-ss"
                   initial={{ scale: 0.9 }} animate={{ scale: 1 }}

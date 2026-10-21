@@ -8,6 +8,9 @@ type SoundType =
   | 'radar'
   | 'arrest'
   | 'error'
+  | 'deny'
+  | 'click'
+  | 'tapMenu'
   | 'impact'
   | 'gameStart'
   | 'win'
@@ -32,6 +35,9 @@ const SOUND_LIBRARY: Record<SoundType, string[]> = {
   lose: [getPath('lose.mp3')],
   patrol: [getPath('patrol-siren.mp3')],
   steal: [getPath('coin-steal.mp3'), getPath('coin-steal2.mp3')],
+  deny: [getPath('deny.mp3')],
+  click: [getPath('click.mp3')],
+  tapMenu: [getPath('tapInMenu.mp3')],
 };
 
 class SoundController {
@@ -157,7 +163,7 @@ class SoundController {
   public play(type: SoundType, volume = 0.75): void {
     if (!this.isSfxEnabled) return;
 
-    const throttledTypes = ['kill', 'arrest', 'error', 'steal'];
+    const throttledTypes = ['kill', 'arrest', 'error', 'deny', 'steal'];
     if (throttledTypes.includes(type)) {
       const now = Date.now();
       const last = this.lastPlayTime.get(type) || 0;

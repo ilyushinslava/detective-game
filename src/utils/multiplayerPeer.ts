@@ -496,7 +496,45 @@ class MultiplayerService {
     }
     if (!this.roomCode) return;
     this.processedActionIds.clear();
-    set(ref(db, `rooms/${this.roomCode}/gameState`), JSON.stringify(state)).catch(() => {});
+
+    const maskStateForOpponent = (rawState: any) => {
+      if (!rawState) return rawState;
+      const masked = JSON.parse(JSON.stringify(rawState));
+      const hostRole = rawState.playerRole;
+
+      if (rawState.mode === "SECRET_SERVICE") {
+        const localSpyIndex = hostRole === "KILLER" ? 0 : 1;
+        if (masked.spies && masked.spies[localSpyIndex]) {
+          masked.spies[localSpyIndex] = {
+            ...masked.spies[localSpyIndex],
+            secretId: null,
+          };
+        }
+      } else {
+        // Хост всегда маскирует свои секреты
+        if (hostRole === "KILLER") {
+          masked.killerSecretId = null;
+          masked.killerHand = [];
+        } else if (hostRole === "DETECTIVE") {
+          masked.detectiveSecretId = null;
+          masked.detectiveHand = [];
+        }
+
+        // В Схватке до выбора Инспектора не светим дефолтный detectiveSecretId и варианты выбора
+        if (rawState.mode === "SKHVATKA") {
+          if (rawState.killCount === 0 || (rawState.inspectorChoices && rawState.inspectorChoices.length > 0)) {
+            masked.detectiveSecretId = null;
+            masked.detectiveHand = [];
+            masked.inspectorChoices = [];
+          }
+        }
+      }
+      return masked;
+    };
+
+    const sanitizedRemoteState = maskStateForOpponent(state);
+
+    set(ref(db, `rooms/${this.roomCode}/gameState`), JSON.stringify(sanitizedRemoteState)).catch(() => {});
     update(ref(db, `rooms/${this.roomCode}`), {
       hostReady: false,
       guestReady: false,
@@ -507,7 +545,7 @@ class MultiplayerService {
     const actionId = `${this.myClientId}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const action: GameAction = {
       type: "MATCH_STARTED",
-      payload: { state },
+      payload: { state: sanitizedRemoteState },
       senderId: "remote",
       timestamp: Date.now(),
       actionId,

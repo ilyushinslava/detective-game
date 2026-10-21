@@ -1,4 +1,4 @@
-﻿// src/components/GameBoard.tsx
+// src/components/GameBoard.tsx
 import { motion } from "framer-motion";
 import type { Character, LastShift, GameModeType } from "../types/game";
 import { CharacterCard } from "./CharacterCard";
@@ -56,7 +56,7 @@ export const GameBoard = ({
   const rowsArray = Array.from({ length: numRows }, (_, i) => i);
 
   return (
-    <div className="relative w-full aspect-square max-w-[min(100%,calc(100dvh-280px))] max-h-[calc(100dvh-280px)] md:max-w-[min(92vw,76vh)] md:max-h-[min(92vw,76vh)] landscape:max-w-[min(82vh,850px)] landscape:max-h-[min(82vh,850px)] flex flex-col items-center justify-center p-0.5 sm:p-1.5 select-none mx-auto shrink-0 overflow-x-hidden">
+    <div className="relative w-full aspect-square max-w-[min(100%,calc(100dvh-270px))] max-h-[calc(100dvh-270px)] md:max-w-[min(90vw,calc(100dvh-430px))] md:max-h-[calc(100dvh-430px)] landscape:max-w-[min(82vh,calc(100dvh-200px))] landscape:max-h-[min(82vh,calc(100dvh-200px))] flex flex-col items-center justify-center p-0.5 sm:p-1 select-none mx-auto shrink-0 overflow-x-hidden">
       <style>{`
         @keyframes radarMarch {
           from { stroke-dashoffset: 0; }
@@ -69,7 +69,7 @@ export const GameBoard = ({
       `}</style>
       {!isLineUp && (
         <div className="w-full flex items-center gap-0.5 sm:gap-1 mb-0.5 shrink-0">
-          <div className="w-3.5 sm:w-6 md:w-8 shrink-0" />
+          <div className="w-3.5 sm:w-5 md:w-7 shrink-0" />
           <div
             className="grid gap-0.5 sm:gap-1 flex-1"
             style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
@@ -89,7 +89,7 @@ export const GameBoard = ({
                   key={`col-up-${colIdx}`}
                   disabled={isBlocked || isOpposite}
                   onClick={(e) => { e.currentTarget.blur(); onShift("COL", colIdx, "BACKWARD"); }}
-                  className={`w-full h-3.5 sm:h-6 md:h-8 shrink-0 rounded text-[8px] sm:text-xs md:text-sm font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
+                  className={`w-full h-3.5 sm:h-5 md:h-7 shrink-0 rounded text-[8px] sm:text-xs md:text-sm font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
                     isOpposite
                       ? "invisible pointer-events-none"
                       : isBlocked
@@ -105,16 +105,15 @@ export const GameBoard = ({
               );
             })}
           </div>
-          <div className="w-4 sm:w-7 md:w-9 shrink-0" />
+          <div className="w-4 sm:w-6 md:w-8 shrink-0" />
         </div>
       )}
 
       {/* ЦЕНТРАЛЬНАЯ ЧАСТЬ: Левые кнопки + Единый Grid Доски + Правые кнопки */}
       <div className="w-full flex items-stretch gap-0.5 sm:gap-1">
-        {/* ЛЕВЫЕ КНОПКИ (Сдвиг рядов влево) */}
         {!isLineUp && (
           <div
-            className="w-3.5 sm:w-6 md:w-8 shrink-0 grid gap-0.5 sm:gap-1"
+            className="w-3.5 sm:w-5 md:w-7 shrink-0 grid gap-0.5 sm:gap-1"
             style={{ gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))` }}
           >
             {rowsArray.map((rIdx) => {
@@ -165,10 +164,6 @@ export const GameBoard = ({
             const isRadarCell = radarCellIds.includes(character.id);
             const isRadarTarget = character.id === radarTargetId;
 
-            const hasRedZone = (showKillerHints && killerAdjacentIds.includes(character.id)) || (isRadarCell && Boolean(radarColorClass?.includes("red")));
-            const hasBlueZone = (showDetectiveHints && detectiveAdjacentIds.includes(character.id)) || (isRadarCell && !radarColorClass?.includes("red"));
-            const isOverlapZone = Boolean(hasRedZone && hasBlueZone);
-
             let neighborColor = null;
             if (showKillerHints && killerAdjacentIds.includes(character.id)) {
               neighborColor =
@@ -187,7 +182,6 @@ export const GameBoard = ({
                 transition={{ type: "spring", stiffness: 300, damping: 28 }}
                 className="w-full h-full relative"
               >
-                {/* СЛОЙ 1: Карточка персонажа с подсветкой тайной роли */}
                 <CharacterCard
                   mode={mode}
                   character={character}
@@ -201,14 +195,12 @@ export const GameBoard = ({
                   radarRingColor={null}
                   isError={character.id === errorCardId}
                   isMyCharacter={character.id === myCharacterId}
-                  isOverlapZone={isOverlapZone}
+                  isOverlapZone={false}
                   onClick={() => onSelectCharacter(character.id)}
                 />
 
-                {/* СЛОЙ 2 (Радар): Тактический SVG-контур сканера и Color Blending */}
                 {(isRadarCell || isRadarTarget) && (
                   <div className="absolute inset-0 rounded-2xl pointer-events-none z-20 overflow-visible">
-                    {/* Мягкая подсветка зоны сканера с режимом наложения screen */}
                     <div
                       className={`absolute inset-0 rounded-2xl mix-blend-screen transition-opacity duration-300 ${
                         isRadarTarget
@@ -217,7 +209,6 @@ export const GameBoard = ({
                       }`}
                     />
 
-                    {/* Бегущий векторный контур с идеальным скруглением углов */}
                     <svg className="absolute inset-0 w-full h-full overflow-visible">
                       <rect
                         x="1"
@@ -236,7 +227,6 @@ export const GameBoard = ({
                       />
                     </svg>
 
-                    {/* Пульсирующий маяк эпицентра радара */}
                     {isRadarTarget && (
                       <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-zinc-950/90 border border-cyan-400 flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.9)] z-30">
                         <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
@@ -244,17 +234,14 @@ export const GameBoard = ({
                     )}
                   </div>
                 )}
-
-                {/* СЛОЙ 3 (Фокус выбора): Оставлен чистый белый фокус CharacterCard */}
               </motion.div>
             );
           })}
         </div>
 
-        {/* ПРАВЫЕ КНОПКИ (Сдвиг рядов вправо) */}
         {!isLineUp && (
           <div
-            className="w-3.5 sm:w-6 md:w-8 shrink-0 grid gap-0.5 sm:gap-1"
+            className="w-3.5 sm:w-5 md:w-7 shrink-0 grid gap-0.5 sm:gap-1"
             style={{ gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))` }}
           >
             {rowsArray.map((rIdx) => {
@@ -293,46 +280,46 @@ export const GameBoard = ({
         )}
       </div>
 
-      {/* НИЖНИЕ КНОПКИ (Сдвиг колонок вниз) */}
       {!isLineUp && (
-      <div className="w-full flex items-center gap-0.5 sm:gap-1 mt-0.5 shrink-0">
-        <div className="w-3.5 sm:w-6 md:w-8 shrink-0" />
-        <div
-          className="grid gap-0.5 sm:gap-1 flex-1"
-          style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
-        >
-          {colsArray.map((colIdx) => {
-            const isBlocked =
-              blockedShift?.type === "COL" && blockedShift.index === colIdx;
-            const isOpposite = isOppositeShift(
-              lastShift,
-              "COL",
-              colIdx,
-              "FORWARD",
-            );
+        <div className="w-full flex items-center gap-0.5 sm:gap-1 mt-0.5 shrink-0">
+          <div className="w-3.5 sm:w-5 md:w-7 shrink-0" />
+          <div
+            className="grid gap-0.5 sm:gap-1 flex-1"
+            style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
+          >
+            {colsArray.map((colIdx) => {
+              const isBlocked =
+                blockedShift?.type === "COL" && blockedShift.index === colIdx;
+              const isOpposite = isOppositeShift(
+                lastShift,
+                "COL",
+                colIdx,
+                "FORWARD",
+              );
 
-            return (
-              <button
-                key={`col-down-${colIdx}`}
-                disabled={isBlocked || isOpposite}
-                onClick={(e) => { e.currentTarget.blur(); onShift("COL", colIdx, "FORWARD"); }}
-                className={`w-full h-3.5 sm:h-6 md:h-8 shrink-0 rounded text-[8px] sm:text-xs md:text-sm font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${ isOpposite
-                    ? "invisible pointer-events-none"
-                    : isBlocked
-                      ? "bg-zinc-900/80 text-red-500 border-red-900/50 cursor-not-allowed"
-                      : "bg-zinc-950/80 border-white/10 hover:border-white/20 focus:outline-none focus:bg-transparent active:bg-white/20 text-zinc-400 cursor-pointer shadow-inner touch-manipulation select-none"
-                }`}
-                title={
-                  isBlocked ? "Патруль полиции блокирует сдвиг" : "Сдвиг вниз"
-                }
-              >
-                {isBlocked ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> : "↓"}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={`col-down-${colIdx}`}
+                  disabled={isBlocked || isOpposite}
+                  onClick={(e) => { e.currentTarget.blur(); onShift("COL", colIdx, "FORWARD"); }}
+                  className={`w-full h-3.5 sm:h-5 md:h-7 shrink-0 rounded text-[8px] sm:text-xs md:text-sm font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
+                    isOpposite
+                      ? "invisible pointer-events-none"
+                      : isBlocked
+                        ? "bg-zinc-900/80 text-red-500 border-red-900/50 cursor-not-allowed"
+                        : "bg-zinc-950/80 border-white/10 hover:border-white/20 focus:outline-none focus:bg-transparent active:bg-white/20 text-zinc-400 cursor-pointer shadow-inner touch-manipulation select-none"
+                  }`}
+                  title={
+                    isBlocked ? "Патруль полиции блокирует сдвиг" : "Сдвиг вниз"
+                  }
+                >
+                  {isBlocked ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> : "↓"}
+                </button>
+              );
+            })}
+          </div>
+          <div className="w-4 sm:w-6 md:w-8 shrink-0" />
         </div>
-        <div className="w-4 sm:w-7 md:w-9 shrink-0" />
-      </div>
       )}
     </div>
   );

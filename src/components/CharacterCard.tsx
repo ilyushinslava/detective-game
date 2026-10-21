@@ -1,8 +1,7 @@
-﻿import { memo, useState } from "react";
+import { memo, useState } from "react";
 import { motion } from "framer-motion";
-import { type Character, type GameModeType, SPY_COLORS } from "../types/game";
+import { type Character, type GameModeType } from "../types/game";
 
-// Автоматическая карта всех доступных изображений в папке
 const characterImages = import.meta.glob<{ default: string }>(
   "../assets/characters/*.webp",
   { eager: true }
@@ -26,11 +25,10 @@ export interface CharacterCardProps {
 const renderSilhouette = (id: string) => {
   const num = parseInt(id.replace("c", ""), 10) || 0;
   const variant = num % 8;
-
   const svgClass = "w-full h-full opacity-25 text-zinc-400 fill-current pointer-events-none";
 
   switch (variant) {
-    case 0: // Детектив в федоре
+    case 0:
       return (
         <svg viewBox="0 0 120 120" className={svgClass}>
           <path d="M35 45 C40 20, 80 20, 85 45 Z" />
@@ -39,7 +37,7 @@ const renderSilhouette = (id: string) => {
           <path d="M25 110 L40 75 L50 90 L60 80 L70 90 L80 75 L95 110 Z" />
         </svg>
       );
-    case 1: // Роковая женщина
+    case 1:
       return (
         <svg viewBox="0 0 120 120" className={svgClass}>
           <path d="M30 30 C10 50, 20 90, 35 100 C35 70, 25 50, 45 35 C65 20, 90 30, 95 60 C100 90, 85 100, 85 100 C105 80, 105 40, 80 25 C55 10, 35 15, 30 30 Z" />
@@ -48,7 +46,7 @@ const renderSilhouette = (id: string) => {
           <path d="M35 110 C45 95, 75 95, 85 110 Z" />
         </svg>
       );
-    case 2: // Гангстер с сигарой
+    case 2:
       return (
         <svg viewBox="0 0 120 120" className={svgClass}>
           <path d="M30 40 C40 15, 75 20, 85 45 Z" />
@@ -59,7 +57,7 @@ const renderSilhouette = (id: string) => {
           <path d="M20 110 L45 85 L60 100 L75 85 L100 110 Z" />
         </svg>
       );
-    case 3: // Профессор в очках
+    case 3:
       return (
         <svg viewBox="0 0 120 120" className={svgClass}>
           <path d="M35 45 C35 15, 85 15, 85 45 C85 75, 75 90, 60 90 C45 90, 35 75, 35 45 Z" opacity="0.4" />
@@ -70,7 +68,7 @@ const renderSilhouette = (id: string) => {
           <path d="M55 105 L65 105 L60 120 Z" opacity="0.7" />
         </svg>
       );
-    case 4: // Офицер полиции
+    case 4:
       return (
         <svg viewBox="0 0 120 120" className={svgClass}>
           <path d="M25 35 C40 10, 80 10, 95 35 L85 45 L35 45 Z" />
@@ -80,7 +78,7 @@ const renderSilhouette = (id: string) => {
           <path d="M20 110 L40 85 L80 85 L100 110 Z" />
         </svg>
       );
-    case 5: // Информатор в кепке
+    case 5:
       return (
         <svg viewBox="0 0 120 120" className={svgClass}>
           <path d="M25 40 C40 25, 80 25, 95 45 C70 40, 40 45, 20 50 Z" />
@@ -89,7 +87,7 @@ const renderSilhouette = (id: string) => {
           <path d="M30 110 L40 75 L50 95 L60 85 L70 95 L80 75 L90 110 Z" opacity="0.8" />
         </svg>
       );
-    case 6: // Влиятельная дама
+    case 6:
       return (
         <svg viewBox="0 0 120 120" className={svgClass}>
           <path d="M5 45 C40 15, 80 15, 115 45 C80 35, 40 35, 5 45 Z" />
@@ -102,7 +100,7 @@ const renderSilhouette = (id: string) => {
           <path d="M30 110 C45 95, 75 95, 90 110 Z" />
         </svg>
       );
-    case 7: // Громила
+    case 7:
     default:
       return (
         <svg viewBox="0 0 120 120" className={svgClass}>
@@ -127,7 +125,6 @@ export const CharacterCard = memo(
     onClick,
     isRadarCenter,
     isError = false,
-    isOverlapZone = false,
     isMyCharacter = false,
   }: CharacterCardProps) => {
     const [imgError, setImgError] = useState(false);
@@ -165,14 +162,14 @@ export const CharacterCard = memo(
         } ${(() => {
           const hasRadar = Boolean(isRadarCenter || radarRingColor);
           const hasNeighbor = Boolean(neighborHighlightColor);
-          
+
           if (isSelected) {
             return `ring-2 ring-white border-white shadow-[0_0_18px_rgba(255,255,255,0.9)] scale-95 z-30 ${
               hasRadar ? "border-dashed" : ""
             }`;
           }
           if (hasRadar && hasNeighbor) {
-            return "border-2 border-dashed border-cyan-400 ring-2 ring-purple-500/80 shadow-[0_0_15px_rgba(168,85,247,0.5)] z-25";
+            return `${neighborHighlightColor} border-dashed z-25`;
           }
           if (hasRadar) {
             return `border-2 border-dashed ${radarRingColor || "border-cyan-400 ring-2 ring-cyan-500/60 shadow-[0_0_12px_rgba(6,182,212,0.5)]"} z-20 animate-pulse`;
@@ -183,10 +180,8 @@ export const CharacterCard = memo(
           return "";
         })()}`}
       >
-        {/* Фоновый силуэт / Портрет */}
         {!character.isVault && !isDead && (() => {
           const imageAsset = characterImages[`../assets/characters/${character.id}.webp`]?.default;
-
           return (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
               {imageAsset && !imgError ? (
@@ -206,7 +201,6 @@ export const CharacterCard = memo(
           );
         })()}
 
-        {/* Номер дела и иконки */}
         <div className="flex items-center justify-between gap-0.5 z-10 w-full leading-none px-1 pt-1">
           <div className="flex items-center gap-1">
             <span
@@ -261,12 +255,11 @@ export const CharacterCard = memo(
           </div>
         </div>
 
-        {/* Диагональные штампы */}
         {isDead && (
           <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
             <div className={`transform -rotate-12 border font-black text-[9px] sm:text-[11px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest rounded-sm backdrop-blur-sm ${
               isSecretService || character.unmaskedSpyIndex !== undefined
-                ? "border-amber-600 bg-amber-950/90 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.4)]"
+                ? "border-red-600 bg-red-950/90 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
                 : (character as any).isArrested
                   ? "border-cyan-600 bg-cyan-950/90 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
                   : "border-red-600 bg-red-950/90 text-red-500 shadow-[0_0_15px_rgba(220,38,38,0.4)]"
@@ -280,7 +273,6 @@ export const CharacterCard = memo(
           </div>
         )}
 
-        {/* Штамп АЛИБИ строго для невиновных оправданных жителей */}
         {isExonerated && !isDead && !(character as any).isArrested && (
           <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
             <div className="transform rotate-6 border border-cyan-500 bg-cyan-950/90 text-cyan-400 font-black text-[8px] sm:text-[10px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.4)] rounded-sm backdrop-blur-sm">
@@ -289,22 +281,20 @@ export const CharacterCard = memo(
           </div>
         )}
 
-        {/* Штамп АРЕСТОВАН для живых задержанных преступников */}
         {(character as any).isArrested && !isDead && (
           <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
-            <div className="transform -rotate-12 border border-amber-600 bg-amber-950/90 text-amber-400 font-black text-[8px] sm:text-[10px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(245,158,11,0.4)] rounded-sm backdrop-blur-sm">
-              {isSecretService ? "РАСКРЫТ" : "АРЕСТОВАН"}
+            <div className="transform -rotate-12 border border-cyan-600 bg-cyan-950/90 text-cyan-400 font-black text-[8px] sm:text-[10px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.4)] rounded-sm backdrop-blur-sm">
+              АРЕСТОВАН
             </div>
           </div>
         )}
 
-        {/* Имя (компактный бейдж внизу, полный текст целыми словами) */}
         <div className="absolute bottom-0.5 inset-x-0.5 z-10 flex items-end justify-center pointer-events-none">
           <span
             className={`block w-full text-[7.5px] sm:text-[8.5px] md:text-[11px] font-bold text-zinc-200 leading-[1.05] md:leading-tight tracking-tight uppercase text-center px-1 py-0.5 rounded-sm bg-black/75 backdrop-blur-[2px] break-normal whitespace-pre-line hyphens-none ${
               isDead
                 ? isSecretService
-                  ? `${character.unmaskedSpyIndex === 0 ? "text-red-400" : character.unmaskedSpyIndex === 1 ? "text-cyan-400" : "text-zinc-400"} line-through`
+                  ? "text-red-400 line-through"
                   : "text-zinc-400 line-through"
                 : isTargetVictim
                   ? "text-red-300"

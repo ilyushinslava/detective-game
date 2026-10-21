@@ -16,7 +16,7 @@ describe("Звуковая система и тактильный отклик (
     it("Воспроизводит все 11 ключевых звуковых типов без ошибок", () => {
       const soundTypes = [
         "splash", "slide", "kill", "disguise", "radar",
-        "arrest", "error", "impact", "gameStart", "win", "lose"
+        "arrest", "error", "deny", "click", "tapMenu", "impact", "gameStart", "win", "lose"
       ] as const;
 
       soundTypes.forEach((type) => {

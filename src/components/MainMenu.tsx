@@ -311,7 +311,7 @@ export const MainMenu = ({
         <img 
           src="./bg-main.png" 
           alt="Реквием: последний выстрел" 
-          className="w-full h-full object-cover object-[70%_top] opacity-95"
+          className="w-full h-full object-cover object-[70%_top] lg:object-[center_30%] opacity-95"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             if (!target.src.endsWith("/bg-main.png")) target.src = "/bg-main.png";
@@ -321,7 +321,7 @@ export const MainMenu = ({
         <div className="absolute inset-0 bg-gradient-to-r from-[#080a0f]/95 via-[#080a0f]/40 to-transparent w-[60%]" />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col justify-between pt-[max(0.5rem,env(safe-area-inset-top))] pb-3 px-5">
+      <div className="relative z-10 flex-1 flex flex-col justify-between pt-[max(0.5rem,env(safe-area-inset-top))] pb-3 px-5 lg:px-8 max-w-6xl w-full mx-auto">
 
         <div>
           {/* Header Overlay */}
@@ -340,7 +340,7 @@ export const MainMenu = ({
             </div>
 
             <div
-              onClick={onOpenDevPanel}
+              onClick={() => { if (import.meta.env.DEV && onOpenDevPanel) onOpenDevPanel(); }}
               className="rounded-full bg-black/75 border border-white/10 hover:border-amber-500/50 hover:bg-amber-950/20 px-3.5 py-1.5 flex items-center gap-1.5 shadow-lg cursor-pointer transition active:scale-95"
               title="Открыть Dev-панель"
             >
@@ -364,7 +364,7 @@ export const MainMenu = ({
         </div>
 
         {/* Main Actions */}
-        <div className="w-full max-w-lg md:max-w-xl mx-auto flex flex-col gap-2.5 md:gap-3.5 shrink-0">
+        <div className="w-full max-w-lg md:max-w-xl lg:max-w-none flex flex-col lg:grid lg:grid-cols-2 lg:gap-4 shrink-0">
           {hasActiveGame && (
             <button
               onClick={onResumeGame}
@@ -624,7 +624,10 @@ export const MainMenu = ({
         {ROOM_FILTERS.map((filter) => (
           <button
             key={filter.id}
-            onClick={() => setRoomFilter(filter.id)}
+            onClick={() => {
+              soundManager.play('tapMenu');
+              setRoomFilter(filter.id);
+            }}
             className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest whitespace-nowrap border transition-all cursor-pointer ${
               roomFilter === filter.id 
                 ? "bg-zinc-200 text-zinc-950 border-zinc-200 shadow-[0_0_12px_rgba(255,255,255,0.25)] font-black" 
@@ -696,7 +699,7 @@ export const MainMenu = ({
       </div>
 
       {/* Нижняя консоль ввода шифра и создания */}
-      <div className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 p-4 flex flex-col gap-2.5 z-20">
+      <div className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 p-4 flex flex-col items-center gap-2.5 z-20"><div className="w-full max-w-xl flex flex-col gap-2.5">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <input
@@ -722,6 +725,7 @@ export const MainMenu = ({
         >
           + Создать партию
         </button>
+        </div>
       </div>
     </div>
   );
@@ -732,7 +736,7 @@ export const MainMenu = ({
       <div className="flex items-center px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-4 shrink-0 border-b border-white/10 bg-[#080a0f]">
         <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase">Досье Агента</h2>
       </div>
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-7 custom-scrollbar pb-[max(6rem,env(safe-area-inset-bottom))]">
+      <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar pb-[max(6rem,env(safe-area-inset-bottom))]"><div className="w-full max-w-xl mx-auto space-y-6">
         
         <div className="flex flex-col items-center text-center">
           <div className="relative mb-3">
@@ -816,6 +820,7 @@ export const MainMenu = ({
           )}
         </div>
       </div>
+      </div>
     </div>
   );
 
@@ -898,21 +903,21 @@ export const MainMenu = ({
         {screen !== 'MODE_DETAIL' && (
           <nav className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] md:py-3 px-6 flex justify-around items-center z-40">
           <button 
-            onClick={() => { setScreen('HOME'); onTabChange('LOBBY'); }} 
+            onClick={() => { soundManager.play('tapMenu'); setScreen('HOME'); onTabChange('LOBBY'); }} 
             className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'HOME' || screen === 'MODES' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             <Icons.Home />
             <span className="text-[8px] md:text-[10px] font-black tracking-widest uppercase">{t.nav.hq}</span>
           </button>
           <button 
-            onClick={() => { setScreen('TABLES'); onTabChange('TABLES'); }} 
+            onClick={() => { soundManager.play('tapMenu'); setScreen('TABLES'); onTabChange('TABLES'); }} 
             className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'TABLES' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             <Icons.Cards />
             <span className="text-[8px] md:text-[10px] font-black tracking-widest uppercase">{t.nav.tables}</span>
           </button>
           <button 
-            onClick={() => { setScreen('PROFILE'); onTabChange('TOP'); }} 
+            onClick={() => { soundManager.play('tapMenu'); setScreen('PROFILE'); onTabChange('TOP'); }} 
             className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'PROFILE' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             <Icons.User />

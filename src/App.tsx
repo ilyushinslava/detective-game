@@ -85,7 +85,7 @@ export default function App() {
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
     useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Backquote") {
+      if (import.meta.env.DEV && (e.code === "Backquote" || e.key === "`")) {
         setIsDevPanelOpen((prev) => !prev);
       }
     };
@@ -115,7 +115,6 @@ export default function App() {
   const [isInspectorPassConfirmed, setIsInspectorPassConfirmed] = useState(false);
   const [rematchTimer, setRematchTimer] = useState(15);
   const [isOpponentConnected, setIsOpponentConnected] = useState(true);
-  const [activeAccordionIndex, setActiveAccordionIndex] = useState<number | null>(null);
   const [fullscreenImage, setFullscreenImage] = useState<{ url: string; name: string; id: string } | null>(null);
   
   // Состояния режима «Очная ставка»
@@ -338,7 +337,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
 
         if (action.type === "ACCUSE") {
           if (action.payload?.isMiss) {
-            if (!isStale) soundManager.play('error');
+            if (!isStale) soundManager.play('deny');
             setErrorCardId(action.payload.errorCardId || action.payload.targetId);
             setTimeout(() => setErrorCardId(null), 500);
             setToastMessage("Соперник ошибся: ложное обвинение!");
@@ -349,7 +348,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
 
         if (action.type === "CAPTURE_SPY") {
           if (action.payload?.isMiss) {
-            if (!isStale) soundManager.play('error');
+            if (!isStale) soundManager.play('deny');
             setErrorCardId(action.payload.errorCardId || action.payload.targetId);
             setTimeout(() => setErrorCardId(null), 500);
             setToastMessage("Соперник ошибся: шпион не обнаружен!");
@@ -594,6 +593,8 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
     const targetId = gameState.mode === "SECRET_SERVICE" 
       ? (spy2Id ?? gameState.detectiveSecretId) 
       : (spy1Id ?? gameState.detectiveSecretId);
+
+    if (!targetId) return [];
       
     const baseNeighbors = getAdjacentCharacters(gameState.board, targetId).map((c) => c.id);
     
@@ -884,7 +885,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
     const isMiss =
       selectedId !== gameState.killerSecretId && !targetChar.hasBomb;
     if (isMiss) {
-      soundManager.play('error');
+      soundManager.play('deny');
       triggerHaptic("error");
       setErrorCardId(selectedId);
       setTimeout(() => setErrorCardId(null), 500);
@@ -964,7 +965,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
     );
 
     if (isMiss) {
-      soundManager.play('error');
+      soundManager.play('deny');
       triggerHaptic("error");
       setErrorCardId(selectedId);
       setTimeout(() => setErrorCardId(null), 500);
@@ -1844,10 +1845,12 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
                 errorCardId={errorCardId}
                 myCharacterId={myCharacterId}
                 onShift={handleShift}
-                onSelectCharacter={(id) =>
-                  isHumanTurn &&
-                  setSelectedId((prev) => (prev === id ? null : id))
-                }
+                onSelectCharacter={(id) => {
+                  if (isHumanTurn) {
+                    soundManager.play('click');
+                    setSelectedId((prev) => (prev === id ? null : id));
+                  }
+                }}
               />
             </div>
           </main>
@@ -2582,7 +2585,8 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
             Пожалуйста, верните устройство в вертикальное положение для продолжения операции.
           </p>
         </div>
-              <DevPanel
+              {import.meta.env.DEV && (
+        <DevPanel
           isOpen={isDevPanelOpen}
           onClose={() => setIsDevPanelOpen(false)}
           onForceWin={(winner, forcedMode) => {
@@ -2667,6 +2671,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
             window.location.reload();
           }}
         />
+      )}
       </div>
     </div>
   );

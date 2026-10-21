@@ -446,7 +446,25 @@ export function killCharacter(state: GameState, targetId: string): GameState {
 
   let newVictimList = [...state.victimList];
   let newEvidenceDeck = [...state.evidenceDeck];
+  let newInspectorChoices = state.inspectorChoices ? [...state.inspectorChoices] : [];
   const newKillCount = state.killCount + 1;
+
+  if (newInspectorChoices.includes(targetId)) {
+    newInspectorChoices = newInspectorChoices.filter((id) => id !== targetId);
+    while (newInspectorChoices.length < 4 && newEvidenceDeck.length > 0) {
+      const drawnId = newEvidenceDeck.shift()!;
+      const drawnChar = newBoard.flat().find((c) => c.id === drawnId);
+      if (
+        drawnChar &&
+        drawnChar.isAlive &&
+        drawnId !== state.killerSecretId &&
+        !newInspectorChoices.includes(drawnId)
+      ) {
+        newInspectorChoices.push(drawnId);
+        break;
+      }
+    }
+  }
 
   if (state.mode === "MANIAC_VS_OPERATIVE" && targetId === newVictimList[0]) {
     newVictimList.shift();
@@ -530,6 +548,7 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     victimList: newVictimList,
     evidenceDeck: newEvidenceDeck,
     detectiveHand: newDetectiveHand,
+    inspectorChoices: newInspectorChoices,
     detectiveSecretId: newDetectiveSecretId,
     killCount: newKillCount,
     winner,
@@ -947,6 +966,7 @@ export function disguiseKiller(state: GameState): GameState {
     };
   }
 
+  nextDeck.push(drawnId);
   return {
     ...state,
     evidenceDeck: nextDeck,
@@ -1227,6 +1247,7 @@ export function escapeManiac(state: GameState): GameState {
       ],
     };
   } else {
+    nextDeck.push(drawnId);
     return {
       ...state,
       evidenceDeck: nextDeck,

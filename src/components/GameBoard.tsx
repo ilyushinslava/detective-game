@@ -57,6 +57,16 @@ export const GameBoard = ({
 
   return (
     <div className="relative w-full aspect-square max-w-[min(100%,calc(100dvh-280px))] max-h-[calc(100dvh-280px)] md:max-w-[min(92vw,76vh)] md:max-h-[min(92vw,76vh)] landscape:max-w-[min(82vh,850px)] landscape:max-h-[min(82vh,850px)] flex flex-col items-center justify-center p-0.5 sm:p-1.5 select-none mx-auto shrink-0 overflow-x-hidden">
+      <style>{`
+        @keyframes radarMarch {
+          from { stroke-dashoffset: 0; }
+          to { stroke-dashoffset: -20; }
+        }
+        .radar-marching-stroke {
+          stroke-dasharray: 6 4;
+          animation: radarMarch 1.4s linear infinite;
+        }
+      `}</style>
       {!isLineUp && (
         <div className="w-full flex items-center gap-0.5 sm:gap-1 mb-0.5 shrink-0">
           <div className="w-3.5 sm:w-6 md:w-8 shrink-0" />
@@ -168,9 +178,7 @@ export const GameBoard = ({
                 "border-cyan-500 ring-1 ring-cyan-500/80 shadow-[0_0_15px_rgba(6,182,212,0.4)]";
             }
 
-            const radarBorderColor = radarColorClass?.includes("red")
-              ? "border-red-400/90 text-red-400"
-              : "border-cyan-400/90 text-cyan-400";
+            const isRedRadar = Boolean(radarColorClass?.includes("red"));
 
             return (
               <motion.div
@@ -197,27 +205,47 @@ export const GameBoard = ({
                   onClick={() => onSelectCharacter(character.id)}
                 />
 
-                {/* СЛОЙ 2 (Радар): Декоративный оверлей с пунктирной рамкой (Color Blending) */}
+                {/* СЛОЙ 2 (Радар): Тактический SVG-контур сканера и Color Blending */}
                 {(isRadarCell || isRadarTarget) && (
-                  <div
-                    className={`absolute inset-0 rounded-2xl border-2 border-dashed ${radarBorderColor} pointer-events-none animate-pulse z-20 ${
-                      isRadarTarget
-                        ? "bg-cyan-500/10 shadow-[0_0_20px_rgba(6,182,212,0.35)]"
-                        : ""
-                    }`}
-                  >
+                  <div className="absolute inset-0 rounded-2xl pointer-events-none z-20 overflow-visible">
+                    {/* Мягкая подсветка зоны сканера с режимом наложения screen */}
+                    <div
+                      className={`absolute inset-0 rounded-2xl mix-blend-screen transition-opacity duration-300 ${
+                        isRadarTarget
+                          ? isRedRadar ? "bg-red-500/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.3)]" : "bg-cyan-500/20 shadow-[inset_0_0_15px_rgba(6,182,212,0.3)]"
+                          : isRedRadar ? "bg-red-500/10" : "bg-cyan-500/10"
+                      }`}
+                    />
+
+                    {/* Бегущий векторный контур с идеальным скруглением углов */}
+                    <svg className="absolute inset-0 w-full h-full overflow-visible">
+                      <rect
+                        x="1"
+                        y="1"
+                        width="calc(100% - 2px)"
+                        height="calc(100% - 2px)"
+                        rx="14"
+                        fill="none"
+                        stroke={isRedRadar ? "#f87171" : "#22d3ee"}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        className="radar-marching-stroke"
+                        style={{
+                          filter: `drop-shadow(0 0 4px ${isRedRadar ? "rgba(239,68,68,0.6)" : "rgba(6,182,212,0.6)"})`,
+                        }}
+                      />
+                    </svg>
+
+                    {/* Пульсирующий маяк эпицентра радара */}
                     {isRadarTarget && (
-                      <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-cyan-950/90 border border-cyan-400 flex items-center justify-center shadow-[0_0_8px_rgba(6,182,212,0.8)]">
+                      <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-zinc-950/90 border border-cyan-400 flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.9)] z-30">
                         <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* СЛОЙ 3 (Фокус выбора): Акцентный контур активной клетки */}
-                {isSelected && (
-                  <div className="absolute inset-0 rounded-2xl ring-2 ring-amber-400 ring-offset-1 ring-offset-zinc-950 pointer-events-none z-30 shadow-[0_0_15px_rgba(251,191,36,0.6)]" />
-                )}
+                {/* СЛОЙ 3 (Фокус выбора): Оставлен чистый белый фокус CharacterCard */}
               </motion.div>
             );
           })}

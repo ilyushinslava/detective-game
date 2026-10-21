@@ -39,6 +39,7 @@ class SoundController {
   private isAmbientEnabled: boolean = true;
   private ambientAudio: HTMLAudioElement | null = null;
   private currentAmbientVolume = 0.25;
+  private lastPlayTime: Map<string, number> = new Map();
   
   // Web Audio API
   private ctx: AudioContext | null = null;
@@ -96,9 +97,14 @@ class SoundController {
   private initAudioContext(): void {
     if (typeof window === 'undefined') return;
     try {
+      if (typeof navigator !== 'undefined' && 'audioSession' in navigator) {
+        try {
+          (navigator as any).audioSession.type = 'ambient';
+        } catch {}
+      }
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       if (AudioCtx && !this.ctx) {
-        this.ctx = new AudioCtx();
+        this.ctx = new AudioCtx({ latencyHint: 'interactive' });
       }
     } catch (e) {
       console.warn('[Audio] Web Audio API не поддерживается:', e);
@@ -150,6 +156,14 @@ class SoundController {
 
   public play(type: SoundType, volume = 0.75): void {
     if (!this.isSfxEnabled) return;
+
+    const throttledTypes = ['kill', 'arrest', 'error', 'steal'];
+    if (throttledTypes.includes(type)) {
+      const now = Date.now();
+      const last = this.lastPlayTime.get(type) || 0;
+      if (now - last < 250) return;
+      this.lastPlayTime.set(type, now);
+    }
 
     const variations = SOUND_LIBRARY[type];
     if (!variations || variations.length === 0) return;

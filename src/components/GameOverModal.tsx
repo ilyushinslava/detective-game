@@ -83,28 +83,32 @@ export const GameOverModal = ({
           <img
             src={img}
             alt={char?.name || roleName}
-            className="absolute inset-0 w-full h-full object-cover opacity-25 grayscale contrast-125 pointer-events-none"
+            className="absolute inset-0 w-full h-full object-cover opacity-65 grayscale contrast-125 pointer-events-none"
           />
         )}
-        <div className="relative z-10 flex flex-col h-full justify-between">
-          <div>
-            <span
-              className={`text-[10px] font-black uppercase tracking-widest block mb-1 ${
-                isRedTheme ? 'text-red-400' : 'text-cyan-400'
-              }`}
-            >
-              {roleName}
-            </span>
-            <span className="text-sm font-black text-zinc-100 uppercase tracking-wider block">
-              {char?.name ?? 'Неизвестно'}
-            </span>
-          </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent pointer-events-none" />
 
+        <div className="relative z-10 flex items-center justify-between">
+          <span
+            className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${
+              isRedTheme
+                ? 'bg-red-950/80 text-red-300 border-red-700/60'
+                : 'bg-cyan-950/80 text-cyan-300 border-cyan-700/60'
+            }`}
+          >
+            {roleName}
+          </span>
           {char?.id && (
-            <span className="text-[9px] font-mono text-zinc-500 uppercase mt-2">
+            <span className="text-[9px] font-mono text-zinc-400 uppercase">
               #{char.id.replace('c', '').padStart(2, '0')}
             </span>
           )}
+        </div>
+
+        <div className="relative z-10 pt-6">
+          <span className="text-sm font-black text-zinc-100 uppercase tracking-wider block drop-shadow-md">
+            {char?.name ?? 'Неизвестно'}
+          </span>
         </div>
       </div>
     );

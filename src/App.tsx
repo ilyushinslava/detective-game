@@ -1492,23 +1492,37 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
               <>
                 {/* Затемнение фона */}
                 <div 
-                  className={`absolute inset-0 bg-black/60 transition-opacity duration-500 ease-out pointer-events-auto ${isChoiceSheetMinimized ? "opacity-0 pointer-events-none" : "opacity-100"}`} 
+                  className={`absolute inset-0 bg-black/35 transition-opacity duration-500 ease-out pointer-events-auto ${isChoiceSheetMinimized ? "opacity-0 pointer-events-none" : "opacity-100"}`} 
                   onClick={() => setIsChoiceSheetMinimized(true)} 
                 />
                 
                 {/* Компактная плашка (свернутое состояние) */}
-                <div className={`absolute bottom-8 transition-all duration-500 ease-out transform pointer-events-auto ${isChoiceSheetMinimized ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none"}`}>
+                <div className={`absolute bottom-8 transition-all duration-500 ease-out transform pointer-events-auto flex items-center gap-2 ${isChoiceSheetMinimized ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none"}`}>
                   <button
                     onClick={() => setIsChoiceSheetMinimized(false)}
-                    className="h-12 px-6 bg-zinc-950 border border-cyan-500/30 rounded-full shadow-[0_0_30px_rgba(0,0,0,0.8)] flex items-center justify-center gap-2 text-cyan-400 font-black uppercase tracking-widest text-[10px] hover:bg-zinc-900 transition"
+                    className="h-12 px-5 bg-zinc-950/90 backdrop-blur-md border border-cyan-500/30 rounded-full shadow-[0_0_30px_rgba(0,0,0,0.8)] flex items-center justify-center gap-2 text-cyan-400 font-black uppercase tracking-widest text-[10px] hover:bg-zinc-900 transition"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                    <span>Вернуться к выбору личности</span>
+                    <span>Выбор личности</span>
                   </button>
+                  {selectedInspectorChoiceId && (
+                    <button
+                      onClick={() => {
+                        handleSelectInspectorRole(selectedInspectorChoiceId);
+                        setSelectedInspectorChoiceId(null);
+                        setIsChoiceSheetMinimized(false);
+                        setIsInspectorPassConfirmed(false);
+                      }}
+                      className="h-12 px-5 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 text-white font-black uppercase tracking-widest text-[10px] rounded-full shadow-[0_0_20px_rgba(6,182,212,0.45)] border-t border-white/25 flex items-center justify-center gap-1.5 transition active:scale-95"
+                    >
+                      <span>Подтвердить</span>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                  )}
                 </div>
 
                 {/* Развернутая панель */}
-                <div className={`relative w-full max-w-md bg-zinc-950/80 backdrop-blur-md border border-cyan-500/30 rounded-3xl p-5 sm:p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col text-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform pointer-events-auto ${isChoiceSheetMinimized ? "translate-y-[110%] opacity-0" : "translate-y-0 opacity-100"}`}>
+                <div className={`relative w-full max-w-md bg-zinc-950/60 backdrop-blur-md border border-cyan-500/30 rounded-3xl p-5 sm:p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col text-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform pointer-events-auto ${isChoiceSheetMinimized ? "translate-y-[110%] opacity-0" : "translate-y-0 opacity-100"}`}>
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">
                       Оперативное назначение
@@ -1571,7 +1585,7 @@ if ((action as any).type === "MATCH_STARTED" || (action as any).type === "RESTAR
           </div>
         )}
 
-        {!isLobbyOpen && (
+        {!isLobbyOpen && !isIntroPhase && (
         <>
           {/* 1. КОМПАКТНАЯ ШАПКА МАТЧА */}
         <header className="w-full px-4 sm:px-6 pb-2.5 bg-zinc-950 border-b border-zinc-800 shrink-0 relative flex items-center justify-between z-50 pt-[max(0.75rem,env(safe-area-inset-top))]">

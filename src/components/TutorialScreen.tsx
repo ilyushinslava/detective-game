@@ -7,6 +7,11 @@ import { soundManager } from "../utils/audio";
 import { triggerHaptic } from "../utils/haptics";
 import type { Character, LastShift } from "../types/game";
 
+const characterImages = import.meta.glob<{ default: string }>(
+  "../assets/characters/*.webp",
+  { eager: true }
+);
+
 interface TutorialScreenProps {
   onExit: () => void;
   onFinish: () => void;
@@ -64,23 +69,47 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   const [lastShift, setLastShift] = useState<LastShift | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [killedTargetId, setKilledTargetId] = useState<string | null>(null);
-  const [interrogatedTargetId, setInterrogatedTargetId] = useState<string | null>(null);
-  const [disguiseMaskName, setDisguiseMaskName] = useState<string | null>(null);
   const [isEnemyTurn, setIsEnemyTurn] = useState<boolean>(false);
 
-  // Центр и соседи для уроков
+  // Состояния для Вора
+  const [thiefSecretId, setThiefSecretId] = useState<string | null>(null);
+  const [isDisguiseModalOpen, setIsDisguiseModalOpen] = useState(false);
+  const [newDisguiseChar, setNewDisguiseChar] = useState<Character | null>(null);
+
+  // Состояния для Секретной службы
+  const [interrogatedTargetId, setInterrogatedTargetId] = useState<string | null>(null);
+  const [scanResult, setScanResult] = useState<"NEAR" | "FAR" | null>(null);
+
   const centerId = board[2]?.[2]?.id;
-  const adjacentIds = useMemo(
-    () => (centerId ? getAdjacentCharacters(board, centerId).map((c) => c.id) : []),
-    [board, centerId]
-  );
+  const spyEnemyId = board[1]?.[1]?.id; // София Романова
+
+  // Динамическая метка «ВЫ»
+  const currentMyCharacterId = useMemo(() => {
+    if (currentModule === "SKHVATKA") {
+      if (lesson === 4) return L4_PLAYER_ID;
+      return centerId;
+    }
+    if (currentModule === "THIEF") {
+      return thiefSecretId || centerId;
+    }
+    if (currentModule === "SECRET_SERVICE" || currentModule === "MANIAC") {
+      return centerId;
+    }
+    return null;
+  }, [currentModule, lesson, centerId, thiefSecretId]);
+
+  // 8 соседей активной роли
+  const adjacentIds = useMemo(() => {
+    const originId = currentMyCharacterId || centerId;
+    return originId ? getAdjacentCharacters(board, originId).map((c) => c.id) : [];
+  }, [board, currentMyCharacterId, centerId]);
 
   const playerAdjacentIds = useMemo(
     () => getAdjacentCharacters(board, L4_PLAYER_ID).map((c) => c.id),
     [board]
   );
 
-  // Идентификатор целевой жертвы Маньяка (Елена Соколова)
+  // Цель Маньяка (Елена Соколова)
   const targetVictimId = board[1]?.[2]?.id;
   const targetVictimChar = useMemo(
     () => board.flat().find((c) => c.id === targetVictimId),
@@ -88,18 +117,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   );
   const targetVictimName = targetVictimChar?.name ?? "Елена Соколова";
 
-  // Своя личность ("ВЫ")
-  const currentMyCharacterId = useMemo(() => {
-    if (currentModule === "SKHVATKA") {
-      if (lesson === 4) return L4_PLAYER_ID;
-      return centerId;
-    }
-    if (currentModule === "THIEF" || currentModule === "SECRET_SERVICE" || currentModule === "MANIAC") {
-      return centerId;
-    }
-    return null;
-  }, [currentModule, lesson, centerId]);
-
+  // Расчет зоны действия радара
   const { radarTargetId, radarCellIds, radarColorClass } = useMemo(() => {
     const tacticalRadarClass = "border-cyan-400 ring-2 ring-cyan-500/70";
 
@@ -113,12 +131,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
         };
       }
       if (lesson === 3 && (step === 1 || step === 2)) {
-        const exoneratedWitnessId = board[1]?.[2]?.id;
-        if (exoneratedWitnessId) {
-          const neighborIds = getAdjacentCharacters(board, exoneratedWitnessId).map((c) => c.id);
+        const witnessId = board[1]?.[2]?.id;
+        if (witnessId) {
+          const neighborIds = getAdjacentCharacters(board, witnessId).map((c) => c.id);
           return {
-            radarTargetId: exoneratedWitnessId,
-            radarCellIds: [exoneratedWitnessId, ...neighborIds],
+            radarTargetId: witnessId,
+            radarCellIds: [witnessId, ...neighborIds],
             radarColorClass: tacticalRadarClass,
           };
         }
@@ -136,7 +154,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       }
     }
 
-    if (currentModule === "SECRET_SERVICE" && step >= 3 && interrogatedTargetId) {
+    if (currentModule === "SECRET_SERVICE" && interrogatedTargetId && scanResult === "NEAR") {
       const neighborIds = getAdjacentCharacters(board, interrogatedTargetId).map((c) => c.id);
       return {
         radarTargetId: interrogatedTargetId,
@@ -150,7 +168,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       radarCellIds: [] as string[],
       radarColorClass: null,
     };
-  }, [currentModule, lesson, step, killedTargetId, interrogatedTargetId, board]);
+  }, [currentModule, lesson, step, killedTargetId, interrogatedTargetId, scanResult, board]);
 
   const startModule = (mod: TutorialModule) => {
     setCurrentModule(mod);
@@ -161,16 +179,23 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     setSelectedId(null);
     setKilledTargetId(null);
     setInterrogatedTargetId(null);
-    setDisguiseMaskName(null);
+    setScanResult(null);
+    setIsDisguiseModalOpen(false);
+    setNewDisguiseChar(null);
     setIsEnemyTurn(false);
+    if (mod === "THIEF") {
+      setThiefSecretId(getInitialBoard(mod, 1)[2][2].id);
+    } else {
+      setThiefSecretId(null);
+    }
   };
 
   const handleSelectCharacter = (id: string) => {
     if (currentModule === "SKHVATKA") {
-      if (lesson === 1 && step === 1 && adjacentIds.includes(id)) {
+      if (lesson === 1 && (step === 1 || step === 2)) {
         soundManager.play("radar");
         triggerHaptic("light");
-        setStep(2);
+        setSelectedId(id);
       } else if (lesson === 2 && step === 1 && adjacentIds.includes(id)) {
         soundManager.play("radar");
         triggerHaptic("light");
@@ -178,7 +203,9 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
         setStep(2);
       } else if (lesson === 3 && step === 1) {
         const char = board.flat().find((c) => c.id === id);
-        if (char && char.isAlive && !char.isExonerated && radarCellIds.includes(id)) {
+        const isNeighborOfInspector = adjacentIds.includes(id);
+        const isInRadarZone = radarCellIds.includes(id);
+        if (char && char.isAlive && !char.isExonerated && isInRadarZone && isNeighborOfInspector) {
           soundManager.play("radar");
           triggerHaptic("light");
           setSelectedId(id);
@@ -205,12 +232,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
         setStep(2);
       }
     } else if (currentModule === "SECRET_SERVICE") {
-      if (step === 1 && adjacentIds.includes(id)) {
+      if ((step === 1 || step === 2) && adjacentIds.includes(id)) {
         soundManager.play("radar");
         triggerHaptic("light");
         setSelectedId(id);
         setStep(2);
-      } else if (step === 3 && id === board[1]?.[1]?.id) {
+      } else if (step === 3 && id === spyEnemyId) {
         soundManager.play("radar");
         triggerHaptic("light");
         setSelectedId(id);
@@ -227,7 +254,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     if (
       currentModule === "SKHVATKA" &&
       lesson === 1 &&
-      step === 2 &&
+      (step === 1 || step === 2) &&
       type === "ROW" &&
       index === 2 &&
       direction === "BACKWARD"
@@ -298,7 +325,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     ) {
       const targetId = selectedId;
       const newBoard = board.map((row) =>
-        row.map((c) => (c.id === targetId ? { ...c, isAlive: false, isArrested: true } as any : c))
+        row.map((c) => (c.id === targetId ? ({ ...c, isAlive: false, isArrested: true } as any) : c))
       );
       setBoard(newBoard);
       soundManager.play("arrest");
@@ -326,9 +353,18 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     if (currentModule === "THIEF" && step === 3) {
       soundManager.play("disguise");
       triggerHaptic("medium");
-      setDisguiseMaskName("Марк Вайс");
-      setStep(4);
+      const targetMaskChar = board[1][1]; // Марк Вайс
+      setNewDisguiseChar(targetMaskChar);
+      setIsDisguiseModalOpen(true);
     }
+  };
+
+  const handleConfirmDisguise = () => {
+    if (newDisguiseChar) {
+      setThiefSecretId(newDisguiseChar.id);
+    }
+    setIsDisguiseModalOpen(false);
+    setStep(4);
   };
 
   const handleInterrogate = () => {
@@ -336,8 +372,19 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       soundManager.play("radar");
       triggerHaptic("light");
       setInterrogatedTargetId(selectedId);
-      setStep(3);
-      setSelectedId(null);
+
+      // Проверка соседства выбранного свидетеля со шпионом [1,1]
+      const spyNeighbors = getAdjacentCharacters(board, spyEnemyId!).map((c) => c.id);
+      const isNearSpy = spyNeighbors.includes(selectedId) || selectedId === spyEnemyId;
+
+      if (isNearSpy) {
+        setScanResult("NEAR");
+        setStep(3);
+        setSelectedId(null);
+      } else {
+        setScanResult("FAR");
+        setSelectedId(null);
+      }
     }
   };
 
@@ -392,7 +439,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                 Курс оперативника (Схватка)
               </h3>
               <p className="text-xs text-zinc-400 leading-relaxed">
-                Основы города: сетка 5х5, соседство 8 клеток, циклический сдвиг рядов, опрос свидетелей радаром и задержание.
+                Базовые механики: соседство, тактика сдвига рядов, опрос свидетелей по радару и задержание.
               </p>
             </div>
 
@@ -499,25 +546,19 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
         <div className="flex-1 w-full flex flex-col relative min-h-0">
           {/* Информационная зона подсказок */}
-          <div className="min-h-[110px] max-h-[135px] shrink-0 pt-2 pb-1 px-4 flex flex-col justify-center items-center text-center z-20">
+          <div className="min-h-[110px] max-h-[145px] shrink-0 pt-2 pb-1 px-4 flex flex-col justify-center items-center text-center z-20">
             <AnimatePresence mode="wait">
               {/* СХВАТКА: УРОК 1 */}
-              {currentModule === "SKHVATKA" && lesson === 1 && step === 1 && (
+              {currentModule === "SKHVATKA" && lesson === 1 && (step === 1 || step === 2) && (
                 <motion.div key="l1s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <h3 className="text-base font-black text-white uppercase tracking-wider mb-1">Шаг 1: Соседство</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Ваша тайная личность в центре (ВЫ). <b className="text-cyan-400">ТАПНИТЕ по любому подсвеченному соседу.</b></p>
-                </motion.div>
-              )}
-              {currentModule === "SKHVATKA" && lesson === 1 && step === 2 && (
-                <motion.div key="l1s2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <h3 className="text-base font-black text-white uppercase tracking-wider mb-1">Шаг 2: Сдвиг ряда</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Сетка циклична. <b className="text-cyan-400">НАЖМИТЕ подсвеченную стрелку ← у 3-го ряда.</b></p>
+                  <h3 className="text-base font-black text-white uppercase tracking-wider mb-1">Урок 1: Основы маневра</h3>
+                  <p className="text-xs text-zinc-400 font-mono">Сетка 5×5 циклична. <b className="text-cyan-400">НАЖМИТЕ стрелку ← у 3-го ряда</b> для демонстрации смещения 8 соседей.</p>
                 </motion.div>
               )}
               {currentModule === "SKHVATKA" && lesson === 1 && step === 3 && (
                 <motion.div key="l1s3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-base font-black text-white uppercase tracking-wider mb-1">Отлично!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Карта ушла за край и появилась справа. Это основа тактического маневра.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Карта ушла за край и появилась справа. Все 8 соседей сместились вместе с ней.</p>
                 </motion.div>
               )}
 
@@ -525,7 +566,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "SKHVATKA" && lesson === 2 && step === 1 && (
                 <motion.div key="l2s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-base font-black text-white uppercase tracking-wider mb-1">Урок 2: Ликвидация</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Вы — Бандит. <b className="text-red-400">ВЫБЕРИТЕ цель для ликвидации среди соседей.</b></p>
+                  <p className="text-xs text-zinc-400 font-mono">Вы — Бандит. <b className="text-red-400">ВЫБЕРИТЕ цель для ликвидации среди 8 соседей.</b></p>
                 </motion.div>
               )}
               {currentModule === "SKHVATKA" && lesson === 2 && step === 2 && (
@@ -545,19 +586,19 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "SKHVATKA" && lesson === 3 && step === 1 && (
                 <motion.div key="l3s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-base font-black text-white uppercase tracking-wider mb-1">Урок 3: Задержание</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Радар сузил круг. <b className="text-cyan-400">НАЖМИТЕ на любого подозреваемого без алиби в зоне радара.</b></p>
+                  <p className="text-xs text-zinc-400 font-mono">Инспектор (ВЫ) в [2,2]. Свидетель в [1,2]. <b className="text-cyan-400">ВЫБЕРИТЕ любого соседа без алиби в зоне радара.</b></p>
                 </motion.div>
               )}
               {currentModule === "SKHVATKA" && lesson === 3 && step === 2 && (
                 <motion.div key="l3s2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-base font-black text-white uppercase tracking-wider mb-1">Предъявление обвинения</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Нажмите «Задержание» для проверки.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Нажмите «Задержание» для ареста подозреваемого.</p>
                 </motion.div>
               )}
               {currentModule === "SKHVATKA" && lesson === 3 && step === 3 && (
                 <motion.div key="l3s3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-base font-black text-white uppercase tracking-wider mb-1">Точный арест!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Бандит задержан. Переходим к учебному делу.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Бандит задержан (штамп «АРЕСТОВАН»). Переходим к учебному делу.</p>
                 </motion.div>
               )}
 
@@ -566,7 +607,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                 <motion.div key="l4s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-base font-black text-white uppercase tracking-wider mb-1">Учебное дело: Схватка</h3>
                   <p className="text-xs text-zinc-400 font-mono">
-                    {isEnemyTurn ? "Бандит маневрирует..." : "НАЖМИТЕ подсвеченную стрелку ← во 2-м ряду для сближения."}
+                    {isEnemyTurn ? "Бандит маневрирует..." : "НАЖМИТЕ стрелку ← во 2-м ряду для сближения."}
                   </p>
                 </motion.div>
               )}
@@ -593,7 +634,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "MANIAC" && step === 1 && (
                 <motion.div key="maniac1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-base font-black text-red-400 uppercase tracking-wider mb-1">Очередь целей</h3>
-                  <p className="text-xs text-zinc-400 font-mono">У Маньяка строгий список смертников. <b className="text-red-400">ТАПНИТЕ по подсвеченной цели ({targetVictimName}).</b></p>
+                  <p className="text-xs text-zinc-400 font-mono">У Маньяка строгий список смертников. <b className="text-red-400">ТАПНИТЕ по открытой цели ({targetVictimName}).</b></p>
                 </motion.div>
               )}
               {currentModule === "MANIAC" && step === 2 && (
@@ -613,7 +654,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "THIEF" && step === 1 && (
                 <motion.div key="thief1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-base font-black text-amber-400 uppercase tracking-wider mb-1">Кража сокровищ</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Вор (ВЫ) в центре. <b className="text-amber-400">ТАПНИТЕ по любому подсвеченному соседу в зоне досягаемости.</b></p>
+                  <p className="text-xs text-zinc-400 font-mono">Вор (ВЫ) в центре. <b className="text-amber-400">ТАПНИТЕ по любому подсвеченному соседу в зоне кражи.</b></p>
                 </motion.div>
               )}
               {currentModule === "THIEF" && step === 2 && (
@@ -625,29 +666,28 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "THIEF" && step === 3 && (
                 <motion.div key="thief3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-base font-black text-amber-400 uppercase tracking-wider mb-1">Маски Вора</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Похищен жетон Синдиката. Нажмите «Конспирация (Маска)» для смены лица картой из руки.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Похищен жетон Синдиката. Нажмите «Конспирация (Маска)» для моментальной смены лица картой из руки.</p>
                 </motion.div>
               )}
               {currentModule === "THIEF" && step === 4 && (
                 <motion.div key="thief4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-base font-black text-emerald-400 uppercase tracking-wider mb-1">Лицо изменено!</h3>
-                  <p className="text-xs text-zinc-400 font-mono mb-2">Вор моментально принял новое прикрытие из руки без использования колоды.</p>
-                  {disguiseMaskName && (
-                    <span className="inline-block px-3 py-1 bg-amber-950/80 border border-amber-500/80 text-amber-300 font-black rounded-full text-xs uppercase tracking-wider">
-                      Новая маска: {disguiseMaskName}
-                    </span>
-                  )}
+                  <p className="text-xs text-zinc-400 font-mono">Вор принял новое прикрытие (Марк Вайс). Метка «ВЫ» переместилась на новую клетку.</p>
                 </motion.div>
               )}
 
               {/* МОДУЛЬ: СЕКРЕТНАЯ СЛУЖБА */}
-              {currentModule === "SECRET_SERVICE" && step === 1 && (
+              {currentModule === "SECRET_SERVICE" && (step === 1 || (step === 2 && scanResult === "FAR")) && (
                 <motion.div key="ss1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-base font-black text-purple-400 uppercase tracking-wider mb-1">Перекрестный опрос</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Ваш агент в центре (ВЫ). <b className="text-purple-400">ВЫБЕРИТЕ соседа</b> для проверки зоны присутствия вражеских резидентов.</p>
+                  <p className="text-xs text-zinc-400 font-mono">
+                    {scanResult === "FAR"
+                      ? "Вне зоны (НЕТ) — резидента рядом нет. Опросите другого соседа ближе к [1,1]."
+                      : "Ваш агент в центре (ВЫ). Вражеский резидент скрывается в секторе. ВЫБЕРИТЕ соседа для опроса."}
+                  </p>
                 </motion.div>
               )}
-              {currentModule === "SECRET_SERVICE" && step === 2 && (
+              {currentModule === "SECRET_SERVICE" && step === 2 && scanResult !== "FAR" && (
                 <motion.div key="ss2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-base font-black text-white uppercase tracking-wider mb-1">Опрос свидетелей</h3>
                   <p className="text-xs text-zinc-400 font-mono">Нажмите «Опрос свидетелей» внизу.</p>
@@ -655,8 +695,8 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               )}
               {currentModule === "SECRET_SERVICE" && step === 3 && (
                 <motion.div key="ss3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <h3 className="text-base font-black text-cyan-400 uppercase tracking-wider mb-1">Контакт подтвержден!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Радар вокруг опрошенного свидетеля выявил агента соперника. <b className="text-purple-400">ТАПНИТЕ по подозрительной клетке [2,2].</b></p>
+                  <h3 className="text-base font-black text-cyan-400 uppercase tracking-wider mb-1">Враг рядом (ДА)!</h3>
+                  <p className="text-xs text-zinc-400 font-mono">Радар зафиксировал присутствие резидента в соседней клетке. <b className="text-purple-400">ТАПНИТЕ по подозрительной клетке [1,1].</b></p>
                 </motion.div>
               )}
               {currentModule === "SECRET_SERVICE" && step === 4 && (
@@ -668,28 +708,43 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "SECRET_SERVICE" && step === 5 && (
                 <motion.div key="ss5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-base font-black text-emerald-400 uppercase tracking-wider mb-1">Трофей получен!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Резидент раскрыт (+1 трофей). Цель режима — собрать 4 трофея.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Резидент разоблачен (штамп «РАСКРЫТ»). Операция завершена успешно.</p>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
           {/* Игровое поле */}
-          <div className={`flex-1 min-h-0 w-full flex items-center justify-center ${currentModule === "SKHVATKA" && lesson === 1 && step === 2 ? 'tutorial-highlight-l1s2' : ''} ${currentModule === "SKHVATKA" && lesson === 4 && step === 1 ? 'tutorial-highlight-l4s1' : ''}`}>
+          <div className={`flex-1 min-h-0 w-full flex items-center justify-center ${
+            currentModule === "SKHVATKA" && lesson === 1 && (step === 1 || step === 2) ? "tutorial-highlight-l1s2" : ""
+          } ${currentModule === "SKHVATKA" && lesson === 4 && step === 1 ? "tutorial-highlight-l4s1" : ""}`}>
             <GameBoard
               mode={currentModule === "THIEF" ? "THIEF_HUNT" : currentModule === "SECRET_SERVICE" ? "SECRET_SERVICE" : "SKHVATKA"}
               board={board}
               selectedCharacterId={selectedId}
               killerAdjacentIds={adjacentIds}
-              detectiveAdjacentIds={(currentModule === "SKHVATKA" && lesson === 4 && step >= 2) ? playerAdjacentIds : adjacentIds}
+              detectiveAdjacentIds={
+                currentModule === "SKHVATKA" && lesson === 4 && step >= 2
+                  ? playerAdjacentIds
+                  : adjacentIds
+              }
               showKillerHints={
-                (currentModule === "SKHVATKA" && lesson === 1 && step === 1) ||
+                (currentModule === "SKHVATKA" && lesson === 1) ||
                 (currentModule === "SKHVATKA" && lesson === 2 && step === 1) ||
                 (currentModule === "THIEF" && step === 1) ||
-                (currentModule === "SECRET_SERVICE" && step === 1)
+                (currentModule === "SECRET_SERVICE" && (step === 1 || (step === 2 && scanResult === "FAR")))
               }
-              showDetectiveHints={currentModule === "SKHVATKA" && lesson === 4 && step === 2}
-              targetVictimId={currentModule === "MANIAC" ? targetVictimId : (currentModule === "SKHVATKA" && lesson === 4 ? board[1]?.[2]?.id : null)}
+              showDetectiveHints={
+                (currentModule === "SKHVATKA" && lesson === 3 && step === 1) ||
+                (currentModule === "SKHVATKA" && lesson === 4 && step === 2)
+              }
+              targetVictimId={
+                currentModule === "MANIAC"
+                  ? targetVictimId
+                  : currentModule === "SKHVATKA" && lesson === 4
+                    ? board[1]?.[2]?.id
+                    : null
+              }
               radarTargetId={radarTargetId}
               radarCellIds={radarCellIds}
               radarColorClass={radarColorClass}
@@ -831,7 +886,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               )}
 
               {/* СЕКРЕТНАЯ СЛУЖБА КНОПКИ */}
-              {currentModule === "SECRET_SERVICE" && step === 2 && (
+              {currentModule === "SECRET_SERVICE" && step === 2 && scanResult !== "FAR" && (
                 <motion.button
                   key="interrogate-ss"
                   initial={{ scale: 0.9 }} animate={{ scale: 1 }}
@@ -864,6 +919,54 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
             </AnimatePresence>
           </div>
         </div>
+
+        {/* МОДАЛКА НОВОЙ МАСКИ ВОРА */}
+        {isDisguiseModalOpen && newDisguiseChar && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none">
+            <div className="w-full max-w-sm bg-zinc-950 border border-amber-500/50 rounded-3xl p-6 text-center shadow-[0_0_50px_rgba(245,158,11,0.3)] flex flex-col items-center">
+              <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block mb-1">
+                Конспирация успешна
+              </span>
+              <h3 className="text-xl font-black text-zinc-100 mb-2">
+                Ваша новая личность:
+              </h3>
+
+              {(() => {
+                const img = characterImages[`../assets/characters/${newDisguiseChar.id}.webp`]?.default;
+                return (
+                  <div className="relative w-full h-44 rounded-2xl overflow-hidden border border-zinc-700 my-4 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                    {img ? (
+                      <img
+                        src={img}
+                        alt={newDisguiseChar.name}
+                        className="absolute inset-0 w-full h-full object-cover opacity-75 grayscale contrast-125"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-zinc-800 flex items-center justify-center text-zinc-500">
+                        Нет фото
+                      </div>
+                    )}
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-3 pt-12 flex flex-col items-center">
+                      <span className="text-[10px] font-mono text-zinc-400 mb-1">
+                        #{newDisguiseChar.id.replace("c", "").padStart(2, "0")}
+                      </span>
+                      <span className="text-xl font-black text-zinc-100 uppercase tracking-wider leading-tight text-center">
+                        {newDisguiseChar.name}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              <button
+                onClick={handleConfirmDisguise}
+                className="w-full py-3.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-zinc-950 font-black uppercase tracking-wider text-xs rounded-xl transition cursor-pointer shadow-lg active:scale-95"
+              >
+                Принять личность ➔
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

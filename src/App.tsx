@@ -142,6 +142,7 @@ export default function App() {
             setIsIntroPhase(false);
             const savedClientId = JSON.parse(saved).myClientId;
             partyService.connect(roomCode, nickname || profile.nickname || "Агент", Boolean(isHost), savedMode || "SKHVATKA", savedClientId);
+            setToastMessage("Сессия восстановлена");
             return;
           }
         } catch (e) {
@@ -178,6 +179,7 @@ export default function App() {
   }, [gameState.log.length, isLogOpen]);
 
   const logContainerRef = useRef<HTMLDivElement>(null);
+  const mobileLogContainerRef = useRef<HTMLDivElement>(null);
 
   const gameStateRef = useRef(gameState);
   useEffect(() => {
@@ -240,18 +242,20 @@ export default function App() {
       }));
 
       setIsOpponentConnected(true);
-      if (status === "READY_TO_START" || serverGameState.status === "READY_TO_START") {
-        setIsLobbyOpen(false);
-        setHasStartedEver(true);
-        setIsIntroPhase(true);
-      } else if (status === "PLAYING" || serverGameState.status === "PLAYING") {
-        setIsLobbyOpen(false);
-        setHasStartedEver(true);
+      const effectiveStatus = status || serverGameState.status;
+      // В онлайне при получении первого синхронизированного состояния всегда переходим из лобби в матч
+      setIsLobbyOpen(false);
+      setHasStartedEver(true);
+      if (effectiveStatus === "PLAYING") {
         setIsIntroPhase(false);
+      } else {
+        // Для статусов WAITING и READY_TO_START отображаем модалку готовности / интро
+        setIsIntroPhase(true);
       }
     };
 
-    partyService.onRoomStatus = (status: string) => {
+    partyService.onRoomStatus = (statusData: any) => {
+      const status = typeof statusData === "string" ? statusData : statusData?.status;
       if (status === "PLAYING") {
         setIsIntroPhase(false);
       }
@@ -314,6 +318,9 @@ export default function App() {
   useEffect(() => {
     if (logContainerRef.current) {
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+    if (mobileLogContainerRef.current) {
+      mobileLogContainerRef.current.scrollTop = mobileLogContainerRef.current.scrollHeight;
     }
   }, [gameState.log, isLogOpen]);
 
@@ -392,6 +399,8 @@ export default function App() {
 
     if (isAITurn) {
       setIsAIThinking(true);
+      // Задача 1.5: Комфортный таймаут размышления ИИ для читаемости хода и завершения анимаций
+      const AI_TURN_DELAY_MS = 2200;
       const timer = setTimeout(() => {
         setGameState((prev) => {
           if (prev.winner) return prev;
@@ -434,7 +443,7 @@ export default function App() {
         });
         setIsAIThinking(false);
         setSelectedId(null);
-      }, 1500);
+      }, AI_TURN_DELAY_MS);
 
       return () => clearTimeout(timer);
     }
@@ -710,6 +719,8 @@ export default function App() {
     if (gameState.winner || isFirstTurnKiller || !isHumanTurn) return;
     soundManager.play('slide');
     triggerHaptic("light");
+    // Задача 1.3: Сброс радара при действиях
+    setGameState((prev) => (prev.interrogationRadar ? { ...prev, interrogationRadar: null } : prev));
     dispatchAction({
       type: "SHIFT_BOARD",
       payload: { shiftType: type, index, direction },
@@ -727,6 +738,7 @@ export default function App() {
       lastKillSoundTimeRef.current = Date.now();
     }
     triggerHaptic("heavy");
+    setGameState((prev) => (prev.interrogationRadar ? { ...prev, interrogationRadar: null } : prev));
     dispatchAction({
       type: "KILL_CHARACTER",
       payload: { targetId: selectedId },
@@ -754,6 +766,7 @@ export default function App() {
     if (gameState.currentTurn !== "KILLER" || !isHumanTurn) return;
     soundManager.play('disguise');
     triggerHaptic("medium");
+    setGameState((prev) => (prev.interrogationRadar ? { ...prev, interrogationRadar: null } : prev));
     dispatchAction({
       type: "ESCAPE_MANIAC",
       senderId: "local",
@@ -779,7 +792,7 @@ export default function App() {
     if (!selectedId || gameState.currentTurn !== "DETECTIVE" || !isHumanTurn)
       return;
     const targetChar = gameState.board.flat().find((c) => c.id === selectedId);
-    if (!targetChar || !targetChar.isAlive) return;
+    if (!targetChar || !targetChar.isAlive || targetChar.isExonerated) return;
 
     const isMiss =
       selectedId !== gameState.killerSecretId && !targetChar.hasBomb;
@@ -793,6 +806,7 @@ export default function App() {
       triggerHaptic("medium");
     }
 
+    setGameState((prev) => (prev.interrogationRadar ? { ...prev, interrogationRadar: null } : prev));
     dispatchAction({
       type: "ACCUSE",
       payload: { targetId: selectedId, isMiss, errorCardId: selectedId },
@@ -1104,7 +1118,11 @@ export default function App() {
           label: "Задержание",
           onClick: handleAccuse,
           disabled: (() => {
-            if (!isHumanTurn || !selectedId || !selectedCharacter?.isAlive || isGameOver) return true;
+            if (!isHumanTurn || !selectedId || !selectedCharacter?.isAlive || selectedCharacter?.isExonerated || isGameOver) return true;
+            // В Охоте на грабителя нельзя арестовывать патрульных офицеров
+            if (gameState.mode === "THIEF_HUNT" && gameState.uniformedOfficers?.includes(selectedId)) {
+              return true;
+            }
             let isAdjacent = detectiveAdjacentIds.includes(selectedId);
             let isSelf = selectedId === gameState.detectiveSecretId;
             if (gameState.mode === "THIEF_HUNT" && gameState.uniformedOfficers) {
@@ -1190,6 +1208,11 @@ export default function App() {
       canPeekKiller = isKillerTurn;
       canPeekDetective = isDetectiveTurn;
     }
+
+    // В "Схватке" Инспектор не может подглядывать роль, пока личность не выбрана из inspectorChoices
+    if (gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0)) {
+      canPeekDetective = false;
+    }
   }
 
   const killerNameText =
@@ -1200,8 +1223,11 @@ export default function App() {
         : (killerChar?.name ?? "Неизвестно")
       : "••••••••";
 
-  const detectiveNameText =
-    showDetectiveRole || showSpyP2Role
+  const isInspectorPending = gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0);
+
+  const detectiveNameText = isInspectorPending
+    ? "Не выбрана"
+    : showDetectiveRole || showSpyP2Role
       ? gameState.mode === "SECRET_SERVICE"
         ? (allChars.find((c) => c.id === gameState.spies?.[1]?.secretId)
             ?.name ?? "Неизвестно")
@@ -1366,8 +1392,8 @@ export default function App() {
           />
         )}
 
-        {/* ВЫБОР РОЛИ ИНСПЕКТОРА В СХВАТКЕ (СТРОГО В СВОЙ ХОД ПОСЛЕ ВЫСТРЕЛА БАНДИТА) */}
-        {!isLobbyOpen && hasStartedEver && gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0 && gameState.killCount > 0) && isDetectiveView && isDetectiveTurn && !gameState.winner && !isIntroPhase && (
+        {/* ВЫБОР РОЛИ ИНСПЕКТОРА В СХВАТКЕ (СТРОГО В СВОЙ ХОД ПРИ НАЛИЧИИ ВЫБОРА) */}
+        {!isLobbyOpen && hasStartedEver && gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) && isDetectiveView && isDetectiveTurn && !gameState.winner && !isIntroPhase && (
           <div className="fixed inset-0 z-40 flex flex-col items-center justify-end sm:justify-center p-4 select-none pointer-events-none overflow-hidden pt-16">
             {gameState.opponent === "PVP" && !isInspectorPassConfirmed ? (
               <div className="absolute inset-0 bg-[#080a0f]/95 backdrop-blur-xl flex items-center justify-center p-4 pointer-events-auto">
@@ -1707,11 +1733,19 @@ export default function App() {
           <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-3xl landscape:max-w-none flex flex-col items-center justify-center">
             {/* ТИКЕР СОБЫТИЙ */}
             {gameState.log.length > 0 && (
-              <div className="w-full max-w-md md:max-w-xl mb-1 px-3 py-1 md:py-2 bg-zinc-900/90 border border-zinc-800 rounded-lg text-[10px] sm:text-xs md:text-xs font-mono text-amber-400/90 truncate text-center shadow-sm shrink-0">
+              <div className="w-full max-w-md md:max-w-xl mb-1 px-3 py-1.5 bg-zinc-900/90 border border-zinc-800 rounded-lg text-[10px] sm:text-xs font-mono text-amber-400/90 break-words whitespace-normal text-center shadow-sm shrink-0 leading-snug">
                 {gameState.log[gameState.log.length - 1]}
               </div>
             )}
-            <div className="w-full flex-1 min-h-0 flex items-center justify-center overflow-hidden">
+            <div className="w-full flex-1 min-h-0 flex items-center justify-center overflow-hidden relative antialiased">
+              {(!isHumanTurn || isAIThinking) && !gameState.winner && !isIntroPhase && gameState.opponent !== "PVP" && (
+                <div className="absolute inset-0 z-20 pointer-events-auto flex flex-col items-center justify-end pb-3">
+                  <div className="px-3.5 py-1.5 rounded-full bg-zinc-950/85 border border-zinc-700/60 shadow-xl backdrop-blur-md flex items-center gap-2 text-[11px] font-mono font-medium text-zinc-300 pointer-events-none select-none animate-fadeIn">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
+                    <span>{isAIThinking ? "ИИ обдумывает ход..." : "Ход оппонента..."}</span>
+                  </div>
+                </div>
+              )}
               <GameBoard
                 mode={gameState.mode}
                 board={gameState.board}
@@ -1861,7 +1895,7 @@ export default function App() {
                 className="flex-1 overflow-y-auto space-y-2 text-[10px] font-mono text-zinc-300 pr-2 custom-scrollbar"
               >
                 {gameState.log.map((entry, idx) => (
-                  <div key={idx} className="leading-relaxed">
+                  <div key={idx} className="leading-relaxed break-words">
                     • {entry}
                   </div>
                 ))}

@@ -192,7 +192,8 @@ describe("Полные циклы правил 4 режимов (fullGameCycles)
       state.currentTurn = "DETECTIVE";
       const patrolOfficerId = state.uniformedOfficers![0];
       const neighbors = getAdjacentCharacters(state.board, patrolOfficerId);
-      state.killerSecretId = neighbors[0].id;
+      const targetNeighbor = neighbors.find((n) => !state.uniformedOfficers?.includes(n.id)) || neighbors[0];
+      state.killerSecretId = targetNeighbor.id;
 
       state = gameReducer(state, {
         type: "ACCUSE",

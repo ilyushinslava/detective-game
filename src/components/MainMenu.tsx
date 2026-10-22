@@ -19,7 +19,7 @@ const Icons = {
       <rect x="19" y="5" width="2" height="12" rx="0.5" opacity="0.5" />
     </svg>
   ),
-  EvidenceCards: ({ className = "w-6 h-6 text-cyan-400" }: { className?: string }) => (
+  EvidenceCards: ({ className = "w-6 h-6 text-amber-400" }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
       <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
@@ -487,27 +487,31 @@ export const MainMenu = ({
         </button>
         <h2 className="absolute left-1/2 -translate-x-1/2 text-sm md:text-base font-black tracking-widest text-zinc-100 uppercase">Выбор игры</h2>
       </div>
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3.5 custom-scrollbar pb-[max(6rem,env(safe-area-inset-bottom))]">
-        <div className="w-full md:max-w-2xl lg:max-w-3xl mx-auto space-y-3.5">
+
+      <div className="flex-1 overflow-y-auto sm:overflow-hidden px-4 py-4 flex flex-col justify-center pb-[max(6rem,env(safe-area-inset-bottom))]">
+        <div className="flex flex-row overflow-x-auto snap-x snap-mandatory gap-4 px-2 py-2 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-visible max-w-5xl mx-auto w-full custom-scrollbar">
           {GAME_MODES.map((mode) => (
             <button
               key={mode.id}
               onClick={() => { setSelectedMode(mode.id); setScreen('MODE_DETAIL'); }}
-              className="w-full bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl p-4 md:p-6 flex items-center gap-4 hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] transition text-left shadow-[0_4px_20px_rgba(0,0,0,0.4)] cursor-pointer"
+              className="w-[82vw] max-w-[320px] sm:w-full shrink-0 snap-center bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl p-4 md:p-5 flex flex-col justify-between hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] transition text-left shadow-[0_4px_20px_rgba(0,0,0,0.4)] cursor-pointer group active:scale-[0.98]"
             >
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-center shrink-0 text-zinc-500 shadow-inner">
-                <Icons.Crosshair />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-xs md:text-base font-black text-zinc-100 uppercase tracking-widest mb-1 truncate">{mode.title}</h3>
-                <div className="flex items-center gap-3 text-[9px] md:text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-1.5">
+              <div>
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-center text-zinc-500 mb-3 shadow-inner group-hover:text-amber-400 transition-colors">
+                  <Icons.Crosshair />
+                </div>
+                <h3 className="text-sm md:text-base font-black text-zinc-100 uppercase tracking-widest mb-1.5 truncate">{mode.title}</h3>
+                <div className="flex items-center gap-2 text-[9px] font-mono text-zinc-400 uppercase tracking-widest mb-2">
                   <span className="flex items-center gap-1"><Icons.Users /> {mode.players}</span>
                   <span className="text-zinc-500">•</span>
-                  <span>Сетка 5×5</span>
+                  <span>5×5</span>
                 </div>
-                <p className="text-[10px] md:text-xs text-zinc-400 line-clamp-2 leading-relaxed">{mode.description}</p>
+                <p className="text-[10px] md:text-xs text-zinc-400 line-clamp-3 leading-relaxed">{mode.description}</p>
               </div>
-              <div className="text-zinc-500 shrink-0"><Icons.ChevronRight /></div>
+              <div className="flex items-center justify-between pt-3 border-t border-white/[0.08] mt-3 w-full">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-amber-400">Открыть дело</span>
+                <span className="text-zinc-500 group-hover:text-amber-400 group-hover:translate-x-1 transition-all"><Icons.ChevronRight /></span>
+              </div>
             </button>
           ))}
         </div>
@@ -553,7 +557,7 @@ export const MainMenu = ({
               <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">подозреваемых</span>
             </div>
             <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
-              <Icons.EvidenceCards className="w-6 h-6 text-cyan-400 mb-0.5" />
+              <Icons.EvidenceCards className="w-6 h-6 text-amber-400 mb-0.5" />
               <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">База улик</span>
               <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">доказательств</span>
             </div>
@@ -585,7 +589,7 @@ export const MainMenu = ({
               <div className="flex gap-3 mb-5">
                 <button
                   onClick={() => setSelectedRole('DETECTIVE')}
-                  className={`flex-1 py-3 rounded-xl border text-[10px] md:text-xs font-black uppercase tracking-widest transition cursor-pointer ${selectedRole === 'DETECTIVE' ? 'bg-cyan-950/40 border-cyan-500/60 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]' : 'bg-zinc-900/60 border-white/[0.08] text-zinc-500'}`}
+                  className={`flex-1 py-3 rounded-xl border text-[10px] md:text-xs font-black uppercase tracking-widest transition cursor-pointer ${selectedRole === 'DETECTIVE' ? 'bg-amber-950/40 border-amber-500/60 text-amber-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]' : 'bg-zinc-900/60 border-white/[0.08] text-zinc-500'}`}
                 >
                   {activeModeData.detectiveRoleName}
                 </button>
@@ -673,7 +677,7 @@ export const MainMenu = ({
           <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-white/[0.08] rounded-3xl bg-zinc-900/30 shadow-inner my-auto">
             <div className="relative mb-4 text-zinc-600">
               <Icons.Radar />
-              <div className="absolute inset-0 rounded-full border border-cyan-500/30 animate-ping pointer-events-none" />
+              <div className="absolute inset-0 rounded-full border border-amber-500/30 animate-ping pointer-events-none" />
             </div>
             <span className="text-xs font-black tracking-widest text-zinc-200 uppercase mb-1">
               Сканирование закрытых частот...
@@ -702,8 +706,8 @@ export const MainMenu = ({
                   </span>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-[9px] font-black text-cyan-400 uppercase tracking-widest mb-0.5 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(6,182,212,0.8)]" /> 
+                  <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest mb-0.5 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(245,158,11,0.8)]" /> 
                     Открыто
                   </span>
                   <span className="text-[10px] text-zinc-400 font-mono">Агенты: {room.playersCount}/{room.maxPlayers}</span>
@@ -829,7 +833,7 @@ export const MainMenu = ({
             <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Поражения</span>
           </div>
           <div className="bg-zinc-900/60 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-3.5 flex flex-col items-center text-center shadow-lg">
-            <span className="text-xl font-black text-cyan-400 mb-0.5 drop-shadow-[0_0_10px_rgba(6,182,212,0.4)]">
+            <span className="text-xl font-black text-amber-400 mb-0.5 drop-shadow-[0_0_10px_rgba(245,158,11,0.4)]">
               {profile.stats.wins > 0 ? Math.round((profile.stats.wins / (profile.stats.wins + profile.stats.losses)) * 100) : 0}%
             </span>
             <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Винрейт</span>
@@ -844,7 +848,7 @@ export const MainMenu = ({
           {localStorage.getItem("crime_city_tutorial") ? (
              <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest px-2 py-1 bg-emerald-950/30 rounded border border-emerald-900/50">Пройдено</span>
           ) : (
-             <button onClick={() => { setScreen('HOME'); setIsTutorialOpen(true); }} className="text-[9px] font-black text-cyan-400 hover:text-cyan-300 uppercase tracking-widest px-3 py-1.5 bg-cyan-950/50 rounded border border-cyan-900/50 transition cursor-pointer">Начать</button>
+             <button onClick={() => { setScreen('HOME'); setIsTutorialOpen(true); }} className="text-[9px] font-black text-amber-400 hover:text-amber-300 uppercase tracking-widest px-3 py-1.5 bg-amber-950/50 rounded border border-amber-900/50 transition cursor-pointer">Начать</button>
           )}
         </div>
       </div>

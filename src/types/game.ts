@@ -93,10 +93,10 @@ export const SPY_COLORS = [
     ring: "ring-red-500/80",
   },
   {
-    text: "text-cyan-400",
-    bg: "bg-cyan-950",
-    border: "border-cyan-500",
-    ring: "ring-cyan-500/80",
+    text: "text-amber-400",
+    bg: "bg-amber-950",
+    border: "border-amber-500",
+    ring: "ring-amber-500/80",
   },
   {
     text: "text-amber-400",

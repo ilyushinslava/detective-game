@@ -73,7 +73,7 @@ export const RoleCards = ({
       {showDetectiveCard && (
         <div className="flex-1 p-2 md:p-3.5 bg-zinc-900/60 backdrop-blur-md rounded-xl border border-white/10 flex flex-col justify-between gap-1.5 shadow-lg">
           <div className="flex items-start justify-between w-full gap-1.5">
-            <span className="text-[8px] sm:text-[8.5px] md:text-[10px] font-black text-cyan-400 uppercase bg-cyan-950/50 border border-cyan-900/50 px-1.5 py-0.5 rounded-sm shrink-0 tracking-widest mt-0.5 max-w-[40%] truncate">
+            <span className="text-[8px] sm:text-[8.5px] md:text-[10px] font-black text-amber-400 uppercase bg-amber-950/50 border border-amber-900/50 px-1.5 py-0.5 rounded-sm shrink-0 tracking-widest mt-0.5 max-w-[40%] truncate">
               {role2Name === "ОПЕРАТИВНИК" ? "ОПЕР" : role2Name}
             </span>
             <span className="text-[8.5px] sm:text-[9.5px] md:text-xs font-black text-zinc-100 text-right uppercase tracking-tight leading-[1.1] break-words line-clamp-2 flex-1 min-w-0">
@@ -89,10 +89,10 @@ export const RoleCards = ({
             onTouchEnd={onPeekDetectiveEnd}
             onContextMenu={(e) => e.preventDefault()}
             disabled={!canPeekDetective}
-            className={`w-full h-8 sm:h-[34px] md:h-12 rounded-lg text-[8.5px] sm:text-[9.5px] md:text-xs font-black uppercase tracking-wider border transition flex items-center justify-center gap-1.5 ${
+            className={`w-full h-8 sm:h-[34px] md:h-12 rounded-lg text-[8.5px] sm:text-[9.5px] md:text-xs font-black uppercase tracking-wider border transition flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed ${
               !canPeekDetective
                 ? "bg-zinc-950/50 text-zinc-600 border-white/5 cursor-not-allowed"
-                : "bg-cyan-950/80 hover:bg-cyan-900 active:bg-cyan-800 text-cyan-200 border-cyan-700/50 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+                : "bg-amber-950/80 hover:bg-amber-900/90 active:bg-amber-800 text-amber-200 border-amber-700/50 cursor-pointer shadow-[0_0_10px_rgba(245,158,11,0.25)]"
             }`}
           >
             {!canPeekDetective ? (

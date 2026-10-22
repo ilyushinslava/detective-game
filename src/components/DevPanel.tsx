@@ -89,7 +89,7 @@ export const DevPanel = ({
               </button>
               <button
                 onClick={() => { onForceWin("DETECTIVE", "SKHVATKA"); onClose(); }}
-                className="py-2 px-2.5 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-700/50 rounded-xl text-cyan-200 font-bold text-left transition cursor-pointer"
+                className="py-2 px-2.5 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-700/50 rounded-xl text-amber-200 font-bold text-left transition cursor-pointer"
               >
                 🛡️ Схватка: Инспектор
               </button>
@@ -101,7 +101,7 @@ export const DevPanel = ({
               </button>
               <button
                 onClick={() => { onForceWin("DETECTIVE", "MANIAC_VS_OPERATIVE"); onClose(); }}
-                className="py-2 px-2.5 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-700/50 rounded-xl text-cyan-200 font-bold text-left transition cursor-pointer"
+                className="py-2 px-2.5 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-700/50 rounded-xl text-amber-200 font-bold text-left transition cursor-pointer"
               >
                 🚨 Оперативник: Победа
               </button>
@@ -137,7 +137,7 @@ export const DevPanel = ({
         <div className="border border-white/10 rounded-2xl overflow-hidden bg-zinc-900/40">
           <button
             onClick={() => toggleSection(2)}
-            className="w-full p-3 flex justify-between items-center text-left text-xs font-black uppercase tracking-wider text-cyan-400 hover:bg-white/5 transition cursor-pointer"
+            className="w-full p-3 flex justify-between items-center text-left text-xs font-black uppercase tracking-wider text-amber-400 hover:bg-white/5 transition cursor-pointer"
           >
             <span>2. Управление состоянием и ходом</span>
             <span className="text-[10px] text-zinc-500">{activeSection === 2 ? "▲" : "▼"}</span>

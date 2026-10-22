@@ -321,20 +321,20 @@ export const RoleRevealModal = ({
         button: "bg-gradient-to-r from-red-700 via-red-600 to-red-800 hover:from-red-600 hover:to-red-500 shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-white/25",
       }
     : {
-        text: "text-cyan-400",
-        border: "border-cyan-500/60",
-        shadow: "shadow-[0_0_25px_rgba(6,182,212,0.25)]",
-        button: "bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 shadow-[0_10px_25px_rgba(6,182,212,0.5)] border-t border-white/25",
+        text: "text-amber-400",
+        border: "border-amber-500/60",
+        shadow: "shadow-[0_0_25px_rgba(245,158,11,0.25)]",
+        button: "bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:from-amber-600 hover:to-amber-500 shadow-[0_10px_25px_rgba(245,158,11,0.5)] border-t border-white/25",
       };
 
   const renderCharacterCard = (char: Character | undefined, titleLabel: string, isRed: boolean) => {
     const imageAsset = char?.id ? characterImages[`../assets/characters/${char.id}.webp`]?.default : null;
     const gradient = isRed
       ? "from-red-950 via-zinc-950/80 to-transparent"
-      : "from-cyan-950 via-zinc-950/80 to-transparent";
+      : "from-amber-950 via-zinc-950/80 to-transparent";
     const border = isRed
       ? "border-red-500/60 shadow-[0_0_30px_rgba(239,68,68,0.3)]"
-      : "border-cyan-500/60 shadow-[0_0_30px_rgba(6,182,212,0.3)]";
+      : "border-amber-500/60 shadow-[0_0_30px_rgba(245,158,11,0.3)]";
 
     return (
       <div 
@@ -355,7 +355,7 @@ export const RoleRevealModal = ({
         <div className={`absolute bottom-0 left-0 right-0 h-[60%] bg-gradient-to-t ${gradient} pointer-events-none`} />
 
         <div className="relative z-10 flex items-center justify-between pointer-events-none">
-          <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border ${isRed ? "bg-red-950/90 text-red-300 border-red-700/60" : "bg-cyan-950/90 text-cyan-300 border-cyan-700/60"}`}>
+          <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border ${isRed ? "bg-red-950/90 text-red-300 border-red-700/60" : "bg-amber-950/90 text-amber-300 border-amber-700/60"}`}>
             {titleLabel}
           </span>
           <span className="text-xs font-mono font-bold text-zinc-400">
@@ -386,7 +386,7 @@ export const RoleRevealModal = ({
 
     const tiles: ActionTileItem[] = [];
     const isRed = role === "KILLER";
-    const colorClass = isRed ? "text-red-400" : "text-cyan-400";
+    const colorClass = isRed ? "text-red-400" : "text-amber-400";
 
     if (currentMode === "SKHVATKA") {
       if (isRed) {
@@ -452,7 +452,7 @@ export const RoleRevealModal = ({
         tiles.push({
           id: "accuse",
           label: "Задержание",
-          icon: <Icons.Shield className="w-6 h-6 text-cyan-400" />,
+          icon: <Icons.Shield className="w-6 h-6 text-amber-400" />,
           desc: "Обвинить соседнюю клетку. Если это преступник — победа.",
         });
         tiles.push({
@@ -492,7 +492,7 @@ export const RoleRevealModal = ({
         tiles.push({
           id: "accuse_thief",
           label: "Задержание",
-          icon: <Icons.Shield className="w-6 h-6 text-cyan-400" />,
+          icon: <Icons.Shield className="w-6 h-6 text-amber-400" />,
           desc: "Обвинить клетку рядом со своей тайной личностью или любым из патрульных.",
         });
         tiles.push({
@@ -512,7 +512,7 @@ export const RoleRevealModal = ({
       tiles.push({
         id: "capture_spy",
         label: "Разоблачение",
-        icon: <Icons.Target className={`w-6 h-6 ${isRed ? "text-red-400" : "text-cyan-400"}`} />,
+        icon: <Icons.Target className={`w-6 h-6 ${isRed ? "text-red-400" : "text-amber-400"}`} />,
         desc: "Вскрыть соседнего подозреваемого. Если это чужой агент — забрать трофей.",
       });
       tiles.push({
@@ -524,7 +524,7 @@ export const RoleRevealModal = ({
       tiles.push({
         id: "interrogate_spy",
         label: "Опрос свидетелей",
-        icon: <Icons.Radar className={`w-6 h-6 ${isRed ? "text-amber-400" : "text-cyan-400"}`} />,
+        icon: <Icons.Radar className={`w-6 h-6 ${isRed ? "text-amber-400" : "text-amber-400"}`} />,
         desc: "Узнать, находится ли тайная личность соперника рядом с выбранной целью.",
       });
     }
@@ -587,7 +587,7 @@ export const RoleRevealModal = ({
     return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#080a0f]/95 backdrop-blur-xl p-4 select-none">
       <div className="w-full max-w-md h-[90dvh] max-h-[760px] bg-zinc-950 border border-white/10 rounded-3xl p-5 sm:p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col justify-between text-center overflow-y-auto custom-scrollbar"> <div className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-3">Сетевой протокол</div>
-          <div className="w-12 h-12 border-2 border-zinc-800 border-t-cyan-500 rounded-full animate-spin mb-6" />
+          <div className="w-12 h-12 border-2 border-zinc-800 border-t-amber-500 rounded-full animate-spin mb-6" />
           <h2 className="text-lg font-black text-white uppercase tracking-wider mb-2">Ожидание соперника</h2>
           <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
             Вы подтвердили готовность. Ждем подтверждения второго игрока...
@@ -634,7 +634,7 @@ export const RoleRevealModal = ({
         {phase === "SECRET_SERVICE_SOLO" && (
           <>
             <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border mb-3 ${isRedTheme ? "bg-red-950/90 text-red-300 border-red-700/60 shadow-[0_0_15px_rgba(239,68,68,0.25)]" : "bg-cyan-950/90 text-cyan-300 border-cyan-700/60 shadow-[0_0_15px_rgba(6,182,212,0.25)]"}`}>
+              <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border mb-3 ${isRedTheme ? "bg-red-950/90 text-red-300 border-red-700/60 shadow-[0_0_15px_rgba(239,68,68,0.25)]" : "bg-amber-950/90 text-amber-300 border-amber-700/60 shadow-[0_0_15px_rgba(245,158,11,0.25)]"}`}>
                 Секретная служба: Ваша личность
               </span>
               {renderCharacterCard(detective, currentRoleName, false)}
@@ -701,7 +701,7 @@ export const RoleRevealModal = ({
         {phase === "SPY_P2_PROMPT" && (
           <>
             <div className="flex flex-col items-center justify-center flex-1 my-auto">
-              <div className="w-16 h-16 rounded-full bg-cyan-950/50 border border-cyan-500/50 flex items-center justify-center text-cyan-400 font-black text-2xl mb-6 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
+              <div className="w-16 h-16 rounded-full bg-amber-950/50 border border-amber-500/50 flex items-center justify-center text-amber-400 font-black text-2xl mb-6 shadow-[0_0_20px_rgba(245,158,11,0.25)]">
                 2
               </div>
               <h2 className="text-xl font-black uppercase tracking-widest text-zinc-100 mb-3">
@@ -720,7 +720,7 @@ export const RoleRevealModal = ({
         {phase === "SPY_P2_REVEAL" && (
           <>
             <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className="text-[10px] font-black text-cyan-300 uppercase tracking-widest px-3 py-1 rounded-full bg-cyan-950/90 border border-cyan-700/60 shadow-[0_0_15px_rgba(6,182,212,0.25)] mb-3">
+              <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest px-3 py-1 rounded-full bg-amber-950/90 border border-amber-700/60 shadow-[0_0_15px_rgba(245,158,11,0.25)] mb-3">
                 Тайная личность
               </span>
               {renderCharacterCard(killer, "Призрак", false)}
@@ -732,7 +732,7 @@ export const RoleRevealModal = ({
               </div>
               {getActionTiles(mode, "KILLER")}
             </div>
-            <button onClick={onComplete} className="w-full h-14 mt-4 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_10px_25px_rgba(6,182,212,0.5)] border-t border-white/25 flex items-center justify-center gap-2 cursor-pointer shrink-0">
+            <button onClick={onComplete} className="w-full h-14 mt-4 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:from-amber-600 hover:to-amber-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_10px_25px_rgba(245,158,11,0.5)] border-t border-white/25 flex items-center justify-center gap-2 cursor-pointer shrink-0">
               <span>Начать шпионскую дуэль</span> <Icons.ArrowRight className="w-4 h-4" />
             </button>
           </>
@@ -773,16 +773,16 @@ export const RoleRevealModal = ({
         {phase === "SOLO_DETECTIVE_REVEAL" && (
           <>
             <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className="text-[10px] font-black text-cyan-300 uppercase tracking-widest px-3 py-1 rounded-full bg-cyan-950/90 border border-cyan-700/60 shadow-[0_0_15px_rgba(6,182,212,0.25)] mb-3">
+              <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest px-3 py-1 rounded-full bg-amber-950/90 border border-amber-700/60 shadow-[0_0_15px_rgba(245,158,11,0.25)] mb-3">
                 {mode === "SKHVATKA" ? "Ориентировка" : "Ваша секретная личность"}
               </span>
               {mode === "SKHVATKA" ? (
-                <div className="w-full p-6 rounded-2xl bg-cyan-950/20 border border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.25)] mb-6 flex flex-col items-center justify-center text-center min-h-[240px] sm:min-h-[270px]">
-                  <Icons.Shield className="w-16 h-16 text-cyan-500 mb-4 opacity-80" />
+                <div className="w-full p-6 rounded-2xl bg-amber-950/20 border border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.25)] mb-6 flex flex-col items-center justify-center text-center min-h-[240px] sm:min-h-[270px]">
+                  <Icons.Shield className="w-16 h-16 text-amber-500 mb-4 opacity-80" />
                   <h2 className="text-xl font-black text-zinc-100 uppercase tracking-wider mb-2">
                     Ожидание хода
                   </h2>
-                  <p className="text-[10px] font-mono text-cyan-200/70 uppercase tracking-widest leading-relaxed">
+                  <p className="text-[10px] font-mono text-amber-200/70 uppercase tracking-widest leading-relaxed">
                     Выбор личности после выстрела. Бандит сделает первый ход вслепую. После ликвидации жертвы вы оцените обстановку и выберете личность из 4 карт.
                   </p>
                 </div>
@@ -792,7 +792,7 @@ export const RoleRevealModal = ({
               <div className="w-full text-left space-y-2 mt-1">
                 <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Роль и Задача</span>
-                  <span className="text-xs font-bold text-zinc-200 block mb-0.5"><b className="text-cyan-400">{role2Name}</b></span>
+                  <span className="text-xs font-bold text-zinc-200 block mb-0.5"><b className="text-amber-400">{role2Name}</b></span>
                   <span className="text-[10px] text-zinc-400">{role2Goal}</span>
                 </div>
                 <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
@@ -806,7 +806,7 @@ export const RoleRevealModal = ({
               data-testid="ready-button"
               disabled={false}
               onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
-              className="w-full h-14 mt-4 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_0_20px_rgba(6,182,212,0.45)] flex items-center justify-center gap-2 cursor-pointer shrink-0"
+              className="w-full h-14 mt-4 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:from-amber-600 hover:to-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_0_20px_rgba(245,158,11,0.45)] flex items-center justify-center gap-2 cursor-pointer shrink-0"
             >
               <span>{opponent === "ONLINE" ? "ГОТОВ" : (mode === "SKHVATKA" ? "Принять дело" : "Начать расследование")}</span> <Icons.ArrowRight className="w-4 h-4" />
             </button>
@@ -816,7 +816,7 @@ export const RoleRevealModal = ({
         {phase === "SOLO_DETECTIVE_CHOOSE" && (
           <>
             <div className="flex flex-col items-center flex-1 justify-start w-full">
-              <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-2">
+              <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-2">
                 Выбор личности (1 из 4)
               </span>
               <p className="text-[10px] font-mono text-zinc-500 mb-5 uppercase tracking-widest">
@@ -833,7 +833,7 @@ export const RoleRevealModal = ({
                       onClick={() => setSelectedInspectorId(char.id)}
                       className={`relative flex flex-col justify-between p-4 rounded-2xl border text-left cursor-pointer transition select-none min-h-[105px] overflow-hidden ${
                         isSelected
-                          ? "bg-cyan-950/40 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.35)] scale-[1.02]"
+                          ? "bg-amber-950/40 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.35)] scale-[1.02]"
                           : "bg-zinc-900/50 border-white/5 hover:border-white/20 text-zinc-400"
                       }`}
                     >
@@ -842,9 +842,9 @@ export const RoleRevealModal = ({
                       )}
                       <div className="relative z-10 flex items-center justify-between text-[9px] font-mono text-zinc-500">
                         <span>#{char.id.replace("c", "").padStart(2, "0")}</span>
-                        {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.9)]" />}
+                        {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.9)]" />}
                       </div>
-                      <div className={`relative z-10 text-xs font-black uppercase tracking-wider mt-3 ${isSelected ? "text-cyan-100" : "text-zinc-200"}`}>
+                      <div className={`relative z-10 text-xs font-black uppercase tracking-wider mt-3 ${isSelected ? "text-amber-100" : "text-zinc-200"}`}>
                         {char.name}
                       </div>
                     </div>
@@ -855,7 +855,7 @@ export const RoleRevealModal = ({
             <button
               onClick={opponent === "ONLINE" ? handleOnlineReady : handleConfirmChoices}
               disabled={!selectedInspectorId}
-              className="w-full h-14 mt-4 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 disabled:from-zinc-800 disabled:to-zinc-900 disabled:text-zinc-600 disabled:shadow-none text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer disabled:cursor-not-allowed shadow-[0_0_20px_rgba(6,182,212,0.45)] flex items-center justify-center gap-2 shrink-0"
+              className="w-full h-14 mt-4 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:from-amber-600 hover:to-amber-500 disabled:from-zinc-800 disabled:to-zinc-900 disabled:text-zinc-600 disabled:shadow-none text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer disabled:cursor-not-allowed shadow-[0_0_20px_rgba(245,158,11,0.45)] flex items-center justify-center gap-2 shrink-0"
             >
               <span>{opponent === "ONLINE" ? "ГОТОВ" : "Подтвердить личность"}</span> <Icons.ArrowRight className="w-4 h-4" />
             </button>
@@ -906,7 +906,7 @@ export const RoleRevealModal = ({
         {phase === "DETECTIVE_PROMPT" && (
           <>
             <div className="flex flex-col items-center justify-center flex-1 my-auto">
-              <div className="w-16 h-16 rounded-full bg-cyan-950/50 border border-cyan-500/50 flex items-center justify-center text-cyan-400 font-black text-2xl mb-6 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
+              <div className="w-16 h-16 rounded-full bg-amber-950/50 border border-amber-500/50 flex items-center justify-center text-amber-400 font-black text-2xl mb-6 shadow-[0_0_20px_rgba(245,158,11,0.25)]">
                 2
               </div>
               <h2 className="text-xl font-black uppercase tracking-widest text-zinc-100 mb-3">
@@ -925,16 +925,16 @@ export const RoleRevealModal = ({
         {phase === "DETECTIVE_REVEAL" && (
           <>
             <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className="text-[10px] font-black text-cyan-300 uppercase tracking-widest px-3 py-1 rounded-full bg-cyan-950/90 border border-cyan-700/60 shadow-[0_0_15px_rgba(6,182,212,0.25)] mb-3">
+              <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest px-3 py-1 rounded-full bg-amber-950/90 border border-amber-700/60 shadow-[0_0_15px_rgba(245,158,11,0.25)] mb-3">
                 {mode === "SKHVATKA" ? "Ориентировка" : "Тайная личность"}
               </span>
               {mode === "SKHVATKA" ? (
-                <div className="w-full p-6 rounded-2xl bg-cyan-950/20 border border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.25)] mb-6 flex flex-col items-center justify-center text-center min-h-[240px] sm:min-h-[270px]">
-                  <Icons.Shield className="w-16 h-16 text-cyan-500 mb-4 opacity-80" />
+                <div className="w-full p-6 rounded-2xl bg-amber-950/20 border border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.25)] mb-6 flex flex-col items-center justify-center text-center min-h-[240px] sm:min-h-[270px]">
+                  <Icons.Shield className="w-16 h-16 text-amber-500 mb-4 opacity-80" />
                   <h2 className="text-xl font-black text-zinc-100 uppercase tracking-wider mb-2">
                     Ожидание хода
                   </h2>
-                  <p className="text-[10px] font-mono text-cyan-200/70 uppercase tracking-widest leading-relaxed">
+                  <p className="text-[10px] font-mono text-amber-200/70 uppercase tracking-widest leading-relaxed">
                     Выбор личности после выстрела. Бандит сделает первый ход вслепую. После ликвидации жертвы вы оцените обстановку и выберете личность из 4 карт.
                   </p>
                 </div>
@@ -944,13 +944,13 @@ export const RoleRevealModal = ({
               <div className="w-full text-left space-y-2 mt-1">
                 <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Роль и Задача</span>
-                  <span className="text-xs font-bold text-zinc-200 block mb-0.5"><b className="text-cyan-400">{role2Name}</b></span>
+                  <span className="text-xs font-bold text-zinc-200 block mb-0.5"><b className="text-amber-400">{role2Name}</b></span>
                   <span className="text-[10px] text-zinc-400">{role2Goal}</span>
                 </div>
               </div>
               {mode !== "SKHVATKA" && getActionTiles(mode, "DETECTIVE")}
             </div>
-            <button onClick={onComplete} className="w-full h-14 mt-4 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_10px_25px_rgba(6,182,212,0.5)] border-t border-white/25 flex items-center justify-center gap-2 cursor-pointer shrink-0">
+            <button onClick={onComplete} className="w-full h-14 mt-4 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:from-amber-600 hover:to-amber-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_10px_25px_rgba(245,158,11,0.5)] border-t border-white/25 flex items-center justify-center gap-2 cursor-pointer shrink-0">
               <span>{mode === "SKHVATKA" ? "Принять дело" : "Начать партию"}</span> <Icons.ArrowRight className="w-4 h-4" />
             </button>
           </>
@@ -959,7 +959,7 @@ export const RoleRevealModal = ({
         {phase === "DETECTIVE_CHOOSE" && (
           <>
             <div className="flex flex-col items-center flex-1 justify-start w-full">
-              <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-2">
+              <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-2">
                 Выбор личности (1 из 4)
               </span>
               <p className="text-[10px] font-mono text-zinc-500 mb-5 uppercase tracking-widest">
@@ -976,7 +976,7 @@ export const RoleRevealModal = ({
                       onClick={() => setSelectedInspectorId(char.id)}
                       className={`relative flex flex-col justify-between p-4 rounded-2xl border text-left cursor-pointer transition select-none min-h-[105px] overflow-hidden ${
                         isSelected
-                          ? "bg-cyan-950/40 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.35)] scale-[1.02]"
+                          ? "bg-amber-950/40 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.35)] scale-[1.02]"
                           : "bg-zinc-900/50 border-white/5 hover:border-white/20 text-zinc-400"
                       }`}
                     >
@@ -985,9 +985,9 @@ export const RoleRevealModal = ({
                       )}
                       <div className="relative z-10 flex items-center justify-between text-[9px] font-mono text-zinc-500">
                         <span>#{char.id.replace("c", "").padStart(2, "0")}</span>
-                        {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.9)]" />}
+                        {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.9)]" />}
                       </div>
-                      <div className={`relative z-10 text-xs font-black uppercase tracking-wider mt-3 ${isSelected ? "text-cyan-100" : "text-zinc-200"}`}>
+                      <div className={`relative z-10 text-xs font-black uppercase tracking-wider mt-3 ${isSelected ? "text-amber-100" : "text-zinc-200"}`}>
                         {char.name}
                       </div>
                     </div>
@@ -998,7 +998,7 @@ export const RoleRevealModal = ({
             <button
               onClick={handleConfirmChoices}
               disabled={!selectedInspectorId}
-              className="w-full h-14 mt-4 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 disabled:from-zinc-800 disabled:to-zinc-900 disabled:text-zinc-600 disabled:shadow-none text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer disabled:cursor-not-allowed shadow-[0_10px_25px_rgba(6,182,212,0.5)] border-t border-white/25 flex items-center justify-center gap-2 shrink-0"
+              className="w-full h-14 mt-4 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:from-amber-600 hover:to-amber-500 disabled:from-zinc-800 disabled:to-zinc-900 disabled:text-zinc-600 disabled:shadow-none text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer disabled:cursor-not-allowed shadow-[0_10px_25px_rgba(245,158,11,0.5)] border-t border-white/25 flex items-center justify-center gap-2 shrink-0"
             >
               <span>Подтвердить личность</span> <Icons.ArrowRight className="w-4 h-4" />
             </button>

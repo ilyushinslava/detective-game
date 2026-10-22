@@ -3,47 +3,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import App from "../App";
 import { RoleRevealModal } from "../components/RoleRevealModal";
-import { mpService } from "./multiplayerPeer";
 import GameRoomServer from "../server/index";
 import { partyService } from "./partyPeer";
 import { createInitialState } from "./gameLogic";
 import { gameReducer } from "./gameReducer";
 import { I18nProvider } from "../i18n/context";
-import * as database from "firebase/database";
-
-vi.mock("firebase/app", () => ({
-  initializeApp: vi.fn(),
-  getApps: vi.fn(() => []),
-  getApp: vi.fn(),
-}));
-
-vi.mock("firebase/auth", () => ({
-  getAuth: vi.fn(),
-  signInAnonymously: vi.fn(() => Promise.resolve({ user: { uid: "123" } })),
-  onAuthStateChanged: vi.fn((_auth, callback) => {
-    callback({ uid: "123" });
-    return () => {};
-  }),
-}));
-
-vi.mock("firebase/database", () => ({
-  getDatabase: vi.fn(),
-  ref: vi.fn((_, path) => ({ path })),
-  set: vi.fn(() => Promise.resolve()),
-  get: vi.fn(() => Promise.resolve({ exists: () => false, val: () => null })),
-  onValue: vi.fn(),
-  off: vi.fn(),
-  onDisconnect: vi.fn(() => ({
-    set: vi.fn(() => Promise.resolve()),
-    cancel: vi.fn(() => Promise.resolve()),
-    remove: vi.fn(() => Promise.resolve()),
-  })),
-  remove: vi.fn(() => Promise.resolve()),
-  update: vi.fn(() => Promise.resolve()),
-  push: vi.fn(() => Promise.resolve({ key: "mock_action_id" })),
-  onChildAdded: vi.fn(() => vi.fn()),
-  runTransaction: vi.fn((_, updateFn) => Promise.resolve({ committed: true, snapshot: { exists: () => true, val: () => (updateFn ? updateFn({}) : {}) } })),
-}));
 
 vi.mock("./audio", () => ({
   soundManager: {
@@ -68,9 +32,8 @@ describe("Сетевой протокол и синхронизация (Multipl
   it("Гонка PLAYER_READY: экшен готовности от удаленного игрока НЕ должен сбрасывать isIntroPhase", async () => {
     let actionCallback: ((action: any) => void) | undefined;
 
-    vi.spyOn(mpService, "subscribeToActions").mockImplementation((cb: any) => {
+    vi.spyOn(partyService, "onAction", "set").mockImplementation((cb: any) => {
       actionCallback = cb;
-      return () => {};
     });
 
     render(
@@ -134,37 +97,6 @@ describe("Сетевой протокол и синхронизация (Multipl
     });
 
     expect(onCompleteMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("Намеренный выход leaveRoom переводит комнату в статус CLOSED", async () => {
-    mpService.isHost = true;
-    mpService.roomCode = "1234";
-    (mpService as any).roomRef = {} as any;
-
-    await mpService.leaveRoom();
-
-    expect(database.update).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({
-        status: "CLOSED",
-      })
-    );
-  });
-
-  it("Отсутствие затирания экшенов: MATCH_STARTED содержит в себе matchPot и matchBet, исключая отправку SET_MATCH_POT", () => {
-    const state = createInitialState("SKHVATKA", "ONLINE", "KILLER");
-    state.matchPot = 500;
-    state.matchBet = 250;
-
-    const broadcastSpy = vi.spyOn(mpService, "broadcastMatchStart");
-    mpService.broadcastMatchStart(state);
-
-    expect(broadcastSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        matchPot: 500,
-        matchBet: 250,
-      })
-    );
   });
 
   it("Синхронизация выбора личности: экшен SET_INSPECTOR_ROLE обновляет detectiveSecretId", () => {
@@ -233,6 +165,7 @@ describe("Сетевой протокол и синхронизация (Multipl
 
     vi.useRealTimers();
   });
+
   it("Реванш после завершения партии: gameReducer не отбрасывает REQUEST_RESTART и MATCH_STARTED при наличии winner", () => {
     const state = createInitialState("SKHVATKA", "ONLINE", "KILLER");
     state.winner = "DETECTIVE";
@@ -257,36 +190,8 @@ describe("Сетевой протокол и синхронизация (Multipl
     expect(afterRestart.winner).toBeNull();
     expect(afterRestart.board).toEqual(newState.board);
   });
-
-  it("Маскирование broadcastMatchStart: гость-Инспектор получает inspectorChoices, если хост — Бандит", () => {
-    mpService.roomCode = "1234";
-    const state = createInitialState("SKHVATKA", "ONLINE", "KILLER");
-
-    // Убеждаемся, что у хоста-Бандита сформированы варианты для Инспектора
-    expect(state.inspectorChoices).toBeDefined();
-    expect(state.inspectorChoices!.length).toBe(4);
-
-    mpService.broadcastMatchStart(state);
-
-    // database.set вызывается для сохранения gameState в RTDB
-    expect(database.set).toHaveBeenCalled();
-
-    const setCalls = vi.mocked(database.set).mock.calls;
-    const gameStateCall = setCalls.find((call) => {
-      const pathArg = (call[0] as any)?.path;
-      return typeof pathArg === "string" && pathArg.includes("gameState");
-    });
-
-    expect(gameStateCall).toBeDefined();
-    const savedState = JSON.parse(gameStateCall![1] as string);
-
-    // inspectorChoices должен передаваться гостю-Инспектору без затирания
-    expect(savedState.inspectorChoices).toEqual(state.inspectorChoices);
-    // При этом секреты самого хоста-Бандита должны быть скрыты
-    expect(savedState.killerSecretId).toBeNull();
-    expect(savedState.killerHand).toEqual([]);
-  });
 });
+
 describe("GameRoomServer (PartyKit Мультиплеер)", () => {
   const createMockRoom = (roomId: string = "test_room") => {
     const connections = new Map<string, any>();
@@ -370,18 +275,79 @@ describe("GameRoomServer (PartyKit Мультиплеер)", () => {
 
     expect(server.state.status).toBe("PLAYING");
     expect(server.state.gameState!.currentTurn).toBe("KILLER");
+    expect(server.state.gameState!.killCount).toBe(0);
 
-    // Хост (KILLER) совершает сдвиг ряда
-    const shiftAction = {
+    // Попытка сдвига на первом ходу Бандита в SKHVATKA должна блокироваться правилами
+    const invalidShiftAction = {
       type: "SHIFT_BOARD",
       payload: { shiftType: "ROW", index: 0, direction: "FORWARD" },
       senderClientId: "c_h",
     };
+    server.onMessage(JSON.stringify(invalidShiftAction), hostConn as any);
+    expect(server.state.gameState!.currentTurn).toBe("KILLER");
 
-    server.onMessage(JSON.stringify(shiftAction), hostConn as any);
+    // Хост (KILLER) совершает обязательную ликвидацию (KILL_CHARACTER)
+    const targetCellId = server.state.gameState!.board[0][0].id;
+    const killAction = {
+      type: "KILL_CHARACTER",
+      payload: { targetId: targetCellId },
+      senderClientId: "c_h",
+    };
+
+    server.onMessage(JSON.stringify(killAction), hostConn as any);
 
     expect(server.state.gameState!.currentTurn).toBe("DETECTIVE");
+    expect(server.state.gameState!.killCount).toBe(1);
     expect(consoleWarnSpy).not.toHaveBeenCalledWith(expect.stringContaining("Move rejected: wrong turn"), expect.anything(), expect.anything(), expect.anything());
     consoleWarnSpy.mockRestore();
+  });
+
+  it("Тест 4 (Безопасность / Маскирование): Хост (KILLER) и Гость (DETECTIVE) получают только свои тайные данные", () => {
+    const mockRoom = createMockRoom("room_sec_test");
+    const server = new GameRoomServer(mockRoom as any);
+
+    const hostConn = createMockConnection("conn_h_sec", "http://localhost:1999/parties/main/room_sec_test?clientId=c_host_sec&nickname=Host&isHost=true&mode=SKHVATKA");
+    mockRoom._connectionsMap.set(hostConn.id, hostConn);
+    server.onConnect(hostConn as any, { request: new Request(hostConn.url) });
+
+    const guestConn = createMockConnection("conn_g_sec", "http://localhost:1999/parties/main/room_sec_test?clientId=c_guest_sec&nickname=Guest&isHost=false&mode=SKHVATKA");
+    mockRoom._connectionsMap.set(guestConn.id, guestConn);
+    server.onConnect(guestConn as any, { request: new Request(guestConn.url) });
+
+    expect(server.state.gameState).not.toBeNull();
+    const rawState = server.state.gameState!;
+    const originalKillerId = rawState.killerSecretId;
+    const originalDetectiveId = rawState.detectiveSecretId;
+
+    expect(originalKillerId).toBeTruthy();
+    expect(originalDetectiveId).toBeTruthy();
+
+    // Очищаем историю вызовов send после подключения
+    hostConn.send.mockClear();
+    guestConn.send.mockClear();
+
+    // Вызываем рассылку состояния
+    (server as any).broadcastState();
+
+    expect(hostConn.send).toHaveBeenCalled();
+    expect(guestConn.send).toHaveBeenCalled();
+
+    // Парсим пакеты SYNC_STATE
+    const hostPacket = JSON.parse(hostConn.send.mock.calls[0][0]);
+    const guestPacket = JSON.parse(guestConn.send.mock.calls[0][0]);
+
+    expect(hostPacket.type).toBe("SYNC_STATE");
+    expect(guestPacket.type).toBe("SYNC_STATE");
+
+    const hostState = hostPacket.gameState;
+    const guestState = guestPacket.gameState;
+
+    // Проверка для Хоста (KILLER): знает killerSecretId, но detectiveSecretId замаскирован
+    expect(hostState.killerSecretId).toBe(originalKillerId);
+    expect(hostState.detectiveSecretId).toBe("");
+
+    // Проверка для Гостя (DETECTIVE): знает detectiveSecretId, но killerSecretId замаскирован
+    expect(guestState.detectiveSecretId).toBe(originalDetectiveId);
+    expect(guestState.killerSecretId).toBe("");
   });
 });

@@ -27,12 +27,30 @@ function maskStateForPlayer(rawState: GameState, playerRole: string): GameState 
   const clone: GameState = JSON.parse(JSON.stringify(rawState));
   clone.playerRole = playerRole as any;
 
-  if (playerRole !== "KILLER" && clone.mode !== "SECRET_SERVICE") {
+  if (clone.mode === "SECRET_SERVICE") {
+    if (Array.isArray(clone.spies)) {
+      const mySpyIndex = playerRole === "KILLER" ? 0 : playerRole === "DETECTIVE" ? 1 : -1;
+      clone.spies = clone.spies.map((s: any, idx: number) => {
+        if (idx !== mySpyIndex) {
+          return { ...s, secretId: "" };
+        }
+        return s;
+      });
+    }
+    return clone;
+  }
+
+  // Для Бандита (KILLER) скрываем тайную личность Сыщика (DETECTIVE)
+  if (playerRole === "KILLER") {
+    clone.detectiveSecretId = "" as any;
+  } else {
+    // Для Сыщика (DETECTIVE) скрываем тайную личность Бандита и его карты на руке
     clone.killerSecretId = "" as any;
     if (Array.isArray(clone.killerHand)) {
       clone.killerHand = clone.killerHand.map(() => "???");
     }
   }
+
   return clone;
 }
 

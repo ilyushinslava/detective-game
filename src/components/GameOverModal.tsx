@@ -93,7 +93,7 @@ export const GameOverModal = ({
             className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${
               isRedTheme
                 ? 'bg-red-950/80 text-red-300 border-red-700/60'
-                : 'bg-cyan-950/80 text-cyan-300 border-cyan-700/60'
+                : 'bg-amber-950/80 text-amber-300 border-amber-700/60'
             }`}
           >
             {roleName}

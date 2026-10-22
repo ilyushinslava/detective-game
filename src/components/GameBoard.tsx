@@ -170,7 +170,7 @@ export const GameBoard = ({
                 "border-red-500 ring-1 ring-red-500/80 shadow-[0_0_15px_rgba(239,68,68,0.4)]";
             } else if (showDetectiveHints && detectiveAdjacentIds.includes(character.id)) {
               neighborColor =
-                "border-cyan-500 ring-1 ring-cyan-500/80 shadow-[0_0_15px_rgba(6,182,212,0.4)]";
+                "border-amber-500 ring-1 ring-amber-500/80 shadow-[0_0_15px_rgba(245,158,11,0.4)]";
             }
 
             const isRedRadar = Boolean(radarColorClass?.includes("red"));
@@ -204,8 +204,8 @@ export const GameBoard = ({
                     <div
                       className={`absolute inset-0 rounded-2xl mix-blend-screen transition-opacity duration-300 ${
                         isRadarTarget
-                          ? isRedRadar ? "bg-red-500/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.3)]" : "bg-cyan-500/20 shadow-[inset_0_0_15px_rgba(6,182,212,0.3)]"
-                          : isRedRadar ? "bg-red-500/10" : "bg-cyan-500/10"
+                          ? isRedRadar ? "bg-red-500/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.3)]" : "bg-amber-500/20 shadow-[inset_0_0_15px_rgba(245,158,11,0.3)]"
+                          : isRedRadar ? "bg-red-500/10" : "bg-amber-500/10"
                       }`}
                     />
 
@@ -217,19 +217,19 @@ export const GameBoard = ({
                         height="calc(100% - 2px)"
                         rx="14"
                         fill="none"
-                        stroke={isRedRadar ? "#f87171" : "#22d3ee"}
+                        stroke={isRedRadar ? "#f87171" : "#fbbf24"}
                         strokeWidth="2"
                         strokeLinecap="round"
                         className="radar-marching-stroke"
                         style={{
-                          filter: `drop-shadow(0 0 4px ${isRedRadar ? "rgba(239,68,68,0.6)" : "rgba(6,182,212,0.6)"})`,
+                          filter: `drop-shadow(0 0 4px ${isRedRadar ? "rgba(239,68,68,0.6)" : "rgba(245,158,11,0.6)"})`,
                         }}
                       />
                     </svg>
 
                     {isRadarTarget && (
-                      <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-zinc-950/90 border border-cyan-400 flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.9)] z-30">
-                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+                      <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-zinc-950/90 border border-amber-400 flex items-center justify-center shadow-[0_0_10px_rgba(245,158,11,0.9)] z-30">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
                       </div>
                     )}
                   </div>

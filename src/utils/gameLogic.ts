@@ -527,6 +527,7 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     currentTurn: "DETECTIVE",
     blockedShift: null,
     lastInterrogation,
+    interrogationRadar: null,
     log: [
       ...state.log,
       `Ликвидация: персонаж ${killedName} устранен.${
@@ -590,6 +591,9 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
 
 export function accuseCharacter(state: GameState, targetId: string): GameState {
   if (state.winner) return state;
+  if (state.mode === "THIEF_HUNT" && state.uniformedOfficers?.includes(targetId)) {
+    return state;
+  }
 
   let isAdjacent = areAdjacent(state.board, state.detectiveSecretId, targetId);
   let isSelf = targetId === state.detectiveSecretId;
@@ -606,7 +610,7 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
   if (!isAdjacent && !isSelf) return state;
 
   const targetChar = state.board.flat().find((c) => c.id === targetId);
-  if (!targetChar || !targetChar.isAlive) return state;
+  if (!targetChar || !targetChar.isAlive || targetChar.isExonerated) return state;
 
   const targetName = targetChar.name;
 
@@ -671,6 +675,7 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
     currentTurn: "KILLER",
     blockedShift: null,
     lastInterrogation: null,
+    interrogationRadar: null,
     log: [...state.log, logMsg],
   };
 }
@@ -1028,6 +1033,7 @@ export function escapeManiac(state: GameState): GameState {
       currentTurn: "DETECTIVE",
       blockedShift: null,
       lastInterrogation: null,
+      interrogationRadar: null,
       disguisedNotification: { roleName: "Маньяк", newSecretId: drawnId },
       log: [
         ...state.log,
@@ -1042,6 +1048,7 @@ export function escapeManiac(state: GameState): GameState {
       currentTurn: "DETECTIVE",
       blockedShift: null,
       lastInterrogation: null,
+      interrogationRadar: null,
       log: [
         ...state.log,
         "Провал побега: вытянута карта убитого. Маньяк остался в прежнем облике.",

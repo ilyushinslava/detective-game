@@ -24,7 +24,7 @@ describe("Игровые правила (Rules Audit)", () => {
     let state = createInitialState("THIEF_HUNT", "PVP");
     state.currentTurn = "DETECTIVE";
     
-    const targetId = state.board.flat().find(c => c.id !== state.killerSecretId)!.id;
+    const targetId = state.board.flat().find(c => c.id !== state.killerSecretId && !state.uniformedOfficers?.includes(c.id))!.id;
     // Подменяем позицию сыщика для успешного обхода проверки "соседство"
     state.detectiveSecretId = targetId; 
     

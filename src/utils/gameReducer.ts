@@ -45,6 +45,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
   const computeNextState = (): GameState => {
     switch (action.type) {
     case "SHIFT_BOARD": {
+      // В "Схватке" первый ход Бандита обязан быть ликвидацией (сдвиг запрещен для локального игрока)
+      if (!isRemote && state.mode === "SKHVATKA" && state.killCount === 0 && state.currentTurn === "KILLER") {
+        return state;
+      }
+
       const { shiftType, index, direction } = action.payload;
 
       // Блокируем анти-отмену ТОЛЬКО для локальных ходов. Удаленные ходы применяются безусловно.

@@ -128,6 +128,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   const currentMyCharacterId = useMemo(() => {
     if (currentModule === "SKHVATKA") {
+      if (lesson === 3) return null;
       if (lesson === 4) return L4_PLAYER_ID;
       return skhvatkaBanditId;
     }
@@ -156,7 +157,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   const targetVictimName = targetVictimChar?.name ?? "Елена Соколова";
 
   const { radarTargetId, radarCellIds, radarColorClass } = useMemo(() => {
-    const tacticalRadarClass = "border-cyan-400 ring-2 ring-cyan-500/70";
+    const tacticalRadarClass = "border-amber-400 ring-2 ring-amber-500/70";
 
     if (currentModule === "SKHVATKA") {
       if (lesson === 2 && step === 3 && killedTargetId) {
@@ -185,7 +186,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       return {
         radarTargetId: interrogatedTargetId,
         radarCellIds: [interrogatedTargetId, ...neighborIds],
-        radarColorClass: scanResult === "NEAR" ? "border-red-400 ring-2 ring-red-500/80" : "border-cyan-400 ring-2 ring-cyan-500/80",
+        radarColorClass: scanResult === "NEAR" ? "border-red-400 ring-2 ring-red-500/80" : "border-amber-400 ring-2 ring-amber-500/80",
       };
     }
 
@@ -200,7 +201,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     if (currentModule === "SECRET_SERVICE") {
       if (lesson === 1) {
         if (scanResult === "NEAR") return <span className="text-red-400 font-bold animate-pulse">Показания: ВРАГ РЯДОМ (ДА)</span>;
-        if (scanResult === "FAR") return <span className="text-cyan-400 font-bold">Показания: ВНЕ ЗОНЫ (НЕТ) — резидента рядом нет. Опросите другого очевидца</span>;
+        if (scanResult === "FAR") return <span className="text-amber-400 font-bold">Показания: ВНЕ ЗОНЫ (НЕТ) — резидента рядом нет. Опросите другого очевидца</span>;
         return <span className="text-zinc-300 font-bold">Оперативные показания: выберите очевидца для опроса</span>;
       }
       if (lesson === 2) {
@@ -208,8 +209,8 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       }
     }
     if (currentModule === "SKHVATKA") {
-      if (lesson === 2 && step >= 3) return <span className="text-cyan-400 font-bold">Показания очевидцев: ИНСПЕКТОР ВНЕ ЗОНЫ</span>;
-      if (lesson === 3) return <span className="text-cyan-400 font-bold">Зона очевидца: СЕКТОР 3×3 (сужение круга поиска)</span>;
+      if (lesson === 2 && step >= 3) return <span className="text-amber-400 font-bold">Показания очевидцев: ИНСПЕКТОР ВНЕ ЗОНЫ</span>;
+      if (lesson === 3) return <span className="text-amber-400 font-bold">Зона очевидца: СЕКТОР 3×3 (сужение круга поиска)</span>;
       if (lesson === 4) return <span className="text-zinc-400 font-bold">Зачистка: устраните скопление тел для маневра</span>;
     }
     if (currentModule === "MANIAC") {
@@ -486,12 +487,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               ✕ В меню
             </button>
             <div className="flex flex-col items-center">
-              <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest">Академия</span>
+              <span className="text-[9px] font-mono text-amber-400 uppercase tracking-widest">Академия</span>
               <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase">Каталог дел</h2>
             </div>
             <div className="text-right">
               <span className="text-[10px] font-mono text-zinc-400">
-                Пройдено: <b className="text-cyan-400">{completedModules.length}</b>/4
+                Пройдено: <b className="text-amber-400">{completedModules.length}</b>/4
               </span>
             </div>
           </div>
@@ -501,8 +502,8 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               onClick={() => startModule("SKHVATKA")}
               className={`p-4 rounded-2xl border transition cursor-pointer shadow-lg active:scale-99 ${
                 completedModules.includes("SKHVATKA")
-                  ? "bg-gradient-to-r from-cyan-950/20 via-zinc-900/60 to-zinc-900/40 border-emerald-500/40"
-                  : "bg-gradient-to-r from-cyan-950/40 via-zinc-900/60 to-zinc-900/40 border-cyan-500/40 hover:border-cyan-400"
+                  ? "bg-gradient-to-r from-amber-950/20 via-zinc-900/60 to-zinc-900/40 border-emerald-500/40"
+                  : "bg-gradient-to-r from-amber-950/40 via-zinc-900/60 to-zinc-900/40 border-amber-500/40 hover:border-amber-400"
               }`}
             >
               <div className="flex items-center justify-between mb-1">
@@ -576,10 +577,10 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               </button>
             ) : (
               <button
-                onClick={onFinish}
+                onClick={allModulesCompleted ? onFinish : onExit}
                 className="w-full h-12 rounded-full bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-800 text-white font-black tracking-widest uppercase text-xs shadow-lg transition active:scale-98 cursor-pointer"
               >
-                {allModulesCompleted ? "Завершить курс (+250 CR)" : "Завершить курс (В меню)"}
+                {allModulesCompleted ? "Завершить курс (+250 CR)" : "В главное меню"}
               </button>
             )}
           </div>
@@ -594,9 +595,9 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
         .tutorial-highlight-l1s2 button[title*="Сдвиг влево"]:nth-of-type(3),
         .tutorial-highlight-maniac button[title*="Сдвиг вниз"]:nth-of-type(3) {
           position: relative; z-index: 30;
-          box-shadow: 0 0 20px rgba(6,182,212,0.95) !important;
-          border-color: #22d3ee !important;
-          background-color: rgba(6,182,212,0.3) !important;
+          box-shadow: 0 0 20px rgba(245,158,11,0.95) !important;
+          border-color: #fbbf24 !important;
+          background-color: rgba(245,158,11,0.3) !important;
           color: white !important;
           animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
         }
@@ -606,7 +607,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
           <button onClick={() => setCurrentModule("MENU")} className="text-zinc-500 hover:text-white transition cursor-pointer text-xs font-black uppercase tracking-widest bg-zinc-900 px-3 py-1.5 rounded-lg border border-white/5">
             ← К делам
           </button>
-          <h2 className="text-sm font-black tracking-widest text-cyan-400 uppercase text-center flex-1">
+          <h2 className="text-sm font-black tracking-widest text-amber-400 uppercase text-center flex-1">
             {currentModule === "SKHVATKA" ? "СХВАТКА" : currentModule === "MANIAC" ? "МАНЬЯК" : currentModule === "THIEF" ? "ОХОТА НА ВОРА" : "СЕКРЕТНАЯ СЛУЖБА"}
           </h2>
           <div className="w-16 shrink-0" />
@@ -618,7 +619,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "SKHVATKA" && lesson === 1 && (step === 1 || step === 2) && (
                 <motion.div key="l1s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Урок 1: Основы маневра</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Бандит в центре (ВЫ). Подсвечена зона 8 соседей. Цель вне досягаемости. <b className="text-cyan-400">НАЖМИТЕ стрелку ← у 3-го ряда</b> для смещения.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Бандит в центре (ВЫ). Подсвечена зона 8 соседей. Цель вне досягаемости. <b className="text-amber-400">НАЖМИТЕ стрелку ← у 3-го ряда</b> для смещения.</p>
                 </motion.div>
               )}
               {currentModule === "SKHVATKA" && lesson === 1 && step === 3 && (
@@ -682,7 +683,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "MANIAC" && lesson === 1 && step === 1 && (
                 <motion.div key="maniac1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Очередь целей: список смертников и сближение</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Маньяк (ВЫ) в клетке ряда 3. Открыта цель — {targetVictimName} (дистанция 2 шага). <b className="text-cyan-400">Сдвиньте 3-ю колонку вниз (↓)</b>, чтобы подвести её в зону удара.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Маньяк (ВЫ) в клетке ряда 3. Открыта цель — {targetVictimName} (дистанция 2 шага). <b className="text-amber-400">Сдвиньте 3-ю колонку вниз (↓)</b>, чтобы подвести её в зону удара.</p>
                 </motion.div>
               )}
               {currentModule === "MANIAC" && lesson === 1 && step === 2 && (
@@ -765,7 +766,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               )}
               {currentModule === "SECRET_SERVICE" && lesson === 1 && step === 3 && (
                 <motion.div key="ss3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <h3 className="text-sm sm:text-base font-black text-cyan-400 uppercase tracking-wider mb-0.5">Враг рядом (ДА)!</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Враг рядом (ДА)!</h3>
                   <p className="text-xs text-zinc-400 font-mono">Опрос свидетеля рядом с резидентом дает статус «Враг рядом (ДА)». Очевидец и его окружение охвачены сектором.</p>
                 </motion.div>
               )}
@@ -813,9 +814,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                 (currentModule === "SECRET_SERVICE" && lesson === 1 && (step === 1 || (step === 2 && scanResult === "FAR"))) ||
                 (currentModule === "SECRET_SERVICE" && lesson === 2 && step === 1)
               }
-              showDetectiveHints={
-                (currentModule === "SKHVATKA" && lesson === 3 && step === 1)
-              }
+              showDetectiveHints={false}
               targetVictimId={
                 currentModule === "MANIAC" ? targetVictimId : null
               }
@@ -833,22 +832,22 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
           <div className="h-16 md:h-20 shrink-0 w-full flex items-center justify-center px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-[#080a0f] to-transparent z-20">
             <AnimatePresence mode="wait">
               {currentModule === "SKHVATKA" && lesson === 1 && step === 3 && (
-                <motion.button onClick={() => { setLesson(2); setStep(1); setBoard(getInitialBoard("SKHVATKA", 2)); }} className="w-full max-w-sm h-11 md:h-12 bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Урок 2: Ликвидация ➔</motion.button>
+                <motion.button onClick={() => { setLesson(2); setStep(1); setBoard(getInitialBoard("SKHVATKA", 2)); }} className="w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Урок 2: Ликвидация ➔</motion.button>
               )}
               {currentModule === "SKHVATKA" && lesson === 2 && step === 2 && (
                 <motion.button onClick={handleKill} className="w-full max-w-sm h-11 md:h-12 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Ликвидировать</motion.button>
               )}
               {currentModule === "SKHVATKA" && lesson === 2 && step === 3 && (
-                <motion.button onClick={() => { setLesson(3); setStep(1); setBoard(getInitialBoard("SKHVATKA", 3)); }} className="w-full max-w-sm h-11 md:h-12 bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Урок 3: Задержание ➔</motion.button>
+                <motion.button onClick={() => { setLesson(3); setStep(1); setBoard(getInitialBoard("SKHVATKA", 3)); }} className="w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Урок 3: Задержание ➔</motion.button>
               )}
               {currentModule === "SKHVATKA" && lesson === 3 && step === 2 && (
-                <motion.button onClick={handleArrest} className="w-full max-w-sm h-11 md:h-12 bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Задержание</motion.button>
+                <motion.button onClick={handleArrest} className="w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Задержание</motion.button>
               )}
               {currentModule === "SKHVATKA" && lesson === 3 && step === 3 && (
-                <motion.button onClick={() => { setLesson(4); setStep(1); setBoard(getInitialBoard("SKHVATKA", 4)); }} className="w-full max-w-sm h-11 md:h-12 bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Урок 4: Зачистка ➔</motion.button>
+                <motion.button onClick={() => { setLesson(4); setStep(1); setBoard(getInitialBoard("SKHVATKA", 4)); }} className="w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Урок 4: Зачистка ➔</motion.button>
               )}
               {currentModule === "SKHVATKA" && lesson === 4 && step === 1 && (
-                <motion.button onClick={handleCleanup} className="w-full max-w-sm h-11 md:h-12 bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Зачистить</motion.button>
+                <motion.button onClick={handleCleanup} className="w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Зачистить</motion.button>
               )}
               {currentModule === "SKHVATKA" && lesson === 4 && step === 2 && (
                 <motion.button
@@ -866,7 +865,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                 <motion.button onClick={handleKill} className="w-full max-w-sm h-11 md:h-12 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Ликвидировать по заказу</motion.button>
               )}
               {currentModule === "MANIAC" && lesson === 1 && step === 4 && (
-                <motion.button onClick={() => { setLesson(2); setStep(1); setBoard(getInitialBoard("MANIAC", 2)); }} className="w-full max-w-sm h-11 md:h-12 bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Урок 2: Побег ➔</motion.button>
+                <motion.button onClick={() => { setLesson(2); setStep(1); setBoard(getInitialBoard("MANIAC", 2)); }} className="w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Урок 2: Побег ➔</motion.button>
               )}
               {currentModule === "MANIAC" && lesson === 2 && step === 1 && (
                 <motion.button onClick={handleEscape} className="w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-zinc-950 font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Конспирация (Побег)</motion.button>
@@ -887,7 +886,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                 <motion.button onClick={handleRob} className="w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-zinc-950 font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Кража сокровища</motion.button>
               )}
               {currentModule === "THIEF" && lesson === 1 && step === 3 && (
-                <motion.button onClick={() => { setLesson(2); setStep(1); setBoard(getInitialBoard("THIEF", 2)); }} className="w-full max-w-sm h-11 md:h-12 bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Урок 2: Маскировка ➔</motion.button>
+                <motion.button onClick={() => { setLesson(2); setStep(1); setBoard(getInitialBoard("THIEF", 2)); }} className="w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Урок 2: Маскировка ➔</motion.button>
               )}
               {currentModule === "THIEF" && lesson === 2 && step === 1 && (
                 <motion.button onClick={handleFastDisguise} className="w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-zinc-950 font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Конспирация (Маска)</motion.button>
@@ -905,10 +904,10 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               )}
 
               {currentModule === "SECRET_SERVICE" && lesson === 1 && step === 2 && Boolean(selectedId) && (
-                <motion.button onClick={handleInterrogate} className="w-full max-w-sm h-11 md:h-12 bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Опрос свидетелей</motion.button>
+                <motion.button onClick={handleInterrogate} className="w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Опрос свидетелей</motion.button>
               )}
               {currentModule === "SECRET_SERVICE" && lesson === 1 && step === 3 && (
-                <motion.button onClick={() => { setLesson(2); setStep(1); setBoard(getInitialBoard("SECRET_SERVICE", 2)); setInterrogatedTargetId(null); setScanResult(null); }} className="w-full max-w-sm h-11 md:h-12 bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Урок 2: Разоблачение ➔</motion.button>
+                <motion.button onClick={() => { setLesson(2); setStep(1); setBoard(getInitialBoard("SECRET_SERVICE", 2)); setInterrogatedTargetId(null); setScanResult(null); }} className="w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Урок 2: Разоблачение ➔</motion.button>
               )}
               {currentModule === "SECRET_SERVICE" && lesson === 2 && step === 2 && (
                 <motion.button onClick={handleCaptureSpy} className="w-full max-w-sm h-11 md:h-12 bg-purple-600 hover:bg-purple-500 text-white font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer">Разоблачение шпиона</motion.button>
@@ -964,3 +963,4 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     </div>
   );
 };
+

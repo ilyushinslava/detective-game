@@ -40,12 +40,26 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
     expect(screen.queryByText("УБИТ")).toBeNull();
   });
 
-  it("Кнопка завершения курса в каталоге вызывает onFinish", () => {
+  it("Кнопка завершения курса: вызывает onExit если модули не пройдены, и onFinish если все сданы", () => {
+    localStorage.clear();
+    const onExit = vi.fn();
     const onFinish = vi.fn();
-    const { container } = render(<TutorialScreen onExit={vi.fn()} onFinish={onFinish} />);
 
-    const finishBtn = container.querySelector('button.from-emerald-700') || screen.getAllByRole('button', { name: /Завершить курс/i })[0];
+    // 1. Модули не пройдены -> вызывается onExit без начисления наград
+    const { container, unmount } = render(<TutorialScreen onExit={onExit} onFinish={onFinish} />);
+    const exitBtn = container.querySelector('button.from-emerald-700') || screen.getAllByRole('button', { name: /В главное меню/i })[0];
+    fireEvent.click(exitBtn);
+    expect(onExit).toHaveBeenCalledTimes(1);
+    expect(onFinish).not.toHaveBeenCalled();
+    unmount();
+
+    // 2. Все модули пройдены -> вызывается onFinish
+    localStorage.setItem("crime_city_completed_modules", JSON.stringify(["SKHVATKA", "MANIAC", "THIEF", "SECRET_SERVICE"]));
+    const onFinishCompleted = vi.fn();
+    const { container: containerCompleted } = render(<TutorialScreen onExit={vi.fn()} onFinish={onFinishCompleted} />);
+    const finishBtn = containerCompleted.querySelector('button.from-emerald-700') || screen.getAllByRole('button', { name: /Завершить курс/i })[0];
     fireEvent.click(finishBtn);
-    expect(onFinish).toHaveBeenCalledTimes(1);
+    expect(onFinishCompleted).toHaveBeenCalledTimes(1);
+    localStorage.clear();
   });
 });

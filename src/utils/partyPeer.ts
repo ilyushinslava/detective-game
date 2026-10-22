@@ -27,16 +27,16 @@ class PartyPeerService {
 
   constructor() {
     let storedId: string | null = null;
-    if (typeof window !== "undefined" && window.localStorage) {
+    if (typeof window !== "undefined" && window.sessionStorage) {
       try {
-        storedId = localStorage.getItem("crime_city_party_client_id");
+        storedId = sessionStorage.getItem("crime_city_party_client_id");
       } catch {}
     }
     if (!storedId) {
       storedId = "client_" + Math.random().toString(36).substring(2, 9);
-      if (typeof window !== "undefined" && window.localStorage) {
+      if (typeof window !== "undefined" && window.sessionStorage) {
         try {
-          localStorage.setItem("crime_city_party_client_id", storedId);
+          sessionStorage.setItem("crime_city_party_client_id", storedId);
         } catch {}
       }
     }
@@ -56,9 +56,9 @@ class PartyPeerService {
     this.isHost = isHost;
     if (clientId) {
       this.myClientId = clientId;
-      if (typeof window !== "undefined" && window.localStorage) {
+      if (typeof window !== "undefined" && window.sessionStorage) {
         try {
-          localStorage.setItem("crime_city_party_client_id", clientId);
+          sessionStorage.setItem("crime_city_party_client_id", clientId);
         } catch {}
       }
     }
@@ -107,7 +107,7 @@ class PartyPeerService {
           }
         } else if (data.type === "ROOM_STATUS") {
           if (this.onRoomStatus) {
-            this.onRoomStatus(data);
+            this.onRoomStatus(data.status || data);
           }
         } else if (data.type === "PLAYER_READY_UPDATE") {
           if (this.onAction) {

@@ -1,4 +1,4 @@
-{
+﻿{
     "name": "detective-game",
     "private": true,
     "version": "0.0.0",
@@ -6,7 +6,8 @@
     "scripts": {
         "patch:run": "node patcher.cjs && npm run audit:all && npm run dev:all",
         "dev:all": "concurrently \"npm run party:dev\" \"npm run dev\"",
-        "party:dev": "partykit dev",
+        "server:start": "partykit dev --host 0.0.0.0",
+    "party:dev": "partykit dev",
         "dev": "vite --host",
         "build": "tsc && vite build",
         "preview": "vite preview",
@@ -43,3 +44,4 @@
         "vitest": "^1.6.0"
     }
 }
+

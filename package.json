@@ -1,4 +1,4 @@
-﻿{
+{
     "name": "detective-game",
     "private": true,
     "version": "0.0.0",
@@ -7,7 +7,7 @@
         "patch:run": "node patcher.cjs && npm run audit:all && npm run dev:all",
         "dev:all": "concurrently \"npm run party:dev\" \"npm run dev\"",
         "server:start": "partykit dev --host 0.0.0.0",
-    "party:dev": "partykit dev",
+        "party:dev": "partykit dev",
         "dev": "vite --host",
         "build": "tsc && vite build",
         "preview": "vite preview",
@@ -19,7 +19,6 @@
     },
     "dependencies": {
         "framer-motion": "^11.1.7",
-        "partysocket": "^1.3.0",
         "react": "^18.3.1",
         "react-dom": "^18.3.1"
     },
@@ -34,7 +33,6 @@
         "esbuild": "^0.28.2",
         "gh-pages": "^6.3.0",
         "jsdom": "^29.1.1",
-        "partykit": "^0.0.115",
         "postcss": "8.4.38",
         "sharp": "^0.35.5",
         "tailwindcss": "3.4.3",
@@ -44,4 +42,3 @@
         "vitest": "^1.6.0"
     }
 }
-

@@ -70,9 +70,9 @@ class PartyPeerService {
       window.location.hostname.startsWith("10.") ||
       window.location.hostname.endsWith(".local");
 
-    const host = isLocal
-      ? `${window.location.hostname}:1999`
-      : window.location.host;
+    const host =
+      (import.meta as any).env?.VITE_PARTYKIT_HOST ||
+      (isLocal ? `${window.location.hostname}:1999` : window.location.host);
        // Для продакшена
 
     this.socket = new PartySocket({
@@ -179,7 +179,14 @@ class PartyPeerService {
   }>> {
     try {
       const protocol = typeof window !== "undefined" && window.location.protocol === "https:" ? "https:" : "http:";
-      const host = (this as any).partyHost || (typeof window !== "undefined" && window.location.port === "5173" ? `${window.location.hostname}:1999` : (typeof window !== "undefined" ? window.location.host : "localhost:1999"));
+      const host =
+        (import.meta as any).env?.VITE_PARTYKIT_HOST ||
+        (this as any).partyHost ||
+        (typeof window !== "undefined" && window.location.port === "5173"
+          ? `${window.location.hostname}:1999`
+          : typeof window !== "undefined"
+          ? window.location.host
+          : "localhost:1999");
       let res = await fetch(`${protocol}//${host}/parties/main`, { method: "GET" }).catch(() => null);
       if (!res || !res.ok) {
         res = await fetch(`${protocol}//${host}/party/main`, { method: "GET" }).catch(() => null);

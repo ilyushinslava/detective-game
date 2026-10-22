@@ -1,0 +1,10 @@
+﻿services:
+  - type: web
+    name: detective-game-server
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run server:start
+    envVars:
+      - key: NODE_VERSION
+        value: 20

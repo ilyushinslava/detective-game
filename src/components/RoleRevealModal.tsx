@@ -1,11 +1,12 @@
 ﻿import { useState, useEffect, useRef } from "react";
+import { partyService } from "../utils/partyPeer";
 import type {
   Character,
   GameModeType,
   OpponentType,
   Role,
 } from "../types/game";
-import { mpService } from "../utils/multiplayerPeer";
+
 
 const characterImages = import.meta.glob<{ default: string }>(
   "../assets/characters/*.webp",
@@ -116,6 +117,7 @@ const renderSilhouetteSvg = (id: string) => {
 };
 
 interface RoleRevealModalProps {
+  onReady?: () => void;
   mode: GameModeType;
   opponent: OpponentType;
   playerRole: Role;
@@ -131,6 +133,7 @@ interface RoleRevealModalProps {
 }
 
 export const RoleRevealModal = ({
+  onReady,
   mode,
   opponent,
   playerRole,
@@ -139,11 +142,50 @@ export const RoleRevealModal = ({
   inspectorChoices,
   role1Name: propRole1Name,
   role2Name: propRole2Name,
-  isOpponentConnected: _isOpponentConnected = true,
+  isOpponentConnected,
   onSelectDetectiveRole,
   onComplete,
   onCancelMatch,
 }: RoleRevealModalProps) => {
+  useEffect(() => {
+    if (opponent === "ONLINE") {
+      const prevAllReady = partyService.onAllPlayersReady;
+      const prevStatus = partyService.onRoomStatus;
+      const prevAction = partyService.onAction;
+
+      partyService.onAction = (action: any) => {
+        if (prevAction) prevAction(action);
+        // Не закрываем модалку по промежуточным PLAYER_READY_UPDATE!
+        // Закрываем ТОЛЬКО когда сервер подтвердил готовность ОБОИХ игроков
+        if (action?.type === "ALL_PLAYERS_READY") {
+          remoteReadyRef.current = true;
+          completeOnce();
+        }
+      };
+
+      partyService.onAllPlayersReady = () => {
+        if (prevAllReady) prevAllReady();
+        remoteReadyRef.current = true;
+        completeOnce();
+      };
+
+      partyService.onRoomStatus = (data: any) => {
+        const s = typeof data === "string" ? data : data?.status;
+        if (prevStatus) prevStatus(data);
+        if (s === "PLAYING") {
+          remoteReadyRef.current = true;
+          completeOnce();
+        }
+      };
+
+      return () => {
+        partyService.onAllPlayersReady = prevAllReady;
+        partyService.onRoomStatus = prevStatus;
+        partyService.onAction = prevAction;
+      };
+    }
+  }, [opponent, onComplete]);
+
   let role1Name = propRole1Name || "Бандит";
   let role2Name = propRole2Name || "Инспектор";
   let role1Goal = "Ликвидация Инспектора или 14 жертв";
@@ -210,24 +252,8 @@ export const RoleRevealModal = ({
   useEffect(() => {
     if (opponent !== "ONLINE") return;
 
-    const checkAndComplete = (ready: boolean) => {
-      if (ready) {
-        remoteReadyRef.current = true;
-        if (isWaitingRemoteRef.current) {
-          completeOnce();
-        }
-      }
-    };
-
-    const unsubscribeActions = mpService.subscribeToActions((action: any) => {
-      if (action.type === "PLAYER_READY") {
-        checkAndComplete(true);
-      }
-    });
-
-    const unsubscribePresence = mpService.subscribeToOpponentReady((ready) => {
-      checkAndComplete(ready);
-    });
+    const unsubscribeActions = () => {};
+    const unsubscribePresence = () => {};
 
     return () => {
       unsubscribeActions();
@@ -261,6 +287,8 @@ export const RoleRevealModal = ({
     if (selectedInspectorId) {
       onSelectDetectiveRole(selectedInspectorId);
     }
+    partyService.sendAction({ type: "PLAYER_READY", senderId: (partyService as any).myClientId || "local" } as any);
+    onReady?.();
     onComplete();
   };
 
@@ -268,11 +296,16 @@ export const RoleRevealModal = ({
     if (selectedInspectorId) {
       onSelectDetectiveRole(selectedInspectorId);
     }
-    mpService.setPlayerReady(true);
-    mpService.sendAction({ type: "PLAYER_READY", senderId: "local" } as any);
+    partyService.sendAction({ type: "PLAYER_READY", senderId: partyService.myClientId } as any);
+    if (onReady) {
+      onReady();
+    }
+    // Если сервер уже прислал сигнал старта игры — закрываем
     if (remoteReadyRef.current) {
       completeOnce();
     } else {
+      // Иначе ВСЕГДА держим экран ожидания соперника с АФК таймером
+      isWaitingRemoteRef.current = true;
       setIsWaitingRemote(true);
     }
   };

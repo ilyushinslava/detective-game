@@ -2,7 +2,7 @@
 import type { GameModeType, OpponentType, Role } from "../types/game";
 import type { UserProfile } from "../types/profile";
 import { triggerHaptic, setHapticsEnabled } from "../utils/haptics";
-import { mpService, type PublicRoomMeta } from "../utils/multiplayerPeer";
+import { partyService } from "../utils/partyPeer";
 import { soundManager } from "../utils/audio";
 import { Toast } from "./Toast";
 import { TutorialScreen } from "./TutorialScreen";
@@ -165,7 +165,15 @@ export const MainMenu = ({
   const [selectedRole, setSelectedRole] = useState<Role>("DETECTIVE");
   const [playerCount, setPlayerCount] = useState<number>(3);
 
-  const [publicRooms, setPublicRooms] = useState<PublicRoomMeta[]>([]);
+  const [publicRooms, setPublicRooms] = useState<Array<{
+    roomCode: string;
+    mode: string;
+    hostName: string;
+    status: string;
+    playersCount: number;
+    maxPlayers: number;
+    bet?: number;
+  }>>([]);
   const [joinCode, setJoinCode] = useState("");
   const [roomFilter, setRoomFilter] = useState<string>("ALL");
   const [isCreateRoomOpen, setIsCreateRoomOpen] = useState(false);
@@ -174,6 +182,7 @@ export const MainMenu = ({
   const [createRoomIsPrivate, setCreateRoomIsPrivate] = useState<boolean>(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
+  const [partyRoomCode, setPartyRoomCode] = useState<string>("");
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [editNameValue, setEditNameValue] = useState(profile.nickname);
@@ -195,14 +204,30 @@ export const MainMenu = ({
   }, [activeTab]);
 
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
+    let timer: NodeJS.Timeout | null = null;
+    let isSubscribed = true;
+
+    const loadRooms = async () => {
+      if (screen === "TABLES") {
+        try {
+          const rooms = await partyService.fetchPublicRooms();
+          if (isSubscribed) {
+            setPublicRooms(rooms as any);
+          }
+        } catch (e) {
+          console.warn("fetchPublicRooms error:", e);
+        }
+      }
+    };
+
     if (screen === "TABLES") {
-      unsubscribe = mpService.subscribeToPublicRooms((rooms) => {
-        setPublicRooms(rooms);
-      });
+      loadRooms();
+      timer = setInterval(loadRooms, 3000);
     }
+
     return () => {
-      if (unsubscribe) unsubscribe();
+      isSubscribed = false;
+      if (timer) clearInterval(timer);
     };
   }, [screen]);
 
@@ -224,80 +249,83 @@ export const MainMenu = ({
     }
   };
 
+  const connectToPartyRoom = (
+    code: string,
+    mode: GameModeType,
+    isHost: boolean,
+    bet: number = 250,
+  ) => {
+    const cleanCode = String(code).trim();
+    partyService.roomCode = cleanCode;
+    setPartyRoomCode(cleanCode);
+    setIsCreating(false);
+    setIsWaitingForOpponent(true);
+    let hasStarted = false;
+
+    partyService.onError = (err: any) => {
+      if (err === "ROOM_NOT_FOUND") {
+        setToastMessage("Комната не найдена или еще не создана хостом");
+        setIsWaitingForOpponent(false);
+        setIsCreating(false);
+        partyService.disconnect();
+      }
+    };
+
+    partyService.onRoomStatus = (data: any) => {
+      const roomStatus = typeof data === "string" ? data : data?.status;
+      if (roomStatus === "WAITING") {
+        setIsCreating(false);
+        setIsWaitingForOpponent(true);
+      } else if (roomStatus === "READY_TO_START" || roomStatus === "PLAYING") {
+        setIsWaitingForOpponent(false);
+        setIsCreating(false);
+      }
+    };
+
+    partyService.onSyncState = (serverGameState: any) => {
+      if (serverGameState) {
+        partyService.lastSyncedState = serverGameState;
+      }
+      setIsWaitingForOpponent(false);
+      setIsCreating(false);
+    };
+
+    partyService.connect(cleanCode, profile.nickname || "Агент", isHost, mode);
+  };
+
   const handleQuickPlay = async () => {
     triggerHaptic("heavy");
     setIsCreating(true);
-    const foundCode = await mpService.findQuickPlayRoom(250);
-
-    if (foundCode) {
-      setIsCreating(false);
-      handleJoinRoom(foundCode);
-    } else {
-      const rand = Math.random();
-      const autoMode: GameModeType = rand < 0.5 ? "SECRET_SERVICE" : rand < 0.75 ? "SKHVATKA" : rand < 0.9 ? "MANIAC_VS_OPERATIVE" : "THIEF_HUNT";
-      const isSecretService = autoMode === "SECRET_SERVICE";
-
-      mpService.createRoom(
-        profile.nickname || "Агент",
-        autoMode,
-        250,
-        false,
-        isSecretService ? 4 : 2,
-        () => {
-          setIsCreating(false);
-          setIsWaitingForOpponent(true);
-        },
-        () => {
-          setIsWaitingForOpponent(false);
-          onStartGame(autoMode, "ONLINE", "KILLER", isSecretService ? 2 : 2, isSecretService ? 4 : 3, 0, 250);
-        },
-        (err) => {
-          console.error(err);
-          setToastMessage("Ошибка создания комнаты");
-          setIsCreating(false);
-        },
-      );
+    try {
+      const rooms = await partyService.fetchPublicRooms();
+      const waitingRoom = rooms.find((r) => r.status === "WAITING");
+      if (waitingRoom && waitingRoom.roomCode) {
+        setIsCreating(false);
+        handleJoinRoom(waitingRoom.roomCode, waitingRoom.mode as GameModeType);
+        return;
+      }
+    } catch (e) {
+      console.warn("fetchPublicRooms error:", e);
     }
+    // Если открытых комнат нет, создаем комнату со случайным кодом для быстрого матча
+    const code = Math.floor(1000 + Math.random() * 9000).toString();
+    connectToPartyRoom(code, "SKHVATKA", true, 250);
   };
 
   const handleConfirmCreateRoom = () => {
     triggerHaptic("medium");
     setIsCreating(true);
-    mpService.createRoom(
-      profile.nickname || "Агент",
-      createRoomMode,
-      createRoomBet,
-      createRoomIsPrivate,
-      createRoomMode === "SECRET_SERVICE" ? 4 : 2,
-      () => {
-        setIsCreating(false);
-        setIsCreateRoomOpen(false);
-        setIsWaitingForOpponent(true);
-      },
-      () => {
-        setIsWaitingForOpponent(false);
-        onStartGame(createRoomMode, "ONLINE", "KILLER", createRoomMode === "SECRET_SERVICE" ? 2 : 2, createRoomMode === "SECRET_SERVICE" ? 4 : 3, 0, createRoomBet);
-      },
-      () => {
-        setIsCreating(false);
-        setToastMessage("Ошибка создания комнаты");
-      },
-    );
+    setIsCreateRoomOpen(false);
+    const code = Math.floor(1000 + Math.random() * 9000).toString();
+    connectToPartyRoom(code, createRoomMode, true, createRoomBet);
   };
 
-  const handleJoinRoom = (code: string) => {
-    if (code.length !== 4) return;
+  const handleJoinRoom = (code: string, mode?: GameModeType) => {
+    const cleanCode = String(code).trim();
+    if (cleanCode.length !== 4) return;
     triggerHaptic("light");
-    if (code === mpService.roomCode && mpService.isHost) {
-      setIsWaitingForOpponent(true);
-      return;
-    }
-    mpService.joinRoom(
-      code,
-      profile.nickname,
-      () => setIsWaitingForOpponent(true),
-      () => setToastMessage("Комната не найдена или игра уже началась"),
-    );
+    setIsCreating(true);
+    connectToPartyRoom(cleanCode, mode || "SKHVATKA", false, 0);
   };
 
   const filteredRooms = publicRooms.filter((r) => roomFilter === "ALL" || r.mode === roomFilter);
@@ -687,7 +715,7 @@ export const MainMenu = ({
                   <span className="text-xs font-mono font-bold text-zinc-200">{room.bet}</span>
                 </div>
                 <button 
-                  onClick={() => handleJoinRoom(room.roomCode)} 
+                  onClick={() => handleJoinRoom(room.roomCode, room.mode as GameModeType)} 
                   className="px-5 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-[0_0_15px_rgba(220,38,38,0.35)] transition cursor-pointer active:scale-95"
                 >
                   Войти ➔
@@ -872,6 +900,10 @@ export const MainMenu = ({
         setIsSettingsOpen(false);
       } else if (isCreateRoomOpen) {
         setIsCreateRoomOpen(false);
+      } else if (isWaitingForOpponent) {
+        partyService.disconnect();
+        setIsWaitingForOpponent(false);
+        setIsCreating(false);
       } else if (screen === 'MODE_DETAIL') {
         setScreen('MODES');
       } else if (screen === 'MODES') {
@@ -988,7 +1020,7 @@ export const MainMenu = ({
             <div className="bg-zinc-900/90 backdrop-blur-2xl border border-white/15 p-8 rounded-3xl w-full max-w-sm flex flex-col items-center text-center shadow-[0_20px_50px_rgba(0,0,0,0.7)]">
               <div className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3">Шифр операции</div>
               <div className="text-4xl font-black text-zinc-100 tracking-widest font-mono mb-8 border border-white/10 rounded-2xl px-8 py-4 bg-zinc-950/70 shadow-inner">
-                {mpService.roomCode}
+                {partyService.roomCode || partyRoomCode}
               </div>
 
               <div className="flex justify-center mb-8">
@@ -996,12 +1028,12 @@ export const MainMenu = ({
               </div>
 
               <div className="text-[10px] text-zinc-300 font-black tracking-widest uppercase animate-pulse mb-8">
-                {mpService.isHost ? "Ожидание подключения агента..." : "Синхронизация с хостом..."}
+                {partyService.isHost ? "Ожидание подключения агента..." : "Синхронизация с хостом..."}
               </div>
 
               <button
                 onClick={() => {
-                  mpService.disconnect();
+                  partyService.disconnect();
                   setIsWaitingForOpponent(false);
                   setIsCreating(false);
                 }}

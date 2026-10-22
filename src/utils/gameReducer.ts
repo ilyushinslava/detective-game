@@ -40,18 +40,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     "SET_INSPECTOR_ROLE", "CLEANUP"
   ];
   
-  if (isRemote && state.opponent === "ONLINE" && !SYSTEM_ACTIONS.includes(action.type)) {
-    if (state.mode === "SECRET_SERVICE") {
-      const localSpyIndex = state.playerRole === "KILLER" ? 0 : 1;
-      if (state.activeSpyIndex !== undefined && state.activeSpyIndex === localSpyIndex) {
-        return state;
-      }
-    } else if (state.playerRole) {
-      if (state.currentTurn === state.playerRole) {
-        return state;
-      }
-    }
-  }
+  // Авторитетный сервер сам валидирует очередность. На клиентах блокировку не делаем.
 
   const computeNextState = (): GameState => {
     switch (action.type) {
@@ -115,9 +104,102 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return accuseCharacter(state, action.payload.targetId);
 
     case "CAPTURE_SPY": {
+      const payload = action.payload as any;
+      const targetId = payload?.targetCardId || payload?.targetId;
+      const explicitHit = payload?.isHit === true || Boolean(payload?.caughtSpyId);
+      const explicitMiss = payload?.isHit === false || payload?.isMiss === true;
+
+      // Безоговорочное обновление при наличии явного результата в payload
+      if (explicitHit && targetId) {
+        const attackerIndex = payload?.attackerSpyIndex !== undefined
+          ? payload.attackerSpyIndex
+          : (state.activeSpyIndex ?? 0);
+        const targetSpyId = payload?.caughtSpyId;
+        const caughtIndex = state.spies
+          ? state.spies.findIndex((s) => targetSpyId ? s.id === targetSpyId : s.id !== state.spies?.[attackerIndex]?.id)
+          : -1;
+
+        const targetTrophies = state.spyTargetTrophies ?? 4;
+        let nextSpies = state.spies ? [...state.spies] : [];
+
+        if (nextSpies[attackerIndex]) {
+          nextSpies[attackerIndex] = {
+            ...nextSpies[attackerIndex],
+            trophies: Math.min(targetTrophies, nextSpies[attackerIndex].trophies + 1),
+          };
+        }
+
+        const nextSecretId = payload?.nextSecretId;
+        if (caughtIndex !== -1 && nextSpies[caughtIndex]) {
+          if (nextSecretId) {
+            nextSpies[caughtIndex] = {
+              ...nextSpies[caughtIndex],
+              secretId: nextSecretId,
+            };
+          }
+        }
+
+        const targetCharName = payload?.revealedRole || state.board.flat().find((c) => c.id === targetId)?.name || targetId;
+
+        const newBoard = state.board.map((row) =>
+          row.map((c) =>
+            c.id === targetId
+              ? { ...c, isAlive: false, unmaskedSpyIndex: caughtIndex !== -1 ? caughtIndex : 1 }
+              : c
+          )
+        );
+
+        const safeNext = payload?.nextSpyIndex !== undefined
+          ? payload.nextSpyIndex
+          : ((state.activeSpyIndex ?? 0) + 1) % (nextSpies.length || 1);
+
+        const attacker = nextSpies[attackerIndex];
+        const isWin = (attacker?.trophies ?? 0) >= targetTrophies;
+        const winner = isWin ? (attackerIndex === 0 ? "KILLER" : "DETECTIVE") : (payload?.winner || state.winner);
+
+        return {
+          ...state,
+          board: newBoard,
+          spies: nextSpies,
+          activeSpyIndex: safeNext,
+          detectiveSecretId: nextSpies[safeNext]?.secretId ?? state.detectiveSecretId,
+          winner,
+          interrogationRadar: null,
+          isHotseatCoverOpen: false,
+          justCaughtSpyId: targetSpyId || (caughtIndex !== -1 ? nextSpies[caughtIndex]?.id : undefined),
+          log: [
+            ...state.log,
+            `🎯 Разоблачение! ${attacker?.name || "Агент"} разоблачил резидента (${targetCharName})! Трофей получен (${attacker?.trophies}/${targetTrophies}).${isWin ? " 🏆 Победа!" : ""}`,
+          ],
+        };
+      }
+
+      if (explicitMiss && targetId) {
+        const attackerIndex = payload?.attackerSpyIndex !== undefined
+          ? payload.attackerSpyIndex
+          : (state.activeSpyIndex ?? 0);
+        const safeNext = payload?.nextSpyIndex !== undefined
+          ? payload.nextSpyIndex
+          : ((state.activeSpyIndex ?? 0) + 1) % (state.spies?.length || 1);
+        const targetCharName = state.board.flat().find((c) => c.id === targetId)?.name || targetId;
+        const attackerName = state.spies?.[attackerIndex]?.name || "Агент";
+
+        return {
+          ...state,
+          activeSpyIndex: safeNext,
+          detectiveSecretId: state.spies?.[safeNext]?.secretId ?? state.detectiveSecretId,
+          interrogationRadar: null,
+          isHotseatCoverOpen: false,
+          log: [
+            ...state.log,
+            `🔍 Промах: ${attackerName} объявил подозрение на ${targetCharName}. Никто из агентов не признал эту личность.`,
+          ],
+        };
+      }
+
+      // Фолбэк на стандартный расчет для локального режима / ИИ
       const result = spyCatch(state, action.payload.targetId);
 
-      // Жестко применяем переданный индекс или безопасно инкрементируем
       const explicitNext = (action.payload as any).nextSpyIndex;
       const safeNext =
         explicitNext !== undefined

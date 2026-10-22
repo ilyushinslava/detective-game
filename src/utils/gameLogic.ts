@@ -390,8 +390,9 @@ export function shiftBoard(
 export function killCharacter(state: GameState, targetId: string): GameState {
   if (state.winner) return state;
 
+  const isFirstTurnKiller = state.mode === "SKHVATKA" && state.killCount === 0 && state.currentTurn === "KILLER";
   const isAdjacent = areAdjacent(state.board, state.killerSecretId, targetId);
-  if (!isAdjacent) return state;
+  if (!isAdjacent && !isFirstTurnKiller) return state;
 
   if (state.mode === "MANIAC_VS_OPERATIVE") {
     const isCurrentVictim =

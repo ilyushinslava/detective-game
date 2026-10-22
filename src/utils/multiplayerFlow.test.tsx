@@ -4,6 +4,8 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import App from "../App";
 import { RoleRevealModal } from "../components/RoleRevealModal";
 import { mpService } from "./multiplayerPeer";
+import GameRoomServer from "../server/index";
+import { partyService } from "./partyPeer";
 import { createInitialState } from "./gameLogic";
 import { gameReducer } from "./gameReducer";
 import { I18nProvider } from "../i18n/context";
@@ -101,15 +103,8 @@ describe("Сетевой протокол и синхронизация (Multipl
   });
 
   it("Синхронизация готовности: если один игрок уже готов, второй при готовности сразу завершает интро", () => {
-    let opponentReadyCb: ((ready: boolean) => void) | undefined;
-
-    mpService.roomCode = "1234";
-    vi.spyOn(mpService, "subscribeToOpponentReady").mockImplementation((cb: any) => {
-      opponentReadyCb = cb;
-      return () => {};
-    });
-    vi.spyOn(mpService, "setPlayerReady").mockImplementation(() => {});
-    vi.spyOn(mpService, "sendAction").mockImplementation(() => {});
+    partyService.roomCode = "1234";
+    vi.spyOn(partyService, "sendAction").mockImplementation(() => {});
 
     const onCompleteMock = vi.fn();
 
@@ -127,7 +122,9 @@ describe("Сетевой протокол и синхронизация (Multipl
     );
 
     act(() => {
-      opponentReadyCb?.(true);
+      if (partyService.onAllPlayersReady) {
+        partyService.onAllPlayersReady();
+      }
     });
 
     const readyButtons = screen.getAllByTestId("ready-button");
@@ -288,5 +285,103 @@ describe("Сетевой протокол и синхронизация (Multipl
     // При этом секреты самого хоста-Бандита должны быть скрыты
     expect(savedState.killerSecretId).toBeNull();
     expect(savedState.killerHand).toEqual([]);
+  });
+});
+describe("GameRoomServer (PartyKit Мультиплеер)", () => {
+  const createMockRoom = (roomId: string = "test_room") => {
+    const connections = new Map<string, any>();
+    return {
+      id: roomId,
+      getConnections: () => connections.values(),
+      getConnection: (id: string) => connections.get(id),
+      broadcast: vi.fn(),
+      _connectionsMap: connections,
+    };
+  };
+
+  const createMockConnection = (id: string, urlStr: string) => {
+    return {
+      id,
+      url: urlStr,
+      send: vi.fn(),
+      close: vi.fn(),
+    };
+  };
+
+  it("Тест 1 (Арбитраж): Гость с isHost=false подключается к пустой комнате -> получает ERROR ROOM_NOT_FOUND и conn.close()", () => {
+    const mockRoom = createMockRoom("room_404");
+    const server = new GameRoomServer(mockRoom as any);
+
+    const guestConn = createMockConnection("conn_guest_1", "http://localhost:1999/parties/main/room_404?clientId=guest_1&nickname=Guest&isHost=false&mode=SKHVATKA");
+    const req = new Request(guestConn.url);
+
+    server.onConnect(guestConn as any, { request: req });
+
+    expect(guestConn.send).toHaveBeenCalledWith(
+      JSON.stringify({ type: "ERROR", message: "ROOM_NOT_FOUND" })
+    );
+    expect(guestConn.close).toHaveBeenCalledTimes(1);
+    expect(Object.keys(server.state.players).length).toBe(0);
+  });
+
+  it("Тест 2 (Хост + Гость): Хост -> WAITING/KILLER, затем Гость -> READY_TO_START/DETECTIVE", () => {
+    const mockRoom = createMockRoom("room_200");
+    const server = new GameRoomServer(mockRoom as any);
+
+    // 1. Хост подключается
+    const hostConn = createMockConnection("conn_host", "http://localhost:1999/parties/main/room_200?clientId=client_host&nickname=Host&isHost=true&mode=SKHVATKA");
+    mockRoom._connectionsMap.set(hostConn.id, hostConn);
+    server.onConnect(hostConn as any, { request: new Request(hostConn.url) });
+
+    expect(server.state.status).toBe("WAITING");
+    expect(server.state.players["client_host"]).toBeDefined();
+    expect(server.state.players["client_host"].role).toBe("KILLER");
+    expect(server.state.players["client_host"].isHost).toBe(true);
+
+    // 2. Гость подключается к созданной комнате
+    const guestConn = createMockConnection("conn_guest", "http://localhost:1999/parties/main/room_200?clientId=client_guest&nickname=Guest&isHost=false&mode=SKHVATKA");
+    mockRoom._connectionsMap.set(guestConn.id, guestConn);
+    server.onConnect(guestConn as any, { request: new Request(guestConn.url) });
+
+    expect(server.state.status).toBe("READY_TO_START");
+    expect(server.state.players["client_guest"]).toBeDefined();
+    expect(server.state.players["client_guest"].role).toBe("DETECTIVE");
+    expect(server.state.players["client_guest"].isHost).toBe(false);
+    expect(server.state.gameState).not.toBeNull();
+  });
+
+  it("Тест 3 (Передача первого хода): Хост шлет экшен хода -> сервер применяет его, currentTurn переключается без 'wrong turn'", () => {
+    const consoleWarnSpy = vi.spyOn(console, "warn");
+    const mockRoom = createMockRoom("room_turn");
+    const server = new GameRoomServer(mockRoom as any);
+
+    // Подключаем хоста и гостя
+    const hostConn = createMockConnection("conn_h", "http://localhost:1999/parties/main/room_turn?clientId=c_h&nickname=Host&isHost=true&mode=SKHVATKA");
+    mockRoom._connectionsMap.set(hostConn.id, hostConn);
+    server.onConnect(hostConn as any, { request: new Request(hostConn.url) });
+
+    const guestConn = createMockConnection("conn_g", "http://localhost:1999/parties/main/room_turn?clientId=c_g&nickname=Guest&isHost=false&mode=SKHVATKA");
+    mockRoom._connectionsMap.set(guestConn.id, guestConn);
+    server.onConnect(guestConn as any, { request: new Request(guestConn.url) });
+
+    // Оба игрока шлют готовность для перехода в PLAYING
+    server.onMessage(JSON.stringify({ type: "PLAYER_READY", senderClientId: "c_h" }), hostConn as any);
+    server.onMessage(JSON.stringify({ type: "PLAYER_READY", senderClientId: "c_g" }), guestConn as any);
+
+    expect(server.state.status).toBe("PLAYING");
+    expect(server.state.gameState!.currentTurn).toBe("KILLER");
+
+    // Хост (KILLER) совершает сдвиг ряда
+    const shiftAction = {
+      type: "SHIFT_BOARD",
+      payload: { shiftType: "ROW", index: 0, direction: "FORWARD" },
+      senderClientId: "c_h",
+    };
+
+    server.onMessage(JSON.stringify(shiftAction), hostConn as any);
+
+    expect(server.state.gameState!.currentTurn).toBe("DETECTIVE");
+    expect(consoleWarnSpy).not.toHaveBeenCalledWith(expect.stringContaining("Move rejected: wrong turn"), expect.anything(), expect.anything(), expect.anything());
+    consoleWarnSpy.mockRestore();
   });
 });

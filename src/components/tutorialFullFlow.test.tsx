@@ -1,14 +1,17 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { TutorialScreen } from "./TutorialScreen";
 
 describe("Интерактивное обучение (tutorialFullFlow)", () => {
   beforeEach(() => {
+    cleanup();
+    localStorage.clear();
     window.HTMLMediaElement.prototype.play = vi.fn().mockImplementation(() => Promise.resolve());
     window.HTMLMediaElement.prototype.pause = vi.fn();
     window.HTMLMediaElement.prototype.load = vi.fn();
   });
+
   it("Стартовое меню отображает 4 модуля и позволяет войти в каждый сценарий", () => {
     render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
 
@@ -41,25 +44,29 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
   });
 
   it("Кнопка завершения курса: вызывает onExit если модули не пройдены, и onFinish если все сданы", () => {
+    cleanup();
     localStorage.clear();
     const onExit = vi.fn();
     const onFinish = vi.fn();
 
     // 1. Модули не пройдены -> вызывается onExit без начисления наград
-    const { container, unmount } = render(<TutorialScreen onExit={onExit} onFinish={onFinish} />);
-    const exitBtn = container.querySelector('button.from-emerald-700') || screen.getAllByRole('button', { name: /В главное меню/i })[0];
+    const view1 = render(<TutorialScreen onExit={onExit} onFinish={onFinish} />);
+    const exitBtn = view1.getAllByTestId("tutorial-main-action-btn")[0];
     fireEvent.click(exitBtn);
     expect(onExit).toHaveBeenCalledTimes(1);
     expect(onFinish).not.toHaveBeenCalled();
-    unmount();
+    view1.unmount();
+    cleanup();
 
     // 2. Все модули пройдены -> вызывается onFinish
     localStorage.setItem("crime_city_completed_modules", JSON.stringify(["SKHVATKA", "MANIAC", "THIEF", "SECRET_SERVICE"]));
     const onFinishCompleted = vi.fn();
-    const { container: containerCompleted } = render(<TutorialScreen onExit={vi.fn()} onFinish={onFinishCompleted} />);
-    const finishBtn = containerCompleted.querySelector('button.from-emerald-700') || screen.getAllByRole('button', { name: /Завершить курс/i })[0];
+    const view2 = render(<TutorialScreen onExit={vi.fn()} onFinish={onFinishCompleted} />);
+    const finishBtn = view2.getAllByTestId("tutorial-main-action-btn")[0];
     fireEvent.click(finishBtn);
     expect(onFinishCompleted).toHaveBeenCalledTimes(1);
+    view2.unmount();
+    cleanup();
     localStorage.clear();
   });
 });

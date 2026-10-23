@@ -97,8 +97,8 @@ export const GameBoard = ({
                     isOpposite
                       ? "invisible pointer-events-none"
                       : isBlocked
-                        ? "bg-zinc-900/80 text-red-500 border-red-900/50 cursor-not-allowed"
-                        : "bg-zinc-950/80 border-white/10 hover:border-white/20 focus:outline-none focus:bg-transparent active:bg-white/20 text-zinc-400 cursor-pointer shadow-inner touch-manipulation select-none"
+                        ? "bg-zinc-900/40 text-zinc-600 border-zinc-800/50 cursor-not-allowed opacity-50"
+                        : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
                   }`}
                   title={
                     isBlocked ? "Патруль полиции блокирует сдвиг" : "Сдвиг вверх"
@@ -139,8 +139,8 @@ export const GameBoard = ({
                     isOppositeLeft
                       ? "invisible pointer-events-none"
                       : isRowBlocked
-                        ? "bg-zinc-900/80 text-red-500 border-red-900/50 cursor-not-allowed"
-                        : "bg-zinc-950/80 border-white/10 hover:border-white/20 focus:outline-none focus:bg-transparent active:bg-white/20 text-zinc-400 cursor-pointer shadow-inner touch-manipulation select-none"
+                        ? "bg-zinc-900/40 text-zinc-600 border-zinc-800/50 cursor-not-allowed opacity-50"
+                        : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
                   }`}
                   title={
                     isRowBlocked
@@ -226,7 +226,7 @@ export const GameBoard = ({
                         rx="10"
                         fill="none"
                         stroke={isRedRadar ? "#f87171" : "#3b82f6"}
-                        strokeWidth={isSelected ? "2.5" : "2"}
+                        strokeWidth="2.5"
                         strokeLinecap="round"
                         className="radar-marching-stroke rounded-lg sm:rounded-xl"
                         style={{
@@ -271,8 +271,8 @@ export const GameBoard = ({
                     isOppositeRight
                       ? "invisible pointer-events-none"
                       : isRowBlocked
-                        ? "bg-zinc-900/80 text-red-500 border-red-900/50 cursor-not-allowed"
-                        : "bg-zinc-950/80 border-white/10 hover:border-white/20 focus:outline-none focus:bg-transparent active:bg-white/20 text-zinc-400 cursor-pointer shadow-inner touch-manipulation select-none"
+                        ? "bg-zinc-900/40 text-zinc-600 border-zinc-800/50 cursor-not-allowed opacity-50"
+                        : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
                   }`}
                   title={
                     isRowBlocked
@@ -314,8 +314,8 @@ export const GameBoard = ({
                     isOpposite
                       ? "invisible pointer-events-none"
                       : isBlocked
-                        ? "bg-zinc-900/80 text-red-500 border-red-900/50 cursor-not-allowed"
-                        : "bg-zinc-950/80 border-white/10 hover:border-white/20 focus:outline-none focus:bg-transparent active:bg-white/20 text-zinc-400 cursor-pointer shadow-inner touch-manipulation select-none"
+                        ? "bg-zinc-900/40 text-zinc-600 border-zinc-800/50 cursor-not-allowed opacity-50"
+                        : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
                   }`}
                   title={
                     isBlocked ? "Патруль полиции блокирует сдвиг" : "Сдвиг вниз"

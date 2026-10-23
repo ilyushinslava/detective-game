@@ -173,6 +173,9 @@ export const CharacterCard = memo(
           if (hasRadar) {
             return `border-2 border-dashed ${radarRingColor || "border-blue-500 ring-2 ring-blue-500/60 shadow-[0_0_12px_rgba(59,130,246,0.5)]"} z-20 animate-pulse`;
           }
+          if (isSelected && hasNeighbor) {
+            return `${neighborHighlightColor} ${selectionEffect}`;
+          }
           if (isSelected) {
             return `border-white ${selectionEffect}`;
           }

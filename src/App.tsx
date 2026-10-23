@@ -16,13 +16,10 @@ import { useGameTimer } from "./hooks/useGameTimer";
 import { useMatchEndHandler } from "./hooks/useMatchEndHandler";
 import { useAiTurn } from "./hooks/useAiTurn";
 import { useGameActions } from "./hooks/useGameActions";
-import {
-  createInitialState,
-  getAdjacentCharacters,
-  canCleanupBoard,
-  CHARACTERS_DATA,
-} from "./utils/gameLogic";
+import { useBoardVisuals } from "./hooks/useBoardVisuals";
+import { createInitialState } from "./utils/gameLogic";
 import { soundManager } from "./utils/audio";
+import { triggerHaptic } from "./utils/haptics";
 import { RoleCards } from "./components/RoleCards";
 import type { GameAction } from "./types/multiplayer";
 import { gameReducer } from "./utils/gameReducer";
@@ -50,7 +47,7 @@ export default function App() {
   >("LOBBY");
 
   const [gameState, setGameState] = useState(() =>
-    createInitialState("SKHVATKA", "AI", "DETECTIVE", 3, 3, 16, profile.nickname),
+    createInitialState("SKHVATKA", "AI", "DETECTIVE", 3, 3, 16, profile.nickname)
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedInspectorChoiceId, setSelectedInspectorChoiceId] = useState<string | null>(null);
@@ -62,6 +59,7 @@ export default function App() {
   const [showSpyP2Role, setShowSpyP2Role] = useState(false);
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (import.meta.env.DEV && (e.code === "Backquote" || e.key === "`")) {
@@ -89,8 +87,7 @@ export default function App() {
   const [isChoiceSheetMinimized, setIsChoiceSheetMinimized] = useState(false);
   const [isInspectorPassConfirmed, setIsInspectorPassConfirmed] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<{ url: string; name: string; id: string } | null>(null);
-  
-  // Состояния режима «Очная ставка»
+
   const [isQuestionCatalogOpen, setIsQuestionCatalogOpen] = useState(false);
   const [isCandidatesSheetOpen, setIsCandidatesSheetOpen] = useState(false);
   const [isAccuseModalOpen, setIsAccuseModalOpen] = useState(false);
@@ -177,158 +174,46 @@ export default function App() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const allChars = gameState.board.flat();
-  const rawKiller = CHARACTERS_DATA.find((c) => c.id === gameState.killerSecretId);
-  const killerChar = allChars.find((c) => c.id === gameState.killerSecretId) 
-    ?? (rawKiller ? ({ ...rawKiller, isAlive: true, isExonerated: false } as typeof allChars[0]) : undefined);
-
-  const rawDetective = CHARACTERS_DATA.find((c) => c.id === gameState.detectiveSecretId);
-  const detectiveChar = allChars.find((c) => c.id === gameState.detectiveSecretId)
-    ?? (rawDetective ? ({ ...rawDetective, isAlive: true, isExonerated: false } as typeof allChars[0]) : undefined);
-
-  const inspectorChoices = (gameState.inspectorChoices ?? [])
-    .map((id) => allChars.find((c) => c.id === id))
-    .filter(Boolean) as typeof allChars;
-
-  const isCleanupAvailable =
-    canCleanupBoard(gameState.board) && !gameState.winner;
-  const isFirstTurnKiller =
-    gameState.mode === "SKHVATKA" &&
-    gameState.killCount === 0 &&
-    gameState.currentTurn === "KILLER";
-
-  const spy1Id =
-    gameState.mode === "SECRET_SERVICE" && gameState.spies
-      ? gameState.spies[0]?.secretId
-      : null;
-  const spy2Id =
-    gameState.mode === "SECRET_SERVICE" &&
-    gameState.spies &&
-    gameState.spies.length > 1
-      ? gameState.spies[1]?.secretId
-      : null;
-
-  const killerAdjacentIds = getAdjacentCharacters(
-    gameState.board,
-    gameState.mode === "SECRET_SERVICE" ? (spy1Id ?? gameState.killerSecretId) : (spy2Id ?? gameState.killerSecretId),
-  ).map((c) => c.id);
-
-  const detectiveAdjacentIds = useMemo(() => {
-    const targetId = gameState.mode === "SECRET_SERVICE" 
-      ? (spy2Id ?? gameState.detectiveSecretId) 
-      : (spy1Id ?? gameState.detectiveSecretId);
-
-    if (!targetId) return [];
-      
-    const baseNeighbors = getAdjacentCharacters(gameState.board, targetId).map((c) => c.id);
-    
-    if (gameState.mode === "THIEF_HUNT" && gameState.uniformedOfficers) {
-      const combined = new Set(baseNeighbors);
-      gameState.uniformedOfficers.forEach((officerId) => {
-        getAdjacentCharacters(gameState.board, officerId).forEach((c) => combined.add(c.id));
-      });
-      return Array.from(combined);
-    }
-    
-    return baseNeighbors;
-  }, [gameState.board, gameState.detectiveSecretId, gameState.uniformedOfficers, gameState.mode, spy1Id, spy2Id]);
-
-  const radarTargetId = gameState.interrogationRadar?.targetId;
-  const radarCellIds = useMemo(() => {
-    if (!radarTargetId) return [];
-    const neighbors = getAdjacentCharacters(gameState.board, radarTargetId).map(
-      (c) => c.id,
-    );
-    return [radarTargetId, ...neighbors];
-  }, [gameState.board, radarTargetId]);
-
-  const radarColorClass = gameState.interrogationRadar
-    ? (gameState.mode === "SECRET_SERVICE" 
-        ? `${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].border} ring-2 ${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].ring}` 
-        : "border-cyan-400 ring-2 ring-cyan-500/70")
-    : null;
-
-  const effectiveRadarTargetId = selectedInspectorChoiceId || gameState.interrogationRadar?.targetId || null;
-  const effectiveRadarCellIds = selectedInspectorChoiceId ? [selectedInspectorChoiceId] : radarCellIds;
-  const effectiveRadarColorClass = selectedInspectorChoiceId
-    ? "ring-4 ring-cyan-400 shadow-[0_0_25px_rgba(6,182,212,0.9)] scale-105 z-20 border-cyan-400"
-    : radarColorClass;
-
-  const isPVP = gameState.opponent === "PVP";
-  const isKillerTurn = gameState.currentTurn === "KILLER";
-  const isDetectiveTurn = gameState.currentTurn === "DETECTIVE";
-  const isKillerView = isPVP ? isKillerTurn : gameState.playerRole === "KILLER";
-  const isDetectiveView = isPVP ? isDetectiveTurn : gameState.playerRole === "DETECTIVE";
-
-  let myCharacterId: string | null = null;
-  if (!isPVP) {
-    if (gameState.mode === "SECRET_SERVICE" && gameState.spies) {
-      if (gameState.opponent === "ONLINE") {
-        myCharacterId = partyService.isHost ? gameState.spies[0].secretId : gameState.spies[1].secretId;
-      } else if (gameState.opponent === "AI") {
-        myCharacterId = gameState.spies[0].secretId;
-      }
-    } else {
-      const isInspectorPending = gameState.mode === "SKHVATKA" && gameState.playerRole === "DETECTIVE" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0);
-      if (!isInspectorPending) {
-        myCharacterId = gameState.playerRole === "KILLER" ? gameState.killerSecretId : gameState.detectiveSecretId;
-      }
-    }
-  }
-
-  let role1Name = "БАНДИТ";
-  let role2Name = "ИНСПЕКТОР";
-  if (gameState.mode === "MANIAC_VS_OPERATIVE") {
-    role1Name = "МАНЬЯК";
-    role2Name = "ОПЕРАТИВНИК";
-  } else if (gameState.mode === "SECRET_SERVICE") {
-    role1Name = gameState.spies?.[0]?.name ?? "Агент 1";
-    role2Name = gameState.spies?.[1]?.name ?? "Агент 2";
-  } else if (gameState.mode === "THIEF_HUNT") {
-    role1Name = "ГРАБИТЕЛЬ";
-    role2Name = "ПОЛИЦИЯ";
-  } else if (gameState.mode === "LINE_UP") {
-    role1Name = "ПОДОЗРЕВАЕМЫЙ";
-    role2Name = "СЛЕДОВАТЕЛЬ";
-  }
-
-  let currentRoleName = isKillerTurn ? role1Name : role2Name;
-  if (gameState.mode === "SECRET_SERVICE" && gameState.spies) {
-    currentRoleName = gameState.spies[gameState.activeSpyIndex ?? 0].name;
-  }
-
-  let actionPanelRoleName = isKillerView ? role1Name : role2Name;
-  if (gameState.mode === "SECRET_SERVICE") {
-    if (gameState.opponent === "ONLINE") {
-      const mySpyIndex = partyService.isHost ? 0 : 1;
-      actionPanelRoleName =
-        gameState.spies?.[mySpyIndex]?.name ?? currentRoleName;
-    } else if (gameState.opponent === "AI") {
-      actionPanelRoleName = gameState.spies?.[0]?.name ?? currentRoleName;
-    } else {
-      actionPanelRoleName = currentRoleName;
-    }
-  }
-
-  let isHumanTurn = false;
-  if (gameState.opponent === "ONLINE") {
-    if (gameState.mode === "SECRET_SERVICE") {
-      const myIdx = (partyService.isHost ? 0 : 1);
-      isHumanTurn = gameState.activeSpyIndex === myIdx;
-    } else {
-      isHumanTurn = Boolean(gameState.playerRole && gameState.currentTurn === gameState.playerRole);
-    }
-  } else if (gameState.opponent === "PVP") {
-    isHumanTurn = true;
-  } else {
-    if (gameState.mode === "SECRET_SERVICE") {
-      isHumanTurn = gameState.spies
-        ? gameState.spies[gameState.activeSpyIndex ?? 0]?.isAI === false
-        : true;
-    } else {
-      isHumanTurn = gameState.currentTurn === gameState.playerRole;
-    }
-  }
+  const {
+    allChars,
+    killerChar,
+    detectiveChar,
+    inspectorChoices,
+    isCleanupAvailable,
+    isFirstTurnKiller,
+    killerAdjacentIds,
+    detectiveAdjacentIds,
+    effectiveRadarTargetId,
+    effectiveRadarCellIds,
+    effectiveRadarColorClass,
+    isPVP,
+    isKillerTurn,
+    isDetectiveTurn,
+    isKillerView,
+    isDetectiveView,
+    myCharacterId,
+    role1Name,
+    role2Name,
+    currentRoleName,
+    actionPanelRoleName,
+    isHumanTurn,
+    activeAgentAdjacentIds,
+    canPeekKiller,
+    canPeekDetective,
+    killerNameText,
+    isInspectorPending,
+    detectiveNameText,
+    pillClasses,
+    dotClasses,
+  } = useBoardVisuals({
+    gameState,
+    selectedInspectorChoiceId,
+    showKillerRole,
+    showDetectiveRole,
+    showSpyP1Role,
+    showSpyP2Role,
+    isAIThinking,
+  });
 
   const handleSelectInspectorRole = (chosenId: string) => {
     dispatchAction({
@@ -346,7 +231,7 @@ export default function App() {
     playerCount: number = 3,
     targetTrophies: number = 3,
     maxTurns: number = 0,
-    betAmount: number = 250,
+    betAmount: number = 250
   ) => {
     matchResultRecordedRef.current = false;
 
@@ -399,10 +284,6 @@ export default function App() {
     setIsLobbyOpen(false);
   };
 
-  const activeAgentAdjacentIds = isKillerTurn
-    ? killerAdjacentIds
-    : detectiveAdjacentIds;
-
   const selectedCharacter = useMemo(() => {
     if (!selectedId) return null;
     return gameState.board.flat().find((c) => c.id === selectedId) ?? null;
@@ -448,78 +329,6 @@ export default function App() {
     setIsAccuseModalOpen,
     handleStartNewGame,
   });
-
-  let canPeekKiller = false;
-  let canPeekDetective = false;
-
-  if (gameState.mode === "SECRET_SERVICE") {
-    if (gameState.opponent === "ONLINE") {
-      canPeekKiller = partyService.isHost;
-      canPeekDetective = !partyService.isHost;
-    } else if (isPVP) {
-      canPeekKiller = gameState.activeSpyIndex === 0;
-      canPeekDetective = gameState.activeSpyIndex === 1;
-    } else {
-      canPeekKiller = true;
-      canPeekDetective = false;
-    }
-  } else {
-    if (gameState.opponent === "ONLINE" || gameState.opponent === "AI") {
-      canPeekKiller = gameState.playerRole === "KILLER";
-      canPeekDetective = gameState.playerRole === "DETECTIVE";
-    } else {
-      canPeekKiller = isKillerTurn;
-      canPeekDetective = isDetectiveTurn;
-    }
-
-    if (gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0)) {
-      canPeekDetective = false;
-    }
-  }
-
-  const killerNameText =
-    showKillerRole || showSpyP1Role
-      ? gameState.mode === "SECRET_SERVICE"
-        ? (allChars.find((c) => c.id === gameState.spies?.[0]?.secretId)
-            ?.name ?? "Неизвестно")
-        : (killerChar?.name ?? "Неизвестно")
-      : "••••••••";
-
-  const isInspectorPending = gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0);
-
-  const detectiveNameText = isInspectorPending
-    ? "Не выбрана"
-    : showDetectiveRole || showSpyP2Role
-      ? gameState.mode === "SECRET_SERVICE"
-        ? (allChars.find((c) => c.id === gameState.spies?.[1]?.secretId)
-            ?.name ?? "Неизвестно")
-        : (detectiveChar?.name ?? "Неизвестно")
-      : "••••••••";
-
-  let pillClasses = "";
-  let dotClasses = "";
-  if (isAIThinking) {
-    pillClasses =
-      "bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse";
-    dotClasses = "bg-amber-500 shadow-amber-500/80";
-  } else if (gameState.mode === "SECRET_SERVICE") {
-    const isP1Turn = gameState.activeSpyIndex === 0;
-    if (isP1Turn) {
-      pillClasses = "bg-red-950/90 border-red-600 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.3)]";
-      dotClasses = "bg-red-500 shadow-red-500/80";
-    } else {
-      pillClasses = "bg-cyan-950/90 border-cyan-500 text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.3)]";
-      dotClasses = "bg-cyan-400 shadow-cyan-400/80";
-    }
-  } else {
-    if (isKillerTurn) {
-      pillClasses = "bg-red-950/80 border-red-600 text-red-100";
-      dotClasses = "bg-red-500 shadow-red-500/80";
-    } else {
-      pillClasses = "bg-blue-950/80 border-blue-600 text-blue-100";
-      dotClasses = "bg-blue-500 shadow-blue-500/80";
-    }
-  }
 
   return (
     <div className="fixed inset-0 w-full h-full flex flex-col bg-[#080a0f] overflow-hidden select-none">
@@ -638,22 +447,13 @@ export default function App() {
           setOpponentDisconnectedNotice(true);
         }}
         onTriggerDisguiseModal={() => {
-          setGameState((prev) => ({
-            ...prev,
-            disguisedNotification: { roleName: "Бандит", newSecretId: prev.board[0][0].id },
-          }));
+          setGameState((prev) => ({ ...prev, disguisedNotification: { roleName: "Бандит", newSecretId: prev.board[0][0].id } }));
         }}
         onTriggerCaughtSpyModal={() => {
-          setGameState((prev) => ({
-            ...prev,
-            justCaughtSpyId: prev.spies?.[0]?.id || "p1",
-          }));
+          setGameState((prev) => ({ ...prev, justCaughtSpyId: prev.spies?.[0]?.id || "p1" }));
         }}
         onTriggerGameOver={() => {
-          setGameState((prev) => ({
-            ...prev,
-            winner: prev.winner || "KILLER",
-          }));
+          setGameState((prev) => ({ ...prev, winner: prev.winner || "KILLER" }));
         }}
         onClearSession={() => {
           sessionStorage.clear();
@@ -703,18 +503,11 @@ export default function App() {
                 ? gameState.spies && gameState.spies.length > 1
                   ? gameState.opponent === "ONLINE"
                     ? partyService.isHost
-                      ? allChars.find(
-                          (c) => c.id === gameState.spies![0].secretId,
-                        )
-                      : allChars.find(
-                          (c) => c.id === gameState.spies![1].secretId,
-                        )
-                    : allChars.find(
-                        (c) => c.id === gameState.spies![1].secretId,
-                      )
+                      ? allChars.find((c) => c.id === gameState.spies![0].secretId)
+                      : allChars.find((c) => c.id === gameState.spies![1].secretId)
+                    : allChars.find((c) => c.id === gameState.spies![1].secretId)
                   : undefined
-                : (gameState.opponent === "AI" ||
-                      gameState.opponent === "ONLINE") &&
+                : (gameState.opponent === "AI" || gameState.opponent === "ONLINE") &&
                     gameState.playerRole === "DETECTIVE"
                   ? undefined
                   : killerChar
@@ -724,18 +517,11 @@ export default function App() {
                 ? gameState.spies && gameState.spies.length > 0
                   ? gameState.opponent === "ONLINE"
                     ? partyService.isHost
-                      ? allChars.find(
-                          (c) => c.id === gameState.spies![0].secretId,
-                        )
-                      : allChars.find(
-                          (c) => c.id === gameState.spies![1].secretId,
-                        )
-                    : allChars.find(
-                        (c) => c.id === gameState.spies![0].secretId,
-                      )
+                      ? allChars.find((c) => c.id === gameState.spies![0].secretId)
+                      : allChars.find((c) => c.id === gameState.spies![1].secretId)
+                    : allChars.find((c) => c.id === gameState.spies![0].secretId)
                   : undefined
-                : (gameState.opponent === "AI" ||
-                      gameState.opponent === "ONLINE") &&
+                : (gameState.opponent === "AI" || gameState.opponent === "ONLINE") &&
                     gameState.playerRole === "KILLER"
                   ? undefined
                   : detectiveChar
@@ -860,7 +646,7 @@ export default function App() {
                         setIsInspectorPassConfirmed(false);
                       }
                     }}
-                    disabled={!selectedInspectorChoiceId || !inspectorChoices.some(c => c.id === selectedInspectorChoiceId)}
+                    disabled={!selectedInspectorChoiceId || !inspectorChoices.some((c) => c.id === selectedInspectorChoiceId)}
                     className="w-full h-14 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 disabled:from-zinc-800 disabled:to-zinc-900 disabled:text-zinc-600 disabled:shadow-none text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer disabled:cursor-not-allowed shadow-[0_0_20px_rgba(6,182,212,0.45)] flex items-center justify-center gap-2 shrink-0"
                   >
                     <span>Подтвердить личность</span>
@@ -1042,7 +828,7 @@ export default function App() {
                 {gameState.spies?.slice(0, 2).map((spy) => {
                   const hasContact =
                     gameState.lastSpyInterrogation?.raisedHandsPlayerNames.includes(
-                      spy.name,
+                      spy.name
                     );
                   return (
                     <span
@@ -1179,7 +965,7 @@ export default function App() {
                     }`}
                   >
                     {(action.id === 'kill_basic' || action.id === 'capture_spy') && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="12"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="2" x2="12" y2="12"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
                     )}
                     {(action.id === 'accuse_basic' || action.id === 'patrol_call') && (
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
@@ -1351,10 +1137,10 @@ export default function App() {
               badge="Агент разоблачен!"
               badgeColor="red"
               title="Шпионская маскировка провалена. Ваша новая личность:"
-              character={allChars.find(c => c.id === gameState.spies?.find(s => s.id === gameState.justCaughtSpyId)?.secretId) ?? null}
-              characterImage={(() => { const character = allChars.find(c => c.id === gameState.spies?.find(s => s.id === gameState.justCaughtSpyId)?.secretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}
+              character={allChars.find((c) => c.id === gameState.spies?.find((s) => s.id === gameState.justCaughtSpyId)?.secretId) ?? null}
+              characterImage={(() => { const character = allChars.find((c) => c.id === gameState.spies?.find((s) => s.id === gameState.justCaughtSpyId)?.secretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}
               isPvpPassPhase={!isRevealConfirmed && gameState.opponent === "PVP"}
-              targetPlayerName={gameState.spies.find(s => s.id === gameState.justCaughtSpyId)?.name}
+              targetPlayerName={gameState.spies.find((s) => s.id === gameState.justCaughtSpyId)?.name}
               onConfirmPvpPass={() => setIsRevealConfirmed(true)}
               onAcceptIdentity={() => { setIsRevealConfirmed(false); setGameState((prev) => ({ ...prev, justCaughtSpyId: undefined })); }}
               onPreviewCard={(character) => { const image = characterImages[`./assets/characters/${character.id}.webp`]?.default; if (image) setFullscreenImage({ url: image, name: character.name, id: character.id }); }}
@@ -1370,8 +1156,8 @@ export default function App() {
               badge="Смена личности!"
               badgeColor={gameState.mode === "THIEF_HUNT" ? "amber" : "red"}
               title="Ваша новая личность:"
-              character={allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId) ?? null}
-              characterImage={(() => { const character = allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}
+              character={allChars.find((c) => c.id === gameState.disguisedNotification?.newSecretId) ?? null}
+              characterImage={(() => { const character = allChars.find((c) => c.id === gameState.disguisedNotification?.newSecretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}
               isPvpPassPhase={!isRevealConfirmed && gameState.opponent === "PVP"}
               targetPlayerName={gameState.disguisedNotification.roleName}
               onConfirmPvpPass={() => setIsRevealConfirmed(true)}

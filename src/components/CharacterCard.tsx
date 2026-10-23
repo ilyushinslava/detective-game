@@ -20,6 +20,7 @@ export interface CharacterCardProps {
   isMyCharacter?: boolean;
   isOverlapZone?: boolean;
   isPVP?: boolean;
+  myRoleColor?: "red" | "blue";
   onClick: () => void;
 }
 
@@ -128,6 +129,7 @@ export const CharacterCard = memo(
     isError = false,
     isMyCharacter = false,
     isPVP = false,
+    myRoleColor,
   }: CharacterCardProps) => {
     const [imgError, setImgError] = useState(false);
     const isDead = !character.isAlive;
@@ -210,12 +212,12 @@ export const CharacterCard = memo(
               {`#${character.id.replace("c", "").padStart(2, "0")}`}
             </span>
             {isMyCharacter && !isDead && !isPVP && (() => {
-              const isCriminal = mode === "SKHVATKA" || mode === "MANIAC_VS_OPERATIVE" || mode === "THIEF_HUNT";
+              const isRed = myRoleColor ? myRoleColor === "red" : (mode === "SKHVATKA" || mode === "MANIAC_VS_OPERATIVE" || mode === "THIEF_HUNT");
               return (
                 <span className={`text-[7.5px] md:text-[9px] font-black uppercase px-1 md:px-1.5 py-[1px] md:py-0.5 rounded tracking-wider shadow-sm ${
-                  isCriminal
+                  isRed
                     ? "text-red-400 bg-red-950/90 border border-red-500/70 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
-                    : "text-blue-400 bg-blue-950/90 border border-blue-500/70 shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                    : "text-blue-300 bg-blue-950/90 border border-blue-500/70 shadow-[0_0_8px_rgba(59,130,246,0.5)]"
                 }`}>
                   ВЫ
                 </span>
@@ -246,11 +248,11 @@ export const CharacterCard = memo(
 
         {isDead && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 px-1">
-            <div className={`transform -rotate-12 border font-black text-[8.5px] sm:text-[10px] md:text-xs uppercase px-1.5 py-0.5 md:px-2.5 md:py-1 tracking-wider rounded-sm backdrop-blur-sm max-w-[90%] truncate text-center ${
+            <div className={`transform -rotate-12 border whitespace-nowrap font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none backdrop-blur-sm text-center ${
               isSecretService || character.unmaskedSpyIndex !== undefined
                 ? "border-red-600 bg-red-950/90 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
                 : (character as any).isArrested
-                  ? "border-blue-500/80 bg-blue-950/90 text-blue-300 shadow-[0_0_15px_rgba(59,130,246,0.4)]"
+                  ? "border border-blue-500/80 bg-blue-950/95 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.4)]"
                   : "border-red-600 bg-red-950/90 text-red-500 shadow-[0_0_15px_rgba(220,38,38,0.4)]"
             }`}>
               {isSecretService || character.unmaskedSpyIndex !== undefined
@@ -264,7 +266,7 @@ export const CharacterCard = memo(
 
         {isExonerated && !isDead && !(character as any).isArrested && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 px-1">
-            <div className="transform rotate-6 border border-blue-500/80 bg-zinc-900/90 text-blue-400 font-black text-[8px] sm:text-[9.5px] md:text-xs uppercase px-1.5 py-0.5 md:px-2.5 md:py-1 tracking-wider shadow-[0_0_15px_rgba(59,130,246,0.3)] rounded-sm backdrop-blur-sm max-w-[90%] truncate text-center">
+            <div className="transform rotate-6 border border-blue-500/80 bg-zinc-900/95 text-blue-400 whitespace-nowrap font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.3)] backdrop-blur-sm text-center">
               АЛИБИ
             </div>
           </div>
@@ -272,7 +274,7 @@ export const CharacterCard = memo(
 
         {(character as any).isArrested && !isDead && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 px-1">
-            <div className="transform -rotate-12 border border-blue-500/80 bg-blue-950/90 text-blue-300 font-black text-[8.5px] sm:text-[10px] md:text-xs uppercase px-1.5 py-0.5 md:px-2.5 md:py-1 tracking-wider shadow-[0_0_15px_rgba(59,130,246,0.4)] rounded-sm backdrop-blur-sm max-w-[90%] truncate text-center">
+            <div className="transform -rotate-12 border border-blue-500/80 bg-blue-950/95 text-blue-300 whitespace-nowrap font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.4)] backdrop-blur-sm text-center">
               АРЕСТОВАН
             </div>
           </div>

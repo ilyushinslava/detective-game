@@ -127,6 +127,16 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   const spyEnemyId = board[1]?.[1]?.id;
 
+  const tutorialMyRoleColor = useMemo<"red" | "blue">((): "red" | "blue" => {
+    if (currentModule === "SKHVATKA") {
+      return lesson === 3 || lesson === 4 ? "blue" : "red";
+    }
+    if (currentModule === "MANIAC" || currentModule === "THIEF") {
+      return "red";
+    }
+    return "blue";
+  }, [currentModule, lesson]);
+
   const currentMyCharacterId = useMemo(() => {
     if (currentModule === "SKHVATKA") {
       if (lesson === 3) return board[2]?.[2]?.id || null;
@@ -795,13 +805,13 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
             </div>
           </div>
 
-          <div className="min-h-[2.25rem] py-1 px-4 mb-1.5 w-full shrink-0 flex items-center justify-center bg-zinc-950/80 border-y border-white/5 shadow-sm z-10">
+          <div className="min-h-[2.25rem] py-1 px-4 mb-3 w-full shrink-0 flex items-center justify-center bg-zinc-950/80 border-y border-white/5 shadow-sm z-10">
             <div className="text-[10px] md:text-xs tracking-widest uppercase font-mono text-center leading-tight flex flex-wrap justify-center items-center">
               {getHudStatus()}
             </div>
           </div>
 
-          <div className={`flex-1 min-h-0 w-full flex items-center justify-center py-1 pb-2 overflow-visible ${
+          <div className={`flex-1 min-h-0 w-full flex items-center justify-center py-4 md:py-6 overflow-visible ${
             currentModule === "SKHVATKA" && lesson === 1 && (step === 1 || step === 2) ? "tutorial-highlight-l1s2" : ""
           } ${currentModule === "MANIAC" && lesson === 1 && step === 1 ? "tutorial-highlight-maniac" : ""}`}>
             <GameBoard
@@ -827,6 +837,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               radarColorClass={radarColorClass}
               lastShift={lastShift}
               myCharacterId={currentMyCharacterId}
+              myRoleColor={tutorialMyRoleColor}
               onShift={handleShift}
               onSelectCharacter={handleSelectCharacter}
               blockedShift={null}

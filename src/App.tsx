@@ -1450,6 +1450,7 @@ export default function App() {
                 errorCardId={errorCardId}
                 myCharacterId={myCharacterId}
                 isPVP={isPVP}
+                myRoleColor={isKillerView ? "red" : "blue"}
                 onShift={handleShift}
                 onSelectCharacter={(id) => {
                   soundManager.play('click');

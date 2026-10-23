@@ -22,6 +22,7 @@ interface GameBoardProps {
   errorCardId?: string | null;
   myCharacterId?: string | null;
   isPVP?: boolean;
+  myRoleColor?: "red" | "blue";
   onShift: (
     type: "ROW" | "COL",
     index: number,
@@ -48,6 +49,7 @@ export const GameBoard = ({
   errorCardId = null,
   myCharacterId = null,
   isPVP = false,
+  myRoleColor,
   onShift,
   onSelectCharacter,
 }: GameBoardProps) => {
@@ -199,6 +201,7 @@ export const GameBoard = ({
                   isMyCharacter={character.id === myCharacterId}
                   isOverlapZone={false}
                   isPVP={isPVP}
+                  myRoleColor={myRoleColor}
                   onClick={() => onSelectCharacter(character.id)}
                 />
 

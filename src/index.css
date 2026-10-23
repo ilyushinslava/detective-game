@@ -1,55 +1,42 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Тёмная тема скроллбара для всех браузеров */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #27272a #09090b;
+html, body, #root {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+img, svg, button {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none;
 }
 
-::-webkit-scrollbar-track {
-  background: #09090b;
+@layer base {
+  body {
+    @apply antialiased;
+  }
 }
 
-::-webkit-scrollbar-thumb {
-  background: #27272a;
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 9999px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
-}
-
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #080a0f;
-  color: #f4f4f5;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  overflow: hidden;
-}
-
-.bg-noir-city {
-  background-color: #09090b;
-  background-image: 
-    radial-gradient(circle at 50% 45%, rgba(120, 53, 15, 0.08) 0%, transparent 70%),
-    radial-gradient(circle at 50% 50%, transparent 30%, rgba(0, 0, 0, 0.85) 100%);
-}
-/* Блокирующий экран для мобильных телефонов в горизонтальной ориентации */
-.mobile-landscape-overlay {
-  display: none;
-}
-
-@media (orientation: landscape) and (max-height: 500px) {
-  .mobile-landscape-overlay {
-    display: flex !important;
-  }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }

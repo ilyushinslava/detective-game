@@ -69,13 +69,20 @@ export default function App() {
     const handleUserInteraction = () => {
       soundManager.unlockAudioContext();
     };
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("pointerdown", handleUserInteraction, { once: true, passive: true });
     window.addEventListener("keydown", handleUserInteraction, { once: true, passive: true });
+    window.addEventListener("contextmenu", handleContextMenu);
+
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("pointerdown", handleUserInteraction);
       window.removeEventListener("keydown", handleUserInteraction);
+      window.removeEventListener("contextmenu", handleContextMenu);
     };
   }, []);
 
@@ -965,7 +972,7 @@ export default function App() {
                     }`}
                   >
                     {(action.id === 'kill_basic' || action.id === 'capture_spy') && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="2" x2="12" y2="12"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="12"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
                     )}
                     {(action.id === 'accuse_basic' || action.id === 'patrol_call') && (
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
@@ -1137,10 +1144,10 @@ export default function App() {
               badge="Агент разоблачен!"
               badgeColor="red"
               title="Шпионская маскировка провалена. Ваша новая личность:"
-              character={allChars.find((c) => c.id === gameState.spies?.find((s) => s.id === gameState.justCaughtSpyId)?.secretId) ?? null}
-              characterImage={(() => { const character = allChars.find((c) => c.id === gameState.spies?.find((s) => s.id === gameState.justCaughtSpyId)?.secretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}
+              character={allChars.find(c => c.id === gameState.spies?.find(s => s.id === gameState.justCaughtSpyId)?.secretId) ?? null}
+              characterImage={(() => { const character = allChars.find(c => c.id === gameState.spies?.find(s => s.id === gameState.justCaughtSpyId)?.secretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}
               isPvpPassPhase={!isRevealConfirmed && gameState.opponent === "PVP"}
-              targetPlayerName={gameState.spies.find((s) => s.id === gameState.justCaughtSpyId)?.name}
+              targetPlayerName={gameState.spies.find(s => s.id === gameState.justCaughtSpyId)?.name}
               onConfirmPvpPass={() => setIsRevealConfirmed(true)}
               onAcceptIdentity={() => { setIsRevealConfirmed(false); setGameState((prev) => ({ ...prev, justCaughtSpyId: undefined })); }}
               onPreviewCard={(character) => { const image = characterImages[`./assets/characters/${character.id}.webp`]?.default; if (image) setFullscreenImage({ url: image, name: character.name, id: character.id }); }}
@@ -1156,8 +1163,8 @@ export default function App() {
               badge="Смена личности!"
               badgeColor={gameState.mode === "THIEF_HUNT" ? "amber" : "red"}
               title="Ваша новая личность:"
-              character={allChars.find((c) => c.id === gameState.disguisedNotification?.newSecretId) ?? null}
-              characterImage={(() => { const character = allChars.find((c) => c.id === gameState.disguisedNotification?.newSecretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}
+              character={allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId) ?? null}
+              characterImage={(() => { const character = allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}
               isPvpPassPhase={!isRevealConfirmed && gameState.opponent === "PVP"}
               targetPlayerName={gameState.disguisedNotification.roleName}
               onConfirmPvpPass={() => setIsRevealConfirmed(true)}

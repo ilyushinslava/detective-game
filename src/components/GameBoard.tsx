@@ -1,4 +1,5 @@
 // src/components/GameBoard.tsx
+import { useRef } from "react";
 import { motion } from "framer-motion";
 import type { Character, LastShift, GameModeType } from "../types/game";
 import { CharacterCard } from "./CharacterCard";
@@ -59,8 +60,78 @@ export const GameBoard = ({
   const colsArray = Array.from({ length: numCols }, (_, i) => i);
   const rowsArray = Array.from({ length: numRows }, (_, i) => i);
 
+  const touchStartRef = useRef<{
+    x: number;
+    y: number;
+    row: number;
+    col: number;
+  } | null>(null);
+  const hasSwipedRef = useRef(false);
+
+  const handleTouchStart = (rIdx: number, cIdx: number, e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    touchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      row: rIdx,
+      col: cIdx,
+    };
+    hasSwipedRef.current = false;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const touch = e.changedTouches[0];
+    if (!touch) {
+      touchStartRef.current = null;
+      return;
+    }
+
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    const threshold = 35;
+
+    if (!isLineUp && (absX >= threshold || absY >= threshold)) {
+      hasSwipedRef.current = true;
+      const startR = touchStartRef.current.row;
+      const startC = touchStartRef.current.col;
+
+      if (absX > absY) {
+        // Горизонтальный свайп по строке
+        const direction = deltaX > 0 ? "FORWARD" : "BACKWARD";
+        const isRowBlocked =
+          blockedShift?.type === "ROW" && blockedShift.index === startR;
+        const isOpposite = isOppositeShift(lastShift, "ROW", startR, direction);
+        if (!isRowBlocked && !isOpposite) {
+          onShift("ROW", startR, direction);
+        }
+      } else {
+        // Вертикальный свайп по колонке
+        const direction = deltaY > 0 ? "FORWARD" : "BACKWARD";
+        const isColBlocked =
+          blockedShift?.type === "COL" && blockedShift.index === startC;
+        const isOpposite = isOppositeShift(lastShift, "COL", startC, direction);
+        if (!isColBlocked && !isOpposite) {
+          onShift("COL", startC, direction);
+        }
+      }
+    }
+    touchStartRef.current = null;
+  };
+
+  const handleCardClick = (id: string) => {
+    if (hasSwipedRef.current) {
+      hasSwipedRef.current = false;
+      return;
+    }
+    onSelectCharacter(id);
+  };
+
   return (
-    <div className="relative w-full max-w-[min(100vw,calc(100dvh-220px))] max-h-[calc(100dvh-220px)] md:max-w-[min(85vw,calc(100dvh-260px))] md:max-h-[calc(100dvh-260px)] landscape:max-w-[min(85vh,calc(100dvh-140px))] landscape:max-h-[min(85vh,calc(100dvh-140px))] flex flex-col items-center justify-center p-1 select-none mx-auto shrink-0">
+    <div className="relative w-full max-w-[min(100vw,calc(100dvh-220px))] max-h-[calc(100dvh-220px)] md:max-w-[min(85vw,calc(100dvh-260px))] md:max-h-[calc(100dvh-260px)] landscape:max-w-[min(85vh,calc(100dvh-140px))] landscape:max-h-[min(85vh,calc(100dvh-140px))] flex flex-col items-center justify-center p-1 select-none mx-auto shrink-0 touch-none">
       <style>{`
         @keyframes radarMarch {
           from { stroke-dashoffset: 0; }
@@ -157,94 +228,99 @@ export const GameBoard = ({
 
         {/* ЕДИНЫЙ GRID ИГРОВОГО ПОЛЯ */}
         <div
-          className="flex-1 aspect-square grid gap-0.5 sm:gap-1"
+          className="flex-1 aspect-square grid gap-0.5 sm:gap-1 touch-none select-none"
           style={{
             gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))`,
             gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))`,
+            touchAction: "none",
           }}
         >
-          {board.flat().map((character) => {
-            const isSelected = selectedCharacterId === character.id;
-            const isRadarCell = radarCellIds.includes(character.id);
-            const isRadarTarget = character.id === radarTargetId;
+          {board.map((row, rIdx) =>
+            row.map((character, cIdx) => {
+              const isSelected = selectedCharacterId === character.id;
+              const isRadarCell = radarCellIds.includes(character.id);
+              const isRadarTarget = character.id === radarTargetId;
 
-            let neighborColor = null;
-            if (!isRadarCell) {
-              if (showKillerHints && killerAdjacentIds.includes(character.id)) {
-                neighborColor =
-                  "border-red-500 ring-1 ring-red-500/80 shadow-[0_0_15px_rgba(239,68,68,0.4)]";
-              } else if (showDetectiveHints && detectiveAdjacentIds.includes(character.id)) {
-                neighborColor =
-                  "border-blue-500 ring-1 ring-blue-500/80 shadow-[0_0_15px_rgba(59,130,246,0.4)]";
+              let neighborColor = null;
+              if (!isRadarCell) {
+                if (showKillerHints && killerAdjacentIds.includes(character.id)) {
+                  neighborColor =
+                    "border-red-500 ring-1 ring-red-500/80 shadow-[0_0_15px_rgba(239,68,68,0.4)]";
+                } else if (showDetectiveHints && detectiveAdjacentIds.includes(character.id)) {
+                  neighborColor =
+                    "border-blue-500 ring-1 ring-blue-500/80 shadow-[0_0_15px_rgba(59,130,246,0.4)]";
+                }
               }
-            }
 
-            const isRedRadar = Boolean(radarColorClass?.includes("red"));
+              const isRedRadar = Boolean(radarColorClass?.includes("red"));
 
-            return (
-              <motion.div
-                key={character.id}
-                layout
-                transition={{ type: "spring", stiffness: 300, damping: 28 }}
-                className="w-full h-full aspect-square relative"
-              >
-                <CharacterCard
-                  mode={mode}
-                  character={character}
-                  isSelected={isSelected}
-                  neighborHighlightColor={neighborColor}
-                  isUniformedOfficer={uniformedOfficerIds?.includes(
-                    character.id,
-                  )}
-                  isTargetVictim={character.id === targetVictimId}
-                  isRadarCenter={isRadarTarget}
-                  radarRingColor={null}
-                  isError={character.id === errorCardId}
-                  isMyCharacter={character.id === myCharacterId}
-                  isOverlapZone={false}
-                  isPVP={isPVP}
-                  myRoleColor={myRoleColor}
-                  onClick={() => onSelectCharacter(character.id)}
-                />
-
-                {(isRadarCell || isRadarTarget) && (
-                  <div className="absolute inset-0 rounded-lg sm:rounded-xl pointer-events-none z-35 overflow-visible">
-                    <div
-                      className={`absolute inset-0 rounded-lg sm:rounded-xl mix-blend-screen transition-opacity duration-300 ${
-                        isRadarTarget
-                          ? isRedRadar ? "bg-red-500/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.3)]" : "bg-blue-500/20 shadow-[inset_0_0_15px_rgba(59,130,246,0.3)]"
-                          : isRedRadar ? "bg-red-500/10" : "bg-blue-500/15"
-                      }`}
-                    />
-
-                    <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none">
-                      <rect
-                        x="1"
-                        y="1"
-                        width="calc(100% - 2px)"
-                        height="calc(100% - 2px)"
-                        rx="10"
-                        fill="none"
-                        stroke={isRedRadar ? "#f87171" : "#3b82f6"}
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        className="radar-marching-stroke rounded-lg sm:rounded-xl"
-                        style={{
-                          filter: `drop-shadow(0 0 4px ${isRedRadar ? "rgba(239,68,68,0.6)" : "rgba(59,130,246,0.6)"})`,
-                        }}
-                      />
-                    </svg>
-
-                    {isRadarTarget && (
-                      <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-zinc-950/90 border border-blue-400 flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.9)] z-30">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" />
-                      </div>
+              return (
+                <motion.div
+                  key={character.id}
+                  layout
+                  transition={{ type: "spring", stiffness: 300, damping: 28 }}
+                  className="w-full h-full aspect-square relative touch-none select-none"
+                  onTouchStart={(e) => handleTouchStart(rIdx, cIdx, e)}
+                  onTouchEnd={handleTouchEnd}
+                >
+                  <CharacterCard
+                    mode={mode}
+                    character={character}
+                    isSelected={isSelected}
+                    neighborHighlightColor={neighborColor}
+                    isUniformedOfficer={uniformedOfficerIds?.includes(
+                      character.id,
                     )}
-                  </div>
-                )}
-              </motion.div>
-            );
-          })}
+                    isTargetVictim={character.id === targetVictimId}
+                    isRadarCenter={isRadarTarget}
+                    radarRingColor={null}
+                    isError={character.id === errorCardId}
+                    isMyCharacter={character.id === myCharacterId}
+                    isOverlapZone={false}
+                    isPVP={isPVP}
+                    myRoleColor={myRoleColor}
+                    onClick={() => handleCardClick(character.id)}
+                  />
+
+                  {(isRadarCell || isRadarTarget) && (
+                    <div className="absolute inset-0 rounded-lg sm:rounded-xl pointer-events-none z-35 overflow-visible">
+                      <div
+                        className={`absolute inset-0 rounded-lg sm:rounded-xl mix-blend-screen transition-opacity duration-300 ${
+                          isRadarTarget
+                            ? isRedRadar ? "bg-red-500/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.3)]" : "bg-blue-500/20 shadow-[inset_0_0_15px_rgba(59,130,246,0.3)]"
+                            : isRedRadar ? "bg-red-500/10" : "bg-blue-500/15"
+                        }`}
+                      />
+
+                      <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none">
+                        <rect
+                          x="1"
+                          y="1"
+                          width="calc(100% - 2px)"
+                          height="calc(100% - 2px)"
+                          rx="10"
+                          fill="none"
+                          stroke={isRedRadar ? "#f87171" : "#3b82f6"}
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          className="radar-marching-stroke rounded-lg sm:rounded-xl"
+                          style={{
+                            filter: `drop-shadow(0 0 4px ${isRedRadar ? "rgba(239,68,68,0.6)" : "rgba(59,130,246,0.6)"})`,
+                          }}
+                        />
+                      </svg>
+
+                      {isRadarTarget && (
+                        <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-zinc-950/90 border border-blue-400 flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.9)] z-30">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })
+          )}
         </div>
 
         {!isLineUp && (

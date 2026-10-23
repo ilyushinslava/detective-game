@@ -11,7 +11,7 @@ export const Toast = ({
   message,
   type = "info",
   onClose,
-  duration = 2000,
+  duration = 1500,
 }: ToastProps) => {
   useEffect(() => {
     if (!message) return;
@@ -21,26 +21,20 @@ export const Toast = ({
 
   if (!message) return null;
 
-  const bgStyles =
+  const borderAccent =
     type === "error"
-      ? "bg-red-950/90 border-red-500/40 text-red-200 shadow-red-950/50"
+      ? "border-red-500/40 text-red-200"
       : type === "success"
-        ? "bg-emerald-950/90 border-emerald-500/40 text-emerald-200 shadow-emerald-950/50"
-        : "bg-zinc-900/90 border-white/10 text-zinc-200 shadow-black/60";
+        ? "border-emerald-500/40 text-emerald-200"
+        : "border-white/15 text-zinc-200";
 
   return (
     <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[120] max-w-xs sm:max-w-sm w-auto px-4 pointer-events-none transition-all">
       <div
-        className={`px-3 py-1.5 rounded-full border shadow-xl text-[11px] font-mono font-medium flex items-center justify-between gap-2.5 backdrop-blur-md pointer-events-auto ${bgStyles}`}
+        onClick={onClose}
+        className={`cursor-pointer active:scale-95 transition-transform backdrop-blur-md bg-zinc-950/80 border text-zinc-200 shadow-[0_4px_20px_rgba(0,0,0,0.6)] px-4 py-2 rounded-full text-xs font-mono font-medium flex items-center justify-center pointer-events-auto select-none ${borderAccent}`}
       >
-        <span className="leading-tight select-none">{message}</span>
-        <button
-          onClick={onClose}
-          className="text-zinc-400 hover:text-white transition text-xs font-bold px-1 cursor-pointer"
-          aria-label="Закрыть"
-        >
-          ✕
-        </button>
+        <span className="leading-tight text-center">{message}</span>
       </div>
     </div>
   );

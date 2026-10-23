@@ -54,10 +54,9 @@ const characterImages = import.meta.glob<{ default: string }>(
 );
 
 export default function App() {
-  const hasSavedSession = Boolean(sessionStorage.getItem('mp_session'));
-  const [showSplash, setShowSplash] = useState(!hasSavedSession);
+  const [showSplash, setShowSplash] = useState(true);
   const [, setActiveMode] = useState<GameModeType>("SKHVATKA");
-  const [isLobbyOpen, setIsLobbyOpen] = useState(!hasSavedSession);
+  const [isLobbyOpen, setIsLobbyOpen] = useState(true);
   const [hasStartedEver, setHasStartedEver] = useState(false);
   const {
     profile,

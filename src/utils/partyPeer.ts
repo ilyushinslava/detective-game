@@ -33,12 +33,24 @@ class PartyService {
       return;
     }
 
-    const host =
-      import.meta.env?.VITE_PARTYKIT_HOST ||
-      (window.location.hostname ? `${window.location.hostname}:1999` : "localhost:1999");
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const rawHost = import.meta.env?.VITE_PARTYKIT_HOST?.trim();
+    let wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    let host = window.location.hostname ? `${window.location.hostname}:1999` : "localhost:1999";
+
+    if (rawHost) {
+      if (rawHost.startsWith("https://") || rawHost.startsWith("wss://")) {
+        wsProtocol = "wss:";
+        host = rawHost.replace(/^(https?:\/\/|wss?:\/\/)/, "");
+      } else if (rawHost.startsWith("http://") || rawHost.startsWith("ws://")) {
+        wsProtocol = "ws:";
+        host = rawHost.replace(/^(https?:\/\/|wss?:\/\/)/, "");
+      } else {
+        host = rawHost;
+      }
+    }
+
     const encodedNick = encodeURIComponent(nickname || "Агент");
-    const url = `${protocol}//${host}/party/${roomCode}?clientId=${this.myClientId}&nickname=${encodedNick}&isHost=${isHost}&mode=${mode}&randomRoles=true`;
+    const url = `${wsProtocol}//${host}/party/${roomCode}?clientId=${this.myClientId}&nickname=${encodedNick}&isHost=${isHost}&mode=${mode}&randomRoles=true`;
 
     try {
       const ws = new WebSocket(url);
@@ -134,12 +146,24 @@ class PartyService {
     if (typeof window === "undefined" || typeof fetch === "undefined") {
       return [];
     }
-    const host =
-      import.meta.env?.VITE_PARTYKIT_HOST ||
-      (window.location.hostname ? `${window.location.hostname}:1999` : "localhost:1999");
-    const protocol = window.location.protocol === "https:" ? "https:" : "http:";
+    const rawHost = import.meta.env?.VITE_PARTYKIT_HOST?.trim();
+    let httpProtocol = window.location.protocol === "https:" ? "https:" : "http:";
+    let host = window.location.hostname ? `${window.location.hostname}:1999` : "localhost:1999";
+
+    if (rawHost) {
+      if (rawHost.startsWith("https://") || rawHost.startsWith("wss://")) {
+        httpProtocol = "https:";
+        host = rawHost.replace(/^(https?:\/\/|wss?:\/\/)/, "");
+      } else if (rawHost.startsWith("http://") || rawHost.startsWith("ws://")) {
+        httpProtocol = "http:";
+        host = rawHost.replace(/^(https?:\/\/|wss?:\/\/)/, "");
+      } else {
+        host = rawHost;
+      }
+    }
+
     try {
-      const res = await fetch(`${protocol}//${host}/parties/main/lobby?action=list`, {
+      const res = await fetch(`${httpProtocol}//${host}/parties/main/lobby?action=list`, {
         signal: AbortSignal.timeout(2000),
       });
       if (res.ok) {

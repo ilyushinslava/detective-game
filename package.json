@@ -12,6 +12,7 @@
         "build": "tsc && vite build",
         "preview": "vite preview",
         "test": "vitest run",
+    "server:standalone": "node server-standalone.mjs",
         "optimize:assets": "node scripts/optimize-images.mjs",
         "audit:all": "vitest run && tsc --noEmit && vite build",
         "predeploy": "npm run build",

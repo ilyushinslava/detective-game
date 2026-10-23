@@ -256,7 +256,7 @@ export const CharacterCard = memo(
 
         {isExonerated && !isDead && !(character as any).isArrested && (
           <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
-            <div className="transform rotate-6 border border-zinc-500/80 bg-zinc-900/90 text-zinc-300 font-black text-[8px] sm:text-[10px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(161,161,170,0.25)] rounded-sm backdrop-blur-sm">
+            <div className="transform rotate-6 border border-blue-500/80 bg-zinc-900/90 text-blue-400 font-black text-[8px] sm:text-[10px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(59,130,246,0.3)] rounded-sm backdrop-blur-sm">
               АЛИБИ
             </div>
           </div>

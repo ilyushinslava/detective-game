@@ -69,7 +69,7 @@ export const GameBoard = ({
       `}</style>
       {!isLineUp && (
         <div className="w-full flex items-center gap-0.5 sm:gap-1 mb-0.5 shrink-0">
-          <div className="w-3.5 sm:w-5 md:w-7 shrink-0" />
+          <div className="w-4 sm:w-6 md:w-8 shrink-0" />
           <div
             className="grid gap-0.5 sm:gap-1 flex-1"
             style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
@@ -180,7 +180,7 @@ export const GameBoard = ({
                 key={character.id}
                 layout
                 transition={{ type: "spring", stiffness: 300, damping: 28 }}
-                className="w-full h-full relative"
+                className="w-full h-full aspect-square relative"
               >
                 <CharacterCard
                   mode={mode}
@@ -200,12 +200,12 @@ export const GameBoard = ({
                 />
 
                 {(isRadarCell || isRadarTarget) && (
-                  <div className="absolute inset-0 rounded-2xl pointer-events-none z-20 overflow-visible">
+                  <div className="absolute inset-0 rounded-lg sm:rounded-xl pointer-events-none z-20 overflow-visible">
                     <div
-                      className={`absolute inset-0 rounded-2xl mix-blend-screen transition-opacity duration-300 ${
+                      className={`absolute inset-0 rounded-lg sm:rounded-xl mix-blend-screen transition-opacity duration-300 ${
                         isRadarTarget
-                          ? isRedRadar ? "bg-red-500/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.3)]" : "bg-amber-500/20 shadow-[inset_0_0_15px_rgba(245,158,11,0.3)]"
-                          : isRedRadar ? "bg-red-500/10" : "bg-amber-500/10"
+                          ? isRedRadar ? "bg-red-500/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.3)]" : "bg-blue-500/20 shadow-[inset_0_0_15px_rgba(59,130,246,0.3)]"
+                          : isRedRadar ? "bg-red-500/10" : "bg-blue-500/15"
                       }`}
                     />
 
@@ -215,21 +215,21 @@ export const GameBoard = ({
                         y="1"
                         width="calc(100% - 2px)"
                         height="calc(100% - 2px)"
-                        rx="14"
+                        rx="10"
                         fill="none"
-                        stroke={isRedRadar ? "#f87171" : "#fbbf24"}
+                        stroke={isRedRadar ? "#f87171" : "#3b82f6"}
                         strokeWidth="2"
                         strokeLinecap="round"
-                        className="radar-marching-stroke"
+                        className="radar-marching-stroke rounded-lg sm:rounded-xl"
                         style={{
-                          filter: `drop-shadow(0 0 4px ${isRedRadar ? "rgba(239,68,68,0.6)" : "rgba(245,158,11,0.6)"})`,
+                          filter: `drop-shadow(0 0 4px ${isRedRadar ? "rgba(239,68,68,0.6)" : "rgba(59,130,246,0.6)"})`,
                         }}
                       />
                     </svg>
 
                     {isRadarTarget && (
-                      <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-zinc-950/90 border border-amber-400 flex items-center justify-center shadow-[0_0_10px_rgba(245,158,11,0.9)] z-30">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                      <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-zinc-950/90 border border-blue-400 flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.9)] z-30">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" />
                       </div>
                     )}
                   </div>
@@ -282,7 +282,7 @@ export const GameBoard = ({
 
       {!isLineUp && (
         <div className="w-full flex items-center gap-0.5 sm:gap-1 mt-0.5 shrink-0">
-          <div className="w-3.5 sm:w-5 md:w-7 shrink-0" />
+          <div className="w-4 sm:w-6 md:w-8 shrink-0" />
           <div
             className="grid gap-0.5 sm:gap-1 flex-1"
             style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}

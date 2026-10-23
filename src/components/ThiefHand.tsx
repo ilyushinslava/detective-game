@@ -4,12 +4,14 @@ interface ThiefHandProps {
   handIds: string[];
   isThiefTurn: boolean;
   onFastDisguise: (id: string) => void;
+  characterImages?: Record<string, { default: string }>;
 }
 
 export const ThiefHand = ({
   handIds,
   isThiefTurn,
   onFastDisguise,
+  characterImages,
 }: ThiefHandProps) => {
   const canView = isThiefTurn;
 
@@ -25,10 +27,10 @@ export const ThiefHand = ({
   });
 
   return (
-    <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 shadow-lg">
+    <div className="w-full bg-zinc-950/80 border border-white/10 rounded-2xl p-4 shadow-xl backdrop-blur-xl">
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-xs font-black uppercase tracking-wider text-amber-400">
+          <span className="text-xs font-black uppercase tracking-wider text-red-400">
             Маски вора ({validCards.length} карт)
           </span>
         </div>
@@ -45,28 +47,41 @@ export const ThiefHand = ({
             Нажмите на карту, чтобы применить действие «Конспирация»:
           </div>
           <div className="grid grid-cols-2 gap-2">
-            {validCards.map((card) => (
-              <div
-                key={card.id}
-                onClick={() => onFastDisguise(card.id)}
-                className="p-2 rounded-xl bg-zinc-950 hover:bg-amber-950/30 border border-zinc-800 hover:border-amber-500/80 cursor-pointer transition flex flex-col justify-between min-h-[82px] shadow select-none group"
-              >
-                <div className="flex items-center justify-between text-[9px] font-mono text-zinc-500">
-                  <span>#{card.num}</span>
-                  <span className="text-amber-400 font-bold uppercase tracking-wider text-[8px] px-1 py-0.5 bg-amber-950 rounded border border-amber-900">
-                    Маска
-                  </span>
-                </div>
+            {validCards.map((card) => {
+              const img = characterImages
+                ? characterImages[`./assets/characters/${card.id}.webp`]?.default ||
+                  characterImages[`../assets/characters/${card.id}.webp`]?.default
+                : null;
+              return (
+                <div
+                  key={card.id}
+                  onClick={() => onFastDisguise(card.id)}
+                  className="relative overflow-hidden p-3 rounded-xl bg-zinc-900/60 hover:bg-red-950/30 border border-white/10 hover:border-red-500/60 cursor-pointer transition flex flex-col justify-between min-h-[85px] shadow select-none group"
+                >
+                  {img && (
+                    <img
+                      src={img}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none"
+                    />
+                  )}
+                  <div className="relative z-10 flex items-center justify-between text-[9px] font-mono text-zinc-400">
+                    <span>#{card.num}</span>
+                    <span className="text-red-400 font-bold uppercase tracking-wider text-[8px] px-1.5 py-0.5 bg-red-950/80 rounded border border-red-800/60">
+                      Маска
+                    </span>
+                  </div>
 
-                <div className="text-xs font-black text-zinc-100 group-hover:text-amber-200 leading-tight my-1 break-words">
-                  {card.name}
-                </div>
+                  <div className="relative z-10 text-xs font-black text-zinc-100 group-hover:text-red-200 leading-tight my-1 break-words">
+                    {card.name}
+                  </div>
 
-                <div className="text-[9px] text-zinc-400 group-hover:text-zinc-200 font-semibold">
-                  Конспирация →
+                  <div className="relative z-10 text-[9px] text-zinc-400 group-hover:text-zinc-200 font-semibold">
+                    Конспирация →
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

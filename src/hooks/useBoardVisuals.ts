@@ -271,18 +271,20 @@ export function useBoardVisuals({
       if (gameState.opponent === "ONLINE") return !partyService.isHost;
       if (isPVP) return gameState.activeSpyIndex === 1;
       return false;
-    } else {
-      if (gameState.opponent === "ONLINE" || gameState.opponent === "AI") {
-        return gameState.playerRole === "DETECTIVE";
-      }
-      if (
-        gameState.mode === "SKHVATKA" &&
-        Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0)
-      ) {
-        return false;
-      }
-      return isDetectiveTurn;
     }
+
+    if (
+      gameState.mode === "SKHVATKA" &&
+      Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0)
+    ) {
+      return false;
+    }
+
+    if (gameState.opponent === "ONLINE" || gameState.opponent === "AI") {
+      return gameState.playerRole === "DETECTIVE";
+    }
+
+    return isDetectiveTurn;
   }, [
     gameState.mode,
     gameState.opponent,

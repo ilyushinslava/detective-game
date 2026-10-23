@@ -104,7 +104,7 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
           )}
           <button
             onClick={onAcceptIdentity}
-            className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-[0_10px_25px_rgba(59,130,246,0.3)] border-t border-white/25"
+            className={`w-full py-3.5 ${isRed ? "bg-red-600 hover:bg-red-500 shadow-[0_10px_25px_rgba(220,38,38,0.3)]" : "bg-blue-600 hover:bg-blue-500 shadow-[0_10px_25px_rgba(59,130,246,0.3)]"} text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer border-t border-white/25`}
           >
             Принять личность{isRed ? "" : " ➔"}
           </button>

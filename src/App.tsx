@@ -807,7 +807,7 @@ export default function App() {
               gameState.evidenceDeck.length === 0 ||
               isGameOver,
             className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
         }
         if (gameState.mode === "MANIAC_VS_OPERATIVE") {
@@ -818,7 +818,7 @@ export default function App() {
             disabled:
               !isHumanTurn || gameState.evidenceDeck.length < 2 || isGameOver,
             className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
         }
       } else {
@@ -1550,7 +1550,7 @@ export default function App() {
                 {((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView) && (
                   <button
                     onClick={() => setIsHandSheetOpen(true)}
-                    className="col-span-2 py-1.5 sm:py-2 md:py-3.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="col-span-2 py-1.5 sm:py-2 md:py-3.5 bg-zinc-800 hover:bg-zinc-700 text-blue-400 border border-zinc-700 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <span>Досье ({gameState.detectiveHand.length})</span>
                   </button>
@@ -1722,7 +1722,7 @@ export default function App() {
             <IdentityRevealModal
               isOpen={true}
               badge="Смена личности!"
-              badgeColor="amber"
+              badgeColor={gameState.mode === "THIEF_HUNT" ? "amber" : "red"}
               title="Ваша новая личность:"
               character={allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId) ?? null}
               characterImage={(() => { const character = allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}

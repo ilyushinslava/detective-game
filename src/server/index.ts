@@ -34,6 +34,7 @@ const publicRoomsRegistry = new Map<
 export default class GameRoomServer {
   room: any;
   state: ServerRoomState;
+  private disconnectTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
 
   constructor(room: any) {
     this.room = room;
@@ -75,6 +76,19 @@ export default class GameRoomServer {
     const mode = (url.searchParams.get("mode") as GameModeType) || "SKHVATKA";
     const randomRoles = url.searchParams.get("randomRoles") === "true";
     const roomCode = this.room?.id || url.pathname.split("/").pop() || "room";
+
+    if (this.state.players[clientId]) {
+      const pendingTimer = this.disconnectTimers.get(clientId);
+      if (pendingTimer) {
+        clearTimeout(pendingTimer);
+        this.disconnectTimers.delete(clientId);
+      }
+      this.state.players[clientId].connectionId = conn.id;
+      this.broadcastRaw(JSON.stringify({ type: "PRESENCE_CHANGED", connected: true }));
+      this.broadcastStatus();
+      this.broadcastState();
+      return;
+    }
 
     const playerCount = Object.keys(this.state.players).length;
 
@@ -133,37 +147,54 @@ export default class GameRoomServer {
 
   onClose(conn: any): void {
     const clientId = this.getClientIdByConnId(conn.id);
-    if (clientId) {
+    if (!clientId) return;
+
+    const existingTimer = this.disconnectTimers.get(clientId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+      this.disconnectTimers.delete(clientId);
+    }
+
+    this.broadcastRaw(JSON.stringify({ type: "PRESENCE_CHANGED", connected: false }));
+
+    const timer = setTimeout(() => {
+      this.disconnectTimers.delete(clientId);
       delete this.state.players[clientId];
       this.state.readyClients.delete(clientId);
-    }
 
-    const roomCode = this.room?.id;
-    if (roomCode) {
-      publicRoomsRegistry.delete(roomCode);
-    }
-
-    const remainingPlayersCount = Object.keys(this.state.players).length;
-
-    if (remainingPlayersCount === 0) {
-      this.state.status = "EMPTY";
-      this.state.gameState = null;
-      this.state.readyClients.clear();
-    } else {
-      this.broadcastRaw(JSON.stringify({ type: "OPPONENT_LEFT" }));
-      this.broadcastRaw(JSON.stringify({ type: "PRESENCE_CHANGED", connected: false }));
-      if (this.state.status === "PLAYING") {
-        this.state.status = "FINISHED";
-      } else {
-        this.state.status = "WAITING";
+      const roomCode = this.room?.id;
+      if (roomCode) {
+        publicRoomsRegistry.delete(roomCode);
       }
-      this.broadcastStatus();
-    }
+
+      const remainingPlayersCount = Object.keys(this.state.players).length;
+      if (remainingPlayersCount === 0) {
+        this.state.status = "EMPTY";
+        this.state.gameState = null;
+        this.state.readyClients.clear();
+      } else {
+        this.broadcastRaw(JSON.stringify({ type: "OPPONENT_LEFT" }));
+        if (this.state.status === "PLAYING") {
+          this.state.status = "FINISHED";
+        } else {
+          this.state.status = "WAITING";
+        }
+        this.broadcastStatus();
+      }
+    }, 15000);
+
+    this.disconnectTimers.set(clientId, timer);
   }
 
   onMessage(message: string, sender: any): void {
     try {
       const action = JSON.parse(message);
+      if (action.type === "PING") {
+        try {
+          sender?.send(JSON.stringify({ type: "PONG" }));
+        } catch (_) {}
+        return;
+      }
       const senderClientId =
         action.senderClientId ||
         action.senderId ||
@@ -365,5 +396,10 @@ export default class GameRoomServer {
     }
   }
 
-  close(): void {}
+  close(): void {
+    for (const timer of this.disconnectTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.disconnectTimers.clear();
+  }
 }

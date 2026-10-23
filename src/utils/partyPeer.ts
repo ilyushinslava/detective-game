@@ -7,6 +7,7 @@ class PartyService {
   isHost: boolean = true;
   lastSyncedState: any = null;
   socket: WebSocket | null = null;
+  private pingInterval: ReturnType<typeof setInterval> | null = null;
 
   onSyncState: ((state: any, role?: Role, status?: string) => void) | null = null;
   onRoomStatus: ((status: any) => void) | null = null;
@@ -68,6 +69,12 @@ class PartyService {
       ws.onopen = () => {
         if (this.socket === ws) {
           this.onPresenceChanged?.(true);
+          this.stopHeartbeat();
+          this.pingInterval = setInterval(() => {
+            if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+              this.socket.send(JSON.stringify({ type: "PING" }));
+            }
+          }, 15000);
         }
       };
 
@@ -75,6 +82,10 @@ class PartyService {
         try {
           const data = JSON.parse(event.data);
           if (!data || typeof data !== "object") return;
+
+          if (data.type === "PONG") {
+            return;
+          }
 
           if (data.type === "SYNC_STATE") {
             this.lastSyncedState = data.state;
@@ -107,6 +118,7 @@ class PartyService {
 
       ws.onclose = () => {
         if (this.socket === ws) {
+          this.stopHeartbeat();
           this.socket = null;
           this.onPresenceChanged?.(false);
         }
@@ -120,7 +132,15 @@ class PartyService {
     }
   }
 
+  private stopHeartbeat(): void {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
+    }
+  }
+
   disconnect(): void {
+    this.stopHeartbeat();
     if (this.socket) {
       try {
         this.socket.close();

@@ -491,7 +491,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   if (currentModule === "MENU") {
     return (
       <div className="fixed inset-0 z-[100] bg-[#050608] flex justify-center overflow-hidden font-sans select-none text-zinc-100 h-full w-full">
-        <div className="w-full max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto h-full flex flex-col justify-between relative overflow-hidden bg-[#080a0f] md:border-x md:border-white/10 shadow-2xl">
+        <div className="w-full max-w-lg md:max-w-2xl mx-auto h-full flex flex-col justify-between relative overflow-hidden bg-[#080a0f] md:border-x md:border-white/10 shadow-2xl">
           <div className="flex items-center justify-between px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-[#080a0f]">
             <button
               onClick={onExit}
@@ -616,7 +616,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
           animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
         }
       `}</style>
-      <div className="w-full max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto h-full flex flex-col justify-between relative overflow-hidden bg-[#080a0f] md:border-x md:border-white/10 shadow-2xl">
+      <div className="w-full max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto h-full flex flex-col justify-between relative overflow-hidden bg-[#080a0f] md:border-x md:border-white/10 shadow-2xl">
         <div className="w-full flex items-center justify-between px-6 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2.5 shrink-0 border-b border-white/10 bg-[#080a0f] z-20">
           <button onClick={() => setCurrentModule("MENU")} className="text-zinc-400 hover:text-white transition cursor-pointer text-xs font-black uppercase tracking-widest bg-zinc-900 px-3 py-1.5 rounded-lg border border-white/10">
             ← К делам
@@ -811,7 +811,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
             </div>
           </div>
 
-          <div className={`flex-1 min-h-0 w-full flex items-center justify-center py-2 md:py-3 max-h-[calc(100dvh-280px)] max-w-[min(100vw,calc(100dvh-280px))] mx-auto overflow-visible ${
+          <div className={`w-full h-full flex-1 min-h-0 flex items-center justify-center p-1 md:p-2 overflow-visible ${
             currentModule === "SKHVATKA" && lesson === 1 && (step === 1 || step === 2) ? "tutorial-highlight-l1s2" : ""
           } ${currentModule === "MANIAC" && lesson === 1 && step === 1 ? "tutorial-highlight-maniac" : ""}`}>
             <GameBoard

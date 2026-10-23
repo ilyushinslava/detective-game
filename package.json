@@ -4,6 +4,7 @@
     "version": "0.0.0",
     "type": "module",
     "scripts": {
+        "patch:check": "node patcher.cjs && npm run audit:all",
         "patch:run": "node patcher.cjs && npm run audit:all && npm run dev:all",
         "dev:all": "concurrently \"npm run party:dev\" \"npm run dev\"",
         "server:start": "partykit dev --host 0.0.0.0",

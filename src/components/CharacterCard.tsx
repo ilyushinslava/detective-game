@@ -160,16 +160,21 @@ export const CharacterCard = memo(
         } ${(() => {
           const hasRadar = Boolean(isRadarCenter || radarRingColor);
           const hasNeighbor = Boolean(neighborHighlightColor);
+          const selectionEffect = isSelected
+            ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-950 shadow-[0_0_15px_rgba(255,255,255,0.85)] z-30 scale-95 transition-all"
+            : "";
 
-          const isSelectedInRadar = isSelected && hasRadar ? "ring-2 ring-white ring-inset shadow-[0_0_15px_rgba(255,255,255,0.8)] scale-95 z-30" : "";
+          if (hasRadar && isSelected) {
+            return `border-2 border-dashed ${radarRingColor || "border-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.5)] animate-pulse"} ${hasNeighbor ? `${neighborHighlightColor} ` : ""}${selectionEffect}`;
+          }
           if (hasRadar && hasNeighbor) {
-            return `${neighborHighlightColor} border-dashed z-25 ${isSelectedInRadar}`;
+            return `${neighborHighlightColor} border-2 border-dashed ${radarRingColor || "border-blue-500 ring-2 ring-blue-500/60 shadow-[0_0_12px_rgba(59,130,246,0.5)]"} z-20 animate-pulse`;
           }
           if (hasRadar) {
-            return `border-2 border-dashed ${radarRingColor || "border-blue-500 ring-2 ring-blue-500/60 shadow-[0_0_12px_rgba(59,130,246,0.5)]"} z-20 animate-pulse ${isSelectedInRadar}`;
+            return `border-2 border-dashed ${radarRingColor || "border-blue-500 ring-2 ring-blue-500/60 shadow-[0_0_12px_rgba(59,130,246,0.5)]"} z-20 animate-pulse`;
           }
           if (isSelected) {
-            return `ring-2 ring-white border-white shadow-[0_0_18px_rgba(255,255,255,0.9)] scale-95 z-30`;
+            return `border-white ${selectionEffect}`;
           }
           if (hasNeighbor) {
             return `${neighborHighlightColor} z-10`;
@@ -198,10 +203,10 @@ export const CharacterCard = memo(
           );
         })()}
 
-        <div className="flex items-center justify-between gap-0.5 z-10 w-full leading-none px-1 pt-1">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center justify-between gap-1 z-10 w-full leading-none px-1 pt-1">
+          <div className="flex items-center gap-1 shrink-0 min-w-0">
             <span
-              className={`text-[9px] sm:text-[10px] md:text-xs font-mono font-bold drop-shadow ${
+              className={`text-[9px] sm:text-[10px] md:text-xs font-mono font-bold drop-shadow shrink-0 ${
                 isDead
                   ? "text-zinc-600 line-through"
                   : isExonerated
@@ -214,7 +219,7 @@ export const CharacterCard = memo(
             {isMyCharacter && !isDead && !isPVP && (() => {
               const isRed = myRoleColor ? myRoleColor === "red" : (mode === "SKHVATKA" || mode === "MANIAC_VS_OPERATIVE" || mode === "THIEF_HUNT");
               return (
-                <span className={`text-[7.5px] md:text-[9px] font-black uppercase px-1 md:px-1.5 py-[1px] md:py-0.5 rounded tracking-wider shadow-sm ${
+                <span className={`text-[7.5px] md:text-[9px] font-black uppercase px-1 md:px-1.5 py-[1px] md:py-0.5 rounded tracking-wider shadow-sm shrink-0 ${
                   isRed
                     ? "text-red-400 bg-red-950/90 border border-red-500/70 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
                     : "text-blue-300 bg-blue-950/90 border border-blue-500/70 shadow-[0_0_8px_rgba(59,130,246,0.5)]"
@@ -225,7 +230,7 @@ export const CharacterCard = memo(
             })()}
           </div>
 
-          <div className="flex items-center gap-1 leading-none">
+          <div className="flex items-center gap-1 leading-none shrink-0">
             {isTargetVictim && !isDead && (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-red-500 animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
             )}

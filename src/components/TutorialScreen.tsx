@@ -91,6 +91,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   const [interrogatedTargetId, setInterrogatedTargetId] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<"NEAR" | "FAR" | null>(null);
+  const [fullscreenImage, setFullscreenImage] = useState<{ url: string; name: string; id: string } | null>(null);
 
   const isRewardClaimed = typeof window !== 'undefined' && localStorage.getItem("crime_city_tutorial") === "true";
 
@@ -616,191 +617,191 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
           <div className="w-16 shrink-0" />
         </div>
 
-        <div className="flex-1 w-full flex flex-col relative min-h-0">
-          <div className="min-h-[85px] max-h-[125px] shrink-0 pt-2 pb-1 px-4 flex flex-col justify-center items-center text-center z-20">
-            <AnimatePresence mode="wait">
+        <div className="flex-1 w-full flex flex-col relative min-h-0 overflow-hidden">
+          <div className="min-h-[75px] max-h-[110px] shrink-0 pt-2 pb-1 px-4 flex flex-col justify-center items-center text-center z-10">
+            <div>
               {currentModule === "SKHVATKA" && lesson === 1 && (step === 1 || step === 2) && (
-                <motion.div key="l1s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Урок 1: Основы маневра</h3>
                   <p className="text-xs text-zinc-400 font-mono">Бандит в центре (ВЫ). Подсвечена зона 8 соседей. Цель вне досягаемости. <b className="text-blue-400">НАЖМИТЕ стрелку ← у 3-го ряда</b> для смещения.</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "SKHVATKA" && lesson === 1 && step === 3 && (
-                <motion.div key="l1s3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Отлично!</h3>
                   <p className="text-xs text-zinc-400 font-mono">Карта уходит за край и появляется справа, меняя окружение. Зона соседей переместилась вместе с вами.</p>
-                </motion.div>
+                </div>
               )}
 
               {currentModule === "SKHVATKA" && lesson === 2 && step === 1 && (
-                <motion.div key="l2s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Урок 2: Ликвидация</h3>
                   <p className="text-xs text-zinc-400 font-mono">Вы — Бандит. <b className="text-red-400">ВЫБЕРИТЕ цель для ликвидации среди 8 соседей.</b></p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "SKHVATKA" && lesson === 2 && step === 2 && (
-                <motion.div key="l2s2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Цель выбрана</h3>
                   <p className="text-xs text-zinc-400 font-mono"><b className="text-red-400">НАЖМИТЕ кнопку "Ликвидировать" внизу.</b></p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "SKHVATKA" && lesson === 2 && step === 3 && (
-                <motion.div key="l2s3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Показания очевидцев</h3>
                   <p className="text-xs text-zinc-400 font-mono">Свидетель сверху дает показания: в секторе 3×3 Инспектора не было.</p>
-                </motion.div>
+                </div>
               )}
 
               {currentModule === "SKHVATKA" && lesson === 3 && step === 1 && (
-                <motion.div key="l3s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Урок 3: Задержание</h3>
                   <p className="text-xs text-zinc-400 font-mono">Инспектор (ВЫ) в центре квартала. Свидетель подтвердил, что Бандит в секторе 3×3. Выберите любого соседа Инспектора без алиби в секторе.</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "SKHVATKA" && lesson === 3 && step === 2 && (
-                <motion.div key="l3s2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Предъявление обвинения</h3>
                   <p className="text-xs text-zinc-400 font-mono">Нажмите «Задержание» для ареста подозреваемого.</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "SKHVATKA" && lesson === 3 && step === 3 && (
-                <motion.div key="l3s3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Точный арест!</h3>
                   <p className="text-xs text-zinc-400 font-mono">Бандит задержан (штамп «АРЕСТОВАН»). Переходим к учебному делу.</p>
-                </motion.div>
+                </div>
               )}
 
               {currentModule === "SKHVATKA" && lesson === 4 && step === 1 && (
-                <motion.div key="l4s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Урок 4: Загромождение и Зачистка</h3>
                   <p className="text-xs text-zinc-400 font-mono">На поле скопились тела, мешающие маневрам. Нажмите «Зачистить» — выбывшие жители сместятся в крайние линии сетки.</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "SKHVATKA" && lesson === 4 && step === 2 && (
-                <motion.div key="l4s2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Курс пройден!</h3>
                   <p className="text-xs text-zinc-400 font-mono">Вы успешно освоили тактику маневров и дедукции.</p>
-                </motion.div>
+                </div>
               )}
 
               {currentModule === "MANIAC" && lesson === 1 && step === 1 && (
-                <motion.div key="maniac1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Очередь целей: список смертников и сближение</h3>
                   <p className="text-xs text-zinc-400 font-mono">Маньяк (ВЫ) в клетке ряда 3. Открыта цель — {targetVictimName} (дистанция 2 шага). <b className="text-blue-400">Сдвиньте 3-ю колонку вниз (↓)</b>, чтобы подвести её в зону удара.</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "MANIAC" && lesson === 1 && step === 2 && (
-                <motion.div key="maniac1s2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Цель в зоне удара</h3>
                   <p className="text-xs text-zinc-400 font-mono">Елена Соколова теперь сосед Маньяка. ВЫБЕРИТЕ её для ликвидации.</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "MANIAC" && lesson === 1 && step === 3 && (
-                <motion.div key="maniac2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Ликвидация цели</h3>
                   <p className="text-xs text-zinc-400 font-mono">Нажмите «Ликвидировать по заказу» внизу.</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "MANIAC" && lesson === 1 && step === 4 && (
-                <motion.div key="maniac3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Цель поражена!</h3>
                   <p className="text-xs text-zinc-400 font-mono">Жертва ликвидирована строго по контракту.</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "MANIAC" && lesson === 2 && step === 1 && (
-                <motion.div key="maniacL2s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">План перехвата и побег</h3>
                   <p className="text-xs text-zinc-400 font-mono">Оперативник выходит на след. Нажмите «Конспирация (Побег)» для сброса тела и перехода в новую тайную личность.</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "MANIAC" && lesson === 2 && step === 2 && (
-                <motion.div key="maniacL2s2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Побег успешен!</h3>
                   <p className="text-xs text-zinc-400 font-mono">Маньяк принял новое обличье ({newDisguiseChar?.name ?? "Житель"}). Метка «ВЫ» переместилась.</p>
-                </motion.div>
+                </div>
               )}
 
               {currentModule === "THIEF" && lesson === 1 && step === 1 && (
-                <motion.div key="thief1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Карманная кража</h3>
                   <p className="text-xs text-zinc-400 font-mono">Вор (ВЫ) обчищает соседа без убийства. <b className="text-red-400">ТАПНИТЕ по любому подсвеченному соседу.</b></p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "THIEF" && lesson === 1 && step === 2 && (
-                <motion.div key="thief2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Кража сокровища</h3>
                   <p className="text-xs text-zinc-400 font-mono">Нажмите «Кража сокровища» внизу.</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "THIEF" && lesson === 1 && step === 3 && (
-                <motion.div key="thief3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Успешная кража!</h3>
                   <p className="text-xs text-zinc-400 font-mono">Похищен жетон Синдиката (добыча 1/5).</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "THIEF" && lesson === 2 && step === 1 && (
-                <motion.div key="thiefL2s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Маскировка из руки и патрули</h3>
                   <p className="text-xs text-zinc-400 font-mono">Нажмите «Конспирация (Маска)» для смены лица картой из руки.</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "THIEF" && lesson === 2 && step === 2 && (
-                <motion.div key="thiefL2s2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Лицо изменено!</h3>
                   <p className="text-xs text-zinc-400 font-mono">Вор принял новое прикрытие ({newDisguiseChar?.name ?? "Марк Вайс"}). Метка «ВЫ» переместилась на новую клетку. Демонстрация оцепления линии патрулем завершена.</p>
-                </motion.div>
+                </div>
               )}
 
               {currentModule === "SECRET_SERVICE" && lesson === 1 && (step === 1 || (step === 2 && scanResult === "FAR")) && (
-                <motion.div key="ss1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Перекрестный опрос</h3>
                   <p className="text-xs text-zinc-400 font-mono">
                     {scanResult === "FAR"
                       ? "Вне зоны (НЕТ). Опросите другого очевидца ближе к резиденту."
                       : "Агент в центре (ВЫ). Вражеский резидент прячется в квартале. ВЫБЕРИТЕ очевидца для опроса. Помните: свидетель сам внутри сектора 3×3 и тоже может оказаться скрывающимся резидентом!"}
                   </p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "SECRET_SERVICE" && lesson === 1 && step === 2 && scanResult !== "FAR" && (
-                <motion.div key="ss2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Опрос очевидцев</h3>
                   <p className="text-xs text-zinc-400 font-mono">Нажмите «Опрос свидетелей» внизу.</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "SECRET_SERVICE" && lesson === 1 && step === 3 && (
-                <motion.div key="ss3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Враг рядом (ДА)!</h3>
                   <p className="text-xs text-zinc-400 font-mono">Опрос свидетеля рядом с резидентом дает статус «Враг рядом (ДА)». Очевидец и его окружение охвачены сектором.</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "SECRET_SERVICE" && lesson === 2 && step === 1 && (
-                <motion.div key="ssL2s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Разоблачение резидента</h3>
                   <p className="text-xs text-zinc-400 font-mono">Выберите Софию Романову в выявленном секторе.</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "SECRET_SERVICE" && lesson === 2 && step === 2 && (
-                <motion.div key="ssL2s2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Разоблачение</h3>
                   <p className="text-xs text-zinc-400 font-mono">Нажмите «Разоблачение шпиона» для задержания.</p>
-                </motion.div>
+                </div>
               )}
               {currentModule === "SECRET_SERVICE" && lesson === 2 && step === 3 && (
-                <motion.div key="ss5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div>
                   <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Трофей получен!</h3>
                   <p className="text-xs text-zinc-400 font-mono">Резидент разоблачен (штамп «РАСКРЫТ»). Фиксация трофея 1/4. Операция завершена успешно.</p>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
+            </div>
           </div>
 
-          <div className="min-h-[2.25rem] py-1 px-4 w-full shrink-0 flex items-center justify-center bg-zinc-950/80 border-y border-white/5 shadow-sm z-20">
+          <div className="min-h-[2.25rem] py-1 px-4 mb-1.5 w-full shrink-0 flex items-center justify-center bg-zinc-950/80 border-y border-white/5 shadow-sm z-10">
             <div className="text-[10px] md:text-xs tracking-widest uppercase font-mono text-center leading-tight flex flex-wrap justify-center items-center">
               {getHudStatus()}
             </div>
           </div>
 
-          <div className={`flex-1 min-h-0 w-full flex items-center justify-center py-2 overflow-visible py-3 overflow-visible ${
+          <div className={`flex-1 min-h-0 w-full flex items-center justify-center py-1 pb-2 overflow-visible ${
             currentModule === "SKHVATKA" && lesson === 1 && (step === 1 || step === 2) ? "tutorial-highlight-l1s2" : ""
           } ${currentModule === "MANIAC" && lesson === 1 && step === 1 ? "tutorial-highlight-maniac" : ""}`}>
             <GameBoard
@@ -942,15 +943,22 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {(() => {
                 const img = characterImages[`../assets/characters/${newDisguiseChar.id}.webp`]?.default;
                 return (
-                  <div className="relative w-full h-44 rounded-2xl overflow-hidden border border-zinc-700 my-4 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                  <div
+                    className="relative w-full h-44 rounded-2xl overflow-hidden border border-zinc-700 my-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] cursor-pointer group"
+                    onClick={() => img && setFullscreenImage({ url: img, name: newDisguiseChar.name, id: newDisguiseChar.id })}
+                  >
                     {img ? (
-                      <img src={img} alt={newDisguiseChar.name} className="absolute inset-0 w-full h-full object-cover grayscale contrast-125 pointer-events-none" />
+                      <img src={img} alt={newDisguiseChar.name} className="absolute inset-0 w-full h-full object-cover grayscale contrast-125 group-hover:scale-105 transition-transform duration-500" />
                     ) : (
                       <div className="absolute inset-0 bg-zinc-800 flex items-center justify-center text-zinc-500">Нет фото</div>
                     )}
                     <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-3 pt-12 flex flex-col items-center">
-                      <span className="text-xl font-black text-zinc-100 uppercase tracking-wider leading-tight text-center">
+                      <span className="text-[10px] font-mono text-zinc-400 mb-0.5">#{newDisguiseChar.id.replace("c", "").padStart(2, "0")}</span>
+                      <span className="text-xl font-black text-zinc-100 uppercase tracking-wider leading-tight text-center mb-1">
                         {newDisguiseChar.name}
+                      </span>
+                      <span className="text-[8px] font-mono text-zinc-400 uppercase tracking-widest bg-black/50 px-2 py-0.5 rounded-full border border-white/10">
+                        Тапните для полного фото
                       </span>
                     </div>
                   </div>
@@ -959,6 +967,24 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               <button onClick={handleConfirmDisguise} className="w-full py-3.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-black uppercase tracking-wider text-xs rounded-xl transition cursor-pointer shadow-[0_0_15px_rgba(220,38,38,0.4)] active:scale-95">
                 Принять личность ➔
               </button>
+            </div>
+          </div>
+        )}
+
+        {fullscreenImage && (
+          <div className="fixed inset-0 z-[130] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 select-none" onClick={() => setFullscreenImage(null)}>
+            <button
+              onClick={() => setFullscreenImage(null)}
+              className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
+            >
+              ✕
+            </button>
+            <div className="relative w-full max-w-sm aspect-[3/4] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.8)]" onClick={(e) => e.stopPropagation()}>
+              <img src={fullscreenImage.url} alt={fullscreenImage.name} className="w-full h-full object-cover grayscale contrast-125" />
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-20 flex flex-col items-center text-center">
+                <span className="text-xs font-mono text-zinc-400 mb-2">#{fullscreenImage.id.replace("c", "").padStart(2, "0")}</span>
+                <h2 className="text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">{fullscreenImage.name}</h2>
+              </div>
             </div>
           </div>
         )}

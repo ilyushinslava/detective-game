@@ -1449,6 +1449,7 @@ export default function App() {
                 radarColorClass={effectiveRadarColorClass}
                 errorCardId={errorCardId}
                 myCharacterId={myCharacterId}
+                isPVP={isPVP}
                 onShift={handleShift}
                 onSelectCharacter={(id) => {
                   soundManager.play('click');

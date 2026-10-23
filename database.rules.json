@@ -50,9 +50,15 @@
     },
     "users": {
       "$uid": {
-        ".read": "auth != null && auth.uid === $uid",
+        ".read": "auth != null",
         ".write": "auth != null && auth.uid === $uid",
         ".validate": "newData.hasChildren(['cash', 'xp', 'level']) && newData.child('cash').isNumber() && newData.child('cash').val() >= 0 && newData.child('xp').isNumber() && newData.child('xp').val() >= 0 && newData.child('level').isNumber() && newData.child('level').val() >= 1"
+      }
+    },
+    "friends": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
       }
     }
   }

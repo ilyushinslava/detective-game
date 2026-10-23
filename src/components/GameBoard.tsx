@@ -21,6 +21,7 @@ interface GameBoardProps {
   radarColorClass?: string | null;
   errorCardId?: string | null;
   myCharacterId?: string | null;
+  isPVP?: boolean;
   onShift: (
     type: "ROW" | "COL",
     index: number,
@@ -46,6 +47,7 @@ export const GameBoard = ({
   radarColorClass = null,
   errorCardId = null,
   myCharacterId = null,
+  isPVP = false,
   onShift,
   onSelectCharacter,
 }: GameBoardProps) => {
@@ -196,6 +198,7 @@ export const GameBoard = ({
                   isError={character.id === errorCardId}
                   isMyCharacter={character.id === myCharacterId}
                   isOverlapZone={false}
+                  isPVP={isPVP}
                   onClick={() => onSelectCharacter(character.id)}
                 />
 
@@ -209,7 +212,7 @@ export const GameBoard = ({
                       }`}
                     />
 
-                    <svg className="absolute inset-0 w-full h-full overflow-visible">
+                    <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none">
                       <rect
                         x="1"
                         y="1"
@@ -218,7 +221,7 @@ export const GameBoard = ({
                         rx="10"
                         fill="none"
                         stroke={isRedRadar ? "#f87171" : "#3b82f6"}
-                        strokeWidth="2"
+                        strokeWidth={isSelected ? "2.5" : "2"}
                         strokeLinecap="round"
                         className="radar-marching-stroke rounded-lg sm:rounded-xl"
                         style={{

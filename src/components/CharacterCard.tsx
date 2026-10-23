@@ -19,6 +19,7 @@ export interface CharacterCardProps {
   isError?: boolean;
   isMyCharacter?: boolean;
   isOverlapZone?: boolean;
+  isPVP?: boolean;
   onClick: () => void;
 }
 
@@ -126,6 +127,7 @@ export const CharacterCard = memo(
     isRadarCenter,
     isError = false,
     isMyCharacter = false,
+    isPVP = false,
   }: CharacterCardProps) => {
     const [imgError, setImgError] = useState(false);
     const isDead = !character.isAlive;
@@ -157,16 +159,15 @@ export const CharacterCard = memo(
           const hasRadar = Boolean(isRadarCenter || radarRingColor);
           const hasNeighbor = Boolean(neighborHighlightColor);
 
-          if (isSelected) {
-            return `ring-2 ring-white border-white shadow-[0_0_18px_rgba(255,255,255,0.9)] scale-95 z-30 ${
-              hasRadar ? "border-dashed" : ""
-            }`;
-          }
+          const isSelectedClass = isSelected ? "ring-2 ring-white shadow-[0_0_18px_rgba(255,255,255,0.9)] scale-95 z-30" : "";
           if (hasRadar && hasNeighbor) {
-            return `${neighborHighlightColor} border-dashed z-25`;
+            return `${neighborHighlightColor} border-dashed z-25 ${isSelectedClass}`;
           }
           if (hasRadar) {
-            return `border-2 border-dashed ${radarRingColor || "border-blue-500 ring-2 ring-blue-500/60 shadow-[0_0_12px_rgba(59,130,246,0.5)]"} z-20 animate-pulse`;
+            return `border-2 border-dashed ${radarRingColor || "border-blue-500 ring-2 ring-blue-500/60 shadow-[0_0_12px_rgba(59,130,246,0.5)]"} z-20 animate-pulse ${isSelectedClass}`;
+          }
+          if (isSelected) {
+            return `ring-2 ring-white border-white shadow-[0_0_18px_rgba(255,255,255,0.9)] scale-95 z-30`;
           }
           if (hasNeighbor) {
             return `${neighborHighlightColor} z-10`;
@@ -208,11 +209,18 @@ export const CharacterCard = memo(
             >
               {`#${character.id.replace("c", "").padStart(2, "0")}`}
             </span>
-            {isMyCharacter && !isDead && (
-              <span className="text-[7.5px] md:text-[9px] font-black uppercase px-1 md:px-1.5 py-[1px] md:py-0.5 rounded bg-blue-500/20 border-blue-500/60 text-blue-300 shadow-[0_0_8px_rgba(59,130,246,0.5)] tracking-wider">
-                ВЫ
-              </span>
-            )}
+            {isMyCharacter && !isDead && !isPVP && (() => {
+              const isCriminal = mode === "SKHVATKA" || mode === "MANIAC_VS_OPERATIVE" || mode === "THIEF_HUNT";
+              return (
+                <span className={`text-[7.5px] md:text-[9px] font-black uppercase px-1 md:px-1.5 py-[1px] md:py-0.5 rounded tracking-wider shadow-sm ${
+                  isCriminal
+                    ? "text-red-400 bg-red-950/90 border border-red-500/70 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+                    : "text-blue-400 bg-blue-950/90 border border-blue-500/70 shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                }`}>
+                  ВЫ
+                </span>
+              );
+            })()}
           </div>
 
           <div className="flex items-center gap-1 leading-none">
@@ -237,8 +245,8 @@ export const CharacterCard = memo(
         </div>
 
         {isDead && (
-          <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
-            <div className={`transform -rotate-12 border font-black text-[9px] sm:text-[11px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest rounded-sm backdrop-blur-sm ${
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 px-1">
+            <div className={`transform -rotate-12 border font-black text-[8.5px] sm:text-[10px] md:text-xs uppercase px-1.5 py-0.5 md:px-2.5 md:py-1 tracking-wider rounded-sm backdrop-blur-sm max-w-[90%] truncate text-center ${
               isSecretService || character.unmaskedSpyIndex !== undefined
                 ? "border-red-600 bg-red-950/90 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
                 : (character as any).isArrested
@@ -255,16 +263,16 @@ export const CharacterCard = memo(
         )}
 
         {isExonerated && !isDead && !(character as any).isArrested && (
-          <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
-            <div className="transform rotate-6 border border-blue-500/80 bg-zinc-900/90 text-blue-400 font-black text-[8px] sm:text-[10px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(59,130,246,0.3)] rounded-sm backdrop-blur-sm">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 px-1">
+            <div className="transform rotate-6 border border-blue-500/80 bg-zinc-900/90 text-blue-400 font-black text-[8px] sm:text-[9.5px] md:text-xs uppercase px-1.5 py-0.5 md:px-2.5 md:py-1 tracking-wider shadow-[0_0_15px_rgba(59,130,246,0.3)] rounded-sm backdrop-blur-sm max-w-[90%] truncate text-center">
               АЛИБИ
             </div>
           </div>
         )}
 
         {(character as any).isArrested && !isDead && (
-          <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
-            <div className="transform -rotate-12 border border-blue-500/80 bg-blue-950/90 text-blue-300 font-black text-[8px] sm:text-[10px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(59,130,246,0.4)] rounded-sm backdrop-blur-sm">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 px-1">
+            <div className="transform -rotate-12 border border-blue-500/80 bg-blue-950/90 text-blue-300 font-black text-[8.5px] sm:text-[10px] md:text-xs uppercase px-1.5 py-0.5 md:px-2.5 md:py-1 tracking-wider shadow-[0_0_15px_rgba(59,130,246,0.4)] rounded-sm backdrop-blur-sm max-w-[90%] truncate text-center">
               АРЕСТОВАН
             </div>
           </div>

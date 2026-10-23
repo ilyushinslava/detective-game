@@ -1,27 +1,23 @@
-import { useState, useEffect, type Dispatch, type SetStateAction, type MutableRefObject } from "react";
+import { useEffect, useState, useRef } from "react";
+import type { GameState, GameModeType, Role } from "../types/game";
+import type { PlayerProfile } from "./usePlayerProfile";
 import { partyService } from "./partyPeer";
-import { createInitialState } from "./gameLogic";
-import { gameReducer } from "./gameReducer";
-import { soundManager } from "./audio";
-import type { GameState, Role, GameModeType } from "../types/game";
-import type { GameAction } from "../types/multiplayer";
-import type { UserProfile } from "../types/profile";
 
 interface UseMultiplayerParams {
   gameState: GameState;
-  setGameState: Dispatch<SetStateAction<GameState>>;
-  profile: UserProfile;
-  setActiveMode: Dispatch<SetStateAction<GameModeType>>;
-  setIsLobbyOpen: Dispatch<SetStateAction<boolean>>;
-  setHasStartedEver: Dispatch<SetStateAction<boolean>>;
-  setIsIntroPhase: Dispatch<SetStateAction<boolean>>;
-  setToastMessage: Dispatch<SetStateAction<string | null>>;
-  dispatchAction: (action: GameAction) => void;
-  matchResultRecordedRef: MutableRefObject<boolean>;
-  setSelectedId: Dispatch<SetStateAction<string | null>>;
-  setSelectedInspectorChoiceId: Dispatch<SetStateAction<string | null>>;
-  setSecondsElapsed: Dispatch<SetStateAction<number>>;
-  setIsPauseOpen: Dispatch<SetStateAction<boolean>>;
+  setGameState: React.Dispatch<React.SetStateAction<GameState>>;
+  profile: PlayerProfile;
+  setActiveMode: React.Dispatch<React.SetStateAction<GameModeType>>;
+  setIsLobbyOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setHasStartedEver: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsIntroPhase: React.Dispatch<React.SetStateAction<boolean>>;
+  setToastMessage: React.Dispatch<React.SetStateAction<string | null>>;
+  dispatchAction: (action: any) => void;
+  matchResultRecordedRef: React.MutableRefObject<boolean>;
+  setSelectedId: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedInspectorChoiceId: React.Dispatch<React.SetStateAction<string | null>>;
+  setSecondsElapsed: React.Dispatch<React.SetStateAction<number>>;
+  setIsPauseOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function useMultiplayer({
@@ -43,219 +39,122 @@ export function useMultiplayer({
   const [isOpponentConnected, setIsOpponentConnected] = useState(true);
   const [opponentDisconnectedNotice, setOpponentDisconnectedNotice] = useState(false);
   const [rematchTimer, setRematchTimer] = useState(15);
+  const rematchIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    // Предотвращение ложного автозапуска игры при F5
-    // Сессия не восстанавливается вслепую, пользователь всегда встречает главное меню
-    const saved = sessionStorage.getItem("mp_session");
-    if (saved) {
-      try {
-        const { mode: savedMode } = JSON.parse(saved);
-        if (savedMode) {
-          setActiveMode(savedMode);
-        }
-      } catch (e) {
-        sessionStorage.removeItem("mp_session");
+    const handleResume = () => {
+      if (document.visibilityState === "visible" && gameState.opponent === "ONLINE" && partyService.roomCode) {
+        partyService.ensureConnection();
       }
-    }
-  }, []);
+    };
+
+    document.addEventListener("visibilitychange", handleResume);
+    window.addEventListener("focus", handleResume);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleResume);
+      window.removeEventListener("focus", handleResume);
+    };
+  }, [gameState.opponent]);
 
   useEffect(() => {
-    if (gameState.opponent === "ONLINE" && partyService.roomCode) {
-      sessionStorage.setItem(
-        "mp_session",
-        JSON.stringify({
-          roomCode: partyService.roomCode,
-          myClientId: partyService.myClientId,
-          isHost: partyService.isHost,
-          playerRole: gameState.playerRole,
-          mode: gameState.mode,
-          nickname: profile.nickname,
-        })
-      );
-    }
-  }, [gameState.opponent, gameState.playerRole, gameState.mode, profile.nickname]);
+    if (gameState.opponent !== "ONLINE") return;
+
+    partyService.onSyncState = (state: any, role?: Role, status?: string) => {
+      if (state) {
+        setGameState((prev) => ({
+          ...state,
+          opponent: "ONLINE",
+          playerRole: role || prev.playerRole,
+        }));
+      }
+      if (status === "FINISHED" && state?.winner) {
+        setToastMessage(`Матч завершен. Победил: ${state.winner}`);
+      }
+    };
+
+    partyService.onRoomStatus = (data: any) => {
+      const status = typeof data === "string" ? data : data?.status;
+      if (status === "WAITING") {
+        setIsOpponentConnected(true);
+        setOpponentDisconnectedNotice(false);
+      }
+    };
+
+    partyService.onPresenceChanged = (connected: boolean) => {
+      setIsOpponentConnected(connected);
+      if (!connected) {
+        setOpponentDisconnectedNotice(true);
+      } else {
+        setOpponentDisconnectedNotice(false);
+      }
+    };
+
+    partyService.onAction = (action: any) => {
+      if (!action) return;
+      if (action.type === "REQUEST_RESTART") {
+        setGameState((prev) => ({
+          ...prev,
+          restartRequestedBy: action.payload?.requestedBy || "GUEST",
+        }));
+      } else if (action.type === "REJECT_RESTART") {
+        setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
+        setToastMessage("Соперник отклонил предложение о реванше");
+      } else if (action.type === "OPPONENT_LEFT") {
+        setOpponentDisconnectedNotice(true);
+      }
+    };
+
+    return () => {
+      partyService.onSyncState = null;
+      partyService.onRoomStatus = null;
+      partyService.onPresenceChanged = null;
+      partyService.onAction = null;
+    };
+  }, [gameState.opponent, setGameState, setToastMessage]);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    const isHost = partyService.isHost;
-    if (gameState.restartRequestedBy === (isHost ? "HOST" : "GUEST")) {
+    if (gameState.restartRequestedBy) {
       setRematchTimer(15);
-      timer = setInterval(() => {
+      if (rematchIntervalRef.current) clearInterval(rematchIntervalRef.current);
+      rematchIntervalRef.current = setInterval(() => {
         setRematchTimer((prev) => {
           if (prev <= 1) {
-            if (timer) clearInterval(timer);
-            dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
-            setGameState((s) => ({ ...s, restartRequestedBy: undefined }));
-            setToastMessage("Время ожидания реванша истекло");
+            if (rematchIntervalRef.current) clearInterval(rematchIntervalRef.current);
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
     } else {
-      setRematchTimer(15);
+      if (rematchIntervalRef.current) clearInterval(rematchIntervalRef.current);
     }
     return () => {
-      if (timer) clearInterval(timer);
+      if (rematchIntervalRef.current) clearInterval(rematchIntervalRef.current);
     };
   }, [gameState.restartRequestedBy]);
 
-  useEffect(() => {
-    partyService.onSyncState = (serverGameState: any, role?: Role, status?: string) => {
-      if (!serverGameState) return;
-      partyService.lastSyncedState = serverGameState;
-
-      const confirmedRole =
-        role ||
-        (partyService as any).role ||
-        serverGameState.playerRole ||
-        (partyService.isHost ? "KILLER" : "DETECTIVE");
-      (partyService as any).role = confirmedRole;
-
-      if (serverGameState.mode) {
-        setActiveMode(serverGameState.mode);
-      }
-
-      setGameState((prev) => ({
-        ...serverGameState,
-        mode: serverGameState.mode || prev.mode,
-        opponent: "ONLINE",
-        playerRole: confirmedRole,
-        inspectorChoices: serverGameState.inspectorChoices || prev.inspectorChoices,
-      }));
-
-      setIsOpponentConnected(true);
-      setOpponentDisconnectedNotice(false);
-      const effectiveStatus = status || serverGameState.status;
-      setIsLobbyOpen(false);
-      setHasStartedEver(true);
-      if (effectiveStatus === "PLAYING") {
-        setIsIntroPhase(false);
-      } else {
-        setIsIntroPhase(true);
-      }
-    };
-
-    partyService.onRoomStatus = (statusData: any) => {
-      const status = typeof statusData === "string" ? statusData : statusData?.status;
-      if (status === "PLAYING") {
-        setIsIntroPhase(false);
-      }
-    };
-
-    partyService.onAllPlayersReady = () => {
-      setIsIntroPhase(false);
-    };
-
-    partyService.onAction = (action: any) => {
-      if (!action) return;
-      if (action.type === "OPPONENT_LEFT") {
-        setIsOpponentConnected(false);
-        if (gameState.opponent === "ONLINE" && Boolean(partyService.roomCode)) {
-          setOpponentDisconnectedNotice(true);
-        }
-        return;
-      }
-      if (action.type === "MATCH_STARTED" || action.type === "RESTART_GAME") {
-        matchResultRecordedRef.current = false;
-        const incomingState = action.payload?.state || action.payload;
-        if (incomingState && incomingState.board) {
-          setGameState((prev) => ({
-            ...incomingState,
-            mode: incomingState.mode || prev.mode,
-            opponent: "ONLINE",
-            playerRole: (partyService as any).role || prev.playerRole,
-            winner: null,
-            restartRequestedBy: undefined,
-          }));
-          if (incomingState.mode) {
-            setActiveMode(incomingState.mode);
-          }
-        }
-        setIsIntroPhase(false);
-        setSelectedId(null);
-        setSelectedInspectorChoiceId(null);
-        setSecondsElapsed(0);
-        return;
-      }
-      if (action.type === "ALL_PLAYERS_READY") {
-        setIsIntroPhase(false);
-        return;
-      }
-      if (action.type === "PLAYER_READY" || action.type === "PLAYER_READY_UPDATE") {
-        return;
-      }
-
-      switch (action.type) {
-        case "KILL_CHARACTER":
-          soundManager.play("kill");
-          break;
-        case "ACCUSE":
-          soundManager.play("arrest");
-          break;
-        case "SHIFT_BOARD":
-          soundManager.play("shift");
-          break;
-        case "DISGUISE":
-        case "FAST_DISGUISE":
-          soundManager.play("disguise");
-          setToastMessage("Личность успешно изменена");
-          break;
-        case "ROB_NEIGHBOR":
-          soundManager.play("interrogate");
-          break;
-        case "CAPTURE_SPY":
-          soundManager.play("arrest");
-          break;
-        default:
-          break;
-      }
-
-      setGameState((prev) => gameReducer(prev, { ...action, senderId: "remote" }));
-    };
-
-    partyService.onPresenceChanged = (connected: boolean) => {
-      setIsOpponentConnected(connected);
-      if (connected) {
-        setOpponentDisconnectedNotice(false);
-      } else {
-        if (gameState.opponent === "ONLINE" && Boolean(partyService.roomCode)) {
-          setOpponentDisconnectedNotice(true);
-        }
-      }
-    };
-
-    return () => {};
-  }, [gameState.opponent]);
-
   const acceptRestart = () => {
-    if (gameState.opponent === "ONLINE") {
-      partyService.sendAction({ type: "CONFIRM_RESTART", senderId: partyService.myClientId } as any);
-      setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
-      setSelectedId(null);
-      return;
-    }
     dispatchAction({ type: "CONFIRM_RESTART", senderId: "local" });
-  };
-
-  const rejectRestart = () => {
-    if (gameState.opponent === "ONLINE") {
-      partyService.sendAction({ type: "REJECT_RESTART", senderId: partyService.myClientId } as any);
-    } else {
-      dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
-    }
     setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
   };
 
-  const handleExitToMenu = async () => {
-    setOpponentDisconnectedNotice(false);
+  const rejectRestart = () => {
+    dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
+    setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
+  };
+
+  const handleExitToMenu = () => {
     partyService.disconnect();
-    sessionStorage.removeItem("mp_session");
-    setGameState(createInitialState("SKHVATKA", "AI", "DETECTIVE", 3, 3, 16, profile.nickname));
-    setHasStartedEver(false);
-    setIsPauseOpen(false);
     setIsLobbyOpen(true);
+    setHasStartedEver(false);
+    setIsIntroPhase(false);
+    matchResultRecordedRef.current = false;
+    setGameState((prev) => ({
+      ...prev,
+      winner: null,
+      restartRequestedBy: undefined,
+    }));
   };
 
   return {

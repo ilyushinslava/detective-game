@@ -7,6 +7,8 @@ class PartyService {
   isHost: boolean = true;
   lastSyncedState: any = null;
   socket: WebSocket | null = null;
+  private nick: string = "Агент";
+  private mode: string = "SKHVATKA";
   private pingInterval: ReturnType<typeof setInterval> | null = null;
 
   onSyncState: ((state: any, role?: Role, status?: string) => void) | null = null;
@@ -28,6 +30,8 @@ class PartyService {
 
     this.roomCode = roomCode;
     this.isHost = isHost;
+    this.nick = nickname || "Агент";
+    this.mode = mode || "SKHVATKA";
     this.myClientId = clientId || `client_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
     if (typeof window === "undefined" || typeof WebSocket === "undefined") {
@@ -59,8 +63,8 @@ class PartyService {
       }
     }
 
-    const encodedNick = encodeURIComponent(nickname || "Агент");
-    const url = `${wsProtocol}//${host}/party/${roomCode}?clientId=${this.myClientId}&nickname=${encodedNick}&isHost=${isHost}&mode=${mode}&randomRoles=true`;
+    const encodedNick = encodeURIComponent(this.nick);
+    const url = `${wsProtocol}//${host}/party/${roomCode}?clientId=${this.myClientId}&nickname=${encodedNick}&isHost=${this.isHost}&mode=${this.mode}&randomRoles=true`;
 
     try {
       const ws = new WebSocket(url);
@@ -129,6 +133,26 @@ class PartyService {
       };
     } catch (err) {
       console.error("[PartyService] Connection failed:", err);
+    }
+  }
+
+  ensureConnection(): void {
+    if (!this.roomCode) return;
+
+    if (
+      !this.socket ||
+      this.socket.readyState === WebSocket.CLOSED ||
+      this.socket.readyState === WebSocket.CLOSING
+    ) {
+      console.log("[PartyService] Reconnecting due to visibility resume...");
+      this.connect(this.roomCode, this.nick, this.isHost, this.mode, this.myClientId);
+    } else if (this.socket.readyState === WebSocket.OPEN) {
+      try {
+        this.socket.send(JSON.stringify({ type: "PING" }));
+      } catch (err) {
+        console.warn("[PartyService] Ping failed on ensureConnection, reconnecting...", err);
+        this.connect(this.roomCode, this.nick, this.isHost, this.mode, this.myClientId);
+      }
     }
   }
 

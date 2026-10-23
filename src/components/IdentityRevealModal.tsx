@@ -2,7 +2,7 @@ import React from "react";
 
 interface IdentityRevealModalProps {
   badge: string;
-  badgeColor: "red" | "amber";
+  badgeColor: "red" | "amber" | "blue";
   character: { id: string; name: string } | null;
   characterImage: string | null;
   isOpen: boolean;
@@ -32,13 +32,13 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
   const isRed = badgeColor === "red";
   const accent = isRed
     ? "text-red-400"
-    : "text-amber-400";
+    : "text-blue-400";
   const accentBg = isRed
-    ? "bg-red-950/80 border-red-700"
-    : "bg-amber-950/80 border-amber-700";
+    ? "bg-red-950/60 border-red-600/70 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+    : "bg-blue-950/60 border-blue-500/70 shadow-[0_0_15px_rgba(59,130,246,0.3)]";
   const buttonBg = isRed
-    ? "bg-red-600 hover:bg-red-500 text-white"
-    : "bg-amber-600 hover:bg-amber-500 text-zinc-950";
+    ? "bg-red-600 hover:bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]"
+    : "bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4 select-none">
@@ -68,7 +68,7 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
         </div>
       ) : (
         <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
-          <div className={`w-16 h-16 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center ${accent} mb-4`}>
+          <div className={`w-16 h-16 rounded-full ${accentBg} border flex items-center justify-center ${accent} mb-4`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8">
               <path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6" />
             </svg>
@@ -104,7 +104,7 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
           )}
           <button
             onClick={onAcceptIdentity}
-            className="w-full py-3.5 bg-gradient-to-r from-zinc-700 to-zinc-600 hover:from-zinc-600 hover:to-zinc-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-[0_10px_25px_rgba(0,0,0,0.5)] border-t border-white/25"
+            className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-[0_10px_25px_rgba(59,130,246,0.3)] border-t border-white/25"
           >
             Принять личность{isRed ? "" : " ➔"}
           </button>

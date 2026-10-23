@@ -146,7 +146,7 @@ export const CharacterCard = memo(
             ? "bg-zinc-800/90 border-zinc-500 ring-2 ring-zinc-500/50 shadow-[0_0_12px_rgba(113,113,122,0.4)] z-30"
             : isDead
               ? isSecretService
-                ? "bg-zinc-950/95 border-amber-900/40 opacity-70 shadow-inner"
+                ? "bg-zinc-950/95 border-red-900/40 opacity-70 shadow-inner"
                 : "bg-zinc-950/95 border-zinc-900 opacity-50 shadow-inner"
               : isTargetVictim
                 ? "bg-red-950/30 border-red-600 shadow-[0_0_12px_rgba(220,38,38,0.35)]"
@@ -202,14 +202,14 @@ export const CharacterCard = memo(
                 isDead
                   ? "text-zinc-600 line-through"
                   : isExonerated
-                    ? "text-amber-400"
+                    ? "text-blue-400"
                     : "text-zinc-300"
               }`}
             >
               {`#${character.id.replace("c", "").padStart(2, "0")}`}
             </span>
             {isMyCharacter && !isDead && (
-              <span className="text-[7.5px] md:text-[9px] font-black uppercase px-1 md:px-1.5 py-[1px] md:py-0.5 rounded bg-amber-500/20 border border-amber-500/60 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.5)] tracking-wider">
+              <span className="text-[7.5px] md:text-[9px] font-black uppercase px-1 md:px-1.5 py-[1px] md:py-0.5 rounded bg-blue-500/20 border-blue-500/60 text-blue-300 shadow-[0_0_8px_rgba(59,130,246,0.5)] tracking-wider">
                 ВЫ
               </span>
             )}
@@ -220,7 +220,7 @@ export const CharacterCard = memo(
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-red-500 animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
             )}
             {isUniformedOfficer && !isDead && (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-amber-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M8 11l4 3 4-3"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-blue-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M8 11l4 3 4-3"/></svg>
             )}
             {isRadarCenter && !isDead && (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-blue-400 animate-pulse drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]"><path d="M12 20v-8"/><path d="M8 12a4 4 0 0 1 8 0"/><path d="M4 12a8 8 0 0 1 16 0"/></svg>
@@ -264,7 +264,7 @@ export const CharacterCard = memo(
 
         {(character as any).isArrested && !isDead && (
           <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
-            <div className="transform -rotate-12 border border-amber-500/80 bg-amber-950/90 text-amber-300 font-black text-[8px] sm:text-[10px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(245,158,11,0.35)] rounded-sm backdrop-blur-sm">
+            <div className="transform -rotate-12 border border-blue-500/80 bg-blue-950/90 text-blue-300 font-black text-[8px] sm:text-[10px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(59,130,246,0.4)] rounded-sm backdrop-blur-sm">
               АРЕСТОВАН
             </div>
           </div>
@@ -280,7 +280,7 @@ export const CharacterCard = memo(
                 : isTargetVictim
                   ? "text-red-300"
                   : isExonerated
-                    ? "text-amber-200"
+                    ? "text-blue-200"
                     : ""
             }`}
           >

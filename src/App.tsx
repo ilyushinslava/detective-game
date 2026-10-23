@@ -1,12 +1,13 @@
-﻿import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { SplashScreen } from './components/SplashScreen';
-import { type GameModeType, type OpponentType, type Role, SPY_COLORS } from "./types/game";
+import { type GameModeType, type OpponentType, type Role, type GameState, SPY_COLORS } from "./types/game";
 import { GameBoard } from "./components/GameBoard";
 import { DetectiveHand } from "./components/DetectiveHand";
 import { ThiefHand } from "./components/ThiefHand";
 import { RoleRevealModal } from "./components/RoleRevealModal";
 import { GameOverModal } from "./components/GameOverModal";
 import { MainMenu } from "./components/MainMenu";
+import { GameModalsContainer } from "./components/GameModalsContainer";
 import { usePlayerProfile } from "./utils/usePlayerProfile";
 import { partyService } from "./utils/partyPeer";
 import { useMultiplayer } from "./utils/useMultiplayer";
@@ -14,6 +15,7 @@ import { useGameLog } from "./hooks/useGameLog";
 import { useGameTimer } from "./hooks/useGameTimer";
 import { useMatchEndHandler } from "./hooks/useMatchEndHandler";
 import { useAiTurn } from "./hooks/useAiTurn";
+import { useGameActions } from "./hooks/useGameActions";
 import {
   createInitialState,
   getAdjacentCharacters,
@@ -21,32 +23,10 @@ import {
   CHARACTERS_DATA,
 } from "./utils/gameLogic";
 import { soundManager } from "./utils/audio";
-import { triggerHaptic } from "./utils/haptics";
 import { RoleCards } from "./components/RoleCards";
 import type { GameAction } from "./types/multiplayer";
 import { gameReducer } from "./utils/gameReducer";
-import { Toast } from "./components/Toast";
-import { DevPanel } from "./components/DevPanel";
-import { PauseModal } from "./components/PauseModal";
-import { RulesModal } from "./components/RulesModal";
-import { FullscreenCardModal } from "./components/FullscreenCardModal";
 import { IdentityRevealModal } from "./components/IdentityRevealModal";
-import { RematchModal } from "./components/RematchModal";
-import { DisconnectModal } from "./components/DisconnectModal";
-import { DeviceOrientationOverlay } from "./components/DeviceOrientationOverlay";
-import { DuelQuestionCatalogModal } from "./components/duel/DuelQuestionCatalogModal";
-import { DuelCandidatesSheet } from "./components/duel/DuelCandidatesSheet";
-import { DuelAccuseModal } from "./components/duel/DuelAccuseModal";
-import { DUEL_CHARACTERS } from "./constants/duelCharacters";
-import { filterCandidates } from "./utils/duelLogic";
-
-interface ActionItem {
-  id: string;
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-  className?: string;
-}
 
 const characterImages = import.meta.glob<{ default: string }>(
   "./assets/characters/*.webp",
@@ -65,7 +45,6 @@ export default function App() {
     recordMatchResult,
   } = usePlayerProfile();
   const matchResultRecordedRef = useRef(false);
-  const lastKillSoundTimeRef = useRef(0);
   const [activeTab, setActiveTab] = useState<
     "LOBBY" | "TABLES" | "TOP" | "SHOP"
   >("LOBBY");
@@ -105,7 +84,6 @@ export default function App() {
   const [isPauseOpen, setIsPauseOpen] = useState(false);
   const [isDevPanelOpen, setIsDevPanelOpen] = useState(false);
   const [isRulesOpen, setIsRulesOpen] = useState(false);
-  const [rulesTab, setRulesTab] = useState<'MAIN' | 'ROLES' | 'TOKENS'>('MAIN');
   const [isHandSheetOpen, setIsHandSheetOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isChoiceSheetMinimized, setIsChoiceSheetMinimized] = useState(false);
@@ -120,8 +98,6 @@ export default function App() {
   const [isSfxEnabled, setIsSfxEnabled] = useState(soundManager.getSfxEnabled());
   const [isAmbientEnabled, setIsAmbientEnabled] = useState(soundManager.getAmbientEnabled());
   const [isHapticsEnabled, setIsHapticsEnabled] = useState(() => localStorage.getItem("crime_city_haptics") !== "false");
-
-  const rulesTouchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const gameStateRef = useRef(gameState);
   useEffect(() => {
@@ -174,7 +150,6 @@ export default function App() {
     unreadLogCount,
     setUnreadLogCount,
     logContainerRef,
-    mobileLogContainerRef,
   } = useGameLog({
     log: gameState.log,
     isLogOpen,
@@ -424,261 +399,6 @@ export default function App() {
     setIsLobbyOpen(false);
   };
 
-  const handleSelectDuelQuestion = (questionId: string) => {
-    soundManager.play('radar');
-    triggerHaptic("light");
-    dispatchAction({
-      type: "DUEL_ASK_QUESTION",
-      payload: { questionId },
-      senderId: "local",
-      timestamp: Date.now(),
-    });
-  };
-
-  const handleConfirmDuelAccusation = () => {
-    if (!selectedId) return;
-    dispatchAction({
-      type: "DUEL_ACCUSE",
-      payload: { targetId: selectedId },
-      senderId: "local",
-      timestamp: Date.now(),
-    });
-    setIsAccuseModalOpen(false);
-    setSelectedId(null);
-  };
-
-  const handleShift = (
-    type: "ROW" | "COL",
-    index: number,
-    direction: "FORWARD" | "BACKWARD",
-  ) => {
-    if (gameState.winner || isFirstTurnKiller || !isHumanTurn) return;
-    soundManager.play('slide');
-    triggerHaptic("light");
-    setGameState((prev) => (prev.interrogationRadar ? { ...prev, interrogationRadar: null } : prev));
-    dispatchAction({
-      type: "SHIFT_BOARD",
-      payload: { shiftType: type, index, direction },
-      senderId: "local",
-      timestamp: Date.now(),
-    });
-    setSelectedId(null);
-  };
-
-  const handleKill = () => {
-    if (!selectedId || gameState.currentTurn !== "KILLER" || !isHumanTurn)
-      return;
-    if (Date.now() - lastKillSoundTimeRef.current > 300) {
-      soundManager.play('kill');
-      lastKillSoundTimeRef.current = Date.now();
-    }
-    triggerHaptic("heavy");
-    setGameState((prev) => (prev.interrogationRadar ? { ...prev, interrogationRadar: null } : prev));
-    dispatchAction({
-      type: "KILL_CHARACTER",
-      payload: { targetId: selectedId },
-      senderId: "local",
-      timestamp: Date.now(),
-    });
-    setSelectedId(null);
-  };
-
-  const handleRob = () => {
-    if (!selectedId || gameState.currentTurn !== "KILLER" || !isHumanTurn)
-      return;
-    soundManager.play('steal');
-    triggerHaptic("medium");
-    dispatchAction({
-      type: "ROB_NEIGHBOR",
-      payload: { targetId: selectedId },
-      senderId: "local",
-      timestamp: Date.now(),
-    });
-    setSelectedId(null);
-  };
-
-  const handleEscapeManiac = () => {
-    if (gameState.currentTurn !== "KILLER" || !isHumanTurn) return;
-    soundManager.play('disguise');
-    triggerHaptic("medium");
-    setGameState((prev) => (prev.interrogationRadar ? { ...prev, interrogationRadar: null } : prev));
-    dispatchAction({
-      type: "ESCAPE_MANIAC",
-      senderId: "local",
-      timestamp: Date.now(),
-    });
-    setSelectedId(null);
-  };
-
-  const handleFastDisguise = (id: string) => {
-    if (gameState.currentTurn !== "KILLER" || !isHumanTurn) return;
-    soundManager.play('disguise');
-    triggerHaptic("medium");
-    dispatchAction({
-      type: "FAST_DISGUISE",
-      payload: { targetId: id },
-      senderId: "local",
-      timestamp: Date.now(),
-    });
-    setSelectedId(null);
-  };
-
-  const handleAccuse = () => {
-    if (!selectedId || gameState.currentTurn !== "DETECTIVE" || !isHumanTurn)
-      return;
-    const targetChar = gameState.board.flat().find((c) => c.id === selectedId);
-    if (!targetChar || !targetChar.isAlive || targetChar.isExonerated) return;
-
-    const isMiss =
-      selectedId !== gameState.killerSecretId && !targetChar.hasBomb;
-    if (isMiss) {
-      soundManager.play('deny');
-      triggerHaptic("error");
-      setErrorCardId(selectedId);
-      setTimeout(() => setErrorCardId(null), 500);
-    } else {
-      soundManager.play('arrest');
-      triggerHaptic("medium");
-    }
-
-    setGameState((prev) => (prev.interrogationRadar ? { ...prev, interrogationRadar: null } : prev));
-    dispatchAction({
-      type: "ACCUSE",
-      payload: { targetId: selectedId, isMiss, errorCardId: selectedId },
-      senderId: "local",
-      timestamp: Date.now(),
-    });
-    setSelectedId(null);
-  };
-
-  const handleDisguise = () => {
-    if (gameState.currentTurn !== "KILLER" || isFirstTurnKiller || !isHumanTurn)
-      return;
-    soundManager.play('disguise');
-    triggerHaptic("medium");
-    dispatchAction({
-      type: "DISGUISE",
-      senderId: "local",
-      timestamp: Date.now(),
-    });
-    setSelectedId(null);
-  };
-
-  const handleExonerateFromHand = (id: string) => {
-    if (gameState.currentTurn !== "DETECTIVE" || !isHumanTurn) return;
-    soundManager.play('radar');
-    triggerHaptic("medium");
-    dispatchAction({
-      type: "EXONERATE",
-      payload: { targetId: id },
-      senderId: "local",
-      timestamp: Date.now(),
-    });
-    setSelectedId(null);
-  };
-
-  const handleCleanup = () => {
-    if (!isCleanupAvailable || isFirstTurnKiller || !isHumanTurn) return;
-    soundManager.play('slide');
-    triggerHaptic("medium");
-    dispatchAction({
-      type: "CLEANUP",
-      senderId: "local",
-      timestamp: Date.now(),
-    });
-    setSelectedId(null);
-  };
-
-  const handleSwearInOfficer = () => {
-    if (!selectedId || gameState.currentTurn !== "DETECTIVE" || !isHumanTurn) return;
-    soundManager.play('patrol');
-    triggerHaptic("medium");
-    dispatchAction({
-      type: "SWEAR_IN_OFFICER",
-      payload: { targetId: selectedId },
-      senderId: "local",
-      timestamp: Date.now(),
-    } as any);
-    setSelectedId(null);
-  };
-
-  const handleCaptureSpy = () => {
-    if (!selectedId || gameState.mode !== "SECRET_SERVICE" || !isHumanTurn)
-      return;
-
-    const mySpyIndex = gameState.activeSpyIndex ?? 0;
-    const mySpy = gameState.spies![mySpyIndex];
-    const caughtSpy = gameState.spies?.find(
-      (s) => s.id !== mySpy.id && s.secretId === selectedId,
-    );
-    const isHit = Boolean(caughtSpy);
-    const isMiss = !isHit;
-
-    if (isMiss) {
-      soundManager.play('deny');
-      triggerHaptic("error");
-      setErrorCardId(selectedId);
-      setTimeout(() => setErrorCardId(null), 500);
-    } else {
-      soundManager.play('arrest');
-      triggerHaptic("medium");
-    }
-
-    const nextSpyIndex = (mySpyIndex + 1) % (gameState.spies?.length || 3);
-    const targetChar = gameState.board.flat().find((c) => c.id === selectedId);
-
-    dispatchAction({
-      type: "CAPTURE_SPY",
-      payload: {
-        targetId: selectedId,
-        targetCardId: selectedId,
-        isHit,
-        isMiss,
-        revealedRole: targetChar?.name || caughtSpy?.name || null,
-        caughtSpyId: caughtSpy?.id || null,
-        attackerSpyIndex: mySpyIndex,
-        nextSpyIndex,
-        errorCardId: selectedId,
-      } as any,
-      senderId: "local",
-      timestamp: Date.now(),
-    });
-    setSelectedId(null);
-  };
-
-  const handleInterrogateSpy = () => {
-    if (!selectedId || gameState.mode !== "SECRET_SERVICE" || !isHumanTurn)
-      return;
-    soundManager.play('radar');
-    triggerHaptic("light");
-    dispatchAction({
-      type: "INTERROGATE",
-      payload: { targetId: selectedId },
-      senderId: "local",
-      timestamp: Date.now(),
-    });
-    setSelectedId(null);
-  };
-
-  const handleReset = () => {
-    if (gameState.opponent === "ONLINE" && partyService.roomCode) {
-      partyService.sendAction({
-        type: "REQUEST_RESTART",
-        payload: { requestedBy: partyService.isHost ? "HOST" : "GUEST" },
-        senderId: "local",
-      } as any);
-    } else {
-      handleStartNewGame(
-        gameState.mode,
-        gameState.opponent,
-        gameState.playerRole,
-        gameState.spies?.length ?? 3,
-        4,
-        gameState.maxTurns ?? 16,
-      );
-    }
-  };
-
   const activeAgentAdjacentIds = isKillerTurn
     ? killerAdjacentIds
     : detectiveAdjacentIds;
@@ -688,209 +408,46 @@ export default function App() {
     return gameState.board.flat().find((c) => c.id === selectedId) ?? null;
   }, [gameState.board, selectedId]);
 
-  const availableActions = useMemo<ActionItem[]>(() => {
-        const actions: ActionItem[] = [];
-        const isGameOver = gameState.winner !== null;
-
-        if (gameState.mode === "LINE_UP") {
-          actions.push({
-            id: "duel_ask",
-            label: "Каталог вопросов",
-            onClick: () => setIsQuestionCatalogOpen(true),
-            disabled: !isHumanTurn || isGameOver,
-            className: "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 text-white shadow-[0_10px_25px_rgba(6,182,212,0.5)] border-t border-cyan-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-          });
-          actions.push({
-            id: "duel_candidates",
-            label: `Кандидаты (${filterCandidates(DUEL_CHARACTERS, gameState.duelHistory || [], gameState.currentTurn).length})`,
-            onClick: () => setIsCandidatesSheetOpen(true),
-            disabled: isGameOver,
-            className: "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-          });
-          actions.push({
-            id: "duel_accuse",
-            label: "Обвинить",
-            onClick: () => setIsAccuseModalOpen(true),
-            disabled: !isHumanTurn || !selectedId || isGameOver,
-            className: "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 col-span-2",
-          });
-        } else if (gameState.mode === "SECRET_SERVICE") {
-          const activeSpySecretId = gameState.spies?.[gameState.activeSpyIndex ?? 0]?.secretId;
-          const validNeighbors = activeSpySecretId
-            ? getAdjacentCharacters(gameState.board, activeSpySecretId).map((c) => c.id)
-            : [];
-          const isNeighbor = Boolean(selectedId && validNeighbors.includes(selectedId));
-          const isSelfOrNeighbor = Boolean(selectedId && (validNeighbors.includes(selectedId) || selectedId === activeSpySecretId));
-
-          actions.push({
-        id: "capture_spy",
-        label: "Разоблачение",
-        onClick: handleCaptureSpy,
-        disabled:
-          !isHumanTurn ||
-          !selectedId ||
-          !isNeighbor ||
-          isGameOver ||
-          !selectedCharacter?.isAlive,
-        className:
-          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-      });
-      actions.push({
-        id: "interrogate_spy",
-        label: "Опрос свидетелей",
-        onClick: handleInterrogateSpy,
-        disabled:
-          !isHumanTurn ||
-          !selectedId ||
-          !isSelfOrNeighbor ||
-          isGameOver ||
-          !selectedCharacter?.isAlive,
-        className:
-          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-      });
-      actions.push({
-        id: "cleanup_ss",
-        label: "Зачистить",
-        onClick: handleCleanup,
-        disabled: !isHumanTurn || !isCleanupAvailable,
-        className:
-          "py-1.5 sm:py-2 md:py-3.5 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[9px] sm:text-[10px] md:text-xs font-bold rounded-xl transition disabled:cursor-not-allowed flex items-center justify-center gap-2",
-      });
-    } else {
-      if (isKillerView) {
-        if (gameState.mode === "THIEF_HUNT") {
-          actions.push({
-            id: "rob_basic",
-            label: "Кража",
-            onClick: handleRob,
-            disabled:
-              !isHumanTurn ||
-              !selectedId ||
-              (!killerAdjacentIds.includes(selectedId) && selectedId !== gameState.killerSecretId) ||
-              isGameOver ||
-              Boolean(selectedCharacter?.isRobbed),
-            className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-          });
-          actions.push({
-            id: "disguise_thief",
-            label: "Конспирация",
-            onClick: () => setIsHandSheetOpen(true),
-            disabled: !isHumanTurn || isGameOver,
-            className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-          });
-        } else {
-          actions.push({
-            id: "kill_basic",
-            label: "Ликвидация",
-            onClick: handleKill,
-            disabled:
-              !isHumanTurn ||
-              !selectedId ||
-              !killerAdjacentIds.includes(selectedId) ||
-              isGameOver ||
-              (gameState.mode === "MANIAC_VS_OPERATIVE" && selectedId !== gameState.victimList[0]),
-            className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-          });
-        }
-
-        if (gameState.mode === "SKHVATKA") {
-          actions.push({
-            id: "disguise_skhvatka",
-            label: "Конспирация",
-            onClick: handleDisguise,
-            disabled:
-              !isHumanTurn ||
-              isFirstTurnKiller ||
-              gameState.evidenceDeck.length === 0 ||
-              isGameOver,
-            className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-          });
-        }
-        if (gameState.mode === "MANIAC_VS_OPERATIVE") {
-          actions.push({
-            id: "escape_maniac",
-            label: "Конспирация",
-            onClick: handleEscapeManiac,
-            disabled:
-              !isHumanTurn || gameState.evidenceDeck.length < 2 || isGameOver,
-            className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-          });
-        }
-      } else {
-        actions.push({
-          id: "accuse_basic",
-          label: "Задержание",
-          onClick: handleAccuse,
-          disabled: (() => {
-            if (!isHumanTurn || !selectedId || !selectedCharacter?.isAlive || selectedCharacter?.isExonerated || isGameOver) return true;
-            if (gameState.mode === "THIEF_HUNT" && gameState.uniformedOfficers?.includes(selectedId)) {
-              return true;
-            }
-            let isAdjacent = detectiveAdjacentIds.includes(selectedId);
-            let isSelf = selectedId === gameState.detectiveSecretId;
-            if (gameState.mode === "THIEF_HUNT" && gameState.uniformedOfficers) {
-              const isNearOfficer = gameState.uniformedOfficers.some((offId) =>
-                getAdjacentCharacters(gameState.board, offId).map(c => c.id).includes(selectedId)
-              );
-              const isOfficerSelf = gameState.uniformedOfficers.includes(selectedId);
-              isAdjacent = isAdjacent || isNearOfficer;
-              isSelf = isSelf || isOfficerSelf;
-            }
-            return !isAdjacent && !isSelf;
-          })(),
-          className:
-            "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-        });
-
-        if (gameState.mode === "THIEF_HUNT") {
-          actions.push({
-            id: "patrol_call",
-            label: "Вызов патруля",
-            onClick: handleSwearInOfficer,
-            disabled: !isHumanTurn || !selectedId || !gameState.uniformedOfficers?.includes(selectedId) || isGameOver || gameState.evidenceDeck.length === 0,
-            className: "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
-          });
-        }
-      }
-
-      if (gameState.mode !== "THIEF_HUNT") {
-        actions.push({
-          id: "cleanup_basic",
-          label: "Зачистить",
-          onClick: handleCleanup,
-          disabled: !isHumanTurn || !isCleanupAvailable,
-          className:
-            "py-1.5 sm:py-2 md:py-3.5 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[9px] sm:text-[10px] md:text-xs font-bold rounded-xl transition disabled:cursor-not-allowed flex items-center justify-center gap-2",
-        });
-      }
-    }
-
-        return actions;
-      }, [
-    gameState.mode,
-    gameState.winner,
-    gameState.evidenceDeck.length,
-    gameState.detectiveSecretId,
-    gameState.killerSecretId,
-    gameState.spies,
-    gameState.activeSpyIndex,
-    gameState.uniformedOfficers,
-    gameState.board,
-    isKillerView,
+  const {
+    handleSelectDuelQuestion,
+    handleConfirmDuelAccusation,
+    handleShift,
+    handleKill,
+    handleRob,
+    handleEscapeManiac,
+    handleFastDisguise,
+    handleAccuse,
+    handleDisguise,
+    handleExonerateFromHand,
+    handleCleanup,
+    handleSwearInOfficer,
+    handleCaptureSpy,
+    handleInterrogateSpy,
+    handleReset,
+    targetActions,
+    cleanupAction,
+  } = useGameActions({
+    gameState,
+    setGameState,
+    dispatchAction,
     isHumanTurn,
     selectedId,
+    setSelectedId,
+    selectedCharacter,
     killerAdjacentIds,
     detectiveAdjacentIds,
     activeAgentAdjacentIds,
-    isCleanupAvailable,
     isFirstTurnKiller,
-    selectedCharacter,
-  ]);
+    isCleanupAvailable,
+    isKillerView,
+    isKillerTurn,
+    setErrorCardId,
+    setIsHandSheetOpen,
+    setIsQuestionCatalogOpen,
+    setIsCandidatesSheetOpen,
+    setIsAccuseModalOpen,
+    handleStartNewGame,
+  });
 
   let canPeekKiller = false;
   let canPeekDetective = false;
@@ -964,42 +521,147 @@ export default function App() {
     }
   }
 
-  const targetActions = availableActions.filter(
-    (a) => a.id !== "cleanup_ss" && a.id !== "cleanup_basic",
-  );
-  const cleanupAction = availableActions.find(
-    (a) => a.id === "cleanup_ss" || a.id === "cleanup_basic",
-  );
-
   return (
     <div className="fixed inset-0 w-full h-full flex flex-col bg-[#080a0f] overflow-hidden select-none">
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
-      <DuelQuestionCatalogModal 
-        isOpen={isQuestionCatalogOpen} 
-        onClose={() => setIsQuestionCatalogOpen(false)}
-        onSelectQuestion={handleSelectDuelQuestion}
-      />
 
-      <DuelCandidatesSheet 
-        isOpen={isCandidatesSheetOpen} 
-        onClose={() => setIsCandidatesSheetOpen(false)}
-        allCharacters={DUEL_CHARACTERS}
-        history={gameState.duelHistory || []}
+      <GameModalsContainer
+        isQuestionCatalogOpen={isQuestionCatalogOpen}
+        onCloseQuestionCatalog={() => setIsQuestionCatalogOpen(false)}
+        onSelectDuelQuestion={handleSelectDuelQuestion}
+        isCandidatesSheetOpen={isCandidatesSheetOpen}
+        onCloseCandidatesSheet={() => setIsCandidatesSheetOpen(false)}
+        duelHistory={gameState.duelHistory || []}
         playerRole={gameState.playerRole}
         onSelectCandidate={(id) => {
           setSelectedId(id);
           setIsAccuseModalOpen(true);
         }}
+        isAccuseModalOpen={isAccuseModalOpen}
+        selectedId={selectedId}
+        accusedTargets={gameState.accusedTargets}
+        currentTurn={gameState.currentTurn}
+        onCloseAccuseModal={() => setIsAccuseModalOpen(false)}
+        onConfirmDuelAccusation={handleConfirmDuelAccusation}
+        toastMessage={toastMessage}
+        onCloseToast={() => setToastMessage(null)}
+        restartRequestedBy={gameState.restartRequestedBy}
+        matchBet={gameState.matchBet || 250}
+        rematchTimer={rematchTimer}
+        onAcceptRestart={acceptRestart}
+        onRejectRestart={rejectRestart}
+        onCancelWaitingRestart={() => {
+          dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
+          setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
+        }}
+        isOpponentDisconnectedNotice={Boolean(opponentDisconnectedNotice)}
+        onExitToMenu={handleExitToMenu}
+        isPauseOpen={isPauseOpen}
+        onClosePause={() => setIsPauseOpen(false)}
+        onResumeGame={() => setIsPauseOpen(false)}
+        onOpenRules={() => setIsRulesOpen(true)}
+        onOpenDevPanel={() => setIsDevPanelOpen(true)}
+        isRulesOpen={isRulesOpen}
+        onCloseRules={() => setIsRulesOpen(false)}
+        isSfxEnabled={isSfxEnabled}
+        isAmbientEnabled={isAmbientEnabled}
+        isHapticsEnabled={isHapticsEnabled}
+        onToggleSfx={() => setIsSfxEnabled(soundManager.toggleSfx())}
+        onToggleAmbient={() => setIsAmbientEnabled(soundManager.toggleAmbient())}
+        onToggleHaptics={() => {
+          const newVal = !isHapticsEnabled;
+          setIsHapticsEnabled(newVal);
+          localStorage.setItem("crime_city_haptics", newVal ? "true" : "false");
+          if (newVal) triggerHaptic("medium");
+        }}
+        fullscreenCard={fullscreenImage}
+        onCloseFullscreenCard={() => setFullscreenImage(null)}
+        isDevPanelOpen={isDevPanelOpen}
+        onCloseDevPanel={() => setIsDevPanelOpen(false)}
+        cash={profile.cash}
+        onForceWin={(winner, forcedMode) => {
+          setGameState((prev) => ({
+            ...prev,
+            mode: forcedMode || prev.mode,
+            winner,
+            log: [...prev.log, `[DEV] Принудительная победа: ${winner} (${forcedMode || prev.mode})`],
+          }));
+        }}
+        onTriggerInspectorChoice={() => {
+          setGameState((prev) => {
+            const all = prev.board.flat();
+            const choices = all.slice(0, 4).map((c) => c.id);
+            return {
+              ...prev,
+              mode: "SKHVATKA",
+              currentTurn: "DETECTIVE",
+              playerRole: "DETECTIVE",
+              killCount: Math.max(prev.killCount, 1),
+              inspectorChoices: choices,
+              log: [...prev.log, "[DEV] Принудительный выбор личности Инспектора"],
+            };
+          });
+          setIsChoiceSheetMinimized(false);
+          setIsIntroPhase(false);
+        }}
+        onResetToMenu={handleExitToMenu}
+        onAddCash={(amount) => {
+          awardPrize(amount);
+        }}
+        onResetCash={() => {
+          updateProfile({ cash: 0 });
+        }}
+        onToggleTurn={() => {
+          setGameState((prev) => ({
+            ...prev,
+            currentTurn: prev.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER",
+            log: [...prev.log, "[DEV] Переключение очередности хода"],
+          }));
+        }}
+        onAddKill={() => {
+          setGameState((prev) => ({
+            ...prev,
+            killCount: prev.killCount + 1,
+            log: [...prev.log, `[DEV] +1 Убийство (всего: ${prev.killCount + 1})`],
+          }));
+        }}
+        onTriggerIntro={() => {
+          setIsIntroPhase(true);
+        }}
+        onTriggerRestartRequest={() => {
+          setGameState((prev) => ({
+            ...prev,
+            restartRequestedBy: prev.playerRole === "KILLER" ? "GUEST" : "HOST",
+          }));
+        }}
+        onTriggerOpponentLeft={() => {
+          setOpponentDisconnectedNotice(true);
+        }}
+        onTriggerDisguiseModal={() => {
+          setGameState((prev) => ({
+            ...prev,
+            disguisedNotification: { roleName: "Бандит", newSecretId: prev.board[0][0].id },
+          }));
+        }}
+        onTriggerCaughtSpyModal={() => {
+          setGameState((prev) => ({
+            ...prev,
+            justCaughtSpyId: prev.spies?.[0]?.id || "p1",
+          }));
+        }}
+        onTriggerGameOver={() => {
+          setGameState((prev) => ({
+            ...prev,
+            winner: prev.winner || "KILLER",
+          }));
+        }}
+        onClearSession={() => {
+          sessionStorage.clear();
+          localStorage.clear();
+          window.location.reload();
+        }}
       />
 
-      <DuelAccuseModal 
-        isOpen={isAccuseModalOpen} 
-        targetCharacter={DUEL_CHARACTERS.find((c) => c.id === selectedId) ?? null}
-        alreadyAccused={Boolean(selectedId && (gameState.accusedTargets?.[gameState.currentTurn] || []).includes(selectedId))}
-        onClose={() => setIsAccuseModalOpen(false)}
-        onConfirmAccusation={handleConfirmDuelAccusation}
-      />
-      <Toast message={toastMessage} type="info" onClose={() => setToastMessage(null)} />
       <div className="w-full max-w-7xl mx-auto h-full relative flex flex-col overflow-hidden"> 
         {isLobbyOpen && (
           <MainMenu
@@ -1517,7 +1179,7 @@ export default function App() {
                     }`}
                   >
                     {(action.id === 'kill_basic' || action.id === 'capture_spy') && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="12"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
                     )}
                     {(action.id === 'accuse_basic' || action.id === 'patrol_call') && (
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
@@ -1611,6 +1273,7 @@ export default function App() {
                     isDetectiveTurn={
                       isHumanTurn && isDetectiveTurn && !gameState.winner
                     }
+                    characterImages={characterImages}
                     onExonerateFromHand={(id) => {
                       handleExonerateFromHand(id);
                       setIsHandSheetOpen(false);
@@ -1624,6 +1287,7 @@ export default function App() {
                     isThiefTurn={
                       isHumanTurn && isKillerTurn && !gameState.winner
                     }
+                    characterImages={characterImages}
                     onFastDisguise={(id) => {
                       handleFastDisguise(id);
                       setIsHandSheetOpen(false);
@@ -1660,8 +1324,7 @@ export default function App() {
 
               <div
                 ref={logContainerRef}
-                className="overflow-y-auto space-y-2 text-xs font-mono text-zinc-300 pr-1 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
-              >
+                className="overflow-y-auto space-y-2 text-xs font-mono text-zinc-300 pr-1 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
                 {gameState.log.map((entry, idx) => (
                   <div
                     key={idx}
@@ -1674,23 +1337,6 @@ export default function App() {
             </div>
           </div>
         )}
-
-        <RematchModal
-          status={gameState.restartRequestedBy ? (gameState.restartRequestedBy !== (partyService.isHost ? "HOST" : "GUEST") ? "offer" : "waiting") : null}
-          matchBet={gameState.matchBet || 250}
-          timer={rematchTimer}
-          onAccept={acceptRestart}
-          onReject={rejectRestart}
-          onCancelWaiting={() => {
-            dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
-            setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
-          }}
-        />
-
-        <DisconnectModal
-          isOpen={Boolean(opponentDisconnectedNotice)}
-          onExitToMenu={handleExitToMenu}
-        />
 
         {gameState.justCaughtSpyId &&
           !gameState.winner &&
@@ -1746,116 +1392,6 @@ export default function App() {
             playerRole={gameState.opponent === "PVP" ? undefined : gameState.playerRole}
           />
         )}
-        <PauseModal
-          isOpen={isPauseOpen}
-          onClose={() => setIsPauseOpen(false)}
-          onResume={() => setIsPauseOpen(false)}
-          onOpenRules={() => setIsRulesOpen(true)}
-          onLeaveGame={handleExitToMenu}
-          onOpenDevPanel={() => setIsDevPanelOpen(true)}
-          isSfxEnabled={isSfxEnabled}
-          isAmbientEnabled={isAmbientEnabled}
-          isHapticsEnabled={isHapticsEnabled}
-          onToggleSfx={() => setIsSfxEnabled(soundManager.toggleSfx())}
-          onToggleAmbient={() => setIsAmbientEnabled(soundManager.toggleAmbient())}
-          onToggleHaptics={() => {
-            const newVal = !isHapticsEnabled;
-            setIsHapticsEnabled(newVal);
-            localStorage.setItem("crime_city_haptics", newVal ? "true" : "false");
-            if (newVal) triggerHaptic("medium");
-          }}
-        />
-
-        <RulesModal isOpen={isRulesOpen} onClose={() => setIsRulesOpen(false)} />
-
-        <FullscreenCardModal card={fullscreenImage} onClose={() => setFullscreenImage(null)} />
-
-        <DeviceOrientationOverlay />
-        <DevPanel
-          isOpen={isDevPanelOpen}
-          onClose={() => setIsDevPanelOpen(false)}
-          onForceWin={(winner, forcedMode) => {
-            setGameState((prev) => ({
-              ...prev,
-              mode: forcedMode || prev.mode,
-              winner,
-              log: [...prev.log, `[DEV] Принудительная победа: ${winner} (${forcedMode || prev.mode})`],
-            }));
-          }}
-          onTriggerInspectorChoice={() => {
-            setGameState((prev) => {
-              const all = prev.board.flat();
-              const choices = all.slice(0, 4).map((c) => c.id);
-              return {
-                ...prev,
-                mode: "SKHVATKA",
-                currentTurn: "DETECTIVE",
-                playerRole: "DETECTIVE",
-                killCount: Math.max(prev.killCount, 1),
-                inspectorChoices: choices,
-                log: [...prev.log, "[DEV] Принудительный выбор личности Инспектора"],
-              };
-            });
-            setIsChoiceSheetMinimized(false);
-            setIsIntroPhase(false);
-          }}
-          onResetToMenu={handleExitToMenu}
-          onAddCash={(amount) => {
-            awardPrize(amount);
-          }}
-          onResetCash={() => {
-            updateProfile({ cash: 0 });
-          }}
-          onToggleTurn={() => {
-            setGameState((prev) => ({
-              ...prev,
-              currentTurn: prev.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER",
-              log: [...prev.log, "[DEV] Переключение очередности хода"],
-            }));
-          }}
-          onAddKill={() => {
-            setGameState((prev) => ({
-              ...prev,
-              killCount: prev.killCount + 1,
-              log: [...prev.log, `[DEV] +1 Убийство (всего: ${prev.killCount + 1})`],
-            }));
-          }}
-          onTriggerIntro={() => {
-            setIsIntroPhase(true);
-          }}
-          onTriggerRestartRequest={() => {
-            setGameState((prev) => ({
-              ...prev,
-              restartRequestedBy: prev.playerRole === "KILLER" ? "GUEST" : "HOST",
-            }));
-          }}
-          onTriggerOpponentLeft={() => {
-            setOpponentDisconnectedNotice(true);
-          }}
-          onTriggerDisguiseModal={() => {
-            setGameState((prev) => ({
-              ...prev,
-              disguisedNotification: { roleName: "Бандит", newSecretId: prev.board[0][0].id },
-            }));
-          }}
-          onTriggerCaughtSpyModal={() => {
-            setGameState((prev) => ({
-              ...prev,
-              justCaughtSpyId: prev.spies?.[0]?.id || "p1",
-            }));
-          }}
-          onTriggerGameOver={() => {
-            setGameState((prev) => ({
-              ...prev,
-              winner: prev.winner || "KILLER",
-            }));
-          }}
-          onClearSession={() => {
-            sessionStorage.clear();
-            localStorage.clear();
-            window.location.reload();
-          }}
-        />
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import { useEffect, MutableRefObject } from "react";
 import { soundManager } from "../utils/audio";
 import { triggerHaptic } from "../utils/haptics";
 import { partyService } from "../utils/partyPeer";
-import { GameState } from "../types/game";
+import type { GameState } from "../types/game";
 
 interface UseMatchEndHandlerParams {
   gameState: GameState;

@@ -15,6 +15,9 @@ export default defineConfig({
     })
   ],
   base: "/detective-game/",
+  define: {
+    __BUILD_TIMESTAMP__: JSON.stringify(new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })),
+  },
   build: {
     rollupOptions: {
       output: {

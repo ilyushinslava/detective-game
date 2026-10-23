@@ -6,6 +6,8 @@ import { partyService } from "../utils/partyPeer";
 import { soundManager } from "../utils/audio";
 import { Toast } from "./Toast";
 import { TutorialScreen } from "./TutorialScreen";
+
+declare const __BUILD_TIMESTAMP__: string;
 import { useTranslation } from "../i18n/context";
 
 const Icons = {
@@ -342,6 +344,9 @@ export const MainMenu = ({
             <div className="flex flex-col items-center drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
               <span className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">Позывной</span>
               <span className="text-sm font-black tracking-widest text-zinc-100 uppercase">{profile.nickname}</span>
+              <span className="text-[10px] text-zinc-500 font-mono select-none mt-0.5">
+                Сборка: {typeof __BUILD_TIMESTAMP__ !== 'undefined' ? __BUILD_TIMESTAMP__ : 'dev'}
+              </span>
             </div>
 
             <div

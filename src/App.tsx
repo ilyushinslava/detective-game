@@ -1769,7 +1769,6 @@ export default function App() {
         <FullscreenCardModal card={fullscreenImage} onClose={() => setFullscreenImage(null)} />
 
         <DeviceOrientationOverlay />
-        {import.meta.env.DEV && (
         <DevPanel
           isOpen={isDevPanelOpen}
           onClose={() => setIsDevPanelOpen(false)}
@@ -1855,7 +1854,6 @@ export default function App() {
             window.location.reload();
           }}
         />
-      )}
       </div>
     </div>
   );

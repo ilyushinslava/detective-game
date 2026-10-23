@@ -34,8 +34,17 @@ class PartyService {
     }
 
     const rawHost = import.meta.env?.VITE_PARTYKIT_HOST?.trim();
-    let wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    let host = window.location.hostname ? `${window.location.hostname}:1999` : "localhost:1999";
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+
+    let wsProtocol = "wss:";
+    let host = "detective-game-haxi.onrender.com";
+
+    if (isLocalhost) {
+      wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      host = `${window.location.hostname}:1999`;
+    }
 
     if (rawHost) {
       if (rawHost.startsWith("https://") || rawHost.startsWith("wss://")) {
@@ -147,8 +156,17 @@ class PartyService {
       return [];
     }
     const rawHost = import.meta.env?.VITE_PARTYKIT_HOST?.trim();
-    let httpProtocol = window.location.protocol === "https:" ? "https:" : "http:";
-    let host = window.location.hostname ? `${window.location.hostname}:1999` : "localhost:1999";
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+
+    let httpProtocol = "https:";
+    let host = "detective-game-haxi.onrender.com";
+
+    if (isLocalhost) {
+      httpProtocol = window.location.protocol === "https:" ? "https:" : "http:";
+      host = `${window.location.hostname}:1999`;
+    }
 
     if (rawHost) {
       if (rawHost.startsWith("https://") || rawHost.startsWith("wss://")) {

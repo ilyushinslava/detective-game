@@ -45,32 +45,19 @@ export function useMultiplayer({
   const [rematchTimer, setRematchTimer] = useState(15);
 
   useEffect(() => {
-    const checkSession = async () => {
-      const saved = sessionStorage.getItem("mp_session");
-      if (saved) {
-        try {
-          const { roomCode, isHost, mode: savedMode, nickname, myClientId } = JSON.parse(saved);
-          if (roomCode) {
-            setActiveMode(savedMode || "SKHVATKA");
-            setIsLobbyOpen(false);
-            setHasStartedEver(true);
-            setIsIntroPhase(false);
-            partyService.connect(
-              roomCode,
-              nickname || profile.nickname || "Агент",
-              Boolean(isHost),
-              savedMode || "SKHVATKA",
-              myClientId
-            );
-            setToastMessage("Сессия восстановлена");
-          }
-        } catch (e) {
-          console.warn("PartyKit session restore error:", e);
-          sessionStorage.removeItem("mp_session");
+    // Предотвращение ложного автозапуска игры при F5
+    // Сессия не восстанавливается вслепую, пользователь всегда встречает главное меню
+    const saved = sessionStorage.getItem("mp_session");
+    if (saved) {
+      try {
+        const { mode: savedMode } = JSON.parse(saved);
+        if (savedMode) {
+          setActiveMode(savedMode);
         }
+      } catch (e) {
+        sessionStorage.removeItem("mp_session");
       }
-    };
-    checkSession();
+    }
   }, []);
 
   useEffect(() => {

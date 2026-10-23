@@ -169,12 +169,14 @@ export const GameBoard = ({
             const isRadarTarget = character.id === radarTargetId;
 
             let neighborColor = null;
-            if (showKillerHints && killerAdjacentIds.includes(character.id)) {
-              neighborColor =
-                "border-red-500 ring-1 ring-red-500/80 shadow-[0_0_15px_rgba(239,68,68,0.4)]";
-            } else if (showDetectiveHints && detectiveAdjacentIds.includes(character.id)) {
-              neighborColor =
-                "border-blue-500 ring-1 ring-blue-500/80 shadow-[0_0_15px_rgba(59,130,246,0.4)]";
+            if (!isRadarCell) {
+              if (showKillerHints && killerAdjacentIds.includes(character.id)) {
+                neighborColor =
+                  "border-red-500 ring-1 ring-red-500/80 shadow-[0_0_15px_rgba(239,68,68,0.4)]";
+              } else if (showDetectiveHints && detectiveAdjacentIds.includes(character.id)) {
+                neighborColor =
+                  "border-blue-500 ring-1 ring-blue-500/80 shadow-[0_0_15px_rgba(59,130,246,0.4)]";
+              }
             }
 
             const isRedRadar = Boolean(radarColorClass?.includes("red"));
@@ -206,7 +208,7 @@ export const GameBoard = ({
                 />
 
                 {(isRadarCell || isRadarTarget) && (
-                  <div className="absolute inset-0 rounded-lg sm:rounded-xl pointer-events-none z-20 overflow-visible">
+                  <div className="absolute inset-0 rounded-lg sm:rounded-xl pointer-events-none z-35 overflow-visible">
                     <div
                       className={`absolute inset-0 rounded-lg sm:rounded-xl mix-blend-screen transition-opacity duration-300 ${
                         isRadarTarget

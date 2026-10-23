@@ -811,7 +811,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
             </div>
           </div>
 
-          <div className={`flex-1 min-h-0 w-full flex items-center justify-center py-4 md:py-6 overflow-visible ${
+          <div className={`flex-1 min-h-0 w-full flex items-center justify-center py-2 md:py-3 max-h-[calc(100dvh-280px)] max-w-[min(100vw,calc(100dvh-280px))] mx-auto overflow-visible ${
             currentModule === "SKHVATKA" && lesson === 1 && (step === 1 || step === 2) ? "tutorial-highlight-l1s2" : ""
           } ${currentModule === "MANIAC" && lesson === 1 && step === 1 ? "tutorial-highlight-maniac" : ""}`}>
             <GameBoard
@@ -828,7 +828,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                 (currentModule === "SECRET_SERVICE" && lesson === 1 && (step === 1 || (step === 2 && scanResult === "FAR"))) ||
                 (currentModule === "SECRET_SERVICE" && lesson === 2 && step === 1)
               }
-              showDetectiveHints={currentModule === "SKHVATKA" && lesson === 3 && step === 1}
+              showDetectiveHints={false}
               targetVictimId={
                 currentModule === "MANIAC" ? targetVictimId : null
               }

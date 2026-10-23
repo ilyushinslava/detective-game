@@ -161,12 +161,12 @@ export const CharacterCard = memo(
           const hasRadar = Boolean(isRadarCenter || radarRingColor);
           const hasNeighbor = Boolean(neighborHighlightColor);
 
-          const isSelectedClass = isSelected ? "ring-2 ring-white shadow-[0_0_18px_rgba(255,255,255,0.9)] scale-95 z-30" : "";
+          const isSelectedInRadar = isSelected && hasRadar ? "ring-2 ring-white ring-inset shadow-[0_0_15px_rgba(255,255,255,0.8)] scale-95 z-30" : "";
           if (hasRadar && hasNeighbor) {
-            return `${neighborHighlightColor} border-dashed z-25 ${isSelectedClass}`;
+            return `${neighborHighlightColor} border-dashed z-25 ${isSelectedInRadar}`;
           }
           if (hasRadar) {
-            return `border-2 border-dashed ${radarRingColor || "border-blue-500 ring-2 ring-blue-500/60 shadow-[0_0_12px_rgba(59,130,246,0.5)]"} z-20 animate-pulse ${isSelectedClass}`;
+            return `border-2 border-dashed ${radarRingColor || "border-blue-500 ring-2 ring-blue-500/60 shadow-[0_0_12px_rgba(59,130,246,0.5)]"} z-20 animate-pulse ${isSelectedInRadar}`;
           }
           if (isSelected) {
             return `ring-2 ring-white border-white shadow-[0_0_18px_rgba(255,255,255,0.9)] scale-95 z-30`;

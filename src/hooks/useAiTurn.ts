@@ -1,5 +1,5 @@
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { GameState } from "../types/game";
+import type { GameState } from "../types/game";
 import { partyService } from "../utils/partyPeer";
 import { soundManager } from "../utils/audio";
 import {

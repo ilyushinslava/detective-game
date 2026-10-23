@@ -6,6 +6,7 @@ import { partyService } from "../utils/partyPeer";
 import { soundManager } from "../utils/audio";
 import { Toast } from "./Toast";
 import { TutorialScreen } from "./TutorialScreen";
+import { BiometricSlider } from "./BiometricSlider";
 
 declare const __BUILD_TIMESTAMP__: string;
 import { useTranslation } from "../i18n/context";
@@ -383,20 +384,12 @@ export const MainMenu = ({
             </button>
           )}
 
-          <button
-            onClick={handleQuickPlay}
+          <BiometricSlider
+            onTrigger={handleQuickPlay}
             disabled={isCreating}
-            className="w-full h-12 sm:h-[52px] md:h-16 rounded-full bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white font-black tracking-widest uppercase flex items-center justify-between px-6 md:px-8 border-t border-red-400/50 shadow-[0_10px_25px_rgba(220,38,38,0.5),inset_0_1px_2px_rgba(255,255,255,0.4)] hover:brightness-110 active:scale-[0.98] transition cursor-pointer disabled:opacity-50"
-          >
-            <div className="flex items-center gap-3">
-              <Icons.Play />
-              <span className="text-[11px] sm:text-xs md:text-sm">{isCreating ? t.menu.searching : t.menu.quickPlay}</span>
-            </div>
-            <span className="text-[10px] md:text-xs font-mono text-red-200/80 flex items-center gap-1">
-              <Icons.Coin className="w-3 h-3 text-amber-400 shrink-0" />
-              250
-            </span>
-          </button>
+            text={isCreating ? (t.menu.searching || "Поиск соперника...") : (t.menu.quickPlay || "Быстрая игра")}
+            price={250}
+          />
 
           <div className="flex flex-col gap-2 sm:gap-2.5 md:gap-3.5 mt-1">
             <button onClick={() => { setSelectedOpponent("AI"); setScreen('MODES'); }} className="w-full h-11 sm:h-12 md:h-16 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 md:px-6 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">

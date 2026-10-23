@@ -56,7 +56,7 @@ export const GameBoard = ({
   const rowsArray = Array.from({ length: numRows }, (_, i) => i);
 
   return (
-    <div className="relative w-full aspect-square max-w-[min(100%,calc(100dvh-270px))] max-h-[calc(100dvh-270px)] md:max-w-[min(90vw,calc(100dvh-430px))] md:max-h-[calc(100dvh-430px)] landscape:max-w-[min(82vh,calc(100dvh-200px))] landscape:max-h-[min(82vh,calc(100dvh-200px))] flex flex-col items-center justify-center p-0.5 sm:p-1 select-none mx-auto shrink-0 overflow-x-hidden">
+    <div className="relative w-full max-w-[min(100vw,calc(100dvh-220px))] max-h-[calc(100dvh-220px)] md:max-w-[min(85vw,calc(100dvh-260px))] md:max-h-[calc(100dvh-260px)] landscape:max-w-[min(85vh,calc(100dvh-140px))] landscape:max-h-[min(85vh,calc(100dvh-140px))] flex flex-col items-center justify-center p-1 select-none mx-auto shrink-0">
       <style>{`
         @keyframes radarMarch {
           from { stroke-dashoffset: 0; }
@@ -170,7 +170,7 @@ export const GameBoard = ({
                 "border-red-500 ring-1 ring-red-500/80 shadow-[0_0_15px_rgba(239,68,68,0.4)]";
             } else if (showDetectiveHints && detectiveAdjacentIds.includes(character.id)) {
               neighborColor =
-                "border-amber-500 ring-1 ring-amber-500/80 shadow-[0_0_15px_rgba(245,158,11,0.4)]";
+                "border-blue-500 ring-1 ring-blue-500/80 shadow-[0_0_15px_rgba(59,130,246,0.4)]";
             }
 
             const isRedRadar = Boolean(radarColorClass?.includes("red"));

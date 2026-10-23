@@ -38,7 +38,7 @@ export const DevPanel = ({
   onTriggerGameOver,
   onClearSession,
 }: DevPanelProps) => {
-  if (!import.meta.env.DEV || !isOpen) return null;
+  if (!isOpen) return null;
 
   const [activeSection, setActiveSection] = useState<number | null>(1);
 

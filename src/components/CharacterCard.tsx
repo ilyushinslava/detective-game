@@ -166,7 +166,7 @@ export const CharacterCard = memo(
             return `${neighborHighlightColor} border-dashed z-25`;
           }
           if (hasRadar) {
-            return `border-2 border-dashed ${radarRingColor || "border-amber-400 ring-2 ring-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.5)]"} z-20 animate-pulse`;
+            return `border-2 border-dashed ${radarRingColor || "border-blue-500 ring-2 ring-blue-500/60 shadow-[0_0_12px_rgba(59,130,246,0.5)]"} z-20 animate-pulse`;
           }
           if (hasNeighbor) {
             return `${neighborHighlightColor} z-10`;
@@ -223,7 +223,7 @@ export const CharacterCard = memo(
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-amber-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M8 11l4 3 4-3"/></svg>
             )}
             {isRadarCenter && !isDead && (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-amber-400 animate-pulse drop-shadow-[0_0_5px_rgba(245,158,11,0.8)]"><path d="M12 20v-8"/><path d="M8 12a4 4 0 0 1 8 0"/><path d="M4 12a8 8 0 0 1 16 0"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-blue-400 animate-pulse drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]"><path d="M12 20v-8"/><path d="M8 12a4 4 0 0 1 8 0"/><path d="M4 12a8 8 0 0 1 16 0"/></svg>
             )}
             {character.isRobbed && (
               <span className="flex items-center justify-center p-0.5 rounded bg-amber-950/70 border border-amber-400/60 shadow-[0_0_6px_rgba(245,158,11,0.4)]" title="Ограблен">
@@ -242,7 +242,7 @@ export const CharacterCard = memo(
               isSecretService || character.unmaskedSpyIndex !== undefined
                 ? "border-red-600 bg-red-950/90 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
                 : (character as any).isArrested
-                  ? "border-amber-500/80 bg-amber-950/90 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.35)]"
+                  ? "border-blue-500/80 bg-blue-950/90 text-blue-300 shadow-[0_0_15px_rgba(59,130,246,0.4)]"
                   : "border-red-600 bg-red-950/90 text-red-500 shadow-[0_0_15px_rgba(220,38,38,0.4)]"
             }`}>
               {isSecretService || character.unmaskedSpyIndex !== undefined
@@ -256,7 +256,7 @@ export const CharacterCard = memo(
 
         {isExonerated && !isDead && !(character as any).isArrested && (
           <div className="absolute inset-0 flex items-center justify-center pb-4 sm:pb-0 pointer-events-none z-20">
-            <div className="transform rotate-6 border border-amber-500/80 bg-amber-950/90 text-amber-300 font-black text-[8px] sm:text-[10px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(245,158,11,0.35)] rounded-sm backdrop-blur-sm">
+            <div className="transform rotate-6 border border-zinc-500/80 bg-zinc-900/90 text-zinc-300 font-black text-[8px] sm:text-[10px] md:text-sm uppercase px-2 py-0.5 md:px-3 md:py-1 tracking-widest shadow-[0_0_15px_rgba(161,161,170,0.25)] rounded-sm backdrop-blur-sm">
               АЛИБИ
             </div>
           </div>

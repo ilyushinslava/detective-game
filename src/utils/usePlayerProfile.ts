@@ -1,22 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import type { UserProfile } from "../types/profile";
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
-import { getDatabase, ref, get, set, update } from "firebase/database";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBROSVP1oRoUQfKF0HzABi-jQh7m4v0SRs",
-  authDomain: "the-wicked-city.firebaseapp.com",
-  databaseURL: "https://the-wicked-city-default-rtdb.firebaseio.com",
-  projectId: "the-wicked-city",
-  storageBucket: "the-wicked-city.firebasestorage.app",
-  messagingSenderId: "786914165881",
-  appId: "1:786914165881:web:80afb2a4971377f54080a8",
-};
-
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const auth = getAuth(app);
 
 const getInitialCallsign = () => {
   if (typeof window !== "undefined") {
@@ -69,57 +52,12 @@ export function usePlayerProfile() {
     return DEFAULT_PROFILE;
   });
 
-  const uidRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        uidRef.current = user.uid;
-        try {
-          const userRef = ref(db, `users/${user.uid}`);
-          const snapshot = await get(userRef);
-          if (snapshot.exists()) {
-            const remoteData = snapshot.val();
-            setProfile((prev) => {
-              const merged: UserProfile = {
-                ...prev,
-                ...remoteData,
-                stats: remoteData.stats || prev.stats,
-                cash: typeof remoteData.cash === "number" ? remoteData.cash : prev.cash,
-                xp: typeof remoteData.xp === "number" ? remoteData.xp : prev.xp,
-                level: typeof remoteData.level === "number" ? remoteData.level : prev.level,
-              };
-              localStorage.setItem("crime_city_profile", JSON.stringify(merged));
-              return merged;
-            });
-          } else {
-            const saved = localStorage.getItem("crime_city_profile");
-            if (saved) {
-              set(userRef, JSON.parse(saved)).catch(() => {});
-            }
-          }
-        } catch (e) {
-          console.warn("Failed to sync profile from RTDB", e);
-        }
-      } else {
-        signInAnonymously(auth).catch(() => {});
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const syncToCloud = (nextProfile: UserProfile) => {
-    if (uidRef.current) {
-      update(ref(db, `users/${uidRef.current}`), nextProfile).catch(() => {});
-    }
-  };
-
   const updateProfile = (updates: Partial<UserProfile>) => {
     setProfile((prev) => {
       const next = { ...prev, ...updates };
-      localStorage.setItem("crime_city_profile", JSON.stringify(next));
-      syncToCloud(next);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("crime_city_profile", JSON.stringify(next));
+      }
       return next;
     });
   };
@@ -130,8 +68,9 @@ export function usePlayerProfile() {
 
     const next = { ...profile, cash: profile.cash - amount };
     setProfile(next);
-    localStorage.setItem("crime_city_profile", JSON.stringify(next));
-    syncToCloud(next);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("crime_city_profile", JSON.stringify(next));
+    }
     return true;
   };
 
@@ -139,8 +78,9 @@ export function usePlayerProfile() {
     if (amount <= 0) return;
     setProfile((prev) => {
       const next = { ...prev, cash: prev.cash + amount };
-      localStorage.setItem("crime_city_profile", JSON.stringify(next));
-      syncToCloud(next);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("crime_city_profile", JSON.stringify(next));
+      }
       return next;
     });
   };
@@ -149,8 +89,9 @@ export function usePlayerProfile() {
     if (pot <= 0) return;
     setProfile((prev) => {
       const next = { ...prev, cash: prev.cash + pot };
-      localStorage.setItem("crime_city_profile", JSON.stringify(next));
-      syncToCloud(next);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("crime_city_profile", JSON.stringify(next));
+      }
       return next;
     });
   };
@@ -175,8 +116,9 @@ export function usePlayerProfile() {
         rank: newRank,
         stats: { wins: newWins, losses: newLosses },
       };
-      localStorage.setItem("crime_city_profile", JSON.stringify(next));
-      syncToCloud(next);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("crime_city_profile", JSON.stringify(next));
+      }
       return next;
     });
   };

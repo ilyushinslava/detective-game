@@ -58,7 +58,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
           Справочник правил
         </button>
 
-        {import.meta.env.DEV && onOpenDevPanel && (
+        {onOpenDevPanel && (
           <button
             onClick={() => {
               onClose();

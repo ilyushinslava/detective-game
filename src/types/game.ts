@@ -86,58 +86,13 @@ export interface GameState {
   accusedTargets?: Record<Role, string[]>;
 }
 export const SPY_COLORS = [
-  {
-    text: "text-red-400",
-    bg: "bg-red-950",
-    border: "border-red-500",
-    ring: "ring-red-500/80",
-  },
-  {
-    text: "text-amber-400",
-    bg: "bg-amber-950",
-    border: "border-amber-500",
-    ring: "ring-amber-500/80",
-  },
-  {
-    text: "text-amber-400",
-    bg: "bg-amber-950",
-    border: "border-amber-500",
-    ring: "ring-amber-500/80",
-  },
-  {
-    text: "text-emerald-400",
-    bg: "bg-emerald-950",
-    border: "border-emerald-500",
-    ring: "ring-emerald-500/80",
-  },
-  {
-    text: "text-purple-400",
-    bg: "bg-purple-950",
-    border: "border-purple-500",
-    ring: "ring-purple-500/80",
-  },
-  {
-    text: "text-rose-400",
-    bg: "bg-rose-950",
-    border: "border-rose-500",
-    ring: "ring-rose-500/80",
-  },
-  {
-    text: "text-lime-400",
-    bg: "bg-lime-950",
-    border: "border-lime-500",
-    ring: "ring-lime-500/80",
-  },
-  {
-    text: "text-orange-400",
-    bg: "bg-orange-950",
-    border: "border-orange-500",
-    ring: "ring-orange-500/80",
-  },
-  {
-    text: "text-fuchsia-400",
-    bg: "bg-fuchsia-950",
-    border: "border-fuchsia-500",
-    ring: "ring-fuchsia-500/80",
-  },
+  { text: "text-red-400", bg: "bg-red-950", border: "border-red-500", ring: "ring-red-500/80" },
+  { text: "text-cyan-400", bg: "bg-cyan-950", border: "border-cyan-500", ring: "ring-cyan-500/80" },
+  { text: "text-blue-400", bg: "bg-blue-950", border: "border-blue-500", ring: "ring-blue-500/80" },
+  { text: "text-emerald-400", bg: "bg-emerald-950", border: "border-emerald-500", ring: "ring-emerald-500/80" },
+  { text: "text-purple-400", bg: "bg-purple-950", border: "border-purple-500", ring: "ring-purple-500/80" },
+  { text: "text-rose-400", bg: "bg-rose-950", border: "border-rose-500", ring: "ring-rose-500/80" },
+  { text: "text-lime-400", bg: "bg-lime-950", border: "border-lime-500", ring: "ring-lime-500/80" },
+  { text: "text-orange-400", bg: "bg-orange-950", border: "border-orange-500", ring: "ring-orange-500/80" },
+  { text: "text-fuchsia-400", bg: "bg-fuchsia-950", border: "border-fuchsia-500", ring: "ring-fuchsia-500/80" },
 ];

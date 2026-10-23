@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { GameModeType, OpponentType, Role } from "../types/game";
 import type { UserProfile } from "../types/profile";
 import { triggerHaptic, setHapticsEnabled } from "../utils/haptics";
@@ -8,7 +8,6 @@ import { Toast } from "./Toast";
 import { TutorialScreen } from "./TutorialScreen";
 import { useTranslation } from "../i18n/context";
 
-// --- ВЕКТОРНЫЕ ИКОНКИ (HUD) ---
 const Icons = {
   CardsDeck: ({ className = "w-6 h-6 text-zinc-300" }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
@@ -253,45 +252,28 @@ export const MainMenu = ({
     code: string,
     mode: GameModeType,
     isHost: boolean,
-    bet: number = 250,
+    _bet: number = 250,
   ) => {
     const cleanCode = String(code).trim();
     partyService.roomCode = cleanCode;
     setPartyRoomCode(cleanCode);
     setIsCreating(false);
+    setIsCreateRoomOpen(false);
     setIsWaitingForOpponent(true);
-    let hasStarted = false;
 
-    partyService.onError = (err: any) => {
-      if (err === "ROOM_NOT_FOUND") {
-        setToastMessage("Комната не найдена или еще не создана хостом");
-        setIsWaitingForOpponent(false);
-        setIsCreating(false);
-        partyService.disconnect();
-      }
-    };
-
-    partyService.onRoomStatus = (data: any) => {
-      const roomStatus = typeof data === "string" ? data : data?.status;
-      if (roomStatus === "WAITING") {
-        setIsCreating(false);
-        setIsWaitingForOpponent(true);
-      } else if (roomStatus === "READY_TO_START" || roomStatus === "PLAYING") {
-        setIsWaitingForOpponent(false);
-        setIsCreating(false);
-      }
-    };
-
-    partyService.onSyncState = (serverGameState: any) => {
-      if (serverGameState) {
-        partyService.lastSyncedState = serverGameState;
-      }
-      setIsWaitingForOpponent(false);
-      setIsCreating(false);
-    };
+    sessionStorage.setItem(
+      "mp_session",
+      JSON.stringify({
+        roomCode: cleanCode,
+        isHost,
+        mode,
+        nickname: profile.nickname,
+      })
+    );
 
     partyService.connect(cleanCode, profile.nickname || "Агент", isHost, mode);
   };
+  
 
   const handleQuickPlay = async () => {
     triggerHaptic("heavy");
@@ -307,7 +289,6 @@ export const MainMenu = ({
     } catch (e) {
       console.warn("fetchPublicRooms error:", e);
     }
-    // Если открытых комнат нет, создаем комнату со случайным кодом для быстрого матча
     const code = Math.floor(1000 + Math.random() * 9000).toString();
     connectToPartyRoom(code, "SKHVATKA", true, 250);
   };
@@ -331,10 +312,8 @@ export const MainMenu = ({
   const filteredRooms = publicRooms.filter((r) => roomFilter === "ALL" || r.mode === roomFilter);
   const activeModeData = GAME_MODES.find(m => m.id === selectedMode) || GAME_MODES[0];
 
-  // --- ЭКРАН 1: ГЛАВНАЯ (HOME) ---
   const renderHome = () => (
     <div className="relative flex-1 flex flex-col bg-[#080a0f] overflow-hidden">
-      {/* Фоновое изображение без срезания верхушек */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <img 
           src="./bg-main.png" 
@@ -350,9 +329,7 @@ export const MainMenu = ({
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col justify-between pt-[max(0.5rem,env(safe-area-inset-top))] pb-3 px-5 lg:px-8 max-w-6xl w-full mx-auto">
-
         <div>
-          {/* Header Overlay */}
           <div className="flex items-center justify-between shrink-0 mb-4">
             <button 
               onClick={() => setIsSettingsOpen(true)}
@@ -368,7 +345,7 @@ export const MainMenu = ({
             </div>
 
             <div
-              onClick={() => { if (import.meta.env.DEV && onOpenDevPanel) onOpenDevPanel(); }}
+              onClick={() => { onOpenDevPanel?.(); }}
               className="rounded-full bg-black/75 border border-white/10 hover:border-amber-500/50 hover:bg-amber-950/20 px-3.5 py-1.5 flex items-center gap-1.5 shadow-lg cursor-pointer transition active:scale-95"
               title="Открыть Dev-панель"
             >
@@ -377,7 +354,6 @@ export const MainMenu = ({
             </div>
           </div>
 
-          {/* Заголовок игры */}
           <div className="max-w-[60%] text-left -rotate-3 select-none">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter text-white uppercase leading-none drop-shadow-[0_4px_20px_rgba(0,0,0,1)]">
               {t.menu.title}
@@ -391,7 +367,6 @@ export const MainMenu = ({
           </div>
         </div>
 
-        {/* Main Actions */}
         <div className="w-full max-w-lg md:max-w-xl lg:max-w-none flex flex-col lg:grid lg:grid-cols-2 lg:gap-4 shrink-0">
           {hasActiveGame && (
             <button
@@ -477,7 +452,6 @@ export const MainMenu = ({
     </div>
   );
 
-  // --- ЭКРАН 2: ВЫБОР ИГРЫ (КАТАЛОГ СЦЕНАРИЕВ) ---
   const renderModes = () => (
     <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden">
       <div className="flex items-center px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-4 shrink-0 border-b border-white/10 bg-[#080a0f]">
@@ -488,13 +462,13 @@ export const MainMenu = ({
         <h2 className="absolute left-1/2 -translate-x-1/2 text-sm md:text-base font-black tracking-widest text-zinc-100 uppercase">Выбор игры</h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto sm:overflow-hidden px-4 py-4 flex flex-col justify-center pb-[max(6rem,env(safe-area-inset-bottom))]">
-        <div className="flex flex-row overflow-x-auto snap-x snap-mandatory gap-4 px-2 py-2 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-visible max-w-5xl mx-auto w-full custom-scrollbar">
+      <div className="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar pb-[max(6rem,env(safe-area-inset-bottom))]">
+        <div className="flex flex-col gap-3 max-w-2xl mx-auto w-full">
           {GAME_MODES.map((mode) => (
             <button
               key={mode.id}
               onClick={() => { setSelectedMode(mode.id); setScreen('MODE_DETAIL'); }}
-              className="w-[82vw] max-w-[320px] sm:w-full shrink-0 snap-center bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl p-4 md:p-5 flex flex-col justify-between hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] transition text-left shadow-[0_4px_20px_rgba(0,0,0,0.4)] cursor-pointer group active:scale-[0.98]"
+              className="w-full bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl p-4 md:p-5 flex flex-col justify-between hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] transition text-left shadow-[0_4px_20px_rgba(0,0,0,0.4)] cursor-pointer group active:scale-[0.99]"
             >
               <div>
                 <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-center text-zinc-500 mb-3 shadow-inner group-hover:text-amber-400 transition-colors">
@@ -519,7 +493,6 @@ export const MainMenu = ({
     </div>
   );
 
-  // --- ЭКРАН 3: КАРТОЧКА ДЕЛА И СТАРТ (МАКЕТ 1) ---
   const renderModeDetail = () => (
     <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden relative">
       <div className="flex items-center px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 z-10 bg-[#080a0f]">
@@ -578,8 +551,8 @@ export const MainMenu = ({
                 onClick={() => setSelectedOpponent(opp)}
                 className={`flex-1 py-2.5 md:py-3 text-[10px] md:text-xs font-black uppercase tracking-widest rounded-lg transition cursor-pointer ${selectedOpponent === opp ? 'bg-zinc-800 text-white shadow-md border border-white/10' : 'text-zinc-500 hover:text-zinc-300'}`}
               >
-                {opp === 'AI' ? 'Против ИИ' : opp === 'PVP' ? 'Локально' : 'Онлайн'}
-              </button>
+                {opp === 'AI' ? 'Против ИИ' : opp === 'PVP' ? 'Локально' : 'Онлайн'
+              }</button>
             ))}
           </div>
 
@@ -636,10 +609,8 @@ export const MainMenu = ({
     </div>
   );
 
-  // --- ЭКРАН 4: ОПЕРАТИВНЫЕ СТОЛЫ (ТАКТИЧЕСКИЙ ТЕРМИНАЛ) ---
   const renderTables = () => (
     <div className="flex-1 min-h-0 flex flex-col bg-[#080a0f] overflow-hidden">
-      {/* Шапка терминала */}
       <div className="flex items-center justify-between px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-[#080a0f]">
         <div className="flex flex-col">
           <span className="text-[9px] font-black tracking-widest text-zinc-500 uppercase">Сетевой эфир</span>
@@ -651,7 +622,6 @@ export const MainMenu = ({
         </div>
       </div>
       
-      {/* Горизонтальные фильтры сценариев */}
       <div className="flex gap-2 overflow-x-auto px-6 py-3 scrollbar-hide shrink-0 border-b border-white/[0.05] bg-zinc-950/30">
         {ROOM_FILTERS.map((filter) => (
           <button
@@ -671,7 +641,6 @@ export const MainMenu = ({
         ))}
       </div>
 
-      {/* Список столов или радар пустого эфира (СТРОГО ОДИН БЛОК) */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3 custom-scrollbar flex flex-col">
         {filteredRooms.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-white/[0.08] rounded-3xl bg-zinc-900/30 shadow-inner my-auto">
@@ -694,10 +663,7 @@ export const MainMenu = ({
           </div>
         ) : (
           filteredRooms.map((room) => (
-            <div 
-              key={room.roomCode} 
-              className="bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl p-4 flex flex-col gap-3.5 hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] transition shadow-lg"
-            >
+            <div key={room.roomCode} className="bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl p-4 flex flex-col gap-3.5 hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] transition shadow-lg">
               <div className="flex items-start justify-between">
                 <div className="flex flex-col">
                   <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest mb-0.5">Хост: {room.hostName}</span>
@@ -730,7 +696,6 @@ export const MainMenu = ({
         )}
       </div>
 
-      {/* Нижняя консоль ввода шифра и создания */}
       <div className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 p-4 flex flex-col items-center gap-2.5 z-20"><div className="w-full max-w-xl flex flex-col gap-2.5">
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -762,14 +727,12 @@ export const MainMenu = ({
     </div>
   );
 
-  // --- ЭКРАН 5: ПРОФИЛЬ (ДОСЬЕ) ---
   const renderProfile = () => (
     <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden">
       <div className="flex items-center px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-4 shrink-0 border-b border-white/10 bg-[#080a0f]">
         <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase">Досье Агента</h2>
       </div>
       <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar pb-[max(6rem,env(safe-area-inset-bottom))]"><div className="w-full max-w-xl mx-auto space-y-6">
-        
         <div className="flex flex-col items-center text-center">
           <div className="relative mb-3">
             <div className="w-24 h-24 rounded-full bg-zinc-900/80 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.05)] ring-1 ring-white/[0.05]">
@@ -928,14 +891,11 @@ export const MainMenu = ({
     >
       <Toast message={toastMessage} type="error" onClose={() => setToastMessage(null)} />
       
-      {/* Полноэкранный адаптивный фрейм: на мобилке и планшетах во всю ширину, на широких ПК центрирован до max-w-5xl */}
       <div className="w-full 2xl:max-w-5xl 2xl:mx-auto h-full flex flex-col justify-between bg-[#080a0f] 2xl:border-x 2xl:border-white/10 2xl:shadow-[0_0_80px_rgba(0,0,0,0.9)] relative overflow-hidden">
-        {/* Контент текущего экрана */}
         <div className="w-full flex-1 min-h-0 flex flex-col relative overflow-hidden">
           {renderScreen()}
         </div>
 
-        {/* НИЖНИЙ НАВИГАЦИОННЫЙ ДОК */}
         {screen !== 'MODE_DETAIL' && (
           <nav className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] md:py-3 px-6 flex justify-around items-center z-40">
           <button 
@@ -962,7 +922,6 @@ export const MainMenu = ({
         </nav>
         )}
 
-        {/* МОДАЛКА СОЗДАНИЯ КОМНАТЫ */}
         {isCreateRoomOpen && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#080a0f]/90 backdrop-blur-md p-4" onClick={() => setIsCreateRoomOpen(false)}>
             <div className="bg-zinc-900/90 backdrop-blur-2xl border border-white/15 p-6 rounded-3xl w-full max-w-sm flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.7)]" onClick={(e) => e.stopPropagation()}>
@@ -1018,7 +977,6 @@ export const MainMenu = ({
           </div>
         )}
 
-        {/* ЭКРАН ОЖИДАНИЯ СОПЕРНИКА */}
         {isWaitingForOpponent && (
           <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#080a0f]/90 backdrop-blur-md p-4">
             <div className="bg-zinc-900/90 backdrop-blur-2xl border border-white/15 p-8 rounded-3xl w-full max-w-sm flex flex-col items-center text-center shadow-[0_20px_50px_rgba(0,0,0,0.7)]">
@@ -1049,7 +1007,6 @@ export const MainMenu = ({
           </div>
         )}
 
-        {/* ЭКРАН ОБУЧЕНИЯ (ПРОЛОГ) */}
         {isTutorialOpen && (
           <TutorialScreen 
             onExit={() => setIsTutorialOpen(false)} 
@@ -1057,7 +1014,6 @@ export const MainMenu = ({
           />
         )}
 
-        {/* МОДАЛКА НАСТРОЕК */}
         {isSettingsOpen && (
           <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#080a0f]/90 backdrop-blur-md p-4" onClick={() => setIsSettingsOpen(false)}>
             <div className="bg-zinc-900/90 backdrop-blur-2xl border border-white/10 p-6 rounded-3xl w-full max-w-sm flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.7)]" onClick={(e) => e.stopPropagation()}>
@@ -1150,6 +1106,6 @@ export const MainMenu = ({
           </div>
         )}
       </div>
-      </div>
+    </div>
   );
 };

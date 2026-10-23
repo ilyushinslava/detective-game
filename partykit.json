@@ -1,0 +1,5 @@
+{
+  "name": "detective-game-server",
+  "main": "src/server/index.ts",
+  "compatibilityDate": "2024-04-01"
+}

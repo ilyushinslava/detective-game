@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   Character,
   GameModeType,
   GameState,
@@ -111,7 +111,6 @@ export function createInitialState(
     board.push(boardCharacters.slice(i * boardSize, i * boardSize + boardSize));
   }
 
-  // Изначально колода формируется СТРОГО из персонажей, присутствующих на поле
   let deck = shuffle(boardCharacters.map((c) => c.id));
 
   const candidatePool = boardCharacters;
@@ -154,7 +153,7 @@ export function createInitialState(
       safeCandidates[2].id,
       safeCandidates[3].id,
     ];
-    inspectorChoices = []; // Строгая гарантия очистки для режима Маньяка
+    inspectorChoices = [];
     const potentialVictims = boardCharacters
       .filter((c) => c.id !== killerSecretId && c.id !== detectiveSecretId)
       .map((c) => c.id);
@@ -179,7 +178,6 @@ export function createInitialState(
 
     detectiveSecretId = copCandidate.id;
 
-    // Очищаем колоду от секретных личностей перед выдачей масок и патрульных
     const excluded = new Set([killerSecretId, detectiveSecretId]);
     deck = shuffle(boardCharacters.map(c => c.id).filter(id => !excluded.has(id)));
 
@@ -188,74 +186,67 @@ export function createInitialState(
   } else if (mode === "SECRET_SERVICE") {
     deck = shuffle(boardCharacters.map((c) => c.id));
 
+    const cleanPlayerName = playerName?.trim();
+    let hostName = "Агент Фантом";
+    if (cleanPlayerName && cleanPlayerName !== "Агент") {
+      hostName = cleanPlayerName.replace(/^Агент\s+Агент\b/i, "Агент ");
+    }
+    const guestName = "Агент Призрак";
+
     if (opponent === "PVP") {
       spies = [
         {
           id: "p1",
-          name: "Фантом",
+          name: "Агент Фантом",
           secretId: deck.shift()!,
           trophies: 0,
           isAI: false,
         },
         {
           id: "p2",
-          name: "Призрак",
+          name: guestName,
           secretId: deck.shift()!,
           trophies: 0,
           isAI: false,
         },
       ];
-      spyTargetTrophies = targetTrophies;
     } else if (opponent === "ONLINE") {
       spies = [
         {
           id: "p1",
-          name: playerName ? `${playerName} (Агент 1)` : "Агент 1",
+          name: hostName,
           secretId: deck.shift()!,
           trophies: 0,
           isAI: false,
         },
         {
           id: "p2",
-          name: "Агент 2",
+          name: guestName,
           secretId: deck.shift()!,
           trophies: 0,
           isAI: false,
         },
       ];
-      spyTargetTrophies = targetTrophies;
     } else {
-      const botNames = [
-        "Альфа",
-        "Омега",
-        "Гамма",
-        "Дельта",
-        "Эпсилон",
-        "Зета",
-        "Тета",
-        "Сигма",
-      ];
       spies = [
         {
           id: "p1",
-          name: playerName || "Агент",
+          name: hostName,
           secretId: deck.shift()!,
           trophies: 0,
           isAI: false,
         },
-      ];
-      for (let i = 1; i < playerCount; i++) {
-        spies.push({
-          id: `p${i + 1}`,
-          name: `Бот «${botNames[i - 1] ?? i}»`,
+        {
+          id: "p2",
+          name: guestName,
           secretId: deck.shift()!,
           trophies: 0,
           isAI: true,
-        });
-      }
-      spyTargetTrophies = targetTrophies;
+        },
+      ];
     }
 
+    spyTargetTrophies = targetTrophies;
     activeSpyIndex = 0;
     detectiveSecretId = spies[0].secretId;
     killerSecretId = spies[1].secretId;
@@ -270,7 +261,6 @@ export function createInitialState(
     detectiveSecretId = chosenDet.id;
   }
 
-  // Финальная фильтрация колоды: убираем все назначенные роли и карты на руках
   const finalExcluded = new Set([
     killerSecretId,
     detectiveSecretId,
@@ -292,8 +282,8 @@ export function createInitialState(
   let formatDesc = "";
   if (mode === "SECRET_SERVICE") {
     if (opponent === "PVP") formatDesc = "Дуэль разведок (Локально: Фантом против Призрака, поле 5x5)";
-    else if (opponent === "ONLINE") formatDesc = "Сетевая дуэль разведок (2 агента, поле 5x5)";
-    else formatDesc = `Война разведок (${playerCount} агента, поле 5x5)`;
+    else if (opponent === "ONLINE") formatDesc = "Сетевая дуэль разведок (2 игрока, поле 5x5)";
+    else formatDesc = "Дуэльное шпионское противостояние (2 игрока, поле 5x5)";
   } else {
     formatDesc = opponent === "AI" ? "Против бота" : opponent === "ONLINE" ? "Сетевая игра" : "Вдвоем";
   }
@@ -390,20 +380,33 @@ export function shiftBoard(
 export function killCharacter(state: GameState, targetId: string): GameState {
   if (state.winner) return state;
 
-  const isFirstTurnKiller = state.mode === "SKHVATKA" && state.killCount === 0 && state.currentTurn === "KILLER";
-  const isAdjacent = areAdjacent(state.board, state.killerSecretId, targetId);
-  if (!isAdjacent && !isFirstTurnKiller) return state;
+  const targetChar = state.board.flat().find((c) => c.id === targetId);
+  if (!targetChar || !targetChar.isAlive) return state;
 
+  let currentVictimList = state.victimList;
   if (state.mode === "MANIAC_VS_OPERATIVE") {
+    const cleaned = [...state.victimList];
+    while (cleaned.length > 0) {
+      const firstVictimChar = state.board.flat().find((c) => c.id === cleaned[0]);
+      if (firstVictimChar && !firstVictimChar.isAlive) {
+        cleaned.shift();
+      } else {
+        break;
+      }
+    }
+    currentVictimList = cleaned;
+
     const isCurrentVictim =
-      state.victimList.length > 0 && targetId === state.victimList[0];
+      currentVictimList.length > 0 && targetId === currentVictimList[0];
     const isDetective = targetId === state.detectiveSecretId;
     if (!isCurrentVictim && !isDetective) {
       return state;
     }
   }
 
-  const targetChar = state.board.flat().find((c) => c.id === targetId);
+  const isFirstTurnKiller = state.mode === "SKHVATKA" && state.killCount === 0 && state.currentTurn === "KILLER";
+  const isAdjacent = areAdjacent(state.board, state.killerSecretId, targetId);
+  if (!isAdjacent && !isFirstTurnKiller) return state;
 
   let killedName = "";
   const newBoard = state.board.map((row) =>
@@ -416,7 +419,7 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     }),
   );
 
-  let newVictimList = [...state.victimList];
+  let newVictimList = [...currentVictimList];
   let newEvidenceDeck = [...state.evidenceDeck];
   let newInspectorChoices = state.inspectorChoices ? [...state.inspectorChoices] : [];
   const newKillCount = state.killCount + 1;
@@ -841,8 +844,9 @@ export function spyCatch(state: GameState, targetId: string): GameState {
     state.mode !== "SECRET_SERVICE" ||
     !state.spies ||
     state.activeSpyIndex === undefined
-  )
+  ) {
     return state;
+  }
 
   const activeSpy = state.spies[state.activeSpyIndex];
   let secretId = activeSpy.secretId;
@@ -946,8 +950,9 @@ export function spyInterrogate(state: GameState, targetId: string): GameState {
     state.mode !== "SECRET_SERVICE" ||
     !state.spies ||
     state.activeSpyIndex === undefined
-  )
+  ) {
     return state;
+  }
 
   const activeSpy = state.spies[state.activeSpyIndex];
   let secretId = activeSpy.secretId;

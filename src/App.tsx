@@ -9,20 +9,17 @@ import { GameOverModal } from "./components/GameOverModal";
 import { MainMenu } from "./components/MainMenu";
 import { usePlayerProfile } from "./utils/usePlayerProfile";
 import { partyService } from "./utils/partyPeer";
+import { useMultiplayer } from "./utils/useMultiplayer";
+import { useGameLog } from "./hooks/useGameLog";
+import { useGameTimer } from "./hooks/useGameTimer";
+import { useMatchEndHandler } from "./hooks/useMatchEndHandler";
+import { useAiTurn } from "./hooks/useAiTurn";
 import {
   createInitialState,
   getAdjacentCharacters,
   canCleanupBoard,
   CHARACTERS_DATA,
 } from "./utils/gameLogic";
-import {
-  getKillerAIMove,
-  getDetectiveAIMove,
-  getSecretServiceAIMove,
-  getThiefAIMove,
-  getPoliceAIMove,
-  getDuelAIMove,
-} from "./utils/aiLogic";
 import { soundManager } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
 import { RoleCards } from "./components/RoleCards";
@@ -31,6 +28,12 @@ import { gameReducer } from "./utils/gameReducer";
 import { Toast } from "./components/Toast";
 import { DevPanel } from "./components/DevPanel";
 import { PauseModal } from "./components/PauseModal";
+import { RulesModal } from "./components/RulesModal";
+import { FullscreenCardModal } from "./components/FullscreenCardModal";
+import { IdentityRevealModal } from "./components/IdentityRevealModal";
+import { RematchModal } from "./components/RematchModal";
+import { DisconnectModal } from "./components/DisconnectModal";
+import { DeviceOrientationOverlay } from "./components/DeviceOrientationOverlay";
 import { DuelQuestionCatalogModal } from "./components/duel/DuelQuestionCatalogModal";
 import { DuelCandidatesSheet } from "./components/duel/DuelCandidatesSheet";
 import { DuelAccuseModal } from "./components/duel/DuelAccuseModal";
@@ -79,11 +82,9 @@ export default function App() {
   const [showDetectiveRole, setShowDetectiveRole] = useState(false);
   const [showSpyP1Role, setShowSpyP1Role] = useState(false);
   const [showSpyP2Role, setShowSpyP2Role] = useState(false);
-  const [secondsElapsed, setSecondsElapsed] = useState(0);
   const [isLogOpen, setIsLogOpen] = useState(false);
-  const [isAIThinking, setIsAIThinking] = useState(false);
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
-    useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (import.meta.env.DEV && (e.code === "Backquote" || e.key === "`")) {
         setIsDevPanelOpen((prev) => !prev);
@@ -106,15 +107,10 @@ export default function App() {
   const [isDevPanelOpen, setIsDevPanelOpen] = useState(false);
   const [isRulesOpen, setIsRulesOpen] = useState(false);
   const [rulesTab, setRulesTab] = useState<'MAIN' | 'ROLES' | 'TOKENS'>('MAIN');
-  const [opponentDisconnectedNotice, setOpponentDisconnectedNotice] =
-    useState(false);
   const [isHandSheetOpen, setIsHandSheetOpen] = useState(false);
-  const [unreadLogCount, setUnreadLogCount] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isChoiceSheetMinimized, setIsChoiceSheetMinimized] = useState(false);
   const [isInspectorPassConfirmed, setIsInspectorPassConfirmed] = useState(false);
-  const [rematchTimer, setRematchTimer] = useState(15);
-  const [isOpponentConnected, setIsOpponentConnected] = useState(true);
   const [fullscreenImage, setFullscreenImage] = useState<{ url: string; name: string; id: string } | null>(null);
   
   // Состояния режима «Очная ставка»
@@ -126,60 +122,7 @@ export default function App() {
   const [isAmbientEnabled, setIsAmbientEnabled] = useState(soundManager.getAmbientEnabled());
   const [isHapticsEnabled, setIsHapticsEnabled] = useState(() => localStorage.getItem("crime_city_haptics") !== "false");
 
-  const prevLogLenRef = useRef(gameState.log.length);
   const rulesTouchStartRef = useRef<{ x: number; y: number } | null>(null);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const saved = sessionStorage.getItem('mp_session');
-      if (saved) {
-        try {
-          const { roomCode, isHost, playerRole, mode: savedMode, nickname } = JSON.parse(saved);
-          if (roomCode) {
-            setActiveMode(savedMode || "SKHVATKA");
-            setIsLobbyOpen(false);
-            setHasStartedEver(true);
-            setIsIntroPhase(false);
-            const savedClientId = JSON.parse(saved).myClientId;
-            partyService.connect(roomCode, nickname || profile.nickname || "Агент", Boolean(isHost), savedMode || "SKHVATKA", savedClientId);
-            setToastMessage("Сессия восстановлена");
-            return;
-          }
-        } catch (e) {
-          console.warn("PartyKit session restore error:", e);
-          sessionStorage.removeItem('mp_session');
-        }
-      }
-    };
-    checkSession();
-  }, []);
-
-  useEffect(() => {
-    if (gameState.opponent === "ONLINE" && !isLobbyOpen && partyService.roomCode) {
-      sessionStorage.setItem('mp_session', JSON.stringify({
-        roomCode: partyService.roomCode,
-        myClientId: partyService.myClientId,
-        isHost: partyService.isHost,
-        playerRole: gameState.playerRole,
-        mode: gameState.mode,
-        nickname: profile.nickname,
-      }));
-      // Сессия сохраняется в sessionStorage, тяжелый saveGameState убран для исключения задержек
-    }
-  }, [gameState, isLobbyOpen]);
-  useEffect(() => {
-    if (gameState.log.length > prevLogLenRef.current) {
-      if (!isLogOpen) {
-        setUnreadLogCount(
-          (prev) => prev + (gameState.log.length - prevLogLenRef.current),
-        );
-      }
-    }
-    prevLogLenRef.current = gameState.log.length;
-  }, [gameState.log.length, isLogOpen]);
-
-  const logContainerRef = useRef<HTMLDivElement>(null);
-  const mobileLogContainerRef = useRef<HTMLDivElement>(null);
 
   const gameStateRef = useRef(gameState);
   useEffect(() => {
@@ -189,275 +132,70 @@ export default function App() {
   const dispatchAction = (action: GameAction) => {
     if (gameStateRef.current.opponent === "ONLINE") {
       partyService.sendAction(action);
-      return; // В онлайне стейт обновляет ТОЛЬКО авторитетный сервер
+      return;
     }
     setGameState((prev) => {
       const nextState = gameReducer(prev, action);
-      // Онлайн-экшены отправляются авторитетному серверу PartyKit
       return nextState;
     });
   };
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    const isHost = partyService.isHost;
-    if (gameState.restartRequestedBy === (isHost ? "HOST" : "GUEST")) {
-      setRematchTimer(15);
-      timer = setInterval(() => {
-        setRematchTimer((prev) => {
-          if (prev <= 1) {
-            if (timer) clearInterval(timer);
-            dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
-            setGameState((s) => ({ ...s, restartRequestedBy: undefined }));
-            setToastMessage("Время ожидания реванша истекло");
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [gameState.restartRequestedBy]);
+  const { secondsElapsed, setSecondsElapsed } = useGameTimer({
+    hasStartedEver,
+    isIntroPhase,
+    winner: gameState.winner,
+  });
 
-  useEffect(() => {
-    partyService.onSyncState = (serverGameState: any, role?: Role, status?: string) => {
-      if (!serverGameState) return;
-      partyService.lastSyncedState = serverGameState;
+  const {
+    isOpponentConnected,
+    opponentDisconnectedNotice,
+    setOpponentDisconnectedNotice,
+    rematchTimer,
+    acceptRestart,
+    rejectRestart,
+    handleExitToMenu,
+  } = useMultiplayer({
+    gameState,
+    setGameState,
+    profile,
+    setActiveMode,
+    setIsLobbyOpen,
+    setHasStartedEver,
+    setIsIntroPhase,
+    setToastMessage,
+    dispatchAction,
+    matchResultRecordedRef,
+    setSelectedId,
+    setSelectedInspectorChoiceId,
+    setSecondsElapsed,
+    setIsPauseOpen,
+  });
 
-      const confirmedRole = role || serverGameState.playerRole || (partyService as any).role || (partyService.isHost ? "KILLER" : "DETECTIVE");
-      (partyService as any).role = confirmedRole;
+  const {
+    unreadLogCount,
+    setUnreadLogCount,
+    logContainerRef,
+    mobileLogContainerRef,
+  } = useGameLog({
+    log: gameState.log,
+    isLogOpen,
+  });
 
-      if (serverGameState.mode) {
-        setActiveMode(serverGameState.mode);
-      }
+  useMatchEndHandler({
+    gameState,
+    matchResultRecordedRef,
+    awardPrize,
+    recordMatchResult,
+  });
 
-      setGameState((prev) => ({
-        ...serverGameState,
-        mode: serverGameState.mode || prev.mode,
-        opponent: "ONLINE",
-        playerRole: confirmedRole,
-        inspectorChoices: serverGameState.inspectorChoices || prev.inspectorChoices,
-      }));
-
-      setIsOpponentConnected(true);
-      const effectiveStatus = status || serverGameState.status;
-      // В онлайне при получении первого синхронизированного состояния всегда переходим из лобби в матч
-      setIsLobbyOpen(false);
-      setHasStartedEver(true);
-      if (effectiveStatus === "PLAYING") {
-        setIsIntroPhase(false);
-      } else {
-        // Для статусов WAITING и READY_TO_START отображаем модалку готовности / интро
-        setIsIntroPhase(true);
-      }
-    };
-
-    partyService.onRoomStatus = (statusData: any) => {
-      const status = typeof statusData === "string" ? statusData : statusData?.status;
-      if (status === "PLAYING") {
-        setIsIntroPhase(false);
-      }
-    };
-
-    partyService.onAllPlayersReady = () => {
-      setIsIntroPhase(false);
-    };
-
-    partyService.onAction = (action: any) => {
-      if (!action) return;
-      if (action.type === "MATCH_STARTED" || action.type === "RESTART_GAME") {
-        matchResultRecordedRef.current = false;
-        const incomingState = action.payload?.state || action.payload;
-        if (incomingState && incomingState.board) {
-          setGameState((prev) => ({
-            ...incomingState,
-            mode: incomingState.mode || prev.mode,
-            opponent: "ONLINE",
-            playerRole: (partyService as any).role || prev.playerRole,
-            winner: null,
-            restartRequestedBy: undefined,
-          }));
-          if (incomingState.mode) {
-            setActiveMode(incomingState.mode);
-          }
-        }
-        setIsIntroPhase(false);
-        setSelectedId(null);
-        setSelectedInspectorChoiceId(null);
-        setSecondsElapsed(0);
-        return;
-      }
-      if (action.type === "ALL_PLAYERS_READY") {
-        setIsIntroPhase(false);
-        return;
-      }
-      if (action.type === "PLAYER_READY" || action.type === "PLAYER_READY_UPDATE") {
-        return;
-      }
-      setGameState((prev) => gameReducer(prev, { ...action, senderId: "remote" }));
-    };
-
-    partyService.onPresenceChanged = (connected: boolean) => {
-      setIsOpponentConnected(connected);
-      if (connected) {
-        setOpponentDisconnectedNotice(false);
-      } else {
-        setOpponentDisconnectedNotice(true);
-      }
-    };
-
-    return () => {};
-  }, []);
-
-
-
-  // Инициализация звука теперь обрабатывается внутри SplashScreen
-
-  useEffect(() => {
-    if (logContainerRef.current) {
-      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
-    }
-    if (mobileLogContainerRef.current) {
-      mobileLogContainerRef.current.scrollTop = mobileLogContainerRef.current.scrollHeight;
-    }
-  }, [gameState.log, isLogOpen]);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    const isGameRunning = hasStartedEver && !isIntroPhase && !gameState.winner;
-
-    if (isGameRunning) {
-      interval = setInterval(() => {
-        setSecondsElapsed((prev) => prev + 1);
-      }, 1000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [hasStartedEver, isIntroPhase, gameState.winner]);
-
-  useEffect(() => {
-    if (gameState.winner && !matchResultRecordedRef.current) {
-      soundManager.play(gameState.winner === gameState.playerRole ? 'win' : 'lose');
-      triggerHaptic("success");
-
-      let isLocalWin = false;
-      if (gameState.mode === "SECRET_SERVICE") {
-        const mySpyIndex =
-          gameState.opponent === "ONLINE"
-            ? partyService.isHost
-              ? 0
-              : 1
-            : (gameState.activeSpyIndex ?? 0);
-        const mySpy = gameState.spies?.[mySpyIndex];
-        isLocalWin =
-          (mySpy?.trophies ?? 0) >= (gameState.spyTargetTrophies ?? 3);
-      } else {
-        isLocalWin = gameState.winner === gameState.playerRole;
-      }
-
-      if (gameState.opponent === "ONLINE") {
-        if (isLocalWin) {
-          awardPrize(gameState.matchPot || 0);
-        }
-        recordMatchResult(isLocalWin);
-      } else {
-        recordMatchResult(isLocalWin);
-      }
-      matchResultRecordedRef.current = true;
-    }
-  }, [
-    gameState.winner,
-    gameState.opponent,
-    gameState.mode,
-    gameState.playerRole,
-    gameState.spies,
-    gameState.spyTargetTrophies,
-  ]);
-
-  useEffect(() => {
-    if (
-      isIntroPhase ||
-      isLobbyOpen ||
-      gameState.winner ||
-      gameState.opponent === "ONLINE" ||
-      gameState.opponent === "PVP" ||
-      Boolean(partyService.roomCode)
-    ) {
-      return;
-    }
-
-    const isAITurn =
-      gameState.mode === "SECRET_SERVICE"
-        ? gameState.spies
-          ? gameState.spies[gameState.activeSpyIndex ?? 0]?.isAI === true
-          : false
-        : gameState.currentTurn !== gameState.playerRole;
-
-    if (isAITurn) {
-      setIsAIThinking(true);
-      // Задача 1.5: Комфортный таймаут размышления ИИ для читаемости хода и завершения анимаций
-      const AI_TURN_DELAY_MS = 2200;
-      const timer = setTimeout(() => {
-        setGameState((prev) => {
-          if (prev.winner) return prev;
-          let nextState = prev;
-          if (prev.mode === "LINE_UP") {
-            nextState = getDuelAIMove(prev);
-          } else if (prev.mode === "SECRET_SERVICE") {
-            nextState = getSecretServiceAIMove(prev);
-          } else if (prev.mode === "THIEF_HUNT") {
-            nextState = prev.currentTurn === "KILLER" ? getThiefAIMove(prev) : getPoliceAIMove(prev);
-          } else if (prev.currentTurn === "KILLER") {
-            nextState = getKillerAIMove(prev);
-          } else {
-            nextState = getDetectiveAIMove(prev);
-          }
-
-          // Озвучка действий ИИ
-          if (nextState.killCount > prev.killCount) {
-            soundManager.play('kill');
-          } else if ((nextState.trophiesKiller ?? 0) > (prev.trophiesKiller ?? 0)) {
-            soundManager.play('steal');
-          } else if (nextState.interrogationRadar !== prev.interrogationRadar || nextState.lastSpyInterrogation !== prev.lastSpyInterrogation) {
-            soundManager.play('radar');
-          } else if (nextState.blockedShift && nextState.blockedShift !== prev.blockedShift) {
-            soundManager.play('patrol');
-          } else if (nextState.killerSecretId !== prev.killerSecretId) {
-            soundManager.play('disguise');
-          } else if (nextState.lastShift !== prev.lastShift && nextState.lastShift !== null) {
-            soundManager.play('slide');
-          }
-
-          if (nextState.log.length > prev.log.length) {
-            const lastLog = nextState.log[nextState.log.length - 1];
-            if (lastLog.includes("ошибочно") || lastLog.includes("Ложный") || lastLog.includes("мимо")) {
-              setToastMessage(lastLog);
-            }
-          }
-
-          return nextState;
-        });
-        setIsAIThinking(false);
-        setSelectedId(null);
-      }, AI_TURN_DELAY_MS);
-
-      return () => clearTimeout(timer);
-    }
-  }, [
+  const { isAIThinking } = useAiTurn({
+    gameState,
+    setGameState,
     isIntroPhase,
     isLobbyOpen,
-    gameState.currentTurn,
-    gameState.winner,
-    gameState.opponent,
-    gameState.playerRole,
-    gameState.mode,
-    gameState.activeSpyIndex,
-    gameState.spies,
-  ]);
+    setSelectedId,
+    setToastMessage,
+  });
 
   const formatTimer = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
@@ -549,7 +287,6 @@ export default function App() {
   const isDetectiveView = isPVP ? isDetectiveTurn : gameState.playerRole === "DETECTIVE";
 
   let myCharacterId: string | null = null;
-  // В локальном PVP бейдж "ВЫ" строго отключен, так как оба игрока смотрят в один экран
   if (!isPVP) {
     if (gameState.mode === "SECRET_SERVICE" && gameState.spies) {
       if (gameState.opponent === "ONLINE") {
@@ -719,7 +456,6 @@ export default function App() {
     if (gameState.winner || isFirstTurnKiller || !isHumanTurn) return;
     soundManager.play('slide');
     triggerHaptic("light");
-    // Задача 1.3: Сброс радара при действиях
     setGameState((prev) => (prev.interrogationRadar ? { ...prev, interrogationRadar: null } : prev));
     dispatchAction({
       type: "SHIFT_BOARD",
@@ -925,17 +661,6 @@ export default function App() {
     setSelectedId(null);
   };
 
-  const handleExitToMenu = async () => {
-    sessionStorage.removeItem('mp_session');
-    partyService.disconnect();
-    setGameState(
-      createInitialState("SKHVATKA", "AI", "DETECTIVE", 3, 3, 16, profile.nickname),
-    );
-    setHasStartedEver(false);
-    setIsPauseOpen(false);
-    setIsLobbyOpen(true);
-  };
-
   const handleReset = () => {
     if (gameState.opponent === "ONLINE" && partyService.roomCode) {
       partyService.sendAction({
@@ -953,21 +678,6 @@ export default function App() {
         gameState.maxTurns ?? 16,
       );
     }
-  };
-
-  const acceptRestart = () => {
-    if (gameState.opponent === "ONLINE") {
-      partyService.sendAction({ type: "CONFIRM_RESTART", senderId: partyService.myClientId } as any);
-      setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
-      setSelectedId(null);
-      return;
-    }
-    dispatchAction({ type: "CONFIRM_RESTART", senderId: "local" });
-  };
-
-  const rejectRestart = () => {
-    dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
-    setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
   };
 
   const activeAgentAdjacentIds = isKillerTurn
@@ -1119,7 +829,6 @@ export default function App() {
           onClick: handleAccuse,
           disabled: (() => {
             if (!isHumanTurn || !selectedId || !selectedCharacter?.isAlive || selectedCharacter?.isExonerated || isGameOver) return true;
-            // В Охоте на грабителя нельзя арестовывать патрульных офицеров
             if (gameState.mode === "THIEF_HUNT" && gameState.uniformedOfficers?.includes(selectedId)) {
               return true;
             }
@@ -1199,17 +908,14 @@ export default function App() {
       canPeekDetective = false;
     }
   } else {
-    // В онлайне и с ботом игрок всегда видит СВОЮ роль в ЛЮБОЙ момент матча:
     if (gameState.opponent === "ONLINE" || gameState.opponent === "AI") {
       canPeekKiller = gameState.playerRole === "KILLER";
       canPeekDetective = gameState.playerRole === "DETECTIVE";
     } else {
-      // На одном устройстве (PVP) — строго в свой ход:
       canPeekKiller = isKillerTurn;
       canPeekDetective = isDetectiveTurn;
     }
 
-    // В "Схватке" Инспектор не может подглядывать роль, пока личность не выбрана из inspectorChoices
     if (gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0)) {
       canPeekDetective = false;
     }
@@ -1269,32 +975,31 @@ export default function App() {
   return (
     <div className="fixed inset-0 w-full h-full flex flex-col bg-[#080a0f] overflow-hidden select-none">
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
-      {/* МОДАЛЬНЫЕ ОКНА РЕЖИМА "ОЧНАЯ СТАВКА" */}
-        <DuelQuestionCatalogModal 
-          isOpen={isQuestionCatalogOpen} 
-          onClose={() => setIsQuestionCatalogOpen(false)}
-          onSelectQuestion={handleSelectDuelQuestion}
-        />
+      <DuelQuestionCatalogModal 
+        isOpen={isQuestionCatalogOpen} 
+        onClose={() => setIsQuestionCatalogOpen(false)}
+        onSelectQuestion={handleSelectDuelQuestion}
+      />
 
-        <DuelCandidatesSheet 
-          isOpen={isCandidatesSheetOpen} 
-          onClose={() => setIsCandidatesSheetOpen(false)}
-          allCharacters={DUEL_CHARACTERS}
-          history={gameState.duelHistory || []}
-          playerRole={gameState.playerRole}
-          onSelectCandidate={(id) => {
-            setSelectedId(id);
-            setIsAccuseModalOpen(true);
-          }}
-        />
+      <DuelCandidatesSheet 
+        isOpen={isCandidatesSheetOpen} 
+        onClose={() => setIsCandidatesSheetOpen(false)}
+        allCharacters={DUEL_CHARACTERS}
+        history={gameState.duelHistory || []}
+        playerRole={gameState.playerRole}
+        onSelectCandidate={(id) => {
+          setSelectedId(id);
+          setIsAccuseModalOpen(true);
+        }}
+      />
 
-        <DuelAccuseModal 
-          isOpen={isAccuseModalOpen} 
-          targetCharacter={DUEL_CHARACTERS.find((c) => c.id === selectedId) ?? null}
-          alreadyAccused={Boolean(selectedId && (gameState.accusedTargets?.[gameState.currentTurn] || []).includes(selectedId))}
-          onClose={() => setIsAccuseModalOpen(false)}
-          onConfirmAccusation={handleConfirmDuelAccusation}
-        />
+      <DuelAccuseModal 
+        isOpen={isAccuseModalOpen} 
+        targetCharacter={DUEL_CHARACTERS.find((c) => c.id === selectedId) ?? null}
+        alreadyAccused={Boolean(selectedId && (gameState.accusedTargets?.[gameState.currentTurn] || []).includes(selectedId))}
+        onClose={() => setIsAccuseModalOpen(false)}
+        onConfirmAccusation={handleConfirmDuelAccusation}
+      />
       <Toast message={toastMessage} type="info" onClose={() => setToastMessage(null)} />
       <div className="w-full max-w-7xl mx-auto h-full relative flex flex-col overflow-hidden"> 
         {isLobbyOpen && (
@@ -1317,14 +1022,7 @@ export default function App() {
             opponent={gameState.opponent}
             playerRole={gameState.playerRole}
             isOpponentConnected={isOpponentConnected}
-            onCancelMatch={async () => {
-              sessionStorage.removeItem('mp_session');
-              partyService.disconnect();
-              setGameState(createInitialState("SKHVATKA", "AI", "DETECTIVE", 3, 3, 16, profile.nickname));
-              setHasStartedEver(false);
-              setIsIntroPhase(false);
-              setIsLobbyOpen(true);
-            }}
+            onCancelMatch={handleExitToMenu}
             role1Name={
               gameState.mode === "SECRET_SERVICE"
                 ? (gameState.opponent === "PVP" ? "Фантом" : (gameState.spies?.[0]?.name || "Агент 1"))
@@ -1392,7 +1090,6 @@ export default function App() {
           />
         )}
 
-        {/* ВЫБОР РОЛИ ИНСПЕКТОРА В СХВАТКЕ (СТРОГО В СВОЙ ХОД ПРИ НАЛИЧИИ ВЫБОРА) */}
         {!isLobbyOpen && hasStartedEver && gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) && isDetectiveView && isDetectiveTurn && !gameState.winner && !isIntroPhase && (
           <div className="fixed inset-0 z-40 flex flex-col items-center justify-end sm:justify-center p-4 select-none pointer-events-none overflow-hidden pt-16">
             {gameState.opponent === "PVP" && !isInspectorPassConfirmed ? (
@@ -1421,13 +1118,11 @@ export default function App() {
               </div>
             ) : (
               <>
-                {/* Затемнение фона */}
                 <div 
                   className={`absolute inset-0 bg-black/35 transition-opacity duration-500 ease-out pointer-events-auto ${isChoiceSheetMinimized ? "opacity-0 pointer-events-none" : "opacity-100"}`} 
                   onClick={() => setIsChoiceSheetMinimized(true)} 
                 />
                 
-                {/* Компактная плашка (свернутое состояние) */}
                 <div className={`absolute bottom-8 transition-all duration-500 ease-out transform pointer-events-auto flex items-center gap-2 ${isChoiceSheetMinimized ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none"}`}>
                   <button
                     onClick={() => setIsChoiceSheetMinimized(false)}
@@ -1452,7 +1147,6 @@ export default function App() {
                   )}
                 </div>
 
-                {/* Развернутая панель */}
                 <div className={`relative w-full max-w-md bg-zinc-950/60 backdrop-blur-md border border-cyan-500/30 rounded-3xl p-5 sm:p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col text-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform pointer-events-auto ${isChoiceSheetMinimized ? "translate-y-[110%] opacity-0" : "translate-y-0 opacity-100"}`}>
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">
@@ -1518,7 +1212,6 @@ export default function App() {
 
         {!isLobbyOpen && !isIntroPhase && hasStartedEver && gameState.opponent !== undefined && (
         <>
-          {/* 1. КОМПАКТНАЯ ШАПКА МАТЧА */}
         <header className="w-full px-4 sm:px-6 pb-2.5 bg-zinc-950 border-b border-zinc-800 shrink-0 relative flex items-center justify-between z-50 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <div className="flex items-center gap-2">
             <button
@@ -1597,7 +1290,6 @@ export default function App() {
           </div>
         )}
 
-        {/* СТАТУС БАНКА / ТРОФЕЕВ */}
         <div className="w-full px-3 md:px-6 py-1.5 md:py-2 bg-zinc-950/90 border-b border-zinc-900 flex items-center justify-between text-[10px] md:text-xs text-zinc-400 shrink-0">
           {gameState.mode === "SECRET_SERVICE" ? (
             <div className="flex items-center gap-3 truncate">
@@ -1661,7 +1353,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* ФИКСИРОВАННАЯ ПОЛОСА ДОПРОСА / ЦЕЛИ МАНЬЯКА */}
         <div className="w-full px-3 h-8 md:h-12 shrink-0 flex items-center justify-center">
           {gameState.lastInterrogation && !gameState.winner ? (
             <div
@@ -1729,23 +1420,8 @@ export default function App() {
 
         {!isLobbyOpen && hasStartedEver && (
         <div className="flex-1 min-h-0 w-full flex flex-col landscape:flex-row items-center justify-start landscape:justify-between gap-2 md:gap-6 lg:gap-8 px-2 sm:px-4 md:px-6 py-1 md:py-4 overflow-y-auto landscape:overflow-hidden custom-scrollbar">
-          {/* 2. ИГРОВОЕ ПОЛЕ */}
           <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-3xl landscape:max-w-none flex flex-col items-center justify-center">
-            {/* ТИКЕР СОБЫТИЙ */}
-            {gameState.log.length > 0 && (
-              <div className="w-full max-w-md md:max-w-xl mb-1 px-3 py-1.5 bg-zinc-900/90 border border-zinc-800 rounded-lg text-[10px] sm:text-xs font-mono text-amber-400/90 break-words whitespace-normal text-center shadow-sm shrink-0 leading-snug">
-                {gameState.log[gameState.log.length - 1]}
-              </div>
-            )}
             <div className="w-full flex-1 min-h-0 flex items-center justify-center overflow-hidden relative antialiased">
-              {(!isHumanTurn || isAIThinking) && !gameState.winner && !isIntroPhase && gameState.opponent !== "PVP" && (
-                <div className="absolute inset-0 z-20 pointer-events-auto flex flex-col items-center justify-end pb-3">
-                  <div className="px-3.5 py-1.5 rounded-full bg-zinc-950/85 border border-zinc-700/60 shadow-xl backdrop-blur-md flex items-center gap-2 text-[11px] font-mono font-medium text-zinc-300 pointer-events-none select-none animate-fadeIn">
-                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
-                    <span>{isAIThinking ? "ИИ обдумывает ход..." : "Ход оппонента..."}</span>
-                  </div>
-                </div>
-              )}
               <GameBoard
                 mode={gameState.mode}
                 board={gameState.board}
@@ -1783,7 +1459,6 @@ export default function App() {
             </div>
           </main>
 
-          {/* 3. КОНТЕКСТНАЯ ПАНЕЛЬ УПРАВЛЕНИЯ */}
           <footer className="w-full max-w-md md:max-w-2xl landscape:w-80 landscape:xl:w-96 shrink-0 flex flex-col justify-center gap-3 md:gap-4 z-20 pb-[max(0.5rem,env(safe-area-inset-bottom))] landscape:pb-0 px-1 md:px-4 landscape:px-0 landscape:my-auto">
             <RoleCards
               mode={gameState.mode}
@@ -1818,7 +1493,12 @@ export default function App() {
               isPVP={gameState.opponent === "PVP"}
             />
 
-            {/* Кнопки действий */}
+            {gameState.log.length > 0 && (
+              <div className="w-full max-w-md md:max-w-xl my-1 px-3 py-1.5 bg-zinc-900/90 border border-zinc-800 rounded-lg text-[10px] sm:text-xs font-mono text-zinc-300 break-words whitespace-normal text-center shadow-sm shrink-0 leading-snug">
+                {gameState.log[gameState.log.length - 1]}
+              </div>
+            )}
+
             <div className="flex flex-col gap-2 w-full lg:bg-zinc-900/50 lg:border lg:border-zinc-800 lg:p-4 lg:rounded-2xl">
               <div className="hidden md:block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
                 Действия ({actionPanelRoleName})
@@ -1855,17 +1535,12 @@ export default function App() {
                 ))}
               </div>
 
-              {/* Нижний ряд служебных кнопок: Зачистить и Досье делят ряд пополам на мобилке */}
               <div className="grid grid-cols-2 gap-1.5 w-full mt-1">
                 {cleanupAction && (
                   <button
                     onClick={cleanupAction.onClick}
                     disabled={cleanupAction.disabled}
-                    className={`${
-                      ((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView)
-                        ? "col-span-1"
-                        : "col-span-2"
-                    } py-1.5 sm:py-2 md:py-3.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-300 hover:text-zinc-200 text-[9px] sm:text-[10px] md:text-xs font-bold uppercase rounded-xl border border-zinc-700/80 transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5`}
+                    className="col-span-2 py-1.5 sm:py-2 md:py-3.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-300 hover:text-zinc-200 text-[9px] sm:text-[10px] md:text-xs font-bold uppercase rounded-xl border border-zinc-700/80 transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                   >
                     <span>Зачистить</span>
                   </button>
@@ -1874,7 +1549,7 @@ export default function App() {
                 {((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView) && (
                   <button
                     onClick={() => setIsHandSheetOpen(true)}
-                    className={`${cleanupAction ? "col-span-1" : "col-span-2"} py-1.5 sm:py-2 md:py-3.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer`}
+                    className="col-span-2 py-1.5 sm:py-2 md:py-3.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <span>Досье ({gameState.detectiveHand.length})</span>
                   </button>
@@ -1882,7 +1557,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Десктопный лог (виден только на lg и выше) */}
             <div className="hidden landscape:lg:flex flex-col flex-1 min-h-0 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3 shrink-0">
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
@@ -1905,7 +1579,6 @@ export default function App() {
         </div>
         )}
 
-        {/* 4. BOTTOM SHEET: ДОСЬЕ АЛИБИ / МАСОК */}
         {isHandSheetOpen && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col justify-end">
             <div
@@ -1961,7 +1634,6 @@ export default function App() {
           </div>
         )}
 
-        {/* 5. BOTTOM SHEET: БЛОКНОТ СЫЩИКА */}
         {isLogOpen && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col justify-end">
             <div
@@ -2002,257 +1674,63 @@ export default function App() {
           </div>
         )}
 
-        {/* ДИАЛОГИ И МОДАЛКИ */}
-        {gameState.restartRequestedBy &&
-          gameState.restartRequestedBy !==
-            (partyService.isHost ? "HOST" : "GUEST") && (
-            <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/95 p-4 select-none">
-              <div className="w-full max-w-sm bg-zinc-900 border border-amber-500/50 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center text-amber-500 mb-4 shadow-[0_0_20px_rgba(245,158,11,0.3)]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-8 h-8"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg></div>
-                <h2 className="text-xl font-black text-zinc-100 mb-2">
-                  Реванш?
-                </h2>
-                <p className="text-xs text-zinc-400 mb-6 leading-relaxed flex items-center justify-center gap-1.5">
-                  <span>Соперник предлагает сыграть еще раз. Ставка:</span>
-                  <span className="inline-flex items-center gap-1 font-mono font-bold text-amber-400">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-amber-400 shrink-0">
-                      <circle cx="12" cy="12" r="9" />
-                      <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
-                    </svg>
-                    {gameState.matchBet || 250}
-                  </span>
-                </p>
-                <div className="w-full flex gap-3">
-                  <button
-                    onClick={rejectRestart}
-                    className="flex-1 py-3.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
-                  >
-                    Отклонить
-                  </button>
-                  <button
-                    onClick={acceptRestart}
-                    className="flex-1 py-3.5 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
-                  >
-                    Принять
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+        <RematchModal
+          status={gameState.restartRequestedBy ? (gameState.restartRequestedBy !== (partyService.isHost ? "HOST" : "GUEST") ? "offer" : "waiting") : null}
+          matchBet={gameState.matchBet || 250}
+          timer={rematchTimer}
+          onAccept={acceptRestart}
+          onReject={rejectRestart}
+          onCancelWaiting={() => {
+            dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
+            setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
+          }}
+        />
 
-        {gameState.restartRequestedBy ===
-          (partyService.isHost ? "HOST" : "GUEST") && (
-          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/95 p-4 select-none">
-            <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
-              <div className="w-12 h-12 border-4 border-zinc-800 border-t-amber-500 rounded-full animate-spin mb-4"></div>
-              <h2 className="text-lg font-black text-zinc-100 mb-2">
-                Ожидание ответа... {rematchTimer} сек
-              </h2>
-              <p className="text-xs text-zinc-400 mb-6">
-                Ждем, пока соперник примет вызов.
-              </p>
-              <button
-                onClick={() => {
-                  dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
-                  setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
-                }}
-                className="w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
-              >
-                Отменить вызов
-              </button>
-            </div>
-          </div>
-        )}
-
-        {opponentDisconnectedNotice && (
-          <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/95 p-4 select-none">
-            <div className="w-full max-w-sm bg-zinc-900 border border-red-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
-              <div className="w-16 h-16 rounded-full bg-red-950 border border-red-700 flex items-center justify-center text-red-500 mb-4 shadow-[0_0_20px_rgba(239,68,68,0.3)]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-8 h-8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-              <h2 className="text-xl font-black text-zinc-100 mb-2">
-                Соперник покинул игру
-              </h2>
-              <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
-                Связь потеряна. Партия завершена.
-              </p>
-              <button
-                onClick={() => {
-                  sessionStorage.removeItem('mp_session');
-                  setOpponentDisconnectedNotice(false);
-                  partyService.disconnect();
-                  setGameState(
-                    createInitialState("SKHVATKA", "AI", "DETECTIVE", 3, 3, 16, profile.nickname),
-                  );
-                  setHasStartedEver(false);
-                  setIsLobbyOpen(true);
-                }}
-                className="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
-              >
-                В главное меню
-              </button>
-            </div>
-          </div>
-        )}
+        <DisconnectModal
+          isOpen={Boolean(opponentDisconnectedNotice)}
+          onExitToMenu={handleExitToMenu}
+        />
 
         {gameState.justCaughtSpyId &&
           !gameState.winner &&
           !isLobbyOpen &&
-          gameState.spies?.find((s) => s.id === gameState.justCaughtSpyId)
-            ?.isAI === false &&
+          gameState.spies?.find((s) => s.id === gameState.justCaughtSpyId)?.isAI === false &&
           (gameState.opponent !== "ONLINE" ||
             (partyService.isHost
               ? gameState.justCaughtSpyId === gameState.spies?.[0]?.id
               : gameState.justCaughtSpyId === gameState.spies?.[1]?.id)) && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4 select-none">
-              {!isRevealConfirmed && gameState.opponent === "PVP" ? (
-                <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-full bg-red-950/80 border border-red-700 flex items-center justify-center text-red-400 mb-4 shadow-[0_0_20px_rgba(239,68,68,0.3)]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8"><circle cx="12" cy="12" r="10"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></div>
-                  <span className="text-xs font-bold text-red-400 uppercase tracking-widest block mb-1">
-                    Агент разоблачен!
-                  </span>
-                  <h2 className="text-xl font-black text-zinc-100 mb-2">
-                    Передайте экран:{" "}
-                    {
-                      gameState.spies.find(
-                        (s) => s.id === gameState.justCaughtSpyId,
-                      )?.name
-                    }
-                  </h2>
-                  <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
-                    Убедитесь, что соперник не смотрит на экран.
-                  </p>
-                  <button
-                    onClick={() => setIsRevealConfirmed(true)}
-                    className="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
-                  >
-                    Я держу телефон один
-                  </button>
-                </div>
-              ) : (
-                <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-cyan-400 mb-4 shadow-[0_0_20px_rgba(6,182,212,0.3)]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8"><path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6"/></svg></div>
-                  <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest block mb-1">
-                    Вас раскрыли!
-                  </span>
-                  <h3 className="text-xl font-black text-zinc-100 mb-2">
-                    Шпионская маскировка провалена. Ваша новая личность:
-                  </h3>
-                  {(() => {
-                    const newSpyChar = allChars.find(c => c.id === gameState.spies?.find(s => s.id === gameState.justCaughtSpyId)?.secretId);
-                    const newSpyImg = newSpyChar ? characterImages[`./assets/characters/${newSpyChar.id}.webp`]?.default : null;
-                    return (
-                      <>
-                        <div 
-                          className="relative w-full h-48 rounded-2xl overflow-hidden border border-zinc-700 my-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] cursor-pointer group"
-                          onClick={() => newSpyImg && newSpyChar && setFullscreenImage({ url: newSpyImg, name: newSpyChar.name, id: newSpyChar.id })}
-                        >
-                          {newSpyImg ? (
-                            <img src={newSpyImg} alt={newSpyChar?.name} className="absolute inset-0 w-full h-full object-cover opacity-75 grayscale contrast-125 group-hover:scale-105 transition-transform duration-500" />
-                          ) : (
-                            <div className="absolute inset-0 bg-zinc-800 flex items-center justify-center text-zinc-500">Нет фото</div>
-                          )}
-                          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-3 pt-12 flex flex-col items-center">
-                            <span className="text-[10px] font-mono text-zinc-400 mb-1">#{newSpyChar?.id.replace("c", "").padStart(2, "0")}</span>
-                            <span className="text-xl font-black text-zinc-100 uppercase tracking-wider leading-tight text-center mb-1">{newSpyChar?.name}</span>
-                            <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2 py-1 rounded-full border border-white/10">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 text-zinc-400"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-                              <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest">Тапните для полного фото</span>
-                            </div>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => {
-                            setIsRevealConfirmed(false);
-                            setGameState((prev) => ({
-                              ...prev,
-                              justCaughtSpyId: undefined,
-                            }));
-                          }}
-                          className="w-full py-3.5 bg-gradient-to-r from-zinc-700 to-zinc-600 hover:from-zinc-600 hover:to-zinc-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-[0_10px_25px_rgba(0,0,0,0.5)] border-t border-white/25"
-                        >
-                          Принять личность
-                        </button>
-                      </>
-                    );
-                  })()}
-                </div>
-              )}
-            </div>
+            <IdentityRevealModal
+              isOpen={true}
+              badge="Агент разоблачен!"
+              badgeColor="red"
+              title="Шпионская маскировка провалена. Ваша новая личность:"
+              character={allChars.find(c => c.id === gameState.spies?.find(s => s.id === gameState.justCaughtSpyId)?.secretId) ?? null}
+              characterImage={(() => { const character = allChars.find(c => c.id === gameState.spies?.find(s => s.id === gameState.justCaughtSpyId)?.secretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}
+              isPvpPassPhase={!isRevealConfirmed && gameState.opponent === "PVP"}
+              targetPlayerName={gameState.spies.find(s => s.id === gameState.justCaughtSpyId)?.name}
+              onConfirmPvpPass={() => setIsRevealConfirmed(true)}
+              onAcceptIdentity={() => { setIsRevealConfirmed(false); setGameState((prev) => ({ ...prev, justCaughtSpyId: undefined })); }}
+              onPreviewCard={(character) => { const image = characterImages[`./assets/characters/${character.id}.webp`]?.default; if (image) setFullscreenImage({ url: image, name: character.name, id: character.id }); }}
+            />
           )}
 
         {gameState.disguisedNotification &&
           !gameState.winner &&
           !isLobbyOpen &&
           (gameState.opponent !== "ONLINE" || gameState.playerRole === "KILLER") && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4 select-none">
-              {!isRevealConfirmed && gameState.opponent === "PVP" ? (
-                <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-full bg-amber-950/80 border border-amber-700 flex items-center justify-center text-amber-400 mb-4 shadow-[0_0_20px_rgba(245,158,11,0.3)]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
-                  <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">
-                    Смена личности!
-                  </span>
-                  <h2 className="text-xl font-black text-zinc-100 mb-2">
-                    Передайте экран: {gameState.disguisedNotification.roleName}
-                  </h2>
-                  <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
-                    Убедитесь, что соперник не смотрит на экран.
-                  </p>
-                  <button
-                    onClick={() => setIsRevealConfirmed(true)}
-                    className="w-full py-3.5 bg-amber-600 hover:bg-amber-500 text-zinc-950 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
-                  >
-                    Я держу телефон один ➔
-                  </button>
-                </div>
-              ) : (
-                <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-amber-400 mb-4 shadow-[0_0_20px_rgba(245,158,11,0.3)]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8"><path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6"/></svg></div>
-                  <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest block mb-1">
-                    Конспирация успешна
-                  </span>
-                  <h3 className="text-xl font-black text-zinc-100 mb-2">
-                    Ваша новая личность:
-                  </h3>
-                  {(() => {
-                    const newChar = allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId);
-                    const newImg = newChar ? characterImages[`./assets/characters/${newChar.id}.webp`]?.default : null;
-                    return (
-                      <>
-                        <div 
-                          className="relative w-full h-48 rounded-2xl overflow-hidden border border-zinc-700 my-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] cursor-pointer group"
-                          onClick={() => newImg && newChar && setFullscreenImage({ url: newImg, name: newChar.name, id: newChar.id })}
-                        >
-                          {newImg ? (
-                            <img src={newImg} alt={newChar?.name} className="absolute inset-0 w-full h-full object-cover opacity-75 grayscale contrast-125 group-hover:scale-105 transition-transform duration-500" />
-                          ) : (
-                            <div className="absolute inset-0 bg-zinc-800 flex items-center justify-center text-zinc-500">Нет фото</div>
-                          )}
-                          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-3 pt-12 flex flex-col items-center">
-                            <span className="text-[10px] font-mono text-zinc-400 mb-1">#{newChar?.id.replace("c", "").padStart(2, "0")}</span>
-                            <span className="text-xl font-black text-zinc-100 uppercase tracking-wider leading-tight text-center mb-1">{newChar?.name}</span>
-                            <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2 py-1 rounded-full border border-white/10">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 text-zinc-400"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-                              <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest">Тапните для полного фото</span>
-                            </div>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => {
-                            setIsRevealConfirmed(false);
-                            setGameState((prev) => ({
-                              ...prev,
-                              disguisedNotification: null,
-                            }));
-                          }}
-                          className="w-full py-3.5 bg-gradient-to-r from-zinc-700 to-zinc-600 hover:from-zinc-600 hover:to-zinc-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-[0_10px_25px_rgba(0,0,0,0.5)] border-t border-white/25"
-                        >
-                          Принять личность ➔
-                        </button>
-                      </>
-                    );
-                  })()}
-                </div>
-              )}
-            </div>
+            <IdentityRevealModal
+              isOpen={true}
+              badge="Смена личности!"
+              badgeColor="amber"
+              title="Ваша новая личность:"
+              character={allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId) ?? null}
+              characterImage={(() => { const character = allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}
+              isPvpPassPhase={!isRevealConfirmed && gameState.opponent === "PVP"}
+              targetPlayerName={gameState.disguisedNotification.roleName}
+              onConfirmPvpPass={() => setIsRevealConfirmed(true)}
+              onAcceptIdentity={() => { setIsRevealConfirmed(false); setGameState((prev) => ({ ...prev, disguisedNotification: null })); }}
+              onPreviewCard={(character) => { const image = characterImages[`./assets/characters/${character.id}.webp`]?.default; if (image) setFullscreenImage({ url: image, name: character.name, id: character.id }); }}
+            />
           )}
 
         {gameState.winner && !gameState.restartRequestedBy && (
@@ -2287,234 +1765,12 @@ export default function App() {
           }}
         />
 
-        {isRulesOpen && (
-          <div 
-            onTouchStart={(e) => {
-              const touch = e.touches[0];
-              if (touch.clientX <= 32) {
-                rulesTouchStartRef.current = { x: touch.clientX, y: touch.clientY };
-              } else {
-                rulesTouchStartRef.current = null;
-              }
-            }}
-            onTouchEnd={(e) => {
-              if (!rulesTouchStartRef.current) return;
-              const touch = e.changedTouches[0];
-              const deltaX = touch.clientX - rulesTouchStartRef.current.x;
-              const deltaY = touch.clientY - rulesTouchStartRef.current.y;
-              if (deltaX > 60 && Math.abs(deltaY) < 40) {
-                triggerHaptic("light");
-                setIsRulesOpen(false);
-              }
-              rulesTouchStartRef.current = null;
-            }}
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-md p-3 sm:p-4 select-none"
-          >
-            <div className="w-full max-w-lg bg-zinc-950 border border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[90vh]">
-              {/* Шапка и кнопка закрытия */}
-              <div className="flex justify-between items-center mb-3 shrink-0 border-b border-white/10 pb-2.5">
-                <h2 className="text-sm font-black uppercase tracking-widest text-zinc-100">
-                  Справочник правил
-                </h2>
-                <button
-                  onClick={() => setIsRulesOpen(false)}
-                  className="text-zinc-500 hover:text-zinc-300 font-bold text-lg cursor-pointer p-1"
-                >
-                  ✕
-                </button>
-              </div>
+        <RulesModal isOpen={isRulesOpen} onClose={() => setIsRulesOpen(false)} />
 
-              {/* Табы навигации: Основные / Роли / Токены */}
-              <div className="flex bg-zinc-900/80 p-1 rounded-xl border border-white/10 mb-3 shrink-0">
-                {(['MAIN', 'ROLES', 'TOKENS'] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setRulesTab(tab)}
-                    className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition cursor-pointer ${
-                      rulesTab === tab
-                        ? "bg-red-600 text-white shadow-md shadow-red-600/30"
-                        : "text-zinc-500 hover:text-zinc-300"
-                    }`}
-                  >
-                    {tab === 'MAIN' ? 'Основные' : tab === 'ROLES' ? 'Роли' : 'Токены'}
-                  </button>
-                ))}
-              </div>
+        <FullscreenCardModal card={fullscreenImage} onClose={() => setFullscreenImage(null)} />
 
-              {/* Горизонтальный арт-баннер */}
-              <div className="relative w-full h-24 sm:h-28 rounded-2xl overflow-hidden mb-4 shrink-0 border border-white/10 shadow-lg">
-                <img
-                  src="./bg-main.png"
-                  alt="Реквием: Правила"
-                  className="w-full h-full object-cover object-[center_35%] opacity-70"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
-                <div className="absolute bottom-2.5 left-3.5 right-3.5 flex justify-between items-end">
-                  <div>
-                    <span className="text-[9px] font-mono font-bold text-red-400 uppercase tracking-widest block">
-                      РЕГЛАМЕНТ ОПЕРАЦИИ
-                    </span>
-                    <span className="text-sm font-black text-white uppercase tracking-wider">
-                      Городская дуэль
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-mono text-zinc-400">
-                    5x5 • 2 игрока
-                  </span>
-                </div>
-              </div>
-
-              {/* Содержимое табов */}
-              <div className="overflow-y-auto space-y-3.5 text-left text-xs text-zinc-300 pr-1 pb-4 custom-scrollbar flex-1 min-h-0">
-                {rulesTab === 'MAIN' && (
-                  <>
-                    <span className="font-black text-zinc-400 block text-[10px] uppercase tracking-widest">
-                      РЕГЛАМЕНТ 4 РЕЖИМОВ ИГРЫ
-                    </span>
-
-                    <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-cyan-900/40 space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-cyan-400 uppercase tracking-wider">1. Схватка</span>
-                        <span className="text-[9px] font-mono text-zinc-500 uppercase">Дуэль 1 на 1</span>
-                      </div>
-                      <p className="text-[11px] text-zinc-300 leading-relaxed">
-                        Бандит ликвидирует цели рядом с собой. Инспектор сканирует показания свидетелей радаром и задерживает преступника. Победа Бандита: устранение Инспектора или 14 жертв.
-                      </p>
-                    </div>
-
-                    <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-red-900/40 space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-red-400 uppercase tracking-wider">2. Маньяк против Оперативника</span>
-                        <span className="text-[9px] font-mono text-zinc-500 uppercase">Спецоперация</span>
-                      </div>
-                      <p className="text-[11px] text-zinc-300 leading-relaxed">
-                        Маньяк устраняет 4 открытые жертвы строго по очереди. Оперативник должен вычислить и задержать Маньяка до завершения кровавой серии.
-                      </p>
-                    </div>
-
-                    <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-amber-900/40 space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-amber-400 uppercase tracking-wider">3. Охота на грабителя</span>
-                        <span className="text-[9px] font-mono text-zinc-500 uppercase">План-перехват</span>
-                      </div>
-                      <p className="text-[11px] text-zinc-300 leading-relaxed">
-                        Грабитель похищает 5 жетонов у соседей и меняет маски из руки. Полиция выставляет патрули, блокируя сдвиги улиц, и арестовывает вора.
-                      </p>
-                    </div>
-
-                    <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-purple-900/40 space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-purple-400 uppercase tracking-wider">4. Секретная служба</span>
-                        <span className="text-[9px] font-mono text-zinc-500 uppercase">Контрразведка</span>
-                      </div>
-                      <p className="text-[11px] text-zinc-300 leading-relaxed">
-                        Шпионские дуэли: взаимный допрос связных радаром и разоблачение тайных резидентов. Цель — собрать 4 трофея за раскрытие агентов.
-                      </p>
-                    </div>
-                  </>
-                )}
-
-                {rulesTab === 'ROLES' && (
-                  <>
-                    <span className="font-black text-zinc-400 block text-[10px] uppercase tracking-widest">
-                      МЕХАНИКА ХОДА И МАНЕВРЫ
-                    </span>
-
-                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-1.5">
-                      <span className="text-xs font-black uppercase text-zinc-100 tracking-wider block">Тактический сдвиг</span>
-                      <p className="text-[11px] text-zinc-300 leading-relaxed">
-                        1 раз за ход игрок может циклически сместить свободный ряд или колонку на 1 клетку. Вышедшая за край карта появляется с противоположной стороны. Запрещено отменять ход соперника.
-                      </p>
-                    </div>
-
-                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-1.5">
-                      <span className="text-xs font-black uppercase text-zinc-100 tracking-wider block">Правило соседства (8 клеток)</span>
-                      <p className="text-[11px] text-zinc-300 leading-relaxed">
-                        Все взаимодействия (выстрел, арест, кража, допрос) проводятся строго в пределах 8 соседних клеток вокруг тайной роли (включая диагонали).
-                      </p>
-                    </div>
-
-                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-1.5">
-                      <span className="text-xs font-black uppercase text-zinc-100 tracking-wider block">Конспирация</span>
-                      <p className="text-[11px] text-zinc-300 leading-relaxed">
-                        Смена тайной личности на свободного жителя сетки без алиби для ухода от преследования следствия.
-                      </p>
-                    </div>
-                  </>
-                )}
-
-                {rulesTab === 'TOKENS' && (
-                  <>
-                    <span className="font-black text-zinc-400 block text-[10px] uppercase tracking-widest">
-                      ТАКТИЧЕСКИЕ ИНДИКАТОРЫ
-                    </span>
-
-                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-1.5">
-                      <span className="text-xs font-black uppercase text-cyan-400 tracking-wider block">Тактический Радар</span>
-                      <p className="text-[11px] text-zinc-300 leading-relaxed">
-                        Бегущий неоновый векторный контур 3×3 вокруг цели допроса. Фиксирует, находится ли объект охоты в секторе сканирования.
-                      </p>
-                    </div>
-
-                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-1.5">
-                      <span className="text-xs font-black uppercase text-blue-400 tracking-wider block">Штамп «Алиби»</span>
-                      <p className="text-[11px] text-zinc-300 leading-relaxed">
-                        Синий штамп невиновного жителя. Снимает подозрения и блокирует выбор персонажа для преступной маскировки.
-                      </p>
-                    </div>
-
-                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-1.5">
-                      <span className="text-xs font-black uppercase text-amber-400 tracking-wider block">Штамп «Арестован / Раскрыт»</span>
-                      <p className="text-[11px] text-zinc-300 leading-relaxed">
-                        Индикатор задержанного преступника или разоблаченного агента. Исключает путаницу с невиновными свидетелями.
-                      </p>
-                    </div>
-
-                    <div className="p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl space-y-1.5">
-                      <span className="text-xs font-black uppercase text-amber-400 tracking-wider block">Жетон Синдиката</span>
-                      <p className="text-[11px] text-zinc-300 leading-relaxed">
-                        Золотой знак валюты. Отражает добычу вора в «Охоте на грабителя» и ставки в оперативных столах.
-                      </p>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ПОЛНОЭКРАННЫЙ ПРОСМОТР ФОТО */}
-        {fullscreenImage && (
-          <div className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 select-none" onClick={() => setFullscreenImage(null)}>
-            <button 
-              onClick={() => setFullscreenImage(null)}
-              className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
-            >
-              ✕
-            </button>
-            <div className="relative w-full max-w-sm aspect-[3/4] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.8)]" onClick={(e) => e.stopPropagation()}>
-              <img src={fullscreenImage.url} alt={fullscreenImage.name} className="w-full h-full object-cover grayscale contrast-125" />
-              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-20 flex flex-col items-center text-center">
-                <span className="text-xs font-mono text-zinc-400 mb-2">#{fullscreenImage.id.replace("c", "").padStart(2, "0")}</span>
-                <h2 className="text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">{fullscreenImage.name}</h2>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ОВЕРЛЕЙ ПРЕДУПРЕЖДЕНИЯ О ЛАНДШАФТНОМ РЕЖИМЕ НА МОБИЛКАХ */}
-        <div className="mobile-landscape-overlay fixed inset-0 z-[200] bg-zinc-950 flex-col items-center justify-center text-center px-6 select-none">
-          <div className="w-20 h-20 mb-6 rounded-full border border-zinc-800 bg-zinc-900 flex items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.8)] animate-pulse">
-            <span className="text-4xl transform -rotate-90">📱</span>
-          </div>
-          <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100 mb-3">
-            Поверните устройство
-          </h2>
-          <p className="text-xs text-zinc-400 max-w-xs leading-relaxed">
-            Пожалуйста, верните устройство в вертикальное положение для продолжения операции.
-          </p>
-        </div>
-              {import.meta.env.DEV && (
+        <DeviceOrientationOverlay />
+        {import.meta.env.DEV && (
         <DevPanel
           isOpen={isDevPanelOpen}
           onClose={() => setIsDevPanelOpen(false)}

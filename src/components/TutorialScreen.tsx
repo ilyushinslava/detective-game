@@ -128,7 +128,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   const currentMyCharacterId = useMemo(() => {
     if (currentModule === "SKHVATKA") {
-      if (lesson === 3) return null;
+      if (lesson === 3) return board[2]?.[2]?.id || null;
       if (lesson === 4) return L4_PLAYER_ID;
       return skhvatkaBanditId;
     }
@@ -157,7 +157,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   const targetVictimName = targetVictimChar?.name ?? "Елена Соколова";
 
   const { radarTargetId, radarCellIds, radarColorClass } = useMemo(() => {
-    const tacticalRadarClass = "border-amber-400 ring-2 ring-amber-500/70";
+    const tacticalRadarClass = "border-blue-500 ring-2 ring-blue-500/70";
 
     if (currentModule === "SKHVATKA") {
       if (lesson === 2 && step === 3 && killedTargetId) {
@@ -260,12 +260,14 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
         setStep(2);
       } else if (lesson === 3 && step === 1) {
         const char = board.flat().find((c) => c.id === id);
-        const isNeighborOfInspector = adjacentIds.includes(id);
-        const isInRadarZone = radarCellIds.includes(id);
-        if (char && char.isAlive && !char.isExonerated && isInRadarZone && isNeighborOfInspector) {
-          triggerHaptic("light");
+        if (
+          char?.isAlive &&
+          !char?.isExonerated &&
+          (adjacentIds.includes(id) || radarCellIds.includes(id))
+        ) {
           setSelectedId(id);
           setStep(2);
+          triggerHaptic("light");
         }
       } else if (lesson === 4 && step === 2 && id === L4_KILLER_ID) {
         triggerHaptic("light");
@@ -814,7 +816,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                 (currentModule === "SECRET_SERVICE" && lesson === 1 && (step === 1 || (step === 2 && scanResult === "FAR"))) ||
                 (currentModule === "SECRET_SERVICE" && lesson === 2 && step === 1)
               }
-              showDetectiveHints={false}
+              showDetectiveHints={currentModule === "SKHVATKA" && lesson === 3 && step === 1}
               targetVictimId={
                 currentModule === "MANIAC" ? targetVictimId : null
               }

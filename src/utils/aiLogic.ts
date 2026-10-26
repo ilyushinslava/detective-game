@@ -58,28 +58,18 @@ export function getKillerAIMove(state: GameState): GameState {
   );
 
   if (state.mode === "MANIAC_VS_OPERATIVE") {
-    const validTargets = killerNeighbors.filter(
-      (c) =>
-        c.isAlive &&
-        (c.id === state.victimList[0] || c.id === state.detectiveSecretId),
+    const target = killerNeighbors.find(
+      (c) => c.isAlive && c.id === state.victimList[0],
     );
-    if (validTargets.length > 0) {
-      const detTarget = validTargets.find(
-        (c) => c.id === state.detectiveSecretId,
-      );
-      const chosen =
-        detTarget ??
-        validTargets[Math.floor(Math.random() * validTargets.length)];
-      return killCharacter(state, chosen.id);
+    if (target) {
+      return killCharacter(state, target.id);
     }
   } else if (state.mode === "SKHVATKA") {
-    const validTargets = killerNeighbors.filter((c) => c.isAlive);
+    const validTargets = killerNeighbors.filter(
+      (c) => c.isAlive && !c.isExonerated,
+    );
     if (validTargets.length > 0) {
-      const detTarget = validTargets.find(
-        (c) => c.id === state.detectiveSecretId,
-      );
       const chosen =
-        detTarget ??
         validTargets[Math.floor(Math.random() * validTargets.length)];
       return killCharacter(state, chosen.id);
     }
@@ -104,7 +94,38 @@ export function getKillerAIMove(state: GameState): GameState {
     state.blockedShift,
   );
   if (validShifts.length > 0) {
+    let chosenShift: (typeof validShifts)[number] | null = null;
+
+    if (state.mode === "MANIAC_VS_OPERATIVE" && state.victimList?.[0]) {
+      const targetId = state.victimList[0];
+      let targetRow = -1;
+      let targetCol = -1;
+      for (let r = 0; r < state.board.length; r++) {
+        for (let c = 0; c < state.board[r].length; c++) {
+          if (state.board[r][c].id === targetId) {
+            targetRow = r;
+            targetCol = c;
+            break;
+          }
+        }
+        if (targetRow !== -1) break;
+      }
+
+      if (targetRow !== -1) {
+        const targetShifts = validShifts.filter(
+          (s) =>
+            (s.type === "ROW" && s.index === targetRow) ||
+            (s.type === "COL" && s.index === targetCol),
+        );
+        if (targetShifts.length > 0) {
+          chosenShift =
+            targetShifts[Math.floor(Math.random() * targetShifts.length)];
+        }
+      }
+    }
+
     const randomShift =
+      chosenShift ??
       validShifts[Math.floor(Math.random() * validShifts.length)];
     const newBoard = shiftBoard(
       state.board,

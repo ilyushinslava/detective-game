@@ -52,13 +52,13 @@ export const DevPanel = ({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-zinc-950 border border-amber-500/50 rounded-3xl p-5 shadow-[0_0_50px_rgba(245,158,11,0.25)] flex flex-col gap-3 font-sans max-h-[88vh] overflow-y-auto custom-scrollbar"
+        className="w-full max-w-lg bg-zinc-950 border border-zinc-700 rounded-3xl p-5 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col gap-3 font-sans max-h-[88vh] overflow-y-auto custom-scrollbar"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between pb-2 border-b border-white/10">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-xs font-black uppercase tracking-wider text-amber-400">
+            <span className="w-2 h-2 rounded-full bg-zinc-300 animate-pulse" />
+            <span className="text-xs font-black uppercase tracking-wider text-zinc-200">
               ⚡ QA / Dev Control Panel
             </span>
           </div>
@@ -74,7 +74,7 @@ export const DevPanel = ({
         <div className="border border-white/10 rounded-2xl overflow-hidden bg-zinc-900/40">
           <button
             onClick={() => toggleSection(1)}
-            className="w-full p-3 flex justify-between items-center text-left text-xs font-black uppercase tracking-wider text-red-400 hover:bg-white/5 transition cursor-pointer"
+            className="w-full p-3 flex justify-between items-center text-left text-xs font-black uppercase tracking-wider text-zinc-300 hover:text-white transition cursor-pointer"
           >
             <span>1. Исходы матчей по режимам</span>
             <span className="text-[10px] text-zinc-500">{activeSection === 1 ? "▲" : "▼"}</span>
@@ -89,7 +89,7 @@ export const DevPanel = ({
               </button>
               <button
                 onClick={() => { onForceWin("DETECTIVE", "SKHVATKA"); onClose(); }}
-                className="py-2 px-2.5 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-700/50 rounded-xl text-amber-200 font-bold text-left transition cursor-pointer"
+                className="py-2 px-2.5 bg-blue-950/50 hover:bg-blue-900/70 border border-blue-700/40 rounded-xl text-blue-200 font-bold text-left transition cursor-pointer"
               >
                 🛡️ Схватка: Инспектор
               </button>
@@ -101,13 +101,13 @@ export const DevPanel = ({
               </button>
               <button
                 onClick={() => { onForceWin("DETECTIVE", "MANIAC_VS_OPERATIVE"); onClose(); }}
-                className="py-2 px-2.5 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-700/50 rounded-xl text-amber-200 font-bold text-left transition cursor-pointer"
+                className="py-2 px-2.5 bg-blue-950/50 hover:bg-blue-900/70 border border-blue-700/40 rounded-xl text-blue-200 font-bold text-left transition cursor-pointer"
               >
                 🚨 Оперативник: Победа
               </button>
               <button
                 onClick={() => { onForceWin("KILLER", "THIEF_HUNT"); onClose(); }}
-                className="py-2 px-2.5 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-700/50 rounded-xl text-amber-200 font-bold text-left transition cursor-pointer"
+                className="py-2 px-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-xl text-zinc-200 font-bold text-left transition cursor-pointer"
               >
                 💰 Вор: 5 краж
               </button>
@@ -137,7 +137,7 @@ export const DevPanel = ({
         <div className="border border-white/10 rounded-2xl overflow-hidden bg-zinc-900/40">
           <button
             onClick={() => toggleSection(2)}
-            className="w-full p-3 flex justify-between items-center text-left text-xs font-black uppercase tracking-wider text-amber-400 hover:bg-white/5 transition cursor-pointer"
+            className="w-full p-3 flex justify-between items-center text-left text-xs font-black uppercase tracking-wider text-zinc-300 hover:text-white transition cursor-pointer"
           >
             <span>2. Управление состоянием и ходом</span>
             <span className="text-[10px] text-zinc-500">{activeSection === 2 ? "▲" : "▼"}</span>
@@ -174,7 +174,7 @@ export const DevPanel = ({
         <div className="border border-white/10 rounded-2xl overflow-hidden bg-zinc-900/40">
           <button
             onClick={() => toggleSection(3)}
-            className="w-full p-3 flex justify-between items-center text-left text-xs font-black uppercase tracking-wider text-amber-400 hover:bg-white/5 transition cursor-pointer"
+            className="w-full p-3 flex justify-between items-center text-left text-xs font-black uppercase tracking-wider text-zinc-300 hover:text-white transition cursor-pointer"
           >
             <span>3. Модальные окна и экраны</span>
             <span className="text-[10px] text-zinc-500">{activeSection === 3 ? "▲" : "▼"}</span>
@@ -192,7 +192,7 @@ export const DevPanel = ({
               {onTriggerRestartRequest && (
                 <button
                   onClick={() => { onTriggerRestartRequest(); onClose(); }}
-                  className="py-2 px-2.5 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-700/50 rounded-xl text-amber-200 font-bold text-left transition cursor-pointer"
+                  className="py-2 px-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-xl text-zinc-200 font-bold text-left transition cursor-pointer"
                 >
                   🤝 Запрос реванша
                 </button>
@@ -237,7 +237,7 @@ export const DevPanel = ({
         <div className="border border-white/10 rounded-2xl overflow-hidden bg-zinc-900/40">
           <button
             onClick={() => toggleSection(4)}
-            className="w-full p-3 flex justify-between items-center text-left text-xs font-black uppercase tracking-wider text-emerald-400 hover:bg-white/5 transition cursor-pointer"
+            className="w-full p-3 flex justify-between items-center text-left text-xs font-black uppercase tracking-wider text-zinc-300 hover:text-white transition cursor-pointer"
           >
             <span>4. Экономика и отладка</span>
             <span className="text-[10px] text-zinc-500">{activeSection === 4 ? "▲" : "▼"}</span>

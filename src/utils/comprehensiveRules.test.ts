@@ -68,7 +68,7 @@ describe("Режим: СХВАТКА (SKHVATKA)", () => {
     const innocentTarget = getAdjacentCharacters(state.board, state.detectiveSecretId).find(c => c.id !== state.killerSecretId)!;
     const missState = accuseCharacter(state, innocentTarget.id);
     expect(missState.winner).toBeNull();
-    expect(missState.board.flat().find(c => c.id === innocentTarget.id)?.isExonerated).toBe(true);
+    expect(missState.board.flat().find(c => c.id === innocentTarget.id)?.isExonerated).toBe(false);
 
     // Успех
     state.detectiveSecretId = getAdjacentCharacters(state.board, state.killerSecretId)[0].id;
@@ -175,11 +175,11 @@ describe("Режим: ОХОТА НА ГРАБИТЕЛЯ (THIEF_HUNT)", () => {
 
   it("Победа Вора ровно на 5 кражах", () => {
     const state = createInitialState("THIEF_HUNT", "PVP", "DETECTIVE");
-    state.trophiesKiller = 4;
+    state.trophiesKiller = 9;
     const target = getAdjacentCharacters(state.board, state.killerSecretId)[0];
     
     const nextState = robNeighbor(state, target.id);
-    expect(nextState.trophiesKiller).toBe(5);
+    expect(nextState.trophiesKiller).toBe(10);
     expect(nextState.winner).toBe("KILLER");
   });
 

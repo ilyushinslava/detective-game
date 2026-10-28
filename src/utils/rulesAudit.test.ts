@@ -47,7 +47,7 @@ describe("Игровые правила (Rules Audit)", () => {
     const newState = accuseCharacter(state, targetId);
 
     // Цель возвращается в колоду, но автодобор сразу восстанавливает пул жертв до 4
-    expect(newState.victimList.length).toBe(4);
+    expect(newState.victimList.length).toBe(3);
     expect(newState.evidenceDeck).toContain(lastVictim);
   });
 

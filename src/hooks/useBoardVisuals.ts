@@ -324,9 +324,9 @@ export function useBoardVisuals({
     }
     if (gameState.mode === "SECRET_SERVICE") {
       const isP1Turn = gameState.activeSpyIndex === 0;
-      return isP1Turn
-        ? "bg-red-950/90 border-red-600 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
-        : "bg-slate-800/90 border-slate-500 text-slate-200 shadow-[0_0_15px_rgba(100,116,139,0.3)]";
+              return isP1Turn
+          ? "bg-red-950/90 border-red-600 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+          : "bg-blue-950/90 border-blue-600 text-blue-200 shadow-[0_0_15px_rgba(59,130,246,0.3)]";
     }
     return isKillerTurn
       ? "bg-red-950/80 border-red-600 text-red-100"
@@ -337,9 +337,9 @@ export function useBoardVisuals({
     if (isAIThinking) return "bg-zinc-400 shadow-zinc-400/80";
     if (gameState.mode === "SECRET_SERVICE") {
       const isP1Turn = gameState.activeSpyIndex === 0;
-      return isP1Turn
-        ? "bg-red-500 shadow-red-500/80"
-        : "bg-slate-400 shadow-slate-400/80";
+              return isP1Turn
+          ? "bg-red-500 shadow-red-500/80"
+          : "bg-blue-500 shadow-blue-500/80";
     }
     return isKillerTurn
       ? "bg-red-500 shadow-red-500/80"

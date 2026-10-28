@@ -54,7 +54,7 @@ export const BiometricSlider = ({
           <span>{text}</span>
           {price !== undefined && (
             <span className="text-[10px] md:text-xs font-mono text-red-300 flex items-center gap-1 bg-black/40 px-2 py-0.5 rounded-full border border-red-500/20">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3 h-3 text-zinc-300 shrink-0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3 h-3 text-amber-400 shrink-0">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
               </svg>

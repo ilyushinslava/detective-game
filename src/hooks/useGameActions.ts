@@ -290,9 +290,10 @@ export function useGameActions({
         targetCardId: selectedId,
         isHit,
         isMiss,
-        revealedRole: targetChar?.name || caughtSpy?.name || null,
-        caughtSpyId: caughtSpy?.id || null,
-        attackerSpyIndex: mySpyIndex,
+                  revealedRole: targetChar?.name || caughtSpy?.name || null,
+          caughtSpyId: caughtSpy?.id || null,
+          nextSecretId: gameState.board.flat().find((c) => c.isAlive && c.id !== selectedId && c.id !== caughtSpy?.secretId && !gameState.spies?.some((s) => s.id !== caughtSpy?.id && s.secretId === c.id))?.id || null,
+          attackerSpyIndex: mySpyIndex,
         nextSpyIndex,
         errorCardId: selectedId,
       } as any,
@@ -329,7 +330,7 @@ export function useGameActions({
         gameState.opponent,
         gameState.playerRole,
         gameState.spies?.length ?? 3,
-        4,
+        gameState.spyTargetTrophies ?? 3,
         gameState.maxTurns ?? 16
       );
     }
@@ -346,7 +347,7 @@ export function useGameActions({
         onClick: () => setIsQuestionCatalogOpen(true),
         disabled: !isHumanTurn || isGameOver,
         className:
-          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(59,130,246,0.4)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 hover:from-blue-900 hover:via-blue-800 hover:to-blue-900 text-white shadow-[0_8px_20px_rgba(37,99,235,0.35)] border border-blue-500/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
       });
       actions.push({
         id: "duel_candidates",
@@ -360,7 +361,7 @@ export function useGameActions({
         onClick: () => setIsCandidatesSheetOpen(true),
         disabled: isGameOver,
         className:
-          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 hover:from-blue-900 hover:via-blue-800 hover:to-blue-900 text-white shadow-[0_8px_20px_rgba(37,99,235,0.35)] border border-blue-500/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
       });
       actions.push({
         id: "duel_accuse",
@@ -368,7 +369,7 @@ export function useGameActions({
         onClick: () => setIsAccuseModalOpen(true),
         disabled: !isHumanTurn || !selectedId || isGameOver,
         className:
-          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 col-span-2",
+          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-950 via-red-900 to-red-950 hover:from-red-900 hover:via-red-800 hover:to-red-900 text-white shadow-[0_8px_20px_rgba(220,38,38,0.35)] border border-red-600/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 col-span-2 active:scale-[0.98]",
       });
     } else if (gameState.mode === "SECRET_SERVICE") {
       const activeSpySecretId =
@@ -398,7 +399,7 @@ export function useGameActions({
           isGameOver ||
           !selectedCharacter?.isAlive,
         className:
-          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-950 via-red-900 to-red-950 hover:from-red-900 hover:via-red-800 hover:to-red-900 text-white shadow-[0_8px_20px_rgba(220,38,38,0.35)] border border-red-600/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
       });
       actions.push({
         id: "interrogate_spy",
@@ -411,7 +412,7 @@ export function useGameActions({
           isGameOver ||
           !selectedCharacter?.isAlive,
         className:
-          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 hover:from-blue-900 hover:via-blue-800 hover:to-blue-900 text-white shadow-[0_8px_20px_rgba(37,99,235,0.35)] border border-blue-500/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
       });
       actions.push({
         id: "cleanup_ss",
@@ -419,7 +420,7 @@ export function useGameActions({
         onClick: handleCleanup,
         disabled: !isHumanTurn || !isCleanupAvailable,
         className:
-          "py-1.5 sm:py-2 md:py-3.5 bg-zinc-900 border border-zinc-700 text-zinc-300 disabled:opacity-50 text-[9px] sm:text-[10px] md:text-xs font-bold rounded-xl transition disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-950 via-zinc-900 to-red-950 hover:from-red-900 hover:via-zinc-800 hover:to-red-900 text-red-200 hover:text-white border border-red-600/70 shadow-[0_8px_20px_rgba(220,38,38,0.35)] disabled:opacity-40 text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
       });
     } else {
       if (isKillerView) {
@@ -436,7 +437,7 @@ export function useGameActions({
               isGameOver ||
               Boolean(selectedCharacter?.isRobbed),
             className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-zinc-700 via-zinc-600 to-zinc-800 text-white shadow-[0_10px_25px_rgba(255,255,255,0.15)] border-t border-zinc-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 hover:from-amber-900 hover:via-amber-800 hover:to-amber-900 text-amber-100 shadow-[0_8px_20px_rgba(245,158,11,0.3)] border border-amber-600/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
           });
           actions.push({
             id: "disguise_thief",
@@ -444,7 +445,7 @@ export function useGameActions({
             onClick: () => setIsHandSheetOpen(true),
             disabled: !isHumanTurn || isGameOver,
             className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-zinc-700 via-zinc-600 to-zinc-800 text-white shadow-[0_10px_25px_rgba(255,255,255,0.15)] border-t border-zinc-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-950 hover:from-zinc-800 hover:via-zinc-700 hover:to-zinc-900 text-zinc-100 shadow-[0_8px_20px_rgba(0,0,0,0.5)] border border-zinc-600/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
           });
         } else {
           actions.push({
@@ -455,11 +456,9 @@ export function useGameActions({
               !isHumanTurn ||
               !selectedId ||
               !killerAdjacentIds.includes(selectedId) ||
-              isGameOver ||
-              (gameState.mode === "MANIAC_VS_OPERATIVE" &&
-                selectedId !== gameState.victimList[0]),
+              isGameOver,
             className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-950 via-red-900 to-red-950 hover:from-red-900 hover:via-red-800 hover:to-red-900 text-white shadow-[0_8px_20px_rgba(220,38,38,0.35)] border border-red-600/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
           });
         }
 
@@ -467,27 +466,27 @@ export function useGameActions({
           actions.push({
             id: "disguise_skhvatka",
             label: "Конспирация",
-            onClick: handleDisguise,
-            disabled:
-              !isHumanTurn ||
-              isFirstTurnKiller ||
-              gameState.evidenceDeck.length === 0 ||
-              isGameOver,
-            className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+                          onClick: handleDisguise,
+              disabled:
+                !isHumanTurn ||
+                isFirstTurnKiller ||
+                gameState.evidenceDeck.length === 0 ||
+                isGameOver,
+              className:
+                "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-950 hover:from-zinc-800 hover:via-zinc-700 hover:to-zinc-900 text-zinc-100 shadow-[0_8px_20px_rgba(0,0,0,0.5)] border border-zinc-600/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
           });
         }
         if (gameState.mode === "MANIAC_VS_OPERATIVE") {
           actions.push({
             id: "escape_maniac",
             label: "Конспирация",
-            onClick: handleEscapeManiac,
-            disabled:
-              !isHumanTurn ||
-              gameState.evidenceDeck.length < 2 ||
-              isGameOver,
-            className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-red-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+                          onClick: handleEscapeManiac,
+              disabled:
+                !isHumanTurn ||
+                gameState.evidenceDeck.length < 2 ||
+                isGameOver,
+              className:
+                "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-950 hover:from-zinc-800 hover:via-zinc-700 hover:to-zinc-900 text-zinc-100 shadow-[0_8px_20px_rgba(0,0,0,0.5)] border border-zinc-600/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
           });
         }
       } else {
@@ -529,7 +528,7 @@ export function useGameActions({
             return !isAdjacent && !isSelf;
           })(),
           className:
-            "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+            "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 hover:from-blue-900 hover:via-blue-800 hover:to-blue-900 text-white shadow-[0_8px_20px_rgba(37,99,235,0.35)] border border-blue-500/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
         });
 
         if (gameState.mode === "THIEF_HUNT") {
@@ -544,7 +543,7 @@ export function useGameActions({
               isGameOver ||
               gameState.evidenceDeck.length === 0,
             className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(37,99,235,0.5)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 hover:from-blue-900 hover:via-blue-800 hover:to-blue-900 text-white shadow-[0_8px_20px_rgba(37,99,235,0.35)] border border-blue-500/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
           });
         }
       }

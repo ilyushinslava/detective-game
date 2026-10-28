@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import type { GameState, GameModeType, Role } from "../types/game";
 import type { PlayerProfile } from "./usePlayerProfile";
 import { partyService } from "./partyPeer";
+import { soundManager } from "./audio";
 
 interface UseMultiplayerParams {
   gameState: GameState;
@@ -58,15 +59,29 @@ export function useMultiplayer({
   }, [gameState.opponent]);
 
   useEffect(() => {
-    if (gameState.opponent !== "ONLINE") return;
+    if (gameState.opponent !== "ONLINE" && !partyService.roomCode) return;
 
     partyService.onSyncState = (state: any, role?: Role, status?: string) => {
       if (state) {
-        setGameState((prev) => ({
-          ...state,
-          opponent: "ONLINE",
-          playerRole: role || prev.playerRole,
-        }));
+        setGameState((prev) => {
+          if (state.lastShift && JSON.stringify(state.lastShift) !== JSON.stringify(prev.lastShift)) {
+            soundManager.play("slide");
+          } else if ((state.killCount ?? 0) > (prev.killCount ?? 0)) {
+            soundManager.play("kill");
+          } else if ((state.trophiesKiller ?? 0) > (prev.trophiesKiller ?? 0)) {
+            soundManager.play("steal");
+          }
+          return {
+            ...state,
+            opponent: "ONLINE",
+            playerRole: role || prev.playerRole,
+          };
+        });
+      }
+      if (status === "PLAYING") {
+        setIsLobbyOpen(false);
+        setHasStartedEver(true);
+        setIsIntroPhase(false);
       }
       if (status === "FINISHED" && state?.winner) {
         setToastMessage(`Матч завершен. Победил: ${state.winner}`);
@@ -78,7 +93,19 @@ export function useMultiplayer({
       if (status === "WAITING") {
         setIsOpponentConnected(true);
         setOpponentDisconnectedNotice(false);
+      } else if (status === "PLAYING") {
+        setIsOpponentConnected(true);
+        setOpponentDisconnectedNotice(false);
+        setIsLobbyOpen(false);
+        setHasStartedEver(true);
+        setIsIntroPhase(false);
       }
+    };
+
+    partyService.onAllPlayersReady = () => {
+      setIsLobbyOpen(false);
+      setHasStartedEver(true);
+      setIsIntroPhase(false);
     };
 
     partyService.onPresenceChanged = (connected: boolean) => {
@@ -92,6 +119,12 @@ export function useMultiplayer({
 
     partyService.onAction = (action: any) => {
       if (!action) return;
+      if (action.type === "ALL_PLAYERS_READY") {
+        setIsLobbyOpen(false);
+        setHasStartedEver(true);
+        setIsIntroPhase(false);
+        return;
+      }
       if (action.type === "REQUEST_RESTART") {
         setGameState((prev) => ({
           ...prev,
@@ -108,10 +141,11 @@ export function useMultiplayer({
     return () => {
       partyService.onSyncState = null;
       partyService.onRoomStatus = null;
+      partyService.onAllPlayersReady = null;
       partyService.onPresenceChanged = null;
       partyService.onAction = null;
     };
-  }, [gameState.opponent, setGameState, setToastMessage]);
+  }, [gameState.opponent, setGameState, setToastMessage, setIsLobbyOpen, setHasStartedEver, setIsIntroPhase]);
 
   useEffect(() => {
     if (gameState.restartRequestedBy) {
@@ -121,6 +155,8 @@ export function useMultiplayer({
         setRematchTimer((prev) => {
           if (prev <= 1) {
             if (rematchIntervalRef.current) clearInterval(rematchIntervalRef.current);
+            dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
+            setGameState((state) => ({ ...state, restartRequestedBy: undefined }));
             return 0;
           }
           return prev - 1;
@@ -139,10 +175,23 @@ export function useMultiplayer({
     setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
   };
 
-  const rejectRestart = () => {
-    dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
-    setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
-  };
+      const rejectRestart = () => {
+      dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
+      setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
+    };
+
+    const requestRematch = (mode: "SWAP" | "RANDOM" = "SWAP") => {
+      const requestedBy = partyService.isHost ? "HOST" : "GUEST";
+      dispatchAction({
+        type: "REQUEST_RESTART",
+        senderId: "local",
+        payload: { rematchMode: mode, requestedBy },
+      });
+      setGameState((prev) => ({
+        ...prev,
+        restartRequestedBy: requestedBy,
+      }));
+    };
 
   const handleExitToMenu = () => {
     partyService.disconnect();
@@ -161,9 +210,10 @@ export function useMultiplayer({
     isOpponentConnected,
     opponentDisconnectedNotice,
     setOpponentDisconnectedNotice,
-    rematchTimer,
-    acceptRestart,
-    rejectRestart,
-    handleExitToMenu,
+          rematchTimer,
+      acceptRestart,
+      rejectRestart,
+      requestRematch,
+      handleExitToMenu,
   };
 }

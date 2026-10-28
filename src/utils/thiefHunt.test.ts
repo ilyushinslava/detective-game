@@ -24,12 +24,12 @@ describe("Режим: Охота на грабителя (THIEF_HUNT)", () => {
 
   it("Победа Вора при 5 кражах", () => {
     const state = createInitialState("THIEF_HUNT", "PVP", "DETECTIVE");
-    state.trophiesKiller = 4;
+    state.trophiesKiller = 9;
     const target = getAdjacentCharacters(state.board, state.killerSecretId)[0];
     
     const nextState = robNeighbor(state, target.id);
 
-    expect(nextState.trophiesKiller).toBe(5);
+    expect(nextState.trophiesKiller).toBe(10);
     expect(nextState.winner).toBe("KILLER");
   });
 

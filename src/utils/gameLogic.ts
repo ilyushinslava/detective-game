@@ -130,9 +130,12 @@ export function createInitialState(
   const killerNeighbors = getAdjacentCharacters(board, killerSecretId).map(
     (c) => c.id,
   );
-  const validDetectiveCandidates = candidatePool.filter(
+  const rawDet = candidatePool.filter(
     (c) => c.id !== killerSecretId && !killerNeighbors.includes(c.id),
   );
+  const validDetectiveCandidates = rawDet.length >= 4
+    ? rawDet
+    : [...rawDet, ...candidatePool.filter((c) => c.id !== killerSecretId && killerNeighbors.includes(c.id))];
 
   let detectiveSecretId: string = "";
   let detectiveHand: string[] = [];
@@ -164,8 +167,9 @@ export function createInitialState(
       safeCandidates[3].id,
     ];
     inspectorChoices = [];
+    const excludedVictims = new Set([killerSecretId, detectiveSecretId, ...detectiveHand]);
     const potentialVictims = boardCharacters
-      .filter((c) => c.id !== killerSecretId && c.id !== detectiveSecretId)
+      .filter((c) => !excludedVictims.has(c.id))
       .map((c) => c.id);
     victimList = shuffle(potentialVictims).slice(0, 4);
   } else if (mode === "THIEF_HUNT") {
@@ -191,8 +195,8 @@ export function createInitialState(
     const excluded = new Set([killerSecretId, detectiveSecretId]);
     deck = shuffle(boardCharacters.map(c => c.id).filter(id => !excluded.has(id)));
 
-    killerHand = [deck.shift()!, deck.shift()!, deck.shift()!].filter(Boolean);
-    uniformedOfficers = [deck.shift()!, deck.shift()!].filter(Boolean);
+    killerHand = deck.splice(0, 3);
+    uniformedOfficers = deck.splice(0, 2);
   } else if (mode === "SECRET_SERVICE") {
     deck = shuffle(boardCharacters.map((c) => c.id));
     const DEFAULT_SPY_CALLSIGNS = ["Зенит", "Дамаск", "Филин", "Вектор", "Агат", "Норд"];
@@ -203,16 +207,18 @@ export function createInitialState(
     spies = Array.from({ length: count }, (_, i) => {
       const name = i === 0 ? hostName : (DEFAULT_SPY_CALLSIGNS[i] || "Агент " + (i + 1));
       const isAI = opponent === "PVP" ? false : (opponent === "ONLINE" ? false : i > 0);
+      const fallbackId = boardCharacters[i % boardCharacters.length].id;
       return {
         id: "p" + (i + 1),
         name,
-        secretId: deck.shift(),
+        secretId: deck.shift() || fallbackId,
         trophies: 0,
         isAI,
       };
     });
 
-    spyTargetTrophies = targetTrophies;
+    const defaultTrophies = count === 2 ? 2 : count === 3 || count === 9 ? 4 : 3;
+    spyTargetTrophies = (targetTrophies && targetTrophies !== 3) ? targetTrophies : defaultTrophies;
     activeSpyIndex = 0;
     detectiveSecretId = spies[0].secretId;
     killerSecretId = spies[1].secretId;
@@ -362,17 +368,10 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     }
     currentVictimList = cleaned;
 
-    const isCurrentVictim =
-      currentVictimList.length > 0 && targetId === currentVictimList[0];
-    const isDetective = targetId === state.detectiveSecretId;
-    if (!isCurrentVictim && !isDetective) {
-      return state;
-    }
   }
 
-  const isFirstTurnKiller = state.mode === "SKHVATKA" && state.killCount === 0 && state.currentTurn === "KILLER";
   const isAdjacent = areAdjacent(state.board, state.killerSecretId, targetId);
-  if (!isAdjacent && !isFirstTurnKiller) return state;
+  if (!isAdjacent) return state;
 
   let killedName = "";
   const newBoard = state.board.map((row) =>
@@ -388,7 +387,8 @@ export function killCharacter(state: GameState, targetId: string): GameState {
   let newVictimList = [...currentVictimList];
   let newEvidenceDeck = [...state.evidenceDeck];
   let newInspectorChoices = state.inspectorChoices ? [...state.inspectorChoices] : [];
-  const newKillCount = state.killCount + 1;
+  const isTargetVictim = state.mode === "MANIAC_VS_OPERATIVE" && currentVictimList.length > 0 && targetId === currentVictimList[0];
+  const newKillCount = state.mode === "MANIAC_VS_OPERATIVE" ? (isTargetVictim ? state.killCount + 1 : state.killCount) : state.killCount + 1;
 
   if (newInspectorChoices.includes(targetId)) {
     newInspectorChoices = newInspectorChoices.filter((id) => id !== targetId);
@@ -419,20 +419,6 @@ export function killCharacter(state: GameState, targetId: string): GameState {
         break;
       }
     }
-
-    while (newVictimList.length < 4 && newEvidenceDeck.length > 0) {
-      const drawnId = newEvidenceDeck.shift()!;
-      const drawnChar = newBoard.flat().find((c) => c.id === drawnId);
-      if (
-        drawnChar &&
-        drawnChar.isAlive &&
-        drawnId !== state.detectiveSecretId &&
-        drawnId !== state.killerSecretId &&
-        !newVictimList.includes(drawnId)
-      ) {
-        newVictimList.push(drawnId);
-      }
-    }
   }
 
   let newDetectiveHand = [...state.detectiveHand];
@@ -458,10 +444,8 @@ export function killCharacter(state: GameState, targetId: string): GameState {
 
   if (!winner) {
     if (state.mode === "MANIAC_VS_OPERATIVE") {
-      if (newKillCount >= 4) {
+      if (newKillCount >= 4 || newVictimList.length === 0) {
         winner = "KILLER";
-      } else if (newVictimList.length === 0) {
-        winner = "DETECTIVE";
       }
     } else if (state.mode === "EUROPOL_VS_OPG" && newKillCount >= 6) {
       winner = "KILLER";
@@ -536,7 +520,7 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
   if (!targetChar || targetChar.isRobbed) return state;
 
   const newTrophies = (state.trophiesKiller ?? 0) + 1;
-  const isWin = newTrophies >= 5;
+  const isWin = newTrophies >= 10;
 
   const newBoard = state.board.map((row) =>
     row.map((c) => (c.id === targetId ? { ...c, isRobbed: true } : c)),
@@ -551,7 +535,7 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
     blockedShift: null,
     log: [
       ...state.log,
-      `Грабитель похитил сокровище у ${targetChar.name}! Добыча: ${newTrophies}/5.${
+      `Грабитель похитил сокровище у ${targetChar.name}! Добыча: ${newTrophies}/10.${
         isWin ? " Грабитель украл всё и победил!" : ""
       }`,
     ],
@@ -604,30 +588,16 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
 
   if (state.mode === "THIEF_HUNT") {
     logMsg = `Ложная проверка: ${targetName} не грабитель.`;
-  } else {
-    newBoard = state.board.map((row) =>
-      row.map((c) => (c.id === targetId ? { ...c, isExonerated: true } : c)),
-    );
-  }
+      } else if (state.mode !== "SKHVATKA") {
+      newBoard = state.board.map((row) =>
+        row.map((c) => (c.id === targetId ? { ...c, isExonerated: true } : c)),
+      );
+    }
 
   if (state.mode === "MANIAC_VS_OPERATIVE" && nextVictims.length > 0) {
     const returnedVictim = nextVictims.pop()!;
     nextDeck.push(returnedVictim);
     logMsg = `Ошибка следствия: одна из целей маньяка скрылась в колоде.`;
-
-    while (nextVictims.length < 4 && nextDeck.length > 0) {
-      const drawnId = nextDeck.shift()!;
-      const drawnChar = newBoard.flat().find((c) => c.id === drawnId);
-      if (
-        drawnChar &&
-        drawnChar.isAlive &&
-        drawnId !== state.detectiveSecretId &&
-        drawnId !== state.killerSecretId &&
-        !nextVictims.includes(drawnId)
-      ) {
-        nextVictims.push(drawnId);
-      }
-    }
 
     if (nextVictims.length === 0 && state.killCount < 4) {
       nextWinner = "DETECTIVE";
@@ -881,8 +851,9 @@ export function spyCatch(state: GameState, targetId: string): GameState {
       newDeck = shuffle([...availableLivingIds]);
     }
 
-    const nextSecretId = newDeck.shift() ?? availableLivingIds[0] ?? targetId;
-    newSpies[caughtSpyIndex] = { ...caughtSpy, secretId: nextSecretId };
+          const fallbackId = availableLivingIds.length > 0 ? availableLivingIds[0] : (newBoard.flat().find((c) => c.isAlive && !otherSpiesSecretIds.includes(c.id))?.id ?? caughtSpy.secretId);
+      const nextSecretId = newDeck.shift() ?? fallbackId;
+      newSpies[caughtSpyIndex] = { ...caughtSpy, secretId: nextSecretId };
     justCaughtSpyId = caughtSpy.id;
 
     logMsg = `🎯 Разоблачение! ${activeSpy.name} разоблачил резидента соперника (${targetName})! Трофей получен (${newTrophies}/${targetTrophies}).`;
@@ -1075,7 +1046,7 @@ export function swearInOfficer(
   );
 
   const newTrophies = (state.trophiesKiller ?? 0) + 1;
-  const isWin = newTrophies >= 5;
+  const isWin = newTrophies >= 10;
 
   return {
     ...state,
@@ -1087,7 +1058,7 @@ export function swearInOfficer(
     blockedShift: null,
     log: [
       ...state.log,
-      `Полиция призвала к присяге нового офицера. Пользуясь суматохой, Грабитель украл сокровище! Добыча: ${newTrophies}/5.`,
+      `Полиция призвала к присяге нового офицера. Пользуясь суматохой, Грабитель украл сокровище! Добыча: ${newTrophies}/10.`,
     ],
   };
 }

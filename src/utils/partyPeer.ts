@@ -15,8 +15,10 @@ class PartyService {
   private reconnectAttempts: number = 0;
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   private queuedActions: GameAction[] = [];
+  private failedAttempts: number = 0;
 
-  private resolveEndpoints(): { wsProtocol: string; httpProtocol: string; host: string } {
+  resolveEndpoints(): { wsProtocol: string; httpProtocol: string; host: string } {
+    const fallbackHost = GAME_CONFIG.NETWORK.FALLBACK_GATEWAYS[0] || "detective-game-haxi.onrender.com";
     const rawHost = (import.meta.env?.VITE_WS_GATEWAY || import.meta.env?.VITE_PARTYKIT_HOST)?.trim();
     if (rawHost) {
       const isSecure = rawHost.startsWith("https://") || rawHost.startsWith("wss://");
@@ -28,15 +30,21 @@ class PartyService {
       };
     }
 
+    if (this.failedAttempts >= 2) {
+      return {
+        wsProtocol: "wss:",
+        httpProtocol: "https:",
+        host: fallbackHost,
+      };
+    }
+
     if (typeof window !== "undefined") {
       const hostname = window.location.hostname;
-      const isLocalhost =
-        hostname === "localhost" ||
-        hostname === "127.0.0.1" ||
-        hostname.endsWith(".local") ||
-        /^(10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.)/.test(hostname);
+      const isStrictLocalhost =
+        (hostname === "localhost" || hostname === "127.0.0.1") &&
+        Boolean(import.meta.env?.DEV);
 
-      if (isLocalhost) {
+      if (isStrictLocalhost) {
         return {
           wsProtocol: "ws:",
           httpProtocol: "http:",
@@ -45,7 +53,6 @@ class PartyService {
       }
     }
 
-    const fallbackHost = GAME_CONFIG.NETWORK.FALLBACK_GATEWAYS[0] || "detective-game-haxi.onrender.com";
     return {
       wsProtocol: "wss:",
       httpProtocol: "https:",
@@ -96,6 +103,7 @@ class PartyService {
 
       ws.onopen = () => {
         if (this.socket === ws) {
+          this.failedAttempts = 0;
           this.reconnectAttempts = 0;
           this.onPresenceChanged?.(true);
           this.stopHeartbeat();
@@ -174,6 +182,7 @@ class PartyService {
       };
 
       ws.onerror = (err) => {
+        this.failedAttempts++;
         console.warn("[PartyService] WebSocket error:", err);
       };
     } catch (err) {
@@ -211,6 +220,7 @@ class PartyService {
   disconnect(): void {
     this.isExplicitDisconnect = true;
     this.reconnectAttempts = 0;
+    this.failedAttempts = 0;
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;

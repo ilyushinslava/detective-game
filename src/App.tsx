@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+﻿import { useState, useRef, useEffect, useMemo } from "react";
 import { SplashScreen } from './components/SplashScreen';
 import { type GameModeType, type OpponentType, type Role, type GameState, SPY_COLORS } from "./types/game";
 import { GameBoard } from "./components/GameBoard";
@@ -24,6 +24,7 @@ import { RoleCards } from "./components/RoleCards";
 import type { GameAction } from "./types/multiplayer";
 import { gameReducer } from "./utils/gameReducer";
 import { IdentityRevealModal } from "./components/IdentityRevealModal";
+import { InspectorChoiceModal } from "./components/InspectorChoiceModal";
 
 const characterImages = import.meta.glob<{ default: string }>(
   "./assets/characters/*.webp",
@@ -60,6 +61,33 @@ export default function App() {
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [isNotebookOpen, setIsNotebookOpen] = useState(false);
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const rawSession = sessionStorage.getItem("mp_session");
+    if (rawSession) {
+      try {
+        const session = JSON.parse(rawSession);
+        if (session && session.roomCode) {
+          const mode = session.mode || "SKHVATKA";
+          const isHost = Boolean(session.isHost);
+          const role: Role = isHost ? "KILLER" : "DETECTIVE";
+          partyService.roomCode = session.roomCode;
+          partyService.connect(session.roomCode, session.nickname || profile.nickname, isHost, mode);
+          setActiveMode(mode);
+          setGameState((prev) => ({
+            ...prev,
+            mode,
+            opponent: "ONLINE",
+            playerRole: role,
+          }));
+          setHasStartedEver(true);
+          setIsLobbyOpen(false);
+        }
+      } catch (err) {
+        console.warn("Failed to restore multiplayer session:", err);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -133,6 +161,7 @@ export default function App() {
     rematchTimer,
     acceptRestart,
     rejectRestart,
+    requestRematch,
     handleExitToMenu: exitToMenuMultiplayer,
   } = useMultiplayer({
     gameState,
@@ -282,6 +311,7 @@ export default function App() {
     setShowDetectiveRole(false);
     setShowSpyP1Role(false);
     setShowSpyP2Role(false);
+    setIsPauseOpen(false);
     setHasStartedEver(true);
     setIsIntroPhase(true);
     setIsLobbyOpen(false);
@@ -289,10 +319,12 @@ export default function App() {
   };
 
   const handleResumeGame = () => {
+    setIsPauseOpen(false);
     setIsLobbyOpen(false);
   };
 
   const handleExitToMenu = () => {
+    setIsPauseOpen(false);
     if (gameState.winner) {
       setHasStartedEver(false);
     }
@@ -415,7 +447,7 @@ export default function App() {
             ...prev,
             mode: forcedMode || prev.mode,
             winner,
-            log: [...prev.log, `[DEV] Принудительная победа: ${winner} (${forcedMode || prev.mode})`],
+            log: [...prev.log, `[DEV] РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅР°СЏ РїРѕР±РµРґР°: ${winner} (${forcedMode || prev.mode})`],
           }));
         }}
         onTriggerInspectorChoice={() => {
@@ -429,7 +461,7 @@ export default function App() {
               playerRole: "DETECTIVE",
               killCount: Math.max(prev.killCount, 1),
               inspectorChoices: choices,
-              log: [...prev.log, "[DEV] Принудительный выбор личности Инспектора"],
+              log: [...prev.log, "[DEV] РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅС‹Р№ РІС‹Р±РѕСЂ Р»РёС‡РЅРѕСЃС‚Рё РРЅСЃРїРµРєС‚РѕСЂР°"],
             };
           });
           setIsChoiceSheetMinimized(false);
@@ -446,14 +478,14 @@ export default function App() {
           setGameState((prev) => ({
             ...prev,
             currentTurn: prev.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER",
-            log: [...prev.log, "[DEV] Переключение очередности хода"],
+            log: [...prev.log, "[DEV] РџРµСЂРµРєР»СЋС‡РµРЅРёРµ РѕС‡РµСЂРµРґРЅРѕСЃС‚Рё С…РѕРґР°"],
           }));
         }}
         onAddKill={() => {
           setGameState((prev) => ({
             ...prev,
             killCount: prev.killCount + 1,
-            log: [...prev.log, `[DEV] +1 Убийство (всего: ${prev.killCount + 1})`],
+            log: [...prev.log, `[DEV] +1 РЈР±РёР№СЃС‚РІРѕ (РІСЃРµРіРѕ: ${prev.killCount + 1})`],
           }));
         }}
         onTriggerIntro={() => {
@@ -469,7 +501,7 @@ export default function App() {
           setOpponentDisconnectedNotice(true);
         }}
         onTriggerDisguiseModal={() => {
-          setGameState((prev) => ({ ...prev, disguisedNotification: { roleName: "Бандит", newSecretId: prev.board[0][0].id } }));
+          setGameState((prev) => ({ ...prev, disguisedNotification: { roleName: "Р‘Р°РЅРґРёС‚", newSecretId: prev.board[0][0].id } }));
         }}
         onTriggerCaughtSpyModal={() => {
           setGameState((prev) => ({ ...prev, justCaughtSpyId: prev.spies?.[0]?.id || "p1" }));
@@ -508,17 +540,17 @@ export default function App() {
             onCancelMatch={handleExitToMenu}
             role1Name={
               gameState.mode === "SECRET_SERVICE"
-                ? (gameState.opponent === "PVP" ? "Фантом" : (gameState.spies?.[0]?.name || "Агент 1"))
+                ? (gameState.opponent === "PVP" ? "Р¤Р°РЅС‚РѕРј" : (gameState.spies?.[0]?.name || "РђРіРµРЅС‚ 1"))
                 : partyService.isHost
-                  ? profile.nickname || "Бандит"
-                  : "Бандит"
+                  ? profile.nickname || "Р‘Р°РЅРґРёС‚"
+                  : "Р‘Р°РЅРґРёС‚"
             }
             role2Name={
               gameState.mode === "SECRET_SERVICE"
-                ? (gameState.opponent === "PVP" ? "Призрак" : (gameState.spies?.[1]?.name || "Агент 2"))
+                ? (gameState.opponent === "PVP" ? "РџСЂРёР·СЂР°Рє" : (gameState.spies?.[1]?.name || "РђРіРµРЅС‚ 2"))
                 : !partyService.isHost
-                  ? profile.nickname || "Инспектор"
-                  : "Инспектор"
+                  ? profile.nickname || "РРЅСЃРїРµРєС‚РѕСЂ"
+                  : "РРЅСЃРїРµРєС‚РѕСЂ"
             }
             killer={
               gameState.mode === "SECRET_SERVICE"
@@ -559,125 +591,15 @@ export default function App() {
           />
         )}
 
-        {!isLobbyOpen && hasStartedEver && gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) && isDetectiveView && isDetectiveTurn && !gameState.winner && !isIntroPhase && (
-          <div className="fixed inset-0 z-40 flex flex-col items-center justify-end sm:justify-center p-4 select-none pointer-events-none overflow-hidden pt-16">
-            {gameState.opponent === "PVP" && !isInspectorPassConfirmed ? (
-              <div className="absolute inset-0 bg-[#080a0f]/95 backdrop-blur-xl flex items-center justify-center p-4 pointer-events-auto">
-                <div className="w-full max-w-sm bg-zinc-950 border border-white/10 rounded-3xl p-6 text-center shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-full bg-blue-950/50 border border-blue-500/50 flex items-center justify-center text-blue-400 font-black text-2xl mb-6 shadow-[0_0_20px_rgba(59,130,246,0.25)]">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  </div>
-                  <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">
-                    Секретные данные
-                  </span>
-                  <h2 className="text-xl font-black text-zinc-100 uppercase tracking-wider mb-2">
-                    Передайте экран Инспектору
-                  </h2>
-                  <p className="text-[10px] font-mono text-zinc-500 mb-6 uppercase tracking-widest leading-relaxed">
-                    Убедитесь, что Бандит не смотрит на экран перед выбором личности.
-                  </p>
-                  <button
-                    onClick={() => setIsInspectorPassConfirmed(true)}
-                    className="w-full h-14 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 hover:from-blue-600 hover:to-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer shadow-[0_0_20px_rgba(59,130,246,0.45)] flex items-center justify-center gap-2 shrink-0"
-                  >
-                    <span>Я держу телефон один</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div 
-                  className={`absolute inset-0 bg-black/35 transition-opacity duration-500 ease-out pointer-events-auto ${isChoiceSheetMinimized ? "opacity-0 pointer-events-none" : "opacity-100"}`} 
-                  onClick={() => setIsChoiceSheetMinimized(true)} 
-                />
-                
-                <div className={`absolute bottom-8 transition-all duration-500 ease-out transform pointer-events-auto flex items-center gap-2 ${isChoiceSheetMinimized ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none"}`}>
-                  <button
-                    onClick={() => setIsChoiceSheetMinimized(false)}
-                    className="h-12 px-5 bg-zinc-950/90 backdrop-blur-md border border-blue-500/30 rounded-full shadow-[0_0_30px_rgba(0,0,0,0.8)] flex items-center justify-center gap-2 text-blue-400 font-black uppercase tracking-widest text-[10px] hover:bg-zinc-900 transition"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                    <span>Выбор личности</span>
-                  </button>
-                  {selectedInspectorChoiceId && (
-                    <button
-                      onClick={() => {
-                        handleSelectInspectorRole(selectedInspectorChoiceId);
-                        setSelectedInspectorChoiceId(null);
-                        setIsChoiceSheetMinimized(false);
-                        setIsInspectorPassConfirmed(false);
-                      }}
-                      className="h-12 px-5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white font-black uppercase tracking-widest text-[10px] rounded-full shadow-[0_0_20px_rgba(59,130,246,0.45)] border-t border-white/25 flex items-center justify-center gap-1.5 transition active:scale-95"
-                    >
-                      <span>Подтвердить</span>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </button>
-                  )}
-                </div>
-
-                <div className={`relative w-full max-w-md bg-zinc-950/60 backdrop-blur-md border border-blue-500/30 rounded-3xl p-5 sm:p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col text-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform pointer-events-auto ${isChoiceSheetMinimized ? "translate-y-[110%] opacity-0" : "translate-y-0 opacity-100"}`}>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">
-                      Оперативное назначение
-                    </span>
-                    <button
-                      onClick={() => setIsChoiceSheetMinimized(true)}
-                      className="text-[9px] font-black text-zinc-400 hover:text-white uppercase tracking-widest flex items-center gap-1.5 bg-zinc-900 px-2.5 py-1.5 rounded-lg border border-white/5 transition"
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                      Осмотреть поле
-                    </button>
-                  </div>
-                  <h2 className="text-xl font-black text-zinc-100 uppercase tracking-wider mb-2">
-                    Выберите тайную личность (1 из 4)
-                  </h2>
-                  <p className="text-[10px] font-mono text-zinc-500 mb-6 uppercase tracking-widest">
-                    Остальные 3 карты составят ваше досье алиби.
-                  </p>
-                  <div className="grid grid-cols-2 gap-3 w-full mb-6">
-                    {inspectorChoices.map((char) => {
-                      const isSelected = selectedInspectorChoiceId === char.id;
-                      return (
-                        <div
-                          key={char.id}
-                          onClick={() => setSelectedInspectorChoiceId(char.id)}
-                          className={`relative flex flex-col justify-between p-4 rounded-2xl border text-left cursor-pointer transition select-none min-h-[105px] overflow-hidden ${
-                            isSelected
-                              ? "bg-blue-950/40 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.35)] scale-[1.02]"
-                              : "bg-zinc-900/50 border-white/5 hover:border-white/20 text-zinc-400"
-                          }`}
-                        >
-                          <div className="relative z-10 flex items-center justify-between text-[9px] font-mono text-zinc-500">
-                            <span>#{char.id.replace("c", "").padStart(2, "0")}</span>
-                            {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.9)]" />}
-                          </div>
-                          <div className={`relative z-10 text-xs font-black uppercase tracking-wider mt-3 ${isSelected ? "text-blue-100" : "text-zinc-200"}`}>
-                            {char.name}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <button
-                    onClick={() => {
-                      if (selectedInspectorChoiceId) {
-                        handleSelectInspectorRole(selectedInspectorChoiceId);
-                        setSelectedInspectorChoiceId(null);
-                        setIsChoiceSheetMinimized(false);
-                        setIsInspectorPassConfirmed(false);
-                      }
-                    }}
-                    disabled={!selectedInspectorChoiceId || !inspectorChoices.some((c) => c.id === selectedInspectorChoiceId)}
-                    className="w-full h-14 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 hover:from-blue-600 hover:to-blue-500 disabled:from-zinc-800 disabled:to-zinc-900 disabled:text-zinc-600 disabled:shadow-none text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer disabled:cursor-not-allowed shadow-[0_0_20px_rgba(59,130,246,0.45)] flex items-center justify-center gap-2 shrink-0"
-                  >
-                    <span>Подтвердить личность</span>
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        )}
+        <InspectorChoiceModal
+          isOpen={!isLobbyOpen && hasStartedEver && gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) && isDetectiveView && isDetectiveTurn && !gameState.winner && !isIntroPhase}
+          isPVP={gameState.opponent === "PVP"}
+          inspectorChoices={inspectorChoices}
+          characterImages={characterImages}
+          onSelectInspectorRole={handleSelectInspectorRole}
+          selectedId={selectedInspectorChoiceId}
+          onSelectId={setSelectedInspectorChoiceId}
+        />
 
         {!isLobbyOpen && !isIntroPhase && hasStartedEver && gameState.opponent !== undefined && (
         <>
@@ -686,7 +608,7 @@ export default function App() {
             <button
               onClick={() => setIsPauseOpen(true)}
               className="w-8 h-8 md:w-11 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer"
-              title="Пауза и меню"
+              title="РџР°СѓР·Р° Рё РјРµРЅСЋ"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
                 <rect x="6" y="4" width="4" height="16"/>
@@ -696,7 +618,7 @@ export default function App() {
             <button
               onClick={() => setIsNotebookOpen(true)}
               className="w-8 h-8 md:w-11 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer"
-              title="Блокнот подозреваемых"
+              title="Р‘Р»РѕРєРЅРѕС‚ РїРѕРґРѕР·СЂРµРІР°РµРјС‹С…"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
@@ -709,7 +631,7 @@ export default function App() {
                 setUnreadLogCount(0);
               }}
               className="relative w-8 h-8 md:w-11 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer lg:hidden"
-              title="Блокнот расследования"
+              title="Р‘Р»РѕРєРЅРѕС‚ СЂР°СЃСЃР»РµРґРѕРІР°РЅРёСЏ"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -740,8 +662,8 @@ export default function App() {
               <span className="whitespace-nowrap">
                 {gameState.opponent === "ONLINE"
                   ? isHumanTurn
-                    ? "Ваш ход"
-                    : "Ход врага"
+                    ? "Р’Р°С€ С…РѕРґ"
+                    : "РҐРѕРґ РІСЂР°РіР°"
                   : currentRoleName}
               </span>
             </div>
@@ -755,7 +677,7 @@ export default function App() {
               onClick={handleReset}
               className="px-3 h-7 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center text-[10px] md:text-sm font-bold cursor-pointer shrink-0"
             >
-              Заново
+              Р—Р°РЅРѕРІРѕ
             </button>
           </div>
         </header>
@@ -765,7 +687,7 @@ export default function App() {
         {!isOpponentConnected && !opponentDisconnectedNotice && gameState.opponent === "ONLINE" && (
           <div className="w-full bg-zinc-900 border-b border-zinc-700 text-zinc-300 text-[10px] font-black uppercase tracking-widest py-2 flex justify-center items-center gap-2 shadow-inner z-20">
             <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-ping" />
-            Соперник переподключается... (ожидание)
+            РЎРѕРїРµСЂРЅРёРє РїРµСЂРµРїРѕРґРєР»СЋС‡Р°РµС‚СЃСЏ... (РѕР¶РёРґР°РЅРёРµ)
           </div>
         )}
 
@@ -794,40 +716,40 @@ export default function App() {
             </div>
           ) : gameState.mode === "LINE_UP" ? (
             <div className="flex items-center gap-3">
-              <span className="text-red-400 font-bold">Штрафы:</span>
-              <span>Следствие: <b className="text-zinc-200">{gameState.duelPenalties?.DETECTIVE ?? 0}</b></span>
-              <span>Подозреваемый: <b className="text-zinc-200">{gameState.duelPenalties?.KILLER ?? 0}</b></span>
-              <span className="ml-2">| Вопросов: {(gameState.duelHistory || []).length}</span>
+              <span className="text-red-400 font-bold">РЁС‚СЂР°С„С‹:</span>
+              <span>РЎР»РµРґСЃС‚РІРёРµ: <b className="text-zinc-200">{gameState.duelPenalties?.DETECTIVE ?? 0}</b></span>
+              <span>РџРѕРґРѕР·СЂРµРІР°РµРјС‹Р№: <b className="text-zinc-200">{gameState.duelPenalties?.KILLER ?? 0}</b></span>
+              <span className="ml-2">| Р’РѕРїСЂРѕСЃРѕРІ: {(gameState.duelHistory || []).length}</span>
             </div>
           ) : gameState.mode === "THIEF_HUNT" ? (
             <div className="flex items-center gap-1.5">
-              <span>Добыча:</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-zinc-300 shrink-0">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
-              </svg>
-              <b className="text-zinc-200 font-bold">
-                {gameState.trophiesKiller ?? 0}/5
-              </b>
-              <span className="ml-1">| Улики: {gameState.evidenceDeck.length}</span>
+              <span>Р”РѕР±С‹С‡Р°:</span>
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-amber-400 shrink-0">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
+                </svg>
+                                <b className="text-amber-300 font-bold">
+                  {gameState.trophiesKiller ?? 0}/10
+                </b>
+              <span className="ml-1">| РЈР»РёРєРё: {gameState.evidenceDeck.length}</span>
             </div>
           ) : (
             <div className="flex items-center flex-wrap gap-x-1">
-              <span>Жертвы:</span>
+              <span>Р–РµСЂС‚РІС‹:</span>
               <b className="text-red-400">
                 {gameState.killCount}/{gameState.mode === "MANIAC_VS_OPERATIVE" ? 4 : 14}
               </b>
-              <span className="ml-1">| Улики: {gameState.evidenceDeck.length}</span>
+              <span className="ml-1">| РЈР»РёРєРё: {gameState.evidenceDeck.length}</span>
             </div>
           )}
           <div className="flex items-center gap-1.5 text-zinc-500 font-medium">
-            <span className="hidden md:inline">Режим:</span>
+            <span className="hidden md:inline">Р РµР¶РёРј:</span>
             <span>
               {gameState.opponent === "ONLINE"
-                ? "онлайн"
+                ? "РѕРЅР»Р°Р№РЅ"
                 : gameState.opponent === "AI"
-                  ? "против бота"
-                  : "вдвоем"}
+                  ? "РїСЂРѕС‚РёРІ Р±РѕС‚Р°"
+                  : "РІРґРІРѕРµРј"}
             </span>
           </div>
         </div>
@@ -839,19 +761,19 @@ export default function App() {
             >
               <span className="font-semibold truncate mr-2">
                 {gameState.lastInterrogation.interrogator === "DETECTIVE"
-                  ? `Алиби (${gameState.lastInterrogation.targetName}): враг рядом?`
-                  : `Жертва (${gameState.lastInterrogation.targetName}): законник рядом?`}
+                  ? `РђР»РёР±Рё (${gameState.lastInterrogation.targetName}): РІСЂР°Рі СЂСЏРґРѕРј?`
+                  : `Р–РµСЂС‚РІР° (${gameState.lastInterrogation.targetName}): Р·Р°РєРѕРЅРЅРёРє СЂСЏРґРѕРј?`}
               </span>
               <span
                 className={`shrink-0 px-2 py-0.5 rounded text-[9px] md:text-xs font-black uppercase border ${gameState.lastInterrogation.isNear ? "bg-red-900 text-red-100 border-red-500 animate-pulse" : "bg-blue-950 text-blue-300 border-blue-700"}`}
               >
-                {gameState.lastInterrogation.isNear ? "Враг рядом" : "Вне зоны"}
+                {gameState.lastInterrogation.isNear ? "Р’СЂР°Рі СЂСЏРґРѕРј" : "Р’РЅРµ Р·РѕРЅС‹"}
               </span>
             </div>
           ) : gameState.lastSpyInterrogation && !gameState.winner ? (
             <div className="w-full h-full px-2.5 rounded-lg border border-zinc-800 bg-zinc-900/90 flex items-center justify-between text-[10px] md:text-sm shadow-sm">
               <span className="font-bold text-zinc-300 truncate mr-2">
-                Допрос:{" "}
+                Р”РѕРїСЂРѕСЃ:{" "}
                 <b className="text-zinc-100">
                   {gameState.lastSpyInterrogation.targetName}
                 </b>
@@ -867,8 +789,8 @@ export default function App() {
                       key={spy.id}
                       className={`px-1.5 py-0.5 rounded text-[8.5px] md:text-[10px] font-black uppercase border ${hasContact ? "bg-red-950 text-red-400 border-red-700 animate-pulse" : "bg-zinc-950 text-zinc-500 border-zinc-800"}`}
                     >
-                      {spy.name.replace("Агент «", "").replace("»", "")}:{" "}
-                      {hasContact ? "РЯДОМ" : "НЕТ"}
+                      {spy.name.replace("РђРіРµРЅС‚ В«", "").replace("В»", "")}:{" "}
+                      {hasContact ? "Р РЇР”РћРњ" : "РќР•Рў"}
                     </span>
                   );
                 })}
@@ -878,7 +800,7 @@ export default function App() {
             <div className="w-full h-full px-2.5 rounded-lg border border-red-900/60 bg-red-950/40 flex items-center justify-between text-[10px] md:text-sm shadow-sm">
               <div className="flex items-center gap-1.5 min-w-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
-                <span className="text-red-400 font-bold uppercase tracking-wider shrink-0 text-[9px] md:text-xs">Цель:</span>
+                <span className="text-red-400 font-bold uppercase tracking-wider shrink-0 text-[9px] md:text-xs">Р¦РµР»СЊ:</span>
                 <span className="text-zinc-100 font-black truncate">
                   {allChars.find((c) => c.id === gameState.victimList[0])?.name ?? gameState.victimList[0]}
                 </span>
@@ -887,19 +809,19 @@ export default function App() {
                 </span>
               </div>
               <div className="shrink-0 font-mono text-[9px] sm:text-[10px] md:text-xs text-zinc-400 uppercase ml-2 flex items-center gap-1">
-                <span>В очереди:</span> <b className="text-red-400">{gameState.victimList.length}</b>
+                <span>Р’ РѕС‡РµСЂРµРґРё:</span> <b className="text-red-400">{gameState.victimList.length}</b>
               </div>
             </div>
           ) : (
             <div className="w-full h-full px-2.5 rounded-lg border border-dashed border-zinc-900 flex items-center justify-center text-[10px] md:text-sm text-zinc-600 font-mono">
-              Оперативные показания: ожидание допроса
+              РћРїРµСЂР°С‚РёРІРЅС‹Рµ РїРѕРєР°Р·Р°РЅРёСЏ: РѕР¶РёРґР°РЅРёРµ РґРѕРїСЂРѕСЃР°
             </div>
           )}
         </div>
 
         {!isLobbyOpen && hasStartedEver && (
         <div className="flex-1 min-h-0 w-full flex flex-col landscape:flex-row items-center justify-start landscape:justify-between gap-2 md:gap-6 lg:gap-8 px-2 sm:px-4 md:px-6 py-1 md:py-4 overflow-hidden custom-scrollbar">
-          <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-3xl landscape:max-w-none flex flex-col items-center justify-center py-1 sm:py-2 landscape:py-0">
+          <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-2xl landscape:max-w-none flex flex-col items-center justify-center py-1 sm:py-2 landscape:py-0">
             <div className="w-full h-full flex-1 min-h-0 flex items-center justify-center overflow-hidden relative antialiased">
               <GameBoard
                 mode={gameState.mode}
@@ -976,13 +898,13 @@ export default function App() {
 
             <div className="w-full max-w-md md:max-w-xl h-8 sm:h-9 my-1 px-3 bg-zinc-900/90 border border-zinc-800 rounded-lg text-[10px] sm:text-xs font-mono text-zinc-300 text-center shadow-sm shrink-0 flex items-center justify-center overflow-hidden">
               <span className="truncate w-full">
-                {gameState.log.length > 0 ? gameState.log[gameState.log.length - 1] : "Операция в процессе..."}
+                {gameState.log.length > 0 ? gameState.log[gameState.log.length - 1] : "РћРїРµСЂР°С†РёСЏ РІ РїСЂРѕС†РµСЃСЃРµ..."}
               </span>
             </div>
 
             <div className="flex flex-col gap-2 w-full lg:bg-zinc-900/50 lg:border lg:border-zinc-800 lg:p-4 lg:rounded-2xl">
               <div className="hidden md:block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
-                Действия ({actionPanelRoleName})
+                Р”РµР№СЃС‚РІРёСЏ ({actionPanelRoleName})
               </div>
               <div className="grid grid-cols-2 landscape:grid-cols-1 gap-2 w-full">
                 {targetActions.map((action) => (
@@ -1021,18 +943,26 @@ export default function App() {
                   <button
                     onClick={cleanupAction.onClick}
                     disabled={cleanupAction.disabled}
-                    className="col-span-2 py-1.5 sm:py-2 md:py-3.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-300 hover:text-zinc-200 text-[9px] sm:text-[10px] md:text-xs font-bold uppercase rounded-xl border border-zinc-700/80 transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                    className="col-span-2 py-2 sm:py-2.5 md:py-3 bg-gradient-to-r from-red-950 via-zinc-900 to-red-950 hover:from-red-900 hover:via-zinc-800 hover:to-red-900 disabled:opacity-40 text-red-200 hover:text-white text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider rounded-xl border border-red-600/70 transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.35)] active:scale-[0.98]"
                   >
-                    <span>Зачистить</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-red-400 shrink-0">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M9 10h.01M15 10h.01M10 15h4" />
+                    </svg>
+                    <span>Р—Р°С‡РёСЃС‚РёС‚СЊ</span>
                   </button>
                 )}
 
                 {((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView) && (
                   <button
                     onClick={() => setIsHandSheetOpen(true)}
-                    className="col-span-2 py-1.5 sm:py-2 md:py-3.5 bg-zinc-800 hover:bg-zinc-700 text-blue-400 border border-zinc-700 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="col-span-2 py-2 sm:py-2.5 md:py-3 bg-gradient-to-r from-[#2c2014] via-[#1a1612] to-[#2c2014] hover:from-[#3a2b1c] hover:via-[#26201a] hover:to-[#3a2b1c] text-amber-200 hover:text-amber-100 border border-amber-600/70 rounded-xl text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(217,119,6,0.25)] transition-all active:scale-[0.98]"
                   >
-                    <span>Досье ({gameState.detectiveHand.length})</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-amber-400 shrink-0">
+                      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a2.5 2.5 0 0 1-2.5-2.5z" />
+                      <path d="M6 6h10M6 10h10M6 14h6" />
+                    </svg>
+                    <span>Р”РѕСЃСЊРµ ({gameState.detectiveHand.length})</span>
                   </button>
                 )}
               </div>
@@ -1041,9 +971,9 @@ export default function App() {
             <div className="hidden landscape:lg:flex flex-col flex-1 min-h-0 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3 shrink-0">
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                  Протокол событий ({gameState.log.length})
+                  РџСЂРѕС‚РѕРєРѕР» СЃРѕР±С‹С‚РёР№ ({gameState.log.length})
                 </span>
-                <span className="text-xs">📋</span>
+                <span className="text-xs">рџ“‹</span>
               </div>
               <div
                 ref={logContainerRef}
@@ -1051,7 +981,7 @@ export default function App() {
               >
                 {gameState.log.map((entry, idx) => (
                   <div key={idx} className="leading-relaxed break-words">
-                    • {entry}
+                    вЂў {entry}
                   </div>
                 ))}
               </div>
@@ -1071,14 +1001,14 @@ export default function App() {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-black text-zinc-100 uppercase tracking-wider">
                   {gameState.mode === "THIEF_HUNT"
-                    ? "Маски вора"
-                    : "Досье доказательств (Алиби)"}
+                    ? "РњР°СЃРєРё РІРѕСЂР°"
+                    : "Р”РѕСЃСЊРµ РґРѕРєР°Р·Р°С‚РµР»СЊСЃС‚РІ (РђР»РёР±Рё)"}
                 </h3>
                 <button
                   onClick={() => setIsHandSheetOpen(false)}
                   className="w-7 h-7 rounded-full bg-zinc-800 text-zinc-400 font-bold flex items-center justify-center text-xs"
                 >
-                  ✕
+                  вњ•
                 </button>
               </div>
 
@@ -1127,16 +1057,16 @@ export default function App() {
               <div className="w-12 h-1 bg-zinc-700 rounded-full mx-auto mb-3" />
               <div className="flex items-center justify-between border-b border-zinc-800 pb-2 mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-base">📋</span>
+                  <span className="text-base">рџ“‹</span>
                   <h3 className="text-sm font-black text-zinc-100 uppercase tracking-wider">
-                    Блокнот расследования ({gameState.log.length})
+                    Р‘Р»РѕРєРЅРѕС‚ СЂР°СЃСЃР»РµРґРѕРІР°РЅРёСЏ ({gameState.log.length})
                   </h3>
                 </div>
                 <button
                   onClick={() => setIsLogOpen(false)}
                   className="w-7 h-7 rounded-full bg-zinc-800 text-zinc-400 font-bold flex items-center justify-center text-xs"
                 >
-                  ✕
+                  вњ•
                 </button>
               </div>
 
@@ -1148,7 +1078,7 @@ export default function App() {
                     key={idx}
                     className="p-2 rounded-lg bg-zinc-950 border border-zinc-800/80 leading-relaxed"
                   >
-                    • {entry}
+                    вЂў {entry}
                   </div>
                 ))}
               </div>
@@ -1166,9 +1096,9 @@ export default function App() {
               : gameState.justCaughtSpyId === gameState.spies?.[1]?.id)) && (
             <IdentityRevealModal
               isOpen={true}
-              badge="Агент разоблачен!"
+              badge="РђРіРµРЅС‚ СЂР°Р·РѕР±Р»Р°С‡РµРЅ!"
               badgeColor="red"
-              title="Шпионская маскировка провалена. Ваша новая личность:"
+              title="РЁРїРёРѕРЅСЃРєР°СЏ РјР°СЃРєРёСЂРѕРІРєР° РїСЂРѕРІР°Р»РµРЅР°. Р’Р°С€Р° РЅРѕРІР°СЏ Р»РёС‡РЅРѕСЃС‚СЊ:"
               character={allChars.find(c => c.id === gameState.spies?.find(s => s.id === gameState.justCaughtSpyId)?.secretId) ?? null}
               characterImage={(() => { const character = allChars.find(c => c.id === gameState.spies?.find(s => s.id === gameState.justCaughtSpyId)?.secretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}
               isPvpPassPhase={!isRevealConfirmed && gameState.opponent === "PVP"}
@@ -1185,9 +1115,9 @@ export default function App() {
           (gameState.opponent !== "ONLINE" || gameState.playerRole === "KILLER") && (
             <IdentityRevealModal
               isOpen={true}
-              badge="Смена личности!"
+              badge="РЎРјРµРЅР° Р»РёС‡РЅРѕСЃС‚Рё!"
               badgeColor={gameState.mode === "THIEF_HUNT" ? "amber" : "red"}
-              title="Ваша новая личность:"
+              title="Р’Р°С€Р° РЅРѕРІР°СЏ Р»РёС‡РЅРѕСЃС‚СЊ:"
               character={allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId) ?? null}
               characterImage={(() => { const character = allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}
               isPvpPassPhase={!isRevealConfirmed && gameState.opponent === "PVP"}
@@ -1208,9 +1138,13 @@ export default function App() {
             onRestart={handleReset}
             onExitToMenu={handleExitToMenu}
             playerRole={gameState.opponent === "PVP" ? undefined : gameState.playerRole}
+            isMultiplayer={gameState.opponent === "ONLINE"}
+            onRematchSwap={() => requestRematch("SWAP")}
+            onRematchRandom={() => requestRematch("RANDOM")}
           />
         )}
       </div>
     </div>
   );
 }
+

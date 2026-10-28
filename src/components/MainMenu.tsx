@@ -7,6 +7,8 @@ import { soundManager } from "../utils/audio";
 import { Toast } from "./Toast";
 import { TutorialScreen } from "./TutorialScreen";
 import { BiometricSlider } from "./BiometricSlider";
+import { TablesScreen } from "./TablesScreen";
+import { ProfileScreen } from "./ProfileScreen";
 
 declare const __BUILD_TIMESTAMP__: string;
 import { useTranslation } from "../i18n/context";
@@ -274,6 +276,8 @@ export const MainMenu = ({
       })
     );
 
+    onStartGame(mode, "ONLINE", isHost ? "KILLER" : "DETECTIVE", 2, 3, 0, _bet);
+
     partyService.connect(cleanCode, profile.nickname || "Агент", isHost, mode);
   };
   
@@ -466,7 +470,7 @@ export const MainMenu = ({
             <button
               key={mode.id}
               onClick={() => { setSelectedMode(mode.id); setScreen('MODE_DETAIL'); }}
-              className="w-full bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl p-4 md:p-5 flex flex-col justify-between hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] transition text-left shadow-[0_4px_20px_rgba(0,0,0,0.4)] cursor-pointer group active:scale-[0.99]"
+              className="w-full bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl p-4 md:p-5 flex flex-col justify-between hover:border-zinc-500/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.08)] transition text-left shadow-[0_4px_20px_rgba(0,0,0,0.4)] cursor-pointer group active:scale-[0.99]"
             >
               <div>
                 <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-center text-zinc-500 mb-3 shadow-inner group-hover:text-amber-400 transition-colors">
@@ -560,7 +564,7 @@ export const MainMenu = ({
               <div className="flex gap-3 mb-5">
                 <button
                   onClick={() => setSelectedRole('DETECTIVE')}
-                  className={`flex-1 py-3 rounded-xl border text-[10px] md:text-xs font-black uppercase tracking-widest transition cursor-pointer ${selectedRole === 'DETECTIVE' ? 'bg-amber-950/40 border-amber-500/60 text-amber-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]' : 'bg-zinc-900/60 border-white/[0.08] text-zinc-500'}`}
+                  className={`flex-1 py-3 rounded-xl border text-[10px] md:text-xs font-black uppercase tracking-widest transition cursor-pointer ${selectedRole === 'DETECTIVE' ? 'bg-blue-950/40 border-blue-500/60 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-zinc-900/60 border-white/[0.08] text-zinc-500'}`}
                 >
                   {activeModeData.detectiveRoleName}
                 </button>
@@ -585,19 +589,25 @@ export const MainMenu = ({
                   </span>
                 </div>
                 <div className="grid grid-cols-6 gap-1.5 mb-2">
-                  {[2, 3, 4, 5, 6].map((num) => (
-                    <button
-                      key={num}
-                      onClick={() => setPlayerCount(num)}
-                      className={`py-2.5 rounded-xl border text-[11px] font-black uppercase transition cursor-pointer ${
-                        playerCount === num
-                          ? "bg-zinc-800 border-zinc-400 text-white shadow-md scale-[1.02]"
-                          : "bg-zinc-900/60 border-white/[0.08] text-zinc-500 hover:text-zinc-300"
-                      }`}
-                    >
-                      {num}
-                    </button>
-                  ))}
+                  {[2, 3, 4, 5, 6].map((num) => {
+                    const isPvpDisabled = selectedOpponent === "PVP" && num > 2;
+                    return (
+                      <button
+                        key={num}
+                        disabled={isPvpDisabled}
+                        onClick={() => !isPvpDisabled && setPlayerCount(num)}
+                        className={`py-2.5 rounded-xl border text-[11px] font-black uppercase transition cursor-pointer ${
+                          playerCount === num
+                            ? "bg-zinc-800 border-zinc-400 text-white shadow-md scale-[1.02]"
+                            : isPvpDisabled
+                              ? "bg-zinc-950/40 border-white/[0.04] text-zinc-700 cursor-not-allowed opacity-40"
+                              : "bg-zinc-900/60 border-white/[0.08] text-zinc-500 hover:text-zinc-300"
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    );
+                  })}
                   <div
                     title="Сетка 7×7 (49 карт) доступна только в ТВ-режиме"
                     className="py-2.5 rounded-xl border border-white/[0.04] bg-zinc-950/40 text-zinc-600 flex flex-col items-center justify-center cursor-not-allowed select-none opacity-50 relative group"
@@ -624,7 +634,9 @@ export const MainMenu = ({
                 setCreateRoomMode(selectedMode);
                 setIsCreateRoomOpen(true);
               } else {
-                onStartGame(selectedMode, selectedOpponent, selectedRole, playerCount, selectedMode === "SECRET_SERVICE" ? 4 : 3, 0, 0);
+                const effectiveCount = (selectedMode === "SECRET_SERVICE" && selectedOpponent === "PVP") ? 2 : playerCount;
+                const targetTrophies = selectedMode === "SECRET_SERVICE" ? (effectiveCount === 2 ? 2 : effectiveCount === 3 ? 4 : 3) : 3;
+                onStartGame(selectedMode, selectedOpponent, selectedRole, effectiveCount, targetTrophies, 0, 0);
               }
             }}
             className="w-full h-14 md:h-16 rounded-full bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white font-black tracking-widest uppercase flex items-center justify-center gap-3 border-t border-red-400/50 shadow-[0_10px_25px_rgba(220,38,38,0.5),inset_0_1px_2px_rgba(255,255,255,0.4)] hover:brightness-110 active:scale-[0.98] transition cursor-pointer md:text-sm"
@@ -638,6 +650,21 @@ export const MainMenu = ({
   );
 
   const renderTables = () => (
+    <TablesScreen
+      roomFilter={roomFilter}
+      setRoomFilter={setRoomFilter}
+      filteredRooms={filteredRooms}
+      joinCode={joinCode}
+      setJoinCode={setJoinCode}
+      handleJoinRoom={handleJoinRoom}
+      setIsCreateRoomOpen={setIsCreateRoomOpen}
+      ROOM_FILTERS={ROOM_FILTERS}
+      GAME_MODES={GAME_MODES}
+      soundManager={soundManager}
+    />
+  );
+
+  const _deprecatedTables = () => false && (
     <div className="flex-1 min-h-0 flex flex-col bg-[#080a0f] overflow-hidden">
       <div className="flex items-center justify-between px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-[#080a0f]">
         <div className="flex flex-col">
@@ -674,7 +701,7 @@ export const MainMenu = ({
           <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-white/[0.08] rounded-3xl bg-zinc-900/30 shadow-inner my-auto">
             <div className="relative mb-4 text-zinc-600">
               <Icons.Radar />
-              <div className="absolute inset-0 rounded-full border border-amber-500/30 animate-ping pointer-events-none" />
+              <div className="absolute inset-0 rounded-full border border-zinc-500/30 animate-ping pointer-events-none" />
             </div>
             <span className="text-xs font-black tracking-widest text-zinc-200 uppercase mb-1">
               Сканирование закрытых частот...
@@ -756,6 +783,14 @@ export const MainMenu = ({
   );
 
   const renderProfile = () => (
+    <ProfileScreen
+      profile={profile}
+      onUpdateProfile={onUpdateProfile || (() => {})}
+      onOpenSettings={() => setIsSettingsOpen(true)}
+    />
+  );
+
+  const _deprecatedProfile = () => false && (
     <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden">
       <div className="flex items-center px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-4 shrink-0 border-b border-white/10 bg-[#080a0f]">
         <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase">Досье Агента</h2>
@@ -839,7 +874,7 @@ export const MainMenu = ({
           {localStorage.getItem("crime_city_tutorial") ? (
              <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest px-2 py-1 bg-emerald-950/30 rounded border border-emerald-900/50">Пройдено</span>
           ) : (
-             <button onClick={() => { setScreen('HOME'); setIsTutorialOpen(true); }} className="text-[9px] font-black text-amber-400 hover:text-amber-300 uppercase tracking-widest px-3 py-1.5 bg-amber-950/50 rounded border border-amber-900/50 transition cursor-pointer">Начать</button>
+             <button onClick={() => { setScreen('HOME'); setIsTutorialOpen(true); }} className="text-[9px] font-black text-zinc-200 hover:text-white uppercase tracking-widest px-3 py-1.5 bg-zinc-800/80 hover:bg-zinc-700 rounded border border-white/10 transition cursor-pointer">Начать</button>
           )}
         </div>
       </div>
@@ -868,6 +903,9 @@ export const MainMenu = ({
       default: return renderHome();
     }
   };
+
+  void _deprecatedTables;
+  void _deprecatedProfile;
 
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 

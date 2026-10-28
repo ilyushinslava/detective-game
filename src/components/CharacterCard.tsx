@@ -138,13 +138,15 @@ export const CharacterCard = memo(
 
     return (
       <motion.div
+        layout
+        layoutId={`card-${character.id}`}
         onClick={onClick}
         animate={
           isError
             ? { rotate: [-4, 4, -4, 4, 0], scale: [1, 1.05, 0.95, 1] }
             : {}
         }
-        transition={{ duration: 0.4 }}
+        transition={{ layout: { duration: 0.35, ease: "easeInOut" }, duration: 0.2 }}
         className={`relative w-full aspect-square rounded-md sm:rounded-xl p-0.5 sm:p-1.5 flex flex-col justify-between border select-none transition-colors duration-150 cursor-pointer overflow-hidden ${
           isError
             ? "bg-zinc-800/90 border-zinc-500 ring-2 ring-zinc-500/50 shadow-[0_0_12px_rgba(113,113,122,0.4)] z-30"
@@ -161,7 +163,7 @@ export const CharacterCard = memo(
           const hasRadar = Boolean(isRadarCenter || radarRingColor);
           const hasNeighbor = Boolean(neighborHighlightColor);
           const selectionEffect = isSelected
-            ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-950 shadow-[0_0_15px_rgba(255,255,255,0.85)] z-30 scale-95 transition-all"
+            ? "ring-2 ring-white ring-inset shadow-[0_0_15px_rgba(255,255,255,0.7)] z-20 scale-[0.97] transition-transform"
             : "";
 
           if (hasRadar && isSelected) {
@@ -246,19 +248,27 @@ export const CharacterCard = memo(
             {isRadarCenter && !isDead && (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-blue-400 animate-pulse drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]"><path d="M12 20v-8"/><path d="M8 12a4 4 0 0 1 8 0"/><path d="M4 12a8 8 0 0 1 16 0"/></svg>
             )}
-            {character.isRobbed && (
-              <span className="flex items-center justify-center p-0.5 rounded bg-zinc-800/90 border border-zinc-500/60 shadow-[0_0_6px_rgba(255,255,255,0.15)]" title="Ограблен">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-zinc-300">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
-                </svg>
-              </span>
-            )}
+            {mode === "THIEF_HUNT" && character.isAlive && !character.isRobbed && (
+              <span className="flex items-center justify-center p-0.5 rounded bg-zinc-900/80 border border-amber-500/40 shadow-[0_0_6px_rgba(245,158,11,0.25)]" title="Ограблен">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-amber-400">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
+                  </svg>
+                </span>
+              )}
+              {character.isRobbed && (
+                <span className="flex items-center justify-center p-0.5 rounded bg-zinc-800/90 border border-zinc-500/60 shadow-[0_0_6px_rgba(255,255,255,0.15)]" title="Ограблен">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-zinc-400">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
+                  </svg>
+                </span>
+              )}
           </div>
         </div>
 
-        {isDead && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 px-1">
+                  {isDead && (
+            <div className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1">
             <div className={`transform -rotate-12 border whitespace-nowrap font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none backdrop-blur-sm text-center ${
               isSecretService || character.unmaskedSpyIndex !== undefined
                 ? "border-red-600 bg-red-950/90 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
@@ -275,25 +285,25 @@ export const CharacterCard = memo(
           </div>
         )}
 
-        {isExonerated && !isDead && !(character as any).isArrested && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 px-1">
+                  {isExonerated && !isDead && !(character as any).isArrested && (
+            <div className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1">
             <div className="transform rotate-6 border border-blue-500/80 bg-zinc-900/95 text-blue-400 whitespace-nowrap font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.3)] backdrop-blur-sm text-center">
               АЛИБИ
             </div>
           </div>
         )}
 
-        {(character as any).isArrested && !isDead && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 px-1">
+                  {(character as any).isArrested && !isDead && (
+            <div className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1">
             <div className="transform -rotate-12 border border-blue-500/80 bg-blue-950/95 text-blue-300 whitespace-nowrap font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.4)] backdrop-blur-sm text-center">
               АРЕСТОВАН
             </div>
           </div>
         )}
 
-        <div className="absolute bottom-0.5 inset-x-0.5 z-10 flex items-end justify-center pointer-events-none">
-          <span
-            className={`block w-full text-[7.5px] sm:text-[8.5px] md:text-[11px] font-bold text-zinc-200 leading-[1.05] md:leading-tight tracking-tight uppercase text-center px-1 py-0.5 rounded-sm bg-black/45 backdrop-blur-[1px] break-normal whitespace-pre-line hyphens-none ${
+                  <div className="absolute bottom-0.5 inset-x-0.5 z-10 flex items-end justify-center pointer-events-none transform-none">
+            <span
+              className={`block w-full text-[7.5px] sm:text-[8.5px] md:text-[11px] font-bold text-zinc-200 leading-[1.05] md:leading-tight tracking-tight uppercase text-center px-1 py-0.5 rounded-sm bg-black/60 backdrop-blur-[1px] transform-none break-normal whitespace-pre-line hyphens-none ${
               isDead
                 ? isSecretService
                   ? "text-red-400 line-through"

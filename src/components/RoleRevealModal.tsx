@@ -210,6 +210,13 @@ export const RoleRevealModal = ({
   }
 
   const isSoloOrOnline = opponent === "AI" || opponent === "ONLINE";
+  if (mode === "THIEF_HUNT") {
+    role1Goal = "Похитить 10 сокровищ у соседей и менять маски";
+  }
+  if (mode === "SECRET_SERVICE") {
+    role1Goal = "Собрать целевое число трофеев (2 в дуэли, 4 при 3 игроках)";
+    role2Goal = "Собрать целевое число трофеев (2 в дуэли, 4 при 3 игроках)";
+  }
 
   const [phase, setPhase] = useState<string>(() => {
     if (mode === "SECRET_SERVICE") {
@@ -222,6 +229,11 @@ export const RoleRevealModal = ({
     }
     return "KILLER_PROMPT";
   });
+
+  if (mode === "SECRET_SERVICE") {
+    role1Goal = "Собрать целевые трофеи (2 в дуэли, 4 при 3 игроках, 3 при 4+)";
+    role2Goal = "Собрать целевые трофеи (2 в дуэли, 4 при 3 игроках, 3 при 4+)";
+  }
 
   const [selectedInspectorId, setSelectedInspectorId] = useState<string | null>(null);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
@@ -479,7 +491,7 @@ export const RoleRevealModal = ({
           id: "steal",
           label: "Кража",
           icon: <Icons.Coins className="w-6 h-6 text-zinc-300" />,
-          desc: "Украсть сокровище из сейфа у себя или соседней клетки. Цель — 5 сокровищ.",
+          desc: "Украсть сокровище из сейфа у себя или соседней клетки. Цель — 10 сокровищ.",
         });
         tiles.push({
           id: "shift",

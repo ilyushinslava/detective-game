@@ -38,6 +38,9 @@ interface GameOverModalProps {
   killer?: Character | undefined;
   detective?: Character | undefined;
   elapsedTime: string;
+  isMultiplayer?: boolean;
+  onRematchSwap?: () => void;
+  onRematchRandom?: () => void;
   onRestart: () => void;
   onExitToMenu?: () => void;
   playerRole?: Role;
@@ -52,6 +55,9 @@ export const GameOverModal = ({
   onRestart,
   onExitToMenu,
   playerRole,
+  isMultiplayer,
+  onRematchSwap,
+  onRematchRandom,
 }: GameOverModalProps) => {
   let killerTitle = 'Бандит';
   let detectiveTitle = 'Инспектор';
@@ -93,7 +99,7 @@ export const GameOverModal = ({
             className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${
               isRedTheme
                 ? 'bg-red-950/80 text-red-300 border-red-700/60'
-                : 'bg-zinc-800/90 text-zinc-100 border-zinc-600'
+                : 'bg-blue-950/80 text-blue-300 border-blue-700/60'
             }`}
           >
             {roleName}
@@ -144,20 +150,37 @@ export const GameOverModal = ({
           {renderRoleCard(detective, detectiveTitle, false)}
         </div>
 
-        <button
-          onClick={onRestart}
-          className={`w-full h-14 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition shadow-lg border-t border-white/25 cursor-pointer ${
-            isVictory
-              ? 'bg-zinc-100 hover:bg-white text-zinc-950 shadow-[0_10px_25px_rgba(255,255,255,0.2)]'
-              : 'bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)]'
-          }`}
+                  {isMultiplayer && onRematchSwap && onRematchRandom ? (
+            <div className="flex flex-col gap-2.5 w-full">
+              <button
+                onClick={onRematchSwap}
+                className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-red-950 via-zinc-900 to-red-950 hover:from-red-900 hover:via-zinc-800 hover:to-red-900 text-red-100 border border-red-600/70 shadow-[0_8px_20px_rgba(220,38,38,0.35)] rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98]"
+              >
+                <span>⇄</span> РЕВАНШ (СМЕНА РОЛЕЙ)
+              </button>
+              <button
+                onClick={onRematchRandom}
+                className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 hover:from-blue-900 hover:via-blue-800 hover:to-blue-900 text-blue-100 border border-blue-500/70 shadow-[0_8px_20px_rgba(37,99,235,0.35)] rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98]"
+              >
+                <span>🎲</span> РЕВАНШ (СЛУЧАЙНЫЕ РОЛИ)
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={onRestart}
+              className={`w-full h-14 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition shadow-lg border-t border-white/25 cursor-pointer ${
+                isVictory
+                  ? 'bg-zinc-100 hover:bg-white text-zinc-950 shadow-[0_10px_25px_rgba(255,255,255,0.2)]'
+                  : 'bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)]'
+              }`}
         >
           <span>Новое расследование</span>
           <Icons.ArrowRight />
         </button>
 
-        <button
-          onClick={onExitToMenu}
+                  )}
+          <button
+            onClick={onExitToMenu}
           className="w-full h-11 mt-2.5 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-white/10 transition cursor-pointer"
         >
           <span>В главное меню</span>

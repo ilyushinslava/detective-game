@@ -131,7 +131,7 @@ export const GameBoard = ({
   };
 
   return (
-    <div className="relative w-full h-full max-h-full max-w-full aspect-square flex flex-col items-center justify-center p-0.5 sm:p-1 select-none mx-auto shrink-0 touch-none object-contain">
+    <div className="relative flex flex-col items-center justify-center p-0.5 sm:p-1 select-none mx-auto w-full max-w-[min(100vw-1rem,calc(100dvh-13.5rem))] aspect-square shrink-0 touch-none">
       <style>{`
         @keyframes radarMarch {
           from { stroke-dashoffset: 0; }
@@ -173,9 +173,7 @@ export const GameBoard = ({
                       ? "invisible pointer-events-none"
                       : isBlocked
                         ? "bg-zinc-900/40 text-zinc-600 border-zinc-800/50 cursor-not-allowed opacity-50"
-                        : isLastShiftBtn
-                          ? "bg-zinc-800/90 border-zinc-400 text-zinc-100 ring-2 ring-zinc-400/70 shadow-[0_0_12px_rgba(255,255,255,0.2)] cursor-pointer"
-                          : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
+                        : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
                   }`}
                   title={
                     isBlocked
@@ -225,9 +223,7 @@ export const GameBoard = ({
                       ? "invisible pointer-events-none"
                       : isRowBlocked
                         ? "bg-zinc-900/40 text-zinc-600 border-zinc-800/50 cursor-not-allowed opacity-50"
-                        : isLastShiftBtn
-                          ? "bg-zinc-800/90 border-zinc-400 text-zinc-100 ring-2 ring-zinc-400/70 shadow-[0_0_12px_rgba(255,255,255,0.2)] cursor-pointer"
-                          : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
+                        : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
                   }`}
                   title={
                     isRowBlocked
@@ -263,6 +259,17 @@ export const GameBoard = ({
                 lastShift &&
                   ((lastShift.type === "ROW" && lastShift.index === rIdx) ||
                     (lastShift.type === "COL" && lastShift.index === cIdx))
+              );
+              const isShiftEntryPoint = Boolean(
+                lastShift &&
+                  ((lastShift.type === "ROW" &&
+                    lastShift.index === rIdx &&
+                    ((lastShift.direction === "FORWARD" && cIdx === 0) ||
+                      (lastShift.direction === "BACKWARD" && cIdx === numCols - 1))) ||
+                    (lastShift.type === "COL" &&
+                      lastShift.index === cIdx &&
+                      ((lastShift.direction === "FORWARD" && rIdx === 0) ||
+                        (lastShift.direction === "BACKWARD" && rIdx === numRows - 1))))
               );
 
               let neighborColor = null;
@@ -308,12 +315,59 @@ export const GameBoard = ({
                   />
 
                   {isLastShiftTrack && !isSelected && !isRadarCell && !isRadarTarget && (
-                      <div className="pointer-events-none absolute inset-0 rounded-md sm:rounded-xl border border-dashed border-zinc-600/30 bg-zinc-400/[0.03] z-5 flex items-center justify-center overflow-hidden">
-                        <div className="w-full h-full absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
+                    <div className="pointer-events-none absolute inset-0 rounded-md sm:rounded-xl overflow-hidden z-10 border border-white/20">
+                      <div 
+                        className={`absolute inset-0 opacity-40 bg-gradient-to-${
+                          lastShift?.type === "ROW"
+                            ? (lastShift.direction === "FORWARD" ? "r" : "l")
+                            : (lastShift.direction === "FORWARD" ? "b" : "t")
+                        } from-transparent via-white/25 to-transparent animate-pulse`} 
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-30 text-white">
+                        {lastShift?.type === "ROW" && lastShift.direction === "FORWARD" && <span className="text-xs font-black">&rarr;</span>}
+                        {lastShift?.type === "ROW" && lastShift.direction === "BACKWARD" && <span className="text-xs font-black">&larr;</span>}
+                        {lastShift?.type === "COL" && lastShift.direction === "FORWARD" && <span className="text-xs font-black">&darr;</span>}
+                        {lastShift?.type === "COL" && lastShift.direction === "BACKWARD" && <span className="text-xs font-black">&uarr;</span>}
                       </div>
-                    )}
+                    </div>
+                  )}
+                  {false && (
+                    <div
+                      className={`pointer-events-none absolute inset-0 rounded-md sm:rounded-xl border border-dashed border-zinc-500/50 bg-zinc-400/[0.04] z-10 flex items-center justify-center overflow-hidden ${
+                        isShiftEntryPoint
+                          ? "ring-1 ring-zinc-300/60 shadow-[0_0_12px_rgba(255,255,255,0.2)] bg-white/[0.04]"
+                          : ""
+                      }`}
+                    >
+                      {isShiftEntryPoint && (
+                        <span className="absolute top-0.5 left-0.5 text-[8px] font-mono text-zinc-300/80 bg-zinc-900/90 px-1 rounded-sm border border-white/10 select-none">
+                          ⟳
+                        </span>
+                      )}
+                      {lastShift?.type === "ROW" && lastShift.direction === "FORWARD" && (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400/60 animate-pulse">
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                      )}
+                      {lastShift?.type === "ROW" && lastShift.direction === "BACKWARD" && (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400/60 animate-pulse">
+                          <path d="M19 12H5M12 19l-7-7 7-7" />
+                        </svg>
+                      )}
+                      {lastShift?.type === "COL" && lastShift.direction === "FORWARD" && (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400/60 animate-pulse">
+                          <path d="M12 5v14M19 12l-7 7-7-7" />
+                        </svg>
+                      )}
+                      {lastShift?.type === "COL" && lastShift.direction === "BACKWARD" && (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400/60 animate-pulse">
+                          <path d="M12 19V5M5 12l7-7 7 7" />
+                        </svg>
+                      )}
+                    </div>
+                  )}
 
-                    {!character.isAlive && (
+                    {false && !character.isAlive && (
                       <div className="pointer-events-none absolute inset-0 rounded-md sm:rounded-xl border border-dashed border-red-900/50 bg-red-950/25 z-10 flex items-center justify-center">
                         <span className="text-[10px] sm:text-xs font-mono font-black text-red-500/40 tracking-widest uppercase select-none">
                           [L]
@@ -392,9 +446,7 @@ export const GameBoard = ({
                       ? "invisible pointer-events-none"
                       : isRowBlocked
                         ? "bg-zinc-900/40 text-zinc-600 border-zinc-800/50 cursor-not-allowed opacity-50"
-                        : isLastShiftBtn
-                          ? "bg-zinc-800/90 border-zinc-400 text-zinc-100 ring-2 ring-zinc-400/70 shadow-[0_0_12px_rgba(255,255,255,0.2)] cursor-pointer"
-                          : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
+                        : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
                   }`}
                   title={
                     isRowBlocked
@@ -443,9 +495,7 @@ export const GameBoard = ({
                       ? "invisible pointer-events-none"
                       : isBlocked
                         ? "bg-zinc-900/40 text-zinc-600 border-zinc-800/50 cursor-not-allowed opacity-50"
-                        : isLastShiftBtn
-                          ? "bg-zinc-800/90 border-zinc-400 text-zinc-100 ring-2 ring-zinc-400/70 shadow-[0_0_12px_rgba(255,255,255,0.2)] cursor-pointer"
-                          : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
+                        : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
                   }`}
                   title={
                     isBlocked

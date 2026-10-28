@@ -140,7 +140,7 @@ describe("Полные циклы правил 4 режимов (fullGameCycles)
   describe("3. Режим ОХОТА НА ГРАБИТЕЛЯ (THIEF_HUNT)", () => {
     it("Кража 5 сокровищ приносит победу Вору", () => {
       let state = createInitialState("THIEF_HUNT", "PVP", "DETECTIVE");
-      state.trophiesKiller = 4;
+      state.trophiesKiller = 9;
       const neighbors = getAdjacentCharacters(state.board, state.killerSecretId);
       const target = neighbors.find((c) => !c.isRobbed)!;
 
@@ -150,7 +150,7 @@ describe("Полные циклы правил 4 режимов (fullGameCycles)
         senderId: "local",
       });
 
-      expect(state.trophiesKiller).toBe(5);
+      expect(state.trophiesKiller).toBe(10);
       expect(state.winner).toBe("KILLER");
     });
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { soundManager } from '../utils/audio';
+import { triggerHaptic } from '../utils/haptics';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -19,11 +20,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
       // Audio autoplay fallback
     }
 
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      try {
-        navigator.vibrate([40, 60, 40]);
-      } catch {}
-    }
+    triggerHaptic('medium');
 
     setIsFading(true);
     setTimeout(() => {

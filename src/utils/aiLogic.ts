@@ -58,6 +58,12 @@ export function getKillerAIMove(state: GameState): GameState {
   );
 
   if (state.mode === "MANIAC_VS_OPERATIVE") {
+    const detectiveTarget = killerNeighbors.find(
+      (c) => c.isAlive && c.id === state.detectiveSecretId,
+    );
+    if (detectiveTarget) {
+      return killCharacter(state, detectiveTarget.id);
+    }
     const target = killerNeighbors.find(
       (c) => c.isAlive && c.id === state.victimList[0],
     );

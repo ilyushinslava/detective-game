@@ -198,7 +198,8 @@ describe("GameRoomServer (PartyKit Мультиплеер)", () => {
     server.onMessage(JSON.stringify({ type: "PLAYER_READY", senderClientId: "c_g" }), guestConn);
     expect(server.state.status).toBe("PLAYING");
 
-    const targetVictim = server.state.gameState!.board[0][0].id;
+    const killerSecretId = server.state.gameState!.killerSecretId;
+    const targetVictim = getAdjacentCharacters(server.state.gameState!.board, killerSecretId)[0].id;
     server.onMessage(
       JSON.stringify({
         type: "KILL_CHARACTER",

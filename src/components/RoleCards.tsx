@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 interface RoleCardsProps {
   mode: string;
   role1Name: string;
@@ -27,6 +29,8 @@ export const RoleCards = ({
   onPeekDetectiveEnd,
   isPVP,
 }: RoleCardsProps) => {
+  const [isKillerPeeking, setIsKillerPeeking] = useState(false);
+  const [isDetectivePeeking, setIsDetectivePeeking] = useState(false);
   const showKillerCard = isPVP || canPeekKiller;
   const showDetectiveCard = isPVP || canPeekDetective;
   const singleCard = (showKillerCard && !showDetectiveCard) || (!showKillerCard && showDetectiveCard);
@@ -48,17 +52,19 @@ export const RoleCards = ({
           </div>
           <button
             type="button"
-            onMouseDown={onPeekKillerStart}
-            onMouseUp={onPeekKillerEnd}
-            onMouseLeave={onPeekKillerEnd}
-            onTouchStart={onPeekKillerStart}
-            onTouchEnd={onPeekKillerEnd}
+            onMouseDown={() => { setIsKillerPeeking(true); onPeekKillerStart(); }}
+            onMouseUp={() => { setIsKillerPeeking(false); onPeekKillerEnd(); }}
+            onMouseLeave={() => { setIsKillerPeeking(false); onPeekKillerEnd(); }}
+            onTouchStart={() => { setIsKillerPeeking(true); onPeekKillerStart(); }}
+            onTouchEnd={() => { setIsKillerPeeking(false); onPeekKillerEnd(); }}
             onContextMenu={(e) => e.preventDefault()}
             disabled={!canPeekKiller}
             className={`w-full h-8 sm:h-[34px] md:h-12 rounded-lg text-[8.5px] sm:text-[9.5px] md:text-xs font-black uppercase tracking-wider border transition flex items-center justify-center gap-1.5 ${
               !canPeekKiller
                 ? "bg-zinc-950/50 text-zinc-600 border-white/5 cursor-not-allowed"
-                : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-200 border-red-700/50 cursor-pointer shadow-[0_0_10px_rgba(220,38,38,0.2)]"
+                : isKillerPeeking
+                  ? "bg-red-600 text-white border-red-300 shadow-[0_0_20px_rgba(239,68,68,0.6)] scale-[0.98]"
+                  : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-200 border-red-700/50 cursor-pointer shadow-[0_0_10px_rgba(220,38,38,0.2)]"
             }`}
           >
             {!canPeekKiller ? (
@@ -82,17 +88,19 @@ export const RoleCards = ({
           </div>
           <button
             type="button"
-            onMouseDown={onPeekDetectiveStart}
-            onMouseUp={onPeekDetectiveEnd}
-            onMouseLeave={onPeekDetectiveEnd}
-            onTouchStart={onPeekDetectiveStart}
-            onTouchEnd={onPeekDetectiveEnd}
+            onMouseDown={() => { setIsDetectivePeeking(true); onPeekDetectiveStart(); }}
+            onMouseUp={() => { setIsDetectivePeeking(false); onPeekDetectiveEnd(); }}
+            onMouseLeave={() => { setIsDetectivePeeking(false); onPeekDetectiveEnd(); }}
+            onTouchStart={() => { setIsDetectivePeeking(true); onPeekDetectiveStart(); }}
+            onTouchEnd={() => { setIsDetectivePeeking(false); onPeekDetectiveEnd(); }}
             onContextMenu={(e) => e.preventDefault()}
             disabled={!canPeekDetective}
             className={`w-full h-8 sm:h-[34px] md:h-12 rounded-lg text-[8.5px] sm:text-[9.5px] md:text-xs font-black uppercase tracking-wider border transition flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed ${
               !canPeekDetective
                 ? "bg-zinc-950/50 text-zinc-600 border-white/5 cursor-not-allowed"
-                : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-200 border-blue-700/50 shadow-[0_0_10px_rgba(59,130,246,0.2)] cursor-pointer"
+                : isDetectivePeeking
+                  ? "bg-blue-600 text-white border-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.6)] scale-[0.98]"
+                  : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-200 border-blue-700/50 shadow-[0_0_10px_rgba(59,130,246,0.2)] cursor-pointer"
             }`}
           >
             {!canPeekDetective ? (

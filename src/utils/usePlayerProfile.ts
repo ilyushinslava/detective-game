@@ -65,9 +65,7 @@ export function usePlayerProfile() {
     if (amount <= 0) return;
     setProfile((prev) => {
       const next = { ...prev, cash: prev.cash + amount };
-      if (typeof window !== "undefined") {
-        localStorage.setItem("crime_city_profile", JSON.stringify(next));
-      }
+      storage.setSyncAndPersist("crime_city_profile", next);
       return next;
     });
   };
@@ -76,9 +74,7 @@ export function usePlayerProfile() {
     if (pot <= 0) return;
     setProfile((prev) => {
       const next = { ...prev, cash: prev.cash + pot };
-      if (typeof window !== "undefined") {
-        localStorage.setItem("crime_city_profile", JSON.stringify(next));
-      }
+      storage.setSyncAndPersist("crime_city_profile", next);
       return next;
     });
   };
@@ -103,9 +99,7 @@ export function usePlayerProfile() {
         rank: newRank,
         stats: { wins: newWins, losses: newLosses },
       };
-      if (typeof window !== "undefined") {
-        localStorage.setItem("crime_city_profile", JSON.stringify(next));
-      }
+      storage.setSyncAndPersist("crime_city_profile", next);
       return next;
     });
   };

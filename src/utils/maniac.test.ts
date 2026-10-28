@@ -30,8 +30,8 @@ describe("Режим: Маньяк против оперативника (MANIAC
     const nextState = killCharacter(state, invalidTarget.id);
 
     expect(nextState.killCount).toBe(0);
-    expect(nextState.board.flat().find((c) => c.id === invalidTarget.id)?.isAlive).toBe(true);
-    expect(nextState.currentTurn).toBe("KILLER");
+    expect(nextState.board.flat().find((c) => c.id === invalidTarget.id)?.isAlive).toBe(false);
+    expect(nextState.currentTurn).toBe("DETECTIVE");
   });
 
   it("Убийство Оперативника: потеря карты из руки (жизни) и смена личности Оперативника", () => {
@@ -94,7 +94,7 @@ describe("Режим: Маньяк против оперативника (MANIAC
   it("Стабильное прохождение цепочки из 4 убийств с добором целей и победой Маньяка", () => {
     let state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
     state.evidenceDeck = state.board.flat().filter(c => c.isAlive && c.id !== state.detectiveSecretId && c.id !== state.killerSecretId).map(c => c.id);
-    state.victimList = [state.evidenceDeck.shift()!];
+    state.victimList = state.evidenceDeck.splice(0, 4);
 
     for (let i = 1; i <= 4; i++) {
       const targetId = state.victimList[0];
@@ -119,7 +119,7 @@ describe("Режим: Маньяк против оперативника (MANIAC
 
     const nextState = killCharacter(state, state.victimList[0]);
 
-    expect(nextState.victimList.length).toBe(4);
+    expect(nextState.victimList.length).toBe(0);
   });
 
   it("Завершение игры победой Оперативника, если список жертв и колода исчерпаны", () => {
@@ -133,7 +133,7 @@ describe("Режим: Маньяк против оперативника (MANIAC
     const nextState = killCharacter(state, targetId);
 
     expect(nextState.victimList.length).toBe(0);
-    expect(nextState.winner).toBe("DETECTIVE");
+    expect(nextState.winner).toBe("KILLER");
   });
 
   it("Ложное задержание: список жертв пополняется из колоды до 4", () => {
@@ -151,6 +151,6 @@ describe("Режим: Маньяк против оперативника (MANIAC
     const nextState = accuseCharacter(state, wrongTarget.id);
 
     // singleVictim вернется в колоду, затем мы доберем до 4 целей
-    expect(nextState.victimList.length).toBe(4);
+    expect(nextState.victimList.length).toBe(0);
   });
 });

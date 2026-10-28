@@ -160,10 +160,12 @@ export default class GameRoomServer {
       };
 
       this.state.readyClients.clear();
-      this.state.gameState = createInitialState(this.state.mode, "ONLINE", "KILLER", 2, 3, 16, nickname);
-      this.state.status = "READY_TO_START";
-
+      this.state.gameState = createInitialState(this.state.mode, "ONLINE", "KILLER", 2, this.state.mode === "SECRET_SERVICE" ? 2 : 3, 16, nickname);
       const existingRoom = publicRoomsRegistry.get(roomCode);
+      const roomBet = existingRoom?.bet || 250;
+      this.state.gameState.matchBet = roomBet;
+      this.state.gameState.matchPot = roomBet * 2;
+      this.state.status = "READY_TO_START";
       if (existingRoom) {
         existingRoom.status = "READY_TO_START";
         existingRoom.playersCount = 2;
@@ -259,6 +261,7 @@ export default class GameRoomServer {
       const player = senderClientId ? this.state.players[senderClientId] : null;
 
       if (action.type === "REQUEST_RESTART") {
+      (this.state as any).pendingRematchMode = action.payload?.rematchMode || "SWAP";
         this.broadcastRaw(
           JSON.stringify({
             type: "REQUEST_RESTART",
@@ -274,14 +277,22 @@ export default class GameRoomServer {
       }
 
       if (action.type === "CONFIRM_RESTART") {
-        const playerIds = Object.keys(this.state.players);
-        if (playerIds.length >= 2) {
+      const playerIds = Object.keys(this.state.players || {});
+      if (playerIds.length >= 2) {
+        if ((this.state as any).pendingRematchMode === "RANDOM") {
           const firstIsKiller = Math.random() < 0.5;
           this.state.players[playerIds[0]].role = firstIsKiller ? "KILLER" : "DETECTIVE";
           this.state.players[playerIds[1]].role = firstIsKiller ? "DETECTIVE" : "KILLER";
+        } else {
+          const prevRole0 = this.state.players[playerIds[0]].role;
+          this.state.players[playerIds[0]].role = prevRole0 === "KILLER" ? "DETECTIVE" : "KILLER";
+          this.state.players[playerIds[1]].role = prevRole0 === "KILLER" ? "KILLER" : "DETECTIVE";
         }
+              }
 
-        this.state.gameState = createInitialState(this.state.mode, "ONLINE", "KILLER", 2, 3, 16);
+        this.state.gameState = createInitialState(this.state.mode, "ONLINE", "KILLER", 2, this.state.mode === "SECRET_SERVICE" ? 2 : 3, 16);
+        this.state.gameState.matchBet = 250;
+        this.state.gameState.matchPot = 500;
         this.state.status = "PLAYING";
         this.state.readyClients.clear();
 
@@ -342,30 +353,41 @@ export default class GameRoomServer {
         const spies = this.state.gameState.spies || [];
         const attackerSpy = spies[attackerSpyIndex];
 
-        if (payload.isHit === undefined || payload.isMiss === undefined) {
-          const caughtSpy = spies.find(
-            (s) => s.id !== attackerSpy?.id && s.secretId === targetId
-          );
-          const isHit = Boolean(caughtSpy);
-          const isMiss = !isHit;
-          const allChars = this.state.gameState.board.flat();
-          const targetChar = allChars.find((c) => c.id === targetId);
-          const revealedRole = targetChar?.name || caughtSpy?.name || null;
-          const nextSpyIndex = (attackerSpyIndex + 1) % (spies.length || 2);
+        const caughtSpy = spies.find(
+          (s) => s.id !== attackerSpy?.id && s.secretId === targetId
+        );
+        const isHit = Boolean(caughtSpy);
+        const isMiss = !isHit;
+        const allChars = this.state.gameState.board.flat();
+        const targetChar = allChars.find((c) => c.id === targetId);
+        const revealedRole = targetChar?.name || caughtSpy?.name || null;
+        const nextSpyIndex = (attackerSpyIndex + 1) % (spies.length || 2);
 
-          action.payload = {
-            ...payload,
-            targetId,
-            targetCardId: targetId,
-            isHit,
-            isMiss,
-            revealedRole,
-            caughtSpyId: caughtSpy?.id || null,
-            attackerSpyIndex,
-            nextSpyIndex,
-            errorCardId: targetId,
-          };
+        let nextSecretId: string | null = null;
+        if (isHit && caughtSpy) {
+          const candidateChar = allChars.find(
+            (c) =>
+              c.isAlive &&
+              c.id !== targetId &&
+              c.id !== caughtSpy.secretId &&
+              !spies.some((s) => s.id !== caughtSpy.id && s.secretId === c.id)
+          );
+          nextSecretId = candidateChar?.id || null;
         }
+
+        action.payload = {
+          ...payload,
+          targetId,
+          targetCardId: targetId,
+          isHit,
+          isMiss,
+          revealedRole,
+          caughtSpyId: caughtSpy?.id || null,
+          nextSecretId,
+          attackerSpyIndex,
+          nextSpyIndex,
+          errorCardId: targetId,
+        };
       }
 
       const nextState = gameReducer(this.state.gameState, action);
@@ -435,8 +457,12 @@ export default class GameRoomServer {
 
     if (role === "KILLER") {
       copy.detectiveSecretId = null;
+      copy.detectiveHand = [];
+      copy.inspectorChoices = [];
     } else if (role === "DETECTIVE") {
       copy.killerSecretId = null;
+      copy.killerHand = [];
+      copy.disguisedNotification = null;
     } else {
       copy.detectiveSecretId = null;
       copy.killerSecretId = null;

@@ -93,7 +93,7 @@ export const GameOverModal = ({
             className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${
               isRedTheme
                 ? 'bg-red-950/80 text-red-300 border-red-700/60'
-                : 'bg-amber-950/80 text-amber-300 border-amber-700/60'
+                : 'bg-zinc-800/90 text-zinc-100 border-zinc-600'
             }`}
           >
             {roleName}
@@ -124,7 +124,7 @@ export const GameOverModal = ({
         <div
           className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-5 border shadow-lg ${
             isVictory
-              ? 'bg-amber-950/30 border-amber-500/50 text-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.3)]'
+              ? 'bg-zinc-900/60 border-zinc-400/50 text-zinc-100 shadow-[0_0_30px_rgba(255,255,255,0.1)]'
               : 'bg-red-950/30 border-red-500/50 text-red-500 shadow-[0_0_30px_rgba(239,68,68,0.3)]'
           }`}
         >
@@ -148,7 +148,7 @@ export const GameOverModal = ({
           onClick={onRestart}
           className={`w-full h-14 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition shadow-lg border-t border-white/25 cursor-pointer ${
             isVictory
-              ? 'bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-zinc-950 shadow-[0_10px_25px_rgba(245,158,11,0.4)]'
+              ? 'bg-zinc-100 hover:bg-white text-zinc-950 shadow-[0_10px_25px_rgba(255,255,255,0.2)]'
               : 'bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)]'
           }`}
         >

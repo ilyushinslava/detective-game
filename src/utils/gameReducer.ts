@@ -212,12 +212,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           : ((state.activeSpyIndex ?? 0) + 1) % (state.spies?.length || 1);
 
       let nextSpies = result.spies;
-      const nextSecretId = (action.payload as any)?.nextSecretId;
-      if (nextSecretId && result.justCaughtSpyId && nextSpies) {
-        nextSpies = nextSpies.map((s) =>
-          s.id === result.justCaughtSpyId ? { ...s, secretId: nextSecretId } : s
-        );
-      }
 
       return {
         ...result,

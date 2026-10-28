@@ -27,15 +27,35 @@ export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | '
     } catch {}
   }
 
-  if (navigator.vibrate) {
+  if (typeof navigator !== 'undefined' && navigator.vibrate) {
     try {
       switch (type) {
-        case 'light': navigator.vibrate(18); return;
-        case 'medium': navigator.vibrate(35); return;
-        case 'heavy': navigator.vibrate(60); return;
+        case 'light': navigator.vibrate(15); return;
+        case 'medium': navigator.vibrate([40, 30, 40]); return;
+        case 'heavy': navigator.vibrate(100); return;
         case 'success': navigator.vibrate([20, 40, 20]); return;
         case 'error': navigator.vibrate([40, 30, 60]); return;
       }
+    } catch {}
+  }
+
+  // iOS Safari WebKit Fallback (Taptic Engine Tick)
+  if (typeof document !== 'undefined' && document.body) {
+    try {
+      let tickInput = document.getElementById('haptic-tick-input') as HTMLInputElement | null;
+      if (!tickInput) {
+        tickInput = document.createElement('input');
+        tickInput.id = 'haptic-tick-input';
+        tickInput.type = 'checkbox';
+        tickInput.setAttribute('role', 'switch');
+        tickInput.style.position = 'fixed';
+        tickInput.style.top = '-9999px';
+        tickInput.style.left = '-9999px';
+        tickInput.style.opacity = '0';
+        tickInput.style.pointerEvents = 'none';
+        document.body.appendChild(tickInput);
+      }
+      tickInput.click();
     } catch {}
   }
 };

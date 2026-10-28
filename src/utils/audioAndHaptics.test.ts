@@ -49,13 +49,13 @@ describe("Звуковая система и тактильный отклик (
       expect(getHapticsEnabled()).toBe(true);
 
       triggerHaptic("light");
-      expect(vibrateMock).toHaveBeenCalledWith(18);
+      expect(vibrateMock).toHaveBeenCalledWith(15);
 
       triggerHaptic("medium");
-      expect(vibrateMock).toHaveBeenCalledWith(35);
+      expect(vibrateMock).toHaveBeenCalledWith([40, 30, 40]);
 
       triggerHaptic("heavy");
-      expect(vibrateMock).toHaveBeenCalledWith(60);
+      expect(vibrateMock).toHaveBeenCalledWith(100);
 
       triggerHaptic("success");
       expect(vibrateMock).toHaveBeenCalledWith([20, 40, 20]);

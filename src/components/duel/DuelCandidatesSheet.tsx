@@ -62,7 +62,7 @@ export const DuelCandidatesSheet = ({
             <h2 className="text-lg font-black uppercase tracking-widest text-zinc-100">
               Досье
             </h2>
-            <div className="bg-cyan-950/80 border border-cyan-500/40 text-cyan-200 text-xs font-mono px-2.5 py-1 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+            <div className="bg-blue-950/80 border border-blue-500/40 text-blue-200 text-xs font-mono px-2.5 py-1 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.2)]">
               Кандидаты: {candidates.length} из {allCharacters.length}
             </div>
           </div>
@@ -77,11 +77,11 @@ export const DuelCandidatesSheet = ({
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 min-h-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
           {candidates.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-amber-900/50 rounded-2xl bg-amber-950/20 mt-4">
-              <div className="text-amber-500 mb-3">
+            <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-red-900/50 rounded-2xl bg-red-950/20 mt-4">
+              <div className="text-red-500 mb-3">
                 <Icons.Alert />
               </div>
-              <h3 className="text-sm font-black text-amber-400 uppercase tracking-widest mb-2">
+              <h3 className="text-sm font-black text-red-400 uppercase tracking-widest mb-2">
                 Противоречие данных
               </h3>
               <p className="text-xs text-zinc-400 leading-relaxed font-mono">
@@ -104,7 +104,7 @@ export const DuelCandidatesSheet = ({
                       }
                     }}
                     className={`relative aspect-[3/4] rounded-xl overflow-hidden border border-zinc-800 bg-zinc-900 flex flex-col justify-end p-2 shadow-md group ${
-                      onSelectCandidate ? "cursor-pointer hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-all" : ""
+                      onSelectCandidate ? "cursor-pointer hover:border-blue-500/50 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all" : ""
                     }`}
                   >
                     {imageAsset ? (
@@ -121,7 +121,7 @@ export const DuelCandidatesSheet = ({
                     <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent pointer-events-none" />
                     
                     <div className="relative z-10 flex flex-col pointer-events-none">
-                      <span className="text-[9px] font-mono text-cyan-500/80 mb-0.5">
+                      <span className="text-[9px] font-mono text-blue-400/80 mb-0.5">
                         #{num}
                       </span>
                       <span className="text-[10px] font-black text-zinc-100 uppercase tracking-wider leading-tight line-clamp-2">

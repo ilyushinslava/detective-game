@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { partyService } from "../utils/partyPeer";
 import type {
   Character,
@@ -337,12 +338,16 @@ export const RoleRevealModal = ({
       : "border-blue-500/60 shadow-[0_0_30px_rgba(59,130,246,0.3)]";
 
     return (
-      <div 
+      <motion.div
+        layoutId={char?.id ? `role-card-${char.id}` : "role-card-default"}
+        transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
         className={`relative w-full rounded-3xl overflow-hidden border ${border} bg-zinc-950 h-[190px] sm:h-[220px] flex flex-col justify-between p-5 mb-3.5 select-none shrink-0 shadow-2xl cursor-pointer group`}
         onClick={() => imageAsset && char && setFullscreenImage({ url: imageAsset, name: char.name, id: char.id })}
       >
         {imageAsset ? (
-          <img
+          <motion.img
+            layoutId={char?.id ? `role-img-${char.id}` : "role-img-default"}
+            transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
             src={imageAsset}
             alt={char?.name || "Личность"}
             className="absolute inset-0 w-full h-full object-cover object-center pt-4 opacity-60 grayscale contrast-125 group-hover:scale-105 transition-transform duration-500"
@@ -372,7 +377,7 @@ export const RoleRevealModal = ({
             {char?.name ?? "Неизвестно"}
           </h2>
         </div>
-      </div>
+      </motion.div>
     );
   };
 
@@ -473,7 +478,7 @@ export const RoleRevealModal = ({
         tiles.push({
           id: "steal",
           label: "Кража",
-          icon: <Icons.Coins className="w-6 h-6 text-amber-400" />,
+          icon: <Icons.Coins className="w-6 h-6 text-zinc-300" />,
           desc: "Украсть сокровище из сейфа у себя или соседней клетки. Цель — 5 сокровищ.",
         });
         tiles.push({
@@ -485,7 +490,7 @@ export const RoleRevealModal = ({
         tiles.push({
           id: "disguise_thief",
           label: "Смена маски",
-          icon: <Icons.Eye className="w-6 h-6 text-amber-400" />,
+          icon: <Icons.Eye className="w-6 h-6 text-zinc-300" />,
           desc: "Взять карту из колоды и сменить тайную личность.",
         });
       } else {
@@ -587,14 +592,14 @@ export const RoleRevealModal = ({
     return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#080a0f]/95 backdrop-blur-xl p-4 select-none">
       <div className="w-full max-w-md h-[90dvh] max-h-[760px] bg-zinc-950 border border-white/10 rounded-3xl p-5 sm:p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col justify-between text-center overflow-y-auto custom-scrollbar"> <div className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-3">Сетевой протокол</div>
-          <div className="w-12 h-12 border-2 border-zinc-800 border-t-amber-500 rounded-full animate-spin mb-6" />
+          <div className="w-12 h-12 border-2 border-zinc-800 border-t-zinc-200 rounded-full animate-spin mb-6" />
           <h2 className="text-lg font-black text-white uppercase tracking-wider mb-2">Ожидание соперника</h2>
           <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
             Вы подтвердили готовность. Ждем подтверждения второго игрока...
           </p>
           <div className="p-3 rounded-xl bg-zinc-900 border border-white/5 w-full flex items-center justify-between font-mono mb-6">
             <span className="text-[10px] text-zinc-400 uppercase">Автоотмена (АФК):</span>
-            <span className="text-xs font-black text-amber-500">{afkSecondsLeft} сек</span>
+            <span className="text-xs font-black text-zinc-200 font-mono">{afkSecondsLeft} сек</span>
           </div>
           {onCancelMatch && (
             <button
@@ -611,25 +616,60 @@ export const RoleRevealModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#080a0f]/95 backdrop-blur-xl p-4 select-none">
-      {fullscreenImage && (
-        <div className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 select-none" onClick={() => setFullscreenImage(null)}>
-          <button 
+      <AnimatePresence>
+        {fullscreenImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 select-none cursor-pointer"
             onClick={() => setFullscreenImage(null)}
-            className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
           >
-            ✕
-          </button>
-          <div className="relative w-full max-w-sm aspect-[3/4] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.8)]" onClick={(e) => e.stopPropagation()}>
-            <img src={fullscreenImage.url} alt={fullscreenImage.name} className="w-full h-full object-cover grayscale contrast-125" />
-            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-20 flex flex-col items-center text-center">
-              <span className="text-xs font-mono text-zinc-400 mb-2">#{fullscreenImage.id.replace("c", "").padStart(2, "0")}</span>
-              <h2 className="text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">{fullscreenImage.name}</h2>
-            </div>
-          </div>
-        </div>
-      )}
+            <motion.button
+              type="button"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setFullscreenImage(null)}
+              className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
+            >
+              ✕
+            </motion.button>
+            <motion.div
+              layoutId={`role-card-${fullscreenImage.id}`}
+              transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
+              className="relative w-full max-w-sm aspect-[3/4] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-zinc-950"
+              onClick={() => setFullscreenImage(null)}
+            >
+              <motion.img
+                layoutId={`role-img-${fullscreenImage.id}`}
+                transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
+                src={fullscreenImage.url}
+                alt={fullscreenImage.name}
+                className="w-full h-full object-cover grayscale contrast-125"
+              />
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.25, delay: 0.1 }}
+                className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-20 flex flex-col items-center text-center"
+              >
+                <span className="text-xs font-mono text-zinc-400 mb-2">
+                  #{fullscreenImage.id.replace("c", "").padStart(2, "0")}
+                </span>
+                <h2 className="text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">
+                  {fullscreenImage.name}
+                </h2>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="w-full max-w-lg h-[92dvh] max-h-[85vh] bg-zinc-950 border border-white/10 rounded-3xl p-5 sm:p-7 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col justify-between text-center overflow-y-auto custom-scrollbar">
-        
+
         {/* Одиночная Секретная служба */}
         {phase === "SECRET_SERVICE_SOLO" && (
           <>

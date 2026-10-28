@@ -17,6 +17,7 @@ interface ModeInfo {
   bannerGradient: string;
   borderColor: string;
   badgeColor: string;
+  bannerImage?: string;
   role1: {
     name: string;
     badgeColor: string;
@@ -44,6 +45,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     bannerGradient: "from-blue-950 via-zinc-950/70 to-transparent",
     borderColor: "border-blue-500/40",
     badgeColor: "text-blue-400",
+    bannerImage: "/banners/mode-base.webp",
     role1: {
       name: "Криминал",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
@@ -91,6 +93,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     bannerGradient: "from-red-950 via-zinc-950/70 to-transparent",
     borderColor: "border-red-500/40",
     badgeColor: "text-red-400",
+    bannerImage: "/banners/mode-skhvatka.webp",
     role1: {
       name: "Бандит",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
@@ -133,6 +136,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     bannerGradient: "from-red-950 via-zinc-950/70 to-transparent",
     borderColor: "border-red-500/40",
     badgeColor: "text-red-400",
+    bannerImage: "/banners/mode-maniac.webp",
     role1: {
       name: "Маньяк",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
@@ -175,6 +179,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     bannerGradient: "from-blue-950 via-zinc-950/70 to-transparent",
     borderColor: "border-blue-500/40",
     badgeColor: "text-blue-400",
+    bannerImage: "/banners/mode-thief.webp",
     role1: {
       name: "Грабитель",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
@@ -217,6 +222,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     bannerGradient: "from-indigo-950 via-zinc-950/70 to-transparent",
     borderColor: "border-indigo-500/40",
     badgeColor: "text-indigo-400",
+    bannerImage: "/banners/mode-secret.webp",
     role1: {
       name: "Агент Альфа",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
@@ -259,6 +265,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     bannerGradient: "from-blue-950 via-zinc-950/70 to-transparent",
     borderColor: "border-blue-500/40",
     badgeColor: "text-blue-400",
+    bannerImage: "/banners/mode-lineup.webp",
     role1: {
       name: "Подозреваемый",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
@@ -356,13 +363,15 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
           </button>
         </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 bg-zinc-900/90 p-1 rounded-xl border border-white/10 mb-3 shrink-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-3 shrink-0 custom-scrollbar">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             const tabIsCrime = tab.id === "SKHVATKA" || tab.id === "MANIAC";
-            const activeBg = tabIsCrime
-              ? "bg-red-600 text-white shadow-md shadow-red-600/30"
-              : "bg-blue-600 text-white shadow-md shadow-blue-600/30";
+            const activeClasses = tab.id === "BASE"
+              ? "bg-zinc-800 text-zinc-100 border-zinc-500 shadow-[0_0_12px_rgba(255,255,255,0.15)]"
+              : tabIsCrime
+                ? "bg-red-950/80 text-red-300 border-red-600 shadow-[0_0_12px_rgba(239,68,68,0.3)]"
+                : "bg-blue-950/80 text-blue-200 border-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.3)]";
 
             return (
               <button
@@ -371,10 +380,10 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
                   triggerHaptic("light");
                   setActiveTab(tab.id);
                 }}
-                className={`py-2 text-[10px] sm:text-xs font-black uppercase tracking-wider rounded-lg transition cursor-pointer truncate ${
+                className={`px-3 py-1.5 rounded-xl border text-[10px] sm:text-xs font-black uppercase tracking-wider transition cursor-pointer whitespace-nowrap shrink-0 ${
                   isActive
-                    ? activeBg
-                    : "text-zinc-500 hover:text-zinc-300"
+                    ? activeClasses
+                    : "bg-zinc-900/80 text-zinc-400 border-white/10 hover:border-white/20 hover:text-zinc-200"
                 }`}
               >
                 {tab.label}
@@ -385,12 +394,16 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
 
         <div className={`relative w-full h-24 sm:h-28 rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${currentMode.borderColor} shadow-lg bg-zinc-900`}>
           <img
-            src="./bg-main.png"
+            src={currentMode.bannerImage || "/bg-main.png"}
             alt={currentMode.title}
             className="w-full h-full object-cover object-[center_35%] opacity-50"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              if (!target.src.endsWith("/bg-main.png")) target.src = "/bg-main.png";
+              if (!target.src.endsWith("/bg-main.png")) {
+                target.src = "/bg-main.png";
+              } else {
+                target.style.display = "none";
+              }
             }}
           />
           <div className={`absolute inset-0 bg-gradient-to-t ${currentMode.bannerGradient}`} />

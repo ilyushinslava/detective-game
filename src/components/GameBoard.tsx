@@ -1,6 +1,6 @@
 // src/components/GameBoard.tsx
 import { useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, LayoutGroup } from "framer-motion";
 import type { Character, LastShift, GameModeType } from "../types/game";
 import { CharacterCard } from "./CharacterCard";
 import { isOppositeShift } from "../utils/gameLogic";
@@ -131,7 +131,7 @@ export const GameBoard = ({
   };
 
   return (
-    <div className="relative w-full max-w-[min(100vw,calc(100dvh-220px))] max-h-[calc(100dvh-220px)] md:max-w-[min(85vw,calc(100dvh-260px))] md:max-h-[calc(100dvh-260px)] landscape:max-w-[min(85vh,calc(100dvh-140px))] landscape:max-h-[min(85vh,calc(100dvh-140px))] flex flex-col items-center justify-center p-1 select-none mx-auto shrink-0 touch-none">
+    <div className="relative w-full h-full max-h-full max-w-full aspect-square flex flex-col items-center justify-center p-0.5 sm:p-1 select-none mx-auto shrink-0 touch-none object-contain">
       <style>{`
         @keyframes radarMarch {
           from { stroke-dashoffset: 0; }
@@ -143,8 +143,8 @@ export const GameBoard = ({
         }
       `}</style>
       {!isLineUp && (
-        <div className="w-full flex items-center gap-0.5 sm:gap-1 mb-0.5 shrink-0">
-          <div className="w-4 sm:w-6 md:w-8 shrink-0" />
+        <div className="w-full h-3.5 sm:h-5 md:h-7 flex items-center gap-0.5 sm:gap-1 mb-0.5 shrink-0">
+          <div className="w-3.5 sm:w-5 md:w-7 shrink-0" />
           <div
             className="grid gap-0.5 sm:gap-1 flex-1"
             style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
@@ -190,7 +190,7 @@ export const GameBoard = ({
               );
             })}
           </div>
-          <div className="w-4 sm:w-6 md:w-8 shrink-0" />
+          <div className="w-3.5 sm:w-5 md:w-7 shrink-0" />
         </div>
       )}
 
@@ -245,6 +245,7 @@ export const GameBoard = ({
         )}
 
         {/* ЕДИНЫЙ GRID ИГРОВОГО ПОЛЯ */}
+        <LayoutGroup id="game-board-grid">
         <div
           className="flex-1 aspect-square grid gap-0.5 sm:gap-1 touch-none select-none"
           style={{
@@ -280,8 +281,9 @@ export const GameBoard = ({
               return (
                 <motion.div
                   key={character.id}
-                  layout
-                  transition={{ type: "spring", stiffness: 300, damping: 28 }}
+                  layoutId={character.id}
+                  layout="position"
+                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
                   className="w-full h-full aspect-square relative touch-none select-none"
                   onTouchStart={(e) => handleTouchStart(rIdx, cIdx, e)}
                   onTouchEnd={handleTouchEnd}
@@ -306,8 +308,18 @@ export const GameBoard = ({
                   />
 
                   {isLastShiftTrack && !isSelected && !isRadarCell && !isRadarTarget && (
-                    <div className="pointer-events-none absolute inset-0 rounded-md sm:rounded-xl ring-1 ring-white/10 bg-white/[0.02] z-5" />
-                  )}
+                      <div className="pointer-events-none absolute inset-0 rounded-md sm:rounded-xl border border-dashed border-zinc-600/30 bg-zinc-400/[0.03] z-5 flex items-center justify-center overflow-hidden">
+                        <div className="w-full h-full absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
+                      </div>
+                    )}
+
+                    {!character.isAlive && (
+                      <div className="pointer-events-none absolute inset-0 rounded-md sm:rounded-xl border border-dashed border-red-900/50 bg-red-950/25 z-10 flex items-center justify-center">
+                        <span className="text-[10px] sm:text-xs font-mono font-black text-red-500/40 tracking-widest uppercase select-none">
+                          [L]
+                        </span>
+                      </div>
+                    )}
 
                   {(isRadarCell || isRadarTarget) && (
                     <div className="absolute inset-0 rounded-lg sm:rounded-xl pointer-events-none z-35 overflow-visible">
@@ -349,6 +361,7 @@ export const GameBoard = ({
             })
           )}
         </div>
+        </LayoutGroup>
 
         {!isLineUp && (
           <div
@@ -400,8 +413,8 @@ export const GameBoard = ({
       </div>
 
       {!isLineUp && (
-        <div className="w-full flex items-center gap-0.5 sm:gap-1 mt-0.5 shrink-0">
-          <div className="w-4 sm:w-6 md:w-8 shrink-0" />
+        <div className="w-full h-3.5 sm:h-5 md:h-7 flex items-center gap-0.5 sm:gap-1 mt-0.5 shrink-0">
+          <div className="w-3.5 sm:w-5 md:w-7 shrink-0" />
           <div
             className="grid gap-0.5 sm:gap-1 flex-1"
             style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
@@ -447,7 +460,7 @@ export const GameBoard = ({
               );
             })}
           </div>
-          <div className="w-4 sm:w-6 md:w-8 shrink-0" />
+          <div className="w-3.5 sm:w-5 md:w-7 shrink-0" />
         </div>
       )}
     </div>

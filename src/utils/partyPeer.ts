@@ -1,5 +1,6 @@
 import type { Role } from "../types/game";
 import type { GameAction } from "../types/multiplayer";
+import { GAME_CONFIG } from "../config/gameConfig";
 
 class PartyService {
   roomCode: string = "";
@@ -10,6 +11,47 @@ class PartyService {
   private nick: string = "Агент";
   private mode: string = "SKHVATKA";
   private pingInterval: ReturnType<typeof setInterval> | null = null;
+  private isExplicitDisconnect: boolean = false;
+  private reconnectAttempts: number = 0;
+  private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+  private queuedActions: GameAction[] = [];
+
+  private resolveEndpoints(): { wsProtocol: string; httpProtocol: string; host: string } {
+    const rawHost = (import.meta.env?.VITE_WS_GATEWAY || import.meta.env?.VITE_PARTYKIT_HOST)?.trim();
+    if (rawHost) {
+      const isSecure = rawHost.startsWith("https://") || rawHost.startsWith("wss://");
+      const cleanHost = rawHost.replace(/^(https?:\/\/|wss?:\/\/)/, "");
+      return {
+        wsProtocol: isSecure ? "wss:" : "ws:",
+        httpProtocol: isSecure ? "https:" : "http:",
+        host: cleanHost,
+      };
+    }
+
+    if (typeof window !== "undefined") {
+      const hostname = window.location.hostname;
+      const isLocalhost =
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname.endsWith(".local") ||
+        /^(10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.)/.test(hostname);
+
+      if (isLocalhost) {
+        return {
+          wsProtocol: "ws:",
+          httpProtocol: "http:",
+          host: `${hostname}:${GAME_CONFIG.NETWORK.DEFAULT_DEV_PORT}`,
+        };
+      }
+    }
+
+    const fallbackHost = GAME_CONFIG.NETWORK.FALLBACK_GATEWAYS[0] || "detective-game-haxi.onrender.com";
+    return {
+      wsProtocol: "wss:",
+      httpProtocol: "https:",
+      host: fallbackHost,
+    };
+  }
 
   onSyncState: ((state: any, role?: Role, status?: string) => void) | null = null;
   onRoomStatus: ((status: any) => void) | null = null;
@@ -33,35 +75,17 @@ class PartyService {
     this.nick = nickname || "Агент";
     this.mode = mode || "SKHVATKA";
     this.myClientId = clientId || `client_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    this.isExplicitDisconnect = false;
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
 
     if (typeof window === "undefined" || typeof WebSocket === "undefined") {
       return;
     }
 
-    const rawHost = import.meta.env?.VITE_PARTYKIT_HOST?.trim();
-    const isLocalhost =
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1";
-
-    let wsProtocol = "wss:";
-    let host = "detective-game-haxi.onrender.com";
-
-    if (isLocalhost) {
-      wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      host = `${window.location.hostname}:1999`;
-    }
-
-    if (rawHost) {
-      if (rawHost.startsWith("https://") || rawHost.startsWith("wss://")) {
-        wsProtocol = "wss:";
-        host = rawHost.replace(/^(https?:\/\/|wss?:\/\/)/, "");
-      } else if (rawHost.startsWith("http://") || rawHost.startsWith("ws://")) {
-        wsProtocol = "ws:";
-        host = rawHost.replace(/^(https?:\/\/|wss?:\/\/)/, "");
-      } else {
-        host = rawHost;
-      }
-    }
+    const { wsProtocol, host } = this.resolveEndpoints();
 
     const encodedNick = encodeURIComponent(this.nick);
     const url = `${wsProtocol}//${host}/party/${roomCode}?clientId=${this.myClientId}&nickname=${encodedNick}&isHost=${this.isHost}&mode=${this.mode}&randomRoles=true`;
@@ -72,13 +96,21 @@ class PartyService {
 
       ws.onopen = () => {
         if (this.socket === ws) {
+          this.reconnectAttempts = 0;
           this.onPresenceChanged?.(true);
           this.stopHeartbeat();
           this.pingInterval = setInterval(() => {
             if (this.socket && this.socket.readyState === WebSocket.OPEN) {
               this.socket.send(JSON.stringify({ type: "PING" }));
             }
-          }, 15000);
+          }, GAME_CONFIG.NETWORK.RECONNECT.HEARTBEAT_INTERVAL_MS);
+
+          while (this.queuedActions.length > 0) {
+            const queuedAction = this.queuedActions.shift();
+            if (queuedAction) {
+              this.sendAction(queuedAction);
+            }
+          }
         }
       };
 
@@ -125,6 +157,19 @@ class PartyService {
           this.stopHeartbeat();
           this.socket = null;
           this.onPresenceChanged?.(false);
+
+          if (!this.isExplicitDisconnect && this.roomCode && this.reconnectAttempts < GAME_CONFIG.NETWORK.RECONNECT.MAX_ATTEMPTS) {
+            this.reconnectAttempts++;
+            const delay = Math.min(
+              GAME_CONFIG.NETWORK.RECONNECT.INITIAL_DELAY_MS * Math.pow(2, this.reconnectAttempts - 1),
+              GAME_CONFIG.NETWORK.RECONNECT.MAX_DELAY_MS
+            );
+            this.reconnectTimeout = setTimeout(() => {
+              if (!this.isExplicitDisconnect && this.roomCode) {
+                this.connect(this.roomCode, this.nick, this.isHost, this.mode, this.myClientId);
+              }
+            }, delay);
+          }
         }
       };
 
@@ -164,6 +209,13 @@ class PartyService {
   }
 
   disconnect(): void {
+    this.isExplicitDisconnect = true;
+    this.reconnectAttempts = 0;
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+    this.queuedActions = [];
     this.stopHeartbeat();
     if (this.socket) {
       try {
@@ -179,6 +231,14 @@ class PartyService {
   }
 
   sendAction(action: GameAction): void {
+    if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
+      if (this.queuedActions.length >= 3) {
+        this.queuedActions.shift();
+      }
+      this.queuedActions.push(action);
+      return;
+    }
+
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
       console.warn("[PartyService] Socket is not open, action dropped:", action?.type);
       return;
@@ -199,30 +259,7 @@ class PartyService {
     if (typeof window === "undefined" || typeof fetch === "undefined") {
       return [];
     }
-    const rawHost = import.meta.env?.VITE_PARTYKIT_HOST?.trim();
-    const isLocalhost =
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1";
-
-    let httpProtocol = "https:";
-    let host = "detective-game-haxi.onrender.com";
-
-    if (isLocalhost) {
-      httpProtocol = window.location.protocol === "https:" ? "https:" : "http:";
-      host = `${window.location.hostname}:1999`;
-    }
-
-    if (rawHost) {
-      if (rawHost.startsWith("https://") || rawHost.startsWith("wss://")) {
-        httpProtocol = "https:";
-        host = rawHost.replace(/^(https?:\/\/|wss?:\/\/)/, "");
-      } else if (rawHost.startsWith("http://") || rawHost.startsWith("ws://")) {
-        httpProtocol = "http:";
-        host = rawHost.replace(/^(https?:\/\/|wss?:\/\/)/, "");
-      } else {
-        host = rawHost;
-      }
-    }
+    const { httpProtocol, host } = this.resolveEndpoints();
 
     try {
       const res = await fetch(`${httpProtocol}//${host}/parties/main/lobby?action=list`, {

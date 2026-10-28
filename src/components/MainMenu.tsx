@@ -574,15 +574,45 @@ export const MainMenu = ({
             </>
           )}
 
-          {activeModeData.id === 'SECRET_SERVICE' && selectedOpponent === 'AI' && (
-            <>
-              <h3 className="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest mb-2.5">Агенты ИИ</h3>
-              <div className="flex gap-3 mb-5">
-                <button onClick={() => setPlayerCount(2)} className={`flex-1 py-3 rounded-xl border text-[10px] md:text-xs font-black uppercase tracking-widest transition cursor-pointer ${playerCount === 2 ? 'bg-zinc-800 border-zinc-500 text-white shadow-md' : 'bg-zinc-900/60 border-white/[0.08] text-zinc-500'}`}>1 Бот</button>
-                <button onClick={() => setPlayerCount(3)} className={`flex-1 py-3 rounded-xl border text-[10px] md:text-xs font-black uppercase tracking-widest transition cursor-pointer ${playerCount === 3 ? 'bg-zinc-800 border-zinc-500 text-white shadow-md' : 'bg-zinc-900/60 border-white/[0.08] text-zinc-500'}`}>2 Бота</button>
+          {activeModeData.id === 'SECRET_SERVICE' && (
+              <div className="mb-5">
+                <div className="flex items-center justify-between mb-2.5">
+                  <h3 className="text-[10px] md:text-xs font-black text-zinc-400 uppercase tracking-widest">
+                    Количество агентов
+                  </h3>
+                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
+                    Сетка: {playerCount >= 5 ? "6×6 (36 карт)" : "5×5 (25 карт)"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-6 gap-1.5 mb-2">
+                  {[2, 3, 4, 5, 6].map((num) => (
+                    <button
+                      key={num}
+                      onClick={() => setPlayerCount(num)}
+                      className={`py-2.5 rounded-xl border text-[11px] font-black uppercase transition cursor-pointer ${
+                        playerCount === num
+                          ? "bg-zinc-800 border-zinc-400 text-white shadow-md scale-[1.02]"
+                          : "bg-zinc-900/60 border-white/[0.08] text-zinc-500 hover:text-zinc-300"
+                      }`}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                  <div
+                    title="Сетка 7×7 (49 карт) доступна только в ТВ-режиме"
+                    className="py-2.5 rounded-xl border border-white/[0.04] bg-zinc-950/40 text-zinc-600 flex flex-col items-center justify-center cursor-not-allowed select-none opacity-50 relative group"
+                  >
+                    <span className="text-[10px] font-bold">7×7</span>
+                    <span className="text-[7px] font-black text-red-500/80 uppercase tracking-tighter">ТВ</span>
+                  </div>
+                </div>
+                <div className="text-[9px] font-mono text-zinc-500">
+                  {selectedOpponent === "AI"
+                    ? `Вы против ${playerCount - 1} агентов ИИ. Цель: 4 компромата.`
+                    : `Локальный матч на ${playerCount} человек. Передача устройства по кругу.`}
+                </div>
               </div>
-            </>
-          )}
+            )}
         </div>
       </div>
 

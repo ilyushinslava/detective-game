@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { UserProfile } from "../types/profile";
+import { storage } from "./storage";
 
 const getInitialCallsign = () => {
   if (typeof window !== "undefined") {
@@ -29,35 +30,23 @@ const DEFAULT_PROFILE: UserProfile = {
 
 export function usePlayerProfile() {
   const [profile, setProfile] = useState<UserProfile>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("crime_city_profile");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          return {
-            ...DEFAULT_PROFILE,
-            ...parsed,
-            stats: parsed.stats || DEFAULT_PROFILE.stats,
-            id: parsed.id || generateId(),
-          };
-        } catch (e) {
-          console.error("Failed to parse profile", e);
-        }
-      }
-      localStorage.setItem(
-        "crime_city_profile",
-        JSON.stringify(DEFAULT_PROFILE),
-      );
+    const saved = storage.getSyncItem<Partial<UserProfile> | null>("crime_city_profile", null);
+    if (saved) {
+      return {
+        ...DEFAULT_PROFILE,
+        ...saved,
+        stats: saved.stats || DEFAULT_PROFILE.stats,
+        id: saved.id || generateId(),
+      };
     }
+    storage.setSyncAndPersist("crime_city_profile", DEFAULT_PROFILE);
     return DEFAULT_PROFILE;
   });
 
   const updateProfile = (updates: Partial<UserProfile>) => {
     setProfile((prev) => {
       const next = { ...prev, ...updates };
-      if (typeof window !== "undefined") {
-        localStorage.setItem("crime_city_profile", JSON.stringify(next));
-      }
+      storage.setSyncAndPersist("crime_city_profile", next);
       return next;
     });
   };
@@ -68,9 +57,7 @@ export function usePlayerProfile() {
 
     const next = { ...profile, cash: profile.cash - amount };
     setProfile(next);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("crime_city_profile", JSON.stringify(next));
-    }
+    storage.setSyncAndPersist("crime_city_profile", next);
     return true;
   };
 

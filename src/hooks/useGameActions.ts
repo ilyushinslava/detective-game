@@ -346,7 +346,7 @@ export function useGameActions({
         onClick: () => setIsQuestionCatalogOpen(true),
         disabled: !isHumanTurn || isGameOver,
         className:
-          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 text-white shadow-[0_10px_25px_rgba(6,182,212,0.5)] border-t border-cyan-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+          "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white shadow-[0_10px_25px_rgba(59,130,246,0.4)] border-t border-blue-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
       });
       actions.push({
         id: "duel_candidates",
@@ -436,7 +436,7 @@ export function useGameActions({
               isGameOver ||
               Boolean(selectedCharacter?.isRobbed),
             className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-zinc-700 via-zinc-600 to-zinc-800 text-white shadow-[0_10px_25px_rgba(255,255,255,0.15)] border-t border-zinc-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
           actions.push({
             id: "disguise_thief",
@@ -444,7 +444,7 @@ export function useGameActions({
             onClick: () => setIsHandSheetOpen(true),
             disabled: !isHumanTurn || isGameOver,
             className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 text-white shadow-[0_10px_25px_rgba(217,119,6,0.5)] border-t border-amber-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
+              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-zinc-700 via-zinc-600 to-zinc-800 text-white shadow-[0_10px_25px_rgba(255,255,255,0.15)] border-t border-zinc-400/50 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black rounded-xl transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2",
           });
         } else {
           actions.push({

@@ -1,5 +1,6 @@
 import React from "react";
-import type { GameModeType, Role } from "../types/game";
+import type { GameModeType, Role, Character } from "../types/game";
+import { DetectiveNotebookModal } from "./DetectiveNotebookModal";
 import { DuelQuestionCatalogModal } from "./duel/DuelQuestionCatalogModal";
 import { DuelCandidatesSheet } from "./duel/DuelCandidatesSheet";
 import { DuelAccuseModal } from "./duel/DuelAccuseModal";
@@ -30,6 +31,13 @@ export interface GameModalsContainerProps {
   currentTurn: Role;
   onCloseAccuseModal: () => void;
   onConfirmDuelAccusation: () => void;
+
+  // Toast
+  // Detective Notebook
+  isNotebookOpen?: boolean;
+  onCloseNotebook?: () => void;
+  allCharacters?: Character[];
+  characterImages?: Record<string, { default: string }>;
 
   // Toast
   toastMessage: string | null;
@@ -99,6 +107,10 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
   currentTurn,
   onCloseAccuseModal,
   onConfirmDuelAccusation,
+  isNotebookOpen,
+  onCloseNotebook,
+  allCharacters,
+  characterImages,
   toastMessage,
   onCloseToast,
   restartRequestedBy,
@@ -168,6 +180,13 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
         )}
         onClose={onCloseAccuseModal}
         onConfirmAccusation={onConfirmDuelAccusation}
+      />
+
+      <DetectiveNotebookModal
+        isOpen={Boolean(isNotebookOpen)}
+        onClose={onCloseNotebook || (() => {})}
+        characters={allCharacters || []}
+        characterImages={characterImages}
       />
 
       <Toast message={toastMessage} type="info" onClose={onCloseToast} />

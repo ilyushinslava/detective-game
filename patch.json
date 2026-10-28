@@ -1,5 +1,15 @@
-{
-  "files": {
-    "src/components/DeviceOrientationOverlay.tsx": "export const DeviceOrientationOverlay = () => null;\n"
-  }
+﻿{
+  "files": {},
+  "patches": [
+    {
+      "file": "src/utils/gameLogic.ts",
+      "find": "    } else if (mode === \"SECRET_SERVICE\") {\n      deck = shuffle(boardCharacters.map((c) => c.id));\n  \n      const cleanPlayerName = playerName?.trim();\n      let hostName = \"РђРіРµРЅС‚ Р¤Р°РЅС‚РѕРј\";\n      if (cleanPlayerName && cleanPlayerName !== \"РђРіРµРЅС‚\") {\n        hostName = cleanPlayerName.replace(/^РђРіРµРЅС‚\\s+РђРіРµРЅС‚\\b/i, \"РђРіРµРЅС‚ \");\n      }\n      const guestName = \"РђРіРµРЅС‚ РџСЂРёР·СЂР°Рє\";\n  \n      if (opponent === \"PVP\") {\n        spies = [\n          {\n            id: \"p1\",\n            name: \"РђРіРµРЅС‚ Р¤Р°РЅС‚РѕРј\",\n            secretId: deck.shift()!,\n            trophies: 0,\n            isAI: false,\n          },\n          {\n            id: \"p2\",\n            name: guestName,\n            secretId: deck.shift()!,\n            trophies: 0,\n            isAI: false,\n          },\n        ];\n      } else if (opponent === \"ONLINE\") {\n        spies = [\n          {\n            id: \"p1\",\n            name: hostName,\n            secretId: deck.shift()!,\n            trophies: 0,\n            isAI: false,\n          },\n          {\n            id: \"p2\",\n            name: guestName,\n            secretId: deck.shift()!,\n            trophies: 0,\n            isAI: false,\n          },\n        ];\n      } else {\n        spies = [\n          {\n            id: \"p1\",\n            name: hostName,\n            secretId: deck.shift()!,\n            trophies: 0,\n            isAI: false,\n          },\n          {\n            id: \"p2\",\n            name: guestName,\n            secretId: deck.shift()!,\n            trophies: 0,\n            isAI: true,\n          },\n        ];\n      }",
+      "replace": "    } else if (mode === \"SECRET_SERVICE\") {\n      deck = shuffle(boardCharacters.map((c) => c.id));\n      const DEFAULT_SPY_CALLSIGNS = [\"Зенит\", \"Дамаск\", \"Филин\", \"Вектор\"];\n      const count = Math.min(Math.max(playerCount || 2, 2), 4);\n      const cleanPlayerName = playerName?.trim();\n      const hostName = cleanPlayerName && cleanPlayerName !== \"Агент\" ? cleanPlayerName : DEFAULT_SPY_CALLSIGNS[0];\n\n      spies = Array.from({ length: count }, (_, i) => {\n        const name = i === 0 ? hostName : (DEFAULT_SPY_CALLSIGNS[i] || `Агент ${i + 1}`);\n        const isAI = opponent === \"PVP\" ? false : (opponent === \"ONLINE\" ? false : i > 0);\n        return {\n          id: `p${i + 1}`,\n          name,\n          secretId: deck.shift()!,\n          trophies: 0,\n          isAI,\n        };\n      });"
+    },
+    {
+      "file": "src/App.tsx",
+      "find": "                {gameState.spies?.slice(0, 2).map((spy) => {",
+      "replace": "                {gameState.spies?.map((spy) => {"
+    }
+  ]
 }

@@ -36,6 +36,11 @@ export default class GameRoomServer {
   state: ServerRoomState;
   private disconnectTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
 
+  private getRoomCode(): string {
+    const raw = String(this.room?.id || "room");
+    return raw.replace(/^.*(?:\/party\/|\/parties\/[^\/]+\/)/, "").replace(/^\/+|\/+$/g, "").split("/").pop() || "room";
+  }
+
   constructor(room: any) {
     this.room = room;
     this.state = {
@@ -48,8 +53,24 @@ export default class GameRoomServer {
   }
 
   async onRequest(req: Request): Promise<Response> {
+    if (req.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+        },
+      });
+    }
     const url = new URL(req.url);
-    if (url.pathname.endsWith("/rooms") || url.searchParams.get("action") === "list") {
+    const isRoomsListRequest =
+      url.pathname.endsWith("/rooms") ||
+      url.pathname.endsWith("/rooms/") ||
+      url.pathname.includes("/lobby") ||
+      url.searchParams.get("action") === "list";
+
+    if (isRoomsListRequest) {
       const waitingRooms = Array.from(publicRoomsRegistry.values()).filter(
         (r) => r.status === "WAITING"
       );
@@ -75,7 +96,10 @@ export default class GameRoomServer {
     const isHost = url.searchParams.get("isHost") === "true";
     const mode = (url.searchParams.get("mode") as GameModeType) || "SKHVATKA";
     const randomRoles = url.searchParams.get("randomRoles") === "true";
-    const roomCode = this.room?.id || url.pathname.split("/").pop() || "room";
+    const rawRoomCode = (this.room?.id || url.pathname || "room")
+      .replace(/^.*(?:\/party\/|\/parties\/[^\/]+\/)/, "")
+      .replace(/^\/+|\/+$/g, "");
+    const roomCode = this.getRoomCode(); void rawRoomCode;
 
     if (this.state.players[clientId]) {
       const pendingTimer = this.disconnectTimers.get(clientId);
@@ -135,10 +159,25 @@ export default class GameRoomServer {
         connectionId: conn.id,
       };
 
+      this.state.readyClients.clear();
       this.state.gameState = createInitialState(this.state.mode, "ONLINE", "KILLER", 2, 3, 16, nickname);
       this.state.status = "READY_TO_START";
 
-      publicRoomsRegistry.delete(roomCode);
+      const existingRoom = publicRoomsRegistry.get(roomCode);
+      if (existingRoom) {
+        existingRoom.status = "READY_TO_START";
+        existingRoom.playersCount = 2;
+      } else {
+        publicRoomsRegistry.set(roomCode, {
+          roomCode,
+          mode: this.state.mode,
+          hostName: hostPlayer?.nickname || "Хост",
+          status: "READY_TO_START",
+          playersCount: 2,
+          maxPlayers: 2,
+          bet: 250,
+        });
+      }
 
       this.broadcastStatus();
       this.broadcastState();
@@ -162,8 +201,15 @@ export default class GameRoomServer {
       delete this.state.players[clientId];
       this.state.readyClients.delete(clientId);
 
-      const roomCode = this.room?.id;
-      if (roomCode) {
+      const rawCloseCode = this.room?.id
+        ? this.room.id
+            .replace(/^.*(?:\/party\/|\/parties\/[^\/]+\/)/, "")
+            .replace(/^\/+|\/+$/g, "")
+            .split("/")
+            .pop()
+        : undefined;
+      const roomCode = this.getRoomCode(); void rawCloseCode;
+      if (false && roomCode) {
         publicRoomsRegistry.delete(roomCode);
       }
 
@@ -171,6 +217,7 @@ export default class GameRoomServer {
       if (remainingPlayersCount === 0) {
         this.state.status = "EMPTY";
         this.state.gameState = null;
+        publicRoomsRegistry.delete(roomCode);
         this.state.readyClients.clear();
       } else {
         this.broadcastRaw(JSON.stringify({ type: "OPPONENT_LEFT" }));
@@ -178,6 +225,16 @@ export default class GameRoomServer {
           this.state.status = "FINISHED";
         } else {
           this.state.status = "WAITING";
+          const hostPlayer = Object.values(this.state.players).find((p) => p.isHost) || Object.values(this.state.players)[0];
+          publicRoomsRegistry.set(roomCode, {
+            roomCode,
+            mode: this.state.mode,
+            hostName: hostPlayer?.nickname || "Хост",
+            status: "WAITING",
+            playersCount: 1,
+            maxPlayers: 2,
+            bet: 250,
+          });
         }
         this.broadcastStatus();
       }
@@ -239,6 +296,10 @@ export default class GameRoomServer {
         }
         if (this.state.readyClients.size >= 2) {
           this.state.status = "PLAYING";
+          publicRoomsRegistry.delete(this.getRoomCode());
+          this.broadcastRaw(JSON.stringify({ type: "ALL_PLAYERS_READY" }));
+          this.broadcastStatus();
+        } else {
           this.broadcastStatus();
         }
         return;
@@ -326,6 +387,9 @@ export default class GameRoomServer {
       type: "ROOM_STATUS",
       status: this.state.status,
       players: this.state.players,
+      isReady: this.state.status === "READY_TO_START" || this.state.status === "PLAYING",
+      ready: this.state.status === "READY_TO_START" || this.state.status === "PLAYING",
+      readyClients: Array.from(this.state.readyClients),
     });
     this.broadcastRaw(payload);
   }
@@ -388,11 +452,13 @@ export default class GameRoomServer {
   }
 
   private broadcastRaw(msg: string): void {
-    const connections = this.room._connectionsMap
+    const connections = this.room?._connectionsMap
       ? Array.from(this.room._connectionsMap.values())
-      : (this.room.getConnections ? Array.from(this.room.getConnections()) : []);
+      : (typeof this.room?.getConnections === "function" ? Array.from(this.room.getConnections()) : []);
     for (const conn of connections as any[]) {
-      conn.send(msg);
+      try {
+        conn.send(msg);
+      } catch (_err) {}
     }
   }
 
@@ -401,5 +467,6 @@ export default class GameRoomServer {
       clearTimeout(timer);
     }
     this.disconnectTimers.clear();
+    publicRoomsRegistry.delete(this.getRoomCode());
   }
 }

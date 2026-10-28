@@ -106,7 +106,7 @@ export const DuelQuestionCatalogModal = ({
             placeholder="Поиск по тексту или тегам..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-10 pr-10 py-3 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-cyan-500/50 transition shadow-inner"
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-10 pr-10 py-3 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-blue-500/50 transition shadow-inner"
           />
           {searchQuery && (
             <button
@@ -128,7 +128,7 @@ export const DuelQuestionCatalogModal = ({
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition border cursor-pointer ${
                   isActive
-                    ? "bg-cyan-950/60 border-cyan-500/50 text-cyan-200 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+                    ? "bg-blue-950/60 border-blue-500/50 text-blue-200 shadow-[0_0_10px_rgba(59,130,246,0.2)]"
                     : "bg-zinc-900/50 border-white/5 text-zinc-500 hover:text-zinc-300 hover:border-white/20"
                 }`}
               >
@@ -153,16 +153,16 @@ export const DuelQuestionCatalogModal = ({
                   onClick={() => setPendingQuestionId(q.id)}
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all flex flex-col gap-2 ${
                     isSelected
-                      ? "bg-cyan-950/30 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+                      ? "bg-blue-950/30 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.15)]"
                       : "bg-zinc-900/50 border-white/5 hover:border-white/20"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <span className={`text-sm font-bold leading-snug ${isSelected ? "text-cyan-100" : "text-zinc-200"}`}>
+                    <span className={`text-sm font-bold leading-snug ${isSelected ? "text-blue-100" : "text-zinc-200"}`}>
                       {q.text}
                     </span>
                     {isSelected && (
-                      <div className="w-5 h-5 rounded-full bg-cyan-500 text-zinc-950 flex items-center justify-center shrink-0 shadow-[0_0_8px_rgba(6,182,212,0.8)]">
+                      <div className="w-5 h-5 rounded-full bg-blue-500 text-zinc-950 flex items-center justify-center shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.8)]">
                         <Icons.Check />
                       </div>
                     )}
@@ -187,7 +187,7 @@ export const DuelQuestionCatalogModal = ({
         {selectedQuestion && (
           <div className="mt-4 pt-4 border-t border-zinc-800 shrink-0 animate-in slide-in-from-bottom-4 fade-in duration-200">
             <div className="mb-3">
-              <span className="text-[9px] font-black text-cyan-500 uppercase tracking-widest block mb-1">
+              <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest block mb-1">
                 Выбранный вопрос:
               </span>
               <span className="text-sm font-bold text-zinc-100">
@@ -196,7 +196,7 @@ export const DuelQuestionCatalogModal = ({
             </div>
             <button
               onClick={handleConfirm}
-              className="w-full py-3.5 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 text-white text-xs font-black tracking-widest uppercase rounded-xl shadow-[0_10px_25px_rgba(6,182,212,0.5)] hover:brightness-110 active:scale-[0.98] transition cursor-pointer"
+              className="w-full py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white text-xs font-black tracking-widest uppercase rounded-xl shadow-[0_10px_25px_rgba(59,130,246,0.5)] hover:brightness-110 active:scale-[0.98] transition cursor-pointer"
             >
               Подтвердить вопрос
             </button>

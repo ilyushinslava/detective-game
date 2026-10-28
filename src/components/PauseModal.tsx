@@ -46,7 +46,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
 
         <button
           onClick={onResume}
-          className="w-full py-3.5 bg-amber-600 hover:bg-amber-500 text-zinc-950 font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
+          className="w-full py-3.5 bg-zinc-100 hover:bg-white text-zinc-950 shadow-[0_10px_20px_rgba(255,255,255,0.15)] font-black uppercase tracking-wider rounded-xl transition cursor-pointer"
         >
           Продолжить
         </button>
@@ -64,7 +64,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
               onClose();
               onOpenDevPanel();
             }}
-            className="w-full py-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-400 font-mono text-xs font-bold uppercase tracking-wider hover:bg-amber-500/20 transition cursor-pointer"
+            className="w-full py-2.5 rounded-xl border border-zinc-700 bg-zinc-800/50 text-zinc-300 font-mono text-xs font-bold uppercase tracking-wider hover:bg-zinc-700/60 transition cursor-pointer"
           >
             Панель разработчика (DEV)
           </button>

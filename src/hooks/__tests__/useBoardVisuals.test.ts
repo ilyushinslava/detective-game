@@ -91,13 +91,13 @@ describe("useBoardVisuals: Регрессионное тестирование �
     const expectedRadarCells = [radarTarget, ...getAdjacentCharacters(gameState.board, radarTarget).map((c) => c.id)];
     expect(result.current.effectiveRadarTargetId).toBe(radarTarget);
     expect(result.current.effectiveRadarCellIds).toEqual(expectedRadarCells);
-    expect(result.current.effectiveRadarColorClass).toBe("border-cyan-400 ring-2 ring-cyan-500/70");
+    expect(result.current.effectiveRadarColorClass).toBe("border-blue-500 ring-2 ring-blue-500/70");
 
     const forcedChoiceId = gameState.board[1][1].id;
     rerender({ selectedChoiceId: forcedChoiceId });
     expect(result.current.effectiveRadarTargetId).toBe(forcedChoiceId);
     expect(result.current.effectiveRadarCellIds).toEqual([forcedChoiceId]);
-    expect(result.current.effectiveRadarColorClass).toContain("ring-cyan-400");
+    expect(result.current.effectiveRadarColorClass).toContain("ring-blue-500");
 
     const ssState = createInitialState("SECRET_SERVICE", "AI", "DETECTIVE", 2, 3, 16);
     ssState.interrogationRadar = {

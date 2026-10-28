@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 html, body, #root {
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
   -webkit-touch-callout: none !important;
   -webkit-user-select: none !important;
   user-select: none !important;
@@ -20,6 +23,18 @@ img, svg, button {
 @layer base {
   body {
     @apply antialiased;
+  }
+}
+
+@supports (-webkit-backdrop-filter: none) or (backdrop-filter: none) {
+  .backdrop-blur-sm {
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .backdrop-blur-\[1px\] {
+    -webkit-backdrop-filter: blur(1px);
+  }
+  .backdrop-blur-\[2px\] {
+    -webkit-backdrop-filter: blur(2px);
   }
 }
 

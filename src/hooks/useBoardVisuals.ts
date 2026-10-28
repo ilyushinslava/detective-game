@@ -146,7 +146,7 @@ export function useBoardVisuals({
     if (!gameState.interrogationRadar) return null;
     return gameState.mode === "SECRET_SERVICE"
       ? `${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].border} ring-2 ${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].ring}`
-      : "border-cyan-400 ring-2 ring-cyan-500/70";
+      : "border-blue-500 ring-2 ring-blue-500/70";
   }, [gameState.interrogationRadar, gameState.mode]);
 
   const effectiveRadarTargetId =
@@ -155,7 +155,7 @@ export function useBoardVisuals({
     ? [selectedInspectorChoiceId]
     : radarCellIds;
   const effectiveRadarColorClass = selectedInspectorChoiceId
-    ? "ring-4 ring-cyan-400 shadow-[0_0_25px_rgba(6,182,212,0.9)] scale-105 z-20 border-cyan-400"
+    ? "ring-4 ring-blue-500 shadow-[0_0_25px_rgba(59,130,246,0.9)] scale-105 z-20 border-blue-500"
     : radarColorClass;
 
   const isPVP = gameState.opponent === "PVP";
@@ -320,13 +320,13 @@ export function useBoardVisuals({
 
   const pillClasses = useMemo(() => {
     if (isAIThinking) {
-      return "bg-amber-950/90 border-amber-500 text-amber-200 animate-pulse";
+      return "bg-zinc-800/90 border-zinc-500 text-zinc-400 animate-pulse";
     }
     if (gameState.mode === "SECRET_SERVICE") {
       const isP1Turn = gameState.activeSpyIndex === 0;
       return isP1Turn
         ? "bg-red-950/90 border-red-600 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
-        : "bg-cyan-950/90 border-cyan-500 text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.3)]";
+        : "bg-slate-800/90 border-slate-500 text-slate-200 shadow-[0_0_15px_rgba(100,116,139,0.3)]";
     }
     return isKillerTurn
       ? "bg-red-950/80 border-red-600 text-red-100"
@@ -334,12 +334,12 @@ export function useBoardVisuals({
   }, [isAIThinking, gameState.mode, gameState.activeSpyIndex, isKillerTurn]);
 
   const dotClasses = useMemo(() => {
-    if (isAIThinking) return "bg-amber-500 shadow-amber-500/80";
+    if (isAIThinking) return "bg-zinc-400 shadow-zinc-400/80";
     if (gameState.mode === "SECRET_SERVICE") {
       const isP1Turn = gameState.activeSpyIndex === 0;
       return isP1Turn
         ? "bg-red-500 shadow-red-500/80"
-        : "bg-cyan-400 shadow-cyan-400/80";
+        : "bg-slate-400 shadow-slate-400/80";
     }
     return isKillerTurn
       ? "bg-red-500 shadow-red-500/80"

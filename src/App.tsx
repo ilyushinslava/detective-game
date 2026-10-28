@@ -58,6 +58,7 @@ export default function App() {
   const [showSpyP1Role, setShowSpyP1Role] = useState(false);
   const [showSpyP2Role, setShowSpyP2Role] = useState(false);
   const [isLogOpen, setIsLogOpen] = useState(false);
+  const [isNotebookOpen, setIsNotebookOpen] = useState(false);
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -132,7 +133,7 @@ export default function App() {
     rematchTimer,
     acceptRestart,
     rejectRestart,
-    handleExitToMenu,
+    handleExitToMenu: exitToMenuMultiplayer,
   } = useMultiplayer({
     gameState,
     setGameState,
@@ -291,6 +292,13 @@ export default function App() {
     setIsLobbyOpen(false);
   };
 
+  const handleExitToMenu = () => {
+    if (gameState.winner) {
+      setHasStartedEver(false);
+    }
+    exitToMenuMultiplayer();
+  };
+
   const selectedCharacter = useMemo(() => {
     if (!selectedId) return null;
     return gameState.board.flat().find((c) => c.id === selectedId) ?? null;
@@ -359,6 +367,10 @@ export default function App() {
         currentTurn={gameState.currentTurn}
         onCloseAccuseModal={() => setIsAccuseModalOpen(false)}
         onConfirmDuelAccusation={handleConfirmDuelAccusation}
+        isNotebookOpen={isNotebookOpen}
+        onCloseNotebook={() => setIsNotebookOpen(false)}
+        allCharacters={allChars}
+        characterImages={characterImages}
         toastMessage={toastMessage}
         onCloseToast={() => setToastMessage(null)}
         restartRequestedBy={gameState.restartRequestedBy}
@@ -376,7 +388,7 @@ export default function App() {
         onClosePause={() => setIsPauseOpen(false)}
         onResumeGame={() => setIsPauseOpen(false)}
         onOpenRules={() => setIsRulesOpen(true)}
-        onOpenDevPanel={() => setIsDevPanelOpen(true)}
+        onOpenDevPanel={import.meta.env.DEV ? () => setIsDevPanelOpen(true) : undefined}
         isRulesOpen={isRulesOpen}
         onCloseRules={() => setIsRulesOpen(false)}
         isSfxEnabled={isSfxEnabled}
@@ -392,10 +404,13 @@ export default function App() {
         }}
         fullscreenCard={fullscreenImage}
         onCloseFullscreenCard={() => setFullscreenImage(null)}
-        isDevPanelOpen={isDevPanelOpen}
+        isDevPanelOpen={import.meta.env.DEV ? isDevPanelOpen : false}
         onCloseDevPanel={() => setIsDevPanelOpen(false)}
         cash={profile.cash}
         onForceWin={(winner, forcedMode) => {
+          setIsIntroPhase(false);
+          setIsPauseOpen(false);
+          setIsChoiceSheetMinimized(false);
           setGameState((prev) => ({
             ...prev,
             mode: forcedMode || prev.mode,
@@ -477,10 +492,10 @@ export default function App() {
             activeTab={activeTab}
             onTabChange={setActiveTab}
             onStartGame={handleStartNewGame}
-            hasActiveGame={!gameState.winner && gameState.log.length > 2}
+            hasActiveGame={Boolean(!gameState.winner && hasStartedEver && gameState.board?.length >= 5 && gameState.log?.length > 2)}
             onResumeGame={handleResumeGame}
             onOpenRules={() => setIsRulesOpen(true)}
-            onOpenDevPanel={() => setIsDevPanelOpen(true)}
+            onOpenDevPanel={import.meta.env.DEV ? () => setIsDevPanelOpen(true) : undefined}
           />
         )}
 
@@ -549,10 +564,10 @@ export default function App() {
             {gameState.opponent === "PVP" && !isInspectorPassConfirmed ? (
               <div className="absolute inset-0 bg-[#080a0f]/95 backdrop-blur-xl flex items-center justify-center p-4 pointer-events-auto">
                 <div className="w-full max-w-sm bg-zinc-950 border border-white/10 rounded-3xl p-6 text-center shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-full bg-cyan-950/50 border border-cyan-500/50 flex items-center justify-center text-cyan-400 font-black text-2xl mb-6 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
+                  <div className="w-16 h-16 rounded-full bg-blue-950/50 border border-blue-500/50 flex items-center justify-center text-blue-400 font-black text-2xl mb-6 shadow-[0_0_20px_rgba(59,130,246,0.25)]">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                   </div>
-                  <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-2">
+                  <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">
                     Секретные данные
                   </span>
                   <h2 className="text-xl font-black text-zinc-100 uppercase tracking-wider mb-2">
@@ -563,7 +578,7 @@ export default function App() {
                   </p>
                   <button
                     onClick={() => setIsInspectorPassConfirmed(true)}
-                    className="w-full h-14 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer shadow-[0_0_20px_rgba(6,182,212,0.45)] flex items-center justify-center gap-2 shrink-0"
+                    className="w-full h-14 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 hover:from-blue-600 hover:to-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer shadow-[0_0_20px_rgba(59,130,246,0.45)] flex items-center justify-center gap-2 shrink-0"
                   >
                     <span>Я держу телефон один</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -580,7 +595,7 @@ export default function App() {
                 <div className={`absolute bottom-8 transition-all duration-500 ease-out transform pointer-events-auto flex items-center gap-2 ${isChoiceSheetMinimized ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none"}`}>
                   <button
                     onClick={() => setIsChoiceSheetMinimized(false)}
-                    className="h-12 px-5 bg-zinc-950/90 backdrop-blur-md border border-cyan-500/30 rounded-full shadow-[0_0_30px_rgba(0,0,0,0.8)] flex items-center justify-center gap-2 text-cyan-400 font-black uppercase tracking-widest text-[10px] hover:bg-zinc-900 transition"
+                    className="h-12 px-5 bg-zinc-950/90 backdrop-blur-md border border-blue-500/30 rounded-full shadow-[0_0_30px_rgba(0,0,0,0.8)] flex items-center justify-center gap-2 text-blue-400 font-black uppercase tracking-widest text-[10px] hover:bg-zinc-900 transition"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                     <span>Выбор личности</span>
@@ -593,7 +608,7 @@ export default function App() {
                         setIsChoiceSheetMinimized(false);
                         setIsInspectorPassConfirmed(false);
                       }}
-                      className="h-12 px-5 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 text-white font-black uppercase tracking-widest text-[10px] rounded-full shadow-[0_0_20px_rgba(6,182,212,0.45)] border-t border-white/25 flex items-center justify-center gap-1.5 transition active:scale-95"
+                      className="h-12 px-5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white font-black uppercase tracking-widest text-[10px] rounded-full shadow-[0_0_20px_rgba(59,130,246,0.45)] border-t border-white/25 flex items-center justify-center gap-1.5 transition active:scale-95"
                     >
                       <span>Подтвердить</span>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -601,9 +616,9 @@ export default function App() {
                   )}
                 </div>
 
-                <div className={`relative w-full max-w-md bg-zinc-950/60 backdrop-blur-md border border-cyan-500/30 rounded-3xl p-5 sm:p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col text-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform pointer-events-auto ${isChoiceSheetMinimized ? "translate-y-[110%] opacity-0" : "translate-y-0 opacity-100"}`}>
+                <div className={`relative w-full max-w-md bg-zinc-950/60 backdrop-blur-md border border-blue-500/30 rounded-3xl p-5 sm:p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col text-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform pointer-events-auto ${isChoiceSheetMinimized ? "translate-y-[110%] opacity-0" : "translate-y-0 opacity-100"}`}>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">
+                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">
                       Оперативное назначение
                     </span>
                     <button
@@ -629,15 +644,15 @@ export default function App() {
                           onClick={() => setSelectedInspectorChoiceId(char.id)}
                           className={`relative flex flex-col justify-between p-4 rounded-2xl border text-left cursor-pointer transition select-none min-h-[105px] overflow-hidden ${
                             isSelected
-                              ? "bg-cyan-950/40 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.35)] scale-[1.02]"
+                              ? "bg-blue-950/40 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.35)] scale-[1.02]"
                               : "bg-zinc-900/50 border-white/5 hover:border-white/20 text-zinc-400"
                           }`}
                         >
                           <div className="relative z-10 flex items-center justify-between text-[9px] font-mono text-zinc-500">
                             <span>#{char.id.replace("c", "").padStart(2, "0")}</span>
-                            {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.9)]" />}
+                            {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.9)]" />}
                           </div>
-                          <div className={`relative z-10 text-xs font-black uppercase tracking-wider mt-3 ${isSelected ? "text-cyan-100" : "text-zinc-200"}`}>
+                          <div className={`relative z-10 text-xs font-black uppercase tracking-wider mt-3 ${isSelected ? "text-blue-100" : "text-zinc-200"}`}>
                             {char.name}
                           </div>
                         </div>
@@ -654,7 +669,7 @@ export default function App() {
                       }
                     }}
                     disabled={!selectedInspectorChoiceId || !inspectorChoices.some((c) => c.id === selectedInspectorChoiceId)}
-                    className="w-full h-14 bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-800 hover:from-cyan-600 hover:to-cyan-500 disabled:from-zinc-800 disabled:to-zinc-900 disabled:text-zinc-600 disabled:shadow-none text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer disabled:cursor-not-allowed shadow-[0_0_20px_rgba(6,182,212,0.45)] flex items-center justify-center gap-2 shrink-0"
+                    className="w-full h-14 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 hover:from-blue-600 hover:to-blue-500 disabled:from-zinc-800 disabled:to-zinc-900 disabled:text-zinc-600 disabled:shadow-none text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer disabled:cursor-not-allowed shadow-[0_0_20px_rgba(59,130,246,0.45)] flex items-center justify-center gap-2 shrink-0"
                   >
                     <span>Подтвердить личность</span>
                   </button>
@@ -676,6 +691,16 @@ export default function App() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
                 <rect x="6" y="4" width="4" height="16"/>
                 <rect x="14" y="4" width="4" height="16"/>
+              </svg>
+            </button>
+            <button
+              onClick={() => setIsNotebookOpen(true)}
+              className="w-8 h-8 md:w-11 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer"
+              title="Блокнот подозреваемых"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
               </svg>
             </button>
             <button
@@ -738,8 +763,8 @@ export default function App() {
       )}
 
         {!isOpponentConnected && !opponentDisconnectedNotice && gameState.opponent === "ONLINE" && (
-          <div className="w-full bg-amber-950/80 border-b border-amber-700/80 text-amber-200 text-[10px] font-black uppercase tracking-widest py-2 flex justify-center items-center gap-2 shadow-inner z-20">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+          <div className="w-full bg-zinc-900 border-b border-zinc-700 text-zinc-300 text-[10px] font-black uppercase tracking-widest py-2 flex justify-center items-center gap-2 shadow-inner z-20">
+            <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-ping" />
             Соперник переподключается... (ожидание)
           </div>
         )}
@@ -777,11 +802,11 @@ export default function App() {
           ) : gameState.mode === "THIEF_HUNT" ? (
             <div className="flex items-center gap-1.5">
               <span>Добыча:</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-amber-400 shrink-0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-zinc-300 shrink-0">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
               </svg>
-              <b className="text-amber-400">
+              <b className="text-zinc-200 font-bold">
                 {gameState.trophiesKiller ?? 0}/5
               </b>
               <span className="ml-1">| Улики: {gameState.evidenceDeck.length}</span>
@@ -832,7 +857,7 @@ export default function App() {
                 </b>
               </span>
               <div className="flex gap-1.5 shrink-0">
-                {gameState.spies?.slice(0, 2).map((spy) => {
+                {gameState.spies?.map((spy) => {
                   const hasContact =
                     gameState.lastSpyInterrogation?.raisedHandsPlayerNames.includes(
                       spy.name
@@ -873,9 +898,9 @@ export default function App() {
         </div>
 
         {!isLobbyOpen && hasStartedEver && (
-        <div className="flex-1 min-h-0 w-full flex flex-col landscape:flex-row items-center justify-start landscape:justify-between gap-2 md:gap-6 lg:gap-8 px-2 sm:px-4 md:px-6 py-1 md:py-4 overflow-y-auto landscape:overflow-hidden custom-scrollbar">
-          <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-3xl landscape:max-w-none flex flex-col items-center justify-center">
-            <div className="w-full flex-1 min-h-0 flex items-center justify-center overflow-hidden relative antialiased">
+        <div className="flex-1 min-h-0 w-full flex flex-col landscape:flex-row items-center justify-start landscape:justify-between gap-2 md:gap-6 lg:gap-8 px-2 sm:px-4 md:px-6 py-1 md:py-4 overflow-hidden custom-scrollbar">
+          <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-3xl landscape:max-w-none flex flex-col items-center justify-center py-1 sm:py-2 landscape:py-0">
+            <div className="w-full h-full flex-1 min-h-0 flex items-center justify-center overflow-hidden relative antialiased">
               <GameBoard
                 mode={gameState.mode}
                 board={gameState.board}
@@ -949,11 +974,11 @@ export default function App() {
               isPVP={gameState.opponent === "PVP"}
             />
 
-            {gameState.log.length > 0 && (
-              <div className="w-full max-w-md md:max-w-xl my-1 px-3 py-1.5 bg-zinc-900/90 border border-zinc-800 rounded-lg text-[10px] sm:text-xs font-mono text-zinc-300 break-words whitespace-normal text-center shadow-sm shrink-0 leading-snug">
-                {gameState.log[gameState.log.length - 1]}
-              </div>
-            )}
+            <div className="w-full max-w-md md:max-w-xl h-8 sm:h-9 my-1 px-3 bg-zinc-900/90 border border-zinc-800 rounded-lg text-[10px] sm:text-xs font-mono text-zinc-300 text-center shadow-sm shrink-0 flex items-center justify-center overflow-hidden">
+              <span className="truncate w-full">
+                {gameState.log.length > 0 ? gameState.log[gameState.log.length - 1] : "Операция в процессе..."}
+              </span>
+            </div>
 
             <div className="flex flex-col gap-2 w-full lg:bg-zinc-900/50 lg:border lg:border-zinc-800 lg:p-4 lg:rounded-2xl">
               <div className="hidden md:block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">

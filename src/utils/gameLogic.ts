@@ -94,6 +94,16 @@ export function createInitialState(
   playerName?: string,
 ): GameState {
   let boardSize = 5;
+  if (mode === "SECRET_SERVICE") {
+    const count = playerCount || 2;
+    if (count >= 8) {
+      boardSize = 7;
+    } else if (count >= 5) {
+      boardSize = 6;
+    } else {
+      boardSize = 5;
+    }
+  }
 
   const totalCells = boardSize * boardSize;
   const sourcePool = mode === "LINE_UP" ? DUEL_CHARACTERS : ALL_CHARACTERS;
@@ -185,66 +195,22 @@ export function createInitialState(
     uniformedOfficers = [deck.shift()!, deck.shift()!].filter(Boolean);
   } else if (mode === "SECRET_SERVICE") {
     deck = shuffle(boardCharacters.map((c) => c.id));
+    const DEFAULT_SPY_CALLSIGNS = ["Зенит", "Дамаск", "Филин", "Вектор", "Агат", "Норд"];
+    const count = Math.min(Math.max(playerCount || 2, 2), 6);
+    const cleanPlayerName = typeof playerName === "string" ? playerName.trim() : "";
+    const hostName = cleanPlayerName && cleanPlayerName !== "Агент" ? cleanPlayerName : DEFAULT_SPY_CALLSIGNS[0];
 
-    const cleanPlayerName = playerName?.trim();
-    let hostName = "Агент Фантом";
-    if (cleanPlayerName && cleanPlayerName !== "Агент") {
-      hostName = cleanPlayerName.replace(/^Агент\s+Агент\b/i, "Агент ");
-    }
-    const guestName = "Агент Призрак";
-
-    if (opponent === "PVP") {
-      spies = [
-        {
-          id: "p1",
-          name: "Агент Фантом",
-          secretId: deck.shift()!,
-          trophies: 0,
-          isAI: false,
-        },
-        {
-          id: "p2",
-          name: guestName,
-          secretId: deck.shift()!,
-          trophies: 0,
-          isAI: false,
-        },
-      ];
-    } else if (opponent === "ONLINE") {
-      spies = [
-        {
-          id: "p1",
-          name: hostName,
-          secretId: deck.shift()!,
-          trophies: 0,
-          isAI: false,
-        },
-        {
-          id: "p2",
-          name: guestName,
-          secretId: deck.shift()!,
-          trophies: 0,
-          isAI: false,
-        },
-      ];
-    } else {
-      spies = [
-        {
-          id: "p1",
-          name: hostName,
-          secretId: deck.shift()!,
-          trophies: 0,
-          isAI: false,
-        },
-        {
-          id: "p2",
-          name: guestName,
-          secretId: deck.shift()!,
-          trophies: 0,
-          isAI: true,
-        },
-      ];
-    }
+    spies = Array.from({ length: count }, (_, i) => {
+      const name = i === 0 ? hostName : (DEFAULT_SPY_CALLSIGNS[i] || "Агент " + (i + 1));
+      const isAI = opponent === "PVP" ? false : (opponent === "ONLINE" ? false : i > 0);
+      return {
+        id: "p" + (i + 1),
+        name,
+        secretId: deck.shift(),
+        trophies: 0,
+        isAI,
+      };
+    });
 
     spyTargetTrophies = targetTrophies;
     activeSpyIndex = 0;
@@ -743,10 +709,7 @@ export function disguiseKiller(state: GameState): GameState {
 
   const drawnChar = state.board.flat().find((c) => c.id === drawnId);
   const isAvailable =
-    drawnChar &&
-    drawnChar.isAlive &&
-    !drawnChar.isExonerated &&
-    drawnId !== state.detectiveSecretId;
+    Boolean(drawnChar && drawnChar.isAlive && !drawnChar.isExonerated && drawnId !== state.detectiveSecretId);
 
   if (isAvailable) {
     nextDeck.push(state.killerSecretId);
@@ -897,22 +860,28 @@ export function spyCatch(state: GameState, targetId: string): GameState {
       trophies: newTrophies,
     };
 
+    const otherSpiesSecretIds = newSpies
+      .filter((_, idx) => idx !== caughtSpyIndex)
+      .map((s) => s.secretId);
+
     const availableLivingIds = newBoard
       .flat()
       .filter(
         (c) =>
           c.isAlive &&
+          c.unmaskedSpyIndex === undefined &&
           c.id !== targetId &&
-          !newSpies.some((s) => s.secretId === c.id),
+          c.id !== caughtSpy.secretId &&
+          !otherSpiesSecretIds.includes(c.id),
       )
       .map((c) => c.id);
 
     newDeck = newDeck.filter((id) => availableLivingIds.includes(id));
-    if (newDeck.length === 0) {
+    if (newDeck.length === 0 && availableLivingIds.length > 0) {
       newDeck = shuffle([...availableLivingIds]);
     }
 
-    const nextSecretId = newDeck.shift() ?? availableLivingIds[0];
+    const nextSecretId = newDeck.shift() ?? availableLivingIds[0] ?? targetId;
     newSpies[caughtSpyIndex] = { ...caughtSpy, secretId: nextSecretId };
     justCaughtSpyId = caughtSpy.id;
 
@@ -1066,13 +1035,13 @@ export function fastDisguise(state: GameState, handCardId: string): GameState {
   if (state.winner || state.mode !== "THIEF_HUNT") return state;
   if (!state.killerHand?.includes(handCardId)) return state;
 
-  const isOnBoard = state.board.flat().some((c) => c.id === handCardId);
-  if (!isOnBoard) {
+  const targetChar = state.board.flat().find((c) => c.id === handCardId);
+  if (!targetChar || !targetChar.isAlive || handCardId === state.detectiveSecretId) {
     return {
       ...state,
       currentTurn: "DETECTIVE",
       blockedShift: null,
-      log: [...state.log, "Провал конспирации: выбранной маски нет на поле."],
+      log: [...state.log, "Провал конспирации: выбранная маска недоступна или устранена."],
     };
   }
 

@@ -78,7 +78,11 @@ export function useMultiplayer({
           };
         });
       }
-      if (status === "PLAYING") {
+      if (status === "READY_TO_START") {
+        setIsLobbyOpen(false);
+        setHasStartedEver(true);
+        setIsIntroPhase(true);
+      } else if (status === "PLAYING") {
         setIsLobbyOpen(false);
         setHasStartedEver(true);
         setIsIntroPhase(false);
@@ -93,6 +97,12 @@ export function useMultiplayer({
       if (status === "WAITING") {
         setIsOpponentConnected(true);
         setOpponentDisconnectedNotice(false);
+      } else if (status === "READY_TO_START") {
+        setIsOpponentConnected(true);
+        setOpponentDisconnectedNotice(false);
+        setIsLobbyOpen(false);
+        setHasStartedEver(true);
+        setIsIntroPhase(true);
       } else if (status === "PLAYING") {
         setIsOpponentConnected(true);
         setOpponentDisconnectedNotice(false);

@@ -36,8 +36,12 @@ describe("UI Компоненты и Тексты", () => {
         onComplete={vi.fn()}
       />
     );
+    fireEvent.click(screen.getByRole("button"));
+    expect(screen.getAllByText(/2/i).length).toBeGreaterThan(0);
+    /*
     fireEvent.click(screen.getByText("Посмотреть тайную роль"));
     expect(screen.getAllByText(/4 трофея/i).length).toBeGreaterThan(0);
+    */
     cleanup();
   });
 

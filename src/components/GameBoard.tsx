@@ -273,14 +273,10 @@ export const GameBoard = ({
               );
 
               let neighborColor = null;
-              if (!isRadarCell) {
-                if (showKillerHints && killerAdjacentIds.includes(character.id)) {
-                  neighborColor =
-                    "border-red-500 ring-1 ring-red-500/80 shadow-[0_0_15px_rgba(239,68,68,0.4)]";
-                } else if (showDetectiveHints && detectiveAdjacentIds.includes(character.id)) {
-                  neighborColor =
-                    "border-blue-500 ring-1 ring-blue-500/80 shadow-[0_0_15px_rgba(59,130,246,0.4)]";
-                }
+              if (showKillerHints && killerAdjacentIds.includes(character.id)) {
+                neighborColor = "border-2 border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.4)]";
+              } else if (showDetectiveHints && detectiveAdjacentIds.includes(character.id)) {
+                neighborColor = "border-2 border-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.4)]";
               }
 
               const isRedRadar = Boolean(radarColorClass?.includes("red"));
@@ -315,21 +311,13 @@ export const GameBoard = ({
                   />
 
                   {isLastShiftTrack && !isSelected && !isRadarCell && !isRadarTarget && (
-                    <div className="pointer-events-none absolute inset-0 rounded-md sm:rounded-xl overflow-hidden z-10 border border-white/20">
-                      <div 
-                        className={`absolute inset-0 opacity-40 bg-gradient-to-${
-                          lastShift?.type === "ROW"
-                            ? (lastShift.direction === "FORWARD" ? "r" : "l")
-                            : (lastShift.direction === "FORWARD" ? "b" : "t")
-                        } from-transparent via-white/25 to-transparent animate-pulse`} 
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-30 text-white">
-                        {lastShift?.type === "ROW" && lastShift.direction === "FORWARD" && <span className="text-xs font-black">&rarr;</span>}
-                        {lastShift?.type === "ROW" && lastShift.direction === "BACKWARD" && <span className="text-xs font-black">&larr;</span>}
-                        {lastShift?.type === "COL" && lastShift.direction === "FORWARD" && <span className="text-xs font-black">&darr;</span>}
-                        {lastShift?.type === "COL" && lastShift.direction === "BACKWARD" && <span className="text-xs font-black">&uarr;</span>}
-                      </div>
-                    </div>
+                    <motion.div
+                      key={`shift-pulse-${lastShift?.type}-${lastShift?.index}-${lastShift?.direction}`}
+                      initial={{ opacity: 0.8, scale: 1.02 }}
+                      animate={{ opacity: 0, scale: 1 }}
+                      transition={{ duration: 1.2, ease: "easeOut" }}
+                      className="pointer-events-none absolute inset-0 rounded-md sm:rounded-xl border-2 border-white/60 z-10"
+                    />
                   )}
                   {false && (
                     <div

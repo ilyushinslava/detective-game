@@ -38,6 +38,8 @@ export const RoleCards = ({
     ? "grid grid-cols-1 w-full"
     : "grid grid-cols-2 gap-1.5 w-full";
 
+  void mode;
+
   return (
     <div className={containerClass}>
       {showKillerCard && (

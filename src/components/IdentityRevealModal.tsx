@@ -129,8 +129,13 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
             </svg>
           </div>
           <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest block mb-1">
+            {badge}
+          </span>
+          {false && (
+          <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest block mb-1">
             {isRed ? "Вас раскрыли!" : "Конспирация успешна"}
           </span>
+          )}
           <h3 className="text-xl font-black text-zinc-100 mb-2">{title}</h3>
           {character && (
             <motion.div

@@ -143,10 +143,10 @@ export const CharacterCard = memo(
         onClick={onClick}
         animate={
           isError
-            ? { rotate: [-4, 4, -4, 4, 0], scale: [1, 1.05, 0.95, 1] }
+            ? { x: [-3, 3, -3, 3, -1, 1, 0], scale: [1, 1.02, 0.98, 1] }
             : {}
         }
-        transition={{ layout: { duration: 0.35, ease: "easeInOut" }, duration: 0.2 }}
+        transition={{ layout: { duration: 0.35, ease: "easeInOut" }, duration: 0.5 }}
         className={`relative w-full aspect-square rounded-md sm:rounded-xl p-0.5 sm:p-1.5 flex flex-col justify-between border select-none transition-colors duration-150 cursor-pointer overflow-hidden ${
           isError
             ? "bg-zinc-800/90 border-zinc-500 ring-2 ring-zinc-500/50 shadow-[0_0_12px_rgba(113,113,122,0.4)] z-30"
@@ -159,36 +159,7 @@ export const CharacterCard = memo(
                 : isExonerated
                   ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
                   : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
-        } ${(() => {
-          const hasRadar = Boolean(isRadarCenter || radarRingColor);
-          const hasNeighbor = Boolean(neighborHighlightColor);
-          const selectionEffect = isSelected
-            ? "ring-2 ring-white ring-inset shadow-[0_0_15px_rgba(255,255,255,0.7)] z-20 scale-[0.97] transition-transform"
-            : "";
-
-          if (hasRadar && isSelected) {
-            if (hasNeighbor) {
-              return `${neighborHighlightColor} shadow-[0_0_12px_rgba(59,130,246,0.5)] animate-pulse ${selectionEffect}`;
-            }
-            return `border-2 border-dashed ${radarRingColor || "border-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.5)] animate-pulse"} ${selectionEffect}`;
-          }
-          if (hasRadar && hasNeighbor) {
-            return `${neighborHighlightColor} z-20 animate-pulse shadow-[0_0_12px_rgba(59,130,246,0.5)]`;
-          }
-          if (hasRadar) {
-            return `border-2 border-dashed ${radarRingColor || "border-blue-500 ring-2 ring-blue-500/60 shadow-[0_0_12px_rgba(59,130,246,0.5)]"} z-20 animate-pulse`;
-          }
-          if (isSelected && hasNeighbor) {
-            return `${neighborHighlightColor} ${selectionEffect}`;
-          }
-          if (isSelected) {
-            return `border-white ${selectionEffect}`;
-          }
-          if (hasNeighbor) {
-            return `${neighborHighlightColor} z-10`;
-          }
-          return "";
-        })()}`}
+        } ${isSelected ? `${neighborHighlightColor ? "" : "border-white "}ring-2 ring-white ring-inset shadow-[0_0_15px_rgba(255,255,255,0.7)] z-20 scale-[0.97]` : ""} ${neighborHighlightColor ? `${neighborHighlightColor} z-10` : ""}`}
       >
         {!isDead && (() => {
           const imageAsset = characterImages[`../assets/characters/${character.id}.webp`]?.default;

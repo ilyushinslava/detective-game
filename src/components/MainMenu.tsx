@@ -276,8 +276,6 @@ export const MainMenu = ({
       })
     );
 
-    onStartGame(mode, "ONLINE", isHost ? "KILLER" : "DETECTIVE", 2, 3, 0, _bet);
-
     partyService.connect(cleanCode, profile.nickname || "Агент", isHost, mode);
   };
   
@@ -664,222 +662,12 @@ export const MainMenu = ({
     />
   );
 
-  const _deprecatedTables = () => false && (
-    <div className="flex-1 min-h-0 flex flex-col bg-[#080a0f] overflow-hidden">
-      <div className="flex items-center justify-between px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-[#080a0f]">
-        <div className="flex flex-col">
-          <span className="text-[9px] font-black tracking-widest text-zinc-500 uppercase">Сетевой эфир</span>
-          <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase">Оперативные столы</h2>
-        </div>
-        <div className="flex items-center gap-2 bg-emerald-950/60 border border-emerald-500/40 px-2.5 py-1 rounded-full">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[9px] font-mono font-bold text-emerald-300 uppercase tracking-wider">ONLINE</span>
-        </div>
-      </div>
-      
-      <div className="flex gap-2 overflow-x-auto px-6 py-3 scrollbar-hide shrink-0 border-b border-white/[0.05] bg-zinc-950/30">
-        {ROOM_FILTERS.map((filter) => (
-          <button
-            key={filter.id}
-            onClick={() => {
-              soundManager.play('tapMenu');
-              setRoomFilter(filter.id);
-            }}
-            className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest whitespace-nowrap border transition-all cursor-pointer ${
-              roomFilter === filter.id 
-                ? "bg-zinc-200 text-zinc-950 border-zinc-200 shadow-[0_0_12px_rgba(255,255,255,0.25)] font-black" 
-                : "bg-zinc-900/60 text-zinc-500 border-white/[0.08] hover:text-zinc-300 hover:border-white/20"
-            }`}
-          >
-            {filter.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3 custom-scrollbar flex flex-col">
-        {filteredRooms.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-white/[0.08] rounded-3xl bg-zinc-900/30 shadow-inner my-auto">
-            <div className="relative mb-4 text-zinc-600">
-              <Icons.Radar />
-              <div className="absolute inset-0 rounded-full border border-zinc-500/30 animate-ping pointer-events-none" />
-            </div>
-            <span className="text-xs font-black tracking-widest text-zinc-200 uppercase mb-1">
-              Сканирование закрытых частот...
-            </span>
-            <p className="text-[10px] text-zinc-500 max-w-xs leading-relaxed mb-6 uppercase tracking-wider">
-              В данном секторе нет активных дел. Откройте новый канал и начните собственную операцию.
-            </p>
-            <button
-              onClick={() => setIsCreateRoomOpen(true)}
-              className="px-6 py-3 rounded-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-[0_0_20px_rgba(220,38,38,0.4)] transition cursor-pointer active:scale-95"
-            >
-              + Создать первый стол
-            </button>
-          </div>
-        ) : (
-          filteredRooms.map((room) => (
-            <div key={room.roomCode} className="bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl p-4 flex flex-col gap-3.5 hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] transition shadow-lg">
-              <div className="flex items-start justify-between">
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest mb-0.5">Хост: {room.hostName}</span>
-                  <span className="text-sm font-black text-zinc-100 uppercase tracking-widest">
-                    {GAME_MODES.find(m => m.id === room.mode)?.title || room.mode}
-                  </span>
-                </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest mb-0.5 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(245,158,11,0.8)]" /> 
-                    Открыто
-                  </span>
-                  <span className="text-[10px] text-zinc-400 font-mono">Агенты: {room.playersCount}/{room.maxPlayers}</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between pt-3 border-t border-white/[0.08]">
-                <div className="flex items-center gap-1.5 bg-black/40 px-3 py-1 rounded-full border border-white/[0.05]">
-                  <Icons.Coin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span className="text-xs font-mono font-bold text-zinc-200">{room.bet}</span>
-                </div>
-                <button 
-                  onClick={() => handleJoinRoom(room.roomCode, room.mode as GameModeType)} 
-                  className="px-5 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-[0_0_15px_rgba(220,38,38,0.35)] transition cursor-pointer active:scale-95"
-                >
-                  Войти ➔
-                </button>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      <div className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 p-4 flex flex-col items-center gap-2.5 z-20"><div className="w-full max-w-xl flex flex-col gap-2.5">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <input
-              type="tel"
-              maxLength={4}
-              placeholder="ШИФР КОМНАТЫ (4 ЗНАКА)"
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value.replace(/\D/g, ""))}
-              className="w-full bg-zinc-900/90 border border-white/15 rounded-xl px-4 py-3 text-xs font-mono font-bold text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-red-500 transition uppercase tracking-widest text-center shadow-inner"
-            />
-          </div>
-          <button
-            onClick={() => handleJoinRoom(joinCode)}
-            disabled={joinCode.length !== 4}
-            className="px-5 py-3 bg-zinc-800 border border-white/15 hover:bg-zinc-700 disabled:opacity-40 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition cursor-pointer disabled:cursor-not-allowed shrink-0 shadow-md active:scale-95"
-          >
-            Применить
-          </button>
-        </div>
-        <button 
-          onClick={() => setIsCreateRoomOpen(true)} 
-          className="w-full py-3.5 bg-gradient-to-r from-zinc-800 to-zinc-900 border border-white/15 hover:border-white/30 text-zinc-200 text-[10px] font-black uppercase tracking-widest rounded-xl transition cursor-pointer shadow-lg active:scale-99"
-        >
-          + Создать партию
-        </button>
-        </div>
-      </div>
-    </div>
-  );
-
   const renderProfile = () => (
     <ProfileScreen
       profile={profile}
       onUpdateProfile={onUpdateProfile || (() => {})}
       onOpenSettings={() => setIsSettingsOpen(true)}
     />
-  );
-
-  const _deprecatedProfile = () => false && (
-    <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden">
-      <div className="flex items-center px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-4 shrink-0 border-b border-white/10 bg-[#080a0f]">
-        <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase">Досье Агента</h2>
-      </div>
-      <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar pb-[max(6rem,env(safe-area-inset-bottom))]"><div className="w-full max-w-xl mx-auto space-y-6">
-        <div className="flex flex-col items-center text-center">
-          <div className="relative mb-3">
-            <div className="w-24 h-24 rounded-full bg-zinc-900/80 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.05)] ring-1 ring-white/[0.05]">
-              <Icons.DetectiveHat />
-            </div>
-            <div className="absolute -bottom-1 -right-1 bg-amber-600 text-zinc-950 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-zinc-950 tracking-widest shadow-[0_0_15px_rgba(217,119,6,0.5)]">
-              LVL {profile.level}
-            </div>
-          </div>
-          
-          {isEditingName ? (
-            <input
-              autoFocus
-              maxLength={14}
-              placeholder="ПОЗЫВНОЙ"
-              value={editNameValue}
-              onChange={(e) => setEditNameValue(e.target.value)}
-              onBlur={handleSaveName}
-              onKeyDown={(e) => e.key === "Enter" && handleSaveName()}
-              className="bg-zinc-900 border border-amber-600 text-zinc-100 text-lg font-black px-3 py-1.5 rounded-lg outline-none w-48 uppercase tracking-widest text-center mb-1 shadow-[0_0_10px_rgba(217,119,6,0.2)]"
-            />
-          ) : (
-            <h2 onClick={() => setIsEditingName(true)} className="text-xl font-black text-zinc-100 tracking-widest uppercase cursor-pointer hover:text-amber-500 transition mb-0.5 drop-shadow-md">
-              {profile.nickname} ✎
-            </h2>
-          )}
-          <span className="text-[10px] text-amber-500/80 font-bold uppercase tracking-widest">{profile.rank}</span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-zinc-900/60 border border-white/[0.05] rounded-xl p-3 flex flex-col items-center text-center">
-            <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
-              <Icons.Coin className="w-3 h-3 text-amber-400 shrink-0" />
-              Баланс
-            </span>
-            <span className="text-sm font-black text-amber-500 font-mono drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">{profile.cash.toLocaleString()}</span>
-          </div>
-          <div className="bg-zinc-900/60 border border-white/[0.05] rounded-xl p-3 flex flex-col items-center text-center">
-            <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-1">Всего дел</span>
-            <span className="text-sm font-black text-zinc-100 font-mono">{profile.stats.wins + profile.stats.losses}</span>
-          </div>
-        </div>
-
-        <div>
-          <div className="flex justify-between text-[9px] font-mono text-zinc-400 uppercase tracking-widest mb-1.5">
-            <span>Опыт расследований</span>
-            <span>{profile.xp} / {profile.level * 100} XP</span>
-          </div>
-          <div className="w-full h-2 bg-zinc-900 rounded-full overflow-hidden border border-white/[0.05] shadow-inner">
-            <div className="h-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.8)] transition-all" style={{ width: `${(profile.xp % 100)}%` }} />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-zinc-900/60 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-3.5 flex flex-col items-center text-center shadow-lg">
-            <span className="text-xl font-black text-emerald-400 mb-0.5 drop-shadow-[0_0_10px_rgba(16,185,129,0.4)]">{profile.stats.wins}</span>
-            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Победы</span>
-          </div>
-          <div className="bg-zinc-900/60 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-3.5 flex flex-col items-center text-center shadow-lg">
-            <span className="text-xl font-black text-red-400 mb-0.5 drop-shadow-[0_0_10px_rgba(239,68,68,0.4)]">{profile.stats.losses}</span>
-            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Поражения</span>
-          </div>
-          <div className="bg-zinc-900/60 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-3.5 flex flex-col items-center text-center shadow-lg">
-            <span className="text-xl font-black text-amber-400 mb-0.5 drop-shadow-[0_0_10px_rgba(245,158,11,0.4)]">
-              {profile.stats.wins > 0 ? Math.round((profile.stats.wins / (profile.stats.wins + profile.stats.losses)) * 100) : 0}%
-            </span>
-            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Винрейт</span>
-          </div>
-        </div>
-
-        <div className="bg-zinc-900/40 border border-white/[0.05] rounded-2xl p-4 flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Вводный пролог</span>
-            <span className="text-[9px] text-zinc-500 font-mono mt-0.5">Обучение основам</span>
-          </div>
-          {localStorage.getItem("crime_city_tutorial") ? (
-             <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest px-2 py-1 bg-emerald-950/30 rounded border border-emerald-900/50">Пройдено</span>
-          ) : (
-             <button onClick={() => { setScreen('HOME'); setIsTutorialOpen(true); }} className="text-[9px] font-black text-zinc-200 hover:text-white uppercase tracking-widest px-3 py-1.5 bg-zinc-800/80 hover:bg-zinc-700 rounded border border-white/10 transition cursor-pointer">Начать</button>
-          )}
-        </div>
-      </div>
-      </div>
-    </div>
   );
 
   const handleFinishTutorial = () => {
@@ -903,9 +691,6 @@ export const MainMenu = ({
       default: return renderHome();
     }
   };
-
-  void _deprecatedTables;
-  void _deprecatedProfile;
 
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 

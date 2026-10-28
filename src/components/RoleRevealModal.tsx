@@ -230,6 +230,9 @@ export const RoleRevealModal = ({
     return "KILLER_PROMPT";
   });
 
+  const spyTargetTrophiesCount = (opponent === "PVP" || opponent === "ONLINE") ? 2 : 4;
+  const spyGoalDescription = `Собрать ${spyTargetTrophiesCount} трофея для победы`;
+
   if (mode === "SECRET_SERVICE") {
     role1Goal = "Собрать целевые трофеи (2 в дуэли, 4 при 3 игроках, 3 при 4+)";
     role2Goal = "Собрать целевые трофеи (2 в дуэли, 4 при 3 игроках, 3 при 4+)";
@@ -693,9 +696,16 @@ export const RoleRevealModal = ({
               <div className="w-full text-left space-y-2 mt-1">
                 <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Цель операции</span>
+                  <span className="text-xs font-bold text-zinc-200">{spyGoalDescription}</span>
+                </div>
+              </div>
+              {/*
+                <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
+                  <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Цель операции</span>
                   <span className="text-xs font-bold text-zinc-200">Собрать 4 трофея (ловить чужих шпионов)</span>
                 </div>
               </div>
+              */}
               {getActionTiles(mode, playerRole)}
             </div>
             <button
@@ -738,7 +748,7 @@ export const RoleRevealModal = ({
               <div className="w-full text-left space-y-2 mt-1">
                 <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Цель операции</span>
-                  <span className="text-xs font-bold text-zinc-200">Собрать 4 трофея для победы</span>
+                  <span className="text-xs font-bold text-zinc-200">{spyGoalDescription}</span>
                 </div>
               </div>
               {getActionTiles(mode, "DETECTIVE")}
@@ -779,7 +789,7 @@ export const RoleRevealModal = ({
               <div className="w-full text-left space-y-2 mt-1">
                 <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Цель операции</span>
-                  <span className="text-xs font-bold text-zinc-200">Собрать 4 трофея для победы</span>
+                  <span className="text-xs font-bold text-zinc-200">{spyGoalDescription}</span>
                 </div>
               </div>
               {getActionTiles(mode, "KILLER")}

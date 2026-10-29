@@ -6,8 +6,6 @@ export type GameModeType =
   | "MANIAC_VS_OPERATIVE"
   | "THIEF_HUNT"
   | "SECRET_SERVICE"
-  | "EUROPOL_VS_OPG"
-  | "SPANISH_HEIST"
   | "LINE_UP";
 
 export type Role = "KILLER" | "DETECTIVE";

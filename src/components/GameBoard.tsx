@@ -257,6 +257,7 @@ export const GameBoard = ({
               const isRadarTarget = character.id === radarTargetId;
               const isLastShiftTrack = Boolean(
                 lastShift &&
+                  !errorCardId &&
                   ((lastShift.type === "ROW" && lastShift.index === rIdx) ||
                     (lastShift.type === "COL" && lastShift.index === cIdx))
               );
@@ -274,9 +275,9 @@ export const GameBoard = ({
 
               let neighborColor = null;
               if (showKillerHints && killerAdjacentIds.includes(character.id)) {
-                neighborColor = "border-2 border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.4)]";
+                neighborColor = "ring-2 ring-inset ring-red-500 shadow-[0_0_12px_rgba(239,68,68,0.6)]";
               } else if (showDetectiveHints && detectiveAdjacentIds.includes(character.id)) {
-                neighborColor = "border-2 border-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.4)]";
+                neighborColor = "ring-2 ring-inset ring-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.6)]";
               }
 
               const isRedRadar = Boolean(radarColorClass?.includes("red"));
@@ -301,7 +302,7 @@ export const GameBoard = ({
                     )}
                     isTargetVictim={character.id === targetVictimId}
                     isRadarCenter={isRadarTarget}
-                    radarRingColor={null}
+                    radarRingColor={isRadarCell ? radarColorClass : null}
                     isError={character.id === errorCardId}
                     isMyCharacter={character.id === myCharacterId}
                     isOverlapZone={false}

@@ -159,7 +159,26 @@ export const CharacterCard = memo(
                 : isExonerated
                   ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
                   : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
-        } ${isSelected ? `${neighborHighlightColor ? "" : "border-white "}ring-2 ring-white ring-inset shadow-[0_0_15px_rgba(255,255,255,0.7)] z-20 scale-[0.97]` : ""} ${neighborHighlightColor ? `${neighborHighlightColor} z-10` : ""}`}
+        } ${(() => {
+          if (isError) return "";
+          if (isSelected) {
+            const glow = neighborHighlightColor?.includes("red")
+              ? "shadow-[0_0_15px_rgba(239,68,68,0.7)]"
+              : neighborHighlightColor?.includes("blue")
+                ? "shadow-[0_0_15px_rgba(59,130,246,0.7)]"
+                : "shadow-[0_0_15px_rgba(255,255,255,0.7)]";
+            return `ring-2 ring-inset ring-white ${glow} z-20 scale-[0.97]`;
+          }
+          if (isRadarCenter || radarRingColor) {
+            const isRedRadar = Boolean(radarRingColor?.includes("red"));
+            const ringColor = isRedRadar ? "ring-red-500/90 shadow-[0_0_12px_rgba(239,68,68,0.6)]" : "ring-blue-500/90 shadow-[0_0_12px_rgba(59,130,246,0.6)]";
+            return `ring-2 ring-inset ${ringColor} z-15 animate-pulse`;
+          }
+          if (neighborHighlightColor) {
+            return `${neighborHighlightColor} z-10`;
+          }
+          return "";
+        })()}`}
       >
         {!isDead && (() => {
           const imageAsset = characterImages[`../assets/characters/${character.id}.webp`]?.default;

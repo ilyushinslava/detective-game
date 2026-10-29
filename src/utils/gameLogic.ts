@@ -533,6 +533,7 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
     winner: isWin ? "KILLER" : null,
     currentTurn: "DETECTIVE",
     blockedShift: null,
+    interrogationRadar: null,
     log: [
       ...state.log,
       `Грабитель похитил сокровище у ${targetChar.name}! Добыча: ${newTrophies}/10.${
@@ -764,6 +765,7 @@ export function cleanupDeadCharacters(state: GameState): GameState {
     lastShift: null,
     lastInterrogation: null,
     lastSpyInterrogation: null,
+    interrogationRadar: null,
     log: [
       ...state.log,
       `Зачистка поля: ликвидированные (${dead.length}) перемещены в конец сетки.`,
@@ -879,6 +881,7 @@ export function spyCatch(state: GameState, targetId: string): GameState {
     detectiveSecretId: newSpies[nextIndex].secretId,
     blockedShift: null,
     lastSpyInterrogation: null,
+    interrogationRadar: null,
     justCaughtSpyId,
     log: [...state.log, logMsg],
   };
@@ -1025,6 +1028,7 @@ export function fastDisguise(state: GameState, handCardId: string): GameState {
     killerHand: newHand,
     currentTurn: "DETECTIVE",
     blockedShift: null,
+    interrogationRadar: null,
     disguisedNotification: { roleName: "Грабитель", newSecretId: handCardId },
     log: [...state.log, "Грабитель-виртуоз применил быструю маскировку."],
   };
@@ -1056,6 +1060,7 @@ export function swearInOfficer(
     winner: isWin ? "KILLER" : null,
     currentTurn: "KILLER",
     blockedShift: null,
+    interrogationRadar: null,
     log: [
       ...state.log,
       `Полиция призвала к присяге нового офицера. Пользуясь суматохой, Грабитель украл сокровище! Добыча: ${newTrophies}/10.`,

@@ -614,6 +614,7 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
     winner: nextWinner,
     currentTurn: "KILLER",
     blockedShift: null,
+    lastShift: null,
     lastInterrogation: null,
     interrogationRadar: null,
     log: [...state.log, logMsg],
@@ -647,6 +648,7 @@ export function exonerateFromHand(state: GameState, id: string): GameState {
     evidenceDeck: nextDeck,
     currentTurn: "KILLER",
     blockedShift: null,
+    lastShift: null,
     interrogationRadar: {
       targetId: id,
       interrogatorIndex: 0,
@@ -934,6 +936,7 @@ export function spyInterrogate(state: GameState, targetId: string): GameState {
     ...state,
     activeSpyIndex: nextIndex,
     blockedShift: null,
+    lastShift: null,
     interrogationRadar: {
       targetId,
       interrogatorIndex: state.activeSpyIndex,

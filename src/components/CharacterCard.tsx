@@ -159,26 +159,9 @@ export const CharacterCard = memo(
                 : isExonerated
                   ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
                   : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
-        } ${(() => {
-          if (isError) return "";
-          if (isSelected) {
-            const glow = neighborHighlightColor?.includes("red")
-              ? "shadow-[0_0_15px_rgba(239,68,68,0.7)]"
-              : neighborHighlightColor?.includes("blue")
-                ? "shadow-[0_0_15px_rgba(59,130,246,0.7)]"
-                : "shadow-[0_0_15px_rgba(255,255,255,0.7)]";
-            return `ring-2 ring-inset ring-white ${glow} z-20 scale-[0.97]`;
-          }
-          if (isRadarCenter || radarRingColor) {
-            const isRedRadar = Boolean(radarRingColor?.includes("red"));
-            const ringColor = isRedRadar ? "ring-red-500/90 shadow-[0_0_12px_rgba(239,68,68,0.6)]" : "ring-blue-500/90 shadow-[0_0_12px_rgba(59,130,246,0.6)]";
-            return `ring-2 ring-inset ${ringColor} z-15 animate-pulse`;
-          }
-          if (neighborHighlightColor) {
-            return `${neighborHighlightColor} z-10`;
-          }
-          return "";
-        })()}`}
+        } ${neighborHighlightColor ? `${neighborHighlightColor} z-10` : ""} ${
+          isSelected ? "outline outline-2 outline-white outline-offset-2 z-30 scale-[0.96]" : ""
+        }`}
       >
         {!isDead && (() => {
           const imageAsset = characterImages[`../assets/characters/${character.id}.webp`]?.default;
@@ -240,25 +223,25 @@ export const CharacterCard = memo(
             )}
             {mode === "THIEF_HUNT" && character.isAlive && !character.isRobbed && (
               <span className="flex items-center justify-center p-0.5 rounded bg-zinc-900/80 border border-amber-500/40 shadow-[0_0_6px_rgba(245,158,11,0.25)]" title="Ограблен">
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-amber-400">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
-                  </svg>
-                </span>
-              )}
-              {character.isRobbed && (
-                <span className="flex items-center justify-center p-0.5 rounded bg-zinc-800/90 border border-zinc-500/60 shadow-[0_0_6px_rgba(255,255,255,0.15)]" title="Ограблен">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-zinc-400">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
-                  </svg>
-                </span>
-              )}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-amber-400">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
+                </svg>
+              </span>
+            )}
+            {character.isRobbed && (
+              <span className="flex items-center justify-center p-0.5 rounded bg-zinc-800/90 border border-zinc-500/60 shadow-[0_0_6px_rgba(255,255,255,0.15)]" title="Ограблен">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-zinc-400">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
+                </svg>
+              </span>
+            )}
           </div>
         </div>
 
-                  {isDead && (
-            <div className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1">
+        {isDead && (
+          <div className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1">
             <div className={`transform -rotate-12 border whitespace-nowrap font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none backdrop-blur-sm text-center ${
               isSecretService || character.unmaskedSpyIndex !== undefined
                 ? "border-red-600 bg-red-950/90 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
@@ -275,25 +258,25 @@ export const CharacterCard = memo(
           </div>
         )}
 
-                  {isExonerated && !isDead && !(character as any).isArrested && (
-            <div className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1">
+        {isExonerated && !isDead && !(character as any).isArrested && (
+          <div className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1">
             <div className="transform rotate-6 border border-blue-500/80 bg-zinc-900/95 text-blue-400 whitespace-nowrap font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.3)] backdrop-blur-sm text-center">
               АЛИБИ
             </div>
           </div>
         )}
 
-                  {(character as any).isArrested && !isDead && (
-            <div className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1">
+        {(character as any).isArrested && !isDead && (
+          <div className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1">
             <div className="transform -rotate-12 border border-blue-500/80 bg-blue-950/95 text-blue-300 whitespace-nowrap font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.4)] backdrop-blur-sm text-center">
               АРЕСТОВАН
             </div>
           </div>
         )}
 
-                  <div className="absolute bottom-0.5 inset-x-0.5 z-10 flex items-end justify-center pointer-events-none transform-none">
-            <span
-              className={`block w-full text-[7.5px] sm:text-[8.5px] md:text-[11px] font-bold text-zinc-200 leading-[1.05] md:leading-tight tracking-tight uppercase text-center px-1 py-0.5 rounded-sm bg-black/60 backdrop-blur-[1px] transform-none break-normal whitespace-pre-line hyphens-none ${
+        <div className="absolute bottom-0.5 inset-x-0.5 z-10 flex items-end justify-center pointer-events-none transform-none">
+          <span
+            className={`block w-full text-[7.5px] sm:text-[8.5px] md:text-[11px] font-bold text-zinc-200 leading-[1.05] md:leading-tight tracking-tight uppercase text-center px-1 py-0.5 rounded-sm bg-black/60 backdrop-blur-[1px] transform-none break-normal whitespace-pre-line hyphens-none ${
               isDead
                 ? isSecretService
                   ? "text-red-400 line-through"

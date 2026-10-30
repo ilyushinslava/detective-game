@@ -238,7 +238,7 @@ export const CharacterCard = memo(
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-blue-400 animate-pulse drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]"><path d="M12 20v-8"/><path d="M8 12a4 4 0 0 1 8 0"/><path d="M4 12a8 8 0 0 1 16 0"/></svg>
             )}
             {mode === "THIEF_HUNT" && character.isAlive && !character.isRobbed && (
-              <span className="flex items-center justify-center p-0.5 rounded bg-zinc-900/80 border border-amber-500/40 shadow-[0_0_6px_rgba(245,158,11,0.25)]" title="Ограблен">
+              <span className="flex items-center justify-center p-1.5 rounded-md bg-black/60 backdrop-blur-sm border border-amber-500/30 shadow-sm" title="Ограблен">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-amber-400">
                   <circle cx="12" cy="12" r="9" />
                   <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
@@ -246,7 +246,7 @@ export const CharacterCard = memo(
               </span>
             )}
             {character.isRobbed && (
-              <span className="flex items-center justify-center p-0.5 rounded bg-zinc-800/90 border border-zinc-500/60 shadow-[0_0_6px_rgba(255,255,255,0.15)]" title="Ограблен">
+              <span className="flex items-center justify-center p-1.5 rounded-md bg-black/60 backdrop-blur-sm border border-zinc-600/40 shadow-sm" title="Ограблен">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-zinc-400">
                   <circle cx="12" cy="12" r="9" />
                   <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />

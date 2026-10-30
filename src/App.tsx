@@ -806,8 +806,8 @@ export default function App() {
         </div>
 
         {!isLobbyOpen && hasStartedEver && (
-        <div className="flex-1 min-h-0 w-full flex flex-col landscape:flex-row items-center justify-start landscape:justify-between gap-2 md:gap-6 lg:gap-8 px-2 sm:px-4 md:px-6 py-1 md:py-4 overflow-hidden custom-scrollbar">
-          <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-2xl landscape:max-w-none flex flex-col items-center justify-center py-0.5 landscape:py-0">
+        <div className="flex-1 min-h-0 w-full flex flex-col landscape:flex-row items-center justify-between gap-1 sm:gap-2 md:gap-6 px-2 sm:px-4 md:px-6 py-1 md:py-3 overflow-hidden">
+          <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-2xl landscape:max-w-none flex flex-col items-center justify-center relative antialiased">
             <div className="w-full h-full flex-1 min-h-0 flex items-center justify-center overflow-hidden relative antialiased">
               <GameBoard
                 mode={gameState.mode}
@@ -848,7 +848,7 @@ export default function App() {
             </div>
           </main>
 
-          <footer className="w-full max-w-md md:max-w-2xl landscape:w-80 landscape:xl:w-96 shrink-0 flex flex-col justify-center gap-1.5 sm:gap-2.5 z-20 pb-[max(0.5rem,env(safe-area-inset-bottom))] landscape:pb-0 px-1 md:px-4 landscape:px-0 landscape:my-auto">
+          <footer className={`w-full max-w-md md:max-w-2xl landscape:w-80 landscape:xl:w-96 shrink-0 flex flex-col justify-end gap-1.5 sm:gap-2 z-20 pb-[max(0.5rem,env(safe-area-inset-bottom))] landscape:pb-0 px-1 md:px-4 landscape:px-0 landscape:my-auto ${(!isLobbyOpen && hasStartedEver && gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) && isDetectiveView && isDetectiveTurn && !gameState.winner && !isIntroPhase) ? "hidden" : ""}`}>
             <RoleCards
               mode={gameState.mode}
               role1Name={role1Name}
@@ -929,7 +929,7 @@ export default function App() {
                   <button
                     onClick={cleanupAction.onClick}
                     disabled={cleanupAction.disabled}
-                    className="col-span-2 py-2 sm:py-2.5 md:py-3 bg-gradient-to-r from-red-950 via-zinc-900 to-red-950 hover:from-red-900 hover:via-zinc-800 hover:to-red-900 disabled:opacity-40 text-red-200 hover:text-white text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider rounded-xl border border-red-600/70 transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.35)] active:scale-[0.98]"
+                    className="col-span-2 h-10 sm:h-11 bg-gradient-to-r from-red-950 via-zinc-900 to-red-950 hover:from-red-900 hover:via-zinc-800 hover:to-red-900 disabled:opacity-40 text-red-200 hover:text-white text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider rounded-xl border border-red-600/70 transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.35)] active:scale-[0.98]"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-red-400 shrink-0">
                       <circle cx="12" cy="12" r="9" />
@@ -942,7 +942,7 @@ export default function App() {
                 {((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView) && (
                   <button
                     onClick={() => setIsHandSheetOpen(true)}
-                    className="col-span-2 py-2 sm:py-2.5 md:py-3 bg-gradient-to-r from-[#2c2014] via-[#1a1612] to-[#2c2014] hover:from-[#3a2b1c] hover:via-[#26201a] hover:to-[#3a2b1c] text-amber-200 hover:text-amber-100 border border-amber-600/70 rounded-xl text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(217,119,6,0.25)] transition-all active:scale-[0.98]"
+                    className="col-span-2 h-10 sm:h-11 bg-gradient-to-r from-[#2c2014] via-[#1a1612] to-[#2c2014] hover:from-[#3a2b1c] hover:via-[#26201a] hover:to-[#3a2b1c] text-amber-200 hover:text-amber-100 border border-amber-600/70 rounded-xl text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(217,119,6,0.25)] transition-all active:scale-[0.98]"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-amber-400 shrink-0">
                       <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a2.5 2.5 0 0 1-2.5-2.5z" />

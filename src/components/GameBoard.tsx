@@ -167,7 +167,7 @@ export const GameBoard = ({
                   className={`w-full h-4 sm:h-5 md:h-7 min-h-[16px] sm:min-h-[20px] shrink-0 rounded text-[8px] sm:text-xs md:text-sm font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
                     isBlocked || isOpposite
                       ? "bg-zinc-900/30 text-zinc-700 border-zinc-800/40 cursor-not-allowed opacity-30"
-                      : "bg-zinc-900/60 hover:bg-zinc-800/80 active:bg-white/10 border border-white/10 hover:border-white/20 active:border-white/60 text-zinc-400 hover:text-zinc-200 active:text-white transition-colors cursor-pointer shadow-inner touch-manipulation select-none active:scale-95"
+                      : "bg-zinc-900/60 active:bg-white/10 border border-white/10 active:border-white/60 text-zinc-400 active:text-white cursor-pointer shadow-inner active:scale-95 transition-none select-none touch-manipulation outline-none focus:outline-none"
                   }`}
                   title={
                     isBlocked

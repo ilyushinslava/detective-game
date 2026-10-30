@@ -43,7 +43,7 @@ export const InspectorChoiceModal: React.FC<InspectorChoiceModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col items-center justify-end sm:justify-center p-4 select-none pointer-events-none overflow-hidden pt-16">
+    <div className="fixed inset-0 z-[70] flex flex-col items-center justify-end sm:justify-center p-4 select-none pointer-events-none overflow-hidden pt-16">
       {isPVP && !isPassConfirmed ? (
         <div className="absolute inset-0 bg-[#080a0f]/95 backdrop-blur-xl flex items-center justify-center p-4 pointer-events-auto">
           <div className="w-full max-w-sm bg-zinc-950 border border-white/10 rounded-3xl p-6 text-center shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col items-center">

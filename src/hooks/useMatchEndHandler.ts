@@ -19,9 +19,6 @@ export function useMatchEndHandler({
 }: UseMatchEndHandlerParams) {
   useEffect(() => {
     if (gameState.winner && !matchResultRecordedRef.current) {
-      soundManager.play(gameState.winner === gameState.playerRole ? "win" : "lose");
-      triggerHaptic("success");
-
       let isLocalWin = false;
       if (gameState.mode === "SECRET_SERVICE") {
         const mySpyIndex =
@@ -34,8 +31,11 @@ export function useMatchEndHandler({
         isLocalWin =
           (mySpy?.trophies ?? 0) >= (gameState.spyTargetTrophies ?? 3);
       } else {
-        isLocalWin = gameState.winner === gameState.playerRole;
+        isLocalWin = gameState.winner === gameState.playerRole || (gameState.playerRole === "DETECTIVE" && gameState.winner === "DETECTIVE");
       }
+
+      soundManager.play(isLocalWin ? "win" : "lose");
+      triggerHaptic(isLocalWin ? "success" : "warning");
 
       if (gameState.opponent === "ONLINE") {
         if (isLocalWin) {

@@ -512,9 +512,9 @@ export function setPolicePatrol(
 export function robNeighbor(state: GameState, targetId: string): GameState {
   if (state.winner || state.mode !== "THIEF_HUNT") return state;
 
+  if (targetId === state.killerSecretId) return state;
   const isAdjacent = areAdjacent(state.board, state.killerSecretId, targetId);
-  const isSelf = state.killerSecretId === targetId;
-  if (!isAdjacent && !isSelf) return state;
+  if (!isAdjacent) return state;
 
   const targetChar = state.board.flat().find((c) => c.id === targetId);
   if (!targetChar || targetChar.isRobbed) return state;

@@ -267,7 +267,9 @@ class PartyService {
       return;
     }
 
-    console.warn("[PartyService] Socket is not open and no active room, action dropped:", action?.type);
+    if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
+      console.warn("[PartyService] Socket is still connecting, action dropped:", action?.type);
+    }
   }
 
   async fetchPublicRooms(): Promise<any[]> {

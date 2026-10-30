@@ -7,7 +7,6 @@ import { GameOverModal } from "./GameOverModal";
 
 describe("UI Компоненты и Тексты", () => {
   it("RoleRevealModal: В SECRET_SERVICE везде фигурирует строго 4 трофея", () => {
-    // В режиме AI сразу открывается экран целей
     const { unmount } = render(
       <RoleRevealModal
         mode="SECRET_SERVICE"
@@ -23,7 +22,6 @@ describe("UI Компоненты и Тексты", () => {
     expect(screen.getAllByText(/4 трофея/i).length).toBeGreaterThan(0);
     unmount();
 
-    // В режиме PVP проверяем открытие по кнопке
     render(
       <RoleRevealModal
         mode="SECRET_SERVICE"
@@ -38,10 +36,6 @@ describe("UI Компоненты и Тексты", () => {
     );
     fireEvent.click(screen.getByRole("button"));
     expect(screen.getAllByText(/2/i).length).toBeGreaterThan(0);
-    /*
-    fireEvent.click(screen.getByText("Посмотреть тайную роль"));
-    expect(screen.getAllByText(/4 трофея/i).length).toBeGreaterThan(0);
-    */
     cleanup();
   });
 

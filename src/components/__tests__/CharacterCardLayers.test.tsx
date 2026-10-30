@@ -19,13 +19,13 @@ describe("CharacterCard: Визуальные слои границы и эле�
     cleanup();
   });
 
-  it("1. Если isSelected=true и neighborHighlightColor='border-red-500', в className присутствуют И border-red-500, И outline-white", () => {
+  it("1. Если isSelected=true и neighborHighlightColor='border-red-500', в className присутствуют И border-red-500, И ring-white", () => {
     const { container } = render(
       <CharacterCard
         mode="SKHVATKA"
         character={mockCharacter}
         isSelected={true}
-        neighborHighlightColor="border-2 border-red-500 bg-red-950/25 shadow-[0_0_16px_rgba(239,68,68,0.8)]"
+        neighborHighlightColor="border-red-500"
         onClick={vi.fn()}
       />
     );
@@ -33,10 +33,11 @@ describe("CharacterCard: Визуальные слои границы и эле�
     const cardRoot = container.firstElementChild as HTMLElement;
     expect(cardRoot).toBeDefined();
     expect(cardRoot.className).toContain("border-red-500");
-    expect(cardRoot.className).toContain("outline-white");
+    expect(cardRoot.className).toContain("ring-white");
+    expect(cardRoot.className).not.toContain("border-white");
   });
 
-  it("2. Если isSelected=true, но соседа нет (neighborHighlightColor=null), карточка содержит outline-white", () => {
+  it("2. Если isSelected=true, но соседа нет (neighborHighlightColor=null), карточка содержит border-white", () => {
     const { container } = render(
       <CharacterCard
         mode="SKHVATKA"
@@ -49,8 +50,8 @@ describe("CharacterCard: Визуальные слои границы и эле�
 
     const cardRoot = container.firstElementChild as HTMLElement;
     expect(cardRoot).toBeDefined();
-    expect(cardRoot.className).toContain("outline-white");
-    expect(cardRoot.className).toContain("scale-[0.96]");
+    expect(cardRoot.className).toContain("border-white");
+    expect(cardRoot.className).toContain("ring-white");
   });
 
   it("3. Номер карточки #id и бейдж 'ВЫ' не пропадают при наличии иконок статуса", () => {

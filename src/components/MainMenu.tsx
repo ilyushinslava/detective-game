@@ -23,7 +23,7 @@ const Icons = {
       <rect x="19" y="5" width="2" height="12" rx="0.5" opacity="0.5" />
     </svg>
   ),
-  EvidenceCards: ({ className = "w-6 h-6 text-amber-400" }: { className?: string }) => (
+  EvidenceCards: ({ className = "w-6 h-6 text-zinc-400" }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
       <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
@@ -31,7 +31,7 @@ const Icons = {
       <line x1="9" y1="11" x2="13" y2="11" />
     </svg>
   ),
-  TokensGroup: ({ className = "w-6 h-6 text-amber-400" }: { className?: string }) => (
+  TokensGroup: ({ className = "w-6 h-6 text-zinc-400" }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
       <circle cx="9" cy="9" r="6" />
       <circle cx="15" cy="15" r="6" />
@@ -354,7 +354,7 @@ export const MainMenu = ({
 
             <div
               onClick={() => { onOpenDevPanel?.(); }}
-              className="rounded-full bg-black/75 border border-white/10 hover:border-amber-500/50 hover:bg-amber-950/20 px-3.5 py-1.5 flex items-center gap-1.5 shadow-lg cursor-pointer transition active:scale-95"
+              className="rounded-full bg-black/75 border border-white/10 hover:border-zinc-500/50 hover:bg-zinc-800/40 px-3.5 py-1.5 flex items-center gap-1.5 shadow-lg cursor-pointer transition active:scale-95"
               title="Открыть Dev-панель"
             >
               <Icons.Coin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
@@ -471,7 +471,7 @@ export const MainMenu = ({
               className="w-full bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl p-4 md:p-5 flex flex-col justify-between hover:border-zinc-500/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.08)] transition text-left shadow-[0_4px_20px_rgba(0,0,0,0.4)] cursor-pointer group active:scale-[0.99]"
             >
               <div>
-                <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-center text-zinc-500 mb-3 shadow-inner group-hover:text-amber-400 transition-colors">
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-center text-zinc-500 mb-3 shadow-inner group-hover:text-white transition-colors">
                   <Icons.Crosshair />
                 </div>
                 <h3 className="text-sm md:text-base font-black text-zinc-100 uppercase tracking-widest mb-1.5 truncate">{mode.title}</h3>
@@ -483,8 +483,8 @@ export const MainMenu = ({
                 <p className="text-[10px] md:text-xs text-zinc-400 line-clamp-3 leading-relaxed">{mode.description}</p>
               </div>
               <div className="flex items-center justify-between pt-3 border-t border-white/[0.08] mt-3 w-full">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-amber-400">Открыть дело</span>
-                <span className="text-zinc-500 group-hover:text-amber-400 group-hover:translate-x-1 transition-all"><Icons.ChevronRight /></span>
+                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-300">Открыть дело</span>
+                <span className="text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all"><Icons.ChevronRight /></span>
               </div>
             </button>
           ))}

@@ -53,11 +53,11 @@ export const ThiefHand = ({
                   characterImages[`../assets/characters/${card.id}.webp`]?.default
                 : null;
               return (
-                <div
-                  key={card.id}
-                  onClick={() => onFastDisguise(card.id)}
-                  className="relative overflow-hidden p-3 rounded-xl bg-zinc-900/60 hover:bg-red-950/30 border border-white/10 hover:border-red-500/60 cursor-pointer transition flex flex-col justify-between min-h-[85px] shadow select-none group"
-                >
+                                  <div
+                    key={card.id}
+                    onClick={() => onFastDisguise(card.id)}
+                    className="relative overflow-hidden p-3 rounded-xl bg-zinc-900 hover:bg-zinc-800/90 border border-zinc-700/80 hover:border-red-500/80 active:scale-[0.98] cursor-pointer transition-all flex flex-col justify-between min-h-[85px] shadow-lg shadow-black/40 select-none group"
+                  >
                   {img && (
                     <img
                       src={img}
@@ -76,7 +76,7 @@ export const ThiefHand = ({
                     {card.name}
                   </div>
 
-                  <div className="relative z-10 text-[9px] text-zinc-400 group-hover:text-zinc-200 font-semibold">
+                  <div className="relative z-10 text-[9px] text-red-400 group-hover:text-red-300 font-bold uppercase tracking-wider">
                     Конспирация →
                   </div>
                 </div>

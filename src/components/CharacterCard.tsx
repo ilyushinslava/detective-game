@@ -11,6 +11,7 @@ export interface CharacterCardProps {
   mode: GameModeType;
   character: Character;
   isSelected: boolean;
+  neighborRole?: "red" | "blue" | "purple" | null;
   neighborHighlightColor?: string | null;
   isUniformedOfficer?: boolean;
   isTargetVictim?: boolean;
@@ -120,6 +121,7 @@ export const CharacterCard = memo(
     mode,
     character,
     isSelected,
+    neighborRole,
     neighborHighlightColor,
     isUniformedOfficer,
     isTargetVictim,
@@ -160,9 +162,23 @@ export const CharacterCard = memo(
                   ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
                   : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
         } ${neighborHighlightColor ? `${neighborHighlightColor} z-10` : ""} ${
-          isSelected ? "outline outline-2 outline-white outline-offset-2 z-30 scale-[0.96]" : ""
+          isSelected
+            ? `${neighborHighlightColor ? "" : "border-white "}ring-2 ring-white z-30 scale-[0.96]`
+            : ""
         }`}
       >
+        {neighborRole && (
+          <div
+            className={`absolute inset-0 rounded-md sm:rounded-xl pointer-events-none z-10 border-2 ${
+              neighborRole === "red"
+                ? "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"
+                : neighborRole === "blue"
+                  ? "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                  : "border-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+            }`}
+          />
+        )}
+
         {!isDead && (() => {
           const imageAsset = characterImages[`../assets/characters/${character.id}.webp`]?.default;
           return (

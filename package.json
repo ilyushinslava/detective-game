@@ -8,7 +8,7 @@
         "patch:run": "node patcher.cjs && npm run audit:all && npm run dev:all",
         "dev:all": "concurrently \"npm run party:dev\" \"npm run dev\"",
         "server:start": "partykit dev --host 0.0.0.0",
-        "party:dev": "partykit dev --host 0.0.0.0",
+        "party:dev": "partykit dev",
         "dev": "vite --host",
         "build": "tsc && vite build",
         "preview": "vite preview",

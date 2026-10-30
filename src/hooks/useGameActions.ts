@@ -437,7 +437,7 @@ export function useGameActions({
               isGameOver ||
               Boolean(selectedCharacter?.isRobbed),
             className:
-              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 hover:from-amber-900 hover:via-amber-800 hover:to-amber-900 text-amber-100 shadow-[0_8px_20px_rgba(245,158,11,0.3)] border border-amber-600/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
+              "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-950 hover:from-zinc-800 hover:via-zinc-700 hover:to-zinc-900 text-zinc-100 shadow-[0_8px_20px_rgba(0,0,0,0.5)] border border-zinc-600/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
           });
           actions.push({
             id: "disguise_thief",

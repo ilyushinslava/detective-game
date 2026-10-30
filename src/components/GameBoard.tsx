@@ -1,4 +1,3 @@
-// src/components/GameBoard.tsx
 import { useRef } from "react";
 import { motion, LayoutGroup } from "framer-motion";
 import type { Character, LastShift, GameModeType } from "../types/game";
@@ -131,10 +130,10 @@ export const GameBoard = ({
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center p-0.5 sm:p-1 select-none mx-auto w-full max-w-[min(100vw-1rem,calc(100dvh-13.5rem))] aspect-square shrink-0 touch-none">
+    <div className="relative flex flex-col items-center justify-center p-0.5 select-none mx-auto w-full max-w-[min(100vw-0.5rem,calc(100dvh-19.5rem))] shrink-0 touch-none">
       <style>{`
         @keyframes radarMarch {
-          from { stroke-dashoffset: 0; }
+          from { stroke-dashoffset: 0; } 
           to { stroke-dashoffset: -20; }
         }
         .radar-marching-stroke {
@@ -143,7 +142,7 @@ export const GameBoard = ({
         }
       `}</style>
       {!isLineUp && (
-        <div className="w-full h-3.5 sm:h-5 md:h-7 flex items-center gap-0.5 sm:gap-1 mb-0.5 shrink-0">
+        <div className="w-full h-4 sm:h-5 md:h-7 min-h-[16px] sm:min-h-[20px] flex items-center gap-0.5 sm:gap-1 mb-0.5 shrink-0">
           <div className="w-3.5 sm:w-5 md:w-7 shrink-0" />
           <div
             className="grid gap-0.5 sm:gap-1 flex-1"
@@ -158,32 +157,31 @@ export const GameBoard = ({
                 colIdx,
                 "BACKWARD",
               );
-              const isLastShiftBtn =
-                lastShift?.type === "COL" &&
-                lastShift.index === colIdx &&
-                lastShift.direction === "BACKWARD";
 
               return (
                 <button
                   key={`col-up-${colIdx}`}
                   disabled={isBlocked || isOpposite}
+                  onPointerDown={(e) => e.preventDefault()}
                   onClick={(e) => { e.currentTarget.blur(); onShift("COL", colIdx, "BACKWARD"); }}
-                  className={`w-full h-3.5 sm:h-5 md:h-7 shrink-0 rounded text-[8px] sm:text-xs md:text-sm font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
-                    isOpposite
-                      ? "invisible pointer-events-none"
-                      : isBlocked
-                        ? "bg-zinc-900/40 text-zinc-600 border-zinc-800/50 cursor-not-allowed opacity-50"
-                        : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
+                  className={`w-full h-4 sm:h-5 md:h-7 min-h-[16px] sm:min-h-[20px] shrink-0 rounded text-[8px] sm:text-xs md:text-sm font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
+                    isBlocked || isOpposite
+                      ? "bg-zinc-900/30 text-zinc-700 border-zinc-800/40 cursor-not-allowed opacity-30"
+                      : "bg-zinc-900/60 hover:bg-zinc-800/80 active:bg-white/10 border border-white/10 hover:border-white/20 active:border-white/60 text-zinc-400 hover:text-zinc-200 active:text-white transition-colors cursor-pointer shadow-inner touch-manipulation select-none active:scale-95"
                   }`}
                   title={
                     isBlocked
                       ? "Патруль полиции блокирует сдвиг"
-                      : isLastShiftBtn
-                        ? "Последний сдвиг"
+                      : isOpposite
+                        ? "Отмена хода противника запрещена"
                         : "Сдвиг вверх"
                   }
                 >
-                  {isBlocked ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> : "↑"}
+                  {isBlocked ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  ) : isOpposite ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                  ) : "↑"}
                 </button>
               );
             })}
@@ -208,32 +206,31 @@ export const GameBoard = ({
                 rIdx,
                 "BACKWARD",
               );
-              const isLastShiftBtn =
-                lastShift?.type === "ROW" &&
-                lastShift.index === rIdx &&
-                lastShift.direction === "BACKWARD";
 
               return (
                 <button
                   key={`row-left-${rIdx}`}
                   disabled={isRowBlocked || isOppositeLeft}
+                  onPointerDown={(e) => e.preventDefault()}
                   onClick={(e) => { e.currentTarget.blur(); onShift("ROW", rIdx, "BACKWARD"); }}
-                  className={`w-full h-full rounded text-[8px] sm:text-xs md:text-sm font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
-                    isOppositeLeft
-                      ? "invisible pointer-events-none"
-                      : isRowBlocked
-                        ? "bg-zinc-900/40 text-zinc-600 border-zinc-800/50 cursor-not-allowed opacity-50"
-                        : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
+                  className={`w-full h-full rounded text-[8px] sm:text-xs md:text-sm font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
+                    isRowBlocked || isOppositeLeft
+                      ? "bg-zinc-900/30 text-zinc-700 border-zinc-800/40 cursor-not-allowed opacity-30"
+                      : "bg-zinc-900/60 hover:bg-zinc-800/80 active:bg-white/10 border border-white/10 hover:border-white/20 active:border-white/60 text-zinc-400 hover:text-zinc-200 active:text-white transition-colors cursor-pointer shadow-inner touch-manipulation select-none active:scale-95"
                   }`}
                   title={
                     isRowBlocked
                       ? "Патруль полиции блокирует сдвиг"
-                      : isLastShiftBtn
-                        ? "Последний сдвиг"
+                      : isOppositeLeft
+                        ? "Отмена хода противника запрещена"
                         : "Сдвиг влево"
                   }
                 >
-                  {isRowBlocked ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> : "←"}
+                  {isRowBlocked ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  ) : isOppositeLeft ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                  ) : "←"}
                 </button>
               );
             })}
@@ -243,7 +240,7 @@ export const GameBoard = ({
         {/* ЕДИНЫЙ GRID ИГРОВОГО ПОЛЯ */}
         <LayoutGroup id="game-board-grid">
         <div
-          className="flex-1 aspect-square grid gap-0.5 sm:gap-1 touch-none select-none"
+          className="flex-1 aspect-square grid gap-0.5 sm:gap-1 touch-none select-none relative isolate"
           style={{
             gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))`,
             gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))`,
@@ -257,26 +254,39 @@ export const GameBoard = ({
               const isRadarTarget = character.id === radarTargetId;
               const isLastShiftTrack = Boolean(
                 lastShift &&
+                  !errorCardId &&
                   ((lastShift.type === "ROW" && lastShift.index === rIdx) ||
                     (lastShift.type === "COL" && lastShift.index === cIdx))
               );
-              const isShiftEntryPoint = Boolean(
+
+              const isWrappingCell = Boolean(
                 lastShift &&
                   ((lastShift.type === "ROW" &&
                     lastShift.index === rIdx &&
-                    ((lastShift.direction === "FORWARD" && cIdx === 0) ||
-                      (lastShift.direction === "BACKWARD" && cIdx === numCols - 1))) ||
-                    (lastShift.type === "COL" &&
-                      lastShift.index === cIdx &&
-                      ((lastShift.direction === "FORWARD" && rIdx === 0) ||
-                        (lastShift.direction === "BACKWARD" && rIdx === numRows - 1))))
+                    (lastShift.direction === "FORWARD" ? cIdx === 0 : cIdx === numCols - 1)) ||
+                   (lastShift.type === "COL" &&
+                    lastShift.index === cIdx &&
+                    (lastShift.direction === "FORWARD" ? rIdx === 0 : rIdx === numRows - 1)))
               );
 
-              let neighborColor = null;
-              if (showKillerHints && killerAdjacentIds.includes(character.id)) {
-                neighborColor = "border-2 border-red-500 bg-red-950/25 shadow-[0_0_16px_rgba(239,68,68,0.8)]";
-              } else if (showDetectiveHints && detectiveAdjacentIds.includes(character.id)) {
-                neighborColor = "border-2 border-blue-500 bg-blue-950/25 shadow-[0_0_16px_rgba(59,130,246,0.8)]";
+              const cellZIndex = isSelected
+                ? "z-40"
+                : isRadarCell || isRadarTarget
+                  ? "z-30"
+                  : isWrappingCell
+                    ? "z-0"
+                    : "z-10";
+
+              let neighborRole: "red" | "blue" | "purple" | null = null;
+              const isKillerNeighbor = showKillerHints && killerAdjacentIds.includes(character.id);
+              const isDetectiveNeighbor = showDetectiveHints && detectiveAdjacentIds.includes(character.id);
+
+              if (isKillerNeighbor && isDetectiveNeighbor) {
+                neighborRole = "purple";
+              } else if (isKillerNeighbor) {
+                neighborRole = "red";
+              } else if (isDetectiveNeighbor) {
+                neighborRole = "blue";
               }
 
               const isRedRadar = Boolean(radarColorClass?.includes("red"));
@@ -286,8 +296,8 @@ export const GameBoard = ({
                   key={character.id}
                   layoutId={character.id}
                   layout="position"
-                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                  className="w-full h-full aspect-square relative touch-none select-none"
+                  transition={{ type: "spring", stiffness: 280, damping: 28 }}
+                  className={`w-full h-full aspect-square relative touch-none select-none overflow-visible ${cellZIndex}`}
                   onTouchStart={(e) => handleTouchStart(rIdx, cIdx, e)}
                   onTouchEnd={handleTouchEnd}
                 >
@@ -295,13 +305,14 @@ export const GameBoard = ({
                     mode={mode}
                     character={character}
                     isSelected={isSelected}
-                    neighborHighlightColor={neighborColor}
+                    neighborRole={neighborRole}
+                    neighborHighlightColor={neighborRole ? `border-2 border-${neighborRole}-500` : null}
                     isUniformedOfficer={uniformedOfficerIds?.includes(
                       character.id,
                     )}
                     isTargetVictim={character.id === targetVictimId}
                     isRadarCenter={isRadarTarget}
-                    radarRingColor={isRadarCell ? radarColorClass : null}
+                    radarRingColor={isRadarCell ? (radarColorClass || "border-blue-500 ring-2 ring-blue-500/70") : null}
                     isError={character.id === errorCardId}
                     isMyCharacter={character.id === myCharacterId}
                     isOverlapZone={false}
@@ -312,87 +323,69 @@ export const GameBoard = ({
 
                   {isLastShiftTrack && !isSelected && !isRadarCell && !isRadarTarget && (
                     <motion.div
-                      key={`shift-pulse-${lastShift?.type}-${lastShift?.index}-${lastShift?.direction}`}
-                      initial={{ opacity: 0.8, scale: 1.02 }}
-                      animate={{ opacity: 0, scale: 1 }}
-                      transition={{ duration: 1.2, ease: "easeOut" }}
-                      className="pointer-events-none absolute inset-0 rounded-md sm:rounded-xl border-2 border-white/60 z-10"
-                    />
-                  )}
-                  {false && (
-                    <div
-                      className={`pointer-events-none absolute inset-0 rounded-md sm:rounded-xl border border-dashed border-zinc-500/50 bg-zinc-400/[0.04] z-10 flex items-center justify-center overflow-hidden ${
-                        isShiftEntryPoint
-                          ? "ring-1 ring-zinc-300/60 shadow-[0_0_12px_rgba(255,255,255,0.2)] bg-white/[0.04]"
-                          : ""
-                      }`}
+                      key={`shift-track-${lastShift?.type}-${lastShift?.index}-${lastShift?.direction}-${lastShift?.timestamp || 0}`}
+                      initial={{
+                        opacity: 0.6,
+                        x: lastShift?.type === "ROW" ? (lastShift.direction === "FORWARD" ? -24 : 24) : 0,
+                        y: lastShift?.type === "COL" ? (lastShift.direction === "FORWARD" ? -24 : 24) : 0,
+                      }}
+                      animate={{
+                        opacity: [0.6, 0.12, 0.26, 0.12],
+                        x: 0,
+                        y: 0,
+                      }}
+                      transition={{
+                        x: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+                        y: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+                        opacity: {
+                          times: [0, 0.3, 0.65, 1],
+                          duration: 3.2,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        },
+                      }}
+                      className="pointer-events-none absolute inset-0 rounded-md sm:rounded-xl border border-white/20 overflow-hidden z-15 will-change-[opacity,transform]"
                     >
-                      {isShiftEntryPoint && (
-                        <span className="absolute top-0.5 left-0.5 text-[8px] font-mono text-zinc-300/80 bg-zinc-900/90 px-1 rounded-sm border border-white/10 select-none">
-                          ⟳
-                        </span>
-                      )}
-                      {lastShift?.type === "ROW" && lastShift.direction === "FORWARD" && (
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400/60 animate-pulse">
-                          <path d="M5 12h14M12 5l7 7-7 7" />
-                        </svg>
-                      )}
-                      {lastShift?.type === "ROW" && lastShift.direction === "BACKWARD" && (
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400/60 animate-pulse">
-                          <path d="M19 12H5M12 19l-7-7 7-7" />
-                        </svg>
-                      )}
-                      {lastShift?.type === "COL" && lastShift.direction === "FORWARD" && (
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400/60 animate-pulse">
-                          <path d="M12 5v14M19 12l-7 7-7-7" />
-                        </svg>
-                      )}
-                      {lastShift?.type === "COL" && lastShift.direction === "BACKWARD" && (
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400/60 animate-pulse">
-                          <path d="M12 19V5M5 12l7-7 7 7" />
-                        </svg>
-                      )}
-                    </div>
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-${
+                          lastShift?.type === "ROW"
+                            ? (lastShift.direction === "FORWARD" ? "r" : "l")
+                            : (lastShift.direction === "FORWARD" ? "b" : "t")
+                        } from-transparent via-white/10 to-white/25`}
+                      />
+                    </motion.div>
                   )}
-
-                    {false && !character.isAlive && (
-                      <div className="pointer-events-none absolute inset-0 rounded-md sm:rounded-xl border border-dashed border-red-900/50 bg-red-950/25 z-10 flex items-center justify-center">
-                        <span className="text-[10px] sm:text-xs font-mono font-black text-red-500/40 tracking-widest uppercase select-none">
-                          [L]
-                        </span>
-                      </div>
-                    )}
 
                   {(isRadarCell || isRadarTarget) && (
-                    <div className="absolute inset-0 rounded-lg sm:rounded-xl pointer-events-none z-35 overflow-visible">
+                    <div className="absolute inset-0 rounded-md sm:rounded-xl pointer-events-none z-30 overflow-hidden">
                       <div
-                        className={`absolute inset-0 rounded-lg sm:rounded-xl mix-blend-screen transition-opacity duration-300 ${
+                        className={`absolute inset-0 rounded-md sm:rounded-xl mix-blend-screen transition-opacity duration-300 ${
                           isRadarTarget
-                            ? isRedRadar ? "bg-red-500/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.3)]" : "bg-blue-500/20 shadow-[inset_0_0_15px_rgba(59,130,246,0.3)]"
-                            : isRedRadar ? "bg-red-500/10" : "bg-blue-500/15"
+                            ? isRedRadar ? "bg-red-500/15 shadow-[inset_0_0_15px_rgba(239,68,68,0.25)]" : "bg-blue-500/15 shadow-[inset_0_0_15px_rgba(59,130,246,0.25)]"
+                            : isRedRadar ? "bg-red-500/10" : "bg-blue-500/10"
                         }`}
                       />
 
-                      <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none">
+                      <svg className="absolute inset-0 w-full h-full pointer-events-none">
                         <rect
-                          x="1"
-                          y="1"
-                          width="calc(100% - 2px)"
-                          height="calc(100% - 2px)"
-                          rx="10"
+                          x="1.5"
+                          y="1.5"
+                          width="calc(100% - 3px)"
+                          height="calc(100% - 3px)"
+                          rx="9"
                           fill="none"
                           stroke={isRedRadar ? "#f87171" : "#3b82f6"}
-                          strokeWidth="2.5"
+                          strokeWidth="2"
                           strokeLinecap="round"
-                          className="radar-marching-stroke rounded-lg sm:rounded-xl"
+                          className="radar-marching-stroke"
                           style={{
-                            filter: `drop-shadow(0 0 4px ${isRedRadar ? "rgba(239,68,68,0.6)" : "rgba(59,130,246,0.6)"})`,
+                            filter: `drop-shadow(0 0 4px ${isRedRadar ? "rgba(239,68,68,0.7)" : "rgba(59,130,246,0.7)"})`,
                           }}
                         />
                       </svg>
 
                       {isRadarTarget && (
-                        <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-zinc-950/90 border border-blue-400 flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.9)] z-30">
+                        <div className="absolute top-1 right-1 w-3 h-3 rounded-full bg-zinc-950/90 border border-blue-400 flex items-center justify-center shadow-[0_0_8px_rgba(59,130,246,0.9)] z-30">
                           <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" />
                         </div>
                       )}
@@ -419,32 +412,31 @@ export const GameBoard = ({
                 rIdx,
                 "FORWARD",
               );
-              const isLastShiftBtn =
-                lastShift?.type === "ROW" &&
-                lastShift.index === rIdx &&
-                lastShift.direction === "FORWARD";
 
               return (
                 <button
                   key={`row-right-${rIdx}`}
                   disabled={isRowBlocked || isOppositeRight}
+                  onPointerDown={(e) => e.preventDefault()}
                   onClick={(e) => { e.currentTarget.blur(); onShift("ROW", rIdx, "FORWARD"); }}
-                  className={`w-full h-full rounded text-[8px] sm:text-xs md:text-sm font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
-                    isOppositeRight
-                      ? "invisible pointer-events-none"
-                      : isRowBlocked
-                        ? "bg-zinc-900/40 text-zinc-600 border-zinc-800/50 cursor-not-allowed opacity-50"
-                        : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
+                  className={`w-full h-full rounded text-[8px] sm:text-xs md:text-sm font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
+                    isRowBlocked || isOppositeRight
+                      ? "bg-zinc-900/30 text-zinc-700 border-zinc-800/40 cursor-not-allowed opacity-30"
+                      : "bg-zinc-900/60 hover:bg-zinc-800/80 active:bg-white/10 border border-white/10 hover:border-white/20 active:border-white/60 text-zinc-400 hover:text-zinc-200 active:text-white transition-colors cursor-pointer shadow-inner touch-manipulation select-none active:scale-95"
                   }`}
                   title={
                     isRowBlocked
                       ? "Патруль полиции блокирует сдвиг"
-                      : isLastShiftBtn
-                        ? "Последний сдвиг"
+                      : isOppositeRight
+                        ? "Отмена хода противника запрещена"
                         : "Сдвиг вправо"
                   }
                 >
-                  {isRowBlocked ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> : "→"}
+                  {isRowBlocked ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  ) : isOppositeRight ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                  ) : "→"}
                 </button>
               );
             })}
@@ -453,7 +445,7 @@ export const GameBoard = ({
       </div>
 
       {!isLineUp && (
-        <div className="w-full h-3.5 sm:h-5 md:h-7 flex items-center gap-0.5 sm:gap-1 mt-0.5 shrink-0">
+        <div className="w-full h-4 sm:h-5 md:h-7 min-h-[16px] sm:min-h-[20px] flex items-center gap-0.5 sm:gap-1 mt-0.5 shrink-0">
           <div className="w-3.5 sm:w-5 md:w-7 shrink-0" />
           <div
             className="grid gap-0.5 sm:gap-1 flex-1"
@@ -468,32 +460,31 @@ export const GameBoard = ({
                 colIdx,
                 "FORWARD",
               );
-              const isLastShiftBtn =
-                lastShift?.type === "COL" &&
-                lastShift.index === colIdx &&
-                lastShift.direction === "FORWARD";
 
               return (
                 <button
                   key={`col-down-${colIdx}`}
                   disabled={isBlocked || isOpposite}
+                  onPointerDown={(e) => e.preventDefault()}
                   onClick={(e) => { e.currentTarget.blur(); onShift("COL", colIdx, "FORWARD"); }}
-                  className={`w-full h-3.5 sm:h-5 md:h-7 shrink-0 rounded text-[8px] sm:text-xs md:text-sm font-bold transition-transform duration-75 flex items-center justify-center border active:scale-90 p-0 ${
-                    isOpposite
-                      ? "invisible pointer-events-none"
-                      : isBlocked
-                        ? "bg-zinc-900/40 text-zinc-600 border-zinc-800/50 cursor-not-allowed opacity-50"
-                        : "bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer shadow-inner touch-manipulation select-none"
+                  className={`w-full h-3.5 sm:h-5 md:h-7 shrink-0 rounded text-[8px] sm:text-xs md:text-sm font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
+                    isBlocked || isOpposite
+                      ? "bg-zinc-900/30 text-zinc-700 border-zinc-800/40 cursor-not-allowed opacity-30"
+                      : "bg-zinc-900/60 hover:bg-zinc-800/80 active:bg-white/10 border border-white/10 hover:border-white/20 active:border-white/60 text-zinc-400 hover:text-zinc-200 active:text-white transition-colors cursor-pointer shadow-inner touch-manipulation select-none active:scale-95"
                   }`}
                   title={
                     isBlocked
                       ? "Патруль полиции блокирует сдвиг"
-                      : isLastShiftBtn
-                        ? "Последний сдвиг"
+                      : isOpposite
+                        ? "Отмена хода противника запрещена"
                         : "Сдвиг вниз"
                   }
                 >
-                  {isBlocked ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> : "↓"}
+                  {isBlocked ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  ) : isOpposite ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                  ) : "↓"}
                 </button>
               );
             })}

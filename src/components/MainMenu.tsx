@@ -552,7 +552,7 @@ export const MainMenu = ({
             {(['AI', 'PVP', 'ONLINE'] as OpponentType[]).map(opp => (
               <button
                 key={opp}
-                onClick={() => setSelectedOpponent(opp)}
+                onClick={() => { setSelectedOpponent(opp); if (opp === 'PVP') setPlayerCount(2); }}
                 className={`flex-1 py-2.5 md:py-3 text-[10px] md:text-xs font-black uppercase tracking-widest rounded-lg transition cursor-pointer ${selectedOpponent === opp ? 'bg-zinc-800 text-white shadow-md border border-white/10' : 'text-zinc-500 hover:text-zinc-300'}`}
               >
                 {opp === 'AI' ? 'Против ИИ' : opp === 'PVP' ? 'Локально' : 'Онлайн'
@@ -600,7 +600,7 @@ export const MainMenu = ({
                         disabled={isPvpDisabled}
                         onClick={() => !isPvpDisabled && setPlayerCount(num)}
                         className={`py-2.5 rounded-xl border text-[11px] font-black uppercase transition flex items-center justify-center gap-1 ${
-                          playerCount === num
+                          playerCount === num && !isPvpDisabled
                             ? "bg-zinc-800 border-zinc-400 text-white shadow-md scale-[1.02] cursor-pointer"
                             : isPvpDisabled
                               ? "bg-zinc-950/40 border-white/[0.04] text-zinc-700 cursor-not-allowed opacity-50"

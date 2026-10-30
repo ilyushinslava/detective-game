@@ -73,13 +73,13 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
             <p className="text-[10px] text-zinc-500 max-w-xs leading-relaxed mb-6 uppercase tracking-wider">
               В данном секторе нет активных дел. Откройте новый канал и начните собственную операцию.
             </p>
-            <button
+            {false && <button
               type="button"
               onClick={() => setIsCreateRoomOpen(true)}
               className="px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-[0_4px_15px_rgba(185,28,28,0.4)] transition cursor-pointer active:scale-95"
             >
               + Создать первый стол
-            </button>
+            </button>}
           </div>
         ) : (
           filteredRooms.map((room) => (
@@ -141,11 +141,11 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
               Применить
             </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setIsCreateRoomOpen(true)}
-            className="w-full py-3.5 bg-red-700 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition cursor-pointer shadow-[0_4px_15px_rgba(185,28,28,0.4)] active:scale-95"
-          >
+                      <button
+              type="button"
+              onClick={() => setIsCreateRoomOpen(true)}
+              className="w-full py-3.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition cursor-pointer shadow-[0_4px_15px_rgba(185,28,28,0.4)] active:scale-95"
+            >
             + Создать партию
           </button>
         </div>

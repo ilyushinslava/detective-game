@@ -461,6 +461,7 @@ export default class GameRoomServer {
       copy.detectiveSecretId = null;
       copy.detectiveHand = [];
       copy.inspectorChoices = [];
+      copy.inspectorTargetId = null;
     } else if (role === "DETECTIVE") {
       copy.killerSecretId = null;
       copy.killerHand = [];

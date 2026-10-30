@@ -214,13 +214,16 @@ export function useMultiplayer({
     };
 
   const handleExitToMenu = () => {
+    setOpponentDisconnectedNotice(false);
     partyService.disconnect();
+    sessionStorage.removeItem("mp_session");
     setIsLobbyOpen(true);
     setHasStartedEver(false);
     setIsIntroPhase(false);
     matchResultRecordedRef.current = false;
     setGameState((prev) => ({
       ...prev,
+      opponent: "AI",
       winner: null,
       restartRequestedBy: undefined,
     }));

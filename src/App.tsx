@@ -63,29 +63,7 @@ export default function App() {
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
 
   useEffect(() => {
-    const rawSession = sessionStorage.getItem("mp_session");
-    if (rawSession) {
-      try {
-        const session = JSON.parse(rawSession);
-        if (session && session.roomCode) {
-          const mode = session.mode || "SKHVATKA";
-          const isHost = Boolean(session.isHost);
-          const role: Role = isHost ? "KILLER" : "DETECTIVE";
-                      partyService.roomCode = session.roomCode;
-            partyService.connect(session.roomCode, session.nickname || profile.nickname, isHost, mode);
-            setActiveMode(mode);
-            setGameState((prev) => ({
-              ...prev,
-              mode,
-              opponent: "ONLINE",
-              playerRole: role,
-            }));
-          }
-        } catch (err) {
-          sessionStorage.removeItem("mp_session");
-          console.warn("Failed to restore multiplayer session:", err);
-        }
-    }
+        sessionStorage.removeItem("mp_session");
   }, []);
 
   useEffect(() => {

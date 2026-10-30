@@ -117,8 +117,9 @@ class PartyService {
             }
           }, GAME_CONFIG.NETWORK.RECONNECT.HEARTBEAT_INTERVAL_MS);
 
-          while (this.queuedActions.length > 0) {
-            const queuedAction = this.queuedActions.shift();
+          const actionsToProcess = [...this.queuedActions];
+          this.queuedActions = [];
+          for (const queuedAction of actionsToProcess) {
             if (queuedAction) {
               this.sendAction(queuedAction);
             }

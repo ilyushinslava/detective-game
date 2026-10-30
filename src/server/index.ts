@@ -117,8 +117,10 @@ export default class GameRoomServer {
     const playerCount = Object.keys(this.state.players).length;
 
     if (!isHost && playerCount === 0) {
-      conn.send(JSON.stringify({ type: "ERROR", message: "ROOM_NOT_FOUND" }));
-      conn.close();
+      try {
+        conn.send(JSON.stringify({ type: "ERROR", message: "ROOM_NOT_FOUND" }));
+        conn.close();
+      } catch (_err) {}
       return;
     }
 
@@ -428,14 +430,16 @@ export default class GameRoomServer {
       const player = clientId ? this.state.players[clientId] : null;
       const maskedState = this.maskStateForPlayer(this.state.gameState, player?.role, player?.isHost);
 
-      conn.send(
-        JSON.stringify({
-          type: "SYNC_STATE",
-          state: maskedState,
-          role: player?.role,
-          status: this.state.status,
-        })
-      );
+      try {
+        conn.send(
+          JSON.stringify({
+            type: "SYNC_STATE",
+            state: maskedState,
+            role: player?.role,
+            status: this.state.status,
+          })
+        );
+      } catch (_err) {}
     }
   }
 

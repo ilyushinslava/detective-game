@@ -40,11 +40,15 @@ class PartyService {
 
     if (typeof window !== "undefined") {
       const hostname = window.location.hostname;
-      const isStrictLocalhost =
-        (hostname === "localhost" || hostname === "127.0.0.1") &&
-        Boolean(import.meta.env?.DEV);
+      const isDevEnv = Boolean(import.meta.env?.DEV);
+      const isLocalHostOrLan =
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname.startsWith("192.168.") ||
+        hostname.startsWith("10.") ||
+        hostname.endsWith(".local");
 
-      if (isStrictLocalhost) {
+      if (isDevEnv && isLocalHostOrLan) {
         return {
           wsProtocol: "ws:",
           httpProtocol: "http:",
@@ -241,28 +245,28 @@ class PartyService {
   }
 
   sendAction(action: GameAction): void {
-    if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
-      if (this.queuedActions.length >= 3) {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      try {
+        const payload = {
+          ...action,
+          senderClientId: this.myClientId,
+        };
+        this.socket.send(JSON.stringify(payload));
+      } catch (err) {
+        console.error("[PartyService] Failed to send action:", err);
+      }
+      return;
+    }
+
+    if (this.roomCode || (this.socket && (this.socket.readyState === WebSocket.CONNECTING || this.socket.readyState === WebSocket.CLOSING))) {
+      if (this.queuedActions.length >= 20) {
         this.queuedActions.shift();
       }
       this.queuedActions.push(action);
       return;
     }
 
-    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      console.warn("[PartyService] Socket is not open, action dropped:", action?.type);
-      return;
-    }
-
-    try {
-      const payload = {
-        ...action,
-        senderClientId: this.myClientId,
-      };
-      this.socket.send(JSON.stringify(payload));
-    } catch (err) {
-      console.error("[PartyService] Failed to send action:", err);
-    }
+    console.warn("[PartyService] Socket is not open and no active room, action dropped:", action?.type);
   }
 
   async fetchPublicRooms(): Promise<any[]> {

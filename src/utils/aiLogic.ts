@@ -316,7 +316,11 @@ export function getThiefAIMove(state: GameState): GameState {
 
   if (state.killerHand && state.killerHand.length > 0 && Math.random() < 0.35) {
     const maskId = state.killerHand[Math.floor(Math.random() * state.killerHand.length)];
-    return fastDisguise(state, maskId);
+    const disguisedState = fastDisguise(state, maskId);
+    return {
+      ...disguisedState,
+      currentTurn: "DETECTIVE",
+    };
   }
 
   const validShifts = getAllValidShifts(

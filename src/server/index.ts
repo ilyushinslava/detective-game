@@ -200,20 +200,18 @@ export default class GameRoomServer {
 
     this.broadcastRaw(JSON.stringify({ type: "PRESENCE_CHANGED", connected: false }));
 
+    const playerWhoLeft = this.state.players[clientId];
+    if (playerWhoLeft?.isHost && this.state.status === "WAITING") {
+      publicRoomsRegistry.delete(this.getRoomCode());
+    }
+
     const timer = setTimeout(() => {
       this.disconnectTimers.delete(clientId);
       delete this.state.players[clientId];
       this.state.readyClients.delete(clientId);
 
-      const rawCloseCode = this.room?.id
-        ? this.room.id
-            .replace(/^.*(?:\/party\/|\/parties\/[^\/]+\/)/, "")
-            .replace(/^\/+|\/+$/g, "")
-            .split("/")
-            .pop()
-        : undefined;
-      const roomCode = this.getRoomCode(); void rawCloseCode;
-      if (false && roomCode) {
+      const roomCode = this.getRoomCode();
+      if (roomCode && Object.keys(this.state.players).length === 0) {
         publicRoomsRegistry.delete(roomCode);
       }
 

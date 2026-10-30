@@ -71,21 +71,20 @@ export default function App() {
           const mode = session.mode || "SKHVATKA";
           const isHost = Boolean(session.isHost);
           const role: Role = isHost ? "KILLER" : "DETECTIVE";
-          partyService.roomCode = session.roomCode;
-          partyService.connect(session.roomCode, session.nickname || profile.nickname, isHost, mode);
-          setActiveMode(mode);
-          setGameState((prev) => ({
-            ...prev,
-            mode,
-            opponent: "ONLINE",
-            playerRole: role,
-          }));
-          setHasStartedEver(true);
-          setIsLobbyOpen(false);
+                      partyService.roomCode = session.roomCode;
+            partyService.connect(session.roomCode, session.nickname || profile.nickname, isHost, mode);
+            setActiveMode(mode);
+            setGameState((prev) => ({
+              ...prev,
+              mode,
+              opponent: "ONLINE",
+              playerRole: role,
+            }));
+          }
+        } catch (err) {
+          sessionStorage.removeItem("mp_session");
+          console.warn("Failed to restore multiplayer session:", err);
         }
-      } catch (err) {
-        console.warn("Failed to restore multiplayer session:", err);
-      }
     }
   }, []);
 
@@ -829,7 +828,7 @@ export default function App() {
 
         {!isLobbyOpen && hasStartedEver && (
         <div className="flex-1 min-h-0 w-full flex flex-col landscape:flex-row items-center justify-start landscape:justify-between gap-2 md:gap-6 lg:gap-8 px-2 sm:px-4 md:px-6 py-1 md:py-4 overflow-hidden custom-scrollbar">
-          <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-2xl landscape:max-w-none flex flex-col items-center justify-center py-1 sm:py-2 landscape:py-0">
+          <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-2xl landscape:max-w-none flex flex-col items-center justify-center py-0.5 landscape:py-0">
             <div className="w-full h-full flex-1 min-h-0 flex items-center justify-center overflow-hidden relative antialiased">
               <GameBoard
                 mode={gameState.mode}
@@ -870,7 +869,7 @@ export default function App() {
             </div>
           </main>
 
-          <footer className="w-full max-w-md md:max-w-2xl landscape:w-80 landscape:xl:w-96 shrink-0 flex flex-col justify-center gap-3 md:gap-4 z-20 pb-[max(0.5rem,env(safe-area-inset-bottom))] landscape:pb-0 px-1 md:px-4 landscape:px-0 landscape:my-auto">
+          <footer className="w-full max-w-md md:max-w-2xl landscape:w-80 landscape:xl:w-96 shrink-0 flex flex-col justify-center gap-1.5 sm:gap-2.5 z-20 pb-[max(0.5rem,env(safe-area-inset-bottom))] landscape:pb-0 px-1 md:px-4 landscape:px-0 landscape:my-auto">
             <RoleCards
               mode={gameState.mode}
               role1Name={role1Name}
@@ -904,13 +903,13 @@ export default function App() {
               isPVP={gameState.opponent === "PVP"}
             />
 
-            <div className="w-full max-w-md md:max-w-xl h-8 sm:h-9 my-1 px-3 bg-zinc-900/90 border border-zinc-800 rounded-lg text-[10px] sm:text-xs font-mono text-zinc-300 text-center shadow-sm shrink-0 flex items-center justify-center overflow-hidden">
+            <div className="w-full max-w-md md:max-w-xl h-7 sm:h-8 px-3 bg-zinc-900/90 border border-zinc-800 rounded-lg text-[10px] sm:text-xs font-mono text-zinc-300 text-center shadow-sm shrink-0 flex items-center justify-center overflow-hidden">
               <span className="truncate w-full">
                 {gameState.log.length > 0 ? gameState.log[gameState.log.length - 1] : "Операция в процессе..."}
               </span>
             </div>
 
-            <div className="flex flex-col gap-2 w-full lg:bg-zinc-900/50 lg:border lg:border-zinc-800 lg:p-4 lg:rounded-2xl">
+            <div className="flex flex-col gap-1.5 sm:gap-2 w-full lg:bg-zinc-900/50 lg:border lg:border-zinc-800 lg:p-4 lg:rounded-2xl">
               <div className="hidden md:block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
                 Действия ({actionPanelRoleName})
               </div>

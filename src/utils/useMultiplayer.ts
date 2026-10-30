@@ -98,6 +98,13 @@ export function useMultiplayer({
       if (status === "WAITING") {
         setIsOpponentConnected(true);
         setOpponentDisconnectedNotice(false);
+        if (partyService.isHost === false) {
+          // Гость подключен и ждет старта
+        }
+      } else if (status === "EMPTY") {
+        sessionStorage.removeItem("mp_session");
+        setIsLobbyOpen(true);
+        setHasStartedEver(false);
       } else if (status === "READY_TO_START") {
         setIsOpponentConnected(true);
         setOpponentDisconnectedNotice(false);

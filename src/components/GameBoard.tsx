@@ -321,40 +321,40 @@ export const GameBoard = ({
                     onClick={() => handleCardClick(character.id)}
                   />
 
-                  {isLastShiftTrack && !isSelected && !isRadarCell && !isRadarTarget && (
+                  {isLastShiftTrack && !isSelected && !isRadarCell && !isRadarTarget && (() => {
+                    const shiftStepIndex = lastShift?.type === "ROW"
+                      ? (lastShift.direction === "FORWARD" ? cIdx : (numCols - 1 - cIdx))
+                      : (lastShift?.direction === "FORWARD" ? rIdx : (numRows - 1 - rIdx));
+                    return (
                     <motion.div
                       key={`shift-track-${lastShift?.type}-${lastShift?.index}-${lastShift?.direction}-${lastShift?.timestamp || 0}`}
                       initial={{
-                        opacity: 0.6,
-                        x: lastShift?.type === "ROW" ? (lastShift.direction === "FORWARD" ? -24 : 24) : 0,
-                        y: lastShift?.type === "COL" ? (lastShift.direction === "FORWARD" ? -24 : 24) : 0,
+                        opacity: 0.08,
+                        scale: 1,
                       }}
                       animate={{
-                        opacity: [0.6, 0.12, 0.26, 0.12],
-                        x: 0,
-                        y: 0,
+                        opacity: [0.06, 0.60, 0.06],
+                        scale: [1, 1.018, 1],
                       }}
                       transition={{
-                        x: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
-                        y: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
-                        opacity: {
-                          times: [0, 0.3, 0.65, 1],
-                          duration: 3.2,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        },
+                        duration: 1.4,
+                        delay: shiftStepIndex * 0.1,
+                        repeat: Infinity,
+                        repeatDelay: 0.25,
+                        ease: "easeInOut",
                       }}
-                      className="pointer-events-none absolute inset-0 rounded-md sm:rounded-xl border border-white/20 overflow-hidden z-15 will-change-[opacity,transform]"
+                      className="pointer-events-none absolute inset-0 rounded-md sm:rounded-xl border border-white/35 shadow-[0_0_10px_rgba(255,255,255,0.15)] overflow-hidden z-15 will-change-[opacity,transform]"
                     >
                       <div
                         className={`absolute inset-0 bg-gradient-to-${
                           lastShift?.type === "ROW"
                             ? (lastShift.direction === "FORWARD" ? "r" : "l")
                             : (lastShift.direction === "FORWARD" ? "b" : "t")
-                        } from-transparent via-white/10 to-white/25`}
+                        } from-transparent via-white/20 to-white/40`}
                       />
                     </motion.div>
-                  )}
+                    );
+                  })()}
 
                   {(isRadarCell || isRadarTarget) && (
                     <div className="absolute inset-0 rounded-md sm:rounded-xl pointer-events-none z-30 overflow-hidden">

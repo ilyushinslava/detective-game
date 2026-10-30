@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+﻿import { useState, useRef, useEffect, useMemo } from "react";
 import { SplashScreen } from './components/SplashScreen';
 import { type GameModeType, type OpponentType, type Role, type GameState, SPY_COLORS } from "./types/game";
 import { GameBoard } from "./components/GameBoard";
@@ -302,8 +302,10 @@ export default function App() {
 
   const handleExitToMenu = () => {
     setIsPauseOpen(false);
+    partyService.disconnect();
     sessionStorage.removeItem("mp_session");
     setOpponentDisconnectedNotice(false);
+    setIsLobbyOpen(true);
     if (gameState.winner) {
       setHasStartedEver(false);
     }
@@ -400,7 +402,7 @@ export default function App() {
           dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
           setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
         }}
-        isOpponentDisconnectedNotice={Boolean(opponentDisconnectedNotice)}
+        isOpponentDisconnectedNotice={Boolean(opponentDisconnectedNotice && gameState.opponent === "ONLINE")}
         onExitToMenu={handleExitToMenu}
         isPauseOpen={isPauseOpen}
         onClosePause={() => setIsPauseOpen(false)}
@@ -898,8 +900,8 @@ export default function App() {
                     key={action.id}
                     onClick={action.onClick}
                     disabled={action.disabled}
-                    className={`${action.className} ${
-                      targetActions.length === 1
+                    className={`${action.className.replace(/py-2 sm:py-2.5 md:py-3.5/g, "h-10 sm:h-11 md:h-12")} ${
+                      targetActions.length === 1 && !((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView)
                         ? "col-span-2 md:col-span-1"
                         : "col-span-1"
                     }`}
@@ -922,29 +924,13 @@ export default function App() {
                     <span>{selectedCharacter && !action.disabled ? `${action.label}` : action.label}</span>
                   </button>
                 ))}
-              </div>
-
-              <div className="grid grid-cols-2 gap-1.5 w-full mt-1">
-                {cleanupAction && (
-                  <button
-                    onClick={cleanupAction.onClick}
-                    disabled={cleanupAction.disabled}
-                    className="col-span-2 h-10 sm:h-11 bg-gradient-to-r from-red-950 via-zinc-900 to-red-950 hover:from-red-900 hover:via-zinc-800 hover:to-red-900 disabled:opacity-40 text-red-200 hover:text-white text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider rounded-xl border border-red-600/70 transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.35)] active:scale-[0.98]"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-red-400 shrink-0">
-                      <circle cx="12" cy="12" r="9" />
-                      <path d="M9 10h.01M15 10h.01M10 15h4" />
-                    </svg>
-                    <span>Зачистить</span>
-                  </button>
-                )}
-
                 {((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView) && (
                   <button
                     onClick={() => setIsHandSheetOpen(true)}
-                    className="col-span-2 h-10 sm:h-11 bg-gradient-to-r from-[#2c2014] via-[#1a1612] to-[#2c2014] hover:from-[#3a2b1c] hover:via-[#26201a] hover:to-[#3a2b1c] text-amber-200 hover:text-amber-100 border border-amber-600/70 rounded-xl text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(217,119,6,0.25)] transition-all active:scale-[0.98]"
+                    disabled={Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0)}
+                    className="col-span-1 h-10 sm:h-11 md:h-12 bg-gradient-to-r from-blue-950 via-zinc-900 to-blue-950 hover:from-blue-900 hover:via-zinc-800 hover:to-blue-900 text-blue-200 hover:text-white border border-blue-500/70 rounded-xl text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(59,130,246,0.25)] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-amber-400 shrink-0">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-blue-400 shrink-0">
                       <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a2.5 2.5 0 0 1-2.5-2.5z" />
                       <path d="M6 6h10M6 10h10M6 14h6" />
                     </svg>
@@ -952,6 +938,21 @@ export default function App() {
                   </button>
                 )}
               </div>
+
+              {cleanupAction && isCleanupAvailable && (
+              <div className="grid grid-cols-2 gap-1.5 w-full mt-1">
+                  <button
+                    onClick={cleanupAction.onClick}
+                    disabled={cleanupAction.disabled}
+                    className="col-span-2 h-10 sm:h-11 bg-gradient-to-r from-red-950 via-zinc-900 to-red-950 hover:from-red-900 hover:via-zinc-800 hover:to-red-900 disabled:opacity-40 text-red-200 hover:text-white text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider rounded-xl border border-red-600/70 transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.35)] active:scale-[0.98]">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-red-400 shrink-0">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M9 10h.01M15 10h.01M10 15h4" />
+                    </svg>
+                    <span>Зачистить</span>
+                  </button>
+              </div>
+              )}
             </div>
 
             <div className="hidden landscape:lg:flex flex-col flex-1 min-h-0 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4">

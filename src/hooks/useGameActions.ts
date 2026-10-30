@@ -221,6 +221,7 @@ export function useGameActions({
 
   const handleExonerateFromHand = (id: string) => {
     if (gameState.currentTurn !== "DETECTIVE" || !isHumanTurn) return;
+    if (gameState.mode === "SKHVATKA" && gameState.inspectorChoices && gameState.inspectorChoices.length > 0) return;
     soundManager.play("radar");
     triggerHaptic("medium");
     dispatchAction({

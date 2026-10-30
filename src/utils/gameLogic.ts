@@ -693,6 +693,7 @@ export function disguiseKiller(state: GameState): GameState {
       currentTurn: "DETECTIVE",
       blockedShift: null,
       lastInterrogation: null,
+      interrogationRadar: null,
       disguisedNotification: { roleName: "Бандит", newSecretId: drawnId },
       log: [...state.log, "Преступник успешно сменил облик и ушел в тень."],
     };

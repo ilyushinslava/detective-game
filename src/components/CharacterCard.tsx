@@ -141,7 +141,6 @@ export const CharacterCard = memo(
     return (
       <motion.div
         layout
-        layoutId={`card-${character.id}`}
         onClick={onClick}
         animate={
           isError
@@ -189,7 +188,7 @@ export const CharacterCard = memo(
                   alt={character.name}
                   className="w-full h-full object-cover rounded-md opacity-75 grayscale contrast-125 pointer-events-none"
                   onError={() => setImgError(true)}
-                  loading="lazy"
+                  decoding="async"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center opacity-40">

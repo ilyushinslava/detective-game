@@ -76,7 +76,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
             <button
               type="button"
               onClick={() => setIsCreateRoomOpen(true)}
-              className="px-6 py-3 rounded-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-[0_0_20px_rgba(220,38,38,0.4)] transition cursor-pointer active:scale-95"
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-[0_4px_15px_rgba(185,28,28,0.4)] transition cursor-pointer active:scale-95"
             >
               + Создать первый стол
             </button>
@@ -129,7 +129,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
                 placeholder="ШИФР (4 ЗНАКА)"
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value.replace(/[^0-9]/g, ''))}
-                className="w-full bg-zinc-900/90 border border-white/15 rounded-xl px-4 py-3 text-xs font-mono font-bold text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-red-500 transition uppercase tracking-widest text-center shadow-inner"
+                className="w-full bg-zinc-900/90 border border-zinc-700 rounded-xl px-4 py-3 text-xs font-mono font-bold text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-red-500 transition uppercase tracking-widest text-center shadow-inner"
               />
             </div>
             <button
@@ -144,7 +144,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
           <button
             type="button"
             onClick={() => setIsCreateRoomOpen(true)}
-            className="w-full py-3.5 bg-gradient-to-r from-zinc-800 to-zinc-900 border border-white/15 hover:border-white/30 text-zinc-200 text-[10px] font-black uppercase tracking-widest rounded-xl transition cursor-pointer shadow-lg active:scale-99"
+            className="w-full py-3.5 bg-red-700 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition cursor-pointer shadow-[0_4px_15px_rgba(185,28,28,0.4)] active:scale-95"
           >
             + Создать партию
           </button>

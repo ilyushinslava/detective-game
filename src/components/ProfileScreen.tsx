@@ -111,7 +111,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
         </div>
 
-        <div className="bg-zinc-950/80 border border-white/10 rounded-2xl p-5 flex flex-col gap-4">
+        <div className="hidden">
           <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 border-b border-white/5 pb-2">
             Язык протокола
           </h3>

@@ -468,7 +468,7 @@ export const MainMenu = ({
             <button
               key={mode.id}
               onClick={() => { setSelectedMode(mode.id); setScreen('MODE_DETAIL'); }}
-              className="w-full bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl p-4 md:p-5 flex flex-col justify-between hover:border-zinc-500/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.08)] transition text-left shadow-[0_4px_20px_rgba(0,0,0,0.4)] cursor-pointer group active:scale-[0.99]"
+              className="w-full bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl p-4 md:p-5 flex flex-col justify-between hover:border-zinc-500/50 transition-all active:scale-[0.98] text-left shadow-[0_4px_20px_rgba(0,0,0,0.4)] cursor-pointer group"
             >
               <div>
                 <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-center text-zinc-500 mb-3 shadow-inner group-hover:text-white transition-colors">
@@ -520,7 +520,9 @@ export const MainMenu = ({
             {activeModeData.description}
           </p>
 
-          <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">
+          <div className="flex flex-col gap-6">
+            <div>
+              <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">
             СОСТАВ ИГРЫ
           </h3>
           <div className="grid grid-cols-3 gap-2.5 mb-6">
@@ -540,8 +542,10 @@ export const MainMenu = ({
               <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">статусы сетки</span>
             </div>
           </div>
+          </div>
 
-          <h3 className="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest mb-2.5">
+          <div>
+            <h3 className="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest mb-2.5">
             Формат партии
           </h3>
           <div className="flex bg-zinc-950/80 p-1 rounded-xl border border-white/[0.08] mb-5 shadow-inner">
@@ -555,9 +559,10 @@ export const MainMenu = ({
               }</button>
             ))}
           </div>
+          </div>
 
           {selectedOpponent === 'AI' && activeModeData.id !== 'SECRET_SERVICE' && (
-            <>
+            <div>
               <h3 className="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest mb-2.5">Ваша роль</h3>
               <div className="flex gap-3 mb-5">
                 <button
@@ -573,11 +578,11 @@ export const MainMenu = ({
                   {activeModeData.killerRoleName}
                 </button>
               </div>
-            </>
+            </div>
           )}
 
           {activeModeData.id === 'SECRET_SERVICE' && (
-              <div className="mb-5">
+              <div className="w-full">
                 <div className="flex items-center justify-between mb-2.5">
                   <h3 className="text-[10px] md:text-xs font-black text-zinc-400 uppercase tracking-widest">
                     Количество агентов
@@ -594,14 +599,15 @@ export const MainMenu = ({
                         key={num}
                         disabled={isPvpDisabled}
                         onClick={() => !isPvpDisabled && setPlayerCount(num)}
-                        className={`py-2.5 rounded-xl border text-[11px] font-black uppercase transition cursor-pointer ${
+                        className={`py-2.5 rounded-xl border text-[11px] font-black uppercase transition flex items-center justify-center gap-1 ${
                           playerCount === num
-                            ? "bg-zinc-800 border-zinc-400 text-white shadow-md scale-[1.02]"
+                            ? "bg-zinc-800 border-zinc-400 text-white shadow-md scale-[1.02] cursor-pointer"
                             : isPvpDisabled
-                              ? "bg-zinc-950/40 border-white/[0.04] text-zinc-700 cursor-not-allowed opacity-40"
-                              : "bg-zinc-900/60 border-white/[0.08] text-zinc-500 hover:text-zinc-300"
+                              ? "bg-zinc-950/40 border-white/[0.04] text-zinc-700 cursor-not-allowed opacity-50"
+                              : "bg-zinc-900/60 border-white/[0.08] text-zinc-500 hover:text-zinc-300 cursor-pointer"
                         }`}
                       >
+                        {isPvpDisabled && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3"><rect x="6" y="11" width="12" height="10" rx="2" ry="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>}
                         {num}
                       </button>
                     );
@@ -621,6 +627,7 @@ export const MainMenu = ({
                 </div>
               </div>
             )}
+          </div>
         </div>
       </div>
 

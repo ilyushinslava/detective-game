@@ -45,8 +45,9 @@ export interface GameModalsContainerProps {
 
   // Rematch & Disconnect
   restartRequestedBy?: "HOST" | "GUEST";
-  matchBet: number;
-  rematchTimer: number;
+      matchBet: number;
+    pendingRematchMode?: "SWAP" | "SAME" | "RANDOM";
+    rematchTimer: number;
   onAcceptRestart: () => void;
   onRejectRestart: () => void;
   onCancelWaitingRestart: () => void;
@@ -114,8 +115,9 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
   toastMessage,
   onCloseToast,
   restartRequestedBy,
-  matchBet,
-  rematchTimer,
+      matchBet,
+    pendingRematchMode,
+    rematchTimer,
   onAcceptRestart,
   onRejectRestart,
   onCancelWaitingRestart,
@@ -191,8 +193,9 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
 
       <Toast message={toastMessage} type="info" onClose={onCloseToast} />
 
-      <RematchModal
-        status={
+            <RematchModal
+          rematchMode={pendingRematchMode}
+          status={
           restartRequestedBy
             ? restartRequestedBy !== (partyService.isHost ? "HOST" : "GUEST")
               ? "offer"

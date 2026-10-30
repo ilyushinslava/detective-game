@@ -391,6 +391,7 @@ export default function App() {
         toastMessage={toastMessage}
         onCloseToast={() => setToastMessage(null)}
         restartRequestedBy={gameState.restartRequestedBy}
+          pendingRematchMode={gameState.pendingRematchMode}
         matchBet={gameState.matchBet || 250}
         rematchTimer={rematchTimer}
         onAcceptRestart={acceptRestart}
@@ -1127,6 +1128,7 @@ export default function App() {
             isMultiplayer={gameState.opponent === "ONLINE"}
             onRematchSwap={() => requestRematch("SWAP")}
             onRematchRandom={() => requestRematch("RANDOM")}
+                onRematchSame={() => requestRematch("SAME")}
           />
         )}
       </div>

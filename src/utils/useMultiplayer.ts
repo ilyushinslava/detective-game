@@ -145,12 +145,13 @@ export function useMultiplayer({
         setIsIntroPhase(false);
         return;
       }
-      if (action.type === "REQUEST_RESTART") {
-        setGameState((prev) => ({
-          ...prev,
-          restartRequestedBy: action.payload?.requestedBy || "GUEST",
-        }));
-      } else if (action.type === "REJECT_RESTART") {
+              if (action.type === "REQUEST_RESTART") {
+          setGameState((prev) => ({
+            ...prev,
+            restartRequestedBy: action.payload?.requestedBy || "GUEST",
+            pendingRematchMode: action.payload?.rematchMode || "SWAP",
+          }));
+        } else if (action.type === "REJECT_RESTART") {
         setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
         setToastMessage("Соперник отклонил предложение о реванше");
       } else if (action.type === "OPPONENT_LEFT") {
@@ -200,7 +201,7 @@ export function useMultiplayer({
       setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
     };
 
-    const requestRematch = (mode: "SWAP" | "RANDOM" = "SWAP") => {
+    const requestRematch = (mode: "SWAP" | "SAME" | "RANDOM" = "SWAP") => {
       const requestedBy = partyService.isHost ? "HOST" : "GUEST";
       dispatchAction({
         type: "REQUEST_RESTART",

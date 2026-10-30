@@ -78,6 +78,7 @@ export interface GameState {
   matchBet?: number;
   matchPot?: number;
   restartRequestedBy?: "HOST" | "GUEST" | null;
+  pendingRematchMode?: "SWAP" | "SAME" | "RANDOM";
   disguisedNotification?: { roleName: string; newSecretId: string } | null;
   duelHistory?: DuelHistoryEntry[];
   duelPenalties?: Record<Role, number>;

@@ -276,22 +276,26 @@ export default class GameRoomServer {
         return;
       }
 
-      if (action.type === "CONFIRM_RESTART") {
-      const playerIds = Object.keys(this.state.players || {});
-      if (playerIds.length >= 2) {
-        if ((this.state as any).pendingRematchMode === "RANDOM") {
-          const firstIsKiller = Math.random() < 0.5;
-          this.state.players[playerIds[0]].role = firstIsKiller ? "KILLER" : "DETECTIVE";
-          this.state.players[playerIds[1]].role = firstIsKiller ? "DETECTIVE" : "KILLER";
-        } else {
-          const prevRole0 = this.state.players[playerIds[0]].role;
-          this.state.players[playerIds[0]].role = prevRole0 === "KILLER" ? "DETECTIVE" : "KILLER";
-          this.state.players[playerIds[1]].role = prevRole0 === "KILLER" ? "KILLER" : "DETECTIVE";
+            if (action.type === "CONFIRM_RESTART") {
+        const playerIds = Object.keys(this.state.players || {});
+        if (playerIds.length >= 2) {
+          const mode = (this.state as any).pendingRematchMode;
+          if (mode === "RANDOM") {
+            const firstIsKiller = Math.random() < 0.5;
+            this.state.players[playerIds[0]].role = firstIsKiller ? "KILLER" : "DETECTIVE";
+            this.state.players[playerIds[1]].role = firstIsKiller ? "DETECTIVE" : "KILLER";
+          } else if (mode === "SWAP" || !mode) {
+            const prevRole0 = this.state.players[playerIds[0]].role;
+            this.state.players[playerIds[0]].role = prevRole0 === "KILLER" ? "DETECTIVE" : "KILLER";
+            this.state.players[playerIds[1]].role = prevRole0 === "KILLER" ? "KILLER" : "DETECTIVE";
+          }
         }
-              }
-
+        this.state.status = "READY_TO_START";
+        this.state.readyClients.clear();
         this.state.gameState = createInitialState(this.state.mode, "ONLINE", "KILLER", 2, this.state.mode === "SECRET_SERVICE" ? 2 : 3, 16);
         this.state.gameState.matchBet = 250;
+        this.broadcastStatus();
+        this.broadcastState();
         this.state.gameState.matchPot = 500;
         this.state.status = "PLAYING";
         this.state.readyClients.clear();

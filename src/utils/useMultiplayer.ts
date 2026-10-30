@@ -59,10 +59,11 @@ export function useMultiplayer({
   }, [gameState.opponent]);
 
   useEffect(() => {
-    if (gameState.opponent !== "ONLINE" && !partyService.roomCode) return;
-
     partyService.onSyncState = (state: any, role?: Role, status?: string) => {
       if (state) {
+        if (state.mode) {
+          setActiveMode(state.mode);
+        }
         setGameState((prev) => {
           if (state.lastShift && JSON.stringify(state.lastShift) !== JSON.stringify(prev.lastShift)) {
             soundManager.play("slide");
@@ -103,12 +104,14 @@ export function useMultiplayer({
         setIsLobbyOpen(false);
         setHasStartedEver(true);
         setIsIntroPhase(true);
+        setGameState((prev) => ({ ...prev, opponent: "ONLINE" }));
       } else if (status === "PLAYING") {
         setIsOpponentConnected(true);
         setOpponentDisconnectedNotice(false);
         setIsLobbyOpen(false);
         setHasStartedEver(true);
         setIsIntroPhase(false);
+        setGameState((prev) => ({ ...prev, opponent: "ONLINE" }));
       }
     };
 

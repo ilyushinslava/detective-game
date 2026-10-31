@@ -60,6 +60,7 @@ export interface GameState {
   log: string[];
   lastShift: LastShift | null;
   lastInterrogation: InterrogationResult | null;
+  lastRobbedId?: string | null;
   inspectorChoices?: string[];
   uniformedOfficers?: string[];
   killerHand?: string[];

@@ -13,6 +13,7 @@ interface GameBoardProps {
   showKillerHints: boolean;
   showDetectiveHints: boolean;
   lastShift: LastShift | null;
+  lastRobbedId?: string | null;
   blockedShift?: { type: "ROW" | "COL"; index: number } | null;
   uniformedOfficerIds?: string[];
   targetVictimId?: string | null;
@@ -41,6 +42,7 @@ export const GameBoard = ({
   showDetectiveHints,
   blockedShift,
   lastShift,
+  lastRobbedId = null,
   uniformedOfficerIds,
   targetVictimId,
   radarTargetId,
@@ -311,6 +313,7 @@ export const GameBoard = ({
                       character.id,
                     )}
                     isTargetVictim={character.id === targetVictimId}
+                    isLastRobbed={character.id === lastRobbedId}
                     isRadarCenter={isRadarTarget}
                     radarRingColor={isRadarCell ? (radarColorClass || "border-blue-500 ring-2 ring-blue-500/70") : null}
                     isError={character.id === errorCardId}

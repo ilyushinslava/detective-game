@@ -828,6 +828,7 @@ export default function App() {
                     : showDetectiveRole
                 }
                 lastShift={gameState.lastShift}
+                lastRobbedId={gameState.lastRobbedId}
                 uniformedOfficerIds={gameState.uniformedOfficers}
                 targetVictimId={
                   gameState.mode === "MANIAC_VS_OPERATIVE"

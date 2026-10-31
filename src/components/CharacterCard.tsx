@@ -155,10 +155,10 @@ export const CharacterCard = memo(
               ? isSecretService
                 ? "bg-zinc-950/95 border-red-900/40 opacity-70 shadow-inner"
                 : "bg-zinc-950/95 border-zinc-900 opacity-50 shadow-inner"
-              : isTargetVictim
+                              : isTargetVictim
                 ? "bg-red-950/30 border-red-600 shadow-[0_0_12px_rgba(220,38,38,0.35)]"
                 : isExonerated
-                  ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
+                  ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-zinc-800 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
                   : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
         } ${neighborHighlightColor ? `${neighborHighlightColor} z-10` : ""} ${
           isSelected

@@ -4,6 +4,7 @@ import { DUEL_CHARACTERS } from "../constants/duelCharacters";
 import { filterCandidates } from "./duelLogic";
 import {
   getAdjacentCharacters,
+  getCharacterCoords,
   isOppositeShift,
   killCharacter,
   accuseCharacter,
@@ -128,6 +129,26 @@ export function getKillerAIMove(state: GameState): GameState {
             targetShifts[Math.floor(Math.random() * targetShifts.length)];
         }
       }
+    } else if (state.mode === "SKHVATKA") {
+      const lethalShifts = validShifts.filter((shift) => {
+        const simBoard = shiftBoard(state.board, shift.type, shift.index, shift.direction);
+        const adj = getAdjacentCharacters(simBoard, state.killerSecretId);
+        return adj.some((c) => c.isAlive && !c.isExonerated);
+      });
+
+      if (lethalShifts.length > 0) {
+        chosenShift = lethalShifts[Math.floor(Math.random() * lethalShifts.length)];
+      } else {
+        const killerCoords = getCharacterCoords(state.board, state.killerSecretId);
+        if (killerCoords) {
+          const selfShifts = validShifts.filter(
+            (s) => (s.type === "ROW" && s.index === killerCoords.r) || (s.type === "COL" && s.index === killerCoords.c)
+          );
+          if (selfShifts.length > 0) {
+            chosenShift = selfShifts[Math.floor(Math.random() * selfShifts.length)];
+          }
+        }
+      }
     }
 
     const randomShift =
@@ -144,6 +165,7 @@ export function getKillerAIMove(state: GameState): GameState {
       board: newBoard,
       currentTurn: "DETECTIVE",
       lastShift: randomShift,
+      interrogationRadar: null,
       log: [
         ...state.log,
         `🤖 Бот сдвинул ${randomShift.type === "ROW" ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
@@ -154,6 +176,7 @@ export function getKillerAIMove(state: GameState): GameState {
   return {
     ...state,
     currentTurn: "DETECTIVE",
+    interrogationRadar: null,
     log: [
       ...state.log,
       "🤖 Бот-преступник пропустил ход (нет доступных действий).",
@@ -209,6 +232,7 @@ export function getDetectiveAIMove(state: GameState): GameState {
       board: newBoard,
       currentTurn: "KILLER",
       lastShift: randomShift,
+      interrogationRadar: null,
       log: [
         ...state.log,
         `🤖 Бот сдвинул ${randomShift.type === "ROW" ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
@@ -219,6 +243,7 @@ export function getDetectiveAIMove(state: GameState): GameState {
   return {
     ...state,
     currentTurn: "KILLER",
+    interrogationRadar: null,
     log: [
       ...state.log,
       "🤖 Бот-инспектор пропустил ход (нет доступных действий).",
@@ -282,6 +307,7 @@ export function getSecretServiceAIMove(state: GameState): GameState {
       activeSpyIndex: nextIndex,
       lastShift: randomShift,
       lastSpyInterrogation: null,
+      interrogationRadar: null,
       log: [
         ...state.log,
         `🤖 ${activeSpy.name} сдвинул ${randomShift.type === "ROW" ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
@@ -294,6 +320,7 @@ export function getSecretServiceAIMove(state: GameState): GameState {
   return {
     ...state,
     activeSpyIndex: nextIndex,
+    interrogationRadar: null,
     log: [...state.log, `🤖 ${activeSpy.name} пропустил ход.`],
   };
 }
@@ -343,6 +370,7 @@ export function getThiefAIMove(state: GameState): GameState {
       board: newBoard,
       currentTurn: "DETECTIVE",
       lastShift: shift,
+      interrogationRadar: null,
       log: [
         ...state.log,
         `Вор сдвинул ${shift.type === "ROW" ? `ряд ${shift.index + 1}` : `колонку ${shift.index + 1}`}.`,
@@ -353,6 +381,7 @@ export function getThiefAIMove(state: GameState): GameState {
   return {
     ...state,
     currentTurn: "DETECTIVE",
+    interrogationRadar: null,
     log: [...state.log, "Вор затаился и пропустил ход."],
   };
 }
@@ -427,6 +456,7 @@ export function getPoliceAIMove(state: GameState): GameState {
       board: newBoard,
       currentTurn: "KILLER",
       lastShift: shift,
+      interrogationRadar: null,
       log: [
         ...state.log,
         `Полиция сдвинула ${shift.type === "ROW" ? `ряд ${shift.index + 1}` : `колонку ${shift.index + 1}`}.`,
@@ -437,6 +467,7 @@ export function getPoliceAIMove(state: GameState): GameState {
   return {
     ...state,
     currentTurn: "KILLER",
+    interrogationRadar: null,
     log: [...state.log, "Полиция пропустила ход."],
   };
 }

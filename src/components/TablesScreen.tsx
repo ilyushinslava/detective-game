@@ -1,4 +1,5 @@
 import React from 'react';
+import lobbyBg from "../assets/lobby_background.png";
 
 interface TablesScreenProps {
   roomFilter: string;
@@ -26,7 +27,10 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
   soundManager
 }) => {
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-[#080a0f] overflow-hidden">
+    <div
+      className="flex-1 min-h-0 flex flex-col bg-[#080a0f] bg-cover bg-center bg-no-repeat overflow-hidden relative"
+      style={{ backgroundImage: `linear-gradient(to bottom, rgba(8, 10, 15, 0.88), rgba(8, 10, 15, 0.94)), url(${lobbyBg})` }}
+    >
       <div className="flex items-center justify-between px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-[#080a0f]">
         <div className="flex flex-col">
           <span className="text-[9px] font-black tracking-widest text-zinc-500 uppercase">Сетевой эфир</span>

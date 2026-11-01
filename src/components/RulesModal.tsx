@@ -1,5 +1,7 @@
 import { useState, useRef } from "react";
 import { triggerHaptic } from "../utils/haptics";
+import skhvatkaBanner from "../assets/modes/skhvatka_preview.png";
+import maniacBanner from "../assets/modes/maniac_preview.png";
 
 export interface RulesModalProps {
   isOpen: boolean;
@@ -93,7 +95,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     bannerGradient: "from-red-950 via-zinc-950/70 to-transparent",
     borderColor: "border-red-500/40",
     badgeColor: "text-red-400",
-    bannerImage: "/banners/mode-skhvatka.webp",
+    bannerImage: skhvatkaBanner,
     role1: {
       name: "Бандит",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
@@ -136,7 +138,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     bannerGradient: "from-red-950 via-zinc-950/70 to-transparent",
     borderColor: "border-red-500/40",
     badgeColor: "text-red-400",
-    bannerImage: "/banners/mode-maniac.webp",
+    bannerImage: maniacBanner,
     role1: {
       name: "Маньяк",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",

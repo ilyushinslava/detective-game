@@ -4,8 +4,7 @@ import { type GameModeType, type OpponentType, type Role, type GameState, SPY_CO
 import { GameBoard } from "./components/GameBoard";
 import { DetectiveHand } from "./components/DetectiveHand";
 import { ThiefHand } from "./components/ThiefHand";
-import { RoleRevealModal } from "./components/RoleRevealModal";
-import { GameOverModal } from "./components/GameOverModal";
+import { GameLifecycleModals } from "./components/GameLifecycleModals";
 import { MainMenu } from "./components/MainMenu";
 import { GameModalsContainer } from "./components/GameModalsContainer";
 import { usePlayerProfile } from "./utils/usePlayerProfile";
@@ -23,8 +22,7 @@ import { triggerHaptic } from "./utils/haptics";
 import { RoleCards } from "./components/RoleCards";
 import type { GameAction } from "./types/multiplayer";
 import { gameReducer } from "./utils/gameReducer";
-import { IdentityRevealModal } from "./components/IdentityRevealModal";
-import { InspectorChoiceModal } from "./components/InspectorChoiceModal";
+
 
 const characterImages = import.meta.glob<{ default: string }>(
   "./assets/characters/*.webp",
@@ -519,74 +517,33 @@ export default function App() {
           />
         )}
 
-        {isIntroPhase && !isLobbyOpen && (
-          <RoleRevealModal
-            mode={gameState.mode}
-            opponent={gameState.opponent}
-            playerRole={gameState.playerRole}
-            isOpponentConnected={isOpponentConnected}
-            onCancelMatch={handleExitToMenu}
-            role1Name={
-              gameState.mode === "SECRET_SERVICE"
-                ? (gameState.opponent === "PVP" ? "Фантом" : (gameState.spies?.[0]?.name || "Агент 1"))
-                : partyService.isHost
-                  ? profile.nickname || "Бандит"
-                  : "Бандит"
-            }
-            role2Name={
-              gameState.mode === "SECRET_SERVICE"
-                ? (gameState.opponent === "PVP" ? "Призрак" : (gameState.spies?.[1]?.name || "Агент 2"))
-                : !partyService.isHost
-                  ? profile.nickname || "Инспектор"
-                  : "Инспектор"
-            }
-            killer={
-              gameState.mode === "SECRET_SERVICE"
-                ? gameState.spies && gameState.spies.length > 1
-                  ? gameState.opponent === "ONLINE"
-                    ? partyService.isHost
-                      ? allChars.find((c) => c.id === gameState.spies![0].secretId)
-                      : allChars.find((c) => c.id === gameState.spies![1].secretId)
-                    : allChars.find((c) => c.id === gameState.spies![1].secretId)
-                  : undefined
-                : (gameState.opponent === "AI" || gameState.opponent === "ONLINE") &&
-                    gameState.playerRole === "DETECTIVE"
-                  ? undefined
-                  : killerChar
-            }
-            detective={
-              gameState.mode === "SECRET_SERVICE"
-                ? gameState.spies && gameState.spies.length > 0
-                  ? gameState.opponent === "ONLINE"
-                    ? partyService.isHost
-                      ? allChars.find((c) => c.id === gameState.spies![0].secretId)
-                      : allChars.find((c) => c.id === gameState.spies![1].secretId)
-                    : allChars.find((c) => c.id === gameState.spies![0].secretId)
-                  : undefined
-                : (gameState.opponent === "AI" || gameState.opponent === "ONLINE") &&
-                    gameState.playerRole === "KILLER"
-                  ? undefined
-                  : detectiveChar
-            }
-            inspectorChoices={inspectorChoices}
-            onSelectDetectiveRole={handleSelectInspectorRole}
-            onComplete={() => setIsIntroPhase(false)}
-            onReady={() => {
-              if (gameState.opponent === "ONLINE") {
-                partyService.sendAction({ type: "PLAYER_READY", senderId: "local" });
-              }
-            }}
-          />
-        )}
-
-        <InspectorChoiceModal
-          isOpen={!isLobbyOpen && hasStartedEver && gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) && isDetectiveView && isDetectiveTurn && !gameState.winner && !isIntroPhase}
-          isPVP={gameState.opponent === "PVP"}
+                <GameLifecycleModals
+          gameState={gameState}
+          setGameState={setGameState}
+          isIntroPhase={isIntroPhase}
+          setIsIntroPhase={setIsIntroPhase}
+          isLobbyOpen={isLobbyOpen}
+          hasStartedEver={hasStartedEver}
+          isOpponentConnected={isOpponentConnected}
+          isDetectiveView={isDetectiveView}
+          isDetectiveTurn={isDetectiveTurn}
+          profileNickname={profile.nickname}
+          killerChar={killerChar}
+          detectiveChar={detectiveChar}
+          allChars={allChars}
           inspectorChoices={inspectorChoices}
+          selectedInspectorChoiceId={selectedInspectorChoiceId}
+          setSelectedInspectorChoiceId={setSelectedInspectorChoiceId}
+          isRevealConfirmed={isRevealConfirmed}
+          setIsRevealConfirmed={setIsRevealConfirmed}
           characterImages={characterImages}
-          onSelectInspectorRole={handleSelectInspectorRole}
-          selectedId={selectedInspectorChoiceId}
-          onSelectId={setSelectedInspectorChoiceId}
+          secondsElapsed={secondsElapsed}
+          formatTimer={formatTimer}
+          handleExitToMenu={handleExitToMenu}
+          handleReset={handleReset}
+          handleSelectInspectorRole={handleSelectInspectorRole}
+          requestRematch={requestRematch}
+          setFullscreenImage={setFullscreenImage}
         />
 
         {!isLobbyOpen && !isIntroPhase && hasStartedEver && gameState.opponent !== undefined && (
@@ -1075,64 +1032,7 @@ export default function App() {
           </div>
         )}
 
-        {gameState.justCaughtSpyId &&
-          !gameState.winner &&
-          !isLobbyOpen &&
-          gameState.spies?.find((s) => s.id === gameState.justCaughtSpyId)?.isAI === false &&
-          (gameState.opponent !== "ONLINE" ||
-            (partyService.isHost
-              ? gameState.justCaughtSpyId === gameState.spies?.[0]?.id
-              : gameState.justCaughtSpyId === gameState.spies?.[1]?.id)) && (
-            <IdentityRevealModal
-              isOpen={true}
-              badge="Агент разоблачен!"
-              badgeColor="red"
-              title="Шпионская маскировка провалена. Ваша новая личность:"
-              character={allChars.find(c => c.id === gameState.spies?.find(s => s.id === gameState.justCaughtSpyId)?.secretId) ?? null}
-              characterImage={(() => { const character = allChars.find(c => c.id === gameState.spies?.find(s => s.id === gameState.justCaughtSpyId)?.secretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}
-              isPvpPassPhase={!isRevealConfirmed && gameState.opponent === "PVP"}
-              targetPlayerName={gameState.spies.find(s => s.id === gameState.justCaughtSpyId)?.name}
-              onConfirmPvpPass={() => setIsRevealConfirmed(true)}
-              onAcceptIdentity={() => { setIsRevealConfirmed(false); setGameState((prev) => ({ ...prev, justCaughtSpyId: undefined })); }}
-              onPreviewCard={(character) => { const image = characterImages[`./assets/characters/${character.id}.webp`]?.default; if (image) setFullscreenImage({ url: image, name: character.name, id: character.id }); }}
-            />
-          )}
 
-        {gameState.disguisedNotification &&
-          !gameState.winner &&
-          !isLobbyOpen &&
-          (gameState.opponent !== "ONLINE" || gameState.playerRole === "KILLER") && (
-            <IdentityRevealModal
-              isOpen={true}
-              badge="Смена личности!"
-              badgeColor={gameState.mode === "THIEF_HUNT" ? "amber" : "red"}
-              title="Ваша новая личность:"
-              character={allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId) ?? null}
-              characterImage={(() => { const character = allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}
-              isPvpPassPhase={!isRevealConfirmed && gameState.opponent === "PVP"}
-              targetPlayerName={gameState.disguisedNotification.roleName}
-              onConfirmPvpPass={() => setIsRevealConfirmed(true)}
-              onAcceptIdentity={() => { setIsRevealConfirmed(false); setGameState((prev) => ({ ...prev, disguisedNotification: null })); }}
-              onPreviewCard={(character) => { const image = characterImages[`./assets/characters/${character.id}.webp`]?.default; if (image) setFullscreenImage({ url: image, name: character.name, id: character.id }); }}
-            />
-          )}
-
-        {gameState.winner && !gameState.restartRequestedBy && (
-          <GameOverModal
-            winner={gameState.winner}
-            mode={gameState.mode}
-            killer={killerChar}
-            detective={detectiveChar}
-            elapsedTime={formatTimer(secondsElapsed)}
-            onRestart={handleReset}
-            onExitToMenu={handleExitToMenu}
-            playerRole={gameState.opponent === "PVP" ? undefined : gameState.playerRole}
-            isMultiplayer={gameState.opponent === "ONLINE"}
-            onRematchSwap={() => requestRematch("SWAP")}
-            onRematchRandom={() => requestRematch("RANDOM")}
-                onRematchSame={() => requestRematch("SAME")}
-          />
-        )}
       </div>
     </div>
   );

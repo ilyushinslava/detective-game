@@ -349,6 +349,15 @@ export function setInspectorRole(
   };
 }
 
+/**
+ * Выполняет циклический сдвиг выбранного ряда или колонки игрового поля.
+ * Крайний персонаж перемещается на противоположный конец линии.
+ * @param board Текущая двумерная сетка персонажей
+ * @param type Тип линии ('ROW' или 'COL')
+ * @param index Индекс сдвигаемой линии (0-based)
+ * @param direction Направление ('FORWARD' — вправо/вниз, 'BACKWARD' — влево/вверх)
+ * @returns Новая неизменяемая сетка персонажей Character[][]
+ */
 export function shiftBoard(
   board: Character[][],
   type: "ROW" | "COL",
@@ -384,6 +393,14 @@ export function shiftBoard(
   return newBoard;
 }
 
+/**
+ * Обрабатывает выстрел или ликвидацию цели преступником/маньяком.
+ * Управляет проверкой попадания в инспектора, набором 4 карт прикрытия,
+ * списком жертв и условиями досрочной победы сторон.
+ * @param state Текущее состояние матча
+ * @param targetId Идентификатор устраняемого персонажа
+ * @returns Обновленное состояние GameState с учетом потерь и проверки финала
+ */
 export function killCharacter(state: GameState, targetId: string): GameState {
   if (state.winner) return state;
 
@@ -578,6 +595,14 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
   };
 }
 
+/**
+ * Выполняет обвинение/арест подозреваемого инспектором или оперативником.
+ * Требует соседства 3x3. При успехе присуждает победу детективу;
+ * при ошибке раскрывает позицию инспектора без выдачи статуса алиби.
+ * @param state Текущее состояние матча
+ * @param targetId Идентификатор обвиняемого персонажа
+ * @returns Обновленное состояние GameState с результатом проверки алиби/победы
+ */
 export function accuseCharacter(state: GameState, targetId: string): GameState {
   if (state.winner) return state;
   if (state.mode === "THIEF_HUNT" && state.uniformedOfficers?.includes(targetId)) {
@@ -701,6 +726,13 @@ export function exonerateFromHand(state: GameState, id: string): GameState {
   };
 }
 
+/**
+ * Выполняет смену тайной личности преступника (конспирацию).
+ * Извлекает верхнюю карту из колоды улик в качестве новой маскировки;
+ * при пустой колоде или в режиме маньяка действие блокируется.
+ * @param state Текущее состояние матча
+ * @returns Обновленное состояние GameState с новой личностью и пересчитанной колодой
+ */
 export function disguiseKiller(state: GameState): GameState {
   if (
     state.winner ||

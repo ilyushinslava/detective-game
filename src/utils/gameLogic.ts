@@ -21,6 +21,14 @@ function shuffle<T>(array: T[]): T[] {
   return arr;
 }
 
+/**
+ * Проверяет правило Anti-Undo: запрет обратного сдвига той же линии.
+ * @param lastShift Предыдущий сдвиг в партии
+ * @param type Тип текущей линии ('ROW' или 'COL')
+ * @param index Индекс линии
+ * @param direction Направление сдвига ('FORWARD' или 'BACKWARD')
+ * @returns true, если сдвиг отменяет предыдущий ход соперника
+ */
 export function isOppositeShift(
   lastShift: LastShift | null,
   type: "ROW" | "COL",
@@ -35,6 +43,12 @@ export function isOppositeShift(
   );
 }
 
+/**
+ * Возвращает координаты персонажа на двумерном игровом поле.
+ * @param board Игровая сетка персонажей
+ * @param characterId Идентификатор искомого персонажа
+ * @returns Объект координат { r, c } или null, если персонаж не найден
+ */
 export function getCharacterCoords(
   board: Character[][],
   characterId: string,
@@ -47,6 +61,14 @@ export function getCharacterCoords(
   return null;
 }
 
+/**
+ * Проверяет соседство двух клеток по метрике Чебышёва (dr <= 1 && dc <= 1).
+ * Границы поля не замыкаются; персонаж не считается соседом самому себе.
+ * @param board Игровая сетка
+ * @param id1 ID первого персонажа
+ * @param id2 ID второго персонажа
+ * @returns true, если персонажи находятся в радиусе соседства 3x3
+ */
 export function areAdjacent(
   board: Character[][],
   id1: string,
@@ -84,6 +106,18 @@ export function getAdjacentCharacters(
   return adjacent;
 }
 
+/**
+ * Инициализирует первичное состояние матча согласно регламенту выбранного режима.
+ * Гарантирует инвариант колоды: все карты колоды присутствуют на сгенерированном поле.
+ * @param mode Режим игры
+ * @param opponent Тип оппонента (AI или локальный игрок)
+ * @param playerRole Начальная роль активного игрока
+ * @param playerCount Количество участников (для Секретной службы)
+ * @param targetTrophies Целевое количество трофеев для победы
+ * @param maxTurns Лимит ходов
+ * @param playerName Имя локального игрока
+ * @returns Полное начальное состояние GameState
+ */
 export function createInitialState(
   mode: GameModeType,
   opponent: OpponentType,

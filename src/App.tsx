@@ -2,8 +2,7 @@
 import { SplashScreen } from './components/SplashScreen';
 import { type GameModeType, type OpponentType, type Role, type GameState, SPY_COLORS } from "./types/game";
 import { GameBoard } from "./components/GameBoard";
-import { DetectiveHand } from "./components/DetectiveHand";
-import { ThiefHand } from "./components/ThiefHand";
+import { GameSheets } from "./components/GameSheets";
 import { GameLifecycleModals } from "./components/GameLifecycleModals";
 import { MainMenu } from "./components/MainMenu";
 import { GameModalsContainer } from "./components/GameModalsContainer";
@@ -935,102 +934,21 @@ export default function App() {
         </div>
         )}
 
-        {isHandSheetOpen && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col justify-end">
-            <div
-              className="absolute inset-0"
-              onClick={() => setIsHandSheetOpen(false)}
-            />
-            <div className="relative bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-4 max-h-[70vh] flex flex-col z-10 shadow-2xl">
-              <div className="w-12 h-1 bg-zinc-700 rounded-full mx-auto mb-3" />
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-black text-zinc-100 uppercase tracking-wider">
-                  {gameState.mode === "THIEF_HUNT"
-                    ? "Маски вора"
-                    : "Досье доказательств (Алиби)"}
-                </h3>
-                <button
-                  onClick={() => setIsHandSheetOpen(false)}
-                  className="w-7 h-7 rounded-full bg-zinc-800 text-zinc-400 font-bold flex items-center justify-center text-xs cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="overflow-y-auto space-y-2 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-                {(gameState.mode === "SKHVATKA" ||
-                  gameState.mode === "MANIAC_VS_OPERATIVE") && (
-                  <DetectiveHand
-                    handIds={gameState.detectiveHand}
-                    allCharacters={allChars}
-                    isDetectiveTurn={
-                      isHumanTurn && isDetectiveTurn && !gameState.winner
-                    }
-                    characterImages={characterImages}
-                    onExonerateFromHand={(id) => {
-                      handleExonerateFromHand(id);
-                      setIsHandSheetOpen(false);
-                    }}
-                  />
-                )}
-
-                {gameState.mode === "THIEF_HUNT" && (
-                  <ThiefHand
-                    handIds={gameState.killerHand ?? []}
-                    isThiefTurn={
-                      isHumanTurn && isKillerTurn && !gameState.winner
-                    }
-                    characterImages={characterImages}
-                    onFastDisguise={(id) => {
-                      handleFastDisguise(id);
-                      setIsHandSheetOpen(false);
-                    }}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {isLogOpen && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col justify-end">
-            <div
-              className="absolute inset-0"
-              onClick={() => setIsLogOpen(false)}
-            />
-            <div className="relative bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-4 max-h-[75vh] flex flex-col z-10 shadow-2xl">
-              <div className="w-12 h-1 bg-zinc-700 rounded-full mx-auto mb-3" />
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-2 mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">📋</span>
-                  <h3 className="text-sm font-black text-zinc-100 uppercase tracking-wider">
-                    Блокнот расследования ({gameState.log.length})
-                  </h3>
-                </div>
-                <button
-                  onClick={() => setIsLogOpen(false)}
-                  className="w-7 h-7 rounded-full bg-zinc-800 text-zinc-400 font-bold flex items-center justify-center text-xs cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div
-                ref={logContainerRef}
-                className="overflow-y-auto space-y-2 text-xs font-mono text-zinc-300 pr-1 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
-              >
-                {gameState.log.map((entry, idx) => (
-                  <div
-                    key={idx}
-                    className="p-2 rounded-lg bg-zinc-950 border border-zinc-800/80 leading-relaxed"
-                  >
-                    • {entry}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+        <GameSheets
+          gameState={gameState}
+          allChars={allChars}
+          characterImages={characterImages}
+          isHumanTurn={isHumanTurn}
+          isDetectiveTurn={isDetectiveTurn}
+          isKillerTurn={isKillerTurn}
+          isHandSheetOpen={isHandSheetOpen}
+          setIsHandSheetOpen={setIsHandSheetOpen}
+          isLogOpen={isLogOpen}
+          setIsLogOpen={setIsLogOpen}
+          logContainerRef={logContainerRef}
+          handleExonerateFromHand={handleExonerateFromHand}
+          handleFastDisguise={handleFastDisguise}
+        />
 
 
       </div>

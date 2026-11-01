@@ -294,11 +294,11 @@ export const GameBoard = ({
               const isRedRadar = Boolean(radarColorClass?.includes("red"));
 
               return (
-                <motion.div
-                  key={character.id}
-                  layoutId={character.id}
-                  layout="position"
-                  transition={{ type: "spring", stiffness: 280, damping: 28 }}
+                                  <motion.div
+                    key={character.id}
+                    layoutId={character.id}
+                    layout="position"
+                    transition={{ type: "spring", stiffness: 170, damping: 24, mass: 0.7 }}
                   className={`w-full h-full aspect-square relative touch-none select-none overflow-visible ${cellZIndex}`}
                   onTouchStart={(e) => handleTouchStart(rIdx, cIdx, e)}
                   onTouchEnd={handleTouchEnd}

@@ -142,14 +142,13 @@ export const CharacterCard = memo(
 
     return (
       <motion.div
-        layout
         onClick={onClick}
         animate={
           isError
             ? { x: [-3, 3, -3, 3, -1, 1, 0], scale: [1, 1.02, 0.98, 1] }
             : {}
         }
-        transition={{ layout: { duration: 0.35, ease: "easeInOut" }, duration: 0.5 }}
+        transition={{ duration: 0.4 }}
         className={`relative w-full aspect-square rounded-md sm:rounded-xl p-0.5 sm:p-1.5 flex flex-col justify-between border select-none transition-colors duration-150 cursor-pointer overflow-hidden ${
           isError
             ? "bg-zinc-800/90 border-zinc-500 ring-2 ring-zinc-500/50 shadow-[0_0_12px_rgba(113,113,122,0.4)] z-30"

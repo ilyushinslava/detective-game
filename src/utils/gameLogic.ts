@@ -403,7 +403,6 @@ export function killCharacter(state: GameState, targetId: string): GameState {
         !newInspectorChoices.includes(drawnId)
       ) {
         newInspectorChoices.push(drawnId);
-        break;
       }
     }
   }

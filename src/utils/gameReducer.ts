@@ -323,13 +323,17 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case "REQUEST_RESTART":
-      return { ...state, restartRequestedBy: action.payload.requestedBy };
+      return {
+        ...state,
+        restartRequestedBy: action.payload.requestedBy,
+        pendingRematchMode: action.payload.rematchMode || "SWAP",
+      };
 
     case "REJECT_RESTART":
-      return { ...state, restartRequestedBy: null };
+      return { ...state, restartRequestedBy: undefined, pendingRematchMode: undefined };
 
     case "CONFIRM_RESTART":
-      return { ...state, restartRequestedBy: null };
+      return { ...state, restartRequestedBy: undefined, pendingRematchMode: undefined };
 
     case "SET_MATCH_POT":
       return {

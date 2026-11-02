@@ -145,14 +145,10 @@ export function useMultiplayer({
         setIsIntroPhase(false);
         return;
       }
-              if (action.type === "REQUEST_RESTART") {
-          setGameState((prev) => ({
-            ...prev,
-            restartRequestedBy: action.payload?.requestedBy || "GUEST",
-            pendingRematchMode: action.payload?.rematchMode || "SWAP",
-          }));
+                      if (action.type === "REQUEST_RESTART") {
+          dispatchAction({ ...action, senderId: "remote" });
         } else if (action.type === "REJECT_RESTART") {
-        setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
+          dispatchAction({ ...action, senderId: "remote" });
         setToastMessage("Соперник отклонил предложение о реванше");
       } else if (action.type === "OPPONENT_LEFT") {
         setOpponentDisconnectedNotice(true);

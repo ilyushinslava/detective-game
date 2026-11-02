@@ -1,4 +1,5 @@
 import type { Role, Character, GameModeType } from '../types/game';
+import { motion } from 'framer-motion';
 
 const characterImages = import.meta.glob<{ default: string }>(
   '../assets/characters/*.webp',
@@ -124,7 +125,11 @@ export const GameOverModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#080a0f]/95 backdrop-blur-md p-4 select-none">
-      <div className="w-full max-w-md bg-zinc-950 border border-white/10 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] p-6 sm:p-8 text-center flex flex-col items-center">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+        className="w-full max-w-md bg-zinc-950 border border-white/10 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] p-6 sm:p-8 text-center flex flex-col items-center">
         <div className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-4">
           Протокол закрытия дела
         </div>
@@ -193,7 +198,7 @@ export const GameOverModal = ({
         >
           <span>В главное меню</span>
         </button>
-      </div>
+      </motion.div>
     </div>
   );
 };

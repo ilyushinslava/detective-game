@@ -331,19 +331,14 @@ export default class GameRoomServer {
             this.state.players[playerIds[1]].role = prevRole0 === "KILLER" ? "KILLER" : "DETECTIVE";
           }
         }
-        this.state.status = "READY_TO_START";
-        this.state.readyClients.clear();
-        this.state.gameState = createInitialState(this.state.mode, "ONLINE", "KILLER", 2, this.state.mode === "SECRET_SERVICE" ? 2 : 3, 16);
-        this.state.gameState.matchBet = 250;
-        this.broadcastStatus();
-        this.broadcastState();
-        this.state.gameState.matchPot = 500;
-        this.state.status = "PLAYING";
-        this.state.readyClients.clear();
-
-        this.broadcastStatus();
-        this.broadcastState();
-        return;
+                        this.state.status = "READY_TO_START";
+                this.state.readyClients.clear();
+                this.state.gameState = createInitialState(this.state.mode, "ONLINE", "KILLER", 2, this.state.mode === "SECRET_SERVICE" ? 2 : 3, 16);
+                this.state.gameState.matchBet = 250;
+                this.state.gameState.matchPot = 500;
+                this.broadcastStatus();
+                this.broadcastState();
+                return;
       }
 
       if (action.type === "PLAYER_READY") {

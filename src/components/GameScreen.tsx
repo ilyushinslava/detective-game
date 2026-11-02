@@ -194,15 +194,15 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
 
         <div className="absolute left-1/2 -translate-x-1/2 flex justify-center shrink-0">
           <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 md:px-5 md:py-2.5 rounded-full border text-[10px] md:text-xs font-black tracking-wider uppercase transition-all shadow ${pillClasses}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 md:px-5 md:py-2.5 rounded-full border text-[10px] md:text-xs font-black tracking-wider uppercase transition-all shadow ${gameState.winner === "KILLER" ? "bg-red-950/90 border-red-600 text-red-100 shadow-[0_0_15px_rgba(239,68,68,0.5)]" : gameState.winner === "DETECTIVE" ? "bg-blue-950/90 border-blue-600 text-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.5)]" : pillClasses}`}
           >
             <span className="relative flex h-2 w-2 shrink-0 items-center justify-center">
               <span
-                className={`relative inline-flex rounded-full h-2 w-2 ${dotClasses}`}
+                className={`relative inline-flex rounded-full h-2 w-2 ${gameState.winner === "KILLER" ? "bg-red-500 shadow-red-500/80" : gameState.winner === "DETECTIVE" ? "bg-blue-500 shadow-blue-500/80" : dotClasses}`}
               />
             </span>
             <span className="whitespace-nowrap">
-              {gameState.opponent === "ONLINE"
+              {gameState.winner !== null ? (gameState.winner === "KILLER" ? "Победа преступности" : "Победа закона") : gameState.opponent === "ONLINE"
                 ? isHumanTurn
                   ? "Ваш ход"
                   : "Ход врага"

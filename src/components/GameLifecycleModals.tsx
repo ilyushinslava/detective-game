@@ -88,15 +88,15 @@ export const GameLifecycleModals: React.FC<GameLifecycleModalsProps> = memo(({
           role1Name={
             gameState.mode === "SECRET_SERVICE"
               ? (gameState.opponent === "PVP" ? "Фантом" : (gameState.spies?.[0]?.name || "Агент 1"))
-              : partyService.isHost
-                ? profileNickname || "Бандит"
+                                    : gameState.playerRole === "KILLER"
+                        ? profileNickname || "Бандит"
                 : "Бандит"
           }
           role2Name={
             gameState.mode === "SECRET_SERVICE"
               ? (gameState.opponent === "PVP" ? "Призрак" : (gameState.spies?.[1]?.name || "Агент 2"))
-              : !partyService.isHost
-                ? profileNickname || "Инспектор"
+                                    : gameState.playerRole === "DETECTIVE"
+                        ? profileNickname || "Инспектор"
                 : "Инспектор"
           }
           killer={

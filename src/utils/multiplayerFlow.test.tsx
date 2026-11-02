@@ -435,7 +435,7 @@ describe("Сквозное тестирование мультиплеерных
       guestConn
     );
 
-    expect(server.state.status).toBe("PLAYING");
+    expect(server.state.status).toBe("READY_TO_START");
     expect(server.state.gameState).toBeDefined();
 
     const lastGuestSync = guestConn.send.mock.calls
@@ -444,7 +444,7 @@ describe("Сквозное тестирование мультиплеерных
       .pop();
 
     expect(lastGuestSync).toBeDefined();
-    expect(lastGuestSync.status).toBe("PLAYING");
+    expect(lastGuestSync.status).toBe("READY_TO_START");
     expect(["KILLER", "DETECTIVE"]).toContain(lastGuestSync.role);
   });
 });

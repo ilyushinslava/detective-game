@@ -306,7 +306,10 @@ export function useBoardVisuals({
 
   const isInspectorPending =
     gameState.mode === "SKHVATKA" &&
-    Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0);
+    Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) &&
+    isDetectiveView &&
+    isDetectiveTurn &&
+    !gameState.winner;
 
   const detectiveNameText = useMemo(() => {
     if (isInspectorPending) return "Не выбрана";

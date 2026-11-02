@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { findCharacterPosition, getCharacterNeighbors, isUndoShift } from "../tvPartyLogic";
 import { createInitialState } from "../gameLogic";
-import type { ShiftPayload } from "../../types/game";
+import type { LastShift } from "../../types/game";
 
 describe("tvPartyLogic Unit Tests", () => {
   const gameState = createInitialState("SKHVATKA", "ONLINE", "KILLER");
@@ -37,14 +37,14 @@ describe("tvPartyLogic Unit Tests", () => {
   });
 
   it("корректно определяет попытку отмены предыдущего сдвига (Anti-Undo)", () => {
-    const shiftLeft: ShiftPayload = { type: "ROW", index: 2, direction: "LEFT" };
-    const shiftRight: ShiftPayload = { type: "ROW", index: 2, direction: "RIGHT" };
-    const shiftDifferentRow: ShiftPayload = { type: "ROW", index: 3, direction: "RIGHT" };
-    const shiftCol: ShiftPayload = { type: "COL", index: 2, direction: "UP" };
+    const shiftForward: LastShift = { type: "ROW", index: 2, direction: "FORWARD" };
+    const shiftBackward: LastShift = { type: "ROW", index: 2, direction: "BACKWARD" };
+    const shiftDifferentRow: LastShift = { type: "ROW", index: 3, direction: "BACKWARD" };
+    const shiftCol: LastShift = { type: "COL", index: 2, direction: "FORWARD" };
 
-    expect(isUndoShift(shiftLeft, shiftRight)).toBe(true);
-    expect(isUndoShift(shiftRight, shiftLeft)).toBe(true);
-    expect(isUndoShift(shiftLeft, shiftDifferentRow)).toBe(false);
-    expect(isUndoShift(shiftLeft, shiftCol)).toBe(false);
+    expect(isUndoShift(shiftForward, shiftBackward)).toBe(true);
+    expect(isUndoShift(shiftBackward, shiftForward)).toBe(true);
+    expect(isUndoShift(shiftForward, shiftDifferentRow)).toBe(false);
+    expect(isUndoShift(shiftForward, shiftCol)).toBe(false);
   });
 });

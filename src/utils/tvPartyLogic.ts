@@ -1,4 +1,4 @@
-import type { CharacterCard, ShiftPayload } from "../types/game";
+import type { Character, LastShift } from "../types/game";
 
 export interface BoardPosition {
   row: number;
@@ -9,7 +9,7 @@ export interface BoardPosition {
  * Находит координаты персонажа на поле 5x5
  */
 export function findCharacterPosition(
-  board: CharacterCard[][],
+  board: Character[][],
   characterId: string | null | undefined
 ): BoardPosition | null {
   if (!board || !characterId) return null;
@@ -30,13 +30,13 @@ export function findCharacterPosition(
  * Диагонали учитываются, границы поля не заворачиваются
  */
 export function getCharacterNeighbors(
-  board: CharacterCard[][],
+  board: Character[][],
   characterId: string | null | undefined
-): CharacterCard[] {
+): Character[] {
   const pos = findCharacterPosition(board, characterId);
   if (!pos) return [];
 
-  const neighbors: CharacterCard[] = [];
+  const neighbors: Character[] = [];
   const rows = board.length;
   const cols = board[0]?.length || 0;
 
@@ -63,26 +63,13 @@ export function getCharacterNeighbors(
  * Проверяет, отменяет ли новый сдвиг действие предыдущего игрока (Anti-Undo)
  */
 export function isUndoShift(
-  lastShift: ShiftPayload | null | undefined,
-  nextShift: ShiftPayload
+  lastShift: LastShift | null | undefined,
+  nextShift: LastShift
 ): boolean {
   if (!lastShift) return false;
-  if (lastShift.type !== nextShift.type) return false;
-  if (lastShift.index !== nextShift.index) return false;
-
-  if (lastShift.type === "ROW") {
-    return (
-      (lastShift.direction === "LEFT" && nextShift.direction === "RIGHT") ||
-      (lastShift.direction === "RIGHT" && nextShift.direction === "LEFT")
-    );
-  }
-
-  if (lastShift.type === "COL") {
-    return (
-      (lastShift.direction === "UP" && nextShift.direction === "DOWN") ||
-      (lastShift.direction === "DOWN" && nextShift.direction === "UP")
-    );
-  }
-
-  return false;
+  return (
+    lastShift.type === nextShift.type &&
+    lastShift.index === nextShift.index &&
+    lastShift.direction !== nextShift.direction
+  );
 }

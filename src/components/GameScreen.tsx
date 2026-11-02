@@ -442,17 +442,17 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
             </span>
           </div>
 
-          <div className="flex flex-col gap-1.5 sm:gap-2 w-full lg:bg-zinc-900/50 lg:border lg:border-zinc-800 lg:p-4 lg:rounded-2xl">
+          <div className="flex flex-col gap-1 sm:gap-1.5 w-full lg:bg-zinc-900/50 lg:border lg:border-zinc-800 lg:p-4 lg:rounded-2xl">
             <div className="hidden md:block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
               Действия ({actionPanelRoleName})
             </div>
-            <div className="grid grid-cols-2 landscape:grid-cols-1 gap-2 w-full">
+            <div className="grid grid-cols-2 landscape:grid-cols-1 gap-1.5 sm:gap-2 w-full">
               {targetActions.map((action) => (
                 <button
                   key={action.id}
                   onClick={action.onClick}
                   disabled={action.disabled}
-                  className={`${action.className.replace(/py-2 sm:py-2.5 md:py-3.5/g, "h-10 sm:h-11 md:h-12")} ${
+                  className={`${action.className.replace(/py-2 sm:py-2.5 md:py-3.5/g, "h-9 sm:h-10 md:h-11")} ${
                     targetActions.length === 1 && !((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView)
                       ? "col-span-2 md:col-span-1"
                       : "col-span-1"
@@ -480,7 +480,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
                 <button
                   onClick={() => setIsHandSheetOpen(true)}
                   disabled={Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0)}
-                  className="col-span-1 h-10 sm:h-11 md:h-12 bg-gradient-to-r from-blue-950 via-zinc-900 to-blue-950 hover:from-blue-900 hover:via-zinc-800 hover:to-blue-900 text-blue-200 hover:text-white border border-blue-500/70 rounded-xl text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(59,130,246,0.25)] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="col-span-1 h-9 sm:h-10 md:h-11 bg-gradient-to-r from-blue-950 via-zinc-900 to-blue-950 hover:from-blue-900 hover:via-zinc-800 hover:to-blue-900 text-blue-200 hover:text-white border border-blue-500/70 rounded-xl text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(59,130,246,0.25)] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-blue-400 shrink-0">
                     <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a2.5 2.5 0 0 1-2.5-2.5z" />
@@ -489,9 +489,26 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
                   <span>Досье ({gameState.detectiveHand.length})</span>
                 </button>
               )}
+              {cleanupAction && isCleanupAvailable && (
+                <button
+                  onClick={cleanupAction.onClick}
+                  disabled={cleanupAction.disabled}
+                  className={`h-9 sm:h-10 md:h-11 bg-gradient-to-r from-red-950 via-zinc-900 to-red-950 hover:from-red-900 hover:via-zinc-800 hover:to-red-900 disabled:opacity-40 text-red-200 hover:text-white text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider rounded-xl border border-red-600/70 transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.35)] active:scale-[0.98] ${
+                    ((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView)
+                      ? "col-span-2 landscape:col-span-1"
+                      : "col-span-1"
+                  }`}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-red-400 shrink-0">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M9 10h.01M15 10h.01M10 15h4" />
+                  </svg>
+                  <span>Зачистить</span>
+                </button>
+              )}
             </div>
 
-            {cleanupAction && isCleanupAvailable && (
+            {false && (
             <div className="grid grid-cols-2 gap-1.5 w-full mt-1">
                 <button
                   onClick={cleanupAction.onClick}

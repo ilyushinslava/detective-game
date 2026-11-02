@@ -162,7 +162,7 @@ export const CharacterCard = memo(
                   ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-zinc-800 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
                   : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
         } ${neighborHighlightColor ? `${neighborHighlightColor} z-10` : ""} ${
-          isLastRobbed ? "ring-2 ring-amber-500/80 shadow-[0_0_12px_rgba(245,158,11,0.4)] animate-pulse" : ""
+          isLastRobbed ? "ring-1 ring-amber-500/80 shadow-[0_0_10px_rgba(245,158,11,0.35)]" : ""
         } ${
           isSelected
             ? `${neighborHighlightColor ? "" : "border-white "}ring-2 ring-white z-30 scale-[0.96]`
@@ -293,9 +293,9 @@ export const CharacterCard = memo(
         )}
 
         {mode === "THIEF_HUNT" && character.isAlive && !character.isRobbed && (
-          <div className="absolute bottom-6 left-1.5 z-20 flex items-center justify-center pointer-events-none">
-            <span className="flex items-center justify-center p-1 rounded-md bg-black/60 backdrop-blur-sm border border-amber-500/40 shadow-sm">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-amber-400">
+          <div className="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 z-20 pointer-events-none flex items-center">
+            <span className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-zinc-950/85 backdrop-blur-sm border border-amber-500/40 shadow-sm text-amber-400">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
               </svg>
@@ -304,9 +304,9 @@ export const CharacterCard = memo(
         )}
 
         {character.isRobbed && (
-          <div className="absolute bottom-6 left-1.5 z-20 flex items-center justify-center pointer-events-none">
-            <span className="flex items-center justify-center p-1 rounded-md bg-black/60 backdrop-blur-sm border border-zinc-700/50 shadow-sm" title="Ограблен">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-zinc-500">
+          <div className="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 z-20 pointer-events-none flex items-center">
+            <span className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-zinc-950/85 backdrop-blur-sm border border-zinc-700/50 shadow-sm text-zinc-500" title="Ограблен">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
               </svg>

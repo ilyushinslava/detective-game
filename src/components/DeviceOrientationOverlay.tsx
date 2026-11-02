@@ -12,7 +12,7 @@ export const DeviceOrientationOverlay: React.FC = () => {
       <h2 className="text-sm font-black uppercase tracking-widest text-zinc-100 mb-2">
         ТРЕБУЕТСЯ ВЕРТИКАЛЬНЫЙ РЕЖИМ
       </h2>
-      <p className="text-xs font-mono text-zinc-400 max-w-xs leading-relaxed uppercase tracking-wider">
+      <p className="text-xs font-medium tracking-normal text-zinc-300 max-w-xs leading-relaxed uppercase">
         Поверните устройство вертикально для продолжения расследования
       </p>
     </div>

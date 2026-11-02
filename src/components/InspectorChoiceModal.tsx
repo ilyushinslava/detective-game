@@ -58,7 +58,7 @@ export const InspectorChoiceModal: React.FC<InspectorChoiceModalProps> = ({
             <h2 className="text-xl font-black text-zinc-100 uppercase tracking-wider mb-2">
               Передайте экран Инспектору
             </h2>
-            <p className="text-[10px] font-mono text-zinc-500 mb-6 uppercase tracking-widest leading-relaxed">
+            <p className="text-[10px] font-medium tracking-normal text-zinc-400 mb-6 uppercase leading-relaxed">
               Убедитесь, что Бандит не смотрит на экран перед выбором личности.
             </p>
             <button
@@ -131,7 +131,7 @@ export const InspectorChoiceModal: React.FC<InspectorChoiceModalProps> = ({
             <h2 className="text-xl font-black text-zinc-100 uppercase tracking-wider mb-2">
               Выберите тайную личность (1 из 4)
             </h2>
-            <p className="text-[10px] font-mono text-zinc-500 mb-6 uppercase tracking-widest">
+            <p className="text-[10px] font-medium tracking-normal text-zinc-400 mb-6 uppercase">
               Остальные 3 карты составят ваше досье алиби.
             </p>
             <div className="grid grid-cols-2 gap-3 w-full mb-6">

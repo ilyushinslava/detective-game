@@ -110,7 +110,7 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
           <h2 className="text-xl font-black text-zinc-100 mb-2">
             Передайте экран: {targetPlayerName}
           </h2>
-          <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
+          <p className="text-xs font-medium tracking-normal text-zinc-400 mb-6 leading-relaxed">
             Убедитесь, что соперник не смотрит на экран.
           </p>
           <button
@@ -165,7 +165,7 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
                     <line x1="11" y1="8" x2="11" y2="14" />
                     <line x1="8" y1="11" x2="14" y2="11" />
                   </svg>
-                  <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest">Тапните для полного фото</span>
+                  <span className="text-[8px] font-medium tracking-wide text-zinc-300 uppercase">Тапните для полного фото</span>
                 </div>
               </div>
             </motion.div>

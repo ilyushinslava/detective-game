@@ -130,7 +130,7 @@ export const GameOverModal = ({
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
         className="w-full max-w-md bg-zinc-950 border border-white/10 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] p-6 sm:p-8 text-center flex flex-col items-center">
-        <div className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-4">
+        <div className="text-[10px] font-semibold tracking-wider text-zinc-400 uppercase mb-4">
           Протокол закрытия дела
         </div>
 
@@ -148,8 +148,8 @@ export const GameOverModal = ({
           {playerRole ? (isVictory ? 'Победа' : 'Поражение') : `Победа: ${winnerTitle}`}
         </h3>
 
-        <p className="text-[10px] text-zinc-400 font-mono uppercase tracking-widest mb-6">
-          Время операции: {elapsedTime}
+        <p className="text-[10px] font-medium tracking-normal text-zinc-400 uppercase mb-6">
+          Время операции: <span className="font-mono font-bold text-zinc-300">{elapsedTime}</span>
         </p>
 
         <div className="w-full grid grid-cols-2 gap-3 mb-6 text-left">

@@ -470,22 +470,29 @@ export const MainMenu = ({
               onClick={() => { setSelectedMode(mode.id); setScreen('MODE_DETAIL'); }}
               className="w-full bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl p-4 md:p-5 flex flex-col justify-between hover:border-zinc-500/50 transition-all active:scale-[0.98] text-left shadow-[0_4px_20px_rgba(0,0,0,0.4)] cursor-pointer group"
             >
-              <div>
-                <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-center text-zinc-500 mb-3 shadow-inner group-hover:text-white transition-colors">
-                  <Icons.Crosshair />
+              <div className="w-full">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-11 h-11 md:w-12 md:h-12 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-center text-zinc-500 shadow-inner group-hover:text-white transition-colors">
+                    <Icons.Crosshair />
+                  </div>
+                  <span className="text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all">
+                    <Icons.ChevronRight />
+                  </span>
                 </div>
-                <h3 className="text-sm md:text-base font-black text-zinc-100 uppercase tracking-widest mb-1.5 truncate">{mode.title}</h3>
+                <h3 className="text-sm md:text-base font-black text-zinc-100 uppercase tracking-widest mb-1 truncate">{mode.title}</h3>
                 <div className="flex items-center gap-2 text-[9px] font-mono text-zinc-400 uppercase tracking-widest mb-2">
                   <span className="flex items-center gap-1"><Icons.Users /> {mode.players}</span>
                   <span className="text-zinc-500">•</span>
                   <span>5×5</span>
                 </div>
-                <p className="text-[10px] md:text-xs text-zinc-400 line-clamp-3 leading-relaxed">{mode.description}</p>
+                <p className="text-[10px] md:text-xs text-zinc-400 line-clamp-2 md:line-clamp-3 leading-relaxed">{mode.description}</p>
               </div>
+              {false && (
               <div className="flex items-center justify-between pt-3 border-t border-white/[0.08] mt-3 w-full">
                 <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-300">Открыть дело</span>
                 <span className="text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all"><Icons.ChevronRight /></span>
               </div>
+              )}
             </button>
           ))}
         </div>

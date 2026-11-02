@@ -635,8 +635,12 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
   const targetName = targetChar.name;
 
   if (targetId === state.killerSecretId) {
+    const arrestBoard = state.board.map((row) =>
+      row.map((c) => (c.id === targetId ? { ...c, isArrested: true } : c))
+    );
     return {
       ...state,
+      board: arrestBoard,
       winner: "DETECTIVE",
       blockedShift: null,
       lastInterrogation: null,

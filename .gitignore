@@ -40,3 +40,5 @@ patcher.cjs
 patcher_*.cjs
 *.txt
 
+
+coverage/

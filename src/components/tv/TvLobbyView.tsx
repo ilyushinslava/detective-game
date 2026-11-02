@@ -15,18 +15,15 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   onExit,
 }) => {
   const joinUrl = useMemo(() => {
-    let origin = typeof window !== 'undefined' ? window.location.origin : '';
-    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-      origin = origin.replace(/localhost|127\.0\.0\.1/, '192.168.0.190');
-    }
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
     return `${origin}${pathname}?room=${roomCode}&clientType=CONTROLLER`;
   }, [roomCode]);
 
   const playerList = Object.values(players || {});
-  const p1 = playerList[0] || null;
-  const p2 = playerList[1] || null;
-  const canStart = playerList.length >= 1; // Допускаем старт для соло/pass-and-play или для 2 игроков
+  const canStart = playerList.length >= 2;
+  const slotsCount = Math.max(4, playerList.length);
+  const slots = Array.from({ length: slotsCount }, (_, i) => playerList[i] || null); // Допускаем старт для соло/pass-and-play или для 2 игроков
 
   return (
     <div className="flex h-screen w-screen flex-col justify-between bg-[#06070a] text-zinc-100 select-none p-10 font-sans">
@@ -74,6 +71,41 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           </div>
 
           {/* Слоты подключения контроллеров */}
+          <div className="grid grid-cols-2 gap-3 max-h-56 overflow-y-auto custom-scrollbar pr-1">
+            {slots.map((player, index) => (
+              <div
+                key={index}
+                className={`p-4 rounded-2xl border transition-all duration-300 ${
+                  player
+                    ? 'bg-zinc-900/90 border-zinc-700 shadow-lg'
+                    : 'bg-zinc-950/40 border-zinc-800/60 border-dashed'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                    Игрок {index + 1}
+                  </span>
+                  {player?.isHost && (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-950/80 border border-blue-800 text-blue-300 font-bold uppercase">
+                      HOST
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm font-black text-zinc-100 truncate">
+                  {player ? player.nickname : 'Ожидание подключения...'}
+                </div>
+                <div className="text-[11px] mt-1 font-mono">
+                  {player ? (
+                    <span className="text-emerald-400 font-semibold">КОНТРОЛЛЕР ПОДКЛЮЧЕН</span>
+                  ) : (
+                    <span className="text-zinc-600">Свободно</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {false && (
           <div className="grid grid-cols-2 gap-4">
             {/* Слот 1 */}
             <div className={`p-5 rounded-2xl border transition-all duration-300 ${
@@ -93,7 +125,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
 
             {/* Слот 2 */}
             <div className={`p-5 rounded-2xl border transition-all duration-300 ${
-              p2 ? 'bg-zinc-900/90 border-cyan-500/60 shadow-[0_0_15px_rgba(6,182,212,0.2)]' : 'bg-zinc-950/40 border-zinc-800/60 border-dashed'
+              p2 ? 'bg-zinc-900/90 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-zinc-950/40 border-zinc-800/60 border-dashed'
             }`}>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-lg">{p2 ? '🎮' : '⏳'}</span>
@@ -107,6 +139,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
               </div>
             </div>
           </div>
+          )}
         </div>
       </div>
 

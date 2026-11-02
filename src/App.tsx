@@ -3,6 +3,7 @@ import { SplashScreen } from './components/SplashScreen';
 import { type GameModeType, type OpponentType, type Role, type GameState } from "./types/game";
 import { GameLifecycleModals } from "./components/GameLifecycleModals";
 import { GameScreen } from "./components/GameScreen";
+import { DuelScreen } from "./components/duel/DuelScreen";
 import { MainMenu } from "./components/MainMenu";
 import { GameModalsContainer } from "./components/GameModalsContainer";
 import { usePlayerProfile } from "./utils/usePlayerProfile";
@@ -569,7 +570,11 @@ export default function App() {
           setFullscreenImage={setFullscreenImage}
         />
 
-        {!isLobbyOpen && !isIntroPhase && hasStartedEver && gameState.opponent !== undefined && (
+        {!isLobbyOpen && !isIntroPhase && hasStartedEver && gameState.opponent !== undefined && gameState.mode === "LINE_UP" && (
+          <DuelScreen onBackToMenu={handleReset} playerRole={gameState.playerRole} />
+        )}
+
+        {!isLobbyOpen && !isIntroPhase && hasStartedEver && gameState.opponent !== undefined && gameState.mode !== "LINE_UP" && (
           <GameScreen
             gameState={gameState}
             isHumanTurn={isHumanTurn}

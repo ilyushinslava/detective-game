@@ -5,6 +5,7 @@ import {
   accuseDuelTarget,
   filterCandidates,
   resolveDuelTieBreak,
+  duelReducer,
 } from "../duelLogic";
 import { DUEL_QUESTIONS } from "../../constants/duelQuestions";
 
@@ -119,5 +120,55 @@ describe("Режим: Очная ставка (LINE_UP) - Новая логик�
     // У Детектива меньше кандидатов (он задал вопрос), он должен победить
     expect(nextState.winner).toBe("DETECTIVE");
     expect(nextState.winReason).toBe("TIE_BREAK_CANDIDATES");
+  });
+
+  describe("duelReducer flow", () => {
+    it("should decrement turnTimeRemaining and matchTimeRemaining on TICK_TIMER", () => {
+      const state = createInitialDuelState();
+      const nextState = duelReducer(state, { type: "TICK_TIMER" });
+      expect(nextState.turnTimeRemaining).toBe(24);
+      expect(nextState.matchTimeRemaining).toBe(479);
+      expect(nextState.currentTurn).toBe("DETECTIVE");
+    });
+
+    it("should switch turn on turn timeout when turnTimeRemaining reaches 0", () => {
+      const state = createInitialDuelState();
+      state.turnTimeRemaining = 1;
+      const nextState = duelReducer(state, { type: "TICK_TIMER" });
+      expect(nextState.turnTimeRemaining).toBe(25);
+      expect(nextState.currentTurn).toBe("KILLER");
+      expect(nextState.penalties.DETECTIVE).toBe(0);
+      expect(nextState.penalties.KILLER).toBe(0);
+    });
+
+    it("should resolve tie break on match timeout when matchTimeRemaining reaches 0", () => {
+      const state = createInitialDuelState();
+      state.matchTimeRemaining = 1;
+      const nextState = duelReducer(state, { type: "TICK_TIMER" });
+      expect(nextState.matchTimeRemaining).toBe(0);
+      expect(nextState.winner).not.toBeNull();
+      expect(nextState.winReason).toBeDefined();
+    });
+
+    it("should immediately pass turn on TIMEOUT_PASS without penalties", () => {
+      const state = createInitialDuelState();
+      state.turnTimeRemaining = 10;
+      const nextState = duelReducer(state, { type: "TIMEOUT_PASS" });
+      expect(nextState.currentTurn).toBe("KILLER");
+      expect(nextState.turnTimeRemaining).toBe(25);
+      expect(nextState.penalties.DETECTIVE).toBe(0);
+      expect(nextState.penalties.KILLER).toBe(0);
+    });
+
+    it("should reset state to default and respect nextStarter on RESTART_DUEL", () => {
+      let state = createInitialDuelState();
+      state.penalties.DETECTIVE = 2;
+      state = duelReducer(state, { type: "RESTART_DUEL", payload: { nextStarter: "KILLER" } });
+      expect(state.penalties.DETECTIVE).toBe(0);
+      expect(state.currentTurn).toBe("KILLER");
+      expect(state.turnTimeRemaining).toBe(25);
+      expect(state.matchTimeRemaining).toBe(480);
+      expect(state.winner).toBeNull();
+    });
   });
 });

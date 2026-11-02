@@ -2,17 +2,21 @@ import { createInitialState } from "../utils/gameLogic";
 import { gameReducer } from "../utils/gameReducer";
 import type { GameState, Role, GameModeType } from "../types/game";
 
+export type ClientDeviceType = "TV_DISPLAY" | "CONTROLLER" | "PLAYER";
+
 export interface PlayerInfo {
   clientId: string;
   nickname: string;
   isHost: boolean;
   role: Role;
   connectionId: string;
+  clientType: ClientDeviceType;
 }
 
 export interface ServerRoomState {
   status: "EMPTY" | "WAITING" | "READY_TO_START" | "PLAYING" | "FINISHED";
   players: Record<string, PlayerInfo>;
+  tvDisplays: Record<string, { clientId: string; connectionId: string }>;
   gameState: GameState | null;
   mode: GameModeType;
   readyClients: Set<string>;
@@ -38,7 +42,13 @@ export default class GameRoomServer {
 
   private getRoomCode(): string {
     const raw = String(this.room?.id || "room");
-    return raw.replace(/^.*(?:\/party\/|\/parties\/[^\/]+\/)/, "").replace(/^\/+|\/+$/g, "").split("/").pop() || "room";
+    return (
+      raw
+        .replace(/^.*(?:\/party\/|\/parties\/[^\/]+\/)/, "")
+        .replace(/^\/+|\/+$/g, "")
+        .split("/")
+        .pop() || "room"
+    );
   }
 
   constructor(room: any) {
@@ -46,6 +56,7 @@ export default class GameRoomServer {
     this.state = {
       status: "EMPTY",
       players: {},
+      tvDisplays: {},
       gameState: null,
       mode: "SKHVATKA",
       readyClients: new Set(),
@@ -96,11 +107,24 @@ export default class GameRoomServer {
     const isHost = url.searchParams.get("isHost") === "true";
     const mode = (url.searchParams.get("mode") as GameModeType) || "SKHVATKA";
     const randomRoles = url.searchParams.get("randomRoles") === "true";
-    const rawRoomCode = (this.room?.id || url.pathname || "room")
-      .replace(/^.*(?:\/party\/|\/parties\/[^\/]+\/)/, "")
-      .replace(/^\/+|\/+$/g, "");
-    const roomCode = this.getRoomCode(); void rawRoomCode;
+    const clientType = (url.searchParams.get("clientType") as ClientDeviceType) || "PLAYER";
+    const roomCode = this.getRoomCode();
 
+    // Режим ТВ-экрана: экран не занимает слот игрока, а подписывается на события
+    if (clientType === "TV_DISPLAY") {
+      this.state.tvDisplays[clientId] = { clientId, connectionId: conn.id };
+      if (!this.state.status || this.state.status === "EMPTY") {
+        this.state.status = "WAITING";
+        this.state.mode = mode;
+      }
+      this.broadcastStatus();
+      if (this.state.gameState) {
+        this.broadcastState();
+      }
+      return;
+    }
+
+    // Повторное подключение игрока
     if (this.state.players[clientId]) {
       const pendingTimer = this.disconnectTimers.get(clientId);
       if (pendingTimer) {
@@ -108,15 +132,17 @@ export default class GameRoomServer {
         this.disconnectTimers.delete(clientId);
       }
       this.state.players[clientId].connectionId = conn.id;
+      this.state.players[clientId].clientType = clientType;
       this.broadcastRaw(JSON.stringify({ type: "PRESENCE_CHANGED", connected: true }));
       this.broadcastStatus();
       this.broadcastState();
       return;
     }
 
-    const playerCount = Object.keys(this.state.players).length;
+    const activePlayersCount = Object.keys(this.state.players).length;
 
-    if (!isHost && playerCount === 0) {
+    // Подключение к несуществующей комнате
+    if (!isHost && activePlayersCount === 0 && Object.keys(this.state.tvDisplays).length === 0) {
       try {
         conn.send(JSON.stringify({ type: "ERROR", message: "ROOM_NOT_FOUND" }));
         conn.close();
@@ -124,7 +150,7 @@ export default class GameRoomServer {
       return;
     }
 
-    if (isHost) {
+    if (isHost || activePlayersCount === 0) {
       this.state.mode = mode;
       this.state.status = "WAITING";
       this.state.players[clientId] = {
@@ -133,6 +159,7 @@ export default class GameRoomServer {
         isHost: true,
         role: "KILLER",
         connectionId: conn.id,
+        clientType,
       };
 
       publicRoomsRegistry.set(roomCode, {
@@ -159,10 +186,19 @@ export default class GameRoomServer {
         isHost: false,
         role: hostIsKiller ? "DETECTIVE" : "KILLER",
         connectionId: conn.id,
+        clientType,
       };
 
       this.state.readyClients.clear();
-      this.state.gameState = createInitialState(this.state.mode, "ONLINE", "KILLER", 2, this.state.mode === "SECRET_SERVICE" ? 2 : 3, 16, nickname);
+      this.state.gameState = createInitialState(
+        this.state.mode,
+        "ONLINE",
+        "KILLER",
+        2,
+        this.state.mode === "SECRET_SERVICE" ? 2 : 3,
+        16,
+        nickname
+      );
       const existingRoom = publicRoomsRegistry.get(roomCode);
       const roomBet = existingRoom?.bet || 250;
       this.state.gameState.matchBet = roomBet;
@@ -189,6 +225,14 @@ export default class GameRoomServer {
   }
 
   onClose(conn: any): void {
+    // Проверяем, не ТВ ли это отключился
+    for (const [tvId, tv] of Object.entries(this.state.tvDisplays)) {
+      if (tv.connectionId === conn.id) {
+        delete this.state.tvDisplays[tvId];
+        return;
+      }
+    }
+
     const clientId = this.getClientIdByConnId(conn.id);
     if (!clientId) return;
 
@@ -227,7 +271,9 @@ export default class GameRoomServer {
           this.state.status = "FINISHED";
         } else {
           this.state.status = "WAITING";
-          const hostPlayer = Object.values(this.state.players).find((p) => p.isHost) || Object.values(this.state.players)[0];
+          const hostPlayer =
+            Object.values(this.state.players).find((p) => p.isHost) ||
+            Object.values(this.state.players)[0];
           publicRoomsRegistry.set(roomCode, {
             roomCode,
             mode: this.state.mode,
@@ -254,6 +300,16 @@ export default class GameRoomServer {
         } catch (_) {}
         return;
       }
+
+      // Проверка на TV_DISPLAY: телевизор не может отдавать команды игры
+      const isTvSender = Object.values(this.state.tvDisplays).some(
+        (tv) => tv.connectionId === sender?.id
+      );
+      if (isTvSender) {
+        console.warn("[GameRoomServer] Action rejected: TV_DISPLAY cannot issue game actions.");
+        return;
+      }
+
       const senderClientId =
         action.senderClientId ||
         action.senderId ||
@@ -284,7 +340,9 @@ export default class GameRoomServer {
               this.state.status = "FINISHED";
             } else {
               this.state.status = "WAITING";
-              const hostPlayer = Object.values(this.state.players).find((p) => p.isHost) || Object.values(this.state.players)[0];
+              const hostPlayer =
+                Object.values(this.state.players).find((p) => p.isHost) ||
+                Object.values(this.state.players)[0];
               publicRoomsRegistry.set(roomCode, {
                 roomCode,
                 mode: this.state.mode,
@@ -302,7 +360,7 @@ export default class GameRoomServer {
       }
 
       if (action.type === "REQUEST_RESTART") {
-      (this.state as any).pendingRematchMode = action.payload?.rematchMode || "SWAP";
+        (this.state as any).pendingRematchMode = action.payload?.rematchMode || "SWAP";
         this.broadcastRaw(
           JSON.stringify({
             type: "REQUEST_RESTART",
@@ -317,7 +375,7 @@ export default class GameRoomServer {
         return;
       }
 
-            if (action.type === "CONFIRM_RESTART") {
+      if (action.type === "CONFIRM_RESTART") {
         const playerIds = Object.keys(this.state.players || {});
         if (playerIds.length >= 2) {
           const mode = (this.state as any).pendingRematchMode;
@@ -331,14 +389,21 @@ export default class GameRoomServer {
             this.state.players[playerIds[1]].role = prevRole0 === "KILLER" ? "KILLER" : "DETECTIVE";
           }
         }
-                        this.state.status = "READY_TO_START";
-                this.state.readyClients.clear();
-                this.state.gameState = createInitialState(this.state.mode, "ONLINE", "KILLER", 2, this.state.mode === "SECRET_SERVICE" ? 2 : 3, 16);
-                this.state.gameState.matchBet = 250;
-                this.state.gameState.matchPot = 500;
-                this.broadcastStatus();
-                this.broadcastState();
-                return;
+        this.state.status = "READY_TO_START";
+        this.state.readyClients.clear();
+        this.state.gameState = createInitialState(
+          this.state.mode,
+          "ONLINE",
+          "KILLER",
+          2,
+          this.state.mode === "SECRET_SERVICE" ? 2 : 3,
+          16
+        );
+        this.state.gameState.matchBet = 250;
+        this.state.gameState.matchPot = 500;
+        this.broadcastStatus();
+        this.broadcastState();
+        return;
       }
 
       if (action.type === "PLAYER_READY") {
@@ -374,14 +439,18 @@ export default class GameRoomServer {
         if (player) {
           const isTurnValid = player.isHost ? activeSpyIndex === 0 : activeSpyIndex === 1;
           if (!isTurnValid) {
-            console.warn(`Move rejected: wrong turn in SECRET_SERVICE. Player isHost: ${player.isHost}, activeSpyIndex: ${activeSpyIndex}`);
+            console.warn(
+              `Move rejected: wrong turn in SECRET_SERVICE. Player isHost: ${player.isHost}, activeSpyIndex: ${activeSpyIndex}`
+            );
             return;
           }
         }
       } else {
         const currentTurn = this.state.gameState.currentTurn;
         if (player && player.role !== currentTurn) {
-          console.warn(`Move rejected: wrong turn. Player role: ${player.role}, currentTurn: ${currentTurn}`);
+          console.warn(
+            `Move rejected: wrong turn. Player role: ${player.role}, currentTurn: ${currentTurn}`
+          );
           return;
         }
       }
@@ -461,6 +530,7 @@ export default class GameRoomServer {
       isReady: this.state.status === "READY_TO_START" || this.state.status === "PLAYING",
       ready: this.state.status === "READY_TO_START" || this.state.status === "PLAYING",
       readyClients: Array.from(this.state.readyClients),
+      hasTvDisplay: Object.keys(this.state.tvDisplays).length > 0,
     });
     this.broadcastRaw(payload);
   }
@@ -473,9 +543,33 @@ export default class GameRoomServer {
       : (this.room.getConnections ? Array.from(this.room.getConnections()) : []);
 
     for (const conn of connections as any[]) {
+      // Проверяем, ТВ ли это
+      const isTv = Object.values(this.state.tvDisplays).some(
+        (tv) => tv.connectionId === conn.id
+      );
+
+      if (isTv) {
+        const tvMaskedState = this.maskStateForTv(this.state.gameState);
+        try {
+          conn.send(
+            JSON.stringify({
+              type: "SYNC_STATE",
+              state: tvMaskedState,
+              role: "SPECTATOR",
+              status: this.state.status,
+            })
+          );
+        } catch (_err) {}
+        continue;
+      }
+
       const clientId = this.getClientIdByConnId(conn.id);
       const player = clientId ? this.state.players[clientId] : null;
-      const maskedState = this.maskStateForPlayer(this.state.gameState, player?.role, player?.isHost);
+      const maskedState = this.maskStateForPlayer(
+        this.state.gameState,
+        player?.role,
+        player?.isHost
+      );
 
       try {
         conn.send(
@@ -488,6 +582,27 @@ export default class GameRoomServer {
         );
       } catch (_err) {}
     }
+  }
+
+  private maskStateForTv(state: GameState): GameState {
+    if (state.winner) return state;
+
+    const copy: any = { ...state };
+    copy.killerSecretId = null;
+    copy.detectiveSecretId = null;
+    copy.killerHand = [];
+    copy.detectiveHand = [];
+    copy.inspectorChoices = [];
+    copy.disguisedNotification = null;
+
+    if (copy.spies && Array.isArray(copy.spies)) {
+      copy.spies = copy.spies.map((spy: any) => ({
+        ...spy,
+        secretId: null,
+      }));
+    }
+
+    return copy;
   }
 
   private maskStateForPlayer(state: GameState, role?: Role, isHost?: boolean): GameState {
@@ -532,7 +647,9 @@ export default class GameRoomServer {
   private broadcastRaw(msg: string): void {
     const connections = this.room?._connectionsMap
       ? Array.from(this.room._connectionsMap.values())
-      : (typeof this.room?.getConnections === "function" ? Array.from(this.room.getConnections()) : []);
+      : (typeof this.room?.getConnections === "function"
+          ? Array.from(this.room.getConnections())
+          : []);
     for (const conn of connections as any[]) {
       try {
         conn.send(msg);

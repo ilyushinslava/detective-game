@@ -694,13 +694,13 @@ export const RoleRevealModal = ({
               </span>
               {renderCharacterCard(detective, currentRoleName, false)}
               <div className="w-full text-left space-y-2 mt-1">
-                <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
+                                  <div className="bg-red-950/20 border border-red-900/40 rounded-2xl p-3.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Цель операции</span>
                   <span className="text-xs font-bold text-zinc-200">{spyGoalDescription}</span>
                 </div>
               </div>
               {/*
-                <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
+                                  <div className="bg-red-950/20 border border-red-900/40 rounded-2xl p-3.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Цель операции</span>
                   <span className="text-xs font-bold text-zinc-200">Собрать 4 трофея (ловить чужих шпионов)</span>
                 </div>
@@ -746,7 +746,7 @@ export const RoleRevealModal = ({
               </span>
               {renderCharacterCard(detective, "Фантом", true)}
               <div className="w-full text-left space-y-2 mt-1">
-                <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
+                                  <div className="bg-blue-950/20 border border-blue-900/40 rounded-2xl p-3.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Цель операции</span>
                   <span className="text-xs font-bold text-zinc-200">{spyGoalDescription}</span>
                 </div>
@@ -787,7 +787,7 @@ export const RoleRevealModal = ({
               </span>
               {renderCharacterCard(killer, "Призрак", false)}
               <div className="w-full text-left space-y-2 mt-1">
-                <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
+                                  <div className="bg-blue-950/20 border border-blue-900/40 rounded-2xl p-3.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Цель операции</span>
                   <span className="text-xs font-bold text-zinc-200">{spyGoalDescription}</span>
                 </div>
@@ -809,12 +809,12 @@ export const RoleRevealModal = ({
               </span>
               {renderCharacterCard(killer, role1Name, true)}
               <div className="w-full text-left space-y-2 mt-1">
-                <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
+                                  <div className="bg-red-950/20 border border-red-900/40 rounded-2xl p-3.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Роль и Задача</span>
                   <span className="text-xs font-bold text-zinc-200 block mb-0.5"><b className="text-red-400">{role1Name}</b></span>
                   <span className="text-[10px] text-zinc-400">{role1Goal}</span>
                 </div>
-                <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
+                                  <div className="bg-blue-950/20 border border-blue-900/40 rounded-2xl p-3.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Соперник</span>
                   <span className="text-xs font-bold text-zinc-200">{getOpponentText(role2Name)}</span>
                 </div>
@@ -904,7 +904,7 @@ export const RoleRevealModal = ({
                       )}
                       <div className="relative z-10 flex items-center justify-between text-[9px] font-mono text-zinc-500">
                         <span>#{char.id.replace("c", "").padStart(2, "0")}</span>
-                        {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.9)]" />}
+                        {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.9)]" />}
                       </div>
                       <div className={`relative z-10 text-xs font-black uppercase tracking-wider mt-3 ${isSelected ? "text-blue-100" : "text-zinc-200"}`}>
                         {char.name}
@@ -1047,7 +1047,7 @@ export const RoleRevealModal = ({
                       )}
                       <div className="relative z-10 flex items-center justify-between text-[9px] font-mono text-zinc-500">
                         <span>#{char.id.replace("c", "").padStart(2, "0")}</span>
-                        {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.9)]" />}
+                        {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.9)]" />}
                       </div>
                       <div className={`relative z-10 text-xs font-black uppercase tracking-wider mt-3 ${isSelected ? "text-blue-100" : "text-zinc-200"}`}>
                         {char.name}

@@ -162,8 +162,6 @@ export const CharacterCard = memo(
                   ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-zinc-800 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
                   : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
         } ${neighborHighlightColor ? `${neighborHighlightColor} z-10` : ""} ${
-          isLastRobbed ? "ring-1 ring-amber-500/80 shadow-[0_0_10px_rgba(245,158,11,0.35)]" : ""
-        } ${
           isSelected
             ? `${neighborHighlightColor ? "" : "border-white "}ring-2 ring-white z-30 scale-[0.96]`
             : ""

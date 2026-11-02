@@ -182,9 +182,12 @@ export function useGameActions({
     const targetChar = gameState.board.flat().find((c) => c.id === selectedId);
     if (!targetChar || !targetChar.isAlive || targetChar.isExonerated) return;
 
-    const isMiss =
-      selectedId !== gameState.killerSecretId && !targetChar.hasBomb;
-    if (isMiss) {
+    const isOnline = gameState.opponent === "ONLINE";
+    const isMiss = !isOnline && selectedId !== gameState.killerSecretId && !targetChar.hasBomb;
+    if (isOnline) {
+      soundManager.play("arrest");
+      triggerHaptic("medium");
+    } else if (isMiss) {
       soundManager.play("deny");
       triggerHaptic("error");
       setErrorCardId(selectedId);
@@ -199,7 +202,7 @@ export function useGameActions({
     );
     dispatchAction({
       type: "ACCUSE",
-      payload: { targetId: selectedId, isMiss, errorCardId: selectedId },
+      payload: { targetId: selectedId, isMiss, errorCardId: isMiss ? selectedId : null },
       senderId: "local",
       timestamp: Date.now(),
     });

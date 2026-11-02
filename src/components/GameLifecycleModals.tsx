@@ -185,7 +185,16 @@ export const GameLifecycleModals: React.FC<GameLifecycleModalsProps> = memo(({
             isPvpPassPhase={!isRevealConfirmed && gameState.opponent === "PVP"}
             targetPlayerName={gameState.disguisedNotification.roleName}
             onConfirmPvpPass={() => setIsRevealConfirmed(true)}
-            onAcceptIdentity={() => { setIsRevealConfirmed(false); setGameState((prev) => ({ ...prev, disguisedNotification: null })); }}
+            onAcceptIdentity={() => {
+              setIsRevealConfirmed(false);
+              if (gameState.opponent === "ONLINE") {
+                partyService.sendAction({
+                  type: "CLEAR_DISGUISE_NOTIFICATION",
+                  senderId: "local",
+                } as any);
+              }
+              setGameState((prev) => ({ ...prev, disguisedNotification: null }));
+            }}
             onPreviewCard={(character) => { const image = characterImages[`./assets/characters/${character.id}.webp`]?.default; if (image) setFullscreenImage({ url: image, name: character.name, id: character.id }); }}
           />
         )}

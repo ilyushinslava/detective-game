@@ -37,7 +37,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
   const SYSTEM_ACTIONS = [
     "MATCH_STARTED", "RESTART_GAME", "REQUEST_RESTART", 
     "CONFIRM_RESTART", "REJECT_RESTART", "SET_MATCH_POT", "PLAYER_READY", 
-    "SET_INSPECTOR_ROLE", "CLEANUP"
+    "SET_INSPECTOR_ROLE", "CLEANUP", "CLEAR_DISGUISE_NOTIFICATION"
   ];
   
   // Авторитетный сервер сам валидирует очередность. На клиентах блокировку не делаем.
@@ -97,6 +97,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         lastSpyInterrogation: null,
         interrogationRadar: null,
         isHotseatCoverOpen: false,
+        disguisedNotification: null,
         log: [...state.log, actionText],
       };
     }
@@ -243,6 +244,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return swearInOfficer(state, action.payload.targetId);
     case "SET_INSPECTOR_ROLE":
       return setInspectorRole(state, action.payload.chosenId);
+    case "CLEAR_DISGUISE_NOTIFICATION":
+      return {
+        ...state,
+        disguisedNotification: null,
+      };
 
     case "DUEL_ASK_QUESTION": {
       const { questionId } = action.payload;

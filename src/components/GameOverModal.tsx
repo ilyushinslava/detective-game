@@ -152,7 +152,7 @@ export const GameOverModal = ({
           {renderRoleCard(detective, detectiveTitle, false)}
         </div>
 
-                  {isMultiplayer && onRematchSwap && onRematchRandom ? (
+        {isMultiplayer ? (
             <div className="flex flex-col gap-2.5 w-full">
               <button
                 onClick={onRematchSwap}

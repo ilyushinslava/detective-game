@@ -324,6 +324,15 @@ export default class GameRoomServer {
         return;
       }
 
+      if (action.type === "CLEAR_DISGUISE_NOTIFICATION") {
+        const nextState = gameReducer(this.state.gameState, action);
+        if (nextState !== this.state.gameState) {
+          this.state.gameState = nextState;
+          this.broadcastState();
+        }
+        return;
+      }
+
       if (this.state.mode === "SECRET_SERVICE") {
         const activeSpyIndex = this.state.gameState.activeSpyIndex ?? 0;
         if (player) {

@@ -532,6 +532,7 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     blockedShift: null,
     lastInterrogation,
     interrogationRadar: null,
+    disguisedNotification: null,
     log: [
       ...state.log,
       `Ликвидация: персонаж ${killedName} устранен.${
@@ -563,9 +564,9 @@ export function setPolicePatrol(
 export function robNeighbor(state: GameState, targetId: string): GameState {
   if (state.winner || state.mode !== "THIEF_HUNT") return state;
 
-  if (targetId === state.killerSecretId) return state;
+  const isSelf = targetId === state.killerSecretId;
   const isAdjacent = areAdjacent(state.board, state.killerSecretId, targetId);
-  if (!isAdjacent) return state;
+  if (!isSelf && !isAdjacent) return state;
 
   const targetChar = state.board.flat().find((c) => c.id === targetId);
   if (!targetChar || targetChar.isRobbed) return state;
@@ -586,6 +587,7 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
     currentTurn: "DETECTIVE",
     blockedShift: null,
     interrogationRadar: null,
+    disguisedNotification: null,
     log: [
       ...state.log,
       `Грабитель похитил сокровище у ${targetChar.name}! Добыча: ${newTrophies}/10.${
@@ -634,6 +636,7 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
       winner: "DETECTIVE",
       blockedShift: null,
       lastInterrogation: null,
+      disguisedNotification: null,
       log: [
         ...state.log,
         `Точное задержание! ${targetName} оказался преступником. Победа Закона!`,
@@ -677,6 +680,7 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
     lastShift: null,
     lastInterrogation: null,
     interrogationRadar: null,
+    disguisedNotification: null,
     log: [...state.log, logMsg],
   };
 }

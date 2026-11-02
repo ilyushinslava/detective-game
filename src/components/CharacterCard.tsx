@@ -293,17 +293,16 @@ export const CharacterCard = memo(
         )}
 
         {mode === "THIEF_HUNT" && character.isAlive && !character.isRobbed && (
-          <div className="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 z-20 pointer-events-none flex items-center">
-            <span className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-zinc-950/85 backdrop-blur-sm border border-amber-500/40 shadow-sm text-amber-400">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
-              </svg>
-            </span>
-          </div>
+          <div className="absolute bottom-0 inset-x-0 h-[2px] z-20 pointer-events-none bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_8px_rgba(245,158,11,0.7)]" />
         )}
 
         {character.isRobbed && (
+          <div
+            title="Ограблен"
+            className="absolute bottom-0 inset-x-0 h-[2px] z-20 pointer-events-none bg-gradient-to-r from-transparent via-zinc-600/40 to-transparent"
+          />
+        )}
+        {false && (
           <div className="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 z-20 pointer-events-none flex items-center">
             <span className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-zinc-950/85 backdrop-blur-sm border border-zinc-700/50 shadow-sm text-zinc-500" title="Ограблен">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5">

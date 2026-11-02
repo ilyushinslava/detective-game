@@ -527,9 +527,32 @@ export const MainMenu = ({
             {activeModeData.description}
           </p>
 
-          <div className="flex flex-col gap-6">
-            <div>
-              <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">
+                      <div className="flex flex-col gap-6">
+              <div>
+                <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">
+                  СВОДКА РАССЛЕДОВАНИЯ
+                </h3>
+                <div className="grid grid-cols-3 gap-2.5 mb-6">
+                  <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
+                    <Icons.CardsDeck className="w-6 h-6 text-zinc-300 mb-0.5" />
+                    <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">25 жителей</span>
+                    <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">подозреваемых в деле</span>
+                  </div>
+                  <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
+                    <Icons.EvidenceCards className="w-6 h-6 text-amber-400 mb-0.5" />
+                    <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">База досье</span>
+                    <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">сбор доказательств</span>
+                  </div>
+                  <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
+                    <Icons.TokensGroup className="w-6 h-6 text-amber-400 mb-0.5" />
+                    <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">Радар и алиби</span>
+                    <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">статусы свидетелей</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'none' }}>
+                <div>
+                  <h3 className="hidden">
             СОСТАВ ИГРЫ
           </h3>
           <div className="grid grid-cols-3 gap-2.5 mb-6">
@@ -548,11 +571,12 @@ export const MainMenu = ({
               <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">Радар и алиби</span>
               <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">статусы сетки</span>
             </div>
-          </div>
-          </div>
-
-          <div>
-            <h3 className="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest mb-2.5">
+                      </div>
+            </div>
+            </div>
+  
+            <div>
+              <h3 className="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest mb-2.5">
             Формат партии
           </h3>
           <div className="flex bg-zinc-950/80 p-1 rounded-xl border border-white/[0.08] mb-5 shadow-inner">

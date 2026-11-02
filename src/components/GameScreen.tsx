@@ -198,9 +198,6 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
           >
             <span className="relative flex h-2 w-2 shrink-0 items-center justify-center">
               <span
-                className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${dotClasses.split(" ")[0]}`}
-              />
-              <span
                 className={`relative inline-flex rounded-full h-2 w-2 ${dotClasses}`}
               />
             </span>

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import type { GameModeType, Role, Character } from "../types/game";
 import { DetectiveNotebookModal } from "./DetectiveNotebookModal";
 import { DuelQuestionCatalogModal } from "./duel/DuelQuestionCatalogModal";
@@ -83,6 +83,7 @@ export interface GameModalsContainerProps {
   onAddCash: (amount: number) => void;
   onResetCash: () => void;
   onToggleTurn: () => void;
+  onTogglePlayerRole?: () => void;
   onAddKill: () => void;
   onTriggerIntro: () => void;
   onTriggerRestartRequest: () => void;
@@ -147,6 +148,7 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
   onAddCash,
   onResetCash,
   onToggleTurn,
+  onTogglePlayerRole,
   onAddKill,
   onTriggerIntro,
   onTriggerRestartRequest,
@@ -248,6 +250,7 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
         onAddCash={onAddCash}
         onResetCash={onResetCash}
         onToggleTurn={onToggleTurn}
+        onTogglePlayerRole={onTogglePlayerRole}
         onAddKill={onAddKill}
         onTriggerIntro={onTriggerIntro}
         onTriggerRestartRequest={onTriggerRestartRequest}

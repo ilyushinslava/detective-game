@@ -63,7 +63,7 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (import.meta.env.DEV && (e.code === "Backquote" || e.key === "`")) {
+      if (e.code === "Backquote" || e.key === "`") {
         setIsDevPanelOpen((prev) => !prev);
       }
     };
@@ -403,7 +403,7 @@ export default function App() {
         onClosePause={() => setIsPauseOpen(false)}
         onResumeGame={() => setIsPauseOpen(false)}
         onOpenRules={() => setIsRulesOpen(true)}
-        onOpenDevPanel={import.meta.env.DEV ? () => setIsDevPanelOpen(true) : undefined}
+        onOpenDevPanel={() => setIsDevPanelOpen(true)}
         isRulesOpen={isRulesOpen}
         onCloseRules={() => setIsRulesOpen(false)}
         isSfxEnabled={isSfxEnabled}
@@ -419,8 +419,15 @@ export default function App() {
         }}
         fullscreenCard={fullscreenImage}
         onCloseFullscreenCard={() => setFullscreenImage(null)}
-        isDevPanelOpen={import.meta.env.DEV ? isDevPanelOpen : false}
+        isDevPanelOpen={isDevPanelOpen}
         onCloseDevPanel={() => setIsDevPanelOpen(false)}
+        onTogglePlayerRole={() => {
+          setGameState((prev) => ({
+            ...prev,
+            playerRole: prev.playerRole === "KILLER" ? "DETECTIVE" : "KILLER",
+            log: [...prev.log, `[DEV] Смена роли игрока на: ${prev.playerRole === "KILLER" ? "DETECTIVE" : "KILLER"}`],
+          }));
+        }}
         cash={profile.cash}
         onForceWin={(winner, forcedMode) => {
           setIsIntroPhase(false);
@@ -510,7 +517,7 @@ export default function App() {
             hasActiveGame={Boolean(!gameState.winner && hasStartedEver && gameState.board?.length >= 5 && gameState.log?.length > 2)}
             onResumeGame={handleResumeGame}
             onOpenRules={() => setIsRulesOpen(true)}
-            onOpenDevPanel={import.meta.env.DEV ? () => setIsDevPanelOpen(true) : undefined}
+            onOpenDevPanel={() => setIsDevPanelOpen(true)}
           />
         )}
 

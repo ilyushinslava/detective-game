@@ -328,12 +328,8 @@ export function getSecretServiceAIMove(state: GameState): GameState {
 export function getThiefAIMove(state: GameState): GameState {
   if (state.winner) return state;
 
-  const selfChar = state.board.flat().find((c) => c.id === state.killerSecretId);
   const neighbors = getAdjacentCharacters(state.board, state.killerSecretId);
-  const possibleTargets = [...neighbors];
-  if (selfChar) possibleTargets.push(selfChar);
-
-  const validTargets = possibleTargets.filter((c) => c.isAlive && !c.isRobbed);
+  const validTargets = neighbors.filter((c) => c.isAlive && !c.isRobbed);
 
   if (validTargets.length > 0) {
     const target =

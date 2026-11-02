@@ -318,33 +318,29 @@ export function useBoardVisuals({
     return "••••••••";
   }, [isInspectorPending, showDetectiveRole, showSpyP2Role, gameState.mode, allChars, gameState.spies, detectiveChar]);
 
-  const pillClasses = useMemo(() => {
-    if (isAIThinking) {
-      return "bg-zinc-800/90 border-zinc-500 text-zinc-400 animate-pulse";
-    }
+    const pillClasses = useMemo(() => {
     if (gameState.mode === "SECRET_SERVICE") {
       const isP1Turn = gameState.activeSpyIndex === 0;
-              return isP1Turn
-          ? "bg-red-950/90 border-red-600 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
-          : "bg-blue-950/90 border-blue-600 text-blue-200 shadow-[0_0_15px_rgba(59,130,246,0.3)]";
+      return isP1Turn
+        ? "bg-red-950/90 border-red-600 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+        : "bg-blue-950/90 border-blue-600 text-blue-200 shadow-[0_0_15px_rgba(59,130,246,0.3)]";
     }
     return isKillerTurn
-      ? "bg-red-950/80 border-red-600 text-red-100"
-      : "bg-blue-950/80 border-blue-600 text-blue-100";
-  }, [isAIThinking, gameState.mode, gameState.activeSpyIndex, isKillerTurn]);
+      ? "bg-red-950/80 border-red-600 text-red-100 shadow-[0_0_15px_rgba(239,68,68,0.25)]"
+      : "bg-blue-950/80 border-blue-600 text-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.25)]";
+  }, [gameState.mode, gameState.activeSpyIndex, isKillerTurn]);
 
   const dotClasses = useMemo(() => {
-    if (isAIThinking) return "bg-zinc-400 shadow-zinc-400/80";
     if (gameState.mode === "SECRET_SERVICE") {
       const isP1Turn = gameState.activeSpyIndex === 0;
-              return isP1Turn
-          ? "bg-red-500 shadow-red-500/80"
-          : "bg-blue-500 shadow-blue-500/80";
+      return isP1Turn
+        ? "bg-red-500 shadow-red-500/80"
+        : "bg-blue-500 shadow-blue-500/80";
     }
     return isKillerTurn
       ? "bg-red-500 shadow-red-500/80"
       : "bg-blue-500 shadow-blue-500/80";
-  }, [isAIThinking, gameState.mode, gameState.activeSpyIndex, isKillerTurn]);
+  }, [gameState.mode, gameState.activeSpyIndex, isKillerTurn]);
 
   return {
     allChars,

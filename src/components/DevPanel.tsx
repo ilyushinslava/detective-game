@@ -10,6 +10,7 @@ export interface DevPanelProps {
   onAddCash: (amount: number) => void;
   onResetCash?: () => void;
   onToggleTurn?: () => void;
+  onTogglePlayerRole?: () => void;
   onAddKill?: () => void;
   onTriggerIntro?: () => void;
   onTriggerRestartRequest?: () => void;
@@ -29,6 +30,7 @@ export const DevPanel = ({
   onAddCash,
   onResetCash,
   onToggleTurn,
+  onTogglePlayerRole,
   onAddKill,
   onTriggerIntro,
   onTriggerRestartRequest,
@@ -150,6 +152,14 @@ export const DevPanel = ({
                   className="w-full py-2 px-3 bg-zinc-800 hover:bg-zinc-700 border border-white/10 rounded-xl text-zinc-200 font-bold text-left transition cursor-pointer"
                 >
                   🔄 Сменить чей ход (Killer ⇄ Detective)
+                </button>
+              )}
+              {onTogglePlayerRole && (
+                <button
+                  onClick={onTogglePlayerRole}
+                  className="w-full py-2 px-3 bg-zinc-800 hover:bg-zinc-700 border border-white/10 rounded-xl text-zinc-200 font-bold text-left transition cursor-pointer"
+                >
+                  🔄 Сменить свою роль (KILLER ⇄ DETECTIVE)
                 </button>
               )}
               {onAddKill && (

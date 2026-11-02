@@ -232,6 +232,11 @@ class PartyService {
     }
     this.queuedActions = [];
     this.stopHeartbeat();
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      try {
+        this.socket.send(JSON.stringify({ type: "PLAYER_LEFT_EXPLICIT", senderClientId: this.myClientId }));
+      } catch (_) {}
+    }
     if (this.socket) {
       try {
         this.socket.close();

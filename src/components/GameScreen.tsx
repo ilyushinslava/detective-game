@@ -360,7 +360,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
       </div>
 
       <div className="flex-1 min-h-0 w-full flex flex-col landscape:flex-row items-center justify-between gap-1 sm:gap-2 md:gap-6 px-2 sm:px-4 md:px-6 py-1 md:py-3 overflow-hidden">
-        <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-2xl landscape:max-w-none flex flex-col items-center justify-center relative antialiased">
+        <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl landscape:max-w-none flex flex-col items-center justify-center relative antialiased">
           <div className="w-full h-full flex-1 min-h-0 flex items-center justify-center overflow-hidden relative antialiased">
             <GameBoard
               mode={gameState.mode}

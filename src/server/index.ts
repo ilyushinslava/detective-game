@@ -260,6 +260,47 @@ export default class GameRoomServer {
         this.getClientIdByConnId(sender?.id);
       const player = senderClientId ? this.state.players[senderClientId] : null;
 
+      if (action.type === "PLAYER_LEFT_EXPLICIT") {
+        if (senderClientId) {
+          const pendingTimer = this.disconnectTimers.get(senderClientId);
+          if (pendingTimer) {
+            clearTimeout(pendingTimer);
+            this.disconnectTimers.delete(senderClientId);
+          }
+          delete this.state.players[senderClientId];
+          this.state.readyClients.delete(senderClientId);
+
+          const roomCode = this.getRoomCode();
+          const remainingPlayersCount = Object.keys(this.state.players).length;
+
+          if (remainingPlayersCount === 0) {
+            this.state.status = "EMPTY";
+            this.state.gameState = null;
+            publicRoomsRegistry.delete(roomCode);
+            this.state.readyClients.clear();
+          } else {
+            this.broadcastRaw(JSON.stringify({ type: "OPPONENT_LEFT" }));
+            if (this.state.status === "PLAYING") {
+              this.state.status = "FINISHED";
+            } else {
+              this.state.status = "WAITING";
+              const hostPlayer = Object.values(this.state.players).find((p) => p.isHost) || Object.values(this.state.players)[0];
+              publicRoomsRegistry.set(roomCode, {
+                roomCode,
+                mode: this.state.mode,
+                hostName: hostPlayer?.nickname || "Хост",
+                status: "WAITING",
+                playersCount: 1,
+                maxPlayers: 2,
+                bet: 250,
+              });
+            }
+            this.broadcastStatus();
+          }
+        }
+        return;
+      }
+
       if (action.type === "REQUEST_RESTART") {
       (this.state as any).pendingRematchMode = action.payload?.rematchMode || "SWAP";
         this.broadcastRaw(

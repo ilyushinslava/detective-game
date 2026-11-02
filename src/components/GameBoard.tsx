@@ -132,7 +132,7 @@ export const GameBoard = ({
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center p-0.5 select-none mx-auto w-full max-w-[min(100vw-0.5rem,calc(100dvh-19.5rem))] shrink-0 touch-none">
+    <div className="relative flex flex-col items-center justify-center p-0.5 select-none mx-auto w-full max-w-[min(100vw-0.5rem,calc(100dvh-19.5rem))] landscape:max-w-[min(calc(100vw-22rem),calc(100dvh-7.5rem))] lg:landscape:max-w-[min(calc(100vw-26rem),calc(100dvh-8rem))] xl:landscape:max-w-[min(calc(100vw-30rem),calc(100dvh-8.5rem))] shrink-0 touch-none">
       <style>{`
         @keyframes radarMarch {
           from { stroke-dashoffset: 0; } 
@@ -144,8 +144,8 @@ export const GameBoard = ({
         }
       `}</style>
       {!isLineUp && (
-        <div className="w-full h-4 sm:h-5 md:h-7 min-h-[16px] sm:min-h-[20px] flex items-center gap-0.5 sm:gap-1 mb-0.5 shrink-0">
-          <div className="w-3.5 sm:w-5 md:w-7 shrink-0" />
+        <div className="w-full h-4 sm:h-5 md:h-7 lg:h-8 xl:h-9 min-h-[16px] sm:min-h-[20px] lg:min-h-[32px] xl:min-h-[36px] flex items-center gap-0.5 sm:gap-1 mb-0.5 shrink-0">
+          <div className="w-3.5 sm:w-5 md:w-7 lg:w-8 xl:w-9 shrink-0" />
           <div
             className="grid gap-0.5 sm:gap-1 flex-1"
             style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
@@ -166,7 +166,7 @@ export const GameBoard = ({
                   disabled={isBlocked || isOpposite}
                   onPointerDown={(e) => e.preventDefault()}
                   onClick={(e) => { e.currentTarget.blur(); onShift("COL", colIdx, "BACKWARD"); }}
-                  className={`w-full h-4 sm:h-5 md:h-7 min-h-[16px] sm:min-h-[20px] shrink-0 rounded text-[8px] sm:text-xs md:text-sm font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
+                  className={`w-full h-4 sm:h-5 md:h-7 lg:h-8 xl:h-9 min-h-[16px] sm:min-h-[20px] lg:min-h-[32px] xl:min-h-[36px] shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
                     isBlocked || isOpposite
                       ? "bg-zinc-900/30 text-zinc-700 border-zinc-800/40 cursor-not-allowed opacity-30"
                       : "bg-zinc-900/60 active:bg-white/10 border border-white/10 active:border-white/60 text-zinc-400 active:text-white cursor-pointer shadow-inner active:scale-95 transition-none select-none touch-manipulation outline-none focus:outline-none"
@@ -188,7 +188,7 @@ export const GameBoard = ({
               );
             })}
           </div>
-          <div className="w-3.5 sm:w-5 md:w-7 shrink-0" />
+          <div className="w-3.5 sm:w-5 md:w-7 lg:w-8 xl:w-9 shrink-0" />
         </div>
       )}
 
@@ -196,7 +196,7 @@ export const GameBoard = ({
       <div className="w-full flex items-stretch gap-0.5 sm:gap-1">
         {!isLineUp && (
           <div
-            className="w-3.5 sm:w-5 md:w-7 shrink-0 grid gap-0.5 sm:gap-1"
+            className="w-3.5 sm:w-5 md:w-7 lg:w-8 xl:w-9 shrink-0 grid gap-0.5 sm:gap-1"
             style={{ gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))` }}
           >
             {rowsArray.map((rIdx) => {
@@ -215,7 +215,7 @@ export const GameBoard = ({
                   disabled={isRowBlocked || isOppositeLeft}
                   onPointerDown={(e) => e.preventDefault()}
                   onClick={(e) => { e.currentTarget.blur(); onShift("ROW", rIdx, "BACKWARD"); }}
-                  className={`w-full h-full rounded text-[8px] sm:text-xs md:text-sm font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
+                  className={`w-full h-full rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
                     isRowBlocked || isOppositeLeft
                       ? "bg-zinc-900/30 text-zinc-700 border-zinc-800/40 cursor-not-allowed opacity-30"
                       : "bg-zinc-900/60 active:bg-white/10 border border-white/10 active:border-white/60 text-zinc-400 active:text-white cursor-pointer shadow-inner active:scale-95 transition-none select-none touch-manipulation outline-none focus:outline-none"
@@ -416,7 +416,7 @@ export const GameBoard = ({
 
         {!isLineUp && (
           <div
-            className="w-3.5 sm:w-5 md:w-7 shrink-0 grid gap-0.5 sm:gap-1"
+            className="w-3.5 sm:w-5 md:w-7 lg:w-8 xl:w-9 shrink-0 grid gap-0.5 sm:gap-1"
             style={{ gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))` }}
           >
             {rowsArray.map((rIdx) => {
@@ -435,7 +435,7 @@ export const GameBoard = ({
                   disabled={isRowBlocked || isOppositeRight}
                   onPointerDown={(e) => e.preventDefault()}
                   onClick={(e) => { e.currentTarget.blur(); onShift("ROW", rIdx, "FORWARD"); }}
-                  className={`w-full h-full rounded text-[8px] sm:text-xs md:text-sm font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
+                  className={`w-full h-full rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
                     isRowBlocked || isOppositeRight
                       ? "bg-zinc-900/30 text-zinc-700 border-zinc-800/40 cursor-not-allowed opacity-30"
                       : "bg-zinc-900/60 active:bg-white/10 border border-white/10 active:border-white/60 text-zinc-400 active:text-white cursor-pointer shadow-inner active:scale-95 transition-none select-none touch-manipulation outline-none focus:outline-none"
@@ -461,8 +461,8 @@ export const GameBoard = ({
       </div>
 
       {!isLineUp && (
-        <div className="w-full h-4 sm:h-5 md:h-7 min-h-[16px] sm:min-h-[20px] flex items-center gap-0.5 sm:gap-1 mt-0.5 shrink-0">
-          <div className="w-3.5 sm:w-5 md:w-7 shrink-0" />
+        <div className="w-full h-4 sm:h-5 md:h-7 lg:h-8 xl:h-9 min-h-[16px] sm:min-h-[20px] lg:min-h-[32px] xl:min-h-[36px] flex items-center gap-0.5 sm:gap-1 mt-0.5 shrink-0">
+          <div className="w-3.5 sm:w-5 md:w-7 lg:w-8 xl:w-9 shrink-0" />
           <div
             className="grid gap-0.5 sm:gap-1 flex-1"
             style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
@@ -483,7 +483,7 @@ export const GameBoard = ({
                   disabled={isBlocked || isOpposite}
                   onPointerDown={(e) => e.preventDefault()}
                   onClick={(e) => { e.currentTarget.blur(); onShift("COL", colIdx, "FORWARD"); }}
-                  className={`w-full h-3.5 sm:h-5 md:h-7 shrink-0 rounded text-[8px] sm:text-xs md:text-sm font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
+                  className={`w-full h-3.5 sm:h-5 md:h-7 lg:h-8 xl:h-9 min-h-[16px] sm:min-h-[20px] lg:min-h-[32px] xl:min-h-[36px] shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
                     isBlocked || isOpposite
                       ? "bg-zinc-900/30 text-zinc-700 border-zinc-800/40 cursor-not-allowed opacity-30"
                       : "bg-zinc-900/60 active:bg-white/10 border border-white/10 active:border-white/60 text-zinc-400 active:text-white cursor-pointer shadow-inner active:scale-95 transition-none select-none touch-manipulation outline-none focus:outline-none"
@@ -505,7 +505,7 @@ export const GameBoard = ({
               );
             })}
           </div>
-          <div className="w-3.5 sm:w-5 md:w-7 shrink-0" />
+          <div className="w-3.5 sm:w-5 md:w-7 lg:w-8 xl:w-9 shrink-0" />
         </div>
       )}
     </div>

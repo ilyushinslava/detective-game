@@ -1,7 +1,5 @@
 import type { GameState } from "../types/game";
 import type { GameAction } from "../types/multiplayer";
-import { DUEL_QUESTIONS } from "../constants/duelQuestions";
-import { DUEL_CHARACTERS } from "../constants/duelCharacters";
 import {
   shiftBoard,
   accuseCharacter,

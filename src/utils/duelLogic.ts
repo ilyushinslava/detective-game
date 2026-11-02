@@ -1,6 +1,6 @@
 import { DUEL_CHARACTERS } from "../constants/duelCharacters";
 import { DUEL_QUESTIONS } from "../constants/duelQuestions";
-import type { DuelCharacter, DuelHistoryEntry } from "../types/duel";
+import type { DuelCharacter, DuelHistoryEntry, DuelAction } from "../types/duel";
 import type { Role } from "../types/game";
 
 export interface DuelState {
@@ -155,4 +155,69 @@ export function resolveDuelTieBreak(state: DuelState): DuelState {
 
   // 3. Полное равенство
   return { ...state, winner: "DRAW", winReason: "TIE_BREAK_DRAW" };
+}
+
+export function duelReducer(state: DuelState, action: DuelAction): DuelState {
+  switch (action.type) {
+    case "ASK_QUESTION":
+      return askDuelQuestion(state, action.payload.questionId);
+
+    case "ACCUSE":
+      return accuseDuelTarget(state, action.payload.targetId);
+
+    case "TICK_TIMER": {
+      if (state.winner) return state;
+
+      const nextMatchTime = Math.max(0, state.matchTimeRemaining - 1);
+      const nextTurnTime = state.turnTimeRemaining - 1;
+
+      if (nextMatchTime <= 0) {
+        return resolveDuelTieBreak({
+          ...state,
+          matchTimeRemaining: 0,
+          turnTimeRemaining: Math.max(0, nextTurnTime),
+        });
+      }
+
+      if (nextTurnTime <= 0) {
+        const nextTurn: Role = state.currentTurn === "DETECTIVE" ? "KILLER" : "DETECTIVE";
+        return {
+          ...state,
+          matchTimeRemaining: nextMatchTime,
+          currentTurn: nextTurn,
+          turnTimeRemaining: 25,
+        };
+      }
+
+      return {
+        ...state,
+        matchTimeRemaining: nextMatchTime,
+        turnTimeRemaining: nextTurnTime,
+      };
+    }
+
+    case "TIMEOUT_PASS": {
+      if (state.winner) return state;
+      const nextTurn: Role = state.currentTurn === "DETECTIVE" ? "KILLER" : "DETECTIVE";
+      return {
+        ...state,
+        currentTurn: nextTurn,
+        turnTimeRemaining: 25,
+      };
+    }
+
+    case "RESTART_DUEL": {
+      const initial = createInitialDuelState();
+      if (action.payload?.nextStarter) {
+        return {
+          ...initial,
+          currentTurn: action.payload.nextStarter,
+        };
+      }
+      return initial;
+    }
+
+    default:
+      return state;
+  }
 }

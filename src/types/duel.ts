@@ -1,3 +1,5 @@
+import type { Role } from "./game";
+
 export type DuelCategory = "APPEARANCE" | "CLOTHING" | "ACCESSORIES";
 
 export interface DuelCharacterAttributes {
@@ -34,3 +36,10 @@ export interface DuelHistoryEntry {
   answer: boolean;
   timestamp: number;
 }
+
+export type DuelAction =
+  | { type: "ASK_QUESTION"; payload: { questionId: string } }
+  | { type: "ACCUSE"; payload: { targetId: string } }
+  | { type: "TICK_TIMER" }
+  | { type: "TIMEOUT_PASS" }
+  | { type: "RESTART_DUEL"; payload?: { nextStarter?: Role } };

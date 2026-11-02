@@ -131,6 +131,7 @@ const ROOM_FILTERS = [
 type ScreenType = 'HOME' | 'MODES' | 'MODE_DETAIL' | 'PROFILE' | 'TABLES';
 
 interface MainMenuProps {
+  onStartTvParty?: () => void;
   profile: UserProfile;
   onUpdateProfile?: (updates: Partial<UserProfile>) => void;
   activeTab: "LOBBY" | "TABLES" | "TOP" | "SHOP";
@@ -156,6 +157,7 @@ export const MainMenu = ({
   activeTab,
   onTabChange,
   onStartGame,
+  onStartTvParty,
   hasActiveGame,
   onResumeGame,
   onOpenRules,
@@ -405,16 +407,29 @@ export const MainMenu = ({
               <Icons.ChevronRight />
             </button>
 
-            <button onClick={() => { setSelectedOpponent("PVP"); setScreen('MODES'); }} className="w-full h-11 sm:h-12 md:h-16 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 md:px-6 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
-              <div className="flex items-center gap-3.5">
-                <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-zinc-400 shrink-0"><Icons.Users /></div>
-                <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[10px] sm:text-xs md:text-sm font-black text-zinc-100 uppercase tracking-widest">{t.menu.localDuel}</span>
-                  <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{t.menu.localDesc}</span>
+                          <button onClick={() => { setSelectedOpponent("PVP"); setScreen('MODES'); }} className="w-full h-11 sm:h-12 md:h-16 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 md:px-6 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-zinc-400 shrink-0"><Icons.Users /></div>
+                  <div className="flex flex-col items-start leading-tight">
+                    <span className="text-[10px] sm:text-xs md:text-sm font-black text-zinc-100 uppercase tracking-widest">{t.menu.localDuel}</span>
+                    <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{t.menu.localDesc}</span>
+                  </div>
                 </div>
-              </div>
-              <Icons.ChevronRight />
-            </button>
+                <Icons.ChevronRight />
+              </button>
+
+              <button onClick={() => { const code = Math.floor(10000 + Math.random() * 90000).toString(); window.location.href = `${window.location.pathname}?clientType=TV_DISPLAY&room=${code}`; }} className="w-full h-11 sm:h-12 md:h-16 bg-gradient-to-b from-red-950/40 to-zinc-950/90 border border-red-500/30 border-t-red-500/50 rounded-2xl flex items-center justify-between px-5 md:px-6 text-white shadow-[0_4px_20px_rgba(239,68,68,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-red-500/60 active:scale-[0.99] transition cursor-pointer">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-red-500 shrink-0">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+                  </div>
+                  <div className="flex flex-col items-start leading-tight">
+                    <span className="text-[10px] sm:text-xs md:text-sm font-black text-red-400 uppercase tracking-widest">ТВ ВЕЧЕРИНКА</span>
+                    <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-widest">ТЕЛЕВИЗОР + ТЕЛЕФОНЫ</span>
+                  </div>
+                </div>
+                <Icons.ChevronRight />
+              </button>
 
             <button onClick={() => { setScreen('TABLES'); onTabChange('TABLES'); }} className="w-full h-11 sm:h-12 md:h-16 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 md:px-6 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
               <div className="flex items-center gap-3.5">

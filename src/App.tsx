@@ -18,6 +18,11 @@ import { createInitialState } from "./utils/gameLogic";
 import { soundManager } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
 import type { GameAction } from "./types/multiplayer";
+import { TvBoardView } from "./components/tv/TvBoardView";
+import { TvLobbyView } from "./components/tv/TvLobbyView";
+import { MobileControllerView } from "./components/controller/MobileControllerView";
+import { PassAndPlayModal } from "./components/controller/PassAndPlayModal";
+import type { ShiftPayload } from "./types/game";
 import { gameReducer } from "./utils/gameReducer";
 
 
@@ -55,6 +60,16 @@ export default function App() {
   const [showSpyP2Role, setShowSpyP2Role] = useState(false);
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [isNotebookOpen, setIsNotebookOpen] = useState(false);
+  const urlParams = useMemo(() => new URLSearchParams(window.location.search), []);
+  const clientTypeParam = (urlParams.get("clientType") || urlParams.get("role"))?.toUpperCase();
+  const [tvRoomCode] = useState(() => urlParams.get("room") || Math.floor(10000 + Math.random() * 90000).toString());
+  const [tvPartyState, setTvPartyState] = useState<"NONE" | "TV_LOBBY" | "TV_BOARD" | "CONTROLLER">(() => {
+    if (clientTypeParam === "CONTROLLER") return "CONTROLLER";
+    if (clientTypeParam === "TV_DISPLAY") return "TV_LOBBY";
+    return "NONE";
+  });
+  const [tvLinePreview, setTvLinePreview] = useState<ShiftPayload | null>(null);
+  const [isPassAndPlayOpen, setIsPassAndPlayOpen] = useState(false);
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -509,7 +524,11 @@ export default function App() {
       <div className="w-full max-w-7xl mx-auto h-full relative flex flex-col overflow-hidden">
         {isLobbyOpen && (
           <MainMenu
-            profile={profile}
+              onStartTvParty={() => {
+                setTvPartyState("TV_LOBBY");
+                setIsLobbyOpen(false);
+              }}
+              profile={profile}
             onUpdateProfile={updateProfile}
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -616,6 +635,64 @@ export default function App() {
 
 
       </div>
+
+      {/* РЕЖИМ TV PARTY: Мобильный пульт управления */}
+      {tvPartyState === "CONTROLLER" && (
+        <div className="fixed inset-0 z-50 bg-[#080a0f]">
+          <MobileControllerView
+            gameState={gameState}
+            playerRole={gameState.currentTurn || "KILLER"}
+            onDispatchAction={(action) => {
+              dispatchAction(action);
+              if (action.type === "END_TURN") {
+                setIsPassAndPlayOpen(true);
+              }
+            }}
+            onSelectLinePreview={setTvLinePreview}
+            onExit={() => {
+              window.location.search = "";
+              setTvPartyState("NONE");
+              setIsLobbyOpen(true);
+            }}
+          />
+          <PassAndPlayModal
+            isOpen={isPassAndPlayOpen}
+            nextRole={gameState.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER"}
+            onConfirmTakeDevice={() => setIsPassAndPlayOpen(false)}
+          />
+        </div>
+      )}
+
+      {/* РЕЖИМ TV PARTY: Лобби ожидания подключения */}
+      {tvPartyState === "TV_LOBBY" && (
+        <div className="fixed inset-0 z-50 bg-[#06070a]">
+          <TvLobbyView
+            roomCode={tvRoomCode}
+            players={{
+              p1: { nickname: "Хост (Контроллер 1)", isHost: true }
+            }}
+            onStartGame={() => {
+              setGameState(createInitialState("SKHVATKA", "ONLINE", "KILLER"));
+              setTvPartyState("TV_BOARD");
+            }}
+            onExit={() => {
+              setTvPartyState("NONE");
+              setIsLobbyOpen(true);
+            }}
+          />
+        </div>
+      )}
+
+      {/* РЕЖИМ TV PARTY: Главный экран телевизора */}
+      {tvPartyState === "TV_BOARD" && (
+        <div className="fixed inset-0 z-50 bg-[#06070a]">
+          <TvBoardView
+            gameState={gameState}
+            secondsLeft={60}
+            selectedLine={tvLinePreview}
+          />
+        </div>
+      )}
     </div>
   );
 }

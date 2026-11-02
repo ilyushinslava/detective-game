@@ -144,9 +144,15 @@ export function useBoardVisuals({
 
   const radarColorClass = useMemo(() => {
     if (!gameState.interrogationRadar) return null;
-    return gameState.mode === "SECRET_SERVICE"
-      ? `${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].border} ring-2 ${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].ring}`
-      : "border-blue-500 ring-2 ring-blue-500/70";
+    if (gameState.mode === "SECRET_SERVICE") {
+      return `${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].border} ring-2 ${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].ring}`;
+    }
+    if (gameState.mode === "SKHVATKA") {
+      return gameState.lastInterrogation?.interrogator === "KILLER"
+        ? "border-red-500 ring-2 ring-red-500/70 text-red-500"
+        : "border-blue-500 ring-2 ring-blue-500/70";
+    }
+    return "border-blue-500 ring-2 ring-blue-500/70";
   }, [gameState.interrogationRadar, gameState.mode]);
 
   const effectiveRadarTargetId =

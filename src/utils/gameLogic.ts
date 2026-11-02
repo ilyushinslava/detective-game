@@ -518,6 +518,10 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     interrogationLog = ` Опрос свидетелей: Инспектор ${isNear ? "находился" : "НЕ находился"} рядом с убитым.`;
   }
 
+  const interrogationRadar = (state.mode === "SKHVATKA" && !winner) 
+    ? { targetId, interrogatorIndex: 0 }
+    : null;
+
   return {
     ...state,
     board: newBoard,
@@ -531,7 +535,7 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     currentTurn: "DETECTIVE",
     blockedShift: null,
     lastInterrogation,
-    interrogationRadar: null,
+    interrogationRadar,
     disguisedNotification: null,
     log: [
       ...state.log,

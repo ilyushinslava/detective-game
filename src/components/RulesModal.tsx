@@ -418,14 +418,14 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
                 {currentMode.title}
               </span>
             </div>
-            <span className="text-[10px] font-mono text-zinc-300 bg-black/70 px-2 py-0.5 rounded-full border border-white/10 backdrop-blur-sm">
+            <span className="text-[10px] font-semibold tracking-wider text-zinc-300 bg-black/70 px-2 py-0.5 rounded-full border border-white/10 backdrop-blur-sm">
               {currentMode.format}
             </span>
           </div>
         </div>
 
         <div className="overflow-y-auto space-y-3 text-left text-xs text-zinc-300 pr-1 pb-2 custom-scrollbar flex-1 min-h-0">
-          <p className="text-[11px] text-zinc-400 leading-relaxed font-mono">
+          <p className="text-[11px] text-zinc-400 leading-relaxed font-medium tracking-normal">
             {currentMode.desc}
           </p>
 
@@ -468,7 +468,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
                       {m.name}
                     </span>
                     {m.tag && (
-                      <span className="text-[8px] font-mono text-zinc-400 uppercase bg-zinc-950 px-1.5 py-0.5 rounded border border-white/5">
+                      <span className="text-[8px] font-semibold tracking-wider text-zinc-400 uppercase bg-zinc-950 px-1.5 py-0.5 rounded border border-white/5">
                         {m.tag}
                       </span>
                     )}

@@ -587,7 +587,7 @@ export const RoleRevealModal = ({
 
         {/* Плашка пояснения выбранного действия */}
         {selectedTile && (
-          <div className="mt-2.5 p-3 rounded-xl bg-zinc-900/90 border border-white/10 text-[10px] text-zinc-300 font-mono text-left animate-fadeIn leading-relaxed">
+          <div className="mt-2.5 p-3 rounded-xl bg-zinc-900/90 border border-white/10 text-[10px] text-zinc-300 font-medium tracking-normal text-left animate-fadeIn leading-relaxed">
             <b className="text-white uppercase font-black block mb-0.5">{selectedTile.label}:</b>
             {selectedTile.desc}
           </div>
@@ -609,7 +609,7 @@ export const RoleRevealModal = ({
       <div className="w-full max-w-md h-[90dvh] max-h-[760px] bg-zinc-950 border border-white/10 rounded-3xl p-5 sm:p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col justify-between text-center overflow-y-auto custom-scrollbar"> <div className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-3">Сетевой протокол</div>
           <div className="w-12 h-12 border-2 border-zinc-800 border-t-zinc-200 rounded-full animate-spin mb-6" />
           <h2 className="text-lg font-black text-white uppercase tracking-wider mb-2">Ожидание соперника</h2>
-          <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
+          <p className="text-xs font-medium tracking-normal text-zinc-400 mb-6 leading-relaxed">
             Вы подтвердили готовность. Ждем подтверждения второго игрока...
           </p>
           <div className="p-3 rounded-xl bg-zinc-900 border border-white/5 w-full flex items-center justify-between font-mono mb-6">
@@ -728,7 +728,7 @@ export const RoleRevealModal = ({
               <h2 className="text-xl font-black uppercase tracking-widest text-zinc-100 mb-3">
                 Фантом
               </h2>
-              <p className="text-[10px] font-mono text-zinc-500 max-w-xs leading-relaxed uppercase tracking-widest">
+              <p className="text-[10px] font-medium tracking-normal text-zinc-500 max-w-xs leading-relaxed uppercase">
                 Убедитесь, что второй игрок не смотрит на экран перед раскрытием вашей тайной личности.
               </p>
             </div>
@@ -844,7 +844,7 @@ export const RoleRevealModal = ({
                   <h2 className="text-xl font-black text-zinc-100 uppercase tracking-wider mb-2">
                     Ожидание хода
                   </h2>
-                  <p className="text-[10px] font-mono text-blue-200/70 uppercase tracking-widest leading-relaxed">
+                  <p className="text-[10px] font-medium tracking-normal text-blue-200/70 uppercase leading-relaxed">
                     Выбор личности после выстрела. Бандит сделает первый ход вслепую. После ликвидации жертвы вы оцените обстановку и выберете личность из 4 карт.
                   </p>
                 </div>

@@ -62,8 +62,8 @@ export const DuelCandidatesSheet = ({
             <h2 className="text-lg font-black uppercase tracking-widest text-zinc-100">
               Досье
             </h2>
-            <div className="bg-blue-950/80 border border-blue-500/40 text-blue-200 text-xs font-mono px-2.5 py-1 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.2)]">
-              Кандидаты: {candidates.length} из {allCharacters.length}
+            <div className="bg-blue-950/80 border border-blue-500/40 text-blue-200 text-xs font-medium tracking-normal px-2.5 py-1 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.2)]">
+              Кандидаты: <span className="font-bold tabular-nums">{candidates.length}</span> из <span className="font-bold tabular-nums">{allCharacters.length}</span>
             </div>
           </div>
           <button
@@ -84,7 +84,7 @@ export const DuelCandidatesSheet = ({
               <h3 className="text-sm font-black text-red-400 uppercase tracking-widest mb-2">
                 Противоречие данных
               </h3>
-              <p className="text-xs text-zinc-400 leading-relaxed font-mono">
+              <p className="text-xs text-zinc-400 leading-relaxed font-medium tracking-normal">
                 Список кандидатов пуст. Проверьте историю ответов соперника — возможно, он допустил ошибку или намеренно солгал.
               </p>
             </div>

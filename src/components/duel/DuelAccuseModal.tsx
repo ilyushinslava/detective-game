@@ -53,7 +53,7 @@ export const DuelAccuseModal = ({
         <h2 className="text-xl font-black uppercase tracking-widest text-zinc-100 mb-1">
           Официальное обвинение
         </h2>
-        <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-6">
+        <p className="text-[10px] font-medium tracking-normal text-zinc-400 uppercase mb-6">
           Подтвердите личность подозреваемого
         </p>
 
@@ -92,7 +92,7 @@ export const DuelAccuseModal = ({
               <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest mb-1">
                 Обвинение отклонено
               </span>
-              <span className="text-[10px] text-zinc-500 font-mono leading-relaxed">
+              <span className="text-[10px] text-zinc-500 font-medium tracking-normal leading-relaxed">
                 Вы уже пытались обвинить этого подозреваемого. Повторное обвинение запрещено правилами.
               </span>
             </div>
@@ -106,7 +106,7 @@ export const DuelAccuseModal = ({
               <span className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">
                 Внимание: Штраф за ошибку
               </span>
-              <span className="text-[10px] text-zinc-400 font-mono leading-relaxed">
+              <span className="text-[10px] text-zinc-400 font-medium tracking-normal leading-relaxed">
                 Если это не разыскиваемая цель, вы получите <b className="text-red-400">+1 штрафное очко</b>, потеряете ход, а игра продолжится.
               </span>
             </div>

@@ -346,16 +346,16 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
               <span className="text-zinc-100 font-black truncate">
                 {allChars.find((c) => c.id === gameState.victimList[0])?.name ?? gameState.victimList[0]}
               </span>
-              <span className="text-[9px] md:text-xs font-mono text-red-400/80 shrink-0">
+              <span className="text-[9px] md:text-xs font-semibold tracking-normal text-red-400/90 shrink-0">
                 (#{gameState.victimList[0].replace("c", "").padStart(2, "0")})
               </span>
             </div>
-            <div className="shrink-0 font-mono text-[9px] sm:text-[10px] md:text-xs text-zinc-400 uppercase ml-2 flex items-center gap-1">
-              <span>В очереди:</span> <b className="text-red-400">{gameState.victimList.length}</b>
+            <div className="shrink-0 font-medium tracking-normal text-[9px] sm:text-[10px] md:text-xs text-zinc-400 ml-2 flex items-center gap-1">
+              <span>В очереди:</span> <b className="font-bold tabular-nums text-red-400">{gameState.victimList.length}</b>
             </div>
           </div>
         ) : (
-          <div className="w-full h-full px-2.5 rounded-lg border border-dashed border-zinc-900 flex items-center justify-center text-[10px] md:text-sm text-zinc-600 font-mono">
+          <div className="w-full h-full px-2.5 rounded-lg border border-dashed border-zinc-900 flex items-center justify-center text-[10px] md:text-sm text-zinc-600 font-medium">
             Оперативные показания: ожидание допроса
           </div>
         )}
@@ -438,7 +438,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
             isPVP={gameState.opponent === "PVP"}
           />
 
-          <div className="w-full max-w-md md:max-w-xl h-7 sm:h-8 px-3 bg-zinc-900/90 border border-zinc-800 rounded-lg text-[10px] sm:text-xs font-mono text-zinc-300 text-center shadow-sm shrink-0 flex items-center justify-center overflow-hidden">
+          <div className="w-full max-w-md md:max-w-xl h-7 sm:h-8 px-3 bg-zinc-900/90 border border-zinc-800 rounded-lg text-[10px] sm:text-xs font-medium tracking-normal text-zinc-300 text-center shadow-sm shrink-0 flex items-center justify-center overflow-hidden">
             <span className="truncate w-full">
               {gameState.log.length > 0 ? gameState.log[gameState.log.length - 1] : "Операция в процессе..."}
             </span>
@@ -535,7 +535,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
             </div>
             <div
               ref={logContainerRef}
-              className="flex-1 overflow-y-auto space-y-2 text-[10px] font-mono text-zinc-300 pr-2 custom-scrollbar"
+              className="flex-1 overflow-y-auto space-y-2 text-[10px] font-medium tracking-normal text-zinc-300 pr-2 custom-scrollbar"
             >
               {gameState.log.map((entry, idx) => (
                 <div key={idx} className="leading-relaxed break-words">

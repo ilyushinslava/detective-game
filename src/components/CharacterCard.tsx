@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { type Character, type GameModeType } from "../types/game";
 
 const characterImages = import.meta.glob<{ default: string }>(
@@ -292,9 +292,17 @@ export const CharacterCard = memo(
           </div>
         )}
 
-        {mode === "THIEF_HUNT" && character.isAlive && !character.isRobbed && (
-          <div className="absolute bottom-0 inset-x-0 h-[2px] z-20 pointer-events-none bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_8px_rgba(245,158,11,0.7)]" />
-        )}
+        <AnimatePresence>
+          {mode === "THIEF_HUNT" && character.isAlive && !character.isRobbed && (
+            <motion.div
+              key="active-coin-edge"
+              initial={{ opacity: 0, scaleX: 0.8 }}
+              animate={{ opacity: 1, scaleX: 1 }}
+              exit={{ opacity: 0, y: -12, scaleX: 0.5, transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] } }}
+              className="absolute bottom-0 inset-x-0 h-[2px] z-20 pointer-events-none bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_8px_rgba(245,158,11,0.7)]"
+            />
+          )}
+        </AnimatePresence>
 
         {character.isRobbed && (
           <div

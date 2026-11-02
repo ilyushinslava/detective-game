@@ -63,6 +63,19 @@ export const GameLifecycleModals: React.FC<GameLifecycleModalsProps> = memo(({
   requestRematch,
   setFullscreenImage,
 }) => {
+  const [showGameOverModal, setShowGameOverModal] = React.useState(false);
+
+  React.useEffect(() => {
+    if (gameState.winner) {
+      const timer = setTimeout(() => {
+        setShowGameOverModal(true);
+      }, 1300);
+      return () => clearTimeout(timer);
+    } else {
+      setShowGameOverModal(false);
+    }
+  }, [gameState.winner]);
+
   return (
     <>
       {isIntroPhase && !isLobbyOpen && (
@@ -177,7 +190,7 @@ export const GameLifecycleModals: React.FC<GameLifecycleModalsProps> = memo(({
           />
         )}
 
-      {gameState.winner && !gameState.restartRequestedBy && (
+      {showGameOverModal && gameState.winner && !gameState.restartRequestedBy && (
         <GameOverModal
           winner={gameState.winner}
           mode={gameState.mode}

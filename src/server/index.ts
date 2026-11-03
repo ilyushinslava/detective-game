@@ -35,6 +35,14 @@ const publicRoomsRegistry = new Map<
   }
 >();
 
+const defer = (fn: () => void) => {
+  if (typeof process !== "undefined" && (process.env?.VITEST || process.env?.NODE_ENV === "test")) {
+    try { fn(); } catch (_) {}
+  } else {
+    setTimeout(() => { try { fn(); } catch (_) {} }, 50);
+  }
+};
+
 export default class GameRoomServer {
   room: any;
   state: ServerRoomState;
@@ -101,7 +109,8 @@ export default class GameRoomServer {
   }
 
   onConnect(conn: any, ctx: { request: Request }): void {
-    const url = new URL(ctx.request.url);
+    try {
+      const url = new URL(ctx.request?.url || "", "http://localhost");
     const clientId = url.searchParams.get("clientId") || conn.id;
     const nickname = url.searchParams.get("nickname") || "Игрок";
     const isHost = url.searchParams.get("isHost") === "true";
@@ -117,10 +126,23 @@ export default class GameRoomServer {
         this.state.status = "WAITING";
         this.state.mode = mode;
       }
-      this.broadcastStatus();
-      if (this.state.gameState) {
-        this.broadcastState();
-      }
+
+      publicRoomsRegistry.set(roomCode, {
+        roomCode,
+        mode: this.state.mode,
+        hostName: nickname || "TV_HOST",
+        status: this.state.status,
+        playersCount: Object.keys(this.state.players).length,
+        maxPlayers: 4,
+        bet: 250,
+      });
+
+      defer(() => {
+        this.broadcastStatus();
+        if (this.state.gameState) {
+          this.broadcastState();
+        }
+      });
       return;
     }
 
@@ -133,9 +155,11 @@ export default class GameRoomServer {
       }
       this.state.players[clientId].connectionId = conn.id;
       this.state.players[clientId].clientType = clientType;
-      this.broadcastRaw(JSON.stringify({ type: "PRESENCE_CHANGED", connected: true }));
-      this.broadcastStatus();
-      this.broadcastState();
+      defer(() => {
+        this.broadcastRaw(JSON.stringify({ type: "PRESENCE_CHANGED", connected: true }));
+        this.broadcastStatus();
+        this.broadcastState();
+      });
       return;
     }
 
@@ -170,6 +194,9 @@ export default class GameRoomServer {
         playersCount: 1,
         maxPlayers: 2,
         bet: 250,
+      });
+      defer(() => {
+        this.broadcastStatus();
       });
     } else {
       const hostId = Object.keys(this.state.players)[0];
@@ -219,8 +246,13 @@ export default class GameRoomServer {
         });
       }
 
-      this.broadcastStatus();
-      this.broadcastState();
+      defer(() => {
+        this.broadcastStatus();
+        this.broadcastState();
+      });
+    }
+    } catch (err) {
+      console.error("[GameRoomServer] onConnect failed safely:", err);
     }
   }
 
@@ -305,7 +337,7 @@ export default class GameRoomServer {
       const isTvSender = Object.values(this.state.tvDisplays).some(
         (tv) => tv.connectionId === sender?.id
       );
-      if (isTvSender) {
+      if (isTvSender && action.type !== "START_MATCH") {
         console.warn("[GameRoomServer] Action rejected: TV_DISPLAY cannot issue game actions.");
         return;
       }
@@ -401,6 +433,29 @@ export default class GameRoomServer {
         );
         this.state.gameState.matchBet = 250;
         this.state.gameState.matchPot = 500;
+        this.broadcastStatus();
+        this.broadcastState();
+        return;
+      }
+
+      if (action.type === "START_MATCH") {
+        this.state.status = "PLAYING";
+        const playerKeys = Object.keys(this.state.players);
+        const p2Name = playerKeys[1] ? this.state.players[playerKeys[1]].nickname : "Player 2";
+        if (!this.state.gameState) {
+          this.state.gameState = createInitialState(
+            this.state.mode,
+            "ONLINE",
+            "KILLER",
+            Math.max(2, playerKeys.length),
+            this.state.mode === "SECRET_SERVICE" ? 2 : 3,
+            16,
+            p2Name
+          );
+        } else {
+          this.state.gameState.winner = null;
+        }
+        publicRoomsRegistry.delete(this.getRoomCode());
         this.broadcastStatus();
         this.broadcastState();
         return;
@@ -650,16 +705,20 @@ export default class GameRoomServer {
   }
 
   private broadcastRaw(msg: string): void {
-    const connections = this.room?._connectionsMap
-      ? Array.from(this.room._connectionsMap.values())
-      : (typeof this.room?.getConnections === "function"
-          ? Array.from(this.room.getConnections())
-          : []);
-    for (const conn of connections as any[]) {
-      try {
-        conn.send(msg);
-      } catch (_err) {}
-    }
+    try {
+      const connections = this.room?._connectionsMap
+        ? Array.from(this.room._connectionsMap.values())
+        : (typeof this.room?.getConnections === "function"
+            ? Array.from(this.room.getConnections())
+            : []);
+      for (const conn of connections as any[]) {
+        if (!conn) continue;
+        if (typeof conn.readyState === "number" && conn.readyState !== 1) continue;
+        try {
+          conn.send(msg);
+        } catch (_err) {}
+      }
+    } catch (_err) {}
   }
 
   close(): void {

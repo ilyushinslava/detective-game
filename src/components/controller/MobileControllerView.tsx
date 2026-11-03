@@ -237,7 +237,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 ${roleColorClass}`}>
+                <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm ${
+                  isKiller ? 'bg-red-950/80 border-red-600/80 text-red-200' : 'bg-blue-950/80 border-blue-600/80 text-blue-200'
+                }`}>
+                  <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${isKiller ? 'bg-red-400 shadow-[0_0_6px_rgba(239,68,68,0.8)]' : 'bg-blue-400 shadow-[0_0_6px_rgba(59,130,246,0.8)]'}`} />
                   {roleName}
                 </span>
                 {myCharacter && (
@@ -485,7 +488,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                   </div>
                   <div className="flex items-center justify-between gap-1">
                     <span className="text-xs font-bold text-zinc-100 truncate">{char.name}</span>
-                    <span className="text-[11px] font-mono font-bold text-zinc-400">#{char.id.replace('c', '')}</span>
+                    <span className="text-[11px] font-mono font-bold text-zinc-400">#{char.id.replace('c', '').padStart(2, '0')}</span>
                   </div>
                 </div>
               );
@@ -502,7 +505,13 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             key={act.id}
             onClick={() => handleExecuteAction(act.id)}
             disabled={act.requiresTarget && neighbors.length === 0}
-            className="w-full p-3.5 rounded-xl bg-zinc-900/90 border border-zinc-800 text-left flex items-center justify-between hover:border-zinc-700 transition cursor-pointer disabled:opacity-40"
+            className={`w-full p-3.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.99] ${
+              act.isRed
+                ? 'bg-gradient-to-r from-red-950 via-red-900 to-red-950 hover:from-red-900 hover:via-red-800 hover:to-red-900 text-white border-red-600/70 shadow-[0_8px_20px_rgba(220,38,38,0.35)]'
+                : act.id === 'SHIFT'
+                  ? 'bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-950 hover:from-zinc-800 hover:via-zinc-700 hover:to-zinc-900 text-zinc-100 border-zinc-600/70 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
+                  : 'bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 hover:from-blue-900 hover:via-blue-800 hover:to-blue-900 text-white border-blue-500/70 shadow-[0_8px_20px_rgba(37,99,235,0.35)]'
+            }`}
           >
             <div className="flex items-center gap-3">
               <span className="text-base">{act.icon}</span>
@@ -518,7 +527,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       {/* Завершить ход */}
       <button
         onClick={handleEndTurn}
-        className="w-full py-4 rounded-2xl bg-red-600 hover:bg-red-500 text-white text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(239,68,68,0.4)] cursor-pointer active:scale-98 transition"
+        className="w-full py-4 rounded-2xl bg-red-600 hover:bg-red-500 text-white text-sm font-black uppercase tracking-widest shadow-[0_0_25px_rgba(239,68,68,0.5)] cursor-pointer active:scale-[0.98] transition-all border border-red-400/30"
       >
         Завершить ход
       </button>

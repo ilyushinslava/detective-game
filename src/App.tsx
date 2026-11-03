@@ -33,6 +33,20 @@ const characterImages = import.meta.glob<{ default: string }>(
 );
 
 export default function App() {
+  const urlParams = useMemo(() => new URLSearchParams(typeof window !== "undefined" ? window.location.search : ""), []);
+  const clientTypeParam = (urlParams.get("clientType") || urlParams.get("role"))?.toUpperCase();
+  const roomParam = urlParams.get("room");
+
+  if (clientTypeParam === "TV_DISPLAY" && !roomParam && typeof window !== "undefined" && typeof window.location?.replace === "function") {
+    const code = sessionStorage.getItem("tv_party_room") || Math.floor(10000 + Math.random() * 90000).toString();
+    sessionStorage.setItem("tv_party_room", code);
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set("room", code);
+    newUrl.searchParams.set("clientType", "TV_DISPLAY");
+    window.location.replace(newUrl.toString());
+    return null;
+  }
+
   const [showSplash, setShowSplash] = useState(true);
   const [, setActiveMode] = useState<GameModeType>("SKHVATKA");
   const [isLobbyOpen, setIsLobbyOpen] = useState(true);
@@ -61,9 +75,8 @@ export default function App() {
   const [showSpyP2Role, setShowSpyP2Role] = useState(false);
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [isNotebookOpen, setIsNotebookOpen] = useState(false);
-  const urlParams = useMemo(() => new URLSearchParams(window.location.search), []);
-  const clientTypeParam = (urlParams.get("clientType") || urlParams.get("role"))?.toUpperCase();
-  const [tvRoomCode] = useState(() => urlParams.get("room") || Math.floor(10000 + Math.random() * 90000).toString());
+  const [tvRoomCode, setTvRoomCode] = useState<string>(roomParam || "");
+  const [pinInput, setPinInput] = useState<string>("");
   const [tvPartyState, setTvPartyState] = useState<"NONE" | "TV_LOBBY" | "TV_BOARD" | "CONTROLLER">(() => {
     if (clientTypeParam === "CONTROLLER") return "CONTROLLER";
     if (clientTypeParam === "TV_DISPLAY") return "TV_LOBBY";
@@ -71,6 +84,7 @@ export default function App() {
   });
   const [tvLinePreview, setTvLinePreview] = useState<ShiftPayload | null>(null);
   const [tvPlayers, setTvPlayers] = useState<Record<string, { nickname: string; isHost?: boolean }>>({});
+  const [controllerRoomStatus, setControllerRoomStatus] = useState<string>("WAITING");
   const [isPassAndPlayOpen, setIsPassAndPlayOpen] = useState(false);
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
 
@@ -80,9 +94,37 @@ export default function App() {
 
   useEffect(() => {
     if (clientTypeParam === "CONTROLLER" && tvRoomCode) {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("tv_controller_room", tvRoomCode);
+      }
       partyService.connect(tvRoomCode, profile.nickname || 'Агент', false, 'SECRET_SERVICE', undefined, clientTypeParam);
+
+      const prevOnRoomStatus = partyService.onRoomStatus;
+      const prevOnSyncState = partyService.onSyncState;
+
+      partyService.onRoomStatus = (data: any) => {
+        prevOnRoomStatus?.(data);
+        if (data?.status) {
+          setControllerRoomStatus(data.status);
+        }
+      };
+
+      partyService.onSyncState = (state: any, role?: Role, status?: string) => {
+        prevOnSyncState?.(state, role, status);
+        if (state) {
+          setGameState(state);
+        }
+        if (status) {
+          setControllerRoomStatus(status);
+        }
+      };
+
+      return () => {
+        partyService.onRoomStatus = prevOnRoomStatus;
+        partyService.onSyncState = prevOnSyncState;
+      };
     }
-  }, [clientTypeParam, tvRoomCode, profile.nickname]);
+  }, [clientTypeParam, tvRoomCode]);
 
   useEffect(() => {
     if (tvPartyState !== "TV_LOBBY" && tvPartyState !== "TV_BOARD") return;
@@ -570,9 +612,12 @@ export default function App() {
         {isLobbyOpen && (
           <MainMenu
               onStartTvParty={() => {
-                window.history.pushState(null, '', '?clientType=TV_DISPLAY&room=' + tvRoomCode);
-                setTvPartyState("TV_LOBBY");
-                setIsLobbyOpen(false);
+                const code = sessionStorage.getItem("tv_party_room") || Math.floor(10000 + Math.random() * 90000).toString();
+                sessionStorage.setItem("tv_party_room", code);
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.set("room", code);
+                newUrl.searchParams.set("clientType", "TV_DISPLAY");
+                window.location.replace(newUrl.toString());
               }}
               profile={profile}
             onUpdateProfile={updateProfile}
@@ -689,22 +734,117 @@ export default function App() {
       {/* РЕЖИМ TV PARTY: Мобильный пульт управления */}
       {tvPartyState === "CONTROLLER" && (
         <div className="fixed inset-0 z-50 bg-[#080a0f]">
-          <MobileControllerView
-            gameState={gameState}
-            playerRole={
-              gameState.mode === "SECRET_SERVICE"
-                ? ((gameState.activeSpyIndex ?? 0) === 1 ? "DETECTIVE" : "KILLER")
-                : (gameState.currentTurn || "KILLER")
-            }
-            isPassAndPlay={true}
-            onDispatchAction={dispatchAction}
-            onSelectLinePreview={setTvLinePreview}
-            onExit={() => {
-              window.location.search = "";
-              setTvPartyState("NONE");
-              setIsLobbyOpen(true);
-            }}
-          />
+          {!tvRoomCode ? (
+            <div className="flex h-screen w-screen flex-col justify-between p-6 text-zinc-100 select-none font-sans">
+              <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+                <span className="text-xs font-mono uppercase tracking-widest text-zinc-400">ПОДКЛЮЧЕНИЕ К ТВ</span>
+              </div>
+              <div className="flex flex-col items-center text-center max-w-sm mx-auto my-auto space-y-4 w-full">
+                <div className="w-16 h-16 rounded-2xl border border-zinc-800 bg-zinc-950 flex items-center justify-center text-3xl shadow-xl">
+                  📺
+                </div>
+                <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100">
+                  ВВЕДИТЕ PIN-КОД
+                </h2>
+                <p className="text-xs text-zinc-400">
+                  Укажите 5-значный код комнаты с экрана телевизора
+                </p>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={5}
+                  value={pinInput}
+                  onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ""))}
+                  placeholder="00000"
+                  className="w-full py-4 text-center font-mono text-3xl font-black tracking-widest rounded-2xl bg-zinc-950 border border-zinc-700 text-zinc-100 focus:outline-none focus:border-red-500"
+                />
+                <button
+                  onClick={() => {
+                    if (pinInput.length >= 4) {
+                      const newUrl = new URL(window.location.href);
+                      newUrl.searchParams.set("room", pinInput);
+                      newUrl.searchParams.set("clientType", "CONTROLLER");
+                      window.location.replace(newUrl.toString());
+                    }
+                  }}
+                  disabled={pinInput.length < 4}
+                  className="w-full py-4 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 font-black uppercase tracking-wider text-xs text-white transition cursor-pointer disabled:cursor-not-allowed"
+                >
+                  ВОЙТИ В ИГРУ
+                </button>
+              </div>
+              <button
+                onClick={() => {
+                  window.location.search = "";
+                  setTvPartyState("NONE");
+                  setIsLobbyOpen(true);
+                }}
+                className="w-full py-3 rounded-xl border border-zinc-800 bg-zinc-900/60 text-xs text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
+              >
+                Назад в меню
+              </button>
+            </div>
+          ) : controllerRoomStatus !== "PLAYING" ? (
+            <div className="flex h-screen w-screen flex-col justify-between p-6 text-zinc-100 select-none font-sans">
+              <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                  <span className="text-xs font-mono uppercase tracking-widest text-zinc-400">ПОДКЛЮЧЕНО</span>
+                </div>
+                <div className="text-xs font-mono text-zinc-500">КОМНАТА #{tvRoomCode}</div>
+              </div>
+
+              <div className="flex flex-col items-center text-center max-w-sm mx-auto my-auto space-y-4">
+                <div className="w-20 h-20 rounded-3xl border border-zinc-800 bg-zinc-950 flex items-center justify-center text-4xl shadow-2xl">
+                  📱
+                </div>
+                <div>
+                  <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100">
+                    ВЫ В ЛОББИ
+                  </h2>
+                  <p className="text-sm text-zinc-400 mt-2 leading-relaxed">
+                    Ожидайте запуска игры на телевизоре.
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 w-full text-left">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">ИГРОК</div>
+                  <div className="text-base font-black text-zinc-100 truncate">
+                    {profile.nickname || 'Агент'}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  partyService.disconnect();
+                  window.location.search = "";
+                  setTvPartyState("NONE");
+                  setIsLobbyOpen(true);
+                }}
+                className="w-full py-3.5 rounded-xl border border-zinc-800 bg-zinc-900/80 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-100 transition cursor-pointer"
+              >
+                Выйти в меню
+              </button>
+            </div>
+          ) : (
+            <MobileControllerView
+              gameState={gameState}
+              playerRole={
+                gameState.mode === "SECRET_SERVICE"
+                  ? ((gameState.activeSpyIndex ?? 0) === 1 ? "DETECTIVE" : "KILLER")
+                  : (gameState.currentTurn || "KILLER")
+              }
+              isPassAndPlay={true}
+              onDispatchAction={dispatchAction}
+              onSelectLinePreview={setTvLinePreview}
+              onExit={() => {
+                partyService.disconnect();
+                window.location.search = "";
+                setTvPartyState("NONE");
+                setIsLobbyOpen(true);
+              }}
+            />
+          )}
         </div>
       )}
 
@@ -718,6 +858,7 @@ export default function App() {
             }}
             connectedPlayers={tvPlayers}
             onStartGame={() => {
+              partyService.sendAction({ type: "START_MATCH", senderId: "TV_HOST" } as any);
               if (partyService.lastSyncedState) {
                 setGameState(partyService.lastSyncedState);
               } else {

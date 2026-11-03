@@ -19,10 +19,10 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   const joinUrl = useMemo(() => {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-    return `${origin}${pathname}?room=${roomCode}&clientType=CONTROLLER`;
+    return `${origin}${pathname}?clientType=CONTROLLER&room=${roomCode}`;
   }, [roomCode]);
 
-  const playerList = Object.values(connectedPlayers !== undefined ? connectedPlayers : (players || {}));
+  const playerList = Object.values(connectedPlayers || players || {});
   const canStart = playerList.length >= 2;
   const slotsCount = Math.max(4, playerList.length);
   const slots = Array.from({ length: slotsCount }, (_, i) => playerList[i] || null); // Допускаем старт для соло/pass-and-play или для 2 игроков

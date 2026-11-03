@@ -31,31 +31,35 @@ class PartyService {
       };
     }
 
+    if (typeof window !== "undefined") {
+      const hostname = window.location.hostname;
+      const isLocalOrLan =
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname.startsWith("192.168.") ||
+        hostname.startsWith("10.") ||
+        hostname.startsWith("172.") ||
+        hostname.endsWith(".local") ||
+        hostname.includes("lan");
+
+      if (isLocalOrLan) {
+        const port = GAME_CONFIG?.NETWORK?.DEFAULT_DEV_PORT || 1999;
+        const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const httpProto = window.location.protocol === "https:" ? "https:" : "http:";
+        return {
+          wsProtocol: wsProto,
+          httpProtocol: httpProto,
+          host: `${hostname}:${port}`,
+        };
+      }
+    }
+
     if (this.failedAttempts >= 2) {
       return {
         wsProtocol: "wss:",
         httpProtocol: "https:",
         host: fallbackHost,
       };
-    }
-
-    if (typeof window !== "undefined") {
-      const hostname = window.location.hostname;
-      const isDevEnv = Boolean(import.meta.env?.DEV);
-      const isLocalHostOrLan =
-        hostname === "localhost" ||
-        hostname === "127.0.0.1" ||
-        hostname.startsWith("192.168.") ||
-        hostname.startsWith("10.") ||
-        hostname.endsWith(".local");
-
-      if (isDevEnv && isLocalHostOrLan) {
-        return {
-          wsProtocol: "ws:",
-          httpProtocol: "http:",
-          host: `${hostname}:${GAME_CONFIG.NETWORK.DEFAULT_DEV_PORT}`,
-        };
-      }
     }
 
     return {
@@ -79,7 +83,17 @@ class PartyService {
     clientId?: string,
     clientType?: string
   ): void {
+    if (this.socket && this.socket.readyState === WebSocket.CONNECTING && this.roomCode === roomCode) {
+      return;
+    }
+
     if (this.socket) {
+      try {
+        this.socket.onclose = null;
+        this.socket.onerror = null;
+        this.socket.onmessage = null;
+        this.socket.onopen = null;
+      } catch (_) {}
       this.disconnect();
     }
 
@@ -176,9 +190,10 @@ class PartyService {
 
           if (!this.isExplicitDisconnect && this.roomCode && this.reconnectAttempts < GAME_CONFIG.NETWORK.RECONNECT.MAX_ATTEMPTS) {
             this.reconnectAttempts++;
+            const baseDelay = Math.max(1000, GAME_CONFIG.NETWORK.RECONNECT.INITIAL_DELAY_MS || 1000);
             const delay = Math.min(
-              GAME_CONFIG.NETWORK.RECONNECT.INITIAL_DELAY_MS * Math.pow(2, this.reconnectAttempts - 1),
-              GAME_CONFIG.NETWORK.RECONNECT.MAX_DELAY_MS
+              baseDelay * Math.pow(1.5, this.reconnectAttempts - 1),
+              GAME_CONFIG.NETWORK.RECONNECT.MAX_DELAY_MS || 10000
             );
             this.reconnectTimeout = setTimeout(() => {
               if (!this.isExplicitDisconnect && this.roomCode) {
@@ -242,6 +257,10 @@ class PartyService {
     }
     if (this.socket) {
       try {
+        this.socket.onclose = null;
+        this.socket.onerror = null;
+        this.socket.onmessage = null;
+        this.socket.onopen = null;
         this.socket.close();
       } catch (err) {
         console.warn("[PartyService] Error closing socket:", err);

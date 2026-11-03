@@ -1,11 +1,12 @@
 import React from 'react';
 import { CharacterCard } from '../CharacterCard';
-import type { GameState, ShiftPayload } from '../../types/game';
+import type { GameState, LastShift } from '../../types/game';
+import { SPY_COLORS } from '../../types/game';
 
 interface TvBoardViewProps {
   gameState: GameState;
   secondsLeft?: number;
-  selectedLine?: ShiftPayload | null;
+  selectedLine?: LastShift | null;
 }
 
 export const TvBoardView: React.FC<TvBoardViewProps> = ({
@@ -13,11 +14,26 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   secondsLeft = 60,
   selectedLine = null,
 }) => {
-  const killerScore = gameState?.killerScore ?? 0;
-  const detectiveScore = gameState?.detectiveScore ?? 0;
-  const targetScore = gameState?.targetTrophies ?? 4;
+  const isSecretService = gameState?.mode === 'SECRET_SERVICE';
+  const spies = gameState?.spies || [];
+  const activeSpyIndex = gameState?.activeSpyIndex ?? 0;
+  const activeSpy = spies[activeSpyIndex];
+  const targetScore = isSecretService
+    ? (gameState?.spyTargetTrophies ?? 3)
+    : (gameState?.mode === 'THIEF_HUNT' ? 10 : 14);
+
+  const killerScore = gameState?.trophiesKiller ?? 0;
+  const detectiveScore = gameState?.trophiesDetective ?? 0;
   const currentTurn = gameState?.currentTurn || 'KILLER';
   const isKillerTurn = currentTurn === 'KILLER';
+
+  const activeTurnName = isSecretService
+    ? (activeSpy?.name || 'Агент')
+    : (isKillerTurn ? 'Бандит' : 'Инспектор');
+
+  const activeTurnColor = isSecretService
+    ? (SPY_COLORS[activeSpyIndex % SPY_COLORS.length]?.text || 'text-red-400')
+    : (isKillerTurn ? 'text-red-400' : 'text-blue-400');
 
   const formatTime = (totalSec: number) => {
     const mins = Math.floor(totalSec / 60);
@@ -25,21 +41,18 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const flatCards = (gameState?.grid && gameState.grid.length > 0)
-    ? gameState.grid
-    : (gameState?.board ? gameState.board.flat() : []);
+  const flatCards = (gameState?.board || []).flat();
 
   const isLineSelected = (row: number, col: number) => {
     if (!selectedLine) return false;
-    const lineType = (selectedLine as any).type || selectedLine.axis;
-    if (lineType === 'ROW' && selectedLine.index === row) return true;
-    if (lineType === 'COL' && selectedLine.index === col) return true;
+    if (selectedLine.type === 'ROW' && selectedLine.index === row) return true;
+    if (selectedLine.type === 'COL' && selectedLine.index === col) return true;
     return false;
   };
 
-  const selectedLineType = selectedLine ? ((selectedLine as any).type || selectedLine.axis) : null;
+  const selectedLineType = selectedLine?.type || null;
   const selectedLineIdx = selectedLine ? selectedLine.index + 1 : 0;
-  const selectedLineDir = selectedLine ? selectedLine.direction : null;
+  const selectedLineDir = selectedLine?.direction || null;
 
   return (
     <div className="flex h-screen w-screen bg-[#06070a] text-zinc-100 select-none overflow-hidden p-6 gap-6 font-sans">
@@ -47,21 +60,37 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
       <div className="flex-1 flex flex-col justify-between">
         <div className="flex items-center justify-between px-4 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800/80 backdrop-blur-md">
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-              <span className="text-sm font-bold tracking-wide text-zinc-300">
-                <span>Агент Фантом</span>: <span className="text-red-400 font-black">{killerScore}/{targetScore}</span>
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-              <span className="text-sm font-bold tracking-wide text-zinc-300">
-                <span>Агент Призрак</span>: <span className="text-cyan-400 font-black">{detectiveScore}/{targetScore}</span>
-              </span>
-            </div>
+            {isSecretService && spies.length > 0 ? (
+              spies.map((spy, idx) => {
+                const color = SPY_COLORS[idx % SPY_COLORS.length];
+                return (
+                  <div key={spy.id || idx} className="flex items-center gap-2">
+                    <span className={`h-3 w-3 rounded-full ${color.bg} border ${color.border}`} />
+                    <span className="text-sm font-bold tracking-wide text-zinc-300">
+                      <span>{spy.name}</span>: <span className={`${color.text} font-black`}>{spy.trophies}/{targetScore}</span>
+                    </span>
+                  </div>
+                );
+              })
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                  <span className="text-sm font-bold tracking-wide text-zinc-300">
+                    <span>Бандит</span>: <span className="text-red-400 font-black">{killerScore}/{targetScore}</span>
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+                  <span className="text-sm font-bold tracking-wide text-zinc-300">
+                    <span>Инспектор</span>: <span className="text-blue-400 font-black">{detectiveScore}/{targetScore}</span>
+                  </span>
+                </div>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-4 text-xs font-mono uppercase tracking-widest text-zinc-400">
-            <span>ХОД: <strong className={isKillerTurn ? 'text-red-400' : 'text-cyan-400'}>{isKillerTurn ? 'Агент Фантом' : 'Агент Призрак'}</strong></span>
+            <span>ХОД: <strong className={activeTurnColor}>{activeTurnName}</strong></span>
           </div>
         </div>
 
@@ -80,7 +109,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   }`}
                 >
                   <CharacterCard
-                    mode={gameState?.gameMode || 'SKHVATKA'}
+                    mode={gameState?.mode || 'SECRET_SERVICE'}
                     character={char}
                     isSelected={isLineActive}
                     isPVP={true}
@@ -97,8 +126,8 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
       <div className="w-96 flex flex-col justify-between gap-4">
         <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg">
           <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-1">ТЕКУЩИЙ ХОД</div>
-          <div className={`text-2xl font-black tracking-wider uppercase ${isKillerTurn ? 'text-red-500' : 'text-cyan-400'}`}>
-            <span>{isKillerTurn ? 'Агент Фантом' : 'Агент Призрак'}</span>
+          <div className={`text-2xl font-black tracking-wider uppercase ${activeTurnColor}`}>
+            <span>{activeTurnName}</span>
           </div>
           <div className="text-xs text-zinc-400 mt-1">Следите за действиями на мобильном контроллере</div>
         </div>
@@ -113,10 +142,9 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
             </div>
             {selectedLineDir && (
               <div className="text-xs font-bold text-red-400">
-                {selectedLineDir === 'LEFT' && '◀ Влево'}
-                {selectedLineDir === 'RIGHT' && '▶ Вправо'}
-                {selectedLineDir === 'UP' && '▲ Вверх'}
-                {selectedLineDir === 'DOWN' && '▼ Вниз'}
+                {selectedLineType === 'ROW'
+                  ? (selectedLineDir === 'FORWARD' ? '▶ Вправо' : '◀ Влево')
+                  : (selectedLineDir === 'FORWARD' ? '▼ Вниз' : '▲ Вверх')}
               </div>
             )}
           </div>
@@ -143,8 +171,8 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg">
           <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">ПОСЛЕДНИЕ СОБЫТИЯ</div>
           <div className="text-xs text-zinc-400 italic font-mono">
-            {gameState?.history && gameState.history.length > 0
-              ? gameState.history[gameState.history.length - 1]
+            {gameState?.log && gameState.log.length > 0
+              ? gameState.log[gameState.log.length - 1]
               : 'Ожидание первых действий...'}
           </div>
         </div>

@@ -11,8 +11,8 @@ describe("TvBoardView Component", () => {
 
     render(<TvBoardView gameState={state} secondsLeft={45} />);
 
-    const phantomElements = screen.getAllByText("Агент Фантом");
-    expect(phantomElements.length).toBeGreaterThanOrEqual(1);
+    const killerElements = screen.getAllByText("Бандит");
+    expect(killerElements.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("0:45")).toBeDefined();
   });
 
@@ -22,12 +22,12 @@ describe("TvBoardView Component", () => {
     render(
       <TvBoardView
         gameState={state}
-        selectedLine={{ type: "ROW", index: 2, direction: "LEFT" }}
+        selectedLine={{ type: "ROW", index: 2, direction: "FORWARD" }}
       />
     );
 
     expect(screen.getByText("Выбранная линия")).toBeDefined();
     expect(screen.getByText("Ряд 3")).toBeDefined();
-    expect(screen.getByText("◀ Влево")).toBeDefined();
+    expect(screen.getByText("▶ Вправо")).toBeDefined();
   });
 });

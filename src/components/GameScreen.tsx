@@ -197,7 +197,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
             className={`flex items-center gap-1.5 px-3 py-1.5 md:px-5 md:py-2.5 rounded-full border text-[10px] md:text-xs font-black tracking-wider uppercase transition-all shadow max-w-[140px] sm:max-w-[200px] truncate ${gameState.winner === "KILLER" ? "bg-red-950/90 border-red-600 text-red-100 shadow-[0_0_15px_rgba(239,68,68,0.5)]" : gameState.winner === "DETECTIVE" ? "bg-blue-950/90 border-blue-600 text-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.5)]" : pillClasses}`}
           >
             {gameState.winner === null && (
-              <span className="relative flex h-2 w-2 shrink-0 items-center justify-center">
+              <span className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
                 <span
                   className={`relative inline-flex rounded-full h-2 w-2 ${dotClasses}`}
                 />

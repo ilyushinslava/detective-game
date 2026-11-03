@@ -70,6 +70,7 @@ export default function App() {
     return "NONE";
   });
   const [tvLinePreview, setTvLinePreview] = useState<ShiftPayload | null>(null);
+  const [tvPlayers, setTvPlayers] = useState<Record<string, { nickname: string; isHost?: boolean }>>({});
   const [isPassAndPlayOpen, setIsPassAndPlayOpen] = useState(false);
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
 
@@ -79,9 +80,46 @@ export default function App() {
 
   useEffect(() => {
     if (clientTypeParam === "CONTROLLER" && tvRoomCode) {
-      partyService.connect(tvRoomCode, profile.nickname || 'Агент', false, 'SECRET_SERVICE');
+      partyService.connect(tvRoomCode, profile.nickname || 'Агент', false, 'SECRET_SERVICE', undefined, clientTypeParam);
     }
   }, [clientTypeParam, tvRoomCode, profile.nickname]);
+
+  useEffect(() => {
+    if (tvPartyState !== "TV_LOBBY" && tvPartyState !== "TV_BOARD") return;
+
+    partyService.connect(tvRoomCode, 'TV_HOST', true, 'SECRET_SERVICE', undefined, 'TV_DISPLAY');
+
+    const prevOnRoomStatus = partyService.onRoomStatus;
+    const prevOnSyncState = partyService.onSyncState;
+    const prevOnAction = partyService.onAction;
+
+    partyService.onRoomStatus = (data: any) => {
+      prevOnRoomStatus?.(data);
+      if (data?.players) {
+        setTvPlayers(data.players);
+      }
+    };
+
+    partyService.onSyncState = (state: any, role?: Role, status?: string) => {
+      prevOnSyncState?.(state, role, status);
+      if (state) {
+        setGameState(state);
+      }
+    };
+
+    partyService.onAction = (action: any) => {
+      prevOnAction?.(action);
+      if (action?.type === "LINE_PREVIEW") {
+        setTvLinePreview(action.payload?.line ?? null);
+      }
+    };
+
+    return () => {
+      partyService.onRoomStatus = prevOnRoomStatus;
+      partyService.onSyncState = prevOnSyncState;
+      partyService.onAction = prevOnAction;
+    };
+  }, [tvPartyState, tvRoomCode]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -653,7 +691,11 @@ export default function App() {
         <div className="fixed inset-0 z-50 bg-[#080a0f]">
           <MobileControllerView
             gameState={gameState}
-            playerRole={gameState.currentTurn || "KILLER"}
+            playerRole={
+              gameState.mode === "SECRET_SERVICE"
+                ? ((gameState.activeSpyIndex ?? 0) === 1 ? "DETECTIVE" : "KILLER")
+                : (gameState.currentTurn || "KILLER")
+            }
             isPassAndPlay={true}
             onDispatchAction={dispatchAction}
             onSelectLinePreview={setTvLinePreview}
@@ -674,11 +716,17 @@ export default function App() {
             players={{
               p1: { nickname: "Хост (Контроллер 1)", isHost: true }
             }}
+            connectedPlayers={tvPlayers}
             onStartGame={() => {
-              setGameState(createInitialState("SECRET_SERVICE", "ONLINE", "KILLER"));
+              if (partyService.lastSyncedState) {
+                setGameState(partyService.lastSyncedState);
+              } else {
+                setGameState(createInitialState("SECRET_SERVICE", "ONLINE", "KILLER"));
+              }
               setTvPartyState("TV_BOARD");
             }}
             onExit={() => {
+              partyService.disconnect();
               setTvPartyState("NONE");
               setIsLobbyOpen(true);
             }}

@@ -164,7 +164,6 @@ export const GameBoard = ({
                 <button
                   key={`col-up-${colIdx}`}
                   disabled={isBlocked || isOpposite}
-                  onPointerDown={(e) => e.preventDefault()}
                   onClick={(e) => { e.currentTarget.blur(); onShift("COL", colIdx, "BACKWARD"); }}
                   className={`w-full h-4 sm:h-5 md:h-7 lg:h-8 xl:h-9 min-h-[16px] sm:min-h-[20px] lg:min-h-[32px] xl:min-h-[36px] shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
                     isBlocked || isOpposite
@@ -213,7 +212,6 @@ export const GameBoard = ({
                 <button
                   key={`row-left-${rIdx}`}
                   disabled={isRowBlocked || isOppositeLeft}
-                  onPointerDown={(e) => e.preventDefault()}
                   onClick={(e) => { e.currentTarget.blur(); onShift("ROW", rIdx, "BACKWARD"); }}
                   className={`w-full h-full rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
                     isRowBlocked || isOppositeLeft
@@ -433,7 +431,6 @@ export const GameBoard = ({
                 <button
                   key={`row-right-${rIdx}`}
                   disabled={isRowBlocked || isOppositeRight}
-                  onPointerDown={(e) => e.preventDefault()}
                   onClick={(e) => { e.currentTarget.blur(); onShift("ROW", rIdx, "FORWARD"); }}
                   className={`w-full h-full rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
                     isRowBlocked || isOppositeRight
@@ -481,7 +478,6 @@ export const GameBoard = ({
                 <button
                   key={`col-down-${colIdx}`}
                   disabled={isBlocked || isOpposite}
-                  onPointerDown={(e) => e.preventDefault()}
                   onClick={(e) => { e.currentTarget.blur(); onShift("COL", colIdx, "FORWARD"); }}
                   className={`w-full h-3.5 sm:h-5 md:h-7 lg:h-8 xl:h-9 min-h-[16px] sm:min-h-[20px] lg:min-h-[32px] xl:min-h-[36px] shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
                     isBlocked || isOpposite

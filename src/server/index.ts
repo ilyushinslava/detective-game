@@ -406,6 +406,11 @@ export default class GameRoomServer {
         return;
       }
 
+      if (action.type === "LINE_PREVIEW") {
+        this.broadcastRaw(JSON.stringify({ type: "LINE_PREVIEW", payload: action.payload }));
+        return;
+      }
+
       if (action.type === "PLAYER_READY") {
         if (senderClientId) {
           this.state.readyClients.add(senderClientId);

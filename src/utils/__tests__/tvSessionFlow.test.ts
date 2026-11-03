@@ -3,6 +3,7 @@ import { createInitialState } from "../gameLogic";
 import { gameReducer } from "../gameReducer";
 import { isUndoShift, findCharacterPosition, getCharacterNeighbors } from "../tvPartyLogic";
 import type { GameState, LastShift } from "../../types/game";
+import GameRoomServer from "../../server/index";
 
 describe("TV Session Flow E2E Suite", () => {
   let state: GameState;
@@ -119,6 +120,139 @@ describe("TV Session Flow E2E Suite", () => {
 
       expect(nextAgentName).toBeTruthy();
       expect(nextSpyIndex).not.toBe(currentSpyIndex);
+    });
+  });
+
+  describe("Scenario 4: PartyKit Server TV_DISPLAY & LINE_PREVIEW network invariants", () => {
+    it("registers TV_DISPLAY client in tvDisplays and masks secretId in sync state", () => {
+      const tvMessages: string[] = [];
+      const mockTvConn = {
+        id: "conn-tv-1",
+        send: (msg: string) => tvMessages.push(msg),
+        close: () => {},
+      };
+
+      const connections = [mockTvConn];
+      const mockRoom = {
+        id: "tv-room-42",
+        getConnections: () => connections,
+      };
+
+      const server = new GameRoomServer(mockRoom);
+
+      server.onConnect(mockTvConn, {
+        request: new Request("http://localhost/party/tv-room-42?clientId=tv-client-1&clientType=TV_DISPLAY"),
+      });
+
+      expect(server.state.tvDisplays["tv-client-1"]).toBeDefined();
+      expect(server.state.tvDisplays["tv-client-1"].connectionId).toBe("conn-tv-1");
+      expect(server.state.players["tv-client-1"]).toBeUndefined();
+
+      const statusMsg = tvMessages.find((m) => JSON.parse(m).type === "ROOM_STATUS");
+      expect(statusMsg).toBeDefined();
+      expect(JSON.parse(statusMsg!).hasTvDisplay).toBe(true);
+
+      server.state.gameState = createInitialState("SECRET_SERVICE", "ONLINE", "KILLER");
+      server.state.status = "PLAYING";
+
+      tvMessages.length = 0;
+      server.broadcastState();
+
+      const syncMsg = tvMessages.find((m) => JSON.parse(m).type === "SYNC_STATE");
+      expect(syncMsg).toBeDefined();
+      const parsed = JSON.parse(syncMsg!);
+      expect(parsed.role).toBe("SPECTATOR");
+
+      expect(parsed.state.killerSecretId).toBeNull();
+      expect(parsed.state.detectiveSecretId).toBeNull();
+      if (parsed.state.spies) {
+        for (const spy of parsed.state.spies) {
+          expect(spy.secretId).toBeNull();
+        }
+      }
+      server.close();
+    });
+
+    it("broadcasts LINE_PREVIEW without modifying gameState or invoking reducer", () => {
+      const broadcastMessages: string[] = [];
+      const mockTvConn = {
+        id: "conn-tv-1",
+        send: (msg: string) => broadcastMessages.push(msg),
+        close: () => {},
+      };
+      const mockPlayerConn = {
+        id: "conn-p1",
+        send: (msg: string) => broadcastMessages.push(msg),
+        close: () => {},
+      };
+
+      const mockRoom = {
+        id: "tv-room-42",
+        getConnections: () => [mockTvConn, mockPlayerConn],
+      };
+
+      const server = new GameRoomServer(mockRoom);
+      server.state.status = "PLAYING";
+      const initialGameState = createInitialState("SECRET_SERVICE", "ONLINE", "KILLER");
+      server.state.gameState = initialGameState;
+
+      const previewPayload = {
+        line: { type: "ROW", index: 2, direction: "FORWARD" },
+      };
+
+      server.onMessage(
+        JSON.stringify({ type: "LINE_PREVIEW", payload: previewPayload }),
+        mockPlayerConn
+      );
+
+      const previewMsg = broadcastMessages.find((m) => {
+        try {
+          const parsed = JSON.parse(m);
+          return parsed.type === "LINE_PREVIEW";
+        } catch {
+          return false;
+        }
+      });
+
+      expect(previewMsg).toBeDefined();
+      expect(JSON.parse(previewMsg!).payload).toEqual(previewPayload);
+      expect(server.state.gameState).toBe(initialGameState);
+      server.close();
+    });
+
+    it("rejects any gameplay actions from TV_DISPLAY connections", () => {
+      const mockTvConn = {
+        id: "conn-tv-1",
+        send: () => {},
+        close: () => {},
+      };
+
+      const mockRoom = {
+        id: "tv-room-42",
+        getConnections: () => [mockTvConn],
+      };
+
+      const server = new GameRoomServer(mockRoom);
+      server.state.status = "PLAYING";
+      const initialGameState = createInitialState("SECRET_SERVICE", "ONLINE", "KILLER");
+      server.state.gameState = initialGameState;
+
+      server.state.tvDisplays["tv-client-1"] = {
+        clientId: "tv-client-1",
+        connectionId: "conn-tv-1",
+      };
+
+      server.onMessage(
+        JSON.stringify({
+          type: "SHIFT_BOARD",
+          payload: { shiftType: "ROW", index: 1, direction: "FORWARD" },
+        }),
+        mockTvConn
+      );
+
+      expect(server.state.gameState).toBe(initialGameState);
+      expect(server.state.gameState.lastShift).toBeNull();
+      server.close();
     });
   });
 });

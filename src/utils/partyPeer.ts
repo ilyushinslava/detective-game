@@ -10,6 +10,7 @@ class PartyService {
   socket: WebSocket | null = null;
   private nick: string = "Агент";
   private mode: string = "SKHVATKA";
+  private clientType?: string;
   private pingInterval: ReturnType<typeof setInterval> | null = null;
   private isExplicitDisconnect: boolean = false;
   private reconnectAttempts: number = 0;
@@ -75,7 +76,8 @@ class PartyService {
     nickname: string,
     isHost: boolean,
     mode: string,
-    clientId?: string
+    clientId?: string,
+    clientType?: string
   ): void {
     if (this.socket) {
       this.disconnect();
@@ -85,6 +87,7 @@ class PartyService {
     this.isHost = isHost;
     this.nick = nickname || "Агент";
     this.mode = mode || "SKHVATKA";
+    if (clientType) this.clientType = clientType;
     this.myClientId = clientId || `client_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     this.isExplicitDisconnect = false;
     if (this.reconnectTimeout) {
@@ -99,7 +102,7 @@ class PartyService {
     const { wsProtocol, host } = this.resolveEndpoints();
 
     const encodedNick = encodeURIComponent(this.nick);
-    const url = `${wsProtocol}//${host}/party/${roomCode}?clientId=${this.myClientId}&nickname=${encodedNick}&isHost=${this.isHost}&mode=${this.mode}&randomRoles=true`;
+    const url = `${wsProtocol}//${host}/party/${roomCode}?clientId=${this.myClientId}&nickname=${encodedNick}&isHost=${this.isHost}&mode=${this.mode}&randomRoles=true${this.clientType ? `&clientType=${this.clientType}` : ""}`;
 
     try {
       const ws = new WebSocket(url);

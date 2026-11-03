@@ -4,6 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 interface TvLobbyViewProps {
   roomCode: string;
   players?: Record<string, { nickname: string; isHost?: boolean }>;
+  connectedPlayers?: Record<string, { nickname: string; isHost?: boolean }>;
   onStartGame?: () => void;
   onExit?: () => void;
 }
@@ -11,6 +12,7 @@ interface TvLobbyViewProps {
 export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   roomCode,
   players = {},
+  connectedPlayers,
   onStartGame,
   onExit,
 }) => {
@@ -20,7 +22,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
     return `${origin}${pathname}?room=${roomCode}&clientType=CONTROLLER`;
   }, [roomCode]);
 
-  const playerList = Object.values(players || {});
+  const playerList = Object.values(connectedPlayers !== undefined ? connectedPlayers : (players || {}));
   const canStart = playerList.length >= 2;
   const slotsCount = Math.max(4, playerList.length);
   const slots = Array.from({ length: slotsCount }, (_, i) => playerList[i] || null); // Допускаем старт для соло/pass-and-play или для 2 игроков

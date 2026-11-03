@@ -62,6 +62,15 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
   const [isCoverOpen, setIsCoverOpen] = useState(false);
 
+  const myCharacter = useMemo(() => {
+    if (!mySecretId || !gameState.board || gameState.board.length === 0) return null;
+    return gameState.board.flat().find((c) => c.id === mySecretId) || null;
+  }, [gameState.board, mySecretId]);
+
+  const targetBorderClass = isKiller
+    ? 'border-red-500 bg-red-950/40 shadow-[0_0_14px_rgba(239,68,68,0.4)]'
+    : 'border-blue-500 bg-blue-950/40 shadow-[0_0_14px_rgba(59,130,246,0.4)]';
+
   const neighbors = useMemo(() => {
     if (!mySecretId || !gameState.board || gameState.board.length === 0) return [];
     return getAdjacentCharacters(gameState.board, mySecretId);
@@ -91,9 +100,17 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     };
   }, [gameState.mode, gameState.spies, gameState.activeSpyIndex, gameState.currentTurn, isSecretService]);
 
+  const updateLinePreview = (line: any) => {
+    onSelectLinePreview?.(line);
+    onDispatchAction({
+      type: 'LINE_PREVIEW',
+      payload: { line },
+    });
+  };
+
   const handleResetShift = () => {
     setShiftStep('IDLE');
-    onSelectLinePreview?.(null);
+    updateLinePreview(null);
   };
 
   const handleConfirmShift = () => {
@@ -176,6 +193,18 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     onDispatchAction({ type: 'END_TURN' });
   };
 
+  if (isCoverOpen) {
+    return (
+      <PassAndPlayModal
+        isOpen={true}
+        nextRole={nextPlayerInfo.nextRole}
+        nextPlayerName={nextPlayerInfo.nextPlayerName}
+        nextPlayerColor={nextPlayerInfo.nextPlayerColor}
+        onConfirmTakeDevice={() => setIsCoverOpen(false)}
+      />
+    );
+  }
+
   // 1. Экран ожидания хода
   if (!isMyTurn) {
     return (
@@ -191,8 +220,36 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         </p>
         <div className="p-4 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 w-full max-w-xs text-left">
           <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">ВАША РОЛЬ</div>
-          <div className={`text-base font-black ${roleColorClass}`}>
-            {roleName}
+          <div className="flex items-center gap-3 mt-1">
+            {myCharacter ? (
+              <div className="w-12 h-12 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-900 shrink-0">
+                <CharacterCard
+                  mode={gameState?.mode || 'SKHVATKA'}
+                  character={myCharacter}
+                  isSelected={false}
+                  isPVP={true}
+                />
+              </div>
+            ) : (
+              <div className="w-12 h-12 rounded-xl border border-dashed border-zinc-800 bg-zinc-950 flex items-center justify-center text-xs font-mono text-zinc-600 shrink-0">
+                ?
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 ${roleColorClass}`}>
+                  {roleName}
+                </span>
+                {myCharacter && (
+                  <span className="text-[10px] font-mono text-zinc-500">
+                    #{myCharacter.id.replace('c', '')}
+                  </span>
+                )}
+              </div>
+              <div className="text-sm font-black text-zinc-200 truncate mt-1">
+                {myCharacter ? myCharacter.name : roleName}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -249,7 +306,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                   key={i}
                   onClick={() => {
                     setSelectedIndex(i);
-                    onSelectLinePreview?.({ type: selectedAxis, index: i });
+                    updateLinePreview({ type: selectedAxis, index: i });
                     setShiftStep('SELECT_DIR');
                   }}
                   className="w-full p-4 rounded-xl bg-zinc-900 border border-zinc-800 text-left flex items-center justify-between hover:border-red-500 transition cursor-pointer"
@@ -352,8 +409,36 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
         <div>
           <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">ВАША РОЛЬ</div>
-          <div className={`text-xl font-black ${roleColorClass}`}>
-            {roleName}
+          <div className="flex items-center gap-3 mt-1">
+            {myCharacter ? (
+              <div className="w-12 h-12 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-900 shrink-0">
+                <CharacterCard
+                  mode={gameState?.mode || 'SKHVATKA'}
+                  character={myCharacter}
+                  isSelected={false}
+                  isPVP={true}
+                />
+              </div>
+            ) : (
+              <div className="w-12 h-12 rounded-xl border border-dashed border-zinc-800 bg-zinc-950 flex items-center justify-center text-xs font-mono text-zinc-600 shrink-0">
+                ?
+              </div>
+            )}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 ${roleColorClass}`}>
+                  {roleName}
+                </span>
+                {myCharacter && (
+                  <span className="text-[10px] font-mono text-zinc-500">
+                    #{myCharacter.id.replace('c', '')}
+                  </span>
+                )}
+              </div>
+              <div className="text-base font-black text-zinc-100 truncate max-w-[170px] sm:max-w-xs mt-0.5">
+                {myCharacter ? myCharacter.name : roleName}
+              </div>
+            </div>
           </div>
         </div>
         <button
@@ -369,34 +454,44 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         <div className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">
           {`Соседи (${neighbors.length})`}
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-          {neighbors.map((char) => {
-            const isSelected = selectedTargetId === char.id;
-            return (
-              <div
-                key={char.id}
-                onClick={() => setSelectedTargetId(char.id)}
-                className={`w-24 shrink-0 rounded-xl overflow-hidden border p-1.5 shadow-md cursor-pointer transition-all ${
-                  isSelected
-                    ? 'border-red-500 bg-red-950/40 shadow-[0_0_12px_rgba(239,68,68,0.4)] scale-105'
-                    : 'border-zinc-800/80 bg-zinc-950/60 hover:border-zinc-700'
-                }`}
-              >
-                <div className="aspect-square w-full rounded-lg overflow-hidden bg-zinc-900 mb-1.5">
-                  <CharacterCard
-                    mode={gameState?.mode || 'SKHVATKA'}
-                    character={char}
-                    isSelected={isSelected}
-                    isPVP={true}
-                    onClick={() => setSelectedTargetId(char.id)}
-                  />
+        {neighbors.length === 0 ? (
+          <div className="p-4 rounded-xl border border-dashed border-zinc-800 bg-zinc-950/40 text-center">
+            <span className="text-xs text-zinc-500 font-mono">
+              [NO TARGETS AVAILABLE]
+            </span>
+          </div>
+        ) : (
+          <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+            {neighbors.map((char) => {
+              const isSelected = selectedTargetId === char.id;
+              return (
+                <div
+                  key={char.id}
+                  onClick={() => setSelectedTargetId(char.id)}
+                  className={`w-24 sm:w-28 shrink-0 rounded-2xl overflow-hidden border p-2 shadow-md cursor-pointer transition-all ${
+                    isSelected
+                      ? `${targetBorderClass} scale-105`
+                      : 'border-zinc-800/80 bg-zinc-950/70 hover:border-zinc-700'
+                  }`}
+                >
+                  <div className="aspect-square w-full rounded-xl overflow-hidden bg-zinc-900 mb-1.5">
+                    <CharacterCard
+                      mode={gameState?.mode || 'SKHVATKA'}
+                      character={char}
+                      isSelected={isSelected}
+                      isPVP={true}
+                      onClick={() => setSelectedTargetId(char.id)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-xs font-bold text-zinc-100 truncate">{char.name}</span>
+                    <span className="text-[11px] font-mono font-bold text-zinc-400">#{char.id.replace('c', '')}</span>
+                  </div>
                 </div>
-                <div className="text-[10px] font-bold text-zinc-200 truncate">{char.name}</div>
-                <div className="text-[9px] font-mono text-zinc-500">#{char.id.replace('c', '')}</div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Доступные действия */}

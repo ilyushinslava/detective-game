@@ -343,12 +343,12 @@ export function useBoardVisuals({
     if (gameState.mode === "SECRET_SERVICE") {
       const isP1Turn = gameState.activeSpyIndex === 0;
       return isP1Turn
-        ? "bg-red-500 shadow-red-500/80"
-        : "bg-blue-500 shadow-blue-500/80";
+        ? "bg-red-500 shadow-red-500/80 animate-pulse"
+        : "bg-blue-500 shadow-blue-500/80 animate-pulse";
     }
     return isKillerTurn
-      ? "bg-red-500 shadow-red-500/80"
-      : "bg-blue-500 shadow-blue-500/80";
+      ? "bg-red-500 shadow-red-500/80 animate-pulse"
+      : "bg-blue-500 shadow-blue-500/80 animate-pulse";
   }, [gameState.mode, gameState.activeSpyIndex, isKillerTurn]);
 
   return {

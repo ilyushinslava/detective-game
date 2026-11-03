@@ -99,7 +99,12 @@ export function useGameActions({
     index: number,
     direction: "FORWARD" | "BACKWARD"
   ) => {
-    if (gameState.winner || isFirstTurnKiller || !isHumanTurn) return;
+    if (gameState.winner || !isHumanTurn) return;
+    if (isFirstTurnKiller) {
+      soundManager.play("deny");
+      triggerHaptic("error");
+      return;
+    }
     soundManager.play("slide");
     triggerHaptic("light");
     setGameState((prev) =>

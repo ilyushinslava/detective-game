@@ -29,7 +29,7 @@ export const PassAndPlayModal: React.FC<PassAndPlayModalProps> = ({
     : defaultRoleBorder;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-between bg-[#06070a] p-6 text-zinc-100 select-none animate-fadeIn font-sans">
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-between bg-[#080a0f] p-6 text-zinc-100 select-none animate-fadeIn font-sans">
       {/* Верхний статус безопасности */}
       <div className="w-full border-b border-zinc-800 pb-3 text-center">
         <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500">
@@ -42,6 +42,10 @@ export const PassAndPlayModal: React.FC<PassAndPlayModalProps> = ({
         <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-3xl border border-zinc-800 bg-zinc-900/80 text-4xl shadow-2xl">
           📱
         </div>
+
+        <h2 className="text-xl font-black uppercase tracking-widest text-zinc-100 mb-4">
+          ПЕРЕДАЙТЕ УСТРОЙСТВО
+        </h2>
 
         <div className="text-xs font-mono uppercase tracking-widest text-zinc-500 mb-1">
           Следующий ход

@@ -78,6 +78,12 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (clientTypeParam === "CONTROLLER" && tvRoomCode) {
+      partyService.connect(tvRoomCode, profile.nickname || 'Агент', false, 'SECRET_SERVICE');
+    }
+  }, [clientTypeParam, tvRoomCode, profile.nickname]);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "Backquote" || e.key === "`") {
         setIsDevPanelOpen((prev) => !prev);
@@ -526,6 +532,7 @@ export default function App() {
         {isLobbyOpen && (
           <MainMenu
               onStartTvParty={() => {
+                window.history.pushState(null, '', '?clientType=TV_DISPLAY&room=' + tvRoomCode);
                 setTvPartyState("TV_LOBBY");
                 setIsLobbyOpen(false);
               }}
@@ -647,23 +654,14 @@ export default function App() {
           <MobileControllerView
             gameState={gameState}
             playerRole={gameState.currentTurn || "KILLER"}
-            onDispatchAction={(action) => {
-              dispatchAction(action);
-              if (action.type === "END_TURN") {
-                setIsPassAndPlayOpen(true);
-              }
-            }}
+            isPassAndPlay={true}
+            onDispatchAction={dispatchAction}
             onSelectLinePreview={setTvLinePreview}
             onExit={() => {
               window.location.search = "";
               setTvPartyState("NONE");
               setIsLobbyOpen(true);
             }}
-          />
-          <PassAndPlayModal
-            isOpen={isPassAndPlayOpen}
-            nextRole={gameState.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER"}
-            onConfirmTakeDevice={() => setIsPassAndPlayOpen(false)}
           />
         </div>
       )}
@@ -677,7 +675,7 @@ export default function App() {
               p1: { nickname: "Хост (Контроллер 1)", isHost: true }
             }}
             onStartGame={() => {
-              setGameState(createInitialState("SKHVATKA", "ONLINE", "KILLER"));
+              setGameState(createInitialState("SECRET_SERVICE", "ONLINE", "KILLER"));
               setTvPartyState("TV_BOARD");
             }}
             onExit={() => {

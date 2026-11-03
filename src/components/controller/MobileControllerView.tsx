@@ -3,6 +3,7 @@ import type { GameState, Role } from '../../types/game';
 import { SPY_COLORS } from '../../types/game';
 import { getAdjacentCharacters } from '../../utils/gameLogic';
 import { CharacterCard } from '../CharacterCard';
+import { PassAndPlayModal } from './PassAndPlayModal';
 
 interface MobileControllerViewProps {
   gameState: GameState;
@@ -10,6 +11,7 @@ interface MobileControllerViewProps {
   onDispatchAction: (action: any) => void;
   onSelectLinePreview?: (line: any) => void;
   onExit?: () => void;
+  isPassAndPlay?: boolean;
 }
 
 type ShiftStep = 'IDLE' | 'SELECT_AXIS' | 'SELECT_INDEX' | 'SELECT_DIR' | 'CONFIRM';
@@ -28,6 +30,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   onDispatchAction,
   onSelectLinePreview,
   onExit,
+  isPassAndPlay = false,
 }) => {
   const isSecretService = gameState.mode === 'SECRET_SERVICE';
   const isKiller = playerRole === 'KILLER';
@@ -57,11 +60,36 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [selectedDir, setSelectedDir] = useState<'LEFT' | 'RIGHT' | 'UP' | 'DOWN'>('LEFT');
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
+  const [isCoverOpen, setIsCoverOpen] = useState(false);
 
   const neighbors = useMemo(() => {
     if (!mySecretId || !gameState.board || gameState.board.length === 0) return [];
     return getAdjacentCharacters(gameState.board, mySecretId);
   }, [gameState.board, mySecretId]);
+
+  const nextPlayerInfo = useMemo(() => {
+    if (isSecretService && gameState.spies && gameState.spies.length > 0) {
+      const nextIndex = ((gameState.activeSpyIndex ?? 0) + 1) % gameState.spies.length;
+      const nextSpy = gameState.spies[nextIndex];
+      return {
+        nextPlayerName: nextSpy?.name || 'Агент',
+        nextPlayerColor: SPY_COLORS[nextIndex % SPY_COLORS.length]?.text || 'text-red-400',
+        nextRole: undefined,
+      };
+    }
+
+    const nextRole: Role = gameState.currentTurn === 'KILLER' ? 'DETECTIVE' : 'KILLER';
+    const name = nextRole === 'KILLER'
+      ? (gameState.mode === 'THIEF_HUNT' ? 'Грабитель' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Маньяк' : 'Бандит')
+      : (gameState.mode === 'THIEF_HUNT' ? 'Полиция' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Оперативник' : 'Инспектор');
+    const color = nextRole === 'KILLER' ? 'text-red-500' : 'text-blue-400';
+
+    return {
+      nextPlayerName: name,
+      nextPlayerColor: color,
+      nextRole,
+    };
+  }, [gameState.mode, gameState.spies, gameState.activeSpyIndex, gameState.currentTurn, isSecretService]);
 
   const handleResetShift = () => {
     setShiftStep('IDLE');
@@ -139,6 +167,13 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       type: actionId,
       payload: { targetId },
     });
+  };
+
+  const handleEndTurn = () => {
+    if (isPassAndPlay) {
+      setIsCoverOpen(true);
+    }
+    onDispatchAction({ type: 'END_TURN' });
   };
 
   // 1. Экран ожидания хода
@@ -387,11 +422,20 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
       {/* Завершить ход */}
       <button
-        onClick={() => onDispatchAction({ type: 'END_TURN' })}
+        onClick={handleEndTurn}
         className="w-full py-4 rounded-2xl bg-red-600 hover:bg-red-500 text-white text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(239,68,68,0.4)] cursor-pointer active:scale-98 transition"
       >
         Завершить ход
       </button>
+
+      {/* Шторка Pass-and-Play */}
+      <PassAndPlayModal
+        isOpen={isCoverOpen}
+        nextRole={nextPlayerInfo.nextRole}
+        nextPlayerName={nextPlayerInfo.nextPlayerName}
+        nextPlayerColor={nextPlayerInfo.nextPlayerColor}
+        onConfirmTakeDevice={() => setIsCoverOpen(false)}
+      />
     </div>
   );
 };

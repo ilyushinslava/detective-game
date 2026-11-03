@@ -19,7 +19,7 @@ describe("PassAndPlayModal Component", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it("отображает имя следующего игрока и вызывает подтверждение", () => {
+  it("отображает дефолтное имя роли Инспектор и вызывает подтверждение", () => {
     const mockConfirm = vi.fn();
 
     render(
@@ -30,8 +30,28 @@ describe("PassAndPlayModal Component", () => {
       />
     );
 
-    expect(screen.getByText("Агент Призрак")).toBeDefined();
+    expect(screen.getByText("Инспектор")).toBeDefined();
     expect(screen.getByText(/Передайте телефон следующему игроку/i)).toBeDefined();
+
+    const confirmBtn = screen.getByRole("button", { name: "Я взял телефон" });
+    fireEvent.click(confirmBtn);
+
+    expect(mockConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it("отображает динамическое имя игрока nextPlayerName, если оно передано", () => {
+    const mockConfirm = vi.fn();
+
+    render(
+      <PassAndPlayModal
+        isOpen={true}
+        nextPlayerName="Агент Дамаск"
+        nextPlayerColor="text-blue-400"
+        onConfirmTakeDevice={mockConfirm}
+      />
+    );
+
+    expect(screen.getByText("Агент Дамаск")).toBeDefined();
 
     const confirmBtn = screen.getByRole("button", { name: "Я взял телефон" });
     fireEvent.click(confirmBtn);

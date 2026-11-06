@@ -531,7 +531,10 @@ export default class GameRoomServer {
       if (!isSoloTvPassAndPlay && player) {
         if (this.state.mode === "SECRET_SERVICE") {
           const activeSpyIndex = this.state.gameState.activeSpyIndex ?? 0;
-          const isTurnValid = player.isHost ? activeSpyIndex === 0 : activeSpyIndex === 1;
+          const playerIndex = Object.keys(this.state.players).indexOf(senderClientId);
+          const isTurnValid = playerIndex !== -1
+            ? activeSpyIndex === playerIndex
+            : (player.isHost ? activeSpyIndex === 0 : activeSpyIndex === 1);
           if (!isTurnValid) {
             console.warn(
               `Move rejected: wrong turn in SECRET_SERVICE. Player isHost: ${player.isHost}, activeSpyIndex: ${activeSpyIndex}`
@@ -566,7 +569,8 @@ export default class GameRoomServer {
       if (action.type === "CAPTURE_SPY" && this.state.mode === "SECRET_SERVICE") {
         const payload = action.payload || {};
         const targetId = payload.targetId || payload.targetCardId;
-        const attackerSpyIndex = this.state.gameState.activeSpyIndex ?? (player?.isHost ? 0 : 1);
+        const playerIndex = Object.keys(this.state.players).indexOf(senderClientId);
+        const attackerSpyIndex = this.state.gameState.activeSpyIndex ?? (playerIndex !== -1 ? playerIndex : (player?.isHost ? 0 : 1));
         const spies = this.state.gameState.spies || [];
         const attackerSpy = spies[attackerSpyIndex];
 
@@ -666,11 +670,13 @@ export default class GameRoomServer {
 
       const clientId = this.getClientIdByConnId(conn.id);
       const player = clientId ? this.state.players[clientId] : null;
+      const playerIndex = clientId ? Object.keys(this.state.players).indexOf(clientId) : -1;
       const maskedState = this.maskStateForPlayer(
         this.state.gameState,
         player?.role,
         player?.isHost,
-        this.state.isPassAndPlay
+        this.state.isPassAndPlay,
+        playerIndex
       );
 
       try {
@@ -716,7 +722,8 @@ export default class GameRoomServer {
     state: GameState,
     role?: Role,
     isHost?: boolean,
-    isPassAndPlay?: boolean
+    isPassAndPlay?: boolean,
+    playerIndex?: number
   ): GameState {
     if (state.winner) return state;
 
@@ -754,7 +761,9 @@ export default class GameRoomServer {
     }
 
     if (state.mode === "SECRET_SERVICE" && copy.spies && Array.isArray(copy.spies)) {
-      const targetMyIndex = isHost === true ? 0 : 1;
+      const targetMyIndex = playerIndex !== undefined && playerIndex !== -1
+        ? playerIndex
+        : (isHost === true ? 0 : 1);
       copy.spies = copy.spies.map((spy: any, idx: number) => {
         if (idx === targetMyIndex) {
           return spy;

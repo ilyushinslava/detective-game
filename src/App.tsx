@@ -167,9 +167,11 @@ export default function App() {
   }, [clientTypeParam, tvRoomCode]);
 
   useEffect(() => {
-    if (tvPartyState !== "TV_LOBBY" && tvPartyState !== "TV_BOARD") return;
+    if (tvPartyState !== "TV_LOBBY" && tvPartyState !== "TV_BOARD" && tvPartyState !== "CONTROLLER") return;
 
-    partyService.connect(tvRoomCode, 'TV_HOST', true, 'SECRET_SERVICE', undefined, 'TV_DISPLAY');
+    if (tvPartyState === "TV_LOBBY" || tvPartyState === "TV_BOARD") {
+      partyService.connect(tvRoomCode, 'TV_HOST', true, 'SECRET_SERVICE', undefined, 'TV_DISPLAY');
+    }
 
     const prevOnRoomStatus = partyService.onRoomStatus;
     const prevOnSyncState = partyService.onSyncState;
@@ -182,6 +184,7 @@ export default function App() {
       }
       if (data?.status === "PLAYING" || data?.status === "FINISHED") {
         setTvPartyState((prev) => (prev === "TV_LOBBY" ? "TV_BOARD" : prev));
+        setControllerRoomStatus(data.status);
       }
     };
 
@@ -191,7 +194,11 @@ export default function App() {
         setGameState(state);
         if (status === "PLAYING" || status === "FINISHED" || (state?.board && state.board.length > 0)) {
           setTvPartyState((prev) => (prev === "TV_LOBBY" ? "TV_BOARD" : prev));
+          setControllerRoomStatus("PLAYING");
         }
+      }
+      if (role && (role as any) !== "SPECTATOR") {
+        setControllerRole(role);
       }
     };
 

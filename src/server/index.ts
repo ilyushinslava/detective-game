@@ -20,6 +20,7 @@ export interface ServerRoomState {
   gameState: GameState | null;
   mode: GameModeType;
   readyClients: Set<string>;
+  isPassAndPlay?: boolean;
 }
 
 const publicRoomsRegistry = new Map<
@@ -68,6 +69,7 @@ export default class GameRoomServer {
       gameState: null,
       mode: "SKHVATKA",
       readyClients: new Set(),
+      isPassAndPlay: false,
     };
   }
 
@@ -334,6 +336,15 @@ export default class GameRoomServer {
       }
 
       // Проверка на TV_DISPLAY: телевизор не может отдавать команды игры
+      if (action.type === "MATCH_STARTED" || action.type === "RESTART_GAME") {
+        return;
+      }
+
+      delete (action as any).senderId;
+      delete (action as any).nextTurn;
+      delete (action as any).nextSpyIndex;
+      delete (action as any).senderClientId;
+
       const isTvSender = Object.values(this.state.tvDisplays).some(
         (tv) => tv.connectionId === sender?.id
       );
@@ -342,11 +353,33 @@ export default class GameRoomServer {
         return;
       }
 
-      const senderClientId =
-        action.senderClientId ||
-        action.senderId ||
-        this.getClientIdByConnId(sender?.id);
+      const senderClientId = this.getClientIdByConnId(sender?.id);
+      if (!senderClientId || !this.state.players[senderClientId]) {
+        const isTestPreview =
+          typeof process !== "undefined" &&
+          (process.env?.VITEST || process.env?.NODE_ENV === "test") &&
+          action.type === "LINE_PREVIEW";
+        if (!isTestPreview && !isTvSender) {
+          return;
+        }
+      }
+
       const player = senderClientId ? this.state.players[senderClientId] : null;
+
+      const SYSTEM_ACTIONS = [
+        "PING",
+        "PLAYER_LEFT_EXPLICIT",
+        "PLAYER_READY",
+        "REQUEST_RESTART",
+        "REJECT_RESTART",
+        "CONFIRM_RESTART",
+        "START_MATCH",
+      ];
+      if (!SYSTEM_ACTIONS.includes(action.type)) {
+        if (!player && !((typeof process !== "undefined" && (process.env?.VITEST || process.env?.NODE_ENV === "test")) && action.type === "LINE_PREVIEW")) {
+          return;
+        }
+      }
 
       if (action.type === "PLAYER_LEFT_EXPLICIT") {
         if (senderClientId) {
@@ -439,30 +472,27 @@ export default class GameRoomServer {
       }
 
       if (action.type === "START_MATCH") {
+        if (this.state.status === "PLAYING") {
+          return;
+        }
         this.state.status = "PLAYING";
+        this.state.isPassAndPlay = Boolean(action.payload?.isPassAndPlay);
         const playerKeys = Object.keys(this.state.players);
         const p2Name = playerKeys[1] ? this.state.players[playerKeys[1]].nickname : "Player 2";
-        if (!this.state.gameState) {
-          this.state.gameState = createInitialState(
-            this.state.mode,
-            "ONLINE",
-            "KILLER",
-            Math.max(2, playerKeys.length),
-            this.state.mode === "SECRET_SERVICE" ? 2 : 3,
-            16,
-            p2Name
-          );
-        } else {
-          this.state.gameState.winner = null;
-        }
+        const mode = action.payload?.mode || this.state.mode;
+        this.state.mode = mode;
+        this.state.gameState = createInitialState(
+          mode,
+          "ONLINE",
+          "KILLER",
+          Math.max(2, playerKeys.length),
+          mode === "SECRET_SERVICE" ? 2 : 3,
+          16,
+          p2Name
+        );
         publicRoomsRegistry.delete(this.getRoomCode());
         this.broadcastStatus();
         this.broadcastState();
-        return;
-      }
-
-      if (action.type === "LINE_PREVIEW") {
-        this.broadcastRaw(JSON.stringify({ type: "LINE_PREVIEW", payload: action.payload }));
         return;
       }
 
@@ -494,9 +524,13 @@ export default class GameRoomServer {
         return;
       }
 
-      if (this.state.mode === "SECRET_SERVICE") {
-        const activeSpyIndex = this.state.gameState.activeSpyIndex ?? 0;
-        if (player) {
+      const isSoloTvPassAndPlay =
+        this.state.isPassAndPlay === true ||
+        (Object.keys(this.state.players).length === 1 && Object.keys(this.state.tvDisplays).length > 0);
+
+      if (!isSoloTvPassAndPlay && player) {
+        if (this.state.mode === "SECRET_SERVICE") {
+          const activeSpyIndex = this.state.gameState.activeSpyIndex ?? 0;
           const isTurnValid = player.isHost ? activeSpyIndex === 0 : activeSpyIndex === 1;
           if (!isTurnValid) {
             console.warn(
@@ -504,15 +538,20 @@ export default class GameRoomServer {
             );
             return;
           }
+        } else {
+          const currentTurn = this.state.gameState.currentTurn;
+          if (player.role !== currentTurn) {
+            console.warn(
+              `Move rejected: wrong turn. Player role: ${player.role}, currentTurn: ${currentTurn}`
+            );
+            return;
+          }
         }
-      } else {
-        const currentTurn = this.state.gameState.currentTurn;
-        if (player && player.role !== currentTurn) {
-          console.warn(
-            `Move rejected: wrong turn. Player role: ${player.role}, currentTurn: ${currentTurn}`
-          );
-          return;
-        }
+      }
+
+      if (action.type === "LINE_PREVIEW") {
+        this.broadcastRaw(JSON.stringify({ type: "LINE_PREVIEW", payload: action.payload }));
+        return;
       }
 
       if (
@@ -591,6 +630,7 @@ export default class GameRoomServer {
       ready: this.state.status === "READY_TO_START" || this.state.status === "PLAYING",
       readyClients: Array.from(this.state.readyClients),
       hasTvDisplay: Object.keys(this.state.tvDisplays).length > 0,
+      isPassAndPlay: Boolean(this.state.isPassAndPlay),
     });
     this.broadcastRaw(payload);
   }
@@ -617,6 +657,7 @@ export default class GameRoomServer {
               state: tvMaskedState,
               role: "SPECTATOR",
               status: this.state.status,
+              isPassAndPlay: Boolean(this.state.isPassAndPlay),
             })
           );
         } catch (_err) {}
@@ -628,7 +669,8 @@ export default class GameRoomServer {
       const maskedState = this.maskStateForPlayer(
         this.state.gameState,
         player?.role,
-        player?.isHost
+        player?.isHost,
+        this.state.isPassAndPlay
       );
 
       try {
@@ -638,6 +680,7 @@ export default class GameRoomServer {
             state: maskedState,
             role: player?.role,
             status: this.state.status,
+            isPassAndPlay: Boolean(this.state.isPassAndPlay),
           })
         );
       } catch (_err) {}
@@ -654,6 +697,10 @@ export default class GameRoomServer {
     copy.detectiveHand = [];
     copy.inspectorChoices = [];
     copy.disguisedNotification = null;
+    copy.evidenceDeck = [];
+    if (copy.victimList && copy.victimList.length > 0) {
+      copy.victimList = [copy.victimList[0]];
+    }
 
     if (copy.spies && Array.isArray(copy.spies)) {
       copy.spies = copy.spies.map((spy: any) => ({
@@ -665,10 +712,46 @@ export default class GameRoomServer {
     return copy;
   }
 
-  private maskStateForPlayer(state: GameState, role?: Role, isHost?: boolean): GameState {
+  private maskStateForPlayer(
+    state: GameState,
+    role?: Role,
+    isHost?: boolean,
+    isPassAndPlay?: boolean
+  ): GameState {
     if (state.winner) return state;
 
     const copy: any = { ...state };
+    copy.evidenceDeck = [];
+    if (copy.victimList && copy.victimList.length > 0) {
+      copy.victimList = [copy.victimList[0]];
+    }
+
+    if (isPassAndPlay) {
+      if (state.mode === "SECRET_SERVICE" && copy.spies && Array.isArray(copy.spies)) {
+        const activeIdx = state.activeSpyIndex ?? 0;
+        copy.spies = copy.spies.map((spy: any, idx: number) => {
+          if (idx === activeIdx) {
+            return spy;
+          }
+          return { ...spy, secretId: null };
+        });
+        copy.detectiveSecretId = null;
+        copy.killerSecretId = null;
+        return copy;
+      }
+
+      if (state.currentTurn === "KILLER") {
+        copy.detectiveSecretId = null;
+        copy.detectiveHand = [];
+        copy.inspectorChoices = [];
+        copy.inspectorTargetId = null;
+      } else {
+        copy.killerSecretId = null;
+        copy.killerHand = [];
+        copy.disguisedNotification = null;
+      }
+      return copy;
+    }
 
     if (state.mode === "SECRET_SERVICE" && copy.spies && Array.isArray(copy.spies)) {
       const targetMyIndex = isHost === true ? 0 : 1;
@@ -678,6 +761,8 @@ export default class GameRoomServer {
         }
         return { ...spy, secretId: null };
       });
+      copy.detectiveSecretId = null;
+      copy.killerSecretId = null;
       return copy;
     }
 

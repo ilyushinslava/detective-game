@@ -10,7 +10,7 @@ class PartyService {
   socket: WebSocket | null = null;
   private nick: string = "Агент";
   private mode: string = "SKHVATKA";
-  private clientType?: string;
+  private clientType?: string | null;
   private pingInterval: ReturnType<typeof setInterval> | null = null;
   private isExplicitDisconnect: boolean = false;
   private reconnectAttempts: number = 0;
@@ -87,6 +87,8 @@ class PartyService {
       return;
     }
 
+    const savedClientType = clientType || this.clientType;
+
     if (this.socket) {
       try {
         this.socket.onclose = null;
@@ -101,7 +103,7 @@ class PartyService {
     this.isHost = isHost;
     this.nick = nickname || "Агент";
     this.mode = mode || "SKHVATKA";
-    if (clientType) this.clientType = clientType;
+    if (savedClientType) this.clientType = savedClientType;
     this.myClientId = clientId || `client_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     this.isExplicitDisconnect = false;
     if (this.reconnectTimeout) {
@@ -197,7 +199,7 @@ class PartyService {
             );
             this.reconnectTimeout = setTimeout(() => {
               if (!this.isExplicitDisconnect && this.roomCode) {
-                this.connect(this.roomCode, this.nick, this.isHost, this.mode, this.myClientId);
+                this.connect(this.roomCode, this.nick, this.isHost, this.mode, this.myClientId, this.clientType);
               }
             }, delay);
           }
@@ -222,13 +224,13 @@ class PartyService {
       this.socket.readyState === WebSocket.CLOSING
     ) {
       console.log("[PartyService] Reconnecting due to visibility resume...");
-      this.connect(this.roomCode, this.nick, this.isHost, this.mode, this.myClientId);
+      this.connect(this.roomCode, this.nick, this.isHost, this.mode, this.myClientId, this.clientType);
     } else if (this.socket.readyState === WebSocket.OPEN) {
       try {
         this.socket.send(JSON.stringify({ type: "PING" }));
       } catch (err) {
         console.warn("[PartyService] Ping failed on ensureConnection, reconnecting...", err);
-        this.connect(this.roomCode, this.nick, this.isHost, this.mode, this.myClientId);
+        this.connect(this.roomCode, this.nick, this.isHost, this.mode, this.myClientId, this.clientType);
       }
     }
   }
@@ -268,6 +270,7 @@ class PartyService {
       this.socket = null;
     }
     this.roomCode = "";
+    this.clientType = null;
     this.lastSyncedState = null;
     this.onPresenceChanged?.(false);
   }

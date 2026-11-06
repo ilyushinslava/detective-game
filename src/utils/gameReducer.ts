@@ -1,5 +1,7 @@
 import type { GameState } from "../types/game";
 import type { GameAction } from "../types/multiplayer";
+import { DUEL_QUESTIONS } from "../constants/duelQuestions";
+import { DUEL_CHARACTERS } from "../constants/duelCharacters";
 import {
   shiftBoard,
   accuseCharacter,
@@ -35,7 +37,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
   const SYSTEM_ACTIONS = [
     "MATCH_STARTED", "RESTART_GAME", "REQUEST_RESTART", 
     "CONFIRM_RESTART", "REJECT_RESTART", "SET_MATCH_POT", "PLAYER_READY", 
-    "SET_INSPECTOR_ROLE", "CLEANUP", "CLEAR_DISGUISE_NOTIFICATION"
+    "SET_INSPECTOR_ROLE", "CLEANUP", "CLEAR_DISGUISE_NOTIFICATION", "END_TURN"
   ];
   
   // Авторитетный сервер сам валидирует очередность. На клиентах блокировку не делаем.
@@ -247,6 +249,45 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         disguisedNotification: null,
       };
+
+    case "END_TURN": {
+      const nextTurn = state.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER";
+      let nextSpyIndex = state.activeSpyIndex;
+      let currentRoleName =
+        state.currentTurn === "KILLER" ? "БАНДИТ" : "ИНСПЕКТОР";
+
+      if (state.mode === "MANIAC_VS_OPERATIVE") {
+        currentRoleName =
+          state.currentTurn === "KILLER" ? "МАНЬЯК" : "ОПЕРАТИВНИК";
+      } else if (state.mode === "THIEF_HUNT") {
+        currentRoleName = state.currentTurn === "KILLER" ? "ГРАБИТЕЛЬ" : "ПОЛИЦИЯ";
+      }
+
+      if (
+        state.mode === "SECRET_SERVICE" &&
+        state.spies &&
+        state.activeSpyIndex !== undefined
+      ) {
+        nextSpyIndex = (state.activeSpyIndex + 1) % state.spies.length;
+        currentRoleName = state.spies[state.activeSpyIndex].name;
+      }
+
+      return {
+        ...state,
+        currentTurn: nextTurn,
+        activeSpyIndex: nextSpyIndex,
+        detectiveSecretId:
+          state.mode === "SECRET_SERVICE" && state.spies && nextSpyIndex !== undefined
+            ? state.spies[nextSpyIndex]?.secretId ?? state.detectiveSecretId
+            : state.detectiveSecretId,
+        lastInterrogation: null,
+        lastSpyInterrogation: null,
+        interrogationRadar: null,
+        disguisedNotification: null,
+        isHotseatCoverOpen: false,
+        log: [...state.log, `${currentRoleName} завершил ход.`],
+      };
+    }
 
     case "DUEL_ASK_QUESTION": {
       const { questionId } = action.payload;

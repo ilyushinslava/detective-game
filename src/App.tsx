@@ -23,6 +23,7 @@ import { TvBoardView } from "./components/tv/TvBoardView";
 import { TvLobbyView } from "./components/tv/TvLobbyView";
 import { MobileControllerView } from "./components/controller/MobileControllerView";
 import { PassAndPlayModal } from "./components/controller/PassAndPlayModal";
+import { ControllerConnectView } from "./components/controller/ControllerConnectView";
 import type { ShiftPayload } from "./types/game";
 import { gameReducer } from "./utils/gameReducer";
 
@@ -85,6 +86,14 @@ export default function App() {
   const [tvLinePreview, setTvLinePreview] = useState<ShiftPayload | null>(null);
   const [tvPlayers, setTvPlayers] = useState<Record<string, { nickname: string; isHost?: boolean }>>({});
   const [controllerRoomStatus, setControllerRoomStatus] = useState<string>("WAITING");
+  const [controllerRole, setControllerRole] = useState<Role>(() => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem("tv_controller_role") as Role;
+      if (saved === "KILLER" || saved === "DETECTIVE") return saved;
+    }
+    return "KILLER";
+  });
+  const [isTvPassAndPlay, setIsTvPassAndPlay] = useState<boolean>(false);
   const [isPassAndPlayOpen, setIsPassAndPlayOpen] = useState(false);
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
 
@@ -94,30 +103,61 @@ export default function App() {
 
   useEffect(() => {
     if (clientTypeParam === "CONTROLLER" && tvRoomCode) {
+      let controllerClientId = typeof window !== "undefined" ? sessionStorage.getItem("tv_controller_client_id") : null;
+      if (!controllerClientId && typeof window !== "undefined") {
+        controllerClientId = `client_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        sessionStorage.setItem("tv_controller_client_id", controllerClientId);
+      }
       if (typeof window !== "undefined") {
         sessionStorage.setItem("tv_controller_room", tvRoomCode);
       }
-      partyService.connect(tvRoomCode, profile.nickname || 'Агент', false, 'SECRET_SERVICE', undefined, clientTypeParam);
+      partyService.connect(tvRoomCode, profile.nickname || 'Агент', false, 'SECRET_SERVICE', controllerClientId || undefined, clientTypeParam);
 
       const prevOnRoomStatus = partyService.onRoomStatus;
       const prevOnSyncState = partyService.onSyncState;
 
-      partyService.onRoomStatus = (data: any) => {
-        prevOnRoomStatus?.(data);
-        if (data?.status) {
-          setControllerRoomStatus(data.status);
-        }
-      };
+              partyService.onRoomStatus = (data: any) => {
+          prevOnRoomStatus?.(data);
+          if (data?.status) {
+            setControllerRoomStatus(data.status);
+            if (data.status === "PLAYING") {
+              setIsIntroPhase(true);
+            }
+          }
+        };
 
       partyService.onSyncState = (state: any, role?: Role, status?: string) => {
         prevOnSyncState?.(state, role, status);
+        if (role && (role as any) !== "SPECTATOR") {
+          (partyService as any).role = role;
+          setControllerRole(role);
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem("tv_controller_role", role);
+          }
+        }
         if (state) {
           setGameState(state);
+          if (!role || role === "KILLER") {
+            if (state.detectiveSecretId && !state.killerSecretId) {
+              setControllerRole("DETECTIVE");
+              if (typeof window !== "undefined") {
+                sessionStorage.setItem("tv_controller_role", "DETECTIVE");
+              }
+            } else if (state.killerSecretId && !state.detectiveSecretId) {
+              setControllerRole("KILLER");
+              if (typeof window !== "undefined") {
+                sessionStorage.setItem("tv_controller_role", "KILLER");
+              }
+            }
+          }
         }
-        if (status) {
-          setControllerRoomStatus(status);
-        }
-      };
+                  if (status) {
+            setControllerRoomStatus(status);
+            if (status === "PLAYING") {
+              setIsIntroPhase(true);
+            }
+          }
+        };
 
       return () => {
         partyService.onRoomStatus = prevOnRoomStatus;
@@ -212,6 +252,9 @@ export default function App() {
   }, [gameState]);
 
   const dispatchAction = (action: GameAction) => {
+    if ((tvPartyState === "TV_LOBBY" || tvPartyState === "TV_BOARD") && action.type !== "START_MATCH") {
+      return;
+    }
     if (gameStateRef.current.opponent === "ONLINE") {
       partyService.sendAction(action);
       return;
@@ -611,7 +654,12 @@ export default function App() {
       <div className="w-full max-w-7xl mx-auto h-full relative flex flex-col overflow-hidden">
         {isLobbyOpen && (
           <MainMenu
-              onStartTvParty={() => {
+              onStartTvParty={(role = "TV_DISPLAY") => {
+                if (role === "CONTROLLER") {
+                  setTvPartyState("CONTROLLER");
+                  setIsLobbyOpen(false);
+                  return;
+                }
                 const code = sessionStorage.getItem("tv_party_room") || Math.floor(10000 + Math.random() * 90000).toString();
                 sessionStorage.setItem("tv_party_room", code);
                 const newUrl = new URL(window.location.href);
@@ -631,34 +679,36 @@ export default function App() {
           />
         )}
 
-                <GameLifecycleModals
-          gameState={gameState}
-          setGameState={setGameState}
-          isIntroPhase={isIntroPhase}
-          setIsIntroPhase={setIsIntroPhase}
-          isLobbyOpen={isLobbyOpen}
-          hasStartedEver={hasStartedEver}
-          isOpponentConnected={isOpponentConnected}
-          isDetectiveView={isDetectiveView}
-          isDetectiveTurn={isDetectiveTurn}
-          profileNickname={profile.nickname}
-          killerChar={killerChar}
-          detectiveChar={detectiveChar}
-          allChars={allChars}
-          inspectorChoices={inspectorChoices}
-          selectedInspectorChoiceId={selectedInspectorChoiceId}
-          setSelectedInspectorChoiceId={setSelectedInspectorChoiceId}
-          isRevealConfirmed={isRevealConfirmed}
-          setIsRevealConfirmed={setIsRevealConfirmed}
-          characterImages={characterImages}
-          secondsElapsed={secondsElapsed}
-          formatTimer={formatTimer}
-          handleExitToMenu={handleExitToMenu}
-          handleReset={handleReset}
-          handleSelectInspectorRole={handleSelectInspectorRole}
-          requestRematch={requestRematch}
-          setFullscreenImage={setFullscreenImage}
-        />
+                {tvPartyState === "NONE" && (
+          <GameLifecycleModals
+            gameState={gameState}
+            setGameState={setGameState}
+            isIntroPhase={isIntroPhase}
+            setIsIntroPhase={setIsIntroPhase}
+            isLobbyOpen={isLobbyOpen}
+            hasStartedEver={hasStartedEver}
+            isOpponentConnected={isOpponentConnected}
+            isDetectiveView={isDetectiveView}
+            isDetectiveTurn={isDetectiveTurn}
+            profileNickname={profile.nickname}
+            killerChar={killerChar}
+            detectiveChar={detectiveChar}
+            allChars={allChars}
+            inspectorChoices={inspectorChoices}
+            selectedInspectorChoiceId={selectedInspectorChoiceId}
+            setSelectedInspectorChoiceId={setSelectedInspectorChoiceId}
+            isRevealConfirmed={isRevealConfirmed}
+            setIsRevealConfirmed={setIsRevealConfirmed}
+            characterImages={characterImages}
+            secondsElapsed={secondsElapsed}
+            formatTimer={formatTimer}
+            handleExitToMenu={handleExitToMenu}
+            handleReset={handleReset}
+            handleSelectInspectorRole={handleSelectInspectorRole}
+            requestRematch={requestRematch}
+            setFullscreenImage={setFullscreenImage}
+          />
+        )}
 
         {!isLobbyOpen && !isIntroPhase && hasStartedEver && gameState.opponent !== undefined && gameState.mode === "LINE_UP" && (
           <DuelScreen onBackToMenu={handleReset} playerRole={gameState.playerRole} />
@@ -732,16 +782,37 @@ export default function App() {
       </div>
 
       {/* РЕЖИМ TV PARTY: Мобильный пульт управления */}
-      {tvPartyState === "CONTROLLER" && (
-        <div className="fixed inset-0 z-50 bg-[#080a0f]">
+              {tvPartyState === "CONTROLLER" && (() => {
+          const isControllerInGame = controllerRoomStatus === "PLAYING";
+        return (
+          <div className="fixed inset-0 z-50 bg-[#080a0f]">
           {!tvRoomCode ? (
+            <ControllerConnectView
+              onConnect={(code) => {
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.set("room", code);
+                newUrl.searchParams.set("clientType", "CONTROLLER");
+                window.location.replace(newUrl.toString());
+              }}
+              onBackToMenu={() => {
+                sessionStorage.removeItem("tv_controller_client_id");
+                sessionStorage.removeItem("tv_controller_role");
+                window.location.search = "";
+                setTvPartyState("NONE");
+                setIsLobbyOpen(true);
+              }}
+            />
+          ) : false ? (
             <div className="flex h-screen w-screen flex-col justify-between p-6 text-zinc-100 select-none font-sans">
               <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
                 <span className="text-xs font-mono uppercase tracking-widest text-zinc-400">ПОДКЛЮЧЕНИЕ К ТВ</span>
               </div>
               <div className="flex flex-col items-center text-center max-w-sm mx-auto my-auto space-y-4 w-full">
-                <div className="w-16 h-16 rounded-2xl border border-zinc-800 bg-zinc-950 flex items-center justify-center text-3xl shadow-xl">
-                  📺
+                <div className="w-16 h-16 rounded-2xl border border-zinc-800 bg-zinc-950 flex items-center justify-center shadow-xl text-zinc-300">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-8 h-8">
+                    <rect x="2" y="7" width="20" height="15" rx="2" ry="2" />
+                    <polyline points="17 2 12 7 7 2" />
+                  </svg>
                 </div>
                 <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100">
                   ВВЕДИТЕ PIN-КОД
@@ -775,6 +846,7 @@ export default function App() {
               </div>
               <button
                 onClick={() => {
+                  sessionStorage.removeItem("tv_controller_client_id");
                   window.location.search = "";
                   setTvPartyState("NONE");
                   setIsLobbyOpen(true);
@@ -784,7 +856,7 @@ export default function App() {
                 Назад в меню
               </button>
             </div>
-          ) : controllerRoomStatus !== "PLAYING" ? (
+          ) : !isControllerInGame ? (
             <div className="flex h-screen w-screen flex-col justify-between p-6 text-zinc-100 select-none font-sans">
               <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
                 <div className="flex items-center gap-2">
@@ -795,8 +867,11 @@ export default function App() {
               </div>
 
               <div className="flex flex-col items-center text-center max-w-sm mx-auto my-auto space-y-4">
-                <div className="w-20 h-20 rounded-3xl border border-zinc-800 bg-zinc-950 flex items-center justify-center text-4xl shadow-2xl">
-                  📱
+                <div className="w-20 h-20 rounded-3xl border border-zinc-800 bg-zinc-950 flex items-center justify-center shadow-2xl text-zinc-300">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-10 h-10">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                    <line x1="12" y1="18" x2="12.01" y2="18" />
+                  </svg>
                 </div>
                 <div>
                   <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100">
@@ -816,6 +891,8 @@ export default function App() {
 
               <button
                 onClick={() => {
+                  sessionStorage.removeItem("tv_controller_client_id");
+                  sessionStorage.removeItem("tv_controller_role");
                   partyService.disconnect();
                   window.location.search = "";
                   setTvPartyState("NONE");
@@ -827,43 +904,88 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <MobileControllerView
-              gameState={gameState}
-              playerRole={
-                gameState.mode === "SECRET_SERVICE"
-                  ? ((gameState.activeSpyIndex ?? 0) === 1 ? "DETECTIVE" : "KILLER")
-                  : (gameState.currentTurn || "KILLER")
+            <>
+              <MobileControllerView
+                gameState={gameState}
+                              playerRole={
+                isTvPassAndPlay
+                  ? (gameState.mode === "SECRET_SERVICE"
+                      ? ((gameState.activeSpyIndex ?? 0) === 1 ? "DETECTIVE" : "KILLER")
+                      : (gameState.currentTurn || "KILLER"))
+                  : controllerRole
               }
-              isPassAndPlay={true}
-              onDispatchAction={dispatchAction}
-              onSelectLinePreview={setTvLinePreview}
-              onExit={() => {
-                partyService.disconnect();
-                window.location.search = "";
-                setTvPartyState("NONE");
-                setIsLobbyOpen(true);
-              }}
-            />
+                isPassAndPlay={isTvPassAndPlay}
+                onDispatchAction={dispatchAction}
+                onSelectLinePreview={setTvLinePreview}
+                onExit={() => {
+                  sessionStorage.removeItem("tv_controller_client_id");
+                  sessionStorage.removeItem("tv_controller_role");
+                  partyService.disconnect();
+                  window.location.search = "";
+                  setTvPartyState("NONE");
+                  setIsLobbyOpen(true);
+                }}
+              />
+                              <GameLifecycleModals
+                  gameState={gameState}
+                  setGameState={setGameState}
+                  isIntroPhase={isIntroPhase}
+                  setIsIntroPhase={setIsIntroPhase}
+                isLobbyOpen={false}
+                hasStartedEver={true}
+                isOpponentConnected={isOpponentConnected}
+                isDetectiveView={isDetectiveView}
+                isDetectiveTurn={isDetectiveTurn}
+                profileNickname={profile.nickname}
+                killerChar={killerChar}
+                detectiveChar={detectiveChar}
+                allChars={allChars}
+                inspectorChoices={inspectorChoices}
+                selectedInspectorChoiceId={selectedInspectorChoiceId}
+                setSelectedInspectorChoiceId={setSelectedInspectorChoiceId}
+                isRevealConfirmed={isRevealConfirmed}
+                setIsRevealConfirmed={setIsRevealConfirmed}
+                characterImages={characterImages}
+                secondsElapsed={secondsElapsed}
+                formatTimer={formatTimer}
+                handleExitToMenu={handleExitToMenu}
+                handleReset={handleReset}
+                handleSelectInspectorRole={handleSelectInspectorRole}
+                requestRematch={requestRematch}
+                setFullscreenImage={setFullscreenImage}
+              />
+            </>
           )}
         </div>
-      )}
+        );
+      })()}
 
       {/* РЕЖИМ TV PARTY: Лобби ожидания подключения */}
       {tvPartyState === "TV_LOBBY" && (
         <div className="fixed inset-0 z-50 bg-[#06070a]">
           <TvLobbyView
             roomCode={tvRoomCode}
-            players={{
-              p1: { nickname: "Хост (Контроллер 1)", isHost: true }
-            }}
+            players={tvPlayers}
             connectedPlayers={tvPlayers}
-            onStartGame={() => {
-              partyService.sendAction({ type: "START_MATCH", senderId: "TV_HOST" } as any);
-              if (partyService.lastSyncedState) {
-                setGameState(partyService.lastSyncedState);
-              } else {
-                setGameState(createInitialState("SECRET_SERVICE", "ONLINE", "KILLER"));
-              }
+            onStartGame={(mode, passAndPlay) => {
+              setIsTvPassAndPlay(passAndPlay);
+              partyService.sendAction({
+                type: "START_MATCH",
+                senderId: "TV_HOST",
+                payload: { mode, isPassAndPlay: passAndPlay },
+              } as any);
+
+              const playerKeys = Object.keys(tvPlayers);
+              const p2Name = playerKeys[1] ? tvPlayers[playerKeys[1]].nickname : "Player 2";
+              setGameState(createInitialState(
+                mode,
+                "ONLINE",
+                "KILLER",
+                Math.max(2, playerKeys.length),
+                mode === "SECRET_SERVICE" ? 2 : 3,
+                16,
+                p2Name
+              ));
               setTvPartyState("TV_BOARD");
             }}
             onExit={() => {

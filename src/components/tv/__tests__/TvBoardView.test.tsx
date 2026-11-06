@@ -9,11 +9,11 @@ describe("TvBoardView Component", () => {
     const state = createInitialState("SKHVATKA", "ONLINE", "KILLER");
     state.currentTurn = "KILLER";
 
-    render(<TvBoardView gameState={state} secondsLeft={45} />);
+    render(<TvBoardView gameState={state} />);
 
     const killerElements = screen.getAllByText("Бандит");
     expect(killerElements.length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("0:45")).toBeDefined();
+    expect(screen.getByText("ЭФИР ТРАНСЛЯЦИИ")).toBeDefined();
   });
 
   it("отображает блок выбранной линии, если она передана", () => {

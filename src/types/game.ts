@@ -24,6 +24,8 @@ export interface LastShift {
   direction: "FORWARD" | "BACKWARD";
 }
 
+export type ShiftPayload = LastShift;
+
 export interface InterrogationResult {
   interrogator: Role;
   targetName: string;
@@ -79,6 +81,17 @@ export interface GameState {
   restartRequestedBy?: "HOST" | "GUEST" | null;
   pendingRematchMode?: "SWAP" | "SAME" | "RANDOM";
   disguisedNotification?: { roleName: string; newSecretId: string } | null;
+  duelHistory?: Array<{
+    id: string;
+    askerRole: Role;
+    questionId: string;
+    questionText: string;
+    answer: boolean;
+    timestamp: number;
+  }>;
+  duelPenalties?: Record<Role, number>;
+  accusedTargets?: Record<Role, string[]>;
+  inspectorTargetId?: string | null;
 }
 export const SPY_COLORS = [
   { text: "text-red-400", bg: "bg-red-950", border: "border-red-500", ring: "ring-red-500/80" },

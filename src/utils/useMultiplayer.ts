@@ -59,6 +59,11 @@ export function useMultiplayer({
   }, [gameState.opponent]);
 
   useEffect(() => {
+    const isTvMode = typeof window !== "undefined" && window.location.search.includes("clientType");
+    if (isTvMode) {
+      return;
+    }
+
     partyService.onSyncState = (state: any, role?: Role, status?: string) => {
       if (state) {
         if (state.mode) {
@@ -130,11 +135,7 @@ export function useMultiplayer({
 
     partyService.onPresenceChanged = (connected: boolean) => {
       setIsOpponentConnected(connected);
-      if (!connected) {
-        setOpponentDisconnectedNotice(true);
-      } else {
-        setOpponentDisconnectedNotice(false);
-      }
+      setOpponentDisconnectedNotice(!connected);
     };
 
     partyService.onAction = (action: any) => {

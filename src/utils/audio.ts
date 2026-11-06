@@ -217,11 +217,11 @@ class SoundController {
 
         sound.currentTime = 0;
         sound.volume = Math.max(0, Math.min(1, volume));
-        sound.play().catch(() => {});
+        sound.play()?.catch?.(() => {});
       } else if (typeof Audio !== 'undefined') {
         const sound = new Audio(selectedPath);
         sound.volume = Math.max(0, Math.min(1, volume));
-        sound.play().catch(() => {});
+        sound.play()?.catch?.(() => {});
       }
     } catch (err) {
       console.warn(`[Audio] Ошибка воспроизведения ${selectedPath}:`, err);
@@ -238,7 +238,7 @@ class SoundController {
     }
 
     this.ambientAudio.volume = this.currentAmbientVolume;
-    this.ambientAudio.play().catch(() => {});
+    this.ambientAudio.play()?.catch?.(() => {});
   }
 
   public stopAmbient(): void {

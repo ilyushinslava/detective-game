@@ -1,31 +1,60 @@
-import React from 'react';
+﻿import React from 'react';
+import { motion } from 'framer-motion';
 import { CharacterCard } from '../CharacterCard';
 import type { GameState, LastShift } from '../../types/game';
 import { SPY_COLORS } from '../../types/game';
 
 interface TvBoardViewProps {
   gameState: GameState;
-  secondsLeft?: number;
   selectedLine?: LastShift | null;
+  onExit?: () => void;
+  onRestart?: () => void;
 }
 
 const TvBoardViewImpl: React.FC<TvBoardViewProps> = ({
   gameState,
-  secondsLeft = 60,
   selectedLine = null,
+  onExit,
+  onRestart,
 }) => {
   const isSecretService = gameState?.mode === 'SECRET_SERVICE';
   const spies = gameState?.spies || [];
   const activeSpyIndex = gameState?.activeSpyIndex ?? 0;
   const activeSpy = spies[activeSpyIndex];
-  const targetScore = isSecretService
-    ? (gameState?.spyTargetTrophies ?? 3)
-    : (gameState?.mode === 'THIEF_HUNT' ? 10 : 14);
-
-  const killerScore = gameState?.trophiesKiller ?? 0;
-  const detectiveScore = gameState?.trophiesDetective ?? 0;
   const currentTurn = gameState?.currentTurn || 'KILLER';
   const isKillerTurn = currentTurn === 'KILLER';
+
+  let killerScore = 0;
+  let killerTarget = 14;
+  let detectiveScore = 0;
+  let detectiveTarget = 1;
+
+  if (isSecretService) {
+    killerTarget = gameState?.spyTargetTrophies ?? 3;
+    detectiveTarget = killerTarget;
+  } else if (gameState?.mode === 'LINE_UP') {
+    killerScore = (gameState as any)?.duelPenalties?.KILLER ?? (gameState as any)?.duelMistakesKiller ?? 0;
+    detectiveScore = (gameState as any)?.duelPenalties?.DETECTIVE ?? (gameState as any)?.duelMistakesDetective ?? 0;
+    killerTarget = 3;
+    detectiveTarget = 3;
+  } else if (gameState?.mode === 'THIEF_HUNT') {
+    killerScore = gameState?.trophiesKiller ?? 0;
+    killerTarget = 10;
+    detectiveScore = (gameState?.winner === 'DETECTIVE' || (gameState as any)?.arrestSuccess) ? 1 : 0;
+    detectiveTarget = 1;
+  } else if (gameState?.mode === 'MANIAC_VS_OPERATIVE') {
+    killerScore = gameState?.killCount ?? 0;
+    killerTarget = 4;
+    detectiveScore = (gameState?.winner === 'DETECTIVE' || (gameState as any)?.arrestSuccess) ? 1 : 0;
+    detectiveTarget = 1;
+  } else {
+    killerScore = gameState?.killCount ?? 0;
+    killerTarget = 14;
+    detectiveScore = (gameState?.winner === 'DETECTIVE' || (gameState as any)?.arrestSuccess) ? 1 : 0;
+    detectiveTarget = 1;
+  }
+
+  const targetScore = killerTarget;
 
   const activeTurnName = React.useMemo(() => {
     if (isSecretService) {
@@ -48,42 +77,79 @@ const TvBoardViewImpl: React.FC<TvBoardViewProps> = ({
     : (isKillerTurn ? 'text-red-400' : 'text-blue-400');
 
   const modeActions = React.useMemo(() => {
-    switch (gameState?.mode) {
-      case 'SECRET_SERVICE':
-        return [
-          { icon: '🎯', label: 'Разоблачение цели' },
-          { icon: '🔍', label: 'Опрос свидетелей' },
-          { icon: '⇄', label: 'Сдвиг линии (Anti-Undo)' },
-        ];
-      case 'THIEF_HUNT':
-        return [
-          { icon: '💰', label: 'Кража у соседа' },
-          { icon: '🛡️', label: 'Задержание / Вызов патруля' },
-          { icon: '⇄', label: 'Сдвиг линии (Anti-Undo)' },
-        ];
-      case 'MANIAC_VS_OPERATIVE':
-        return [
-          { icon: '🎯', label: 'Ликвидация цели' },
-          { icon: '🛡️', label: 'Задержание подозреваемого' },
-          { icon: '⇄', label: 'Сдвиг линии (Anti-Undo)' },
-        ];
-      case 'SKHVATKA':
-      default:
-        return [
-          { icon: '🎯', label: 'Ликвидация / Задержание' },
-          { icon: '🔍', label: 'Опрос свидетелей' },
-          { icon: '⇄', label: 'Сдвиг линии (Anti-Undo)' },
-        ];
+    if (isSecretService) {
+      return [
+        { label: 'Сдвиг линии (Anti-Undo)' },
+        { label: 'Опрос свидетелей (Радар 3x3)' },
+        { label: 'Разоблачение резидента' },
+      ];
     }
-  }, [gameState?.mode]);
+    if (gameState?.mode === 'LINE_UP') {
+      return [
+        { label: 'Вопрос по признакам досье' },
+        { label: 'Официальное обвинение' },
+        { label: 'Метод дедукции' },
+      ];
+    }
+    if (gameState?.mode === 'THIEF_HUNT') {
+      return isKillerTurn
+        ? [
+            { label: 'Сдвиг линии (Anti-Undo)' },
+            { label: 'Кража у соседа' },
+            { label: 'Смена маски (Конспирация)' },
+          ]
+        : [
+            { label: 'Сдвиг линии (Anti-Undo)' },
+            { label: 'Задержание грабителя' },
+            { label: 'Вызов патруля' },
+          ];
+    }
+    if (gameState?.mode === 'MANIAC_VS_OPERATIVE') {
+      return isKillerTurn
+        ? [
+            { label: 'Сдвиг линии (Anti-Undo)' },
+            { label: 'Ликвидация цели из списка' },
+            { label: 'Побег маньяка' },
+          ]
+        : [
+            { label: 'Сдвиг линии (Anti-Undo)' },
+            { label: 'Задержание подозреваемого' },
+            { label: 'Смена личности по уликам' },
+          ];
+    }
+    return isKillerTurn
+      ? [
+          { label: 'Сдвиг линии (Anti-Undo)' },
+          { label: 'Ликвидация соседа' },
+          { label: 'Конспирация (Смена роли)' },
+        ]
+      : [
+          { label: 'Сдвиг линии (Anti-Undo)' },
+          { label: 'Задержание подозреваемого' },
+          { label: 'Проверка алиби из досье' },
+        ];
+  }, [isSecretService, gameState?.mode, isKillerTurn]);
 
-  const formatTime = (totalSec: number) => {
-    const mins = Math.floor(totalSec / 60);
-    const secs = totalSec % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
+  const boardSize = gameState?.board?.length || 5;
   const flatCards = (gameState?.board || []).flat();
+
+  const radarTargetId = gameState?.interrogationRadar?.targetId || (gameState as any)?.witnessRadar?.targetId;
+  const radarCoords = React.useMemo(() => {
+    if (!radarTargetId || !gameState?.board) return null;
+    for (let r = 0; r < boardSize; r++) {
+      for (let c = 0; c < boardSize; c++) {
+        if (gameState.board[r]?.[c]?.id === radarTargetId) {
+          return { row: r, col: c };
+        }
+      }
+    }
+    return null;
+  }, [radarTargetId, gameState?.board, boardSize]);
+
+  const isRadarCell = (row: number, col: number) => {
+    if (!radarCoords) return false;
+    return Math.abs(radarCoords.row - row) <= 1 && Math.abs(radarCoords.col - col) <= 1;
+  };
 
   const isLineSelected = (row: number, col: number) => {
     if (!selectedLine) return false;
@@ -95,6 +161,117 @@ const TvBoardViewImpl: React.FC<TvBoardViewProps> = ({
   const selectedLineType = selectedLine?.type || null;
   const selectedLineIdx = selectedLine ? selectedLine.index + 1 : 0;
   const selectedLineDir = selectedLine?.direction || null;
+
+  if (gameState?.winner) {
+    const winningSpy = isSecretService
+      ? (spies.find((s) => s.id === gameState.winner) ||
+         (gameState.winner === 'KILLER' ? spies[0] : gameState.winner === 'DETECTIVE' ? spies[1] : null) ||
+         spies.reduce((max, s) => (s.trophies > (max?.trophies ?? -1) ? s : max), spies[0]))
+      : null;
+
+    const isKillerWinner = gameState.winner === 'KILLER' || Boolean(winningSpy && spies[0]?.id === winningSpy.id);
+    const winRoleName = winningSpy
+      ? winningSpy.name
+      : (gameState.mode === 'LINE_UP'
+          ? (isKillerWinner ? 'Подозреваемый' : 'Следователь')
+          : (isKillerWinner ? killerTeamName : detectiveTeamName));
+
+    const finalKillerId = isSecretService ? (winningSpy?.secretId || spies[0]?.secretId) : gameState.killerSecretId;
+    const finalDetectiveId = isSecretService ? (spies.find((s) => s.id !== winningSpy?.id)?.secretId || spies[1]?.secretId) : gameState.detectiveSecretId;
+    const finalKillerChar = flatCards.find((c) => c.id === finalKillerId);
+    const finalDetectiveChar = flatCards.find((c) => c.id === finalDetectiveId);
+
+    return (
+      <div className="flex h-screen w-screen flex-col justify-between bg-[#06070a] text-zinc-100 select-none p-10 font-sans animate-fadeIn">
+        <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
+          <span className="text-xs font-mono uppercase tracking-widest text-zinc-400">
+            ПРОТОКОЛ ЗАКРЫТИЯ ДЕЛА • ИТОГИ МАТЧА
+          </span>
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-xs uppercase tracking-wider text-zinc-500">МАТЧ ЗАВЕРШЕН</span>
+            {onExit && (
+              <button
+                onClick={onExit}
+                className="px-3 py-1 rounded-lg border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-[11px] font-mono uppercase tracking-wider text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+              >
+                [В МЕНЮ]
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center justify-center my-auto text-center space-y-8">
+          <div>
+            <div className={`text-6xl font-black uppercase tracking-widest mb-3 ${isKillerWinner ? 'text-red-500 drop-shadow-[0_0_35px_rgba(239,68,68,0.6)]' : 'text-blue-500 drop-shadow-[0_0_35px_rgba(59,130,246,0.6)]'}`}>
+              ПОБЕДА: {winRoleName}
+            </div>
+            <div className="text-sm font-mono uppercase tracking-wider text-zinc-400">
+              {isKillerWinner ? 'Криминал достиг своей цели и переиграл Закон' : 'Следствие успешно раскрыло личности и обезвредило противника'}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-12 my-6">
+            <div className="flex flex-col items-center">
+              <span className="text-xs font-bold uppercase tracking-widest text-red-400 mb-2">
+                {killerTeamName}
+              </span>
+              <div className="w-44 h-44 rounded-2xl overflow-hidden border-2 border-red-600/70 bg-zinc-900 shadow-[0_0_25px_rgba(239,68,68,0.3)]">
+                {finalKillerChar ? (
+                  <CharacterCard
+                    mode={gameState.mode}
+                    character={finalKillerChar}
+                    isSelected={false}
+                    isPVP={true}
+                    onClick={() => {}}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-4xl font-mono text-zinc-600">?</div>
+                )}
+              </div>
+              <span className="text-sm font-black text-zinc-200 mt-2 truncate max-w-[176px]">
+                {finalKillerChar?.name || 'Личность раскрыта'}
+              </span>
+            </div>
+
+            <div className="text-2xl font-black font-mono text-zinc-600">VS</div>
+
+            <div className="flex flex-col items-center">
+              <span className="text-xs font-bold uppercase tracking-widest text-blue-400 mb-2">
+                {detectiveTeamName}
+              </span>
+              <div className="w-44 h-44 rounded-2xl overflow-hidden border-2 border-blue-600/70 bg-zinc-900 shadow-[0_0_25px_rgba(59,130,246,0.3)]">
+                {finalDetectiveChar ? (
+                  <CharacterCard
+                    mode={gameState.mode}
+                    character={finalDetectiveChar}
+                    isSelected={false}
+                    isPVP={true}
+                    onClick={() => {}}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-4xl font-mono text-zinc-600">?</div>
+                )}
+              </div>
+              <span className="text-sm font-black text-zinc-200 mt-2 truncate max-w-[176px]">
+                {finalDetectiveChar?.name || 'Личность раскрыта'}
+              </span>
+            </div>
+          </div>
+
+          <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full border border-zinc-800 bg-zinc-950/80 shadow-inner">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+            <span className="text-xs font-mono uppercase tracking-widest text-zinc-300 animate-pulse">
+              Ждём решение о реванше на контроллерах...
+            </span>
+          </div>
+        </div>
+
+        <div className="text-center text-[11px] font-mono text-zinc-600 border-t border-zinc-800/80 pt-3">
+          The Wicked City • Game Over Session
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-screen bg-[#06070a] text-zinc-100 select-none overflow-hidden p-6 gap-6 font-sans">
@@ -119,59 +296,117 @@ const TvBoardViewImpl: React.FC<TvBoardViewProps> = ({
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
                   <span className="text-sm font-bold tracking-wide text-zinc-300">
-                    <span>{killerTeamName}</span>: <span className="text-red-400 font-black">{killerScore}/{targetScore}</span>
+                    <span>{killerTeamName}</span>: <span className="text-red-400 font-black">{killerScore}/{killerTarget}</span>
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
                   <span className="text-sm font-bold tracking-wide text-zinc-300">
-                    <span>{detectiveTeamName}</span>: <span className="text-blue-400 font-black">{detectiveScore}/{targetScore}</span>
+                    <span>{detectiveTeamName}</span>: <span className="text-blue-400 font-black">{detectiveScore}/{detectiveTarget}</span>
                   </span>
                 </div>
               </>
             )}
           </div>
-          <div className="flex items-center gap-4 text-xs font-mono uppercase tracking-widest text-zinc-400">
-            <span>ХОД: <strong className={activeTurnColor}>{activeTurnName}</strong></span>
+          <div className="flex items-center justify-center">
+            <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-black uppercase tracking-wider ${
+              isKillerTurn ? 'bg-red-950/80 border-red-600 text-red-100 shadow-[0_0_12px_rgba(239,68,68,0.3)]' : 'bg-blue-950/80 border-blue-600 text-blue-100 shadow-[0_0_12px_rgba(59,130,246,0.3)]'
+            }`}>
+              <span className={`h-2 w-2 rounded-full animate-pulse ${isKillerTurn ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]'}`} />
+              ХОД: <strong className={activeTurnColor}>{activeTurnName}</strong>
+            </span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-zinc-500">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>ЭФИР ТРАНСЛЯЦИИ</span>
+            </div>
+            {(onRestart || onExit) && (
+              <div className="flex items-center gap-2 pl-2 border-l border-zinc-800">
+                {onRestart && (
+                  <button
+                    onClick={onRestart}
+                    className="px-3 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-[11px] font-mono uppercase tracking-wider text-zinc-300 transition cursor-pointer"
+                  >
+                    [ПЕРЕЗАПУСК]
+                  </button>
+                )}
+                {onExit && (
+                  <button
+                    onClick={onExit}
+                    className="px-3 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-[11px] font-mono uppercase tracking-wider text-zinc-400 hover:text-red-400 transition cursor-pointer"
+                  >
+                    [В МЕНЮ]
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="relative my-auto mx-auto w-full max-w-[800px] aspect-square p-2 rounded-2xl bg-zinc-900/40 border border-zinc-800/60 shadow-2xl flex items-center justify-center">
-          <div className="grid grid-cols-5 grid-rows-5 gap-2 w-full h-full">
+        <div className="relative my-auto mx-auto w-full max-w-[min(800px,calc(100vh-140px))] aspect-square p-2 rounded-2xl bg-zinc-900/40 border border-zinc-800/60 shadow-2xl flex items-center justify-center">
+          <div className="grid gap-2 w-full h-full" style={{ gridTemplateColumns: `repeat(${boardSize}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${boardSize}, minmax(0, 1fr))` }}>
             {flatCards.map((char, index) => {
-              const row = Math.floor(index / 5);
-              const col = index % 5;
+              const row = Math.floor(index / boardSize);
+              const col = index % boardSize;
               const isLineActive = isLineSelected(row, col);
+              const isRadarArea = isRadarCell(row, col);
 
-              return (
-                <div
-                  key={char.id || index}
-                  className={`relative w-full h-full rounded-xl transition-all duration-300 ${
-                    isLineActive ? 'ring-2 ring-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)] scale-[1.02] z-10' : ''
-                  }`}
-                >
+                              return (
+                  <motion.div
+                    key={char.id || `cell_${index}`}
+                    layout
+                    transition={{ type: 'spring', damping: 26, stiffness: 220 }}
+                    className={`relative w-full h-full rounded-xl transition-shadow duration-200 ${
+                      isLineActive ? 'ring-2 ring-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)] scale-[1.02] z-10' : ''
+                    } ${isRadarArea && !isLineActive ? (isKillerTurn ? 'ring-2 ring-red-500/70 bg-red-950/20 shadow-[0_0_12px_rgba(239,68,68,0.3)]' : 'ring-2 ring-blue-500/70 bg-blue-950/20 shadow-[0_0_12px_rgba(59,130,246,0.3)]') : ''}`}
+                  >
                   <CharacterCard
                     mode={gameState?.mode || 'SECRET_SERVICE'}
                     character={char}
                     isSelected={isLineActive}
+                    isUniformedOfficer={Boolean(gameState?.uniformedOfficers?.includes(char.id))}
+                    isTargetVictim={Boolean(gameState?.mode === 'MANIAC_VS_OPERATIVE' && gameState?.victimList?.[0] === char.id)}
+                    isRadarCenter={Boolean(gameState?.interrogationRadar?.targetId === char.id)}
                     isPVP={true}
                     onClick={() => {}}
                   />
-                </div>
-              );
-            })}
-          </div>
+                  {isLineActive && selectedLineDir && (
+                    ((selectedLineType === 'ROW' && ((selectedLineDir === 'FORWARD' && col === boardSize - 1) || (selectedLineDir === 'BACKWARD' && col === 0))) ||
+                     (selectedLineType === 'COL' && ((selectedLineDir === 'FORWARD' && row === boardSize - 1) || (selectedLineDir === 'BACKWARD' && row === 0)))) && (
+                      <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none bg-red-950/40 rounded-xl">
+                        <span className="text-3xl font-black text-red-400 animate-pulse drop-shadow-[0_0_10px_rgba(239,68,68,0.9)]">
+                          {selectedLineType === 'ROW'
+                            ? (selectedLineDir === 'FORWARD' ? '▶' : '◀')
+                            : (selectedLineDir === 'FORWARD' ? '▼' : '▲')}
+                        </span>
+                      </div>
+                    )
+                                      )}
+                  </motion.div>
+                );
+              })}
+            </div>
         </div>
       </div>
 
       {/* Правая инфопанель */}
       <div className="w-96 flex flex-col justify-between gap-4">
         <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg">
-          <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-1">ТЕКУЩИЙ ХОД</div>
-          <div className={`text-2xl font-black tracking-wider uppercase ${activeTurnColor}`}>
-            <span>{activeTurnName}</span>
+          <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">ТЕКУЩИЙ ХОД</div>
+          <div className="flex items-center gap-3.5">
+            <div className={`w-14 h-14 rounded-full border-2 border-zinc-700/80 bg-zinc-950 flex items-center justify-center text-2xl font-black font-mono shadow-lg shrink-0 ${activeTurnColor}`}>
+              {activeTurnName ? activeTurnName.charAt(0).toUpperCase() : '?'}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className={`text-xl font-black tracking-wider uppercase ${activeTurnColor}`}>
+                {activeTurnName}
+              </div>
+              <div className="text-[11px] text-zinc-400 mt-0.5">
+                Следите за действиями на мобильном контроллере
+              </div>
+            </div>
           </div>
-          <div className="text-xs text-zinc-400 mt-1">Следите за действиями на мобильном контроллере</div>
         </div>
 
         {selectedLine && (
@@ -192,33 +427,31 @@ const TvBoardViewImpl: React.FC<TvBoardViewProps> = ({
           </div>
         )}
 
-        <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg flex-1">
+        <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg">
           <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">ДЕЙСТВИЯ ХОДА</div>
           <div className="space-y-3">
             {modeActions.map((act, i) => (
               <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60">
-                <span className="text-base">{act.icon}</span>
+                <span className="w-2 h-2 rounded-full bg-zinc-400 shrink-0" />
                 <span className="text-sm font-semibold text-zinc-300">{act.label}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg">
+        <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg flex-1">
           <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">ПОСЛЕДНИЕ СОБЫТИЯ</div>
-          <div className="text-xs text-zinc-400 italic font-mono">
-            {gameState?.log && gameState.log.length > 0
-              ? gameState.log[gameState.log.length - 1]
-              : 'Ожидание первых действий...'}
+          <div className="space-y-1 text-xs text-zinc-300 font-mono">
+            {gameState?.log && gameState.log.length > 0 ? (
+              gameState.log.slice(-3).map((entry, idx) => (
+                <div key={idx} className="truncate text-zinc-300">
+                  • {entry}
+                </div>
+              ))
+            ) : (
+              <div className="text-zinc-500 italic">Ожидание первых действий...</div>
+            )}
           </div>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg flex items-center justify-between">
-          <div>
-            <div className="text-xs font-bold uppercase tracking-widest text-zinc-500">ДО КОНЦА ХОДА</div>
-            <div className="text-3xl font-black font-mono tracking-wider text-zinc-100">{formatTime(secondsLeft)}</div>
-          </div>
-          <div className="text-2xl opacity-60">⏱️</div>
         </div>
       </div>
     </div>
@@ -226,183 +459,3 @@ const TvBoardViewImpl: React.FC<TvBoardViewProps> = ({
 };
 
 export const TvBoardView = TvBoardViewImpl;
-
-const _deprecatedTvBoardView: React.FC<TvBoardViewProps> = ({
-  gameState,
-  secondsLeft = 60,
-  selectedLine = null,
-}) => {
-  const isSecretService = gameState?.mode === 'SECRET_SERVICE';
-  const spies = gameState?.spies || [];
-  const activeSpyIndex = gameState?.activeSpyIndex ?? 0;
-  const activeSpy = spies[activeSpyIndex];
-  const targetScore = isSecretService
-    ? (gameState?.spyTargetTrophies ?? 3)
-    : (gameState?.mode === 'THIEF_HUNT' ? 10 : 14);
-
-  const killerScore = gameState?.trophiesKiller ?? 0;
-  const detectiveScore = gameState?.trophiesDetective ?? 0;
-  const currentTurn = gameState?.currentTurn || 'KILLER';
-  const isKillerTurn = currentTurn === 'KILLER';
-
-  const activeTurnName = isSecretService
-    ? (activeSpy?.name || 'Агент')
-    : (isKillerTurn ? 'Бандит' : 'Инспектор');
-
-  const activeTurnColor = isSecretService
-    ? (SPY_COLORS[activeSpyIndex % SPY_COLORS.length]?.text || 'text-red-400')
-    : (isKillerTurn ? 'text-red-400' : 'text-blue-400');
-
-  const formatTime = (totalSec: number) => {
-    const mins = Math.floor(totalSec / 60);
-    const secs = totalSec % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const flatCards = (gameState?.board || []).flat();
-
-  const isLineSelected = (row: number, col: number) => {
-    if (!selectedLine) return false;
-    if (selectedLine.type === 'ROW' && selectedLine.index === row) return true;
-    if (selectedLine.type === 'COL' && selectedLine.index === col) return true;
-    return false;
-  };
-
-  const selectedLineType = selectedLine?.type || null;
-  const selectedLineIdx = selectedLine ? selectedLine.index + 1 : 0;
-  const selectedLineDir = selectedLine?.direction || null;
-
-  return (
-    <div className="flex h-screen w-screen bg-[#06070a] text-zinc-100 select-none overflow-hidden p-6 gap-6 font-sans">
-      {/* Левая часть: Игровое поле 5x5 */}
-      <div className="flex-1 flex flex-col justify-between">
-        <div className="flex items-center justify-between px-4 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800/80 backdrop-blur-md">
-          <div className="flex items-center gap-6">
-            {isSecretService && spies.length > 0 ? (
-              spies.map((spy, idx) => {
-                const color = SPY_COLORS[idx % SPY_COLORS.length];
-                return (
-                  <div key={spy.id || idx} className="flex items-center gap-2">
-                    <span className={`h-3 w-3 rounded-full ${color.bg} border ${color.border}`} />
-                    <span className="text-sm font-bold tracking-wide text-zinc-300">
-                      <span>{spy.name}</span>: <span className={`${color.text} font-black`}>{spy.trophies}/{targetScore}</span>
-                    </span>
-                  </div>
-                );
-              })
-            ) : (
-              <>
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                  <span className="text-sm font-bold tracking-wide text-zinc-300">
-                    <span>Бандит</span>: <span className="text-red-400 font-black">{killerScore}/{targetScore}</span>
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-                  <span className="text-sm font-bold tracking-wide text-zinc-300">
-                    <span>Инспектор</span>: <span className="text-blue-400 font-black">{detectiveScore}/{targetScore}</span>
-                  </span>
-                </div>
-              </>
-            )}
-          </div>
-          <div className="flex items-center gap-4 text-xs font-mono uppercase tracking-widest text-zinc-400">
-            <span>ХОД: <strong className={activeTurnColor}>{activeTurnName}</strong></span>
-          </div>
-        </div>
-
-        <div className="relative my-auto mx-auto w-full max-w-[800px] aspect-square p-2 rounded-2xl bg-zinc-900/40 border border-zinc-800/60 shadow-2xl flex items-center justify-center">
-          <div className="grid grid-cols-5 grid-rows-5 gap-2 w-full h-full">
-            {flatCards.map((char, index) => {
-              const row = Math.floor(index / 5);
-              const col = index % 5;
-              const isLineActive = isLineSelected(row, col);
-
-              return (
-                <div
-                  key={char.id || index}
-                  className={`relative w-full h-full rounded-xl transition-all duration-300 ${
-                    isLineActive ? 'ring-2 ring-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)] scale-[1.02] z-10' : ''
-                  }`}
-                >
-                  <CharacterCard
-                    mode={gameState?.mode || 'SECRET_SERVICE'}
-                    character={char}
-                    isSelected={isLineActive}
-                    isPVP={true}
-                    onClick={() => {}}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Правая инфопанель */}
-      <div className="w-96 flex flex-col justify-between gap-4">
-        <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg">
-          <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-1">ТЕКУЩИЙ ХОД</div>
-          <div className={`text-2xl font-black tracking-wider uppercase ${activeTurnColor}`}>
-            <span>{activeTurnName}</span>
-          </div>
-          <div className="text-xs text-zinc-400 mt-1">Следите за действиями на мобильном контроллере</div>
-        </div>
-
-        {selectedLine && (
-          <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/80 shadow-inner space-y-1">
-            <div className="text-xs font-bold uppercase tracking-wider text-red-400">
-              Выбранная линия
-            </div>
-            <div className="text-sm font-black text-zinc-200">
-              <span>{selectedLineType === 'ROW' ? `Ряд ${selectedLineIdx}` : `Столбец ${selectedLineIdx}`}</span>
-            </div>
-            {selectedLineDir && (
-              <div className="text-xs font-bold text-red-400">
-                {selectedLineType === 'ROW'
-                  ? (selectedLineDir === 'FORWARD' ? '▶ Вправо' : '◀ Влево')
-                  : (selectedLineDir === 'FORWARD' ? '▼ Вниз' : '▲ Вверх')}
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg flex-1">
-          <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">ДЕЙСТВИЯ ХОДА</div>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60">
-              <span className="text-base">🎯</span>
-              <span className="text-sm font-semibold text-zinc-300">Ликвидация / Задержание</span>
-            </div>
-            <div className="flex items-center gap-3 p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60">
-              <span className="text-base">🔍</span>
-              <span className="text-sm font-semibold text-zinc-300">Опрос свидетелей</span>
-            </div>
-            <div className="flex items-center gap-3 p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60">
-              <span className="text-base">⇄</span>
-              <span className="text-sm font-semibold text-zinc-300">Сдвиг линии (Anti-Undo)</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg">
-          <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">ПОСЛЕДНИЕ СОБЫТИЯ</div>
-          <div className="text-xs text-zinc-400 italic font-mono">
-            {gameState?.log && gameState.log.length > 0
-              ? gameState.log[gameState.log.length - 1]
-              : 'Ожидание первых действий...'}
-          </div>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg flex items-center justify-between">
-          <div>
-            <div className="text-xs font-bold uppercase tracking-widest text-zinc-500">ДО КОНЦА ХОДА</div>
-            <div className="text-3xl font-black font-mono tracking-wider text-zinc-100">{formatTime(secondsLeft)}</div>
-          </div>
-          <div className="text-2xl opacity-60">⏱️</div>
-        </div>
-      </div>
-    </div>
-  );
-};

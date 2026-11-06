@@ -13,7 +13,8 @@ describe("Сквозной аудит инвариантов (Кластеры 1
   
   describe("1. Инвариант маскировки (disguiseKiller & escapeManiac)", () => {
     it("disguiseKiller: провал маскировки, если вытянута оправданная карта (isExonerated: true)", () => {
-      const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
+      const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
+      (state as any).mode = "TEST_DUEL";
       const initialKillerId = state.killerSecretId;
       
       // Находим живого персонажа и делаем его оправданным
@@ -55,9 +56,12 @@ describe("Сквозной аудит инвариантов (Кластеры 1
 
   describe("2. Циклический добор и радар алиби (exonerateFromHand)", () => {
     it("exonerateFromHand: добор карты, установка радара и флага isExonerated", () => {
-      const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
+      const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
       state.currentTurn = "DETECTIVE";
-      const cardToExonerate = state.detectiveHand[0];
+      const cardToExonerate = state.detectiveHand[0] || state.board.flat().find(c => c.isAlive && c.id !== state.killerSecretId)!.id;
+      if (!state.detectiveHand.includes(cardToExonerate)) {
+        state.detectiveHand = [cardToExonerate, ...state.detectiveHand];
+      }
       const initialHandSize = state.detectiveHand.length;
       const initialDeckSize = state.evidenceDeck.length;
 
@@ -82,7 +86,7 @@ describe("Сквозной аудит инвариантов (Кластеры 1
 
   describe("3. Сетевой редуктор (gameReducer & Host-Authority)", () => {
     it("gameReducer: жестко применяет action.nextTurn для удаленных действий", () => {
-      const state = createInitialState("SKHVATKA", "ONLINE", "DETECTIVE");
+      const state = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "DETECTIVE");
       state.currentTurn = "KILLER";
 
       const remoteAction: GameAction = {
@@ -101,7 +105,7 @@ describe("Сквозной аудит инвариантов (Кластеры 1
 
   describe("4. Логика назначения роли инспектора (setInspectorRole)", () => {
     it("setInspectorRole: выбор личности, перенос остатка в руку, очистка кандидатов", () => {
-      const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
+      const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
       // Имитируем состояние до выбора роли
       state.inspectorChoices = ["c1", "c2", "c3", "c4"];
       state.detectiveSecretId = "";

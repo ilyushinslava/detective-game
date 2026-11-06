@@ -51,25 +51,5 @@ describe("Игровые правила (Rules Audit)", () => {
     expect(newState.evidenceDeck).toContain(lastVictim);
   });
 
-  it("SKHVATKA vs MANIAC_VS_OPERATIVE: Ликвидация невиновного создает объект lastInterrogation только в Схватке", () => {
-    // Тест для режима Схватка
-    let stateSkhvatka = createInitialState("SKHVATKA", "PVP");
-    // Берем реального живого соседа убийцы, не совпадающего с детективом
-    const neighborsSkhvatka = getAdjacentCharacters(stateSkhvatka.board, stateSkhvatka.killerSecretId);
-    const validTargetSkhvatka = neighborsSkhvatka.find(c => c.id !== stateSkhvatka.detectiveSecretId && c.isAlive)!;
-    
-    const resSkhvatka = killCharacter(stateSkhvatka, validTargetSkhvatka.id);
-    expect(resSkhvatka.lastInterrogation).not.toBeNull();
-    expect(resSkhvatka.lastInterrogation?.interrogator).toBe("KILLER");
-    
-    // Тест для режима Маньяка
-    let stateManiac = createInitialState("MANIAC_VS_OPERATIVE", "PVP");
-    const targetManiacId = stateManiac.victimList[0];
-    // Ставим маньяка реальным соседом первой жертвы
-    const neighborsManiac = getAdjacentCharacters(stateManiac.board, targetManiacId);
-    stateManiac.killerSecretId = neighborsManiac[0].id;
-    
-    const resManiac = killCharacter(stateManiac, targetManiacId);
-    expect(resManiac.lastInterrogation).toBeNull(); // Опрос не проводится
-  });
+
 });

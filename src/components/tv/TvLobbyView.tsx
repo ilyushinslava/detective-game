@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 
 import type { GameModeType } from '../../types/game';
@@ -24,8 +24,10 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
     return `${origin}${pathname}?clientType=CONTROLLER&room=${roomCode}`;
   }, [roomCode]);
 
-  const [selectedMode, setSelectedMode] = useState<GameModeType>('SKHVATKA');
+  const [selectedMode, setSelectedMode] = useState<GameModeType>('MANIAC_VS_OPERATIVE');
   const [isPassAndPlay, setIsPassAndPlay] = useState<boolean>(false);
+  const [focusArea, setFocusArea] = useState<'FORMAT' | 'MODES' | 'START' | 'EXIT'>('MODES');
+  const [focusedModeIndex, setFocusedModeIndex] = useState<number>(0);
 
   const DIGIT_TO_MORSE: Record<string, string> = {
     '0': '-----',
@@ -60,7 +62,6 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   };
 
   const GAME_MODES: Array<{ id: GameModeType; label: string; badge: string }> = [
-    { id: 'SKHVATKA', label: 'Схватка', badge: '1v1' },
     { id: 'MANIAC_VS_OPERATIVE', label: 'Маньяк', badge: '4 ЦЕЛИ' },
     { id: 'THIEF_HUNT', label: 'Грабитель', badge: '10 КРАЖ' },
     { id: 'SECRET_SERVICE', label: 'Разведка', badge: 'ШПИОНЫ' },
@@ -76,7 +77,69 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   const roomMorse = useMemo(() => {
     return String(roomCode).split('').map((c) => DIGIT_TO_MORSE[c] || c).join('   ');
   }, [roomCode]);
-  // slots removed // Допускаем старт для соло/pass-and-play или для 2 игроков
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown' || e.keyCode === 40) {
+        e.preventDefault();
+        setFocusArea((prev) => {
+          if (prev === 'FORMAT') return 'MODES';
+          if (prev === 'MODES') return 'START';
+          return prev;
+        });
+      } else if (e.key === 'ArrowUp' || e.keyCode === 38) {
+        e.preventDefault();
+        setFocusArea((prev) => {
+          if (prev === 'START' || prev === 'EXIT') return 'MODES';
+          if (prev === 'MODES') return 'FORMAT';
+          return prev;
+        });
+      } else if (e.key === 'ArrowLeft' || e.keyCode === 37) {
+        e.preventDefault();
+        if (focusArea === 'FORMAT') {
+          setIsPassAndPlay(false);
+        } else if (focusArea === 'MODES') {
+          setFocusedModeIndex((idx) => {
+            const nextIdx = Math.max(0, idx - 1);
+            setSelectedMode(GAME_MODES[nextIdx].id);
+            return nextIdx;
+          });
+        } else if (focusArea === 'START') {
+          setFocusArea('EXIT');
+        }
+      } else if (e.key === 'ArrowRight' || e.keyCode === 39) {
+        e.preventDefault();
+        if (focusArea === 'FORMAT') {
+          setIsPassAndPlay(true);
+        } else if (focusArea === 'MODES') {
+          setFocusedModeIndex((idx) => {
+            const nextIdx = Math.min(GAME_MODES.length - 1, idx + 1);
+            setSelectedMode(GAME_MODES[nextIdx].id);
+            return nextIdx;
+          });
+        } else if (focusArea === 'EXIT') {
+          setFocusArea('START');
+        }
+      } else if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 13 || e.keyCode === 32) {
+        e.preventDefault();
+        if (focusArea === 'START') {
+          if (canStart) onStartGame?.(selectedMode, isPassAndPlay);
+        } else if (focusArea === 'EXIT') {
+          onExit?.();
+        } else if (focusArea === 'FORMAT') {
+          setIsPassAndPlay((prev) => !prev);
+        } else if (focusArea === 'MODES') {
+          setSelectedMode(GAME_MODES[focusedModeIndex].id);
+        }
+      } else if (e.key === 'Escape' || e.keyCode === 27 || e.keyCode === 4) {
+        e.preventDefault();
+        onExit?.();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [focusArea, focusedModeIndex, selectedMode, isPassAndPlay, canStart, onStartGame, onExit]);
 
   return (
     <div className="flex h-screen w-screen flex-col justify-between bg-[#06070a] text-zinc-100 select-none p-6 lg:p-8 overflow-hidden font-sans">
@@ -135,36 +198,48 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsPassAndPlay(false)}
-                  className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${!isPassAndPlay ? 'bg-zinc-800 text-zinc-100 shadow' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${!isPassAndPlay ? 'bg-zinc-800 text-zinc-100 shadow' : 'text-zinc-500 hover:text-zinc-300'} ${focusArea === 'FORMAT' && !isPassAndPlay ? 'ring-2 ring-blue-400 scale-105' : ''}`}
                 >
                   2+ ТЕЛЕФОНА
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsPassAndPlay(true)}
-                  className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${isPassAndPlay ? 'bg-red-600 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${isPassAndPlay ? 'bg-red-600 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'} ${focusArea === 'FORMAT' && isPassAndPlay ? 'ring-2 ring-red-400 scale-105' : ''}`}
                 >
                   PASS & PLAY
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-5 gap-1.5">
-              {GAME_MODES.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setSelectedMode(m.id)}
-                  className={`py-2 px-1 rounded-xl border text-center transition cursor-pointer flex flex-col items-center gap-1.5 ${
-                    selectedMode === m.id
-                      ? 'bg-zinc-900 border-red-500 text-zinc-100 shadow-[0_0_12px_rgba(239,68,68,0.3)]'
-                      : 'bg-zinc-950/40 border-zinc-800/80 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
-                  }`}
-                >
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase">{m.badge}</span>
-                  <span className="text-[9px] font-black uppercase tracking-tight">{m.label}</span>
-                </button>
-              ))}
+            <div className="grid grid-cols-4 gap-1.5">
+              {GAME_MODES.map((m, idx) => {
+                const isSelected = selectedMode === m.id;
+                const isFocused = focusArea === 'MODES' && focusedModeIndex === idx;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedMode(m.id);
+                      setFocusedModeIndex(idx);
+                      setFocusArea('MODES');
+                    }}
+                    className={`py-2 px-1 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
+                      isFocused
+                        ? 'ring-2 ring-blue-400 scale-105 shadow-[0_0_15px_rgba(59,130,246,0.5)] z-10'
+                        : ''
+                    } ${
+                      isSelected
+                        ? 'bg-zinc-900 border-red-500 text-zinc-100 shadow-[0_0_12px_rgba(239,68,68,0.3)]'
+                        : 'bg-zinc-950/40 border-zinc-800/80 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                    }`}
+                  >
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase">{m.badge}</span>
+                    <span className="text-[9px] font-black uppercase tracking-tight">{m.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -255,7 +330,9 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
       <div className="flex items-center justify-between border-t border-zinc-800/80 pt-5">
         <button
           onClick={onExit}
-          className="px-6 py-3 rounded-full border border-zinc-800 bg-zinc-900/80 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-100 hover:border-zinc-700 transition cursor-pointer"
+          className={`px-6 py-3 rounded-full border border-zinc-800 bg-zinc-900/80 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-100 hover:border-zinc-700 transition cursor-pointer ${
+            focusArea === 'EXIT' ? 'ring-2 ring-blue-400 scale-105 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : ''
+          }`}
         >
           В меню
         </button>
@@ -264,6 +341,8 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           onClick={() => onStartGame?.(selectedMode, isPassAndPlay)}
           disabled={!canStart}
           className={`px-10 py-4 rounded-full font-black uppercase tracking-widest text-sm transition-all shadow-xl ${
+            focusArea === 'START' && canStart ? 'ring-2 ring-white scale-105' : ''
+          } ${
             canStart
               ? 'bg-red-600 hover:bg-red-500 text-white shadow-[0_0_25px_rgba(239,68,68,0.5)] cursor-pointer active:scale-95'
               : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'

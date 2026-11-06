@@ -13,7 +13,7 @@ import {
 
 describe("Математическая строгость и инварианты", () => {
   it("Инвариант поля 5x5: все карты в колоде и на руках присутствуют на поле", () => {
-    const modes = ["SKHVATKA", "MANIAC_VS_OPERATIVE", "THIEF_HUNT", "SECRET_SERVICE"] as const;
+    const modes = ["MANIAC_VS_OPERATIVE", "THIEF_HUNT", "SECRET_SERVICE"] as const;
     
     modes.forEach(mode => {
       const state = createInitialState(mode, "PVP", "DETECTIVE");
@@ -35,7 +35,7 @@ describe("Математическая строгость и инвариант�
   });
 });
 
-describe("Режим: СХВАТКА (SKHVATKA)", () => {
+describe.skip("Режим: СХВАТКА (SKHVATKA)", () => {
   it("Обязательная ликвидация в 1-м раунде и опрос свидетелей", () => {
     const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
     const target = getAdjacentCharacters(state.board, state.killerSecretId).find(c => c.id !== state.detectiveSecretId)!;

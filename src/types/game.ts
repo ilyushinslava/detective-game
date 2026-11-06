@@ -1,6 +1,5 @@
 ﻿// src/types/game.ts
 export type GameModeType =
-  | "SKHVATKA"
   | "MANIAC_VS_OPERATIVE"
   | "THIEF_HUNT"
   | "SECRET_SERVICE"

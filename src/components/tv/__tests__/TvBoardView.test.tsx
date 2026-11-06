@@ -6,18 +6,18 @@ import { createInitialState } from "../../../utils/gameLogic";
 
 describe("TvBoardView Component", () => {
   it("отрисовывает 25 персонажей доски и статус текущего хода", () => {
-    const state = createInitialState("SKHVATKA", "ONLINE", "KILLER");
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "KILLER");
     state.currentTurn = "KILLER";
 
     render(<TvBoardView gameState={state} />);
 
-    const killerElements = screen.getAllByText("Бандит");
+    const killerElements = screen.getAllByText("Маньяк");
     expect(killerElements.length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("ЭФИР ТРАНСЛЯЦИИ")).toBeDefined();
+    expect(screen.getByText(/ТВ ЭФИР/i)).toBeDefined();
   });
 
   it("отображает блок выбранной линии, если она передана", () => {
-    const state = createInitialState("SKHVATKA", "ONLINE", "KILLER");
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "KILLER");
 
     render(
       <TvBoardView
@@ -26,8 +26,8 @@ describe("TvBoardView Component", () => {
       />
     );
 
-    expect(screen.getByText("Выбранная линия")).toBeDefined();
-    expect(screen.getByText("Ряд 3")).toBeDefined();
-    expect(screen.getByText("▶ Вправо")).toBeDefined();
+    expect(screen.getByText("ТАКТИЧЕСКИЙ МАНЕВР")).toBeDefined();
+    expect(screen.getByText("РЯД #3")).toBeDefined();
+    expect(screen.getByText("ВПРАВО")).toBeDefined();
   });
 });

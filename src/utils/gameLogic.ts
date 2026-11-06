@@ -182,17 +182,7 @@ export function createInitialState(
   let activeSpyIndex: number | undefined = undefined;
   let spyTargetTrophies: number | undefined = undefined;
 
-  if (mode === "SKHVATKA") {
-    const safeCandidates = shuffle(validDetectiveCandidates);
-    const chosenChoices = safeCandidates.slice(0, 4);
-    inspectorChoices = chosenChoices.map((c) => c.id);
-    detectiveSecretId = inspectorChoices[0];
-    detectiveHand = inspectorChoices.slice(1);
-
-    const boardIds = boardCharacters.map((c) => c.id);
-    const excludedIds = new Set([killerSecretId, ...inspectorChoices]);
-    deck = shuffle(boardIds.filter((id) => !excludedIds.has(id)));
-  } else if (mode === "MANIAC_VS_OPERATIVE") {
+  if (mode === "MANIAC_VS_OPERATIVE") {
     const safeCandidates = shuffle(validDetectiveCandidates);
     detectiveSecretId = safeCandidates[0].id;
     detectiveHand = [
@@ -500,15 +490,13 @@ export function killCharacter(state: GameState, targetId: string): GameState {
       }
     } else if (state.mode === "EUROPOL_VS_OPG" && newKillCount >= 6) {
       winner = "KILLER";
-    } else if (state.mode === "SKHVATKA" && newKillCount >= 14) {
-      winner = "KILLER";
     }
   }
 
   let lastInterrogation = null;
   let interrogationLog = "";
 
-  if (state.mode === "SKHVATKA" && !winner) {
+  if (state.mode === "MANIAC_VS_OPERATIVE" && !winner) {
     const isNear = areAdjacent(state.board, newDetectiveSecretId, targetId);
     lastInterrogation = {
       interrogator: "KILLER" as Role,
@@ -518,7 +506,7 @@ export function killCharacter(state: GameState, targetId: string): GameState {
     interrogationLog = ` Опрос свидетелей: Инспектор ${isNear ? "находился" : "НЕ находился"} рядом с убитым.`;
   }
 
-  const interrogationRadar = (state.mode === "SKHVATKA" && !winner) 
+  const interrogationRadar = (state.mode === "MANIAC_VS_OPERATIVE" && !winner) 
     ? { targetId, interrogatorIndex: 0 }
     : null;
 
@@ -660,11 +648,11 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
 
   if (state.mode === "THIEF_HUNT") {
     logMsg = `Ложная проверка: ${targetName} не грабитель.`;
-      } else if (state.mode !== "SKHVATKA") {
-      newBoard = state.board.map((row) =>
-        row.map((c) => (c.id === targetId ? { ...c, isExonerated: true } : c)),
-      );
-    }
+  } else {
+    newBoard = state.board.map((row) =>
+      row.map((c) => (c.id === targetId ? { ...c, isExonerated: true } : c)),
+    );
+  }
 
   if (state.mode === "MANIAC_VS_OPERATIVE" && nextVictims.length > 0) {
     const returnedVictim = nextVictims.pop()!;

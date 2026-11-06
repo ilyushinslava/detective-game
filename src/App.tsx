@@ -49,7 +49,7 @@ export default function App() {
   }
 
   const [showSplash, setShowSplash] = useState(true);
-  const [, setActiveMode] = useState<GameModeType>("SKHVATKA");
+  const [, setActiveMode] = useState<GameModeType>("MANIAC_VS_OPERATIVE");
   const [isLobbyOpen, setIsLobbyOpen] = useState(true);
   const [hasStartedEver, setHasStartedEver] = useState(false);
   const {
@@ -64,7 +64,7 @@ export default function App() {
   >("LOBBY");
 
   const [gameState, setGameState] = useState(() =>
-    createInitialState("SKHVATKA", "AI", "DETECTIVE", 3, 3, 16, profile.nickname)
+    createInitialState("MANIAC_VS_OPERATIVE", "AI", "DETECTIVE", 3, 3, 16, profile.nickname)
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedInspectorChoiceId, setSelectedInspectorChoiceId] = useState<string | null>(null);
@@ -111,7 +111,7 @@ export default function App() {
       if (typeof window !== "undefined") {
         sessionStorage.setItem("tv_controller_room", tvRoomCode);
       }
-      partyService.connect(tvRoomCode, profile.nickname || 'Агент', false, 'SECRET_SERVICE', controllerClientId || undefined, clientTypeParam);
+      partyService.connect(tvRoomCode, profile.nickname || 'Агент', false, 'MANIAC_VS_OPERATIVE', controllerClientId || undefined, clientTypeParam);
 
       const prevOnRoomStatus = partyService.onRoomStatus;
       const prevOnSyncState = partyService.onSyncState;
@@ -170,7 +170,7 @@ export default function App() {
     if (tvPartyState !== "TV_LOBBY" && tvPartyState !== "TV_BOARD" && tvPartyState !== "CONTROLLER") return;
 
     if (tvPartyState === "TV_LOBBY" || tvPartyState === "TV_BOARD") {
-      partyService.connect(tvRoomCode, 'TV_HOST', true, 'SECRET_SERVICE', undefined, 'TV_DISPLAY');
+      partyService.connect(tvRoomCode, 'TV_HOST', true, 'MANIAC_VS_OPERATIVE', undefined, 'TV_DISPLAY');
     }
 
     const prevOnRoomStatus = partyService.onRoomStatus;
@@ -206,6 +206,8 @@ export default function App() {
       prevOnAction?.(action);
       if (action?.type === "LINE_PREVIEW") {
         setTvLinePreview(action.payload?.line ?? null);
+      } else if (action?.type === "PREVIEW_SHIFT") {
+        setTvLinePreview(action.payload ?? null);
       }
     };
 
@@ -604,7 +606,7 @@ export default function App() {
             const choices = all.slice(0, 4).map((c) => c.id);
             return {
               ...prev,
-              mode: "SKHVATKA",
+              mode: "MANIAC_VS_OPERATIVE",
               currentTurn: "DETECTIVE",
               playerRole: "DETECTIVE",
               killCount: Math.max(prev.killCount, 1),
@@ -1023,6 +1025,14 @@ export default function App() {
             gameState={gameState}
             secondsLeft={60}
             selectedLine={tvLinePreview}
+            onExit={() => {
+              partyService.disconnect();
+              setTvPartyState("NONE");
+              setIsLobbyOpen(true);
+            }}
+            onRestart={() => {
+              partyService.sendAction({ type: "RESTART_GAME" });
+            }}
           />
         </div>
       )}

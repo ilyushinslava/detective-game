@@ -61,7 +61,7 @@ describe("РЎРµС‚РµРІРѕР№ РїСЂРѕС‚РѕРєРѕР» Рё 
   });
 
   it("РўРµСЃС‚ 2 (Р”РµС‚РµСЂРјРёРЅРёР·Рј СЃРµС‚РµРІРѕРіРѕ СЂРµРґСЊСЋСЃРµСЂР°): СѓРґР°Р»РµРЅРЅС‹Р№ СЌРєС€РµРЅ РѕС‚ СЃРµСЂРІРµСЂР° РїРµСЂРµРєР»СЋС‡Р°РµС‚ С…РѕРґ Р±РµР· Р»РѕРєР°Р»СЊРЅС‹С… РіРѕРЅРѕРє", () => {
-    const initialState = createInitialState("SKHVATKA", "ONLINE", "KILLER", 2, 3, 16);
+    const initialState = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "KILLER", 2, 3, 16);
     const action = {
       type: "KILL_CHARACTER" as const,
       payload: { targetId: initialState.board[0][0].id },
@@ -80,7 +80,7 @@ describe("РЎРµС‚РµРІРѕР№ РїСЂРѕС‚РѕРєРѕР» Рё 
         myClientId: "client_abc",
         isHost: true,
         playerRole: "KILLER",
-        mode: "SKHVATKA",
+        mode: "MANIAC_VS_OPERATIVE",
         nickname: "РђРіРµРЅС‚ 007",
       })
     );
@@ -96,7 +96,7 @@ describe("РЎРµС‚РµРІРѕР№ РїСЂРѕС‚РѕРєРѕР» Рё 
     render(
       <I18nProvider>
         <RoleRevealModal
-          mode="SKHVATKA"
+          mode="MANIAC_VS_OPERATIVE"
           opponent="ONLINE"
           playerRole="KILLER"
           isOpponentConnected={true}
@@ -114,7 +114,7 @@ describe("РЎРµС‚РµРІРѕР№ РїСЂРѕС‚РѕРєРѕР» Рё 
   });
 
   it("РўРµСЃС‚ 5 (РЎРёРЅС…СЂРѕРЅРёР·Р°С†РёСЏ Р±Р°РЅРєР°/СЃС‚Р°РІРѕРє): СЌРєС€РµРЅ SET_MATCH_POT РѕР±РЅРѕРІР»СЏРµС‚ Р±Р°РЅРє РІ СЂРµРґСЊСЋСЃРµСЂРµ", () => {
-    const state = createInitialState("SKHVATKA", "ONLINE", "KILLER", 2, 3, 16);
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "KILLER", 2, 3, 16);
     const next = gameReducer(state, {
       type: "SET_MATCH_POT",
       payload: { pot: 1000, bet: 500 },
@@ -198,8 +198,9 @@ describe("GameRoomServer (PartyKit РњСѓР»СЊС‚РёРїР»РµРµСЂ
     server.onMessage(JSON.stringify({ type: "PLAYER_READY", senderClientId: "c_g" }), guestConn);
     expect(server.state.status).toBe("PLAYING");
 
-    const killerSecretId = server.state.gameState!.killerSecretId;
-    const targetVictim = getAdjacentCharacters(server.state.gameState!.board, killerSecretId)[0].id;
+    const targetVictim = server.state.gameState!.victimList[0];
+    const neighbors = getAdjacentCharacters(server.state.gameState!.board, targetVictim);
+    server.state.gameState!.killerSecretId = neighbors[0].id;
     server.onMessage(
       JSON.stringify({
         type: "KILL_CHARACTER",
@@ -398,14 +399,14 @@ describe("РЎРєРІРѕР·РЅРѕРµ С‚РµСЃС‚РёСЂРѕРІР�
   it("4. РўРµСЃС‚ Р¶РёР·РЅРµРЅРЅРѕРіРѕ С†РёРєР»Р° СЃРµСЃСЃРёРё Рё Р РµРІР°РЅС€Р°: REQUEST_RESTART Рё CONFIRM_RESTART", () => {
     const hostConn = createMockConnection(
       "conn_h_rev",
-      "http://localhost:1999/parties/main/room_rev?clientId=h_rev&isHost=true&nickname=HostRev&mode=SKHVATKA"
+      "http://localhost:1999/parties/main/room_rev?clientId=h_rev&isHost=true&nickname=HostRev&mode=MANIAC_VS_OPERATIVE"
     );
     mockRoom._connectionsMap.set(hostConn.id, hostConn);
     server.onConnect(hostConn as any, { request: new Request(hostConn.url) });
 
     const guestConn = createMockConnection(
       "conn_g_rev",
-      "http://localhost:1999/parties/main/room_rev?clientId=g_rev&isHost=false&nickname=GuestRev&mode=SKHVATKA"
+      "http://localhost:1999/parties/main/room_rev?clientId=g_rev&isHost=false&nickname=GuestRev&mode=MANIAC_VS_OPERATIVE"
     );
     mockRoom._connectionsMap.set(guestConn.id, guestConn);
     server.onConnect(guestConn as any, { request: new Request(guestConn.url) });

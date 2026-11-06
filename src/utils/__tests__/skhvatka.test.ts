@@ -10,29 +10,19 @@ import {
 
 describe("Режим: Схватка (SKHVATKA)", () => {
   it("Обязательная ликвидация в 1-м раунде: счетчик убийств увеличивается", () => {
-    const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
-    const target = getAdjacentCharacters(state.board, state.killerSecretId)[0];
-
-    const nextState = killCharacter(state, target.id);
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
+    const targetId = state.victimList[0];
+    const neighbors = getAdjacentCharacters(state.board, targetId);
+    state.killerSecretId = neighbors[0].id;
+    const nextState = killCharacter(state, targetId);
 
     expect(nextState.killCount).toBe(1);
-    expect(nextState.board.flat().find((c) => c.id === target.id)?.isAlive).toBe(false);
+    expect(nextState.board.flat().find((c) => c.id === targetId)?.isAlive).toBe(false);
     expect(nextState.currentTurn).toBe("DETECTIVE");
   });
 
-  it("Победа Бандита при 14 убийствах", () => {
-    const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
-    state.killCount = 13;
-    const target = getAdjacentCharacters(state.board, state.killerSecretId).find(c => c.id !== state.detectiveSecretId)!;
-
-    const nextState = killCharacter(state, target.id);
-
-    expect(nextState.killCount).toBe(14);
-    expect(nextState.winner).toBe("KILLER");
-  });
-
   it("Опрос свидетелей при ликвидации невиновного: фиксация алиби Инспектора", () => {
-    const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
     const innocentTarget = getAdjacentCharacters(state.board, state.killerSecretId).find((c) => c.id !== state.detectiveSecretId)!;
 
     const nextState = killCharacter(state, innocentTarget.id);
@@ -42,28 +32,17 @@ describe("Режим: Схватка (SKHVATKA)", () => {
     expect(typeof nextState.lastInterrogation?.isNear).toBe("boolean");
   });
 
-  it("Конспирация Бандита (disguiseKiller): смена тайной личности на живого персонажа с поля", () => {
-    const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
-    const initialKillerId = state.killerSecretId;
-    const aliveCharOnBoard = state.board.flat().find(
-      (c) => c.isAlive && c.id !== initialKillerId && c.id !== state.detectiveSecretId
-    )!;
-
-    state.evidenceDeck = [aliveCharOnBoard.id, ...state.evidenceDeck.filter((id) => id !== aliveCharOnBoard.id)];
-    const nextState = disguiseKiller(state);
-
-    expect(nextState.killerSecretId).toBe(aliveCharOnBoard.id);
-    expect(nextState.evidenceDeck[nextState.evidenceDeck.length - 1]).toBe(initialKillerId);
-    expect(nextState.board.flat().some((c) => c.id === nextState.killerSecretId && c.isAlive)).toBe(true);
-    expect(nextState.currentTurn).toBe("DETECTIVE");
-    expect(nextState.disguisedNotification).toEqual({
-      roleName: "Бандит",
-      newSecretId: aliveCharOnBoard.id,
-    });
+  it("Проверка алиби Оперативника: выставление статуса алиби", () => {
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
+    state.currentTurn = "DETECTIVE";
+    const cardToExonerate = state.detectiveHand[0];
+    const nextState = exonerateFromHand(state, cardToExonerate);
+    expect(nextState.board.flat().find((c) => c.id === cardToExonerate)?.isExonerated).toBe(true);
+    expect(nextState.currentTurn).toBe("KILLER");
   });
 
   it("Проверка алиби Инспектора (exonerateFromHand): выставление isExonerated и добор карты", () => {
-    const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
     state.currentTurn = "DETECTIVE";
     const cardToExonerate = state.detectiveHand[0];
     const initialHandSize = state.detectiveHand.length;
@@ -78,7 +57,7 @@ describe("Режим: Схватка (SKHVATKA)", () => {
   });
 
   it("Победа Закона при успешном Задержании Бандита", () => {
-    const state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
     state.currentTurn = "DETECTIVE";
     state.detectiveSecretId = getAdjacentCharacters(state.board, state.killerSecretId)[0].id;
 

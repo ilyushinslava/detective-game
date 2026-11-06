@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
 import { triggerHaptic } from "../utils/haptics";
-import skhvatkaBanner from "../assets/modes/skhvatka_preview.png";
 import maniacBanner from "../assets/modes/maniac_preview.png";
 
 export interface RulesModalProps {
@@ -8,7 +7,7 @@ export interface RulesModalProps {
   onClose: () => void;
 }
 
-type ModeTab = "BASE" | "SKHVATKA" | "MANIAC" | "THIEF" | "SECRET_SERVICE" | "LINE_UP";
+type ModeTab = "BASE" | "MANIAC" | "THIEF" | "SECRET_SERVICE" | "LINE_UP";
 
 interface ModeInfo {
   id: ModeTab;
@@ -86,49 +85,6 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
       },
     ],
   },
-  SKHVATKA: {
-    id: "SKHVATKA",
-    title: "Схватка",
-    badge: "Городская дуэль",
-    format: "5×5 • 2 игрока",
-    desc: "Смертельное противостояние в темных кварталах: вычислите скрывающегося бандита до того, как инспектор окажется в его прицеле.",
-    bannerGradient: "from-red-950 via-zinc-950/70 to-transparent",
-    borderColor: "border-red-500/40",
-    badgeColor: "text-red-400",
-    bannerImage: skhvatkaBanner,
-    role1: {
-      name: "Бандит",
-      badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
-      goal: "Ликвидировать Инспектора прямым выстрелом или устранить 14 жителей города.",
-    },
-    role2: {
-      name: "Инспектор",
-      badgeColor: "bg-blue-950/80 text-blue-300 border border-blue-700/60",
-      goal: "Вычислить Бандита через опрос свидетелей радаром 3×3 и провести арест.",
-    },
-    mechanics: [
-      {
-        name: "Ликвидация (Бандит)",
-        desc: "Выстрел по соседней клетке (из 8 соседних). Первый выстрел выполняется вслепую; каждый последующий дает Инспектору радарный отклик свидетелей.",
-        tag: "Атака",
-      },
-      {
-        name: "Опрос свидетелей (Инспектор)",
-        desc: "Выкладывание карты алиби активирует радар 3×3 вокруг свидетеля: система сообщает, находится ли Бандит в радиусе поражения.",
-        tag: "Радар",
-      },
-      {
-        name: "Конспирация",
-        desc: "Бандит может сбросить подозрения, взяв новую карту из колоды улик, и сменить тайную личность на любого свободного персонажа без алиби.",
-        tag: "Маскировка",
-      },
-      {
-        name: "Арест с поличным",
-        desc: "Инспектор объявляет обвинение соседней карте. При успехе партия выиграна; ошибка раскрывает позицию Инспектора (статус «Алиби» не выдается).",
-        tag: "Арест",
-      },
-    ],
-  },
   MANIAC: {
     id: "MANIAC",
     title: "Маньяк против Оперативника",
@@ -164,6 +120,16 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
         name: "Побег маньяка",
         desc: "Маньяк сбрасывает раскрытый след, берет новую тайную личность из колоды улик, но получает штраф: +1 цель в список смертников.",
         tag: "Маскировка",
+      },
+      {
+        name: "Опрос свидетелей (Радар 3×3)",
+        desc: "При любой атаке Маньяка проводится автоматический опрос свидетелей: система сообщает, находится ли Оперативник в радиусе 3×3 вокруг жертвы.",
+        tag: "Радар",
+      },
+      {
+        name: "Проверка алиби (Оперативник)",
+        desc: "Оперативник может выложить карту улик из руки на поле. Проводится проверка Маньяка на соседство 3×3, а невиновный получает статус «Алиби».",
+        tag: "Алиби",
       },
       {
         name: "Оперативный перехват",
@@ -310,7 +276,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
   if (!isOpen) return null;
 
   const currentMode = MODES_DATA[activeTab];
-  const isCrimeOriented = activeTab === "SKHVATKA" || activeTab === "MANIAC";
+  const isCrimeOriented = activeTab === "MANIAC";
 
   const handleTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0];
@@ -335,7 +301,6 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
 
   const tabs: Array<{ id: ModeTab; label: string }> = [
     { id: "BASE", label: "База" },
-    { id: "SKHVATKA", label: "Схватка" },
     { id: "MANIAC", label: "Маньяк" },
     { id: "THIEF", label: "Вор" },
     { id: "SECRET_SERVICE", label: "Служба" },
@@ -368,7 +333,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-3 shrink-0 custom-scrollbar">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
-            const tabIsCrime = tab.id === "SKHVATKA" || tab.id === "MANIAC";
+            const tabIsCrime = tab.id === "MANIAC";
             const activeClasses = tab.id === "BASE"
               ? "bg-zinc-800 text-zinc-100 border-zinc-500 shadow-[0_0_12px_rgba(255,255,255,0.15)]"
               : tabIsCrime

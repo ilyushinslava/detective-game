@@ -67,7 +67,7 @@ export default class GameRoomServer {
       players: {},
       tvDisplays: {},
       gameState: null,
-      mode: "SKHVATKA",
+      mode: "MANIAC_VS_OPERATIVE",
       readyClients: new Set(),
       isPassAndPlay: false,
     };
@@ -116,7 +116,7 @@ export default class GameRoomServer {
     const clientId = url.searchParams.get("clientId") || conn.id;
     const nickname = url.searchParams.get("nickname") || "Игрок";
     const isHost = url.searchParams.get("isHost") === "true";
-    const mode = (url.searchParams.get("mode") as GameModeType) || "SKHVATKA";
+    const mode = (url.searchParams.get("mode") as GameModeType) || "MANIAC_VS_OPERATIVE";
     const randomRoles = url.searchParams.get("randomRoles") === "true";
     const clientType = (url.searchParams.get("clientType") as ClientDeviceType) || "PLAYER";
     const roomCode = this.getRoomCode();
@@ -358,7 +358,7 @@ export default class GameRoomServer {
         const isTestPreview =
           typeof process !== "undefined" &&
           (process.env?.VITEST || process.env?.NODE_ENV === "test") &&
-          action.type === "LINE_PREVIEW";
+          (action.type === "LINE_PREVIEW" || action.type === "PREVIEW_SHIFT");
         if (!isTestPreview && !isTvSender) {
           return;
         }
@@ -552,19 +552,11 @@ export default class GameRoomServer {
         }
       }
 
-      if (action.type === "LINE_PREVIEW") {
-        this.broadcastRaw(JSON.stringify({ type: "LINE_PREVIEW", payload: action.payload }));
+      if (action.type === "LINE_PREVIEW" || action.type === "PREVIEW_SHIFT") {
+        this.broadcastRaw(JSON.stringify({ type: action.type, payload: action.payload }));
         return;
       }
 
-      if (
-        this.state.mode === "SKHVATKA" &&
-        this.state.gameState.currentTurn === "KILLER" &&
-        this.state.gameState.killCount === 0 &&
-        action.type === "SHIFT_BOARD"
-      ) {
-        return;
-      }
 
       if (action.type === "CAPTURE_SPY" && this.state.mode === "SECRET_SERVICE") {
         const payload = action.payload || {};

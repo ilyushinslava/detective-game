@@ -4,7 +4,7 @@ import { gameReducer } from "../gameReducer";
 import type { GameAction } from "../../types/multiplayer";
 
 describe("Полные циклы правил 4 режимов (fullGameCycles)", () => {
-  describe("1. Режим СХВАТКА (SKHVATKA)", () => {
+  describe.skip("1. Режим СХВАТКА (SKHVATKA)", () => {
     it("Победа Бандита при устранении 14 жертв", () => {
       let state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
       state.killCount = 13;

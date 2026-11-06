@@ -71,7 +71,7 @@ describe("Интерактивное взаимодействие с экран�
       }
 
       // Клик по карточке режима Схватка
-      const modeCard = screen.getByText(/Схватка/i);
+      const modeCard = screen.getAllByText(/Маньяк против оперативника/i)[0];
               fireEvent.click(modeCard);
         expect(screen.getByText(/СВОДКА РАССЛЕДОВАНИЯ/i)).toBeDefined();
                   /*
@@ -91,7 +91,7 @@ describe("Интерактивное взаимодействие с экран�
       fireEvent.click(backBtn!);
 
       // Убеждаемся, что вернулись в список режимов
-      expect(screen.getByText(/Схватка/i)).toBeDefined();
+      expect(screen.getAllByText(/Маньяк против оперативника/i)[0]).toBeDefined();
     });
   });
 
@@ -138,7 +138,7 @@ describe("Интерактивное взаимодействие с экран�
       render(
         <GameOverModal
           winner="KILLER"
-          mode="SKHVATKA"
+          mode="MANIAC_VS_OPERATIVE"
           killer={{ id: "c1", name: "Руслан Громов", isAlive: true, isExonerated: false }}
           detective={{ id: "c2", name: "Марк Воронов", isAlive: true, isExonerated: false }}
           elapsedTime="02:15"

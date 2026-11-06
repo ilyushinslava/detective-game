@@ -1,5 +1,5 @@
-﻿import React, { useState, useMemo, useEffect, useRef } from 'react';
-import type { GameState, Role } from '../../types/game';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import type { GameState, Role, Character } from '../../types/game';
 import { SPY_COLORS } from '../../types/game';
 import { getAdjacentCharacters, isOppositeShift } from '../../utils/gameLogic';
 import { CharacterCard } from '../CharacterCard';
@@ -12,7 +12,7 @@ import { soundManager } from '../../utils/audio';
 import { triggerHaptic } from '../../utils/haptics';
 import { getAvailableActionDescriptors, type ActionDescriptor } from '../../hooks/useGameActions';
 
-interface MobileControllerViewProps {
+export interface MobileControllerViewProps {
   gameState: GameState;
   playerRole: Role;
   onDispatchAction: (action: any) => void;
@@ -22,8 +22,51 @@ interface MobileControllerViewProps {
 }
 
 type ShiftStep = 'IDLE' | 'SELECT_AXIS' | 'SELECT_INDEX' | 'SELECT_DIR' | 'CONFIRM';
-
 type ActionDef = ActionDescriptor;
+
+const Icons = {
+  Clock: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-9 h-9">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+  Eye: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  ),
+  ArrowRight: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5">
+      <path d="M5 12h14M12 5l7 7-7 7" />
+    </svg>
+  ),
+  ArrowLeft: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5">
+      <path d="M19 12H5M12 19l-7-7 7-7" />
+    </svg>
+  ),
+  ArrowDown: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5">
+      <path d="M12 5v14M19 12l-7 7-7-7" />
+    </svg>
+  ),
+  ArrowUp: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5">
+      <path d="M12 19V5M5 12l7-7 7 7" />
+    </svg>
+  ),
+  Target: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="22" y1="12" x2="18" y2="12" />
+      <line x1="6" y1="12" x2="2" y2="12" />
+      <line x1="12" y1="6" x2="12" y2="2" />
+      <line x1="12" y1="22" x2="12" y2="18" />
+    </svg>
+  ),
+};
 
 export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   gameState,
@@ -45,17 +88,15 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   const mySpy = gameState.spies?.[mySpyIndex];
   const mySecretId = isSecretService
     ? mySpy?.secretId
-    : (isKiller ? gameState.killerSecretId : gameState.detectiveSecretId);
+    : isKiller
+      ? gameState.killerSecretId
+      : gameState.detectiveSecretId;
 
   const roleName = isSecretService
     ? (mySpy?.name || 'Агент')
-    : (isKiller
+    : isKiller
       ? (gameState.mode === 'THIEF_HUNT' ? 'Грабитель' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Маньяк' : 'Бандит')
-      : (gameState.mode === 'THIEF_HUNT' ? 'Полиция' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Оперативник' : 'Инспектор'));
-
-  const roleColorClass = isSecretService
-    ? (SPY_COLORS[mySpyIndex % SPY_COLORS.length]?.text || 'text-red-400')
-    : (isKiller ? 'text-red-500' : 'text-blue-400');
+      : (gameState.mode === 'THIEF_HUNT' ? 'Полиция' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Оперативник' : 'Инспектор');
 
   const [shiftStep, setShiftStep] = useState<ShiftStep>('IDLE');
   const [selectedAxis, setSelectedAxis] = useState<'ROW' | 'COL'>('ROW');
@@ -63,33 +104,18 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   const [selectedDir, setSelectedDir] = useState<'LEFT' | 'RIGHT' | 'UP' | 'DOWN'>('LEFT');
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
 
+  const [isCoverOpen, setIsCoverOpen] = useState(false);
+  const [isDossierOpen, setIsDossierOpen] = useState(false);
+  const [isHandSheetOpen, setIsHandSheetOpen] = useState(false);
+  const [isLogOpen, setIsLogOpen] = useState(false);
+  const logContainerRef = useRef<HTMLDivElement>(null);
+  const [pendingAction, setPendingAction] = useState<ActionDef | null>(null);
+  const [isPeeking, setIsPeeking] = useState(false);
+
   const isUndoMove = useMemo(() => {
     const dir = (selectedDir === 'LEFT' || selectedDir === 'UP') ? 'BACKWARD' : 'FORWARD';
     return isOppositeShift(gameState.lastShift, selectedAxis, selectedIndex, dir);
   }, [gameState.lastShift, selectedAxis, selectedIndex, selectedDir]);
-      const [isCoverOpen, setIsCoverOpen] = useState(false);
-    const [isDossierOpen, setIsDossierOpen] = useState(false);
-    const [isHandSheetOpen, setIsHandSheetOpen] = useState(false);
-    const [isLogOpen, setIsLogOpen] = useState(false);
-    const logContainerRef = useRef<HTMLDivElement>(null);
-    const [pendingAction, setPendingAction] = useState<ActionDef | null>(null);
-    const [isPeeking, setIsPeeking] = useState(false);
-
-    const handleFastDisguise = (id: string) => {
-      soundManager.play('click');
-      triggerHaptic('medium');
-      onDispatchAction({ type: 'FAST_DISGUISE', payload: { targetId: id } });
-      setIsHandSheetOpen(false);
-      if (isPassAndPlay) setIsCoverOpen(true);
-    };
-
-    const handleExonerateFromHand = (id: string) => {
-      soundManager.play('click');
-      triggerHaptic('medium');
-      onDispatchAction({ type: 'EXONERATE', payload: { targetId: id } });
-      setIsHandSheetOpen(false);
-      if (isPassAndPlay) setIsCoverOpen(true);
-    };
 
   useEffect(() => {
     setSelectedTargetId(null);
@@ -132,44 +158,44 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     return Array.from(map.values());
   }, [gameState.board, gameState.mode, mySecretId, isKiller, gameState.uniformedOfficers]);
 
-      const locatorGrid = useMemo(() => {
-      if (!mySecretId || !gameState.board || gameState.board.length === 0) return [];
-      const board = gameState.board;
-      const boardRows = board.length;
-      const boardCols = board[0].length;
+  const locatorGrid = useMemo(() => {
+    if (!mySecretId || !gameState.board || gameState.board.length === 0) return [];
+    const board = gameState.board;
+    const boardRows = board.length;
+    const boardCols = board[0].length;
 
-      let centerR = -1;
-      let centerC = -1;
-      for (let r = 0; r < boardRows; r++) {
-        for (let c = 0; c < boardCols; c++) {
-          if (board[r][c]?.id === mySecretId) {
-            centerR = r;
-            centerC = c;
-            break;
-          }
+    let centerR = -1;
+    let centerC = -1;
+    for (let r = 0; r < boardRows; r++) {
+      for (let c = 0; c < boardCols; c++) {
+        if (board[r][c]?.id === mySecretId) {
+          centerR = r;
+          centerC = c;
+          break;
         }
-        if (centerR !== -1) break;
       }
+      if (centerR !== -1) break;
+    }
 
-      if (centerR === -1 || centerC === -1) return [];
+    if (centerR === -1 || centerC === -1) return [];
 
-      const OFFSETS = [
-        [-1, -1], [-1,  0], [-1,  1],
-        [ 0, -1], [ 0,  0], [ 0,  1],
-        [ 1, -1], [ 1,  0], [ 1,  1]
-      ];
+    const OFFSETS = [
+      [-1, -1], [-1,  0], [-1,  1],
+      [ 0, -1], [ 0,  0], [ 0,  1],
+      [ 1, -1], [ 1,  0], [ 1,  1],
+    ];
 
-      return OFFSETS.map(([dr, dc]) => {
-        const nr = centerR + dr;
-        const nc = centerC + dc;
-        const isOutOfBounds = nr < 0 || nr >= boardRows || nc < 0 || nc >= boardCols;
-        const isCenter = dr === 0 && dc === 0;
-        const char = isOutOfBounds ? null : board[nr][nc];
-        return { dr, dc, nr, nc, isOutOfBounds, isCenter, char };
-      });
-    }, [mySecretId, gameState.board]);
+    return OFFSETS.map(([dr, dc]) => {
+      const nr = centerR + dr;
+      const nc = centerC + dc;
+      const isOutOfBounds = nr < 0 || nr >= boardRows || nc < 0 || nc >= boardCols;
+      const isCenter = dr === 0 && dc === 0;
+      const char = isOutOfBounds ? null : board[nr][nc];
+      return { dr, dc, nr, nc, isOutOfBounds, isCenter, char };
+    });
+  }, [mySecretId, gameState.board]);
 
-    const handCards = useMemo(() => {
+  const handCards = useMemo(() => {
     const handIds = isKiller ? (gameState.killerHand || []) : (gameState.detectiveHand || []);
     if (!handIds || handIds.length === 0 || !gameState.board) return [];
     const all = gameState.board.flat();
@@ -181,7 +207,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   }, []);
 
   const isInspectorPending =
-    gameState.mode === 'SKHVATKA' &&
+    gameState.mode === ('SKHVATKA' as any) &&
     Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) &&
     !isKiller &&
     isMyTurn;
@@ -197,25 +223,6 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     if (!targetId || !gameState.board) return null;
     return gameState.board.flat().find((c) => c.id === targetId) || null;
   }, [selectedTargetId, neighbors, gameState.board]);
-
-  const roleObjective = useMemo(() => {
-    if (isSecretService) {
-      return 'Разоблачите тайные личности агентов соперников действием «Разоблачение»';
-    }
-    if (gameState.mode === 'THIEF_HUNT') {
-      return isKiller
-        ? 'Совершите 10 успешных краж у соседних персонажей'
-        : 'Задержите истинную личность Грабителя';
-    }
-    if (gameState.mode === 'MANIAC_VS_OPERATIVE') {
-      return isKiller
-        ? 'Ликвидируйте 4 цели из списка жертв или найдите Оперативника'
-        : 'Раскройте личность Маньяка действием «Задержание»';
-    }
-    return isKiller
-      ? 'Ликвидируйте Инспектора или устраните 14 любых подозреваемых'
-      : 'Вычислите и задержите Бандита среди подозреваемых';
-  }, [isSecretService, gameState.mode, isKiller]);
 
   const nextPlayerInfo = useMemo(() => {
     if (isSecretService && gameState.spies && gameState.spies.length > 0) {
@@ -242,11 +249,15 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   }, [gameState.mode, gameState.spies, gameState.activeSpyIndex, gameState.currentTurn, isSecretService]);
 
   const updateLinePreview = (line: any) => {
-    triggerHaptic("light");
+    triggerHaptic('light');
     onSelectLinePreview?.(line);
     onDispatchAction({
       type: 'LINE_PREVIEW',
       payload: { line },
+    });
+    onDispatchAction({
+      type: 'PREVIEW_SHIFT',
+      payload: line ? { type: line.type, index: line.index } : null,
     });
   };
 
@@ -256,8 +267,8 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   };
 
   const handleConfirmShift = () => {
-    soundManager.play("slide");
-    triggerHaptic("medium");
+    soundManager.play('slide');
+    triggerHaptic('medium');
     const direction = (selectedDir === 'LEFT' || selectedDir === 'UP') ? 'BACKWARD' : 'FORWARD';
     onDispatchAction({
       type: 'SHIFT_BOARD',
@@ -273,64 +284,29 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     }
   };
 
-  const getAvailableActions = (): ActionDef[] => {
-    if (gameState.mode === 'LINE_UP') {
-      return [
-        { id: 'DUEL_ASK_QUESTION', label: 'Вопрос по досье', icon: '[?]' },
-        { id: 'DUEL_ACCUSE', label: 'Обвинение', icon: '[TARGET]', isRed: true, requiresTarget: true },
-      ];
-    }
+  const handleFastDisguise = (id: string) => {
+    soundManager.play('click');
+    triggerHaptic('medium');
+    onDispatchAction({ type: 'FAST_DISGUISE', payload: { targetId: id } });
+    setIsHandSheetOpen(false);
+    if (isPassAndPlay) setIsCoverOpen(true);
+  };
 
-          const actions: ActionDef[] = [
-        { id: 'SHIFT', label: 'Переместить ряд/столбец', icon: '[<->]' },
-      ];
-
-    if (isSecretService) {
-      actions.push(
-        { id: 'CAPTURE_SPY', label: 'Разоблачение', icon: '[TARGET]', isRed: true, requiresTarget: true },
-        { id: 'INTERROGATE', label: 'Опрос свидетелей', icon: '[RADAR]', requiresTarget: true }
-      );
-    } else if (gameState.mode === 'THIEF_HUNT') {
-      if (isKiller) {
-        actions.push(
-          { id: 'ROB_NEIGHBOR', label: 'Кража у соседа', icon: '[STEAL]', isRed: true, requiresTarget: true },
-          { id: 'FAST_DISGUISE', label: 'Сменить маску', icon: '[MASK]' }
-        );
-      } else {
-        actions.push(
-          { id: 'ACCUSE', label: 'Задержание', icon: '[TARGET]', isRed: true, requiresTarget: true }
-        );
-      }
-          } else if (gameState.mode === 'MANIAC_VS_OPERATIVE') {
-        if (isKiller) {
-          actions.push(
-            { id: 'KILL_CHARACTER', label: 'Ликвидация цели', icon: '[TARGET]', isRed: true, requiresTarget: true },
-            { id: 'ESCAPE_MANIAC', label: 'Сменить личность', icon: '[ESCAPE]' }
-          );
-        } else {
-          actions.push(
-            { id: 'ACCUSE', label: 'Задержание', icon: '[TARGET]', isRed: true, requiresTarget: true }
-          );
-        }
-      } else {
-        if (isKiller) {
-          actions.push(
-            { id: 'KILL_CHARACTER', label: 'Ликвидация цели', icon: '[TARGET]', isRed: true, requiresTarget: true },
-            { id: 'DISGUISE', label: 'Конспирация', icon: '[MASK]' }
-          );
-        } else {
-          actions.push(
-            { id: 'ACCUSE', label: 'Задержание', icon: '[TARGET]', isRed: true, requiresTarget: true }
-          );
-        }
-      }
-
-    return actions;
+  const handleExonerateFromHand = (id: string) => {
+    soundManager.play('click');
+    triggerHaptic('medium');
+    onDispatchAction({ type: 'EXONERATE', payload: { targetId: id } });
+    setIsHandSheetOpen(false);
+    if (isPassAndPlay) setIsCoverOpen(true);
   };
 
   const handleExecuteAction = (act: ActionDef) => {
     if (act.id === 'SHIFT') {
       setShiftStep('SELECT_AXIS');
+      return;
+    }
+    if (act.id === 'END_TURN') {
+      onDispatchAction({ type: 'END_TURN' });
       return;
     }
     if (act.id === 'DUEL_ASK_QUESTION') {
@@ -339,12 +315,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     }
     if (act.id === 'FAST_DISGUISE') {
       if (handCards.length > 0) {
-        soundManager.play("click");
-        triggerHaptic("medium");
-        onDispatchAction({ type: 'FAST_DISGUISE', payload: { targetId: handCards[0].id } });
-        if (isPassAndPlay) {
-          setIsCoverOpen(true);
-        }
+        handleFastDisguise(handCards[0].id);
       }
       return;
     }
@@ -359,13 +330,13 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     const targetId = selectedTargetId || neighbors[0]?.id || '';
 
     if (pendingAction.id === 'KILL_CHARACTER') {
-      soundManager.play("kill");
+      soundManager.play('kill');
     } else if (pendingAction.id === 'ROB_NEIGHBOR') {
-      soundManager.play("steal");
+      soundManager.play('steal');
     } else {
-      soundManager.play("click");
+      soundManager.play('click');
     }
-    triggerHaptic("medium");
+    triggerHaptic('medium');
 
     if (pendingAction.id === 'CLEANUP') {
       onDispatchAction({ type: 'CLEANUP' });
@@ -385,20 +356,6 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       setIsCoverOpen(true);
     }
   };
-
-  const handleEndTurn = () => {};
-
-  const rawActions = getAvailableActions();
-  const actions = useMemo(() => {
-    const list = [...rawActions];
-          if (gameState.mode !== 'THIEF_HUNT' && gameState.mode !== 'LINE_UP' && !list.some((a) => a.id === 'CLEANUP')) {
-        list.push({ id: 'CLEANUP', label: 'Зачистить поле', icon: '[CLEAR]' });
-      }
-    if (gameState.mode === 'THIEF_HUNT' && !isKiller && !list.some((a) => a.id === 'SWEAR_IN_OFFICER')) {
-      list.push({ id: 'SWEAR_IN_OFFICER', label: 'Вызов патруля', icon: '👮', requiresTarget: true });
-    }
-    return list;
-  }, [rawActions, gameState.mode, isKiller]);
 
   if (isCoverOpen) {
     return (
@@ -431,69 +388,74 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   // 1. Экран ожидания хода
   if (!isMyTurn) {
     return (
-      <div className="flex h-[100dvh] w-screen flex-col items-center justify-center bg-[#080a0f] p-6 pb-8 text-center text-zinc-100 select-none font-sans">
-        <div className="w-20 h-20 rounded-full border border-zinc-800 bg-zinc-900/80 flex items-center justify-center text-zinc-400 mb-6 animate-pulse">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-9 h-9">
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
+      <div className="flex h-[100dvh] w-screen flex-col items-center justify-between bg-[#080a0f] p-6 pb-8 text-center text-zinc-100 select-none font-sans">
+        <div className="w-full flex justify-between items-center border-b border-zinc-800/80 pb-3">
+          <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">КОНТРОЛЛЕР</span>
+          {onExit && (
+            <button
+              onClick={onExit}
+              className="text-xs font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
+            >
+              Выйти
+            </button>
+          )}
         </div>
-        {false && (
-        <div className="hidden">
-          ⏳
+
+        <div className="my-auto flex flex-col items-center max-w-xs">
+          <div className="w-20 h-20 rounded-3xl border border-white/10 bg-zinc-950/80 flex items-center justify-center text-zinc-400 mb-6 shadow-2xl animate-pulse">
+            <Icons.Clock />
+          </div>
+          <h2 className="text-2xl font-black uppercase tracking-wider text-white mb-2">
+            ОЖИДАНИЕ
+          </h2>
+          <p className="text-sm text-zinc-400 leading-relaxed">
+            Сейчас ход соперника. Следите за игрой на экране ТВ.
+          </p>
         </div>
-        )}
-        <h2 className="text-2xl font-black uppercase tracking-wider text-zinc-200 mb-2">
-          Ожидание
-        </h2>
-        <p className="text-sm text-zinc-400 max-w-xs leading-relaxed mb-8">
-          Сейчас ход другого игрока. Следите за происходящим на телевизоре.
-        </p>
-        <div className="p-4 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 w-full max-w-xs text-left">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">ВАША РОЛЬ</div>
+
+        <div className="p-4 rounded-3xl bg-zinc-950/80 border border-white/10 w-full max-w-sm text-left shadow-lg">
+          <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500 mb-2">
+            ВАШЕ ДОСЬЕ
+          </div>
           <div
             onPointerDown={() => setIsPeeking(true)}
             onPointerUp={() => setIsPeeking(false)}
             onPointerLeave={() => setIsPeeking(false)}
             onPointerCancel={() => setIsPeeking(false)}
-            onDoubleClick={() => setIsDossierOpen(true)}
-            className="flex items-center gap-3 mt-1 cursor-pointer select-none"
-            title="Нажмите для просмотра досье"
+            className="flex items-center gap-3.5 cursor-pointer select-none"
+            title="Удерживайте для просмотра"
           >
-                          {isPeeking && myCharacter ? (
-                <div className="w-12 h-12 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-900 shrink-0">
-                  <CharacterCard
-                    mode={gameState?.mode || 'SKHVATKA'}
-                    character={myCharacter}
-                    isSelected={false}
-                    isPVP={true}
-                  />
-                </div>
-              ) : (
-                <div className="w-12 h-12 rounded-xl border border-zinc-800 bg-zinc-900/90 flex flex-col items-center justify-center text-xs font-mono text-zinc-500 shrink-0">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5 text-zinc-500">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                </div>
-              )}
+            {isPeeking && myCharacter ? (
+              <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/20 bg-zinc-900 shrink-0 shadow-md">
+                <CharacterCard
+                  mode={gameState?.mode || 'MANIAC_VS_OPERATIVE'}
+                  character={myCharacter}
+                  isSelected={false}
+                  isPVP={true}
+                />
+              </div>
+            ) : (
+              <div className="w-12 h-12 rounded-2xl border border-white/10 bg-zinc-900/90 flex flex-col items-center justify-center text-zinc-400 shrink-0 shadow-inner">
+                <Icons.Eye />
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm ${
                   isKiller ? 'bg-red-950/80 border-red-600/80 text-red-200' : 'bg-blue-950/80 border-blue-600/80 text-blue-200'
                 }`}>
-                  <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${isKiller ? 'bg-red-400 shadow-[0_0_6px_rgba(239,68,68,0.8)]' : 'bg-blue-400 shadow-[0_0_6px_rgba(59,130,246,0.8)]'}`} />
+                  <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${isKiller ? 'bg-red-400' : 'bg-blue-400'}`} />
                   {roleName}
                 </span>
                 {myCharacter && (
                   <span className="text-[10px] font-mono text-zinc-500">
-                    #{myCharacter.id.replace('c', '')}
+                    #{myCharacter.id.replace('c', '').padStart(2, '0')}
                   </span>
                 )}
               </div>
-                              <div className="text-sm font-black text-zinc-200 truncate mt-1">
-                  {isPeeking && myCharacter ? myCharacter.name : '••••••••'}
-                </div>
+              <div className="text-sm font-black text-zinc-200 truncate mt-1 font-mono">
+                {isPeeking && myCharacter ? myCharacter.name : '••••••••'}
+              </div>
             </div>
           </div>
         </div>
@@ -504,12 +466,12 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   // 2. Мастер сдвига линии (4 шага)
   if (shiftStep !== 'IDLE') {
     return (
-      <div className="flex h-[100dvh] w-screen flex-col justify-between bg-[#080a0f] p-6 pb-8 text-zinc-100 select-none font-sans">
-        <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-300">
-            Перемещение линии
+      <div className="flex h-[100dvh] w-screen flex-col justify-between bg-[#080a0f] p-5 pb-8 text-zinc-100 select-none font-sans">
+        <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+          <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-zinc-300">
+            МАНЕВР СДВИГА
           </h3>
-          <button onClick={handleResetShift} className="text-xs text-zinc-400 uppercase font-mono cursor-pointer">
+          <button onClick={handleResetShift} className="text-xs text-zinc-400 uppercase font-mono cursor-pointer hover:text-white transition">
             Отмена
           </button>
         </div>
@@ -517,34 +479,34 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         <div className="my-auto flex flex-col items-center justify-center w-full max-w-sm mx-auto">
           {shiftStep === 'SELECT_AXIS' && (
             <div className="w-full space-y-4">
-              <div className="text-xs font-bold uppercase tracking-widest text-zinc-400 text-center">
-                Шаг 1 • Выберите ось
+              <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 text-center">
+                ШАГ 1 • ВЫБЕРИТЕ ОСЬ
               </div>
               <div className="grid grid-cols-2 gap-4 w-full">
                 <button
                   onClick={() => { setSelectedAxis('ROW'); setShiftStep('SELECT_INDEX'); }}
-                  className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 text-center hover:border-red-500 transition cursor-pointer"
+                  className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-500 transition cursor-pointer shadow-xl active:scale-95"
                 >
-                                      <div className="text-xs font-mono font-bold text-zinc-400 mb-2">[ROW]</div>
-                  <div className="text-sm font-bold uppercase">Горизонталь</div>
-                  <div className="text-[11px] text-zinc-500 mt-1">5 рядов</div>
+                  <div className="text-xs font-mono font-bold text-zinc-400 mb-2">[ROW]</div>
+                  <div className="text-sm font-black uppercase text-white">Горизонталь</div>
+                  <div className="text-[11px] font-mono text-zinc-500 mt-1">5 рядов</div>
                 </button>
                 <button
                   onClick={() => { setSelectedAxis('COL'); setShiftStep('SELECT_INDEX'); }}
-                  className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 text-center hover:border-red-500 transition cursor-pointer"
+                  className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-500 transition cursor-pointer shadow-xl active:scale-95"
                 >
-                                      <div className="text-xs font-mono font-bold text-zinc-400 mb-2">[COL]</div>
-                  <div className="text-sm font-bold uppercase">Вертикаль</div>
-                  <div className="text-[11px] text-zinc-500 mt-1">5 столбцов</div>
+                  <div className="text-xs font-mono font-bold text-zinc-400 mb-2">[COL]</div>
+                  <div className="text-sm font-black uppercase text-white">Вертикаль</div>
+                  <div className="text-[11px] font-mono text-zinc-500 mt-1">5 столбцов</div>
                 </button>
               </div>
             </div>
           )}
 
           {shiftStep === 'SELECT_INDEX' && (
-            <div className="space-y-3 w-full">
-              <div className="text-xs font-bold uppercase tracking-widest text-zinc-400 text-center mb-2">
-                {selectedAxis === 'ROW' ? 'Шаг 2 • Выберите ряд' : 'Шаг 2 • Выберите столбец'}
+            <div className="space-y-2.5 w-full">
+              <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 text-center mb-2">
+                {selectedAxis === 'ROW' ? 'ШАГ 2 • ВЫБЕРИТЕ РЯД' : 'ШАГ 2 • ВЫБЕРИТЕ СТОЛБЕЦ'}
               </div>
               {Array.from({ length: boardSize }, (_, i) => i).map((i) => (
                 <button
@@ -554,12 +516,12 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                     updateLinePreview({ type: selectedAxis, index: i });
                     setShiftStep('SELECT_DIR');
                   }}
-                  className="w-full p-4 rounded-xl bg-zinc-900 border border-zinc-800 text-left flex items-center justify-between hover:border-red-500 transition cursor-pointer"
+                  className="w-full p-4 rounded-2xl bg-zinc-950/80 border border-white/10 text-left flex items-center justify-between hover:border-blue-400 transition cursor-pointer active:scale-98 shadow-md"
                 >
-                  <span className="text-sm font-bold uppercase">
-                    {selectedAxis === 'ROW' ? `Ряд ${i + 1}` : `Столбец ${i + 1}`}
+                  <span className="text-sm font-bold uppercase tracking-wider text-white">
+                    {selectedAxis === 'ROW' ? `РЯД #${i + 1}` : `СТОЛБЕЦ #${i + 1}`}
                   </span>
-                  <span className="text-xs text-zinc-500">Выбрать →</span>
+                  <span className="text-xs font-mono text-zinc-500">Выбрать →</span>
                 </button>
               ))}
             </div>
@@ -567,25 +529,33 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
           {shiftStep === 'SELECT_DIR' && (
             <div className="w-full space-y-4">
-              <div className="text-xs font-bold uppercase tracking-widest text-zinc-400 text-center">
-                {`Шаг 3 • Направление для ${selectedAxis === 'ROW' ? `Ряда ${selectedIndex + 1}` : `Столбца ${selectedIndex + 1}`}`}
+              <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 text-center">
+                {`ШАГ 3 • НАПРАВЛЕНИЕ ДЛЯ ${selectedAxis === 'ROW' ? `РЯДА #${selectedIndex + 1}` : `СТОЛБЦА #${selectedIndex + 1}`}`}
               </div>
               <div className="grid grid-cols-2 gap-4 w-full">
                 {selectedAxis === 'ROW' ? (
                   <>
                     <button
-                      onClick={() => { setSelectedDir('LEFT'); updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'BACKWARD' }); setShiftStep('CONFIRM'); }}
-                      className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 text-center hover:border-red-500 transition cursor-pointer"
+                      onClick={() => {
+                        setSelectedDir('LEFT');
+                        updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'BACKWARD' });
+                        setShiftStep('CONFIRM');
+                      }}
+                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
                     >
-                      <div className="text-3xl mb-1">←</div>
-                      <div className="text-sm font-bold uppercase">Влево</div>
+                      <Icons.ArrowLeft />
+                      <div className="text-xs font-black uppercase tracking-wider text-white">ВЛЕВО</div>
                     </button>
                     <button
-                      onClick={() => { setSelectedDir('RIGHT'); updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'FORWARD' }); setShiftStep('CONFIRM'); }}
-                      className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 text-center hover:border-red-500 transition cursor-pointer"
+                      onClick={() => {
+                        setSelectedDir('RIGHT');
+                        updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'FORWARD' });
+                        setShiftStep('CONFIRM');
+                      }}
+                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
                     >
-                      <div className="text-3xl mb-1">→</div>
-                      <div className="text-sm font-bold uppercase">Вправо</div>
+                      <Icons.ArrowRight />
+                      <div className="text-xs font-black uppercase tracking-wider text-white">ВПРАВО</div>
                     </button>
                   </>
                 ) : (
@@ -596,10 +566,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'BACKWARD' });
                         setShiftStep('CONFIRM');
                       }}
-                      className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 text-center hover:border-red-500 transition cursor-pointer"
+                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
                     >
-                      <div className="text-3xl mb-1">↑</div>
-                      <div className="text-sm font-bold uppercase">Вверх</div>
+                      <Icons.ArrowUp />
+                      <div className="text-xs font-black uppercase tracking-wider text-white">ВВЕРХ</div>
                     </button>
                     <button
                       onClick={() => {
@@ -607,10 +577,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'FORWARD' });
                         setShiftStep('CONFIRM');
                       }}
-                      className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 text-center hover:border-red-500 transition cursor-pointer"
+                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
                     >
-                      <div className="text-3xl mb-1">↓</div>
-                      <div className="text-sm font-bold uppercase">Вниз</div>
+                      <Icons.ArrowDown />
+                      <div className="text-xs font-black uppercase tracking-wider text-white">ВНИЗ</div>
                     </button>
                   </>
                 )}
@@ -619,31 +589,31 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           )}
 
           {shiftStep === 'CONFIRM' && (
-            <div className="p-6 rounded-3xl bg-zinc-950/90 border border-zinc-800 w-full text-center space-y-4">
-              <div className="text-xs font-bold uppercase tracking-widest text-zinc-500">
-                Шаг 4 • Подтверждение
+            <div className="p-6 rounded-3xl bg-zinc-950/90 border border-white/10 w-full text-center space-y-4 shadow-2xl">
+              <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+                ШАГ 4 • ПОДТВЕРЖДЕНИЕ
               </div>
-              <div className="text-lg font-black text-zinc-100">
-                {`Переместить ${selectedAxis === 'ROW' ? `ряд ${selectedIndex + 1}` : `столбец ${selectedIndex + 1}`} ${selectedDir === 'LEFT' ? 'влево' : selectedDir === 'RIGHT' ? 'вправо' : selectedDir === 'UP' ? 'вверх' : 'вниз'}?`}
+              <div className="text-base font-black text-white uppercase tracking-wider">
+                {`СДВИНУТЬ ${selectedAxis === 'ROW' ? `РЯД #${selectedIndex + 1}` : `СТОЛБЕЦ #${selectedIndex + 1}`} ${selectedDir === 'LEFT' ? 'ВЛЕВО' : selectedDir === 'RIGHT' ? 'ВПРАВО' : selectedDir === 'UP' ? 'ВВЕРХ' : 'ВНИЗ'}?`}
               </div>
               {isUndoMove && (
-                <div className="p-3 rounded-xl border border-red-900/60 bg-red-950/40 text-xs font-bold text-red-400">
-                  Anti-Undo: ход отменяет предыдущее действие соперника
+                <div className="p-3 rounded-2xl border border-red-900/60 bg-red-950/40 text-xs font-bold text-red-400 font-mono">
+                  Anti-Undo: ход отменяет предыдущий сдвиг соперника
                 </div>
               )}
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={handleResetShift}
-                  className="flex-1 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-bold uppercase text-zinc-400 cursor-pointer"
+                  className="flex-1 py-3.5 rounded-2xl bg-zinc-900 border border-white/10 text-xs font-bold uppercase text-zinc-400 hover:text-white cursor-pointer transition"
                 >
                   Отмена
                 </button>
                 <button
                   onClick={handleConfirmShift}
                   disabled={isUndoMove}
-                  className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-black uppercase text-white shadow-lg cursor-pointer"
+                  className="flex-1 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-black uppercase text-white shadow-lg cursor-pointer transition active:scale-95"
                 >
-                  Подтвердить
+                  Применить
                 </button>
               </div>
             </div>
@@ -652,7 +622,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
         <button
           onClick={handleResetShift}
-          className="w-full py-3 rounded-xl border border-zinc-800 text-xs font-bold uppercase text-zinc-500 cursor-pointer"
+          className="w-full py-3 rounded-2xl border border-white/10 text-xs font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
         >
           Назад к действиям
         </button>
@@ -661,20 +631,9 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   }
 
   // 3. Основной экран хода контроллера
-  const _ignoredActions = (() => {
-    const list = [...rawActions];
-          if (gameState.mode !== 'THIEF_HUNT' && !list.some((a) => a.id === 'CLEANUP')) {
-        list.push({ id: 'CLEANUP', label: 'Зачистить поле', icon: '[CLEAR]' });
-      }
-    if (gameState.mode === 'THIEF_HUNT' && !isKiller && !list.some((a) => a.id === 'SWEAR_IN_OFFICER')) {
-      list.push({ id: 'SWEAR_IN_OFFICER', label: 'Вызов патруля', icon: '👮', requiresTarget: true });
-    }
-    return list;
-  })();
-  void _ignoredActions;
-
   return (
     <div className="flex h-[100dvh] w-screen flex-col justify-between bg-[#080a0f] p-5 pb-8 text-zinc-100 select-none overflow-y-auto font-sans">
+      {/* Верхний статус */}
       <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3 gap-3">
         <div className="flex-1 min-w-0">
           <RoleCards
@@ -692,45 +651,49 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             isPVP={false}
           />
         </div>
-        <button
-          onClick={onExit}
-          className="text-[11px] font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer shrink-0 self-start mt-1"
-        >
-          Выйти
-        </button>
+        {onExit && (
+          <button
+            onClick={onExit}
+            className="text-[11px] font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer shrink-0 self-start mt-1"
+          >
+            Выйти
+          </button>
+        )}
       </div>
 
-              {/* Рука игрока */}
-        {handCards.length > 0 && (
-          <div onClick={() => setIsHandSheetOpen(true)} className="my-2 p-3 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-md cursor-pointer active:scale-[0.99] transition-transform">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 flex items-center justify-between">
+      {/* Рука игрока (маски / алиби) */}
+      {handCards.length > 0 && (
+        <div
+          onClick={() => setIsHandSheetOpen(true)}
+          className="my-2 p-3 rounded-2xl bg-zinc-950/80 border border-white/10 shadow-md cursor-pointer active:scale-[0.99] transition-transform"
+        >
+          <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500 mb-2 flex items-center justify-between">
             <span>{isKiller ? 'КАРТЫ МАСОК (В РУКЕ)' : 'ДОСЬЕ АЛИБИ (В РУКЕ)'}</span>
-            <span className="text-[10px] font-mono text-zinc-400">КАРТ: {handCards.length}</span>
+            <span className="text-[10px] text-zinc-400">КАРТ: {handCards.length}</span>
           </div>
           <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none">
             {handCards.map((char) => (
               <div
                 key={char.id}
-                                  onClick={() => {
-                    if (gameState.mode === 'THIEF_HUNT' && isKiller) {
-                      setPendingAction({
-                        id: 'FAST_DISGUISE',
-                        label: 'Смена маски',
-                        icon: '[MASK]',
-                        requiresTarget: true,
-                      });
-                      setSelectedTargetId(char.id);
-                    } else if (!isKiller) {
-                      setPendingAction({
-                        id: 'EXONERATE',
-                        label: 'Проверка алиби',
-                        icon: '[ALIBI]',
-                        requiresTarget: true,
-                      });
-                      setSelectedTargetId(char.id);
-                    }
-                  }}
-                className="w-20 sm:w-24 shrink-0 rounded-xl overflow-hidden border border-zinc-800 bg-zinc-900/90 p-1.5 hover:border-zinc-600 active:scale-95 transition cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (gameState.mode === 'THIEF_HUNT' && isKiller) {
+                    setPendingAction({
+                      id: 'FAST_DISGUISE',
+                      label: 'Смена маски',
+                      requiresTarget: true,
+                    });
+                    setSelectedTargetId(char.id);
+                  } else if (!isKiller) {
+                    setPendingAction({
+                      id: 'EXONERATE',
+                      label: 'Проверка алиби',
+                      requiresTarget: true,
+                    });
+                    setSelectedTargetId(char.id);
+                  }
+                }}
+                className="w-20 sm:w-24 shrink-0 rounded-xl overflow-hidden border border-white/10 bg-zinc-900/90 p-1.5 hover:border-zinc-500 active:scale-95 transition cursor-pointer"
               >
                 <div className="aspect-square w-full rounded-lg overflow-hidden bg-zinc-950 mb-1">
                   <CharacterCard
@@ -748,105 +711,88 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         </div>
       )}
 
-      {/* Блок соседей */}
+      {/* Тактический радар 3x3 (Соседи) */}
       <div className="my-3">
-        <div className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">
-          {`Соседи (${neighbors.length})`}
+        <div className="text-xs font-mono font-bold uppercase tracking-widest text-zinc-400 mb-2">
+          {`СОСЕДНИЕ ЦЕЛИ (${neighbors.length})`}
         </div>
-                  {locatorGrid.length === 0 ? (
-            <div className="p-4 rounded-xl border border-dashed border-zinc-800 bg-zinc-950/40 text-center">
-              <span className="text-xs text-zinc-500 font-mono">
-                [NO TARGETS AVAILABLE]
-              </span>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 grid-rows-3 gap-1.5 sm:gap-2 w-full max-w-[280px] sm:max-w-xs aspect-square mx-auto my-2">
-                          {locatorGrid.map((cell, idx) => {
-                if (cell.isOutOfBounds) {
-                  return (
-                    <div
-                      key={`bound_${idx}`}
-                      className="aspect-square rounded-xl border border-dashed border-zinc-900/60 bg-zinc-950/20 flex items-center justify-center pointer-events-none select-none"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-900" />
-                    </div>
-                  );
-                }
-                if (false && cell.isOutOfBounds) {
-                  return (
-                    <div
-                      key={`bound_${idx}`}
-                      className="aspect-square rounded-xl border border-zinc-900/80 bg-zinc-950/30 flex items-center justify-center text-[8px] font-mono text-zinc-700 uppercase select-none"
-                    >
-                      ГРАНИЦА
-                    </div>
-                  );
-                }
-                const char = cell.char;
-                if (!char) return <div key={`empty_${idx}`} className="aspect-square rounded-xl bg-zinc-950/20 border border-zinc-900" />;
-                const isSelected = selectedTargetId === char.id;
-                const isCenter = cell.isCenter;
+        {locatorGrid.length === 0 ? (
+          <div className="p-4 rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/40 text-center">
+            <span className="text-xs text-zinc-500 font-mono">[НЕТ ДОСТУПНЫХ ЦЕЛЕЙ]</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 grid-rows-3 gap-1.5 sm:gap-2 w-full max-w-[280px] sm:max-w-xs aspect-square mx-auto my-2">
+            {locatorGrid.map((cell, idx) => {
+              if (cell.isOutOfBounds) {
                 return (
                   <div
-                    key={char.id}
-                    onClick={() => !isCenter && setSelectedTargetId(char.id)}
-                    className={`aspect-square rounded-xl border p-1 flex flex-col justify-between transition-all relative ${
-                      isCenter
-                        ? 'border-zinc-700/80 bg-zinc-900/90 shadow-inner cursor-default'
-                        : isSelected
-                          ? `${targetBorderClass} scale-105 z-10 cursor-pointer`
-                          : 'border-zinc-800/80 bg-zinc-950/70 hover:border-zinc-700 cursor-pointer'
-                    }`}
+                    key={`bound_${idx}`}
+                    className="aspect-square rounded-2xl border border-dashed border-zinc-900 bg-zinc-950/20 flex items-center justify-center pointer-events-none select-none"
                   >
-                    <div className="aspect-square w-full rounded-lg overflow-hidden bg-zinc-900 relative">
-                      <CharacterCard
-                        mode={gameState?.mode || 'SKHVATKA'}
-                        character={char}
-                        isSelected={isSelected}
-                        isPVP={true}
-                        onClick={() => !isCenter && setSelectedTargetId(char.id)}
-                      />
-                      {isCenter && (
-                        <span className="absolute top-0.5 right-0.5 px-1 py-0.2 rounded bg-zinc-950/90 border border-zinc-700 text-[8px] font-black uppercase text-zinc-300 pointer-events-none">
-                          ВЫ
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between gap-0.5 mt-0.5">
-                      <span className="text-[10px] font-bold text-zinc-100 truncate">{char.name}</span>
-                      <span className="text-[9px] font-mono font-bold text-zinc-400">#{char.id.replace('c', '').padStart(2, '0')}</span>
-                    </div>
+                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-900" />
                   </div>
                 );
-              })}
+              }
+              const char = cell.char;
+              if (!char) return <div key={`empty_${idx}`} className="aspect-square rounded-2xl bg-zinc-950/20 border border-zinc-900" />;
+              const isSelected = selectedTargetId === char.id;
+              const isCenter = cell.isCenter;
+              return (
+                <div
+                  key={char.id}
+                  onClick={() => !isCenter && setSelectedTargetId(char.id)}
+                  className={`aspect-square rounded-2xl border p-1 flex flex-col justify-between transition-all relative ${
+                    isCenter
+                      ? 'border-white/20 bg-zinc-900/90 shadow-inner cursor-default'
+                      : isSelected
+                        ? `${targetBorderClass} scale-105 z-10 cursor-pointer`
+                        : 'border-white/10 bg-zinc-950/70 hover:border-zinc-500 cursor-pointer'
+                  }`}
+                >
+                  <div className="aspect-square w-full rounded-xl overflow-hidden bg-zinc-900 relative">
+                    <CharacterCard
+                      mode={gameState?.mode || 'MANIAC_VS_OPERATIVE'}
+                      character={char}
+                      isSelected={isSelected}
+                      isPVP={true}
+                      onClick={() => !isCenter && setSelectedTargetId(char.id)}
+                    />
+                    {isCenter && (
+                      <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded bg-zinc-950/90 border border-white/20 text-[8px] font-black uppercase text-zinc-300 pointer-events-none">
+                        ВЫ
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between gap-0.5 mt-0.5">
+                    <span className="text-[10px] font-bold text-zinc-100 truncate">{char.name}</span>
+                    <span className="text-[9px] font-mono font-bold text-zinc-400">#{char.id.replace('c', '').padStart(2, '0')}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
-              {/* Доступные действия (SSOT ActionButtonsBar) */}
-        <div className="space-y-2 mb-4">
-          <div className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1">ДОСТУПНЫЕ ДЕЙСТВИЯ</div>
-          <ActionButtonsBar
-            actions={[
-              ...(gameState.mode === 'LINE_UP' ? [] : [{ id: 'SHIFT', label: 'Переместить ряд/столбец', isRed: false, requiresTarget: false }]),
-              ...getAvailableActionDescriptors(gameState, playerRole)
-            ].map((act) => ({
-              id: act.id,
-              label: act.label,
-              isRed: act.isRed,
-              disabled: act.requiresTarget && neighbors.length === 0,
-              onClick: () => handleExecuteAction(act),
-            }))}
-          />
+      {/* Доступные действия (SSOT ActionButtonsBar) */}
+      <div className="space-y-2 mb-2">
+        <div className="text-xs font-mono font-bold uppercase tracking-widest text-zinc-400 mb-1">
+          ДОСТУПНЫЕ ДЕЙСТВИЯ
         </div>
-
-      {/* Завершить ход */}
-      <button
-        onClick={handleEndTurn}
-        className="hidden" style={{ display: 'none' }}
-      >
-        Завершить ход
-      </button>
+        <ActionButtonsBar
+          actions={[
+            ...(gameState.mode === 'LINE_UP' ? [] : [{ id: 'SHIFT', label: 'Переместить ряд/столбец', isRed: false, requiresTarget: false }]),
+            ...getAvailableActionDescriptors(gameState, playerRole),
+            { id: 'END_TURN', label: 'Завершить ход', isRed: false, requiresTarget: false }
+          ].map((act) => ({
+            id: act.id,
+            label: act.label,
+            isRed: act.isRed,
+            disabled: act.requiresTarget && neighbors.length === 0,
+            onClick: () => handleExecuteAction(act),
+          }))}
+        />
+      </div>
 
       {/* Шторка Pass-and-Play */}
       <PassAndPlayModal
@@ -857,45 +803,46 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         onConfirmTakeDevice={() => setIsCoverOpen(false)}
       />
 
-              <GameSheets
-          gameState={gameState}
-          allChars={gameState.board ? gameState.board.flat() : []}
-          characterImages={characterImages as any}
-          isHumanTurn={isMyTurn}
-          isDetectiveTurn={!isKiller}
-          isKillerTurn={isKiller}
-          isHandSheetOpen={isHandSheetOpen || isDossierOpen}
-          setIsHandSheetOpen={(val) => {
-            setIsHandSheetOpen(val);
-            if (!val) setIsDossierOpen(false);
-          }}
-          isLogOpen={isLogOpen}
-          setIsLogOpen={setIsLogOpen}
-          logContainerRef={logContainerRef}
-          handleExonerateFromHand={handleExonerateFromHand}
-          handleFastDisguise={handleFastDisguise}
-        />
+      <GameSheets
+        gameState={gameState}
+        allChars={gameState.board ? gameState.board.flat() : []}
+        characterImages={characterImages as any}
+        isHumanTurn={isMyTurn}
+        isDetectiveTurn={!isKiller}
+        isKillerTurn={isKiller}
+        isHandSheetOpen={isHandSheetOpen || isDossierOpen}
+        setIsHandSheetOpen={(val) => {
+          setIsHandSheetOpen(val);
+          if (!val) setIsDossierOpen(false);
+        }}
+        isLogOpen={isLogOpen}
+        setIsLogOpen={setIsLogOpen}
+        logContainerRef={logContainerRef}
+        handleExonerateFromHand={handleExonerateFromHand}
+        handleFastDisguise={handleFastDisguise}
+      />
 
+      {/* Модальное окно подтверждения действия */}
       {pendingAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn font-sans">
-          <div className="w-full max-w-sm rounded-3xl bg-zinc-950 border border-zinc-800 p-6 flex flex-col items-center text-center shadow-2xl relative">
-            <div className="w-16 h-16 rounded-2xl border border-zinc-800 bg-zinc-900 flex items-center justify-center text-3xl mb-4 shadow-lg">
-              {pendingAction.icon}
+          <div className="w-full max-w-sm rounded-3xl bg-zinc-950 border border-white/10 p-6 flex flex-col items-center text-center shadow-2xl relative">
+            <div className="w-14 h-14 rounded-2xl border border-white/10 bg-zinc-900 flex items-center justify-center text-white mb-3 shadow-lg">
+              <Icons.Target />
             </div>
 
-            <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">
+            <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500 mb-1">
               ПОДТВЕРЖДЕНИЕ ДЕЙСТВИЯ
             </div>
 
-            <h3 className={`text-lg font-black uppercase tracking-wide mb-3 ${pendingAction.isRed ? 'text-red-400' : 'text-blue-400'}`}>
+            <h3 className={`text-base font-black uppercase tracking-wide mb-3 ${pendingAction.isRed ? 'text-red-400' : 'text-blue-400'}`}>
               {pendingAction.label}
             </h3>
 
             {pendingAction.requiresTarget && pendingTargetCharacter && (
-              <div className="w-full p-3.5 rounded-2xl bg-zinc-900/90 border border-zinc-800 flex items-center gap-3 text-left mb-4">
-                <div className="w-12 h-12 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-950 shrink-0">
+              <div className="w-full p-3.5 rounded-2xl bg-zinc-900/90 border border-white/10 flex items-center gap-3 text-left mb-4 shadow-inner">
+                <div className="w-12 h-12 rounded-xl overflow-hidden border border-white/20 bg-zinc-950 shrink-0">
                   <CharacterCard
-                    mode={gameState?.mode || 'SKHVATKA'}
+                    mode={gameState?.mode || 'MANIAC_VS_OPERATIVE'}
                     character={pendingTargetCharacter}
                     isSelected={false}
                     isPVP={true}
@@ -921,13 +868,13 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             <div className="grid grid-cols-2 gap-3 w-full">
               <button
                 onClick={() => setPendingAction(null)}
-                className="py-3.5 rounded-xl border border-zinc-800 bg-zinc-900 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+                className="py-3.5 rounded-2xl border border-white/10 bg-zinc-900 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
               >
                 Отмена
               </button>
               <button
                 onClick={handleConfirmAction}
-                className={`py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white shadow-lg cursor-pointer transition active:scale-95 ${
+                className={`py-3.5 rounded-2xl text-xs font-black uppercase tracking-wider text-white shadow-lg cursor-pointer transition active:scale-95 ${
                   pendingAction.isRed
                     ? 'bg-red-600 hover:bg-red-500 shadow-red-600/30'
                     : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/30'
@@ -942,4 +889,3 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     </div>
   );
 };
-

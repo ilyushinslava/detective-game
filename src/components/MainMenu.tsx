@@ -63,17 +63,6 @@ const Icons = {
 
 const GAME_MODES = [
   {
-    id: "SKHVATKA" as GameModeType,
-    title: "Схватка",
-    players: "2 игрока",
-    time: "15 мин",
-    difficulty: "Легкая",
-    description: "Опасная городская дуэль на опережение: вычислите скрывающегося бандита до того, как инспектор окажется в его прицеле.",
-    isAvailable: true,
-    killerRoleName: "Бандит",
-    detectiveRoleName: "Инспектор",
-  },
-  {
     id: "MANIAC_VS_OPERATIVE" as GameModeType,
     title: "Маньяк против оперативника",
     players: "2 игрока",
@@ -122,7 +111,6 @@ const GAME_MODES = [
 const ROOM_FILTERS = [
   { id: "ALL", label: "Все" },
   { id: "LINE_UP", label: "Дуэль" },
-  { id: "SKHVATKA", label: "Схватка" },
   { id: "SECRET_SERVICE", label: "Спецслужбы" },
   { id: "MANIAC_VS_OPERATIVE", label: "Маньяк" },
   { id: "THIEF_HUNT", label: "Охота" },
@@ -166,7 +154,7 @@ export const MainMenu = ({
   const { t, lang, setLang } = useTranslation();
   
   const [screen, setScreen] = useState<ScreenType>('HOME');
-  const [selectedMode, setSelectedMode] = useState<GameModeType>("SKHVATKA");
+  const [selectedMode, setSelectedMode] = useState<GameModeType>("MANIAC_VS_OPERATIVE");
   const [selectedOpponent, setSelectedOpponent] = useState<OpponentType>("AI");
   const [selectedRole, setSelectedRole] = useState<Role>("DETECTIVE");
   const [isTvPartyModalOpen, setIsTvPartyModalOpen] = useState(false);
@@ -184,7 +172,7 @@ export const MainMenu = ({
   const [joinCode, setJoinCode] = useState("");
   const [roomFilter, setRoomFilter] = useState<string>("ALL");
   const [isCreateRoomOpen, setIsCreateRoomOpen] = useState(false);
-  const [createRoomMode, setCreateRoomMode] = useState<GameModeType>("SKHVATKA");
+  const [createRoomMode, setCreateRoomMode] = useState<GameModeType>("MANIAC_VS_OPERATIVE");
   const [createRoomBet] = useState<number>(250);
   const [createRoomIsPrivate, setCreateRoomIsPrivate] = useState<boolean>(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -298,7 +286,7 @@ export const MainMenu = ({
       console.warn("fetchPublicRooms error:", e);
     }
     const code = Math.floor(1000 + Math.random() * 9000).toString();
-    connectToPartyRoom(code, "SKHVATKA", true, 250);
+    connectToPartyRoom(code, "MANIAC_VS_OPERATIVE", true, 250);
   };
 
   const handleConfirmCreateRoom = () => {
@@ -314,7 +302,7 @@ export const MainMenu = ({
     if (cleanCode.length !== 4) return;
     triggerHaptic("light");
     setIsCreating(true);
-    connectToPartyRoom(cleanCode, mode || "SKHVATKA", false, 0);
+    connectToPartyRoom(cleanCode, mode || "MANIAC_VS_OPERATIVE", false, 0);
   };
 
   const filteredRooms = publicRooms.filter((r) => roomFilter === "ALL" || r.mode === roomFilter);
@@ -846,7 +834,6 @@ export const MainMenu = ({
                     className="w-full bg-zinc-950/80 border border-white/15 rounded-xl px-4 py-3 text-xs font-black tracking-widest text-zinc-200 focus:border-red-500 outline-none appearance-none transition uppercase shadow-inner cursor-pointer"
                   >
                     <option value="LINE_UP">Очная ставка (Дуэль)</option>
-                    <option value="SKHVATKA">Схватка</option>
                     <option value="SECRET_SERVICE">Секретная служба</option>
                     <option value="MANIAC_VS_OPERATIVE">Маньяк против оперативника</option>
                     <option value="THIEF_HUNT">Охота на грабителя</option>

@@ -1,20 +1,65 @@
-﻿import React from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { CharacterCard } from '../CharacterCard';
 import { GameOverModal } from '../GameOverModal';
 import type { GameState, LastShift } from '../../types/game';
 import { SPY_COLORS } from '../../types/game';
 
-interface TvBoardViewProps {
+export interface TvBoardViewProps {
   gameState: GameState;
-  selectedLine?: LastShift | null;
+  selectedLine?: LastShift | { type: 'ROW' | 'COL'; index: number; direction?: 'FORWARD' | 'BACKWARD' } | null;
+  secondsLeft?: number;
   onExit?: () => void;
   onRestart?: () => void;
 }
 
-const TvBoardViewImpl: React.FC<TvBoardViewProps> = ({
+const Icons = {
+  Clock: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+  Radar: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="6" />
+      <circle cx="12" cy="12" r="2" />
+      <line x1="12" y1="2" x2="12" y2="12" />
+    </svg>
+  ),
+  ArrowRight: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-6 h-6">
+      <path d="M5 12h14M12 5l7 7-7 7" />
+    </svg>
+  ),
+  ArrowLeft: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-6 h-6">
+      <path d="M19 12H5M12 19l-7-7 7-7" />
+    </svg>
+  ),
+  ArrowDown: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-6 h-6">
+      <path d="M12 5v14M19 12l-7 7-7-7" />
+    </svg>
+  ),
+  ArrowUp: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-6 h-6">
+      <path d="M12 19V5M5 12l7-7 7 7" />
+    </svg>
+  ),
+  Terminal: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
+      <polyline points="4 17 10 11 4 5" />
+      <line x1="12" y1="19" x2="20" y2="19" />
+    </svg>
+  ),
+};
+
+export const TvBoardView: React.FC<TvBoardViewProps> = ({
   gameState,
   selectedLine = null,
+  secondsLeft = 60,
   onExit,
   onRestart,
 }) => {
@@ -26,7 +71,7 @@ const TvBoardViewImpl: React.FC<TvBoardViewProps> = ({
   const isKillerTurn = currentTurn === 'KILLER';
 
   let killerScore = 0;
-  let killerTarget = 14;
+  let killerTarget = 4;
   let detectiveScore = 0;
   let detectiveTarget = 1;
 
@@ -34,107 +79,43 @@ const TvBoardViewImpl: React.FC<TvBoardViewProps> = ({
     killerTarget = gameState?.spyTargetTrophies ?? 3;
     detectiveTarget = killerTarget;
   } else if (gameState?.mode === 'LINE_UP') {
-    killerScore = (gameState as any)?.duelPenalties?.KILLER ?? (gameState as any)?.duelMistakesKiller ?? 0;
-    detectiveScore = (gameState as any)?.duelPenalties?.DETECTIVE ?? (gameState as any)?.duelMistakesDetective ?? 0;
+    killerScore = gameState?.duelPenalties?.KILLER ?? 0;
+    detectiveScore = gameState?.duelPenalties?.DETECTIVE ?? 0;
     killerTarget = 3;
     detectiveTarget = 3;
   } else if (gameState?.mode === 'THIEF_HUNT') {
     killerScore = gameState?.trophiesKiller ?? 0;
     killerTarget = 10;
-    detectiveScore = (gameState?.winner === 'DETECTIVE' || (gameState as any)?.arrestSuccess) ? 1 : 0;
+    detectiveScore = gameState?.winner === 'DETECTIVE' ? 1 : 0;
     detectiveTarget = 1;
   } else if (gameState?.mode === 'MANIAC_VS_OPERATIVE') {
     killerScore = gameState?.killCount ?? 0;
     killerTarget = 4;
-    detectiveScore = (gameState?.winner === 'DETECTIVE' || (gameState as any)?.arrestSuccess) ? 1 : 0;
-    detectiveTarget = 1;
-  } else {
-    killerScore = gameState?.killCount ?? 0;
-    killerTarget = 14;
-    detectiveScore = (gameState?.winner === 'DETECTIVE' || (gameState as any)?.arrestSuccess) ? 1 : 0;
+    detectiveScore = gameState?.winner === 'DETECTIVE' ? 1 : 0;
     detectiveTarget = 1;
   }
 
-  const targetScore = killerTarget;
-
   const activeTurnName = React.useMemo(() => {
-    if (isSecretService) {
-      return activeSpy?.name || 'Агент';
-    }
-    if (gameState?.mode === 'THIEF_HUNT') {
-      return isKillerTurn ? 'Грабитель' : 'Полиция';
-    }
-    if (gameState?.mode === 'MANIAC_VS_OPERATIVE') {
-      return isKillerTurn ? 'Маньяк' : 'Оперативник';
-    }
-    return isKillerTurn ? 'Бандит' : 'Инспектор';
+    if (isSecretService) return activeSpy?.name || 'Агент';
+    if (gameState?.mode === 'THIEF_HUNT') return isKillerTurn ? 'Грабитель' : 'Полиция';
+    if (gameState?.mode === 'MANIAC_VS_OPERATIVE') return isKillerTurn ? 'Маньяк' : 'Оперативник';
+    if (gameState?.mode === 'LINE_UP') return isKillerTurn ? 'Подозреваемый' : 'Следователь';
+    return isKillerTurn ? 'Преступник' : 'Закон';
   }, [isSecretService, activeSpy, gameState?.mode, isKillerTurn]);
 
-  const killerTeamName = gameState?.mode === 'THIEF_HUNT' ? 'Грабитель' : gameState?.mode === 'MANIAC_VS_OPERATIVE' ? 'Маньяк' : 'Бандит';
-  const detectiveTeamName = gameState?.mode === 'THIEF_HUNT' ? 'Полиция' : gameState?.mode === 'MANIAC_VS_OPERATIVE' ? 'Оперативник' : 'Инспектор';
+  const killerRoleName = gameState?.mode === 'THIEF_HUNT' ? 'Грабитель' : gameState?.mode === 'LINE_UP' ? 'Подозреваемый' : 'Маньяк';
+  const detectiveRoleName = gameState?.mode === 'THIEF_HUNT' ? 'Полиция' : gameState?.mode === 'LINE_UP' ? 'Следователь' : 'Оперативник';
 
-  const activeTurnColor = isSecretService
+  const activeNeonColor = isSecretService
     ? (SPY_COLORS[activeSpyIndex % SPY_COLORS.length]?.text || 'text-red-400')
-    : (isKillerTurn ? 'text-red-400' : 'text-blue-400');
+    : isKillerTurn ? 'text-red-400' : 'text-blue-400';
 
-  const modeActions = React.useMemo(() => {
-    if (isSecretService) {
-      return [
-        { label: 'Сдвиг линии (Anti-Undo)' },
-        { label: 'Опрос свидетелей (Радар 3x3)' },
-        { label: 'Разоблачение резидента' },
-      ];
-    }
-    if (gameState?.mode === 'LINE_UP') {
-      return [
-        { label: 'Вопрос по признакам досье' },
-        { label: 'Официальное обвинение' },
-        { label: 'Метод дедукции' },
-      ];
-    }
-    if (gameState?.mode === 'THIEF_HUNT') {
-      return isKillerTurn
-        ? [
-            { label: 'Сдвиг линии (Anti-Undo)' },
-            { label: 'Кража у соседа' },
-            { label: 'Смена маски (Конспирация)' },
-          ]
-        : [
-            { label: 'Сдвиг линии (Anti-Undo)' },
-            { label: 'Задержание грабителя' },
-            { label: 'Вызов патруля' },
-          ];
-    }
-    if (gameState?.mode === 'MANIAC_VS_OPERATIVE') {
-      return isKillerTurn
-        ? [
-            { label: 'Сдвиг линии (Anti-Undo)' },
-            { label: 'Ликвидация цели из списка' },
-            { label: 'Побег маньяка' },
-          ]
-        : [
-            { label: 'Сдвиг линии (Anti-Undo)' },
-            { label: 'Задержание подозреваемого' },
-            { label: 'Смена личности по уликам' },
-          ];
-    }
-    return isKillerTurn
-      ? [
-          { label: 'Сдвиг линии (Anti-Undo)' },
-          { label: 'Ликвидация соседа' },
-          { label: 'Конспирация (Смена роли)' },
-        ]
-      : [
-          { label: 'Сдвиг линии (Anti-Undo)' },
-          { label: 'Задержание подозреваемого' },
-          { label: 'Проверка алиби из досье' },
-        ];
-  }, [isSecretService, gameState?.mode, isKillerTurn]);
+  const activeBgGlow = isKillerTurn ? 'bg-red-950/40 border-red-500/40' : 'bg-blue-950/40 border-blue-500/40';
 
   const boardSize = gameState?.board?.length || 5;
   const flatCards = (gameState?.board || []).flat();
 
-  const radarTargetId = gameState?.interrogationRadar?.targetId || (gameState as any)?.witnessRadar?.targetId;
+  const radarTargetId = gameState?.interrogationRadar?.targetId;
   const radarCoords = React.useMemo(() => {
     if (!radarTargetId || !gameState?.board) return null;
     for (let r = 0; r < boardSize; r++) {
@@ -152,6 +133,11 @@ const TvBoardViewImpl: React.FC<TvBoardViewProps> = ({
     return Math.abs(radarCoords.row - row) <= 1 && Math.abs(radarCoords.col - col) <= 1;
   };
 
+  const isRadarCenter = (row: number, col: number) => {
+    if (!radarCoords) return false;
+    return radarCoords.row === row && radarCoords.col === col;
+  };
+
   const isLineSelected = (row: number, col: number) => {
     if (!selectedLine) return false;
     if (selectedLine.type === 'ROW' && selectedLine.index === row) return true;
@@ -161,113 +147,98 @@ const TvBoardViewImpl: React.FC<TvBoardViewProps> = ({
 
   const selectedLineType = selectedLine?.type || null;
   const selectedLineIdx = selectedLine ? selectedLine.index + 1 : 0;
-  const selectedLineDir = selectedLine?.direction || null;
+  const selectedLineDir = (selectedLine as any)?.direction || null;
 
   if (gameState?.winner) {
     const winningSpy = isSecretService
       ? (spies.find((s) => s.id === gameState.winner) ||
-         (gameState.winner === 'KILLER' ? spies[0] : gameState.winner === 'DETECTIVE' ? spies[1] : null) ||
-         spies.reduce((max, s) => (s.trophies > (max?.trophies ?? -1) ? s : max), spies[0]))
+         (gameState.winner === 'KILLER' ? spies[0] : gameState.winner === 'DETECTIVE' ? spies[1] : null))
       : null;
-
     const isKillerWinner = gameState.winner === 'KILLER' || Boolean(winningSpy && spies[0]?.id === winningSpy.id);
-    const winRoleName = winningSpy
-      ? winningSpy.name
-      : (gameState.mode === 'LINE_UP'
-          ? (isKillerWinner ? 'Подозреваемый' : 'Следователь')
-          : (isKillerWinner ? killerTeamName : detectiveTeamName));
+    const finalKillerChar = flatCards.find((c) => c.id === (winningSpy?.secretId || gameState.killerSecretId));
+    const finalDetectiveChar = flatCards.find((c) => c.id === gameState.detectiveSecretId);
 
-    const finalKillerId = isSecretService ? (winningSpy?.secretId || spies[0]?.secretId) : gameState.killerSecretId;
-    const finalDetectiveId = isSecretService ? (spies.find((s) => s.id !== winningSpy?.id)?.secretId || spies[1]?.secretId) : gameState.detectiveSecretId;
-    const finalKillerChar = flatCards.find((c) => c.id === finalKillerId);
-    const finalDetectiveChar = flatCards.find((c) => c.id === finalDetectiveId);
-
-          return (
-        <div className="relative h-screen w-screen bg-[#06070a] overflow-hidden">
-          <GameOverModal
-            winner={isKillerWinner ? 'KILLER' : 'DETECTIVE'}
-            mode={gameState.mode}
-            killer={finalKillerChar}
-            detective={finalDetectiveChar}
-            elapsedTime={gameState.timer?.elapsedTime || '00:00'}
-            isMultiplayer={true}
-            onRestart={() => {}}
-            onExitToMenu={onExit}
-          />
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 inline-flex items-center gap-3 px-6 py-2.5 rounded-full border border-zinc-800 bg-zinc-950/90 shadow-2xl backdrop-blur-md">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
-            <span className="text-xs font-mono uppercase tracking-widest text-zinc-300 animate-pulse">
-              Ожидание решения о реванше на контроллерах...
-            </span>
-          </div>
+    return (
+      <div className="relative h-screen w-screen bg-[#06070a] overflow-hidden select-none">
+        <GameOverModal
+          winner={isKillerWinner ? 'KILLER' : 'DETECTIVE'}
+          mode={gameState.mode}
+          killer={finalKillerChar}
+          detective={finalDetectiveChar}
+          elapsedTime="--:--"
+          isMultiplayer={true}
+          onRestart={onRestart || (() => {})}
+          onExitToMenu={onExit || (() => {})}
+        />
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 inline-flex items-center gap-3 px-6 py-2.5 rounded-full border border-white/10 bg-zinc-950/80 shadow-2xl backdrop-blur-md">
+          <span className="h-2.5 w-2.5 rounded-full bg-blue-400 animate-pulse" />
+          <span className="text-xs font-mono uppercase tracking-widest text-zinc-300">
+            Ожидание выбора реванша на контроллерах
+          </span>
         </div>
-      );
+      </div>
+    );
   }
 
   return (
     <div className="flex h-screen w-screen bg-[#06070a] text-zinc-100 select-none overflow-hidden p-6 gap-6 font-sans">
-      {/* Левая часть: Игровое поле 5x5 */}
-      <div className="flex-1 flex flex-col justify-between">
-        <div className="flex items-center justify-between px-4 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800/80 backdrop-blur-md">
+      {/* Левая колонка: Сетка поля 5x5 */}
+      <div className="flex-1 flex flex-col justify-between min-w-0">
+        {/* Верхняя статусная планка поля */}
+        <div className="flex items-center justify-between px-5 py-2.5 rounded-2xl bg-zinc-950/60 border border-white/10 backdrop-blur-xl shadow-lg">
           <div className="flex items-center gap-6">
             {isSecretService && spies.length > 0 ? (
               spies.map((spy, idx) => {
                 const color = SPY_COLORS[idx % SPY_COLORS.length];
                 return (
                   <div key={spy.id || idx} className="flex items-center gap-2">
-                    <span className={`h-3 w-3 rounded-full ${color.bg} border ${color.border}`} />
-                    <span className="text-sm font-bold tracking-wide text-zinc-300">
-                      <span>{spy.name}</span>: <span className={`${color.text} font-black`}>{spy.trophies}/{targetScore}</span>
+                    <span className={`h-2.5 w-2.5 rounded-full ${color.bg} border ${color.border}`} />
+                    <span className="text-xs font-bold tracking-wide text-zinc-300">
+                      {spy.name}: <span className={`${color.text} font-mono font-black`}>{spy.trophies}/{killerTarget}</span>
                     </span>
                   </div>
                 );
               })
             ) : (
               <>
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                  <span className="text-sm font-bold tracking-wide text-zinc-300">
-                    <span>{killerTeamName}</span>: <span className="text-red-400 font-black">{killerScore}/{killerTarget}</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="h-3 w-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
+                  <span className="text-sm font-bold tracking-wider text-zinc-300">
+                    {killerRoleName}: <span className="text-red-400 font-mono font-black">{killerScore}/{killerTarget}</span>
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-                  <span className="text-sm font-bold tracking-wide text-zinc-300">
-                    <span>{detectiveTeamName}</span>: <span className="text-blue-400 font-black">{detectiveScore}/{detectiveTarget}</span>
+                <div className="h-4 w-px bg-zinc-800" />
+                <div className="flex items-center gap-2.5">
+                  <span className="h-3 w-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+                  <span className="text-sm font-bold tracking-wider text-zinc-300">
+                    {detectiveRoleName}: <span className="text-blue-400 font-mono font-black">{detectiveScore}/{detectiveTarget}</span>
                   </span>
                 </div>
               </>
             )}
           </div>
-          <div className="flex items-center justify-center">
-            <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-black uppercase tracking-wider ${
-              isKillerTurn ? 'bg-red-950/80 border-red-600 text-red-100 shadow-[0_0_12px_rgba(239,68,68,0.3)]' : 'bg-blue-950/80 border-blue-600 text-blue-100 shadow-[0_0_12px_rgba(59,130,246,0.3)]'
-            }`}>
-              <span className={`h-2 w-2 rounded-full animate-pulse ${isKillerTurn ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]'}`} />
-              ХОД: <strong className={activeTurnColor}>{activeTurnName}</strong>
+
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+              ТВ ЭФИР • 5×5
             </span>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-zinc-500">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>ЭФИР ТРАНСЛЯЦИИ</span>
-            </div>
             {(onRestart || onExit) && (
-              <div className="flex items-center gap-2 pl-2 border-l border-zinc-800">
+              <div className="flex items-center gap-2 pl-3 border-l border-zinc-800">
                 {onRestart && (
                   <button
                     onClick={onRestart}
-                    className="px-3 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-[11px] font-mono uppercase tracking-wider text-zinc-300 transition cursor-pointer"
+                    className="px-3 py-1 rounded-xl border border-white/10 bg-zinc-900/60 hover:bg-zinc-800 text-[10px] font-mono uppercase tracking-wider text-zinc-300 transition cursor-pointer"
                   >
-                    [ПЕРЕЗАПУСК]
+                    [Сброс]
                   </button>
                 )}
                 {onExit && (
                   <button
                     onClick={onExit}
-                    className="px-3 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-[11px] font-mono uppercase tracking-wider text-zinc-400 hover:text-red-400 transition cursor-pointer"
+                    className="px-3 py-1 rounded-xl border border-white/10 bg-zinc-900/60 hover:bg-zinc-800 text-[10px] font-mono uppercase tracking-wider text-zinc-400 hover:text-red-400 transition cursor-pointer"
                   >
-                    [В МЕНЮ]
+                    [Выход]
                   </button>
                 )}
               </div>
@@ -275,112 +246,167 @@ const TvBoardViewImpl: React.FC<TvBoardViewProps> = ({
           </div>
         </div>
 
-        <div className="relative my-auto mx-auto w-full max-w-[min(800px,calc(100vh-140px))] aspect-square p-2 rounded-2xl bg-zinc-900/40 border border-zinc-800/60 shadow-2xl flex items-center justify-center">
-          <div className="grid gap-2 w-full h-full" style={{ gridTemplateColumns: `repeat(${boardSize}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${boardSize}, minmax(0, 1fr))` }}>
+        {/* Игровая сетка в стеклянном контейнере */}
+        <div className="relative my-auto mx-auto w-full max-w-[min(840px,calc(100vh-140px))] aspect-square p-3 rounded-3xl bg-zinc-950/40 border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] backdrop-blur-md flex items-center justify-center">
+          <div
+            className="grid gap-2.5 w-full h-full"
+            style={{
+              gridTemplateColumns: `repeat(${boardSize}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${boardSize}, minmax(0, 1fr))`,
+            }}
+          >
             {flatCards.map((char, index) => {
               const row = Math.floor(index / boardSize);
               const col = index % boardSize;
               const isLineActive = isLineSelected(row, col);
-              const isRadarArea = isRadarCell(row, col);
+              const inRadarArea = isRadarCell(row, col);
+              const inRadarCenter = isRadarCenter(row, col);
 
-                              return (
-                  <motion.div
-                    key={char.id || `cell_${index}`}
-                    layout
-                    transition={{ type: 'spring', damping: 26, stiffness: 220 }}
-                    className={`relative w-full h-full rounded-xl transition-shadow duration-200 ${
-                      isLineActive ? 'ring-2 ring-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)] scale-[1.02] z-10' : ''
-                    } ${isRadarArea && !isLineActive ? (isKillerTurn ? 'ring-2 ring-red-500/70 bg-red-950/20 shadow-[0_0_12px_rgba(239,68,68,0.3)]' : 'ring-2 ring-blue-500/70 bg-blue-950/20 shadow-[0_0_12px_rgba(59,130,246,0.3)]') : ''}`}
-                  >
+              return (
+                <motion.div
+                  key={char.id || `cell_${index}`}
+                  layout
+                  transition={{ type: 'spring', damping: 28, stiffness: 240 }}
+                  className={`relative w-full h-full rounded-2xl transition-all duration-300 overflow-hidden bg-zinc-900/60 backdrop-blur-md border ${
+                    isLineActive
+                      ? isKillerTurn
+                        ? 'border-red-400 ring-2 ring-red-400/80 shadow-[0_0_20px_rgba(239,68,68,0.5)] scale-[1.02] z-20'
+                        : 'border-blue-400 ring-2 ring-blue-400/80 shadow-[0_0_20px_rgba(59,130,246,0.5)] scale-[1.02] z-20'
+                      : inRadarCenter
+                        ? 'border-red-500 ring-2 ring-red-500 shadow-[0_0_18px_rgba(239,68,68,0.7)] z-10'
+                        : inRadarArea
+                          ? 'border-blue-400/60 ring-1 ring-blue-400/40 bg-blue-950/20 z-0'
+                          : 'border-white/10 hover:border-white/20'
+                  } ${!char.isAlive ? 'grayscale opacity-40' : ''}`}
+                >
+                  {/* Тактический номер ячейки */}
+                  <span className="absolute top-1.5 left-2 z-20 font-mono text-[9px] font-bold text-zinc-400 bg-black/70 px-1.5 py-0.5 rounded border border-white/5 pointer-events-none">
+                    #{String(index + 1).padStart(2, '0')}
+                  </span>
+
+                  {/* Карточка персонажа */}
                   <CharacterCard
-                    mode={gameState?.mode || 'SECRET_SERVICE'}
+                    mode={gameState?.mode || 'MANIAC_VS_OPERATIVE'}
                     character={char}
                     isSelected={isLineActive}
                     isUniformedOfficer={Boolean(gameState?.uniformedOfficers?.includes(char.id))}
                     isTargetVictim={Boolean(gameState?.mode === 'MANIAC_VS_OPERATIVE' && gameState?.victimList?.[0] === char.id)}
-                    isRadarCenter={Boolean(gameState?.interrogationRadar?.targetId === char.id)}
+                    isRadarCenter={inRadarCenter}
                     isPVP={true}
                     onClick={() => {}}
                   />
+
+                  {/* Индикатор направления сдвига на крайних карточках выбранной линии */}
                   {isLineActive && selectedLineDir && (
                     ((selectedLineType === 'ROW' && ((selectedLineDir === 'FORWARD' && col === boardSize - 1) || (selectedLineDir === 'BACKWARD' && col === 0))) ||
                      (selectedLineType === 'COL' && ((selectedLineDir === 'FORWARD' && row === boardSize - 1) || (selectedLineDir === 'BACKWARD' && row === 0)))) && (
-                      <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none bg-red-950/40 rounded-xl">
-                        <span className="text-3xl font-black text-red-400 animate-pulse drop-shadow-[0_0_10px_rgba(239,68,68,0.9)]">
+                      <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none bg-black/50 backdrop-blur-xs rounded-2xl">
+                        <span className="text-red-400 animate-pulse drop-shadow-[0_0_12px_rgba(239,68,68,1)]">
                           {selectedLineType === 'ROW'
-                            ? (selectedLineDir === 'FORWARD' ? '▶' : '◀')
-                            : (selectedLineDir === 'FORWARD' ? '▼' : '▲')}
+                            ? (selectedLineDir === 'FORWARD' ? <Icons.ArrowRight /> : <Icons.ArrowLeft />)
+                            : (selectedLineDir === 'FORWARD' ? <Icons.ArrowDown /> : <Icons.ArrowUp />)}
                         </span>
                       </div>
                     )
-                                      )}
-                  </motion.div>
-                );
-              })}
-            </div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Правая инфопанель */}
-      <div className="w-96 flex flex-col justify-between gap-4">
-        <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg">
-          <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">ТЕКУЩИЙ ХОД</div>
+      {/* Правая колонка: Стеклянный HUD управления */}
+      <div className="w-96 flex flex-col justify-between gap-4 shrink-0">
+        {/* Блок 1: Таймер хода */}
+        <div className="p-5 rounded-3xl bg-zinc-950/60 border border-white/10 backdrop-blur-xl shadow-xl">
+          <div className="flex items-center justify-between text-xs font-mono uppercase tracking-widest text-zinc-400 mb-2">
+            <span className="flex items-center gap-1.5">
+              <Icons.Clock />
+              ТАЙМЕР ХОДА
+            </span>
+            <span className="text-zinc-500">60S</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-4xl font-mono font-black tracking-tight text-white">
+              00:{String(Math.max(0, secondsLeft)).padStart(2, '0')}
+            </span>
+            <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">
+              ЛИМИТ РЕШЕНИЯ
+            </span>
+          </div>
+          <div className="w-full h-1.5 bg-zinc-900 rounded-full mt-3 overflow-hidden border border-white/5">
+            <div
+              className={`h-full transition-all duration-1000 ${
+                secondsLeft <= 10 ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]' : 'bg-blue-500'
+              }`}
+              style={{ width: `${Math.min(100, Math.max(0, (secondsLeft / 60) * 100))}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Блок 2: Статус активного хода */}
+        <div className={`p-5 rounded-3xl backdrop-blur-xl border shadow-xl ${activeBgGlow}`}>
+          <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-2">
+            АКТИВНАЯ СТОРОНА
+          </div>
           <div className="flex items-center gap-3.5">
-            <div className={`w-14 h-14 rounded-full border-2 border-zinc-700/80 bg-zinc-950 flex items-center justify-center text-2xl font-black font-mono shadow-lg shrink-0 ${activeTurnColor}`}>
-              {activeTurnName ? activeTurnName.charAt(0).toUpperCase() : '?'}
+            <div className={`w-12 h-12 rounded-2xl border bg-black/60 flex items-center justify-center font-mono text-xl font-black shadow-inner shrink-0 ${activeNeonColor} border-white/10`}>
+              {activeTurnName.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <div className={`text-xl font-black tracking-wider uppercase ${activeTurnColor}`}>
+              <div className={`text-xl font-black tracking-wider uppercase truncate ${activeNeonColor}`}>
                 {activeTurnName}
               </div>
-              <div className="text-[11px] text-zinc-400 mt-0.5">
-                Следите за действиями на мобильном контроллере
+              <div className="text-[11px] text-zinc-400 font-medium">
+                Управление с мобильного контроллера
               </div>
             </div>
           </div>
         </div>
 
-        {selectedLine && (
-          <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/80 shadow-inner space-y-1">
-            <div className="text-xs font-bold uppercase tracking-wider text-red-400">
-              Выбранная линия
+        {/* Блок 3: Выбранная линия (предпросмотр) */}
+        {selectedLine ? (
+          <div className="p-4 rounded-3xl bg-zinc-950/60 border border-white/10 backdrop-blur-xl shadow-lg space-y-1.5">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
+              ТАКТИЧЕСКИЙ МАНЕВР
             </div>
-            <div className="text-sm font-black text-zinc-200">
-              <span>{selectedLineType === 'ROW' ? `Ряд ${selectedLineIdx}` : `Столбец ${selectedLineIdx}`}</span>
+            <div className="text-sm font-black text-white tracking-wide flex items-center justify-between">
+              <span>{selectedLineType === 'ROW' ? `РЯД #${selectedLineIdx}` : `СТОЛБЕЦ #${selectedLineIdx}`}</span>
+              {selectedLineDir && (
+                <span className="text-xs font-mono uppercase text-blue-400 font-bold">
+                  {selectedLineType === 'ROW'
+                    ? (selectedLineDir === 'FORWARD' ? 'ВПРАВО' : 'ВЛЕВО')
+                    : (selectedLineDir === 'FORWARD' ? 'ВНИЗ' : 'ВВЕРХ')}
+                </span>
+              )}
             </div>
-            {selectedLineDir && (
-              <div className="text-xs font-bold text-red-400">
-                {selectedLineType === 'ROW'
-                  ? (selectedLineDir === 'FORWARD' ? '▶ Вправо' : '◀ Влево')
-                  : (selectedLineDir === 'FORWARD' ? '▼ Вниз' : '▲ Вверх')}
-              </div>
-            )}
+          </div>
+        ) : (
+          <div className="p-4 rounded-3xl bg-zinc-950/40 border border-white/5 backdrop-blur-md text-[11px] font-mono text-zinc-500 uppercase tracking-wider text-center">
+            Сдвиг линии не выбран
           </div>
         )}
 
-        <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg">
-          <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">ДЕЙСТВИЯ ХОДА</div>
-          <div className="space-y-3">
-            {modeActions.map((act, i) => (
-              <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60">
-                <span className="w-2 h-2 rounded-full bg-zinc-400 shrink-0" />
-                <span className="text-sm font-semibold text-zinc-300">{act.label}</span>
-              </div>
-            ))}
+        {/* Блок 4: Тактический журнал событий */}
+        <div className="p-5 rounded-3xl bg-zinc-950/60 border border-white/10 backdrop-blur-xl shadow-xl flex-1 flex flex-col min-h-[160px]">
+          <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-3">
+            <Icons.Terminal />
+            ТАКТИЧЕСКИЙ ЖУРНАЛ
           </div>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg flex-1">
-          <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">ПОСЛЕДНИЕ СОБЫТИЯ</div>
-          <div className="space-y-1 text-xs text-zinc-300 font-mono">
+          <div className="space-y-2 text-xs font-mono text-zinc-300 flex-1 overflow-hidden">
             {gameState?.log && gameState.log.length > 0 ? (
-              gameState.log.slice(-3).map((entry, idx) => (
-                <div key={idx} className="truncate text-zinc-300">
-                  • {entry}
+              gameState.log.slice(-4).map((entry, idx) => (
+                <div key={idx} className="truncate text-zinc-300 flex items-start gap-2">
+                  <span className="text-zinc-600 shrink-0">›</span>
+                  <span className="truncate">{entry}</span>
                 </div>
               ))
             ) : (
-              <div className="text-zinc-500 italic">Ожидание первых действий...</div>
+              <div className="text-zinc-600 italic text-center my-auto">
+                Ожидание первых тактических действий...
+              </div>
             )}
           </div>
         </div>
@@ -388,5 +414,3 @@ const TvBoardViewImpl: React.FC<TvBoardViewProps> = ({
     </div>
   );
 };
-
-export const TvBoardView = TvBoardViewImpl;

@@ -165,12 +165,12 @@ export const GameOverModal = ({
               >
                 <span>⇄</span> РЕВАНШ (СМЕНА РОЛЕЙ)
               </button>
-              <button
+                            <button
                 onClick={onRematchRandom}
                 className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 hover:from-blue-900 hover:via-blue-800 hover:to-blue-900 text-blue-100 border border-blue-500/70 shadow-[0_8px_20px_rgba(37,99,235,0.35)] rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98]"
               >
-                <span>🎲</span> РЕВАНШ (СЛУЧАЙНЫЕ РОЛИ)
-                              </button>
+                <span className="font-mono font-bold text-[10px] text-blue-400">[RND]</span> РЕВАНШ (СЛУЧАЙНЫЕ РОЛИ)
+              </button>
                 <button
                   onClick={onRematchSame}
                   className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 hover:from-zinc-800 hover:via-zinc-700 hover:to-zinc-800 text-zinc-100 border border-zinc-500/70 shadow-[0_8px_20px_rgba(0,0,0,0.35)] rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98]"

@@ -1,7 +1,9 @@
-import { useReducer, useEffect, useState } from "react";
+import { useReducer, useEffect, useState, useMemo } from "react";
 import { createInitialDuelState, duelReducer } from "../../utils/duelLogic";
 import type { DuelCharacter } from "../../types/duel";
-import type { Role } from "../../types/game";
+import type { Role, GameState, Character } from "../../types/game";
+import { GameBoard } from "../GameBoard";
+import { DUEL_CHARACTERS } from "../../constants/duelCharacters";
 import { DuelQuestionCatalogModal } from "./DuelQuestionCatalogModal";
 import { DuelCandidatesSheet } from "./DuelCandidatesSheet";
 import { DuelAccuseModal } from "./DuelAccuseModal";
@@ -14,6 +16,9 @@ const characterImages = import.meta.glob<{ default: string }>(
 interface DuelScreenProps {
   onBackToMenu: () => void;
   playerRole?: Role;
+  gameState?: GameState;
+  isOnline?: boolean;
+  onDispatchAction?: (action: any) => void;
 }
 
 const formatTime = (seconds: number) => {
@@ -48,11 +53,57 @@ const Icons = {
   ),
 };
 
-export const DuelScreen = ({ onBackToMenu, playerRole = "DETECTIVE" }: DuelScreenProps) => {
-  const [state, dispatch] = useReducer(duelReducer, undefined, createInitialDuelState);
+export const DuelScreen = ({
+  onBackToMenu,
+  playerRole = "DETECTIVE",
+  gameState,
+  isOnline = false,
+  onDispatchAction,
+}: DuelScreenProps) => {
+  const [localState, localDispatch] = useReducer(duelReducer, undefined, createInitialDuelState);
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [isCandidatesOpen, setIsCandidatesOpen] = useState(false);
   const [accuseTarget, setAccuseTarget] = useState<DuelCharacter | null>(null);
+
+  const state = (
+    isOnline && gameState
+      ? {
+          board: DUEL_CHARACTERS.map((char) => {
+            const flat = gameState.board ? gameState.board.flat() : [];
+            const found = flat.find((c) => c.id === char.id);
+            return { ...char, ...(found || {}), attributes: char.attributes };
+          }),
+          killerSecretId: gameState.killerSecretId,
+          detectiveSecretId: gameState.detectiveSecretId,
+          currentTurn: gameState.currentTurn || "DETECTIVE",
+          turnTimeRemaining: localState.turnTimeRemaining,
+          matchTimeRemaining: localState.matchTimeRemaining,
+          penalties: gameState.duelPenalties || { DETECTIVE: 0, KILLER: 0 },
+          accusedTargets: gameState.accusedTargets || { DETECTIVE: [], KILLER: [] },
+          history: (gameState.duelHistory as any) || [],
+          winner: gameState.winner,
+          winReason: gameState.winReason,
+        }
+      : localState
+  ) as typeof localState;
+
+  const dispatch = (action: any) => {
+    if (isOnline && onDispatchAction) {
+      if (action.type === "ASK_QUESTION") {
+        onDispatchAction({ type: "DUEL_ASK_QUESTION", payload: action.payload });
+      } else if (action.type === "ACCUSE") {
+        onDispatchAction({ type: "DUEL_ACCUSE", payload: action.payload });
+      } else if (action.type === "TIMEOUT_PASS") {
+        onDispatchAction({ type: "DUEL_TIMEOUT_PASS" });
+      } else if (action.type === "RESTART_DUEL") {
+        onDispatchAction({ type: "RESTART_DUEL" });
+      } else {
+        localDispatch(action);
+      }
+    } else {
+      localDispatch(action);
+    }
+  };
 
   useEffect(() => {
     if (state.winner) return;
@@ -68,6 +119,23 @@ export const DuelScreen = ({ onBackToMenu, playerRole = "DETECTIVE" }: DuelScree
   const isAlreadyAccused = accuseTarget
     ? state.accusedTargets[state.currentTurn].includes(accuseTarget.id)
     : false;
+
+  const boardMatrix = useMemo<Character[][]>(() => {
+    const flat = state.board || [];
+    const accused = state.accusedTargets?.[state.currentTurn] || [];
+    const matrix: Character[][] = [];
+    for (let r = 0; r < 5; r++) {
+      matrix.push(
+        flat.slice(r * 5, r * 5 + 5).map((c) => ({
+          id: c.id,
+          name: c.name,
+          isAlive: !accused.includes(c.id),
+          isExonerated: accused.includes(c.id),
+        }))
+      );
+    }
+    return matrix;
+  }, [state.board, state.accusedTargets, state.currentTurn]);
 
   const isTurnUrgent = state.turnTimeRemaining <= 5;
 
@@ -123,6 +191,27 @@ export const DuelScreen = ({ onBackToMenu, playerRole = "DETECTIVE" }: DuelScree
 
       {/* 5x5 Character Board */}
       <main className="flex-1 flex items-center justify-center my-2">
+        <GameBoard
+          mode="LINE_UP"
+          board={boardMatrix}
+          selectedCharacterId={accuseTarget?.id || null}
+          onSelectCharacter={(id) => {
+            if (state.winner) return;
+            const found = state.board.find((c) => c.id === id);
+            if (found) setAccuseTarget(found);
+          }}
+          myCharacterId={mySecretId}
+          myRoleColor={playerRole === "KILLER" ? "red" : "blue"}
+          onShift={() => {}}
+          killerAdjacentIds={[]}
+          detectiveAdjacentIds={[]}
+          showKillerHints={false}
+          showDetectiveHints={false}
+          lastShift={null}
+        />
+      </main>
+      {false && (
+      <main className="hidden">
         <div className="grid grid-cols-5 gap-1.5 sm:gap-2 max-w-xl w-full aspect-square">
           {state.board.map((char) => {
             const imageAsset = characterImages[`../../assets/characters/${char.id}.webp`]?.default;
@@ -174,6 +263,7 @@ export const DuelScreen = ({ onBackToMenu, playerRole = "DETECTIVE" }: DuelScree
           })}
         </div>
       </main>
+      )}
 
       {/* Bottom Action Bar Slot */}
       <footer className="w-full max-w-xl mx-auto flex items-center gap-2 shrink-0 pt-2 border-t border-zinc-900">

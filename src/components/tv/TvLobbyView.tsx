@@ -220,7 +220,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
               p1 ? 'bg-zinc-900/90 border-emerald-500/60 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-zinc-950/40 border-zinc-800/60 border-dashed'
             }`}>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">{p1 ? '🎮' : '⏳'}</span>
+                <span className="text-xs font-mono font-bold text-zinc-400">{p1 ? '[CTRL]' : '[WAIT]'}</span>
                 <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Слот 1 (Охотник)</span>
               </div>
               <div className="text-base font-black text-zinc-100 truncate">
@@ -236,7 +236,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
               p2 ? 'bg-zinc-900/90 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-zinc-950/40 border-zinc-800/60 border-dashed'
             }`}>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">{p2 ? '🎮' : '⏳'}</span>
+                <span className="text-xs font-mono font-bold text-zinc-400">{p2 ? '[CTRL]' : '[WAIT]'}</span>
                 <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Слот 2 (Свидетель)</span>
               </div>
               <div className="text-base font-black text-zinc-100 truncate">

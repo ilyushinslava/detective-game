@@ -8,6 +8,73 @@ import { getAdjacentCharacters } from "../utils/gameLogic";
 import { DUEL_CHARACTERS } from "../constants/duelCharacters";
 import { filterCandidates } from "../utils/duelLogic";
 
+export interface ActionDescriptor {
+  id: string;
+  label: string;
+  icon: string;
+  isRed?: boolean;
+  requiresTarget?: boolean;
+}
+
+export function getAvailableActionDescriptors(
+  gameState: GameState,
+  role: Role
+): ActionDescriptor[] {
+  if (!gameState) return [];
+  const isKiller = role === "KILLER";
+  const isSecretService = gameState.mode === "SECRET_SERVICE";
+
+  if (gameState.mode === "LINE_UP") {
+    return [
+      { id: "DUEL_ASK_QUESTION", label: "Вопрос по досье", icon: "[?]" },
+      { id: "DUEL_ACCUSE", label: "Обвинение", icon: "[TARGET]", isRed: true, requiresTarget: true },
+    ];
+  }
+
+  if (isSecretService) {
+    return [
+      { id: "CAPTURE_SPY", label: "Разоблачение", icon: "[TARGET]", isRed: true, requiresTarget: true },
+      { id: "INTERROGATE", label: "Опрос свидетелей", icon: "[RADAR]", requiresTarget: true },
+      { id: "CLEANUP", label: "Зачистить", icon: "[CLEAR]" },
+    ];
+  }
+
+  const list: ActionDescriptor[] = [];
+
+  if (isKiller) {
+    if (gameState.mode === "THIEF_HUNT") {
+      list.push(
+        { id: "ROB_NEIGHBOR", label: "Кража у соседа", icon: "[STEAL]", isRed: true, requiresTarget: true },
+        { id: "FAST_DISGUISE", label: "Сменить маску", icon: "[MASK]" }
+      );
+    } else {
+      list.push(
+        { id: "KILL_CHARACTER", label: "Ликвидация цели", icon: "[TARGET]", isRed: true, requiresTarget: true }
+      );
+      if (gameState.mode === "SKHVATKA") {
+        list.push({ id: "DISGUISE", label: "Конспирация", icon: "[MASK]" });
+      } else if (gameState.mode === "MANIAC_VS_OPERATIVE") {
+        list.push({ id: "ESCAPE_MANIAC", label: "Сменить личность", icon: "[ESCAPE]" });
+      }
+    }
+  } else {
+    list.push(
+      { id: "ACCUSE", label: "Задержание", icon: "[TARGET]", isRed: true, requiresTarget: true }
+    );
+    if (gameState.mode === "THIEF_HUNT") {
+      list.push({ id: "SWEAR_IN_OFFICER", label: "Вызов патруля", icon: "[PATROL]", requiresTarget: true });
+    }
+  }
+
+  if (gameState.mode !== "THIEF_HUNT") {
+    list.push({ id: "CLEANUP", label: "Зачистить поле", icon: "[CLEAR]" });
+  }
+
+  return list;
+}
+
+export const getAvailableActionTypes = getAvailableActionDescriptors;
+
 export interface ActionItem {
   id: string;
   label: string;

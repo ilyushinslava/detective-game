@@ -180,12 +180,18 @@ export default function App() {
       if (data?.players) {
         setTvPlayers(data.players);
       }
+      if (data?.status === "PLAYING" || data?.status === "FINISHED") {
+        setTvPartyState((prev) => (prev === "TV_LOBBY" ? "TV_BOARD" : prev));
+      }
     };
 
     partyService.onSyncState = (state: any, role?: Role, status?: string) => {
       prevOnSyncState?.(state, role, status);
       if (state) {
         setGameState(state);
+        if (status === "PLAYING" || status === "FINISHED" || (state?.board && state.board.length > 0)) {
+          setTvPartyState((prev) => (prev === "TV_LOBBY" ? "TV_BOARD" : prev));
+        }
       }
     };
 
@@ -711,7 +717,13 @@ export default function App() {
         )}
 
         {!isLobbyOpen && !isIntroPhase && hasStartedEver && gameState.opponent !== undefined && gameState.mode === "LINE_UP" && (
-          <DuelScreen onBackToMenu={handleReset} playerRole={gameState.playerRole} />
+          <DuelScreen
+            onBackToMenu={handleReset}
+            playerRole={gameState.playerRole}
+            gameState={gameState}
+            isOnline={gameState.opponent === "ONLINE"}
+            onDispatchAction={dispatchAction}
+          />
         )}
 
         {!isLobbyOpen && !isIntroPhase && hasStartedEver && gameState.opponent !== undefined && gameState.mode !== "LINE_UP" && (

@@ -24,6 +24,25 @@ describe("GameBoard Controls", () => {
     return board;
   };
 
+  const createCustomBoard = (size: number): Character[][] => {
+    const board: Character[][] = [];
+    let idCounter = 1;
+    for (let r = 0; r < size; r++) {
+      const row: Character[] = [];
+      for (let c = 0; c < size; c++) {
+        row.push({
+          id: `c${idCounter}`,
+          name: `Char ${idCounter}`,
+          isAlive: true,
+          isExonerated: false,
+        });
+        idCounter++;
+      }
+      board.push(row);
+    }
+    return board;
+  };
+
   const defaultProps = {
     mode: "SKHVATKA" as const,
     board: createMockBoard(),
@@ -106,5 +125,58 @@ describe("GameBoard Controls", () => {
     
     fireEvent.click(disabledButtons[0]);
     expect(mockOnShift).not.toHaveBeenCalled();
+  });
+
+  it("renders expanded 6x6 grid with 36 cards and allows selecting corner card", () => {
+    const mockOnSelect = vi.fn();
+    const mockOnShift = vi.fn();
+    const board6x6 = createCustomBoard(6);
+    const { container } = render(
+      <GameBoard
+        {...defaultProps}
+        mode="SECRET_SERVICE"
+        board={board6x6}
+        onSelectCharacter={mockOnSelect}
+        onShift={mockOnShift}
+      />
+    );
+
+    const lastCard = screen.getByText("Char 36");
+    expect(lastCard).toBeDefined();
+    fireEvent.click(lastCard);
+    expect(mockOnSelect).toHaveBeenCalledWith("c36");
+
+    const buttons = Array.from(container.querySelectorAll("button"));
+    expect(buttons.length).toBe(24);
+
+    fireEvent.click(buttons[5]);
+    expect(mockOnShift).toHaveBeenCalledWith("COL", 5, expect.any(String));
+  });
+
+  it("renders expanded 7x7 grid with 49 cards and 28 shift buttons", () => {
+    const mockOnSelect = vi.fn();
+    const mockOnShift = vi.fn();
+    const board7x7 = createCustomBoard(7);
+    const { container } = render(
+      <GameBoard
+        {...defaultProps}
+        mode="SECRET_SERVICE"
+        board={board7x7}
+        onSelectCharacter={mockOnSelect}
+        onShift={mockOnShift}
+      />
+    );
+
+    const lastCard = screen.getByText("Char 49");
+    expect(lastCard).toBeDefined();
+    fireEvent.click(lastCard);
+    expect(mockOnSelect).toHaveBeenCalledWith("c49");
+
+    const buttons = Array.from(container.querySelectorAll("button"));
+    expect(buttons.length).toBe(28);
+
+    const rowButtons = buttons.slice(7, 14);
+    fireEvent.click(rowButtons[6]);
+    expect(mockOnShift).toHaveBeenCalledWith("ROW", 6, expect.any(String));
   });
 });

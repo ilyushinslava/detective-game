@@ -2,6 +2,7 @@ import type { GameState } from "../types/game";
 import type { GameAction } from "../types/multiplayer";
 import { DUEL_QUESTIONS } from "../constants/duelQuestions";
 import { DUEL_CHARACTERS } from "../constants/duelCharacters";
+import { filterCandidates } from "./duelLogic";
 import {
   shiftBoard,
   accuseCharacter,
@@ -37,7 +38,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
   const SYSTEM_ACTIONS = [
     "MATCH_STARTED", "RESTART_GAME", "REQUEST_RESTART", 
     "CONFIRM_RESTART", "REJECT_RESTART", "SET_MATCH_POT", "PLAYER_READY", 
-    "SET_INSPECTOR_ROLE", "CLEANUP", "CLEAR_DISGUISE_NOTIFICATION", "END_TURN"
+    "SET_INSPECTOR_ROLE", "CLEANUP", "CLEAR_DISGUISE_NOTIFICATION", "END_TURN",
+    "TIMEOUT_PASS", "DUEL_TIMEOUT_PASS", "RESTART_DUEL", "RESOLVE_DUEL_TIE_BREAK"
   ];
   
   // Авторитетный сервер сам валидирует очередность. На клиентах блокировку не делаем.
@@ -107,6 +109,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case "ROB_NEIGHBOR":
       return robNeighbor(state, action.payload.targetId);
     case "ACCUSE":
+      if (state.mode === "LINE_UP") {
+        return gameReducer(state, { ...action, type: "DUEL_ACCUSE" as any });
+      }
       return accuseCharacter(state, action.payload.targetId);
 
     case "CAPTURE_SPY": {
@@ -289,6 +294,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    case "ASK_QUESTION":
     case "DUEL_ASK_QUESTION": {
       const { questionId } = action.payload;
       const q = DUEL_QUESTIONS.find((item) => item.id === questionId);
@@ -325,6 +331,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case "DUEL_ACCUSE": {
       const { targetId } = action.payload;
       const currentRole = state.currentTurn;
+      const currentAccused = state.accusedTargets || { DETECTIVE: [], KILLER: [] };
+      if (currentAccused[currentRole]?.includes(targetId)) {
+        return state;
+      }
       const targetSecretId = currentRole === "DETECTIVE" ? state.killerSecretId : state.detectiveSecretId;
       const roleName = currentRole === "DETECTIVE" ? "Следователь" : "Подозреваемый";
 
@@ -332,6 +342,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         return {
           ...state,
           winner: currentRole,
+          winReason: "ACCUSATION",
           log: [
             ...state.log,
             `Точное обвинение! ${roleName} вычислил личность оппонента! Победа!`,
@@ -341,7 +352,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       const nextTurn = currentRole === "DETECTIVE" ? "KILLER" : "DETECTIVE";
       const currentPenalties = state.duelPenalties || { DETECTIVE: 0, KILLER: 0 };
-      const currentAccused = state.accusedTargets || { DETECTIVE: [], KILLER: [] };
 
       return {
         ...state,
@@ -359,6 +369,59 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           `Ложное обвинение! ${roleName} получает +1 штраф. Ход переходит оппоненту.`,
         ],
       };
+    }
+
+    case "TIMEOUT_PASS":
+    case "DUEL_TIMEOUT_PASS": {
+      if (state.winner) return state;
+      const nextTurn: Role = state.currentTurn === "DETECTIVE" ? "KILLER" : "DETECTIVE";
+      const roleName = state.currentTurn === "DETECTIVE" ? "Следователь" : "Подозреваемый";
+      return {
+        ...state,
+        currentTurn: nextTurn,
+        log: [
+          ...state.log,
+          `Время хода истекло. Ход переходит к роли: ${roleName === "Следователь" ? "Подозреваемый" : "Следователь"}.`,
+        ],
+      };
+    }
+
+    case "RESTART_DUEL": {
+      if (state.mode === "LINE_UP") {
+        const nextStarter = action.payload?.nextStarter || "DETECTIVE";
+        return {
+          ...state,
+          currentTurn: nextStarter,
+          winner: null,
+          winReason: undefined,
+          duelHistory: [],
+          duelPenalties: { DETECTIVE: 0, KILLER: 0 },
+          accusedTargets: { DETECTIVE: [], KILLER: [] },
+          log: [...state.log, "Матч перезапущен."],
+        };
+      }
+      return state;
+    }
+
+    case "RESOLVE_DUEL_TIE_BREAK": {
+      if (state.winner) return state;
+      const penalties = state.duelPenalties || { DETECTIVE: 0, KILLER: 0 };
+      if (penalties.DETECTIVE < penalties.KILLER) {
+        return { ...state, winner: "DETECTIVE", winReason: "TIE_BREAK_PENALTIES" };
+      }
+      if (penalties.KILLER < penalties.DETECTIVE) {
+        return { ...state, winner: "KILLER", winReason: "TIE_BREAK_PENALTIES" };
+      }
+      const history = state.duelHistory || [];
+      const detCandidates = filterCandidates(DUEL_CHARACTERS, history as any, "DETECTIVE").length;
+      const kilCandidates = filterCandidates(DUEL_CHARACTERS, history as any, "KILLER").length;
+      if (detCandidates < kilCandidates) {
+        return { ...state, winner: "DETECTIVE", winReason: "TIE_BREAK_CANDIDATES" };
+      }
+      if (kilCandidates < detCandidates) {
+        return { ...state, winner: "KILLER", winReason: "TIE_BREAK_CANDIDATES" };
+      }
+      return { ...state, winner: "DRAW", winReason: "TIE_BREAK_DRAW" };
     }
 
     case "REQUEST_RESTART":

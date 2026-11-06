@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { motion } from 'framer-motion';
 import { CharacterCard } from '../CharacterCard';
+import { GameOverModal } from '../GameOverModal';
 import type { GameState, LastShift } from '../../types/game';
 import { SPY_COLORS } from '../../types/game';
 
@@ -181,96 +182,26 @@ const TvBoardViewImpl: React.FC<TvBoardViewProps> = ({
     const finalKillerChar = flatCards.find((c) => c.id === finalKillerId);
     const finalDetectiveChar = flatCards.find((c) => c.id === finalDetectiveId);
 
-    return (
-      <div className="flex h-screen w-screen flex-col justify-between bg-[#06070a] text-zinc-100 select-none p-10 font-sans animate-fadeIn">
-        <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
-          <span className="text-xs font-mono uppercase tracking-widest text-zinc-400">
-            ПРОТОКОЛ ЗАКРЫТИЯ ДЕЛА • ИТОГИ МАТЧА
-          </span>
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-xs uppercase tracking-wider text-zinc-500">МАТЧ ЗАВЕРШЕН</span>
-            {onExit && (
-              <button
-                onClick={onExit}
-                className="px-3 py-1 rounded-lg border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-[11px] font-mono uppercase tracking-wider text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
-              >
-                [В МЕНЮ]
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="flex flex-col items-center justify-center my-auto text-center space-y-8">
-          <div>
-            <div className={`text-6xl font-black uppercase tracking-widest mb-3 ${isKillerWinner ? 'text-red-500 drop-shadow-[0_0_35px_rgba(239,68,68,0.6)]' : 'text-blue-500 drop-shadow-[0_0_35px_rgba(59,130,246,0.6)]'}`}>
-              ПОБЕДА: {winRoleName}
-            </div>
-            <div className="text-sm font-mono uppercase tracking-wider text-zinc-400">
-              {isKillerWinner ? 'Криминал достиг своей цели и переиграл Закон' : 'Следствие успешно раскрыло личности и обезвредило противника'}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-12 my-6">
-            <div className="flex flex-col items-center">
-              <span className="text-xs font-bold uppercase tracking-widest text-red-400 mb-2">
-                {killerTeamName}
-              </span>
-              <div className="w-44 h-44 rounded-2xl overflow-hidden border-2 border-red-600/70 bg-zinc-900 shadow-[0_0_25px_rgba(239,68,68,0.3)]">
-                {finalKillerChar ? (
-                  <CharacterCard
-                    mode={gameState.mode}
-                    character={finalKillerChar}
-                    isSelected={false}
-                    isPVP={true}
-                    onClick={() => {}}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-4xl font-mono text-zinc-600">?</div>
-                )}
-              </div>
-              <span className="text-sm font-black text-zinc-200 mt-2 truncate max-w-[176px]">
-                {finalKillerChar?.name || 'Личность раскрыта'}
-              </span>
-            </div>
-
-            <div className="text-2xl font-black font-mono text-zinc-600">VS</div>
-
-            <div className="flex flex-col items-center">
-              <span className="text-xs font-bold uppercase tracking-widest text-blue-400 mb-2">
-                {detectiveTeamName}
-              </span>
-              <div className="w-44 h-44 rounded-2xl overflow-hidden border-2 border-blue-600/70 bg-zinc-900 shadow-[0_0_25px_rgba(59,130,246,0.3)]">
-                {finalDetectiveChar ? (
-                  <CharacterCard
-                    mode={gameState.mode}
-                    character={finalDetectiveChar}
-                    isSelected={false}
-                    isPVP={true}
-                    onClick={() => {}}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-4xl font-mono text-zinc-600">?</div>
-                )}
-              </div>
-              <span className="text-sm font-black text-zinc-200 mt-2 truncate max-w-[176px]">
-                {finalDetectiveChar?.name || 'Личность раскрыта'}
-              </span>
-            </div>
-          </div>
-
-          <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full border border-zinc-800 bg-zinc-950/80 shadow-inner">
+          return (
+        <div className="relative h-screen w-screen bg-[#06070a] overflow-hidden">
+          <GameOverModal
+            winner={isKillerWinner ? 'KILLER' : 'DETECTIVE'}
+            mode={gameState.mode}
+            killer={finalKillerChar}
+            detective={finalDetectiveChar}
+            elapsedTime={gameState.timer?.elapsedTime || '00:00'}
+            isMultiplayer={true}
+            onRestart={() => {}}
+            onExitToMenu={onExit}
+          />
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 inline-flex items-center gap-3 px-6 py-2.5 rounded-full border border-zinc-800 bg-zinc-950/90 shadow-2xl backdrop-blur-md">
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
             <span className="text-xs font-mono uppercase tracking-widest text-zinc-300 animate-pulse">
-              Ждём решение о реванше на контроллерах...
+              Ожидание решения о реванше на контроллерах...
             </span>
           </div>
         </div>
-
-        <div className="text-center text-[11px] font-mono text-zinc-600 border-t border-zinc-800/80 pt-3">
-          The Wicked City • Game Over Session
-        </div>
-      </div>
-    );
+      );
   }
 
   return (

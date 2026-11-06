@@ -1,12 +1,16 @@
-﻿import React, { useState, useMemo, useEffect } from 'react';
+﻿import React, { useState, useMemo, useEffect, useRef } from 'react';
 import type { GameState, Role } from '../../types/game';
 import { SPY_COLORS } from '../../types/game';
 import { getAdjacentCharacters, isOppositeShift } from '../../utils/gameLogic';
 import { CharacterCard } from '../CharacterCard';
 import { PassAndPlayModal } from './PassAndPlayModal';
 import { InspectorChoiceModal } from '../InspectorChoiceModal';
+import { ActionButtonsBar } from '../ui/ActionButtonsBar';
+import { RoleCards } from '../RoleCards';
+import { GameSheets } from '../GameSheets';
 import { soundManager } from '../../utils/audio';
 import { triggerHaptic } from '../../utils/haptics';
+import { getAvailableActionDescriptors, type ActionDescriptor } from '../../hooks/useGameActions';
 
 interface MobileControllerViewProps {
   gameState: GameState;
@@ -19,13 +23,7 @@ interface MobileControllerViewProps {
 
 type ShiftStep = 'IDLE' | 'SELECT_AXIS' | 'SELECT_INDEX' | 'SELECT_DIR' | 'CONFIRM';
 
-interface ActionDef {
-  id: string;
-  label: string;
-  icon: string;
-  isRed?: boolean;
-  requiresTarget?: boolean;
-}
+type ActionDef = ActionDescriptor;
 
 export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   gameState,
@@ -69,10 +67,29 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     const dir = (selectedDir === 'LEFT' || selectedDir === 'UP') ? 'BACKWARD' : 'FORWARD';
     return isOppositeShift(gameState.lastShift, selectedAxis, selectedIndex, dir);
   }, [gameState.lastShift, selectedAxis, selectedIndex, selectedDir]);
-  const [isCoverOpen, setIsCoverOpen] = useState(false);
-  const [isDossierOpen, setIsDossierOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState<ActionDef | null>(null);
-  const [isPeeking, setIsPeeking] = useState(false);
+      const [isCoverOpen, setIsCoverOpen] = useState(false);
+    const [isDossierOpen, setIsDossierOpen] = useState(false);
+    const [isHandSheetOpen, setIsHandSheetOpen] = useState(false);
+    const [isLogOpen, setIsLogOpen] = useState(false);
+    const logContainerRef = useRef<HTMLDivElement>(null);
+    const [pendingAction, setPendingAction] = useState<ActionDef | null>(null);
+    const [isPeeking, setIsPeeking] = useState(false);
+
+    const handleFastDisguise = (id: string) => {
+      soundManager.play('click');
+      triggerHaptic('medium');
+      onDispatchAction({ type: 'FAST_DISGUISE', payload: { targetId: id } });
+      setIsHandSheetOpen(false);
+      if (isPassAndPlay) setIsCoverOpen(true);
+    };
+
+    const handleExonerateFromHand = (id: string) => {
+      soundManager.play('click');
+      triggerHaptic('medium');
+      onDispatchAction({ type: 'EXONERATE', payload: { targetId: id } });
+      setIsHandSheetOpen(false);
+      if (isPassAndPlay) setIsCoverOpen(true);
+    };
 
   useEffect(() => {
     setSelectedTargetId(null);
@@ -369,20 +386,14 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     }
   };
 
-  const handleEndTurn = () => {
-    triggerHaptic("heavy");
-    if (isPassAndPlay) {
-      setIsCoverOpen(true);
-    }
-    onDispatchAction({ type: 'END_TURN' });
-  };
+  const handleEndTurn = () => {};
 
   const rawActions = getAvailableActions();
   const actions = useMemo(() => {
     const list = [...rawActions];
-    if (gameState.mode !== 'THIEF_HUNT' && gameState.mode !== 'LINE_UP' && !list.some((a) => a.id === 'CLEANUP')) {
-      list.push({ id: 'CLEANUP', label: 'Зачистить поле', icon: '🧹' });
-    }
+          if (gameState.mode !== 'THIEF_HUNT' && gameState.mode !== 'LINE_UP' && !list.some((a) => a.id === 'CLEANUP')) {
+        list.push({ id: 'CLEANUP', label: 'Зачистить поле', icon: '[CLEAR]' });
+      }
     if (gameState.mode === 'THIEF_HUNT' && !isKiller && !list.some((a) => a.id === 'SWEAR_IN_OFFICER')) {
       list.push({ id: 'SWEAR_IN_OFFICER', label: 'Вызов патруля', icon: '👮', requiresTarget: true });
     }
@@ -421,9 +432,17 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   if (!isMyTurn) {
     return (
       <div className="flex h-[100dvh] w-screen flex-col items-center justify-center bg-[#080a0f] p-6 pb-8 text-center text-zinc-100 select-none font-sans">
-        <div className="w-20 h-20 rounded-full border border-zinc-800 bg-zinc-900/80 flex items-center justify-center text-4xl mb-6 animate-pulse">
+        <div className="w-20 h-20 rounded-full border border-zinc-800 bg-zinc-900/80 flex items-center justify-center text-zinc-400 mb-6 animate-pulse">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-9 h-9">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+        </div>
+        {false && (
+        <div className="hidden">
           ⏳
         </div>
+        )}
         <h2 className="text-2xl font-black uppercase tracking-wider text-zinc-200 mb-2">
           Ожидание
         </h2>
@@ -644,9 +663,9 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   // 3. Основной экран хода контроллера
   const _ignoredActions = (() => {
     const list = [...rawActions];
-    if (gameState.mode !== 'THIEF_HUNT' && !list.some((a) => a.id === 'CLEANUP')) {
-      list.push({ id: 'CLEANUP', label: 'Зачистить поле', icon: '🧹' });
-    }
+          if (gameState.mode !== 'THIEF_HUNT' && !list.some((a) => a.id === 'CLEANUP')) {
+        list.push({ id: 'CLEANUP', label: 'Зачистить поле', icon: '[CLEAR]' });
+      }
     if (gameState.mode === 'THIEF_HUNT' && !isKiller && !list.some((a) => a.id === 'SWEAR_IN_OFFICER')) {
       list.push({ id: 'SWEAR_IN_OFFICER', label: 'Вызов патруля', icon: '👮', requiresTarget: true });
     }
@@ -656,63 +675,34 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
   return (
     <div className="flex h-[100dvh] w-screen flex-col justify-between bg-[#080a0f] p-5 pb-8 text-zinc-100 select-none overflow-y-auto font-sans">
-      <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-        <div>
-          <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">ВАША РОЛЬ</div>
-          <div
-            onPointerDown={() => setIsPeeking(true)}
-            onPointerUp={() => setIsPeeking(false)}
-            onPointerLeave={() => setIsPeeking(false)}
-            onPointerCancel={() => setIsPeeking(false)}
-            onDoubleClick={() => setIsDossierOpen(true)}
-            className="flex items-center gap-3 mt-1 cursor-pointer select-none"
-            title="Удерживайте для просмотра роли"
-          >
-            {isPeeking && myCharacter ? (
-              <div className="w-12 h-12 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-900 shrink-0">
-                <CharacterCard
-                  mode={gameState?.mode || 'SKHVATKA'}
-                  character={myCharacter}
-                  isSelected={false}
-                  isPVP={true}
-                />
-              </div>
-            ) : (
-              <div className="w-12 h-12 rounded-xl border border-zinc-800 bg-zinc-900/90 flex flex-col items-center justify-center text-xs font-mono text-zinc-500 shrink-0">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5 text-zinc-500"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
-              </div>
-            )}
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 ${roleColorClass}`}>
-                  {roleName}
-                </span>
-                {isPeeking && myCharacter && (
-                  <span className="text-[10px] font-mono text-zinc-500">
-                    #{myCharacter.id.replace('c', '')}
-                  </span>
-                )}
-              </div>
-              <div className="text-base font-black text-zinc-100 truncate max-w-[170px] sm:max-w-xs mt-0.5">
-                {isPeeking && myCharacter ? myCharacter.name : '••••••••'}
-              </div>
-              <div className="text-[10px] text-zinc-500 font-mono">
-                Секретная личность игрока
-              </div>
-            </div>
-          </div>
+      <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3 gap-3">
+        <div className="flex-1 min-w-0">
+          <RoleCards
+            mode={gameState.mode}
+            role1Name={isKiller ? roleName : ''}
+            role2Name={!isKiller ? roleName : ''}
+            killerNameText={isKiller ? (myCharacter?.name || '••••••••') : ''}
+            detectiveNameText={!isKiller ? (myCharacter?.name || '••••••••') : ''}
+            canPeekKiller={isKiller}
+            canPeekDetective={!isKiller}
+            onPeekKillerStart={() => setIsPeeking(true)}
+            onPeekKillerEnd={() => setIsPeeking(false)}
+            onPeekDetectiveStart={() => setIsPeeking(true)}
+            onPeekDetectiveEnd={() => setIsPeeking(false)}
+            isPVP={false}
+          />
         </div>
         <button
           onClick={onExit}
-          className="text-[11px] font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
+          className="text-[11px] font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer shrink-0 self-start mt-1"
         >
           Выйти
         </button>
       </div>
 
-      {/* Рука игрока */}
-      {handCards.length > 0 && (
-        <div className="my-2 p-3 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-md">
+              {/* Рука игрока */}
+        {handCards.length > 0 && (
+          <div onClick={() => setIsHandSheetOpen(true)} className="my-2 p-3 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-md cursor-pointer active:scale-[0.99] transition-transform">
           <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 flex items-center justify-between">
             <span>{isKiller ? 'КАРТЫ МАСОК (В РУКЕ)' : 'ДОСЬЕ АЛИБИ (В РУКЕ)'}</span>
             <span className="text-[10px] font-mono text-zinc-400">КАРТ: {handCards.length}</span>
@@ -770,9 +760,19 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
               </span>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-1.5 sm:gap-2 max-w-xs mx-auto w-full my-2">
+            <div className="grid grid-cols-3 grid-rows-3 gap-1.5 sm:gap-2 w-full max-w-[280px] sm:max-w-xs aspect-square mx-auto my-2">
                           {locatorGrid.map((cell, idx) => {
                 if (cell.isOutOfBounds) {
+                  return (
+                    <div
+                      key={`bound_${idx}`}
+                      className="aspect-square rounded-xl border border-dashed border-zinc-900/60 bg-zinc-950/20 flex items-center justify-center pointer-events-none select-none"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-900" />
+                    </div>
+                  );
+                }
+                if (false && cell.isOutOfBounds) {
                   return (
                     <div
                       key={`bound_${idx}`}
@@ -789,13 +789,13 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                 return (
                   <div
                     key={char.id}
-                    onClick={() => setSelectedTargetId(char.id)}
-                    className={`aspect-square rounded-xl border p-1 flex flex-col justify-between transition-all cursor-pointer relative ${
-                      isSelected
-                        ? `${targetBorderClass} scale-105 z-10`
-                        : isCenter
-                          ? 'border-zinc-700/80 bg-zinc-900/90 hover:border-zinc-600'
-                          : 'border-zinc-800/80 bg-zinc-950/70 hover:border-zinc-700'
+                    onClick={() => !isCenter && setSelectedTargetId(char.id)}
+                    className={`aspect-square rounded-xl border p-1 flex flex-col justify-between transition-all relative ${
+                      isCenter
+                        ? 'border-zinc-700/80 bg-zinc-900/90 shadow-inner cursor-default'
+                        : isSelected
+                          ? `${targetBorderClass} scale-105 z-10 cursor-pointer`
+                          : 'border-zinc-800/80 bg-zinc-950/70 hover:border-zinc-700 cursor-pointer'
                     }`}
                   >
                     <div className="aspect-square w-full rounded-lg overflow-hidden bg-zinc-900 relative">
@@ -804,7 +804,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         character={char}
                         isSelected={isSelected}
                         isPVP={true}
-                        onClick={() => setSelectedTargetId(char.id)}
+                        onClick={() => !isCenter && setSelectedTargetId(char.id)}
                       />
                       {isCenter && (
                         <span className="absolute top-0.5 right-0.5 px-1 py-0.2 rounded bg-zinc-950/90 border border-zinc-700 text-[8px] font-black uppercase text-zinc-300 pointer-events-none">
@@ -823,37 +823,27 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         )}
       </div>
 
-      {/* Доступные действия */}
-      <div className="space-y-2 mb-4">
-        <div className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1">ДОСТУПНЫЕ ДЕЙСТВИЯ</div>
-        {actions.map((act) => (
-          <button
-            key={act.id}
-            onClick={() => handleExecuteAction(act)}
-            disabled={act.requiresTarget && neighbors.length === 0}
-            className={`w-full p-3.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.99] ${
-              act.isRed
-                ? 'bg-gradient-to-r from-red-950 via-red-900 to-red-950 hover:from-red-900 hover:via-red-800 hover:to-red-900 text-white border-red-600/70 shadow-[0_8px_20px_rgba(220,38,38,0.35)]'
-                : act.id === 'SHIFT'
-                  ? 'bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-950 hover:from-zinc-800 hover:via-zinc-700 hover:to-zinc-900 text-zinc-100 border-zinc-600/70 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
-                  : 'bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 hover:from-blue-900 hover:via-blue-800 hover:to-blue-900 text-white border-blue-500/70 shadow-[0_8px_20px_rgba(37,99,235,0.35)]'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-base">{act.icon}</span>
-              <span className={`text-xs font-bold uppercase tracking-wider ${act.isRed ? 'text-red-400' : 'text-zinc-200'}`}>
-                {act.label}
-              </span>
-            </div>
-            <span className="text-xs text-zinc-500">→</span>
-          </button>
-        ))}
-      </div>
+              {/* Доступные действия (SSOT ActionButtonsBar) */}
+        <div className="space-y-2 mb-4">
+          <div className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1">ДОСТУПНЫЕ ДЕЙСТВИЯ</div>
+          <ActionButtonsBar
+            actions={[
+              ...(gameState.mode === 'LINE_UP' ? [] : [{ id: 'SHIFT', label: 'Переместить ряд/столбец', isRed: false, requiresTarget: false }]),
+              ...getAvailableActionDescriptors(gameState, playerRole)
+            ].map((act) => ({
+              id: act.id,
+              label: act.label,
+              isRed: act.isRed,
+              disabled: act.requiresTarget && neighbors.length === 0,
+              onClick: () => handleExecuteAction(act),
+            }))}
+          />
+        </div>
 
       {/* Завершить ход */}
       <button
         onClick={handleEndTurn}
-        className="w-full py-4 rounded-2xl bg-red-600 hover:bg-red-500 text-white text-sm font-black uppercase tracking-widest shadow-[0_0_25px_rgba(239,68,68,0.5)] cursor-pointer active:scale-[0.98] transition-all border border-red-400/30"
+        className="hidden" style={{ display: 'none' }}
       >
         Завершить ход
       </button>
@@ -867,60 +857,24 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         onConfirmTakeDevice={() => setIsCoverOpen(false)}
       />
 
-      {isDossierOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn font-sans">
-          <div className="w-full max-w-sm rounded-3xl bg-zinc-950 border border-zinc-800 p-6 flex flex-col items-center text-center shadow-2xl relative">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">
-              СЕКРЕТНОЕ ДОСЬЕ
-            </div>
-
-            <div className="w-32 h-32 rounded-2xl overflow-hidden border-2 border-zinc-700 bg-zinc-900 shadow-xl mb-4">
-              {myCharacter ? (
-                <CharacterCard
-                  mode={gameState?.mode || 'SKHVATKA'}
-                  character={myCharacter}
-                  isSelected={false}
-                  isPVP={true}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-3xl font-mono text-zinc-600">
-                  ?
-                </div>
-              )}
-            </div>
-
-            <div className={`text-xl font-black uppercase tracking-wider mb-1 ${roleColorClass}`}>
-              {roleName}
-            </div>
-
-            <div className="text-sm font-bold text-zinc-100 mb-1">
-              {myCharacter ? myCharacter.name : 'Личность засекречена'}
-            </div>
-
-            {myCharacter && (
-              <div className="text-xs font-mono text-zinc-500 mb-4">
-                #{myCharacter.id.replace('c', '').padStart(2, '0')}
-              </div>
-            )}
-
-            <div className="w-full p-3.5 rounded-xl bg-zinc-900/80 border border-zinc-800/80 text-left mb-6">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                ЦЕЛЬ ОПЕРАЦИИ
-              </div>
-              <p className="text-xs text-zinc-300 leading-relaxed">
-                {roleObjective}
-              </p>
-            </div>
-
-            <button
-              onClick={() => setIsDossierOpen(false)}
-              className="w-full py-3.5 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-xs font-black uppercase tracking-wider text-zinc-100 transition cursor-pointer"
-            >
-              Закрыть досье
-            </button>
-          </div>
-        </div>
-      )}
+              <GameSheets
+          gameState={gameState}
+          allChars={gameState.board ? gameState.board.flat() : []}
+          characterImages={characterImages as any}
+          isHumanTurn={isMyTurn}
+          isDetectiveTurn={!isKiller}
+          isKillerTurn={isKiller}
+          isHandSheetOpen={isHandSheetOpen || isDossierOpen}
+          setIsHandSheetOpen={(val) => {
+            setIsHandSheetOpen(val);
+            if (!val) setIsDossierOpen(false);
+          }}
+          isLogOpen={isLogOpen}
+          setIsLogOpen={setIsLogOpen}
+          logContainerRef={logContainerRef}
+          handleExonerateFromHand={handleExonerateFromHand}
+          handleFastDisguise={handleFastDisguise}
+        />
 
       {pendingAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn font-sans">

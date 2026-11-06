@@ -56,7 +56,8 @@ export interface GameState {
   trophiesKiller?: number;
   trophiesDetective?: number;
   blockedShift?: { type: "ROW" | "COL"; index: number } | null;
-  winner: Role | null;
+  winner: Role | "DRAW" | null;
+  winReason?: "ACCUSATION" | "TIE_BREAK_PENALTIES" | "TIE_BREAK_CANDIDATES" | "TIE_BREAK_DRAW";
   log: string[];
   lastShift: LastShift | null;
   lastInterrogation: InterrogationResult | null;

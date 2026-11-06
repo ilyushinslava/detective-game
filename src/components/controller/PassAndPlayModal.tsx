@@ -39,8 +39,11 @@ export const PassAndPlayModal: React.FC<PassAndPlayModalProps> = ({
 
       {/* Центральный блок инструктажа */}
       <div className="flex flex-col items-center text-center max-w-xs my-auto">
-        <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-3xl border border-zinc-800 bg-zinc-900/80 text-4xl shadow-2xl">
-          📱
+        <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-3xl border border-zinc-800 bg-zinc-900/80 shadow-2xl text-zinc-400">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-10 h-10">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+            <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2" strokeLinecap="round" />
+          </svg>
         </div>
 
         <h2 className="text-xl font-black uppercase tracking-widest text-zinc-100 mb-4">
@@ -59,7 +62,7 @@ export const PassAndPlayModal: React.FC<PassAndPlayModalProps> = ({
         </p>
 
         <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 text-[11px] font-mono text-zinc-500">
-          ⚠️ Убедитесь, что соперник не смотрит в экран
+          <span className="text-zinc-400 font-bold mr-1.5">[!]</span> Убедитесь, что соперник не смотрит в экран
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { SplashScreen } from './components/SplashScreen';
 import { type GameModeType, type OpponentType, type Role, type GameState } from "./types/game";
 import { GameLifecycleModals } from "./components/GameLifecycleModals";
@@ -925,8 +925,7 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <>
-              <MobileControllerView
+            <MobileControllerView
                 gameState={gameState}
                               playerRole={
                 isTvPassAndPlay
@@ -947,35 +946,6 @@ export default function App() {
                   setIsLobbyOpen(true);
                 }}
               />
-                              <GameLifecycleModals
-                  gameState={gameState}
-                  setGameState={setGameState}
-                  isIntroPhase={isIntroPhase}
-                  setIsIntroPhase={setIsIntroPhase}
-                isLobbyOpen={false}
-                hasStartedEver={true}
-                isOpponentConnected={isOpponentConnected}
-                isDetectiveView={isDetectiveView}
-                isDetectiveTurn={isDetectiveTurn}
-                profileNickname={profile.nickname}
-                killerChar={killerChar}
-                detectiveChar={detectiveChar}
-                allChars={allChars}
-                inspectorChoices={inspectorChoices}
-                selectedInspectorChoiceId={selectedInspectorChoiceId}
-                setSelectedInspectorChoiceId={setSelectedInspectorChoiceId}
-                isRevealConfirmed={isRevealConfirmed}
-                setIsRevealConfirmed={setIsRevealConfirmed}
-                characterImages={characterImages}
-                secondsElapsed={secondsElapsed}
-                formatTimer={formatTimer}
-                handleExitToMenu={handleExitToMenu}
-                handleReset={handleReset}
-                handleSelectInspectorRole={handleSelectInspectorRole}
-                requestRematch={requestRematch}
-                setFullscreenImage={setFullscreenImage}
-              />
-            </>
           )}
         </div>
         );

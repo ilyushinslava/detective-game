@@ -504,26 +504,65 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           )}
 
           {shiftStep === 'SELECT_INDEX' && (
-            <div className="space-y-2.5 w-full">
-              <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 text-center mb-2">
-                {selectedAxis === 'ROW' ? 'ШАГ 2 • ВЫБЕРИТЕ РЯД' : 'ШАГ 2 • ВЫБЕРИТЕ СТОЛБЕЦ'}
+            <div className="space-y-3 w-full">
+              <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 text-center mb-1">
+                {selectedAxis === 'ROW' ? 'ШАГ 2 • ВЫБЕРИТЕ ГОРИЗОНТАЛЬНЫЙ РЯД' : 'ШАГ 2 • ВЫБЕРИТЕ ВЕРТИКАЛЬНЫЙ СТОЛБЕЦ'}
               </div>
-              {Array.from({ length: boardSize }, (_, i) => i).map((i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    setSelectedIndex(i);
-                    updateLinePreview({ type: selectedAxis, index: i });
-                    setShiftStep('SELECT_DIR');
-                  }}
-                  className="w-full p-4 rounded-2xl bg-zinc-950/80 border border-white/10 text-left flex items-center justify-between hover:border-blue-400 transition cursor-pointer active:scale-98 shadow-md"
-                >
-                  <span className="text-sm font-bold uppercase tracking-wider text-white">
-                    {selectedAxis === 'ROW' ? `РЯД #${i + 1}` : `СТОЛБЕЦ #${i + 1}`}
-                  </span>
-                  <span className="text-xs font-mono text-zinc-500">Выбрать →</span>
-                </button>
-              ))}
+              <div className="text-[11px] font-mono text-zinc-500 text-center mb-2">
+                Выбранная линия сразу подсветится на телевизоре
+              </div>
+
+              {selectedAxis === 'ROW' ? (
+                /* Схема из 5 горизонтальных полос (рядов) */
+                <div className="flex flex-col gap-2 w-full">
+                  {Array.from({ length: boardSize }, (_, i) => i).map((i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setSelectedIndex(i);
+                        updateLinePreview({ type: 'ROW', index: i });
+                        setShiftStep('SELECT_DIR');
+                      }}
+                      className="w-full h-11 sm:h-12 rounded-xl bg-zinc-950/90 border border-white/10 hover:border-blue-400 hover:bg-blue-950/30 flex items-center justify-between px-4 transition cursor-pointer active:scale-[0.98] shadow-md group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-lg bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-xs font-bold text-zinc-300 group-hover:border-blue-400 group-hover:text-blue-300">
+                          {i + 1}
+                        </span>
+                        <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+                          Ряд #{i + 1}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-zinc-500 group-hover:text-blue-400">
+                        <span className="text-xs font-mono">Выбрать →</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                /* Схема из 5 вертикальных столбиков (колонок) */
+                <div className="grid grid-cols-5 gap-2 w-full h-44 my-2">
+                  {Array.from({ length: boardSize }, (_, i) => i).map((i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setSelectedIndex(i);
+                        updateLinePreview({ type: 'COL', index: i });
+                        setShiftStep('SELECT_DIR');
+                      }}
+                      className="h-full rounded-2xl bg-zinc-950/90 border border-white/10 hover:border-blue-400 hover:bg-blue-950/30 flex flex-col items-center justify-between py-3 transition cursor-pointer active:scale-95 shadow-md group"
+                    >
+                      <span className="w-6 h-6 rounded-lg bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-xs font-bold text-zinc-300 group-hover:border-blue-400 group-hover:text-blue-300">
+                        {i + 1}
+                      </span>
+                      <div className="w-1.5 flex-1 bg-white/10 rounded-full my-2 group-hover:bg-blue-500/50 transition-colors" />
+                      <span className="text-[10px] font-mono uppercase font-bold text-zinc-400 group-hover:text-blue-300">
+                        Ст. {i + 1}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -711,10 +750,11 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         </div>
       )}
 
-      {/* Тактический радар 3x3 (Соседи) */}
-      <div className="my-3">
-        <div className="text-xs font-mono font-bold uppercase tracking-widest text-zinc-400 mb-2">
-          {`СОСЕДНИЕ ЦЕЛИ (${neighbors.length})`}
+      {/* Пространственная вырезка 3x3 игрового поля (Соседи) */}
+      <div className="my-2">
+        <div className="flex items-center justify-between text-xs font-mono font-bold uppercase tracking-widest text-zinc-400 mb-2">
+          <span>{`ВАШИ СОСЕДИ (ВЫРЕЗКА 3×3)`}</span>
+          <span className="text-[10px] text-zinc-500 font-normal">ЦЕЛЕЙ: {neighbors.length}</span>
         </div>
         {locatorGrid.length === 0 ? (
           <div className="p-4 rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/40 text-center">
@@ -727,9 +767,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                 return (
                   <div
                     key={`bound_${idx}`}
-                    className="aspect-square rounded-2xl border border-dashed border-zinc-900 bg-zinc-950/20 flex items-center justify-center pointer-events-none select-none"
+                    className="aspect-square rounded-2xl border border-dashed border-zinc-900 bg-zinc-950/30 flex flex-col items-center justify-center pointer-events-none select-none text-[8px] font-mono text-zinc-700 tracking-wider"
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-900" />
+                    <span>КРАЙ</span>
+                    <span>ПОЛЯ</span>
                   </div>
                 );
               }
@@ -783,7 +824,6 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           actions={[
             ...(gameState.mode === 'LINE_UP' ? [] : [{ id: 'SHIFT', label: 'Переместить ряд/столбец', isRed: false, requiresTarget: false }]),
             ...getAvailableActionDescriptors(gameState, playerRole),
-            { id: 'END_TURN', label: 'Завершить ход', isRed: false, requiresTarget: false }
           ].map((act) => ({
             id: act.id,
             label: act.label,
@@ -792,6 +832,22 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             onClick: () => handleExecuteAction(act),
           }))}
         />
+      </div>
+
+      {/* Кнопка явного завершения хода */}
+      <div className="pt-2 pb-1">
+        <button
+          onClick={() => {
+            onDispatchAction({ type: 'END_TURN' });
+            if (isPassAndPlay) {
+              setIsCoverOpen(true);
+            }
+          }}
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-black text-xs sm:text-sm uppercase tracking-widest shadow-[0_4px_20px_rgba(220,38,38,0.4)] transition cursor-pointer active:scale-[0.98] flex items-center justify-center gap-2"
+        >
+          <span>Завершить ход</span>
+          <span className="text-red-200 font-mono">➔</span>
+        </button>
       </div>
 
       {/* Шторка Pass-and-Play */}

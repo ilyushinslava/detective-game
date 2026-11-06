@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 
 import type { GameModeType } from '../../types/game';
@@ -80,21 +80,21 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowDown' || e.keyCode === 40) {
+      if (e.key === 'ArrowDown' || e.keyCode === 40 || e.keyCode === 20) {
         e.preventDefault();
         setFocusArea((prev) => {
           if (prev === 'FORMAT') return 'MODES';
           if (prev === 'MODES') return 'START';
           return prev;
         });
-      } else if (e.key === 'ArrowUp' || e.keyCode === 38) {
+      } else if (e.key === 'ArrowUp' || e.keyCode === 38 || e.keyCode === 19) {
         e.preventDefault();
         setFocusArea((prev) => {
           if (prev === 'START' || prev === 'EXIT') return 'MODES';
           if (prev === 'MODES') return 'FORMAT';
           return prev;
         });
-      } else if (e.key === 'ArrowLeft' || e.keyCode === 37) {
+      } else if (e.key === 'ArrowLeft' || e.keyCode === 37 || e.keyCode === 21) {
         e.preventDefault();
         if (focusArea === 'FORMAT') {
           setIsPassAndPlay(false);
@@ -107,7 +107,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
         } else if (focusArea === 'START') {
           setFocusArea('EXIT');
         }
-      } else if (e.key === 'ArrowRight' || e.keyCode === 39) {
+      } else if (e.key === 'ArrowRight' || e.keyCode === 39 || e.keyCode === 22) {
         e.preventDefault();
         if (focusArea === 'FORMAT') {
           setIsPassAndPlay(true);
@@ -120,7 +120,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
         } else if (focusArea === 'EXIT') {
           setFocusArea('START');
         }
-      } else if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 13 || e.keyCode === 32) {
+      } else if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 13 || e.keyCode === 32 || e.keyCode === 23 || e.keyCode === 66) {
         e.preventDefault();
         if (focusArea === 'START') {
           if (canStart) onStartGame?.(selectedMode, isPassAndPlay);

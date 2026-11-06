@@ -5,11 +5,12 @@ import { GAME_CONFIG } from "../config/gameConfig";
 class PartyService {
   roomCode: string = "";
   myClientId: string = "local-stub";
+  authToken: string | null = null;
   isHost: boolean = true;
   lastSyncedState: any = null;
   socket: WebSocket | null = null;
   private nick: string = "Агент";
-  private mode: string = "SKHVATKA";
+  private mode: string = "MANIAC_VS_OPERATIVE";
   private clientType?: string | null;
   private pingInterval: ReturnType<typeof setInterval> | null = null;
   private isExplicitDisconnect: boolean = false;
@@ -102,9 +103,12 @@ class PartyService {
     this.roomCode = roomCode;
     this.isHost = isHost;
     this.nick = nickname || "Агент";
-    this.mode = mode || "SKHVATKA";
+    this.mode = mode || "MANIAC_VS_OPERATIVE";
     if (savedClientType) this.clientType = savedClientType;
     this.myClientId = clientId || `client_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    if (!this.authToken && typeof sessionStorage !== "undefined" && roomCode) {
+      this.authToken = sessionStorage.getItem(`crime_city_auth_${roomCode}`);
+    }
     this.isExplicitDisconnect = false;
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
@@ -118,7 +122,8 @@ class PartyService {
     const { wsProtocol, host } = this.resolveEndpoints();
 
     const encodedNick = encodeURIComponent(this.nick);
-    const url = `${wsProtocol}//${host}/party/${roomCode}?clientId=${this.myClientId}&nickname=${encodedNick}&isHost=${this.isHost}&mode=${this.mode}&randomRoles=true${this.clientType ? `&clientType=${this.clientType}` : ""}`;
+    const authParam = this.authToken ? `&authToken=${encodeURIComponent(this.authToken)}` : "";
+    const url = `${wsProtocol}//${host}/party/${roomCode}?clientId=${this.myClientId}&nickname=${encodedNick}&isHost=${this.isHost}&mode=${this.mode}&randomRoles=true${this.clientType ? `&clientType=${this.clientType}` : ""}${authParam}`;
 
     try {
       const ws = new WebSocket(url);
@@ -152,6 +157,14 @@ class PartyService {
           if (!data || typeof data !== "object") return;
 
           if (data.type === "PONG") {
+            return;
+          }
+
+          if (data.type === "AUTH_TOKEN" && data.authToken) {
+            this.authToken = data.authToken;
+            if (typeof sessionStorage !== "undefined" && this.roomCode) {
+              sessionStorage.setItem(`crime_city_auth_${this.roomCode}`, data.authToken);
+            }
             return;
           }
 
@@ -269,6 +282,10 @@ class PartyService {
       }
       this.socket = null;
     }
+    if (this.roomCode && typeof sessionStorage !== "undefined") {
+      sessionStorage.removeItem(`crime_city_auth_${this.roomCode}`);
+    }
+    this.authToken = null;
     this.roomCode = "";
     this.clientType = null;
     this.lastSyncedState = null;

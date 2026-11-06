@@ -38,6 +38,7 @@ repomix-*.txt
 *.bak
 patcher.cjs
 patcher_*.cjs
+vitest_conf.txt
 *.txt
 
 

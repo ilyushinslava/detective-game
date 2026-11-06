@@ -1,4 +1,4 @@
-﻿import type { GameState, LastShift, Character } from "../types/game";
+import type { GameState, LastShift, Character } from "../types/game";
 import { DUEL_QUESTIONS } from "../constants/duelQuestions";
 import { DUEL_CHARACTERS } from "../constants/duelCharacters";
 import { filterCandidates } from "./duelLogic";

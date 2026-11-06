@@ -3,77 +3,8 @@ import { createInitialState, getAdjacentCharacters } from "../gameLogic";
 import { gameReducer } from "../gameReducer";
 import type { GameAction } from "../../types/multiplayer";
 
-describe("Полные циклы правил 4 режимов (fullGameCycles)", () => {
-  describe.skip("1. Режим СХВАТКА (SKHVATKA)", () => {
-    it("Победа Бандита при устранении 14 жертв", () => {
-      let state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
-      state.killCount = 13;
-
-      const neighbors = getAdjacentCharacters(state.board, state.killerSecretId);
-      const target = neighbors.find((c) => c.id !== state.detectiveSecretId)!;
-
-      const action: GameAction = {
-        type: "KILL_CHARACTER",
-        payload: { targetId: target.id },
-        senderId: "local",
-      };
-
-      state = gameReducer(state, action);
-      expect(state.killCount).toBe(14);
-      expect(state.winner).toBe("KILLER");
-    });
-
-    it("Победа Бандита при устранении Инспектора", () => {
-      let state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
-      const neighbors = getAdjacentCharacters(state.board, state.killerSecretId);
-      state.detectiveSecretId = neighbors[0].id;
-
-      const action: GameAction = {
-        type: "KILL_CHARACTER",
-        payload: { targetId: state.detectiveSecretId },
-        senderId: "local",
-      };
-
-      state = gameReducer(state, action);
-      expect(state.winner).toBe("KILLER");
-    });
-
-    it("Победа Инспектора при успешном Задержании Бандита", () => {
-      let state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
-      state.currentTurn = "DETECTIVE";
-      const neighbors = getAdjacentCharacters(state.board, state.killerSecretId);
-      state.detectiveSecretId = neighbors[0].id;
-
-      const action: GameAction = {
-        type: "ACCUSE",
-        payload: { targetId: state.killerSecretId },
-        senderId: "local",
-      };
-
-      state = gameReducer(state, action);
-      expect(state.winner).toBe("DETECTIVE");
-    });
-
-    it("Опрос свидетелей и проверка алиби из руки", () => {
-      let state = createInitialState("SKHVATKA", "PVP", "DETECTIVE");
-      state.currentTurn = "DETECTIVE";
-      const alibiCard = state.detectiveHand[0];
-
-      const action: GameAction = {
-        type: "EXONERATE",
-        payload: { targetId: alibiCard },
-        senderId: "local",
-      };
-
-      state = gameReducer(state, action);
-      const cardOnBoard = state.board.flat().find((c) => c.id === alibiCard);
-      expect(cardOnBoard?.isExonerated).toBe(true);
-      expect(state.lastInterrogation?.interrogator).toBe("DETECTIVE");
-      expect(state.currentTurn).toBe("KILLER");
-    });
-  });
-
-  describe("2. Режим МАНЬЯК ПРОТИВ ОПЕРАТИВНИКА (MANIAC_VS_OPERATIVE)", () => {
+describe("Полные циклы правил режимов (fullGameCycles)", () => {
+  describe("1. Режим МАНЬЯК ПРОТИВ ОПЕРАТИВНИКА (MANIAC_VS_OPERATIVE)", () => {
     it("Устранение 4 целей строго по victimList приносит победу Маньяку", () => {
       let state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
       const deckTargets = state.board

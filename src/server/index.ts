@@ -11,6 +11,7 @@ export interface PlayerInfo {
   role: Role;
   connectionId: string;
   clientType: ClientDeviceType;
+  authToken?: string;
 }
 
 export interface ServerRoomState {
@@ -148,8 +149,25 @@ export default class GameRoomServer {
       return;
     }
 
+    const generateToken = () =>
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `auth_${Date.now()}_${Math.random().toString(36).substring(2)}${Math.random().toString(36).substring(2)}`;
+
     // Повторное подключение игрока
     if (this.state.players[clientId]) {
+      const incomingAuthToken = url.searchParams.get("authToken");
+      const expectedToken = this.state.players[clientId].authToken;
+
+      // Если у игрока зарегистрирован секретный токен, он обязан совпадать
+      if (expectedToken && incomingAuthToken !== expectedToken) {
+        try {
+          conn.send(JSON.stringify({ type: "ERROR", message: "UNAUTHORIZED_SESSION" }));
+          conn.close();
+        } catch (_err) {}
+        return;
+      }
+
       const pendingTimer = this.disconnectTimers.get(clientId);
       if (pendingTimer) {
         clearTimeout(pendingTimer);
@@ -157,6 +175,17 @@ export default class GameRoomServer {
       }
       this.state.players[clientId].connectionId = conn.id;
       this.state.players[clientId].clientType = clientType;
+
+      try {
+        conn.send(
+          JSON.stringify({
+            type: "AUTH_TOKEN",
+            authToken: expectedToken,
+            clientId,
+          })
+        );
+      } catch (_err) {}
+
       defer(() => {
         this.broadcastRaw(JSON.stringify({ type: "PRESENCE_CHANGED", connected: true }));
         this.broadcastStatus();
@@ -177,6 +206,7 @@ export default class GameRoomServer {
     }
 
     if (isHost || activePlayersCount === 0) {
+      const authToken = generateToken();
       this.state.mode = mode;
       this.state.status = "WAITING";
       this.state.players[clientId] = {
@@ -186,7 +216,18 @@ export default class GameRoomServer {
         role: "KILLER",
         connectionId: conn.id,
         clientType,
+        authToken,
       };
+
+      try {
+        conn.send(
+          JSON.stringify({
+            type: "AUTH_TOKEN",
+            authToken,
+            clientId,
+          })
+        );
+      } catch (_err) {}
 
       publicRoomsRegistry.set(roomCode, {
         roomCode,
@@ -209,6 +250,7 @@ export default class GameRoomServer {
         hostPlayer.role = hostIsKiller ? "KILLER" : "DETECTIVE";
       }
 
+      const authToken = generateToken();
       this.state.players[clientId] = {
         clientId,
         nickname,
@@ -216,7 +258,18 @@ export default class GameRoomServer {
         role: hostIsKiller ? "DETECTIVE" : "KILLER",
         connectionId: conn.id,
         clientType,
+        authToken,
       };
+
+      try {
+        conn.send(
+          JSON.stringify({
+            type: "AUTH_TOKEN",
+            authToken,
+            clientId,
+          })
+        );
+      } catch (_err) {}
 
       this.state.readyClients.clear();
       this.state.gameState = createInitialState(
@@ -475,6 +528,10 @@ export default class GameRoomServer {
         if (this.state.status === "PLAYING") {
           return;
         }
+        if (!player?.isHost && !isTvSender) {
+          console.warn("[GameRoomServer] Action rejected: START_MATCH can only be initiated by host or TV.");
+          return;
+        }
         this.state.status = "PLAYING";
         this.state.isPassAndPlay = Boolean(action.payload?.isPassAndPlay);
         const playerKeys = Object.keys(this.state.players);
@@ -618,10 +675,16 @@ export default class GameRoomServer {
   }
 
   broadcastStatus(): void {
+    const sanitizedPlayers: Record<string, Omit<PlayerInfo, "authToken">> = {};
+    for (const [id, p] of Object.entries(this.state.players)) {
+      const { authToken, ...rest } = p;
+      sanitizedPlayers[id] = rest;
+    }
+
     const payload = JSON.stringify({
       type: "ROOM_STATUS",
       status: this.state.status,
-      players: this.state.players,
+      players: sanitizedPlayers,
       isReady: this.state.status === "READY_TO_START" || this.state.status === "PLAYING",
       ready: this.state.status === "READY_TO_START" || this.state.status === "PLAYING",
       readyClients: Array.from(this.state.readyClients),
@@ -697,7 +760,7 @@ export default class GameRoomServer {
     copy.disguisedNotification = null;
     copy.evidenceDeck = [];
     if (copy.victimList && copy.victimList.length > 0) {
-      copy.victimList = [copy.victimList[0]];
+      copy.victimList = [copy.victimList[0], ...copy.victimList.slice(1).map(() => "UNKNOWN")];
     }
 
     if (copy.spies && Array.isArray(copy.spies)) {
@@ -722,7 +785,7 @@ export default class GameRoomServer {
     const copy: any = { ...state };
     copy.evidenceDeck = [];
     if (copy.victimList && copy.victimList.length > 0) {
-      copy.victimList = [copy.victimList[0]];
+      copy.victimList = [copy.victimList[0], ...copy.victimList.slice(1).map(() => "UNKNOWN")];
     }
 
     if (isPassAndPlay) {

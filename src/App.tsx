@@ -728,7 +728,7 @@ export default function App() {
 
         {!isLobbyOpen && !isIntroPhase && hasStartedEver && gameState.opponent !== undefined && gameState.mode === "LINE_UP" && (
           <DuelScreen
-            onBackToMenu={handleReset}
+            onBackToMenu={handleExitToMenu}
             playerRole={gameState.playerRole}
             gameState={gameState}
             isOnline={gameState.opponent === "ONLINE"}

@@ -101,7 +101,7 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
     >
       <div className="flex justify-between items-center mb-3 shrink-0 border-b border-white/10 pb-3">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)] animate-pulse" />
+          <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)] animate-pulse" />
           <h2 className="text-sm font-black uppercase tracking-widest text-[#f1f5f9] flex items-center gap-1.5">
             <span>Блокнот подозреваемых</span>
           </h2>
@@ -135,9 +135,9 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
           <span className="text-red-400 block">ПОДОЗРЕНИЕ</span>
           <span className="font-bold text-red-300">{counts.suspect}</span>
         </div>
-        <div className="bg-cyan-950/40 border border-cyan-500/30 rounded-xl p-1.5 text-center">
-          <span className="text-cyan-400 block">АЛИБИ</span>
-          <span className="font-bold text-cyan-300">{counts.alibi}</span>
+        <div className="bg-blue-950/40 border border-blue-500/30 rounded-xl p-1.5 text-center">
+          <span className="text-blue-400 block">АЛИБИ</span>
+          <span className="font-bold text-blue-300">{counts.alibi}</span>
         </div>
         <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-1.5 text-center opacity-60">
           <span className="text-[#a1a1aa] block">ИСКЛЮЧЕН</span>
@@ -160,7 +160,7 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
               status === "SUSPECT"
                 ? "border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.5)] ring-1 ring-red-500/60"
                 : status === "ALIBI"
-                  ? "border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.5)] ring-1 ring-cyan-400/60"
+                  ? "border-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.5)] ring-1 ring-blue-500/60"
                   : status === "EXCLUDED"
                     ? "border-zinc-700 opacity-40 grayscale"
                     : "border-white/10 hover:border-white/30";
@@ -169,7 +169,7 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
               status === "SUSPECT"
                 ? "bg-red-950/90 text-red-300 border-red-500/80"
                 : status === "ALIBI"
-                  ? "bg-cyan-950/90 text-cyan-300 border-cyan-400/80"
+                  ? "bg-blue-950/90 text-blue-300 border-blue-500/80"
                   : status === "EXCLUDED"
                     ? "bg-zinc-900 text-zinc-500 border-zinc-700"
                     : "bg-black/80 text-zinc-400 border-white/10";
@@ -187,7 +187,7 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
               <div
                 key={char.id}
                 onClick={() => cycleStatus(char.id)}
-                className={`relative aspect-[3/4] rounded-xl overflow-hidden bg-zinc-900 border transition-all duration-150 cursor-pointer flex flex-col justify-between p-1.5 select-none ${statusBorder}`}
+                className={`relative aspect-[3/4] rounded-xl overflow-hidden bg-zinc-950/80 border transition-all duration-150 cursor-pointer flex flex-col justify-between p-2 select-none group shadow-md hover:scale-[1.02] active:scale-[0.98] ${statusBorder}`}
               >
                 {imgAsset && (
                   <img
@@ -198,19 +198,19 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
                     }`}
                   />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent pointer-events-none" />
 
                 <div className="relative z-10 flex justify-between items-center text-[9px] font-mono font-bold leading-none">
-                  <span className="text-zinc-300 bg-black/60 px-1 py-0.5 rounded">
+                  <span className="text-zinc-300 bg-black/70 px-1.5 py-0.5 rounded border border-white/10">
                     #{char.id.replace("c", "").padStart(2, "0")}
                   </span>
-                  <span className={`px-1 py-0.5 rounded border text-[8px] font-black uppercase tracking-wider ${badgeBg}`}>
+                  <span className={`px-1.5 py-0.5 rounded border text-[8px] font-black uppercase tracking-wider ${badgeBg}`}>
                     {badgeLabel}
                   </span>
                 </div>
 
                 <div className="relative z-10 mt-auto leading-tight">
-                  <span className="text-[10px] font-black uppercase text-zinc-100 tracking-wider truncate block">
+                  <span className="text-[10px] font-black uppercase text-zinc-100 tracking-wider block break-words">
                     {char.name}
                   </span>
                 </div>

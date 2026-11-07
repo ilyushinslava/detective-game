@@ -116,6 +116,10 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
     const imgUrl = getCharacterImageUrl(char?.id, characterImages);
     const charNumber = char ? `#${char.id.replace('c', '').padStart(2, '0')}` : '??';
 
+    const roleBadgeClass = isKillerSide
+      ? 'text-red-400 bg-red-950/30 border border-red-500/30'
+      : 'text-blue-400 bg-blue-950/30 border border-blue-500/30';
+
     return (
       <div
         onClick={() => {
@@ -126,7 +130,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         className={`group relative h-44 sm:h-48 overflow-hidden rounded-2xl flex flex-col justify-between p-3 select-none transition-all duration-200 ${
           isCharWinner
             ? 'border border-white/40 shadow-[0_0_20px_rgba(255,255,255,0.12)] bg-zinc-950'
-            : 'border border-white/5 bg-zinc-950/60'
+            : 'border border-white/5 bg-zinc-950/60 opacity-40 hover:opacity-75'
         } ${char && imgUrl ? 'cursor-pointer active:scale-[0.98]' : ''}`}
       >
         {imgUrl ? (
@@ -135,7 +139,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
               src={imgUrl}
               alt={char?.name || roleName}
               className={`absolute inset-0 w-full h-full object-cover contrast-125 transition-transform duration-300 group-hover:scale-105 ${
-                isCharWinner ? 'grayscale opacity-100' : 'grayscale opacity-40'
+                isCharWinner ? 'grayscale opacity-100' : 'grayscale opacity-60'
               }`}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-zinc-950/70" />
@@ -162,7 +166,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         </div>
 
         <div className="relative z-10 mt-auto pr-5">
-          <span className="text-[10px] font-black tracking-widest text-zinc-300 uppercase block mb-1 drop-shadow-sm">
+          <span className={`inline-block text-[10px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md mb-1.5 drop-shadow-sm ${roleBadgeClass}`}>
             {roleName}
           </span>
           <span className="text-xs sm:text-sm font-bold uppercase leading-tight drop-shadow-md text-white block break-words">
@@ -280,7 +284,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
               onClick={onRematchRandom}
               className="from-blue-950 text-[10px] sm:text-xs uppercase tracking-wider gap-2 !h-12"
             >
-              <span className="font-mono font-bold text-[10px] text-cyan-300">[RND]</span> РЕВАНШ (СЛУЧАЙНЫЕ РОЛИ)
+              <span className="font-mono font-bold text-[10px] text-blue-400">[RND]</span> РЕВАНШ (СЛУЧАЙНЫЕ РОЛИ)
             </Button>
 
             <Button

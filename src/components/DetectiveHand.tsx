@@ -1,4 +1,4 @@
-﻿import type { Character } from "../types/game";
+import type { Character } from "../types/game";
 
 interface DetectiveHandProps {
   handIds: string[];
@@ -62,7 +62,7 @@ export const DetectiveHand = ({
                     </span>
                   </div>
 
-                  <div className="relative z-10 text-xs font-black text-zinc-200 group-hover:text-blue-200 uppercase tracking-wider my-1 truncate">
+                  <div className="relative z-10 text-xs font-black text-zinc-200 group-hover:text-blue-200 uppercase tracking-wider my-1 break-words">
                     {char?.name ?? id}
                   </div>
 

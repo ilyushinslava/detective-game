@@ -244,9 +244,25 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
         </div>
       )}
 
-      <div className="w-full px-3 md:px-6 py-1.5 md:py-2 bg-zinc-950/90 border-b border-zinc-900 flex items-center justify-between text-[10px] md:text-xs text-zinc-400 shrink-0">
-        {gameState.mode === "SECRET_SERVICE" ? (
-          <div className="flex items-center gap-3 truncate">
+      {gameState.mode === "SECRET_SERVICE" ? (
+        <div className="w-full px-3 md:px-6 py-1.5 md:py-2 bg-zinc-950/90 border-b border-zinc-900 flex flex-col gap-1 text-[10px] md:text-xs text-zinc-400 shrink-0">
+          <div className="flex items-center justify-between w-full">
+            <span className="text-zinc-400 font-medium">Компромат агентов:</span>
+            <div className="flex items-center gap-1.5 text-zinc-500 font-medium">
+              <span className="font-bold text-zinc-300">
+                {getGameModeTitle(gameState.mode, "ru")}
+              </span>
+              <span className="text-zinc-600">•</span>
+              <span>
+                {gameState.opponent === "ONLINE"
+                  ? "онлайн"
+                  : gameState.opponent === "AI"
+                    ? "против бота"
+                    : "вдвоем"}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 pt-0.5 border-t border-white/[0.04]">
             {gameState.spies?.map((spy, idx) => {
               const color = SPY_COLORS[idx % SPY_COLORS.length];
               return (
@@ -267,49 +283,53 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
               );
             })}
           </div>
-        ) : gameState.mode === "LINE_UP" ? (
-          <div className="flex items-center gap-3">
-            <span className="text-red-400 font-bold">Штрафы:</span>
-            <span>Следствие: <b className="text-zinc-200">{gameState.duelPenalties?.DETECTIVE ?? 0}</b></span>
-            <span>Подозреваемый: <b className="text-zinc-200">{gameState.duelPenalties?.KILLER ?? 0}</b></span>
-            <span className="ml-2">| Вопросов: {(gameState.duelHistory || []).length}</span>
-          </div>
-        ) : gameState.mode === "THIEF_HUNT" ? (
-          <div className="flex items-center gap-1.5">
-            <span>Добыча:</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-amber-400 fill-amber-500/20 shrink-0">
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
-            </svg>
-            <b className="text-amber-400 font-bold">
-              {gameState.trophiesKiller ?? 0}/10
-            </b>
-            <span className="ml-1">| Улики: {gameState.evidenceDeck.length}</span>
-          </div>
-        ) : (
-          <div className="flex items-center flex-wrap gap-x-1">
-            <span>Жертвы:</span>
-            <b className="text-red-400">
-              {gameState.killCount}/{gameState.mode === "MANIAC_VS_OPERATIVE" ? 4 : 14}
-            </b>
-            <span className="ml-1">| Улики: {gameState.evidenceDeck.length}</span>
-          </div>
-        )}
-        <div className="flex items-center gap-1.5 text-zinc-500 font-medium">
-          <span className="hidden md:inline">Режим:</span>
-          <span className="font-bold text-zinc-300">
-            {getGameModeTitle(gameState.mode, 'ru')}
-          </span>
-          <span className="text-zinc-600">•</span>
-          <span>
-            {gameState.opponent === "ONLINE"
-              ? "онлайн"
-              : gameState.opponent === "AI"
-                ? "против бота"
-                : "вдвоем"}
-          </span>
         </div>
-      </div>
+      ) : (
+        <div className="w-full px-3 md:px-6 py-1.5 md:py-2 bg-zinc-950/90 border-b border-zinc-900 flex items-center justify-between text-[10px] md:text-xs text-zinc-400 shrink-0">
+          {gameState.mode === "LINE_UP" ? (
+            <div className="flex items-center gap-3">
+              <span className="text-red-400 font-bold">Штрафы:</span>
+              <span>Следствие: <b className="text-zinc-200">{gameState.duelPenalties?.DETECTIVE ?? 0}</b></span>
+              <span>Подозреваемый: <b className="text-zinc-200">{gameState.duelPenalties?.KILLER ?? 0}</b></span>
+              <span className="ml-2">| Вопросов: {(gameState.duelHistory || []).length}</span>
+            </div>
+          ) : gameState.mode === "THIEF_HUNT" ? (
+            <div className="flex items-center gap-1.5">
+              <span>Добыча:</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-amber-400 fill-amber-500/20 shrink-0">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
+              </svg>
+              <b className="text-amber-400 font-bold">
+                {gameState.trophiesKiller ?? 0}/10
+              </b>
+              <span className="ml-1">| Улики: {gameState.evidenceDeck.length}</span>
+            </div>
+          ) : (
+            <div className="flex items-center flex-wrap gap-x-1">
+              <span>Жертвы:</span>
+              <b className="text-red-400">
+                {gameState.killCount}/{gameState.mode === "MANIAC_VS_OPERATIVE" ? 4 : 14}
+              </b>
+              <span className="ml-1">| Улики: {gameState.evidenceDeck.length}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-1.5 text-zinc-500 font-medium">
+            <span className="hidden md:inline">Режим:</span>
+            <span className="font-bold text-zinc-300">
+              {getGameModeTitle(gameState.mode, "ru")}
+            </span>
+            <span className="text-zinc-600">•</span>
+            <span>
+              {gameState.opponent === "ONLINE"
+                ? "онлайн"
+                : gameState.opponent === "AI"
+                  ? "против бота"
+                  : "вдвоем"}
+            </span>
+          </div>
+        </div>
+      )}
 
       <div className="w-full px-3 h-8 md:h-12 shrink-0 flex items-center justify-center">
         {gameState.lastInterrogation && !gameState.winner ? (

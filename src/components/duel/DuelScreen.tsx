@@ -7,6 +7,7 @@ import { DUEL_CHARACTERS } from "../../constants/duelCharacters";
 import { DuelQuestionCatalogModal } from "./DuelQuestionCatalogModal";
 import { DuelCandidatesSheet } from "./DuelCandidatesSheet";
 import { DuelAccuseModal } from "./DuelAccuseModal";
+import { PauseModal } from "../PauseModal";
 
 const characterImages = import.meta.glob<{ default: string }>(
   "../../assets/characters/*.webp",
@@ -63,6 +64,7 @@ export const DuelScreen = ({
   const [localState, localDispatch] = useReducer(duelReducer, undefined, createInitialDuelState);
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [isCandidatesOpen, setIsCandidatesOpen] = useState(false);
+  const [isPauseOpen, setIsPauseOpen] = useState(false);
   const [accuseTarget, setAccuseTarget] = useState<DuelCharacter | null>(null);
 
   const state = (
@@ -140,11 +142,11 @@ export const DuelScreen = ({
   const isTurnUrgent = state.turnTimeRemaining <= 5;
 
   return (
-    <div className="min-h-screen bg-black text-zinc-100 flex flex-col justify-between p-3 select-none">
+    <div className="h-[100dvh] max-h-[100dvh] bg-black text-zinc-100 flex flex-col justify-between p-3 select-none overflow-hidden relative">
       {/* Top Header Bar */}
       <header className="w-full max-w-xl mx-auto flex items-center justify-between gap-2 shrink-0 pb-2 border-b border-zinc-900">
         <button
-          onClick={onBackToMenu}
+          onClick={() => setIsPauseOpen(true)}
           className="h-9 px-3 flex items-center gap-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 text-xs font-semibold uppercase tracking-wider transition cursor-pointer shrink-0"
         >
           <Icons.Back />
@@ -190,83 +192,31 @@ export const DuelScreen = ({
       </header>
 
       {/* 5x5 Character Board */}
-      <main className="flex-1 flex items-center justify-center my-2">
-        <GameBoard
-          mode="LINE_UP"
-          board={boardMatrix}
-          selectedCharacterId={accuseTarget?.id || null}
-          onSelectCharacter={(id) => {
-            if (state.winner) return;
-            const found = state.board.find((c) => c.id === id);
-            if (found) setAccuseTarget(found);
-          }}
-          myCharacterId={mySecretId}
-          myRoleColor={playerRole === "KILLER" ? "red" : "blue"}
-          onShift={() => {}}
-          killerAdjacentIds={[]}
-          detectiveAdjacentIds={[]}
-          showKillerHints={false}
-          showDetectiveHints={false}
-          lastShift={null}
-        />
-      </main>
-      {false && (
-      <main className="hidden">
-        <div className="grid grid-cols-5 gap-1.5 sm:gap-2 max-w-xl w-full aspect-square">
-          {state.board.map((char) => {
-            const imageAsset = characterImages[`../../assets/characters/${char.id}.webp`]?.default;
-            const num = char.id.replace("c", "").padStart(2, "0");
-            const isMySecret = char.id === mySecretId;
-            const wasAccusedByCurrent = state.accusedTargets[state.currentTurn].includes(char.id);
-
-            return (
-              <div
-                key={char.id}
-                onClick={() => !state.winner && setAccuseTarget(char)}
-                className={`relative aspect-[3/4] rounded-xl overflow-hidden border bg-zinc-900 flex flex-col justify-end p-1.5 shadow-md cursor-pointer transition-all duration-200 hover:border-zinc-500 active:scale-95 ${
-                  wasAccusedByCurrent
-                    ? "border-zinc-800 opacity-35 grayscale"
-                    : isMySecret
-                    ? "border-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.3)]"
-                    : "border-zinc-800 hover:border-zinc-600"
-                }`}
-              >
-                {imageAsset ? (
-                  <img
-                    src={imageAsset}
-                    alt={char.name}
-                    className="absolute inset-0 w-full h-full object-cover opacity-75 grayscale contrast-125 pointer-events-none"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-zinc-700 font-mono text-[9px]">
-                    Нет фото
-                  </div>
-                )}
-                <div className="absolute bottom-0 inset-x-0 h-2/3 bg-gradient-to-t from-zinc-950 via-zinc-950/70 to-transparent pointer-events-none" />
-
-                {isMySecret && (
-                  <div className="absolute top-1 inset-x-1 flex justify-center pointer-events-none">
-                    <span className="bg-blue-600 text-white font-black text-[7px] uppercase tracking-wider px-1.5 py-0.5 rounded shadow">
-                      Вы
-                    </span>
-                  </div>
-                )}
-
-                <div className="relative z-10 flex flex-col pointer-events-none leading-none">
-                  <span className="text-[8px] font-mono text-zinc-500 mb-0.5">#{num}</span>
-                  <span className="text-[9px] font-bold text-zinc-200 uppercase tracking-tight truncate">
-                    {char.name}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+      <main className="flex-1 min-h-0 flex items-center justify-center my-1 sm:my-2 overflow-hidden">
+        <div className="w-full max-w-xl max-h-[50vh] aspect-square mx-auto flex items-center justify-center">
+          <GameBoard
+            mode="LINE_UP"
+            board={boardMatrix}
+            selectedCharacterId={accuseTarget?.id || null}
+            onSelectCharacter={(id) => {
+              if (state.winner) return;
+              const found = state.board.find((c) => c.id === id);
+              if (found) setAccuseTarget(found);
+            }}
+            myCharacterId={mySecretId}
+            myRoleColor={playerRole === "KILLER" ? "red" : "blue"}
+            onShift={() => {}}
+            killerAdjacentIds={[]}
+            detectiveAdjacentIds={[]}
+            showKillerHints={false}
+            showDetectiveHints={false}
+            lastShift={null}
+          />
         </div>
       </main>
-      )}
 
       {/* Bottom Action Bar Slot */}
-      <footer className="w-full max-w-xl mx-auto flex items-center gap-2 shrink-0 pt-2 border-t border-zinc-900">
+      <footer className="w-full max-w-xl mx-auto flex items-center gap-2 shrink-0 pt-2 border-t border-zinc-900 z-20 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         <button
           onClick={() => setIsCatalogOpen(true)}
           disabled={Boolean(state.winner)}
@@ -377,6 +327,14 @@ export const DuelScreen = ({
             setAccuseTarget(null);
           }
         }}
+      />
+
+      <PauseModal
+        isOpen={isPauseOpen}
+        onClose={() => setIsPauseOpen(false)}
+        onResume={() => setIsPauseOpen(false)}
+        onRemindRole={() => setIsCandidatesOpen(true)}
+        onLeaveGame={onBackToMenu}
       />
     </div>
   );

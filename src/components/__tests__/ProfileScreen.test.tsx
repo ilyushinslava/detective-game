@@ -60,11 +60,16 @@ describe("ProfileScreen", () => {
     expect(screen.getByText("0%")).toBeDefined();
   });
 
-  it("вызывает переключение языка", () => {
-    render(<ProfileScreen profile={defaultProfile} onUpdateProfile={vi.fn()} />);
-    const enBtn = screen.getAllByRole("button", { name: /English/i })[0];
-    fireEvent.click(enBtn);
-    expect(mockSetLang).toHaveBeenCalledWith("en");
+  it("позволяет редактировать позывной и вызывает onUpdateProfile", () => {
+    const mockUpdate = vi.fn();
+    render(<ProfileScreen profile={defaultProfile} onUpdateProfile={mockUpdate} />);
+    const editBtn = screen.getByTitle("Изменить позывной");
+    fireEvent.click(editBtn);
+    const input = screen.getByRole("textbox");
+    fireEvent.change(input, { target: { value: "Neo Agent" } });
+    const saveBtn = screen.getByRole("button", { name: /сохранить/i });
+    fireEvent.click(saveBtn);
+    expect(mockUpdate).toHaveBeenCalledWith({ nickname: "Neo Agent" });
   });
 
   it("вызывает открытие настроек", () => {

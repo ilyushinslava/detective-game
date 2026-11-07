@@ -10,6 +10,7 @@ import { BiometricSlider } from "./BiometricSlider";
 import { TablesScreen } from "./TablesScreen";
 import { ProfileScreen } from "./ProfileScreen";
 import { Button } from "./ui/Button";
+import { Modal } from "./ui/Modal";
 import { GAME_MODES_META, getGameModeTitle, getGameModeShortTitle } from "../constants/gameMeta";
 import lobbyBg from "../assets/lobby_background.png";
 
@@ -406,13 +407,6 @@ export const MainMenu = ({
               <div className="absolute -top-16 -right-16 w-44 h-44 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-cyan-500/20 transition-all duration-500" />
               
               <div className="relative z-10 flex flex-col">
-                <div className="flex items-center justify-end mb-2">
-                  <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/50 border border-white/10 text-[9px] font-mono text-amber-400">
-                    <Icons.Coin className="w-3 h-3 text-amber-400" />
-                    <span>250</span>
-                  </div>
-                </div>
-
                 <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-white uppercase tracking-tight leading-tight mb-2 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
                   {t.menu.quickPlay}
                 </h2>
@@ -794,40 +788,28 @@ export const MainMenu = ({
   );
 
   const renderTables = () => (
-    <div className="flex-1 min-h-0 flex flex-col relative">
-      <div className="hidden md:flex items-center px-6 py-2.5 bg-zinc-950/90 border-b border-white/10 shrink-0">
-        <Button variant="ghost" onClick={() => { setScreen('HOME'); onTabChange('LOBBY'); }} className="h-8 px-2 text-zinc-400 hover:text-white gap-1 text-[10px] font-black uppercase tracking-widest">
-          <Icons.ChevronLeft /> Назад в штаб
-        </Button>
-      </div>
-      <TablesScreen
-        roomFilter={roomFilter}
-        setRoomFilter={setRoomFilter}
-        filteredRooms={filteredRooms}
-        joinCode={joinCode}
-        setJoinCode={setJoinCode}
-        handleJoinRoom={handleJoinRoom}
-        setIsCreateRoomOpen={setIsCreateRoomOpen}
-        ROOM_FILTERS={ROOM_FILTERS}
-        GAME_MODES={GAME_MODES}
-        soundManager={soundManager}
-      />
-    </div>
+    <TablesScreen
+      roomFilter={roomFilter}
+      setRoomFilter={setRoomFilter}
+      filteredRooms={filteredRooms}
+      joinCode={joinCode}
+      setJoinCode={setJoinCode}
+      handleJoinRoom={handleJoinRoom}
+      setIsCreateRoomOpen={setIsCreateRoomOpen}
+      ROOM_FILTERS={ROOM_FILTERS}
+      GAME_MODES={GAME_MODES}
+      soundManager={soundManager}
+      onBack={() => { setScreen('HOME'); onTabChange('LOBBY'); }}
+    />
   );
 
   const renderProfile = () => (
-    <div className="flex-1 min-h-0 flex flex-col relative">
-      <div className="hidden md:flex items-center px-6 py-2.5 bg-zinc-950/90 border-b border-white/10 shrink-0">
-        <Button variant="ghost" onClick={() => { setScreen('HOME'); onTabChange('LOBBY'); }} className="h-8 px-2 text-zinc-400 hover:text-white gap-1 text-[10px] font-black uppercase tracking-widest">
-          <Icons.ChevronLeft /> Назад в штаб
-        </Button>
-      </div>
-      <ProfileScreen
-        profile={profile}
-        onUpdateProfile={onUpdateProfile || (() => {})}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-      />
-    </div>
+    <ProfileScreen
+      profile={profile}
+      onUpdateProfile={onUpdateProfile || (() => {})}
+      onOpenSettings={() => setIsSettingsOpen(true)}
+      onBack={() => { setScreen('HOME'); onTabChange('LOBBY'); }}
+    />
   );
 
   const handleFinishTutorial = () => {
@@ -934,57 +916,59 @@ export const MainMenu = ({
         )}
 
         {isCreateRoomOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#080a0f]/90 backdrop-blur-md p-4" onClick={() => setIsCreateRoomOpen(false)}>
-            <div className="bg-zinc-900/90 backdrop-blur-2xl border border-white/15 p-6 rounded-3xl w-full max-w-sm flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.7)]" onClick={(e) => e.stopPropagation()}>
-              <h3 className="text-sm font-black text-zinc-100 uppercase tracking-widest mb-5 border-b border-white/10 pb-3">
-                Протокол: Новая операция
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1.5 block">
-                    Сценарий
-                  </label>
-                  <select
-                    value={createRoomMode}
-                    onChange={(e) => setCreateRoomMode(e.target.value as GameModeType)}
-                    className="w-full bg-zinc-950/80 border border-white/15 rounded-xl px-4 py-3 text-xs font-black tracking-widest text-zinc-200 focus:border-red-500 outline-none appearance-none transition uppercase shadow-inner cursor-pointer"
-                  >
-                    <option value="LINE_UP">{GAME_MODES_META.LINE_UP.title.ru}</option>
-                    <option value="SECRET_SERVICE">{GAME_MODES_META.SECRET_SERVICE.title.ru}</option>
-                    <option value="MANIAC_VS_OPERATIVE">{GAME_MODES_META.MANIAC_VS_OPERATIVE.title.ru}</option>
-                    <option value="THIEF_HUNT">{GAME_MODES_META.THIEF_HUNT.title.ru}</option>
-                  </select>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-zinc-950/60 border border-white/10 flex items-center justify-between shadow-inner">
-                  <div className="flex flex-col">
-                    <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Финансирование</span>
-                    <span className="text-[10px] text-zinc-300 font-mono mt-0.5">Без списания средств</span>
-                  </div>
-                  <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 border border-zinc-700 rounded px-2 py-0.5">Free</span>
-                </div>
-
-                <label className="flex items-center gap-3 cursor-pointer p-1">
-                  <input
-                    type="checkbox"
-                    checked={createRoomIsPrivate}
-                    onChange={(e) => setCreateRoomIsPrivate(e.target.checked)}
-                    className="w-4 h-4 accent-red-600 bg-zinc-900 border-zinc-700 rounded-sm"
-                  />
-                  <span className="text-[10px] font-black tracking-widest text-zinc-300 uppercase">Закрытый канал (по шифру)</span>
+          <Modal
+            isOpen={isCreateRoomOpen}
+            onClose={() => setIsCreateRoomOpen(false)}
+            title="Протокол: Новая операция"
+            maxWidth="max-w-sm"
+            showCloseButton={true}
+            zIndexClass="z-[60]"
+          >
+            <div className="space-y-4 text-left mt-3">
+              <div>
+                <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1.5 block">
+                  Сценарий
                 </label>
+                <select
+                  value={createRoomMode}
+                  onChange={(e) => setCreateRoomMode(e.target.value as GameModeType)}
+                  className="w-full bg-zinc-950/80 border border-white/15 rounded-xl px-4 py-3 text-xs font-black tracking-widest text-zinc-200 focus:border-cyan-500 outline-none appearance-none transition uppercase shadow-inner cursor-pointer"
+                >
+                  <option value="LINE_UP">{GAME_MODES_META.LINE_UP.title.ru}</option>
+                  <option value="SECRET_SERVICE">{GAME_MODES_META.SECRET_SERVICE.title.ru}</option>
+                  <option value="MANIAC_VS_OPERATIVE">{GAME_MODES_META.MANIAC_VS_OPERATIVE.title.ru}</option>
+                  <option value="THIEF_HUNT">{GAME_MODES_META.THIEF_HUNT.title.ru}</option>
+                </select>
+              </div>
 
-                <div className="flex gap-3 pt-3 border-t border-white/10">
-                  <Button variant="ghost" onClick={() => setIsCreateRoomOpen(false)} className="flex-1 text-[10px] font-black tracking-widest uppercase">
-                    Отмена
-                  </Button>
-                  <Button variant="primary-danger" onClick={handleConfirmCreateRoom} disabled={isCreating} className="flex-1 text-[10px] font-black tracking-widest uppercase">
-                    {isCreating ? "Инициализация..." : "Утвердить"}
-                  </Button>
+              <div className="p-3.5 rounded-xl bg-zinc-950/60 border border-white/10 flex items-center justify-between shadow-inner">
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Финансирование</span>
+                  <span className="text-[10px] text-zinc-300 font-mono mt-0.5">Без списания средств</span>
                 </div>
+                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 border border-zinc-700 rounded px-2 py-0.5">Free</span>
+              </div>
+
+              <label className="flex items-center gap-3 cursor-pointer p-1">
+                <input
+                  type="checkbox"
+                  checked={createRoomIsPrivate}
+                  onChange={(e) => setCreateRoomIsPrivate(e.target.checked)}
+                  className="w-4 h-4 accent-cyan-500 bg-zinc-900 border-zinc-700 rounded-sm"
+                />
+                <span className="text-[10px] font-black tracking-widest text-zinc-300 uppercase">Закрытый канал (по шифру)</span>
+              </label>
+
+              <div className="flex gap-3 pt-3 border-t border-white/10">
+                <Button variant="secondary" onClick={() => setIsCreateRoomOpen(false)} className="flex-1 text-[10px] font-black tracking-widest uppercase">
+                  Отмена
+                </Button>
+                <Button variant="primary-info" onClick={handleConfirmCreateRoom} disabled={isCreating} className="flex-1 text-[10px] font-black tracking-widest uppercase">
+                  {isCreating ? "Инициализация..." : "Создать"}
+                </Button>
               </div>
             </div>
-          </div>
+          </Modal>
         )}
 
         {isWaitingForOpponent && (

@@ -63,6 +63,37 @@ const Icons = {
   Radar: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-16 h-16"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle><line x1="12" y1="2" x2="12" y2="12"></line></svg>,
   Key: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><circle cx="8" cy="15" r="4"></circle><line x1="10.85" y1="12.15" x2="19" y2="4"></line><line x1="18" y1="5" x2="20" y2="7"></line><line x1="15" y1="8" x2="17" y2="10"></line></svg>,
   DetectiveHat: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-12 h-12 text-zinc-400"><path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6"></path></svg>,
+  Fingerprint: ({ className = "w-5 h-5" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
+      <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" />
+      <path d="M14 13.12c0 2.38 0 6.38-1 8.88" />
+      <path d="M2 12a10 10 0 0 1 18-6" />
+      <path d="M21.8 16c.2-2 .131-5.354 0-6" />
+      <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2" />
+      <path d="M9 6.8a6 6 0 0 1 9 5.2v2" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" />
+    </svg>
+  ),
+  ShieldLock: ({ className = "w-5 h-5" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <rect x="9" y="11" width="6" height="5" rx="1" />
+      <path d="M10 11V9a2 2 0 1 1 4 0v2" />
+    </svg>
+  ),
+  RadioRadar: ({ className = "w-5 h-5" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
+      <circle cx="12" cy="12" r="2" />
+      <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
+    </svg>
+  ),
+  Search: ({ className = "w-5 h-5" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      <path d="M11 8v6M8 11h6" opacity="0.4" />
+    </svg>
+  ),
 };
 
 const GAME_MODES = [
@@ -72,7 +103,9 @@ const GAME_MODES = [
     players: GAME_MODES_META.MANIAC_VS_OPERATIVE.players?.ru || "2 игрока",
     time: GAME_MODES_META.MANIAC_VS_OPERATIVE.time?.ru || "20 мин",
     difficulty: GAME_MODES_META.MANIAC_VS_OPERATIVE.difficulty?.ru || "Средняя",
-    description: GAME_MODES_META.MANIAC_VS_OPERATIVE.description?.ru || "",
+    description: GAME_MODES_META.MANIAC_VS_OPERATIVE.description?.ru || "Смертельная дуэль сыщика и маньяка. Вычислите логово по радиусу преступлений.",
+    tags: GAME_MODES_META.MANIAC_VS_OPERATIVE.tags?.ru || ["2 ИГРОКА", "АСИММЕТРИЯ", "МАНЬЯК VS СЫЩИК"],
+    icon: Icons.Fingerprint,
     isAvailable: true,
     killerRoleName: GAME_MODES_META.MANIAC_VS_OPERATIVE.killerRoleName?.ru || "Маньяк",
     detectiveRoleName: GAME_MODES_META.MANIAC_VS_OPERATIVE.detectiveRoleName?.ru || "Оперативник",
@@ -83,7 +116,9 @@ const GAME_MODES = [
     players: GAME_MODES_META.THIEF_HUNT.players?.ru || "2 игрока",
     time: GAME_MODES_META.THIEF_HUNT.time?.ru || "25 мин",
     difficulty: GAME_MODES_META.THIEF_HUNT.difficulty?.ru || "Высокая",
-    description: GAME_MODES_META.THIEF_HUNT.description?.ru || "",
+    description: GAME_MODES_META.THIEF_HUNT.description?.ru || "Ловите дерзкого вора в кварталах города, пока полиция стягивает патрули.",
+    tags: GAME_MODES_META.THIEF_HUNT.tags?.ru || ["2 ИГРОКА", "ПЕРЕХВАТ", "СМЕНА МАСОК"],
+    icon: Icons.ShieldLock,
     isAvailable: true,
     killerRoleName: GAME_MODES_META.THIEF_HUNT.killerRoleName?.ru || "Грабитель",
     detectiveRoleName: GAME_MODES_META.THIEF_HUNT.detectiveRoleName?.ru || "Полиция",
@@ -94,7 +129,9 @@ const GAME_MODES = [
     players: GAME_MODES_META.SECRET_SERVICE.players?.ru || "2-4 игрока",
     time: GAME_MODES_META.SECRET_SERVICE.time?.ru || "30 мин",
     difficulty: GAME_MODES_META.SECRET_SERVICE.difficulty?.ru || "Средняя",
-    description: GAME_MODES_META.SECRET_SERVICE.description?.ru || "",
+    description: GAME_MODES_META.SECRET_SERVICE.description?.ru || "Битва спецслужб на улицах мегаполиса. Опрашивайте связных и вскрывайте резидентов.",
+    tags: GAME_MODES_META.SECRET_SERVICE.tags?.ru || ["2–4 ИГРОКА", "КОНТРРАЗВЕДКА", "БЛЕФ"],
+    icon: Icons.RadioRadar,
     isAvailable: true,
     killerRoleName: GAME_MODES_META.SECRET_SERVICE.killerRoleName?.ru || "Агент 1",
     detectiveRoleName: GAME_MODES_META.SECRET_SERVICE.detectiveRoleName?.ru || "Агент 2",
@@ -105,7 +142,9 @@ const GAME_MODES = [
     players: GAME_MODES_META.LINE_UP.players?.ru || "2 игрока",
     time: GAME_MODES_META.LINE_UP.time?.ru || "8 мин",
     difficulty: GAME_MODES_META.LINE_UP.difficulty?.ru || "Средняя",
-    description: GAME_MODES_META.LINE_UP.description?.ru || "",
+    description: GAME_MODES_META.LINE_UP.description?.ru || "Классическая детективная дуэль. Задавайте вопросы по каталогу и найдите соперника.",
+    tags: GAME_MODES_META.LINE_UP.tags?.ru || ["2 ИГРОКА", "ДЕДУКЦИЯ", "БЕЗ СЛУЧАЙНОСТЕЙ"],
+    icon: Icons.Search,
     isAvailable: true,
     killerRoleName: GAME_MODES_META.LINE_UP.killerRoleName?.ru || "Подозреваемый",
     detectiveRoleName: GAME_MODES_META.LINE_UP.detectiveRoleName?.ru || "Следователь",
@@ -554,7 +593,7 @@ export const MainMenu = ({
 
   const renderModes = () => (
     <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden">
-      <div className="flex items-center px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-4 shrink-0 border-b border-white/10 bg-[#080a0f]">
+      <div className="flex items-center px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-[#080a0f] relative">
         <Button variant="ghost" onClick={() => setScreen('HOME')} className="h-9 px-2 text-zinc-400 hover:text-white gap-1">
           <Icons.ChevronLeft />
           <span className="text-[10px] font-black uppercase tracking-widest">Назад</span>
@@ -562,34 +601,35 @@ export const MainMenu = ({
         <h2 className="absolute left-1/2 -translate-x-1/2 text-sm md:text-base font-black tracking-widest text-zinc-100 uppercase">Выбор игры</h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar pb-[max(6rem,env(safe-area-inset-bottom))]">
-        <div className="flex flex-col gap-3 max-w-2xl mx-auto w-full">
-          {GAME_MODES.map((mode) => (
+      <div className="flex-1 flex flex-col justify-center gap-2.5 max-w-xl mx-auto w-full px-4 py-2 min-h-0 overflow-y-auto custom-scrollbar">
+        {GAME_MODES.map((mode) => {
+          const ModeIcon = mode.icon || Icons.Crosshair;
+          return (
             <button
               key={mode.id}
               onClick={() => { setSelectedMode(mode.id); setScreen('MODE_DETAIL'); }}
-              className="w-full bg-zinc-950/60 hover:bg-zinc-900/80 backdrop-blur-md border border-white/10 hover:border-cyan-500/40 rounded-2xl p-4 md:p-5 flex flex-col justify-between transition-all active:scale-[0.98] text-left shadow-lg cursor-pointer group"
+              className="w-full bg-zinc-950/60 hover:bg-zinc-900/80 border border-white/10 hover:border-white/25 rounded-2xl p-3.5 transition-all duration-200 cursor-pointer active:scale-[0.99] group text-left shadow-lg"
             >
-              <div className="w-full">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-11 h-11 md:w-12 md:h-12 rounded-xl bg-zinc-900/90 border border-white/10 flex items-center justify-center text-cyan-400 shadow-inner group-hover:text-cyan-300 transition-colors">
-                    <Icons.Crosshair />
-                  </div>
-                  <span className="text-zinc-500 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all">
-                    <Icons.ChevronRight />
-                  </span>
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-200 group-hover:text-white group-hover:border-white/30 transition-all shrink-0 shadow-inner">
+                  <ModeIcon className="w-5 h-5" />
                 </div>
-                <h3 className="text-sm md:text-base font-black text-zinc-100 uppercase tracking-widest mb-1 truncate">{mode.title}</h3>
-                <div className="flex items-center gap-2 text-[9px] font-mono text-zinc-400 uppercase tracking-widest mb-2">
-                  <span className="flex items-center gap-1"><Icons.Users /> {mode.players}</span>
-                  <span className="text-zinc-500">•</span>
-                  <span>5×5</span>
-                </div>
-                <p className="text-[10px] md:text-xs text-zinc-400 line-clamp-2 md:line-clamp-3 leading-relaxed">{mode.description}</p>
+                <span className="px-3 py-1 rounded-full bg-zinc-900/90 border border-white/10 text-[11px] font-bold text-zinc-300 group-hover:text-white group-hover:border-white/30 transition-all flex items-center gap-1">
+                  ВЫБРАТЬ ➔
+                </span>
+              </div>
+
+              <div className="mt-2.5">
+                <h3 className="text-sm sm:text-base font-bold text-zinc-100 uppercase tracking-wide group-hover:text-white transition-colors">
+                  {mode.title}
+                </h3>
+                <p className="text-xs text-zinc-400 leading-snug mt-1 break-words">
+                  {mode.description}
+                </p>
               </div>
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </div>
   );

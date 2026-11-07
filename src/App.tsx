@@ -667,9 +667,15 @@ export default function App() {
         }}
       />
 
-      <div className="w-full max-w-7xl mx-auto h-full relative flex flex-col overflow-hidden">
-        {isLobbyOpen && (
-          <MainMenu
+      <div 
+        className="w-full max-w-7xl mx-auto h-full relative flex flex-col overflow-hidden"
+      >
+        {isLobbyOpen ? (
+          <div
+            key="main-menu"
+            className="w-full h-full flex flex-col min-h-0"
+          >
+            <MainMenu
               onStartTvParty={(role = "TV_DISPLAY") => {
                 if (role === "CONTROLLER") {
                   setTvPartyState("CONTROLLER");
@@ -684,18 +690,96 @@ export default function App() {
                 window.location.replace(newUrl.toString());
               }}
               profile={profile}
-            onUpdateProfile={updateProfile}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            onStartGame={handleStartNewGame}
-            hasActiveGame={Boolean(!gameState.winner && hasStartedEver && gameState.board?.length >= 5 && gameState.log?.length > 2)}
-            onResumeGame={handleResumeGame}
-            onOpenRules={() => setIsRulesOpen(true)}
-            onOpenDevPanel={() => setIsDevPanelOpen(true)}
-          />
-        )}
+              onUpdateProfile={updateProfile}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              onStartGame={handleStartNewGame}
+              hasActiveGame={Boolean(!gameState.winner && hasStartedEver && gameState.board?.length >= 5 && gameState.log?.length > 2)}
+              onResumeGame={handleResumeGame}
+              onOpenRules={() => setIsRulesOpen(true)}
+              onOpenDevPanel={() => setIsDevPanelOpen(true)}
+            />
+          </div>
+        ) : !isIntroPhase && hasStartedEver && gameState.opponent !== undefined ? (
+          <div
+            key={`game-${gameState.mode}`}
+            className="w-full h-full flex flex-col min-h-0 overflow-hidden"
+          >
+              {gameState.mode === "LINE_UP" ? (
+                <DuelScreen
+                  onBackToMenu={handleExitToMenu}
+                  playerRole={gameState.playerRole}
+                  gameState={gameState}
+                  isOnline={gameState.opponent === "ONLINE"}
+                  onDispatchAction={dispatchAction}
+                />
+              ) : (
+                <GameScreen
+                  gameState={gameState}
+                  isHumanTurn={isHumanTurn}
+                  currentRoleName={currentRoleName}
+                  actionPanelRoleName={actionPanelRoleName}
+                  pillClasses={pillClasses}
+                  dotClasses={dotClasses}
+                  secondsElapsed={secondsElapsed}
+                  formatTimer={formatTimer}
+                  selectedId={selectedId}
+                  setSelectedId={setSelectedId}
+                  killerAdjacentIds={killerAdjacentIds}
+                  detectiveAdjacentIds={detectiveAdjacentIds}
+                  activeAgentAdjacentIds={activeAgentAdjacentIds}
+                  showKillerRole={showKillerRole}
+                  setShowKillerRole={setShowKillerRole}
+                  showDetectiveRole={showDetectiveRole}
+                  setShowDetectiveRole={setShowDetectiveRole}
+                  showSpyP1Role={showSpyP1Role}
+                  setShowSpyP1Role={setShowSpyP1Role}
+                  showSpyP2Role={showSpyP2Role}
+                  setShowSpyP2Role={setShowSpyP2Role}
+                  role1Name={role1Name}
+                  role2Name={role2Name}
+                  killerNameText={killerNameText}
+                  detectiveNameText={detectiveNameText}
+                  canPeekKiller={canPeekKiller}
+                  canPeekDetective={canPeekDetective}
+                  isPVP={isPVP}
+                  myRoleColor={myRoleColor}
+                  myCharacterId={myCharacterId}
+                  effectiveRadarTargetId={effectiveRadarTargetId}
+                  effectiveRadarCellIds={effectiveRadarCellIds}
+                  effectiveRadarColorClass={effectiveRadarColorClass}
+                  errorCardId={errorCardId}
+                  targetActions={targetActions}
+                  cleanupAction={cleanupAction}
+                  isCleanupAvailable={isCleanupAvailable}
+                  isDetectiveView={isDetectiveView}
+                  isDetectiveTurn={isDetectiveTurn}
+                  isKillerTurn={isKillerTurn}
+                  isHandSheetOpen={isHandSheetOpen}
+                  setIsHandSheetOpen={setIsHandSheetOpen}
+                  isLogOpen={isLogOpen}
+                  setIsLogOpen={setIsLogOpen}
+                  unreadLogCount={unreadLogCount}
+                  setUnreadLogCount={setUnreadLogCount}
+                  logContainerRef={logContainerRef}
+                  allChars={allChars}
+                  characterImages={characterImages}
+                  selectedCharacter={selectedCharacter}
+                  handleReset={handleReset}
+                  handleShift={handleShift}
+                  handleExonerateFromHand={handleExonerateFromHand}
+                  handleFastDisguise={handleFastDisguise}
+                  setIsPauseOpen={setIsPauseOpen}
+                  setIsNotebookOpen={setIsNotebookOpen}
+                  isOpponentConnected={isOpponentConnected}
+                  opponentDisconnectedNotice={opponentDisconnectedNotice}
+                  isInspectorPending={isInspectorPending}
+                />
+              )}
+            </div>
+          ) : null}
 
-                {tvPartyState === "NONE" && (
+        {tvPartyState === "NONE" && (
           <GameLifecycleModals
             gameState={gameState}
             setGameState={setGameState}
@@ -725,82 +809,6 @@ export default function App() {
             setFullscreenImage={setFullscreenImage}
           />
         )}
-
-        {!isLobbyOpen && !isIntroPhase && hasStartedEver && gameState.opponent !== undefined && gameState.mode === "LINE_UP" && (
-          <DuelScreen
-            onBackToMenu={handleExitToMenu}
-            playerRole={gameState.playerRole}
-            gameState={gameState}
-            isOnline={gameState.opponent === "ONLINE"}
-            onDispatchAction={dispatchAction}
-          />
-        )}
-
-        {!isLobbyOpen && !isIntroPhase && hasStartedEver && gameState.opponent !== undefined && gameState.mode !== "LINE_UP" && (
-          <GameScreen
-            gameState={gameState}
-            isHumanTurn={isHumanTurn}
-            currentRoleName={currentRoleName}
-            actionPanelRoleName={actionPanelRoleName}
-            pillClasses={pillClasses}
-            dotClasses={dotClasses}
-            secondsElapsed={secondsElapsed}
-            formatTimer={formatTimer}
-            selectedId={selectedId}
-            setSelectedId={setSelectedId}
-            killerAdjacentIds={killerAdjacentIds}
-            detectiveAdjacentIds={detectiveAdjacentIds}
-            activeAgentAdjacentIds={activeAgentAdjacentIds}
-            showKillerRole={showKillerRole}
-            setShowKillerRole={setShowKillerRole}
-            showDetectiveRole={showDetectiveRole}
-            setShowDetectiveRole={setShowDetectiveRole}
-            showSpyP1Role={showSpyP1Role}
-            setShowSpyP1Role={setShowSpyP1Role}
-            showSpyP2Role={showSpyP2Role}
-            setShowSpyP2Role={setShowSpyP2Role}
-            role1Name={role1Name}
-            role2Name={role2Name}
-            killerNameText={killerNameText}
-            detectiveNameText={detectiveNameText}
-            canPeekKiller={canPeekKiller}
-            canPeekDetective={canPeekDetective}
-            isPVP={isPVP}
-            myRoleColor={myRoleColor}
-            myCharacterId={myCharacterId}
-            effectiveRadarTargetId={effectiveRadarTargetId}
-            effectiveRadarCellIds={effectiveRadarCellIds}
-            effectiveRadarColorClass={effectiveRadarColorClass}
-            errorCardId={errorCardId}
-            targetActions={targetActions}
-            cleanupAction={cleanupAction}
-            isCleanupAvailable={isCleanupAvailable}
-            isDetectiveView={isDetectiveView}
-            isDetectiveTurn={isDetectiveTurn}
-            isKillerTurn={isKillerTurn}
-            isHandSheetOpen={isHandSheetOpen}
-            setIsHandSheetOpen={setIsHandSheetOpen}
-            isLogOpen={isLogOpen}
-            setIsLogOpen={setIsLogOpen}
-            unreadLogCount={unreadLogCount}
-            setUnreadLogCount={setUnreadLogCount}
-            logContainerRef={logContainerRef}
-            allChars={allChars}
-            characterImages={characterImages}
-            selectedCharacter={selectedCharacter}
-            handleReset={handleReset}
-            handleShift={handleShift}
-            handleExonerateFromHand={handleExonerateFromHand}
-            handleFastDisguise={handleFastDisguise}
-            setIsPauseOpen={setIsPauseOpen}
-            setIsNotebookOpen={setIsNotebookOpen}
-            isOpponentConnected={isOpponentConnected}
-            opponentDisconnectedNotice={opponentDisconnectedNotice}
-            isInspectorPending={isInspectorPending}
-          />
-        )}
-
-
       </div>
 
       {/* РЕЖИМ TV PARTY: Мобильный пульт управления */}

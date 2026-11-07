@@ -484,82 +484,73 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
             <div className="hidden md:block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
               Действия ({actionPanelRoleName})
             </div>
-            <div className="grid grid-cols-2 landscape:grid-cols-1 gap-1.5 sm:gap-2 w-full">
-              {targetActions.map((action) => (
-                <button
-                  key={action.id}
-                  onClick={action.onClick}
-                  disabled={action.disabled}
-                  className={`${action.className.replace(/py-2 sm:py-2.5 md:py-3.5/g, "h-9 sm:h-10 md:h-11")} ${
-                    targetActions.length === 1 && !((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView)
-                      ? "col-span-2 md:col-span-1"
-                      : "col-span-1"
-                  }`}
-                >
-                  {(action.id === 'kill_basic' || action.id === 'capture_spy') && (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
-                  )}
-                  {(action.id === 'accuse_basic' || action.id === 'patrol_call') && (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                  )}
-                  {action.id === 'interrogate_spy' && (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle><line x1="12" y1="2" x2="12" y2="12"></line></svg>
-                  )}
-                  {(action.id === 'disguise_skhvatka' || action.id === 'escape_maniac' || action.id === 'disguise_thief') && (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6"></path></svg>
-                  )}
-                  {action.id === 'rob_basic' && (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-                  )}
-                  <span>{selectedCharacter && !action.disabled ? `${action.label}` : action.label}</span>
-                </button>
-              ))}
+            <div className="w-full flex items-center gap-1.5 sm:gap-2">
+              {targetActions.map((action) => {
+                const isRed = action.id === 'kill_basic' || action.id === 'capture_spy';
+                const isAmber = action.id === 'rob_basic';
+                const isBlue = action.id === 'accuse_basic' || action.id === 'patrol_call' || action.id === 'interrogate_spy';
+
+                const colorClasses = isRed
+                  ? "bg-gradient-to-r from-red-700 via-red-600 to-rose-600 hover:from-red-650 hover:to-rose-550 text-white font-black shadow-lg shadow-red-950/50 border border-red-400/40 active:scale-[0.97]"
+                  : isBlue
+                  ? "bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-500 text-white font-black shadow-lg shadow-blue-950/50 border border-blue-400/40 active:scale-[0.97]"
+                  : isAmber
+                  ? "bg-gradient-to-r from-amber-600 to-yellow-500 text-zinc-950 font-black shadow-lg shadow-amber-950/50 border border-amber-300/50 active:scale-[0.97]"
+                  : "bg-zinc-800 hover:bg-zinc-700 text-white font-bold border border-white/20 active:scale-[0.97]";
+
+                return (
+                  <button
+                    key={action.id}
+                    onClick={action.onClick}
+                    disabled={action.disabled}
+                    className={`flex-1 min-w-0 h-10 sm:h-11 md:h-12 px-2.5 sm:px-3 text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none transition-all disabled:opacity-40 disabled:cursor-not-allowed rounded-xl ${colorClasses}`}
+                  >
+                    {(action.id === 'kill_basic' || action.id === 'capture_spy') && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
+                    )}
+                    {(action.id === 'accuse_basic' || action.id === 'patrol_call') && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    )}
+                    {action.id === 'interrogate_spy' && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                    )}
+                    {(action.id === 'disguise_skhvatka' || action.id === 'escape_maniac' || action.id === 'disguise_thief') && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6"></path></svg>
+                    )}
+                    {action.id === 'rob_basic' && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                    )}
+                    <span className="whitespace-nowrap overflow-hidden text-ellipsis">{selectedCharacter && !action.disabled ? `${action.label}` : action.label}</span>
+                  </button>
+                );
+              })}
               {((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView) && (
                 <button
                   onClick={() => setIsHandSheetOpen(true)}
                   disabled={Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0)}
-                  className="col-span-1 h-9 sm:h-10 md:h-11 bg-gradient-to-r from-blue-950 via-zinc-900 to-blue-950 hover:from-blue-900 hover:via-zinc-800 hover:to-blue-900 text-blue-200 hover:text-white border border-blue-500/70 rounded-xl text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(59,130,246,0.25)] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 min-w-0 h-10 sm:h-11 md:h-12 px-2.5 sm:px-3 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-500 text-white font-black shadow-lg shadow-blue-950/50 border border-blue-400/40 active:scale-[0.97] rounded-xl text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-blue-400 shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-blue-200 shrink-0">
                     <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a2.5 2.5 0 0 1-2.5-2.5z" />
                     <path d="M6 6h10M6 10h10M6 14h6" />
                   </svg>
-                  <span>Досье ({gameState.detectiveHand.length})</span>
+                  <span className="whitespace-nowrap overflow-hidden text-ellipsis">Досье ({gameState.detectiveHand.length})</span>
                 </button>
               )}
               {cleanupAction && isCleanupAvailable && (
                 <button
                   onClick={cleanupAction.onClick}
                   disabled={cleanupAction.disabled}
-                  className={`h-9 sm:h-10 md:h-11 bg-gradient-to-r from-red-950 via-zinc-900 to-red-950 hover:from-red-900 hover:via-zinc-800 hover:to-red-900 disabled:opacity-40 text-red-200 hover:text-white text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider rounded-xl border border-red-600/70 transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.35)] active:scale-[0.98] ${
-                    ((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView)
-                      ? "col-span-2 landscape:col-span-1"
-                      : "col-span-1"
-                  }`}
+                  className="flex-1 min-w-0 h-10 sm:h-11 md:h-12 px-2.5 sm:px-3 bg-gradient-to-r from-red-700 via-red-600 to-rose-600 hover:from-red-650 hover:to-rose-550 text-white font-black shadow-lg shadow-red-950/50 border border-red-400/40 active:scale-[0.97] text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-1.5 sm:gap-2 select-none"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-red-400 shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-red-200 shrink-0">
                     <circle cx="12" cy="12" r="9" />
                     <path d="M9 10h.01M15 10h.01M10 15h4" />
                   </svg>
-                  <span>Зачистить</span>
+                  <span className="whitespace-nowrap overflow-hidden text-ellipsis">Зачистить</span>
                 </button>
               )}
             </div>
-
-            {false && (
-            <div className="grid grid-cols-2 gap-1.5 w-full mt-1">
-                <button
-                  onClick={cleanupAction.onClick}
-                  disabled={cleanupAction.disabled}
-                  className="col-span-2 h-10 sm:h-11 bg-gradient-to-r from-red-950 via-zinc-900 to-red-950 hover:from-red-900 hover:via-zinc-800 hover:to-red-900 disabled:opacity-40 text-red-200 hover:text-white text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-wider rounded-xl border border-red-600/70 transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.35)] active:scale-[0.98]">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-red-400 shrink-0">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M9 10h.01M15 10h.01M10 15h4" />
-                  </svg>
-                  <span>Зачистить</span>
-                </button>
-            </div>
-            )}
           </div>
 
           <div className="hidden landscape:lg:flex flex-col flex-1 min-h-0 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4">

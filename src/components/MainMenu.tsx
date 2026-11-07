@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import type { GameModeType, OpponentType, Role } from "../types/game";
 import type { UserProfile } from "../types/profile";
 import { triggerHaptic, setHapticsEnabled } from "../utils/haptics";
@@ -257,6 +258,17 @@ export const MainMenu = ({
   const { t, lang, setLang } = useTranslation();
   
   const [screen, setScreen] = useState<ScreenType>('HOME');
+  const [navDirection, setNavDirection] = useState<'forward' | 'backward' | 'none'>('none');
+
+  const navigateTo = (nextScreen: ScreenType) => {
+    setNavDirection('forward');
+    setScreen(nextScreen);
+  };
+
+  const navigateBack = (prevScreen: ScreenType) => {
+    setNavDirection('backward');
+    setScreen(prevScreen);
+  };
   const [selectedMode, setSelectedMode] = useState<GameModeType>("MANIAC_VS_OPERATIVE");
   const [selectedOpponent, setSelectedOpponent] = useState<OpponentType>("AI");
   const [selectedRole, setSelectedRole] = useState<Role>("DETECTIVE");
@@ -296,9 +308,18 @@ export const MainMenu = ({
   const [, setTutorialStep] = useState(1);
 
   useEffect(() => {
-    if (activeTab === "LOBBY" && screen !== 'HOME' && screen !== 'MODES' && screen !== 'MODE_DETAIL') setScreen('HOME');
-    if (activeTab === "TABLES" && screen !== 'TABLES') setScreen('TABLES');
-    if (activeTab === "TOP" && screen !== 'PROFILE') setScreen('PROFILE');
+    if (activeTab === "LOBBY" && screen !== 'HOME' && screen !== 'MODES' && screen !== 'MODE_DETAIL') {
+      setNavDirection('none');
+      setScreen('HOME');
+    }
+    if (activeTab === "TABLES" && screen !== 'TABLES') {
+      setNavDirection('none');
+      setScreen('TABLES');
+    }
+    if (activeTab === "TOP" && screen !== 'PROFILE') {
+      setNavDirection('none');
+      setScreen('PROFILE');
+    }
   }, [activeTab]);
 
   useEffect(() => {
@@ -437,7 +458,7 @@ export const MainMenu = ({
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Agent Callsign / Dossier Pill (Hidden on mobile < sm) */}
             <button
-              onClick={() => { soundManager.play('tapMenu'); setScreen('PROFILE'); onTabChange('TOP'); }}
+              onClick={() => { soundManager.play('tapMenu'); setNavDirection('none'); setScreen('PROFILE'); onTabChange('TOP'); }}
               className="hidden sm:flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 rounded-full bg-zinc-900/80 border border-white/10 hover:border-cyan-500/40 hover:bg-zinc-800/80 transition cursor-pointer shadow-lg active:scale-95 group text-left shrink-0"
               title="Досье агента"
             >
@@ -530,11 +551,11 @@ export const MainMenu = ({
             <div className="grid grid-cols-2 gap-4">
               {/* Card 1: Solo Game (PVE) */}
               <button
-                onClick={() => { setSelectedOpponent("AI"); setScreen('MODES'); }}
-                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-cyan-500/40 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
+                onClick={() => { setSelectedOpponent("AI"); navigateTo('MODES'); }}
+                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-white/30 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/40"
               >
                 <div className="flex items-center justify-between w-full">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-cyan-400 transition-colors shrink-0 shadow-inner">
+                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-white transition-colors shrink-0 shadow-inner">
                     <Icons.Cards className="w-5 h-5" />
                   </div>
                   <span className="bg-zinc-800/60 text-zinc-400 border border-white/5 text-[10px] font-mono px-2 py-0.5 rounded-md uppercase font-bold tracking-wider shrink-0">
@@ -550,11 +571,11 @@ export const MainMenu = ({
 
               {/* Card 2: One Screen (PVP) */}
               <button
-                onClick={() => { setSelectedOpponent("PVP"); setScreen('MODES'); }}
-                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-cyan-500/40 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
+                onClick={() => { setSelectedOpponent("PVP"); navigateTo('MODES'); }}
+                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-white/30 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/40"
               >
                 <div className="flex items-center justify-between w-full">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-cyan-400 transition-colors shrink-0 shadow-inner">
+                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-white transition-colors shrink-0 shadow-inner">
                     <Icons.Users className="w-5 h-5" />
                   </div>
                   <span className="bg-zinc-800/60 text-zinc-400 border border-white/5 text-[10px] font-mono px-2 py-0.5 rounded-md uppercase font-bold tracking-wider shrink-0">
@@ -571,10 +592,10 @@ export const MainMenu = ({
               {/* Card 3: TV Mode (TV PARTY) */}
               <button
                 onClick={() => { setIsTvPartyModalOpen(true); }}
-                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-cyan-500/40 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
+                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-white/30 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/40"
               >
                 <div className="flex items-center justify-between w-full">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-cyan-400 transition-colors shrink-0 shadow-inner">
+                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-white transition-colors shrink-0 shadow-inner">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
                   </div>
                   <span className="bg-zinc-800/60 text-zinc-400 border border-white/5 text-[10px] font-mono px-2 py-0.5 rounded-md uppercase font-bold tracking-wider shrink-0">
@@ -590,11 +611,11 @@ export const MainMenu = ({
 
               {/* Card 4: Multiplayer (ONLINE) */}
               <button
-                onClick={() => { setScreen('TABLES'); onTabChange('TABLES'); }}
-                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-cyan-500/40 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
+                onClick={() => { navigateTo('TABLES'); onTabChange('TABLES'); }}
+                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-white/30 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/40"
               >
                 <div className="flex items-center justify-between w-full">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-cyan-400 transition-colors shrink-0 shadow-inner">
+                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-white transition-colors shrink-0 shadow-inner">
                     <Icons.Radar className="w-5 h-5" />
                   </div>
                   <span className="bg-zinc-800/60 text-zinc-400 border border-white/5 text-[10px] font-mono px-2 py-0.5 rounded-md uppercase font-bold tracking-wider shrink-0">
@@ -652,9 +673,9 @@ export const MainMenu = ({
   );
 
   const renderModes = () => (
-    <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden">
+    <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden w-full h-full">
       <div className="flex items-center px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-[#080a0f] relative">
-        <Button variant="ghost" onClick={() => setScreen('HOME')} className="h-9 px-2 text-zinc-400 hover:text-white gap-1">
+        <Button variant="ghost" onClick={() => navigateBack('HOME')} className="h-9 px-2 text-zinc-400 hover:text-white gap-1">
           <Icons.ChevronLeft />
           <span className="text-[10px] font-black uppercase tracking-widest">Назад</span>
         </Button>
@@ -667,7 +688,7 @@ export const MainMenu = ({
           return (
             <button
               key={mode.id}
-              onClick={() => { setSelectedMode(mode.id); setScreen('MODE_DETAIL'); }}
+              onClick={() => { setSelectedMode(mode.id); navigateTo('MODE_DETAIL'); }}
               className="w-full bg-zinc-950/60 hover:bg-zinc-900/80 border border-white/10 hover:border-white/25 rounded-2xl p-3.5 transition-all duration-200 cursor-pointer active:scale-[0.99] group text-left shadow-lg"
             >
               <div className="flex items-center justify-between">
@@ -739,9 +760,9 @@ export const MainMenu = ({
     const summaryItems = getModeSummaryItems(activeModeData.id);
 
     return (
-      <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden relative">
+      <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden relative w-full h-full">
         <div className="flex items-center px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 z-10 bg-[#080a0f] relative">
-          <Button variant="ghost" onClick={() => setScreen('MODES')} className="h-9 px-2 text-zinc-400 hover:text-white gap-1">
+          <Button variant="ghost" onClick={() => navigateBack('MODES')} className="h-9 px-2 text-zinc-400 hover:text-white gap-1">
             <Icons.ChevronLeft />
             <span className="text-[10px] font-black uppercase tracking-widest">Назад</span>
           </Button>
@@ -924,7 +945,7 @@ export const MainMenu = ({
       ROOM_FILTERS={ROOM_FILTERS}
       GAME_MODES={GAME_MODES}
       soundManager={soundManager}
-      onBack={() => { setScreen('HOME'); onTabChange('LOBBY'); }}
+      onBack={() => { setNavDirection('none'); setScreen('HOME'); onTabChange('LOBBY'); }}
     />
   );
 
@@ -933,7 +954,7 @@ export const MainMenu = ({
       profile={profile}
       onUpdateProfile={onUpdateProfile || (() => {})}
       onOpenSettings={() => setIsSettingsOpen(true)}
-      onBack={() => { setScreen('HOME'); onTabChange('LOBBY'); }}
+      onBack={() => { setNavDirection('none'); setScreen('HOME'); onTabChange('LOBBY'); }}
     />
   );
 
@@ -948,7 +969,57 @@ export const MainMenu = ({
     setTutorialStep(1);
   };
 
-  const renderScreen = () => {
+  const dragControls = useDragControls();
+  const [isEdgeDragging, setIsEdgeDragging] = useState(false);
+
+  const screenVariants = {
+    enter: (direction: 'forward' | 'backward' | 'none') => {
+      if (direction === 'none') {
+        return { x: 0, opacity: 1 };
+      }
+      return {
+        x: direction === 'forward' ? '100%' : '-15%',
+        opacity: direction === 'forward' ? 1 : 0.75,
+      };
+    },
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction: 'forward' | 'backward' | 'none') => {
+      if (direction === 'none') {
+        return { x: 0, opacity: 0 };
+      }
+      return {
+        x: direction === 'forward' ? '-15%' : '100%',
+        opacity: direction === 'forward' ? 0.75 : 1,
+      };
+    },
+  };
+
+  const handleEdgePointerDown = (e: React.PointerEvent) => {
+    if (e.clientX <= 35) {
+      setIsEdgeDragging(true);
+      dragControls.start(e);
+    }
+  };
+
+  const handleDragEnd = (_: any, info: any) => {
+    const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 360;
+    if (info.offset.x > screenWidth * 0.35 || info.velocity.x > 500) {
+      triggerHaptic("light");
+      setIsEdgeDragging(false);
+      if (screen === 'MODE_DETAIL') {
+        navigateBack('MODES');
+      } else if (screen === 'MODES') {
+        navigateBack('HOME');
+      }
+    } else {
+      setTimeout(() => setIsEdgeDragging(false), 250);
+    }
+  };
+
+  const renderScreenContent = () => {
     switch (screen) {
       case 'HOME': return renderHome();
       case 'MODES': return renderModes();
@@ -959,79 +1030,103 @@ export const MainMenu = ({
     }
   };
 
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const renderScreen = () => {
+    const isChildScreen = screen === 'MODES' || screen === 'MODE_DETAIL';
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    if (touch.clientX <= 32) {
-      touchStartRef.current = { x: touch.clientX, y: touch.clientY };
-    } else {
-      touchStartRef.current = null;
-    }
-  };
+    return (
+      <div className="flex-1 relative overflow-hidden w-full h-full">
+        {/* Underlay layer for interactive back-drag without black void */}
+        {navDirection !== 'none' && isEdgeDragging && screen === 'MODE_DETAIL' && (
+          <div className="absolute inset-0 w-full h-full flex flex-col pointer-events-none opacity-75 -translate-x-[15%] bg-[#080a0f] z-0 will-change-transform transform-gpu">
+            {renderModes()}
+          </div>
+        )}
+        {navDirection !== 'none' && isEdgeDragging && screen === 'MODES' && (
+          <div className="absolute inset-0 w-full h-full flex flex-col pointer-events-none opacity-75 -translate-x-[15%] bg-[#080a0f] z-0 will-change-transform transform-gpu">
+            {renderHome()}
+          </div>
+        )}
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
-    const touch = e.changedTouches[0];
-    const deltaX = touch.clientX - touchStartRef.current.x;
-    const deltaY = touch.clientY - touchStartRef.current.y;
-
-    if (deltaX > 60 && Math.abs(deltaY) < 40) {
-      triggerHaptic("light");
-      
-      if (isTutorialOpen) {
-        setIsTutorialOpen(false);
-      } else if (isSettingsOpen) {
-        setIsSettingsOpen(false);
-      } else if (isCreateRoomOpen) {
-        setIsCreateRoomOpen(false);
-      } else if (isWaitingForOpponent) {
-        partyService.disconnect();
-        setIsWaitingForOpponent(false);
-        setIsCreating(false);
-      } else if (screen === 'MODE_DETAIL') {
-        setScreen('MODES');
-      } else if (screen === 'MODES') {
-        setScreen('HOME');
-      } else if (screen === 'TABLES' || screen === 'PROFILE') {
-        setScreen('HOME');
-        onTabChange('LOBBY');
-      }
-    }
-    touchStartRef.current = null;
+        <AnimatePresence initial={false} custom={navDirection}>
+          <motion.div
+            key={screen}
+            custom={navDirection}
+            variants={screenVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={
+              navDirection === 'none'
+                ? { duration: 0 }
+                : { duration: 0.22, ease: [0.22, 1, 0.36, 1] }
+            }
+            className={`absolute inset-0 w-full h-full flex flex-col will-change-transform transform-gpu select-none bg-[#080a0f] ${
+              isChildScreen ? 'shadow-[-10px_0_20px_rgba(0,0,0,0.5)] z-10' : 'z-0'
+            }`}
+            {...(isChildScreen
+              ? {
+                  drag: "x" as const,
+                  dragDirectionLock: true,
+                  dragConstraints: { left: 0 },
+                  dragElastic: 0,
+                  dragListener: false,
+                  dragControls: dragControls,
+                  onPointerDown: handleEdgePointerDown,
+                  onDragEnd: handleDragEnd,
+                }
+              : {}
+            )}
+          >
+            {renderScreenContent()}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    );
   };
 
   return (
-    <div 
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      className="fixed inset-0 z-50 bg-[#080a0f] flex justify-center w-full max-w-full overflow-x-hidden overflow-y-auto font-sans select-none text-zinc-100"
-    >
+    <div className="fixed inset-0 z-50 bg-[#080a0f] flex justify-center w-full max-w-full overflow-hidden font-sans select-none text-zinc-100">
       <Toast message={toastMessage} type="error" onClose={() => setToastMessage(null)} />
       
-      <div className="w-full max-w-7xl mx-auto h-full flex flex-col justify-between bg-[#080a0f] xl:border-x xl:border-white/10 xl:shadow-[0_0_100px_rgba(0,0,0,0.95)] relative w-full max-w-full overflow-x-hidden overflow-y-auto">
-        <div className="w-full flex-1 min-h-0 flex flex-col relative w-full max-w-full overflow-x-hidden overflow-y-auto">
-          {renderScreen()}
-        </div>
+      <div className="w-full max-w-7xl mx-auto h-full flex flex-col justify-between bg-[#080a0f] xl:border-x xl:border-white/10 xl:shadow-[0_0_100px_rgba(0,0,0,0.95)] relative w-full max-w-full overflow-hidden">
+        {renderScreen()}
 
         {screen !== 'MODE_DETAIL' && (
           <nav className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] px-6 flex md:hidden justify-around items-center z-40">
           <button 
-            onClick={() => { soundManager.play('tapMenu'); setScreen('HOME'); onTabChange('LOBBY'); }} 
+            onClick={() => {
+              soundManager.play('tapMenu');
+              setIsEdgeDragging(false);
+              setNavDirection('none');
+              setScreen('HOME');
+              onTabChange('LOBBY');
+            }} 
             className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'HOME' || screen === 'MODES' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             <Icons.Home />
             <span className="text-[8px] md:text-[10px] font-black tracking-widest uppercase">{t.nav.hq}</span>
           </button>
           <button 
-            onClick={() => { soundManager.play('tapMenu'); setScreen('TABLES'); onTabChange('TABLES'); }} 
+            onClick={() => {
+              soundManager.play('tapMenu');
+              setIsEdgeDragging(false);
+              setNavDirection('none');
+              setScreen('TABLES');
+              onTabChange('TABLES');
+            }} 
             className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'TABLES' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             <Icons.Cards />
             <span className="text-[8px] md:text-[10px] font-black tracking-widest uppercase">{t.nav.tables}</span>
           </button>
           <button 
-            onClick={() => { soundManager.play('tapMenu'); setScreen('PROFILE'); onTabChange('TOP'); }} 
+            onClick={() => {
+              soundManager.play('tapMenu');
+              setIsEdgeDragging(false);
+              setNavDirection('none');
+              setScreen('PROFILE');
+              onTabChange('TOP');
+            }} 
             className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'PROFILE' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             <Icons.User />

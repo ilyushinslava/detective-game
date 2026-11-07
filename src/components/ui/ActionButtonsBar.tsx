@@ -115,34 +115,44 @@ export const ActionButtonsBar: React.FC<ActionButtonsBarProps> = ({
   };
 
   return (
-    <div className={`grid grid-cols-2 gap-2 w-full ${className}`}>
-      {actions.map((act) => {
-        const isRed = act.isRed ?? (act.id.includes('KILL') || act.id.includes('ACCUSE') || act.id.includes('ROB'));
-        return (
-          <Button
-            key={act.id}
-            variant={isRed ? "primary-danger" : "secondary"}
-            onClick={act.onClick}
-            disabled={act.disabled}
-            className="h-11 px-3 text-[11px] font-black uppercase tracking-wider gap-2 truncate"
-          >
-            {renderIcon(act.id)}
-            <span className="truncate">{act.label}</span>
-          </Button>
-        );
-      })}
+    <div className={`w-full flex flex-col gap-2 ${className}`}>
+      <div className="w-full flex items-center gap-2">
+        {actions.map((act) => {
+          const isRed = act.id.includes('KILL') || act.id.includes('ATTACK') || act.id === 'kill_basic' || act.id === 'capture_spy';
+          const isAmber = act.id.includes('ROB') || act.id === 'rob_basic';
+          const isBlue = act.id.includes('ACCUSE') || act.id.includes('PATROL') || act.id.includes('INTERROGATE') || act.id.includes('SWEAR_IN') || act.id === 'accuse_basic' || act.id === 'patrol_call' || act.id === 'interrogate_spy' || act.id === 'QUESTION' || act.id === 'DUEL_ASK_QUESTION';
+
+          const colorClasses = isRed
+            ? "bg-gradient-to-r from-red-700 via-red-600 to-rose-600 hover:from-red-650 hover:to-rose-550 text-white font-black shadow-lg shadow-red-950/50 border border-red-400/40 active:scale-[0.97]"
+            : isBlue
+            ? "bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-500 text-white font-black shadow-lg shadow-blue-950/50 border border-blue-400/40 active:scale-[0.97]"
+            : isAmber
+            ? "bg-gradient-to-r from-amber-600 to-yellow-500 text-zinc-950 font-black shadow-lg shadow-amber-950/50 border border-amber-300/50 active:scale-[0.97]"
+            : "bg-zinc-800 hover:bg-zinc-700 text-white font-bold border border-white/20 active:scale-[0.97]";
+
+          return (
+            <button
+              key={act.id}
+              onClick={act.onClick}
+              disabled={act.disabled}
+              className={`flex-1 min-w-0 h-11 px-2.5 sm:px-3 text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed ${colorClasses}`}
+            >
+              {renderIcon(act.id)}
+              <span className="whitespace-nowrap overflow-hidden text-ellipsis">{act.label}</span>
+            </button>
+          );
+        })}
+      </div>
 
       {cleanupAction && (
-        <Button
-          variant="primary-danger"
-          fullWidth
+        <button
           onClick={cleanupAction.onClick}
           disabled={cleanupAction.disabled}
-          className="col-span-2 h-11 text-[11px] font-black uppercase tracking-wider gap-2 shadow-[0_0_15px_rgba(220,38,38,0.35)]"
+          className="w-full h-11 text-xs sm:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 bg-gradient-to-r from-red-700 via-red-600 to-rose-600 hover:from-red-650 hover:to-rose-550 text-white shadow-lg shadow-red-950/50 border border-red-400/40 active:scale-[0.97] rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {renderIcon('CLEANUP')}
-          <span>Зачистить поле</span>
-        </Button>
+          <span className="whitespace-nowrap overflow-hidden text-ellipsis">Зачистить поле</span>
+        </button>
       )}
     </div>
   );

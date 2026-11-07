@@ -216,30 +216,30 @@ export const DuelScreen = ({
       </main>
 
       {/* Bottom Action Bar Slot */}
-      <footer className="w-full max-w-xl mx-auto flex items-center gap-2 shrink-0 pt-2 border-t border-zinc-900 z-20 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <footer className="w-full max-w-xl mx-auto flex items-center gap-1.5 sm:gap-2 shrink-0 pt-2 border-t border-zinc-900 z-20 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         <button
           onClick={() => setIsCatalogOpen(true)}
           disabled={Boolean(state.winner)}
-          className="flex-1 h-11 px-4 bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-900 disabled:text-zinc-600 disabled:border-zinc-800 border border-blue-500/50 text-white rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(37,99,235,0.25)] transition cursor-pointer disabled:cursor-not-allowed"
+          className="flex-1 min-w-0 h-11 px-2.5 sm:px-3 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-500 disabled:bg-zinc-900 disabled:text-zinc-600 disabled:border-zinc-800 border border-blue-400/40 text-white rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-lg shadow-blue-950/50 transition cursor-pointer disabled:cursor-not-allowed active:scale-[0.97]"
         >
           <Icons.Question />
-          <span>Задать вопрос</span>
+          <span className="whitespace-nowrap overflow-hidden text-ellipsis">Задать вопрос</span>
         </button>
 
         <button
           onClick={() => setIsCandidatesOpen(true)}
-          className="h-11 px-4 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-200 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer shrink-0"
+          className="flex-1 min-w-0 h-11 px-2.5 sm:px-3 bg-zinc-800 hover:bg-zinc-700 border border-white/20 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition cursor-pointer active:scale-[0.97]"
         >
           <Icons.Folder />
-          <span>Досье</span>
+          <span className="whitespace-nowrap overflow-hidden text-ellipsis">Досье</span>
         </button>
 
         <button
           onClick={() => dispatch({ type: "TIMEOUT_PASS" })}
           disabled={Boolean(state.winner)}
-          className="h-11 px-3 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 disabled:bg-zinc-900 disabled:text-zinc-700 text-zinc-400 hover:text-zinc-200 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center transition cursor-pointer shrink-0 disabled:cursor-not-allowed"
+          className="flex-1 min-w-0 h-11 px-2 sm:px-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 disabled:bg-zinc-900 disabled:text-zinc-700 text-zinc-400 hover:text-zinc-200 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center transition cursor-pointer disabled:cursor-not-allowed active:scale-[0.97]"
         >
-          Пропуск
+          <span className="whitespace-nowrap overflow-hidden text-ellipsis">Пропуск</span>
         </button>
       </footer>
 

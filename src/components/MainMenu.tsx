@@ -49,7 +49,67 @@ const Icons = {
     </svg>
   ),
   Play: () => <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M8 5v14l11-7z"/></svg>,
-  Users: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>,
+  Users: ({ className = "w-4 h-4 text-zinc-300" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+      <circle cx="9" cy="7" r="4"></circle>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+    </svg>
+  ),
+  Grid: ({ className = "w-5 h-5 text-zinc-300" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+    </svg>
+  ),
+  Target: ({ className = "w-5 h-5 text-zinc-300" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="6" />
+      <circle cx="12" cy="12" r="2" />
+    </svg>
+  ),
+  Coins: ({ className = "w-5 h-5 text-amber-400" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+      <circle cx="9" cy="9" r="7" />
+      <path d="M16.5 10.5a7 7 0 1 1-6 9.5" />
+      <path d="M9 7v4M7 9h4" opacity="0.6" />
+    </svg>
+  ),
+  FileText: ({ className = "w-5 h-5 text-zinc-300" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+      <polyline points="10 9 9 9 8 9" />
+    </svg>
+  ),
+  EyeOff: ({ className = "w-5 h-5 text-zinc-300" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
+    </svg>
+  ),
+  HelpCircle: ({ className = "w-5 h-5 text-zinc-300" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  ),
+  Scale: ({ className = "w-5 h-5 text-zinc-300" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
+      <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+      <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+      <path d="M7 21h10" />
+      <path d="M12 3v18" />
+      <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
+    </svg>
+  ),
   Clock: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
   Shield: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>,
   ArrowRight: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>,
@@ -634,71 +694,109 @@ export const MainMenu = ({
     </div>
   );
 
-  const renderModeDetail = () => (
-    <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden relative">
-      <div className="flex items-center px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 z-10 bg-[#080a0f]">
-        <Button variant="ghost" onClick={() => setScreen('MODES')} className="h-9 px-2 text-zinc-400 hover:text-white gap-1">
-          <Icons.ChevronLeft />
-          <span className="text-[10px] font-black uppercase tracking-widest">Назад</span>
-        </Button>
-      </div>
-      
-      <div className="flex-1 overflow-y-auto custom-scrollbar pb-[max(7rem,env(safe-area-inset-bottom))]">
-        <div className="px-6 py-5 w-full md:max-w-2xl lg:max-w-3xl mx-auto">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900/80 border border-white/10 text-zinc-300 text-xs font-bold font-mono">
-              {activeModeData.players}
-            </span>
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900/80 border border-white/10 text-zinc-300 text-xs font-bold font-mono">
-              Сетка 5×5
-            </span>
-          </div>
+  interface ModeSummaryItem {
+    icon: (props: { className?: string }) => JSX.Element;
+    title: string;
+    subtitle: string;
+  }
 
-          <h1 className="text-2xl md:text-3xl font-black text-white uppercase tracking-widest leading-tight mb-2">
-            {activeModeData.title}
-          </h1>
-          <p className="text-xs md:text-sm text-zinc-400 leading-relaxed mb-6">
-            {activeModeData.description}
-          </p>
+  const getModeSummaryItems = (modeId: GameModeType): ModeSummaryItem[] => {
+    switch (modeId) {
+      case 'MANIAC_VS_OPERATIVE':
+        return [
+          { icon: Icons.Grid, title: '25 ЖИТЕЛЕЙ', subtitle: 'ПОДОЗРЕВАЕМЫЕ' },
+          { icon: Icons.Target, title: '4 ЖЕРТВЫ', subtitle: 'ЦЕЛЬ МАНЬЯКА' },
+          { icon: Icons.RadioRadar, title: 'РАДИУС 3×3', subtitle: 'ЗОНА ОХОТЫ' },
+        ];
+      case 'THIEF_HUNT':
+        return [
+          { icon: Icons.Grid, title: '25 КВАРТАЛОВ', subtitle: 'ГОРОДСКАЯ СЕТКА' },
+          { icon: Icons.Coins, title: '3 КРАЖИ', subtitle: 'ЦЕЛЬ ВОРА' },
+          { icon: Icons.ShieldLock, title: 'ОЦЕПЛЕНИЕ', subtitle: 'БЛОК ПАТРУЛЕЙ' },
+        ];
+      case 'SECRET_SERVICE':
+        return [
+          { icon: Icons.Users, title: '2–6 АГЕНТОВ', subtitle: 'СПЕЦСЛУЖБЫ' },
+          { icon: Icons.FileText, title: 'КОМПРОМАТ', subtitle: 'СБОР ДАННЫХ' },
+          { icon: Icons.EyeOff, title: 'ПРИКРЫТИЕ', subtitle: 'ТАЙНЫЕ ЯВКИ' },
+        ];
+      case 'LINE_UP':
+        return [
+          { icon: Icons.Search, title: 'ДОСЬЕ 5×5', subtitle: 'КАРТОТЕКА ЛИЦ' },
+          { icon: Icons.HelpCircle, title: 'ВОПРОСЫ', subtitle: 'КАТАЛОГ УЛИК' },
+          { icon: Icons.Scale, title: 'ИСКЛЮЧЕНИЕ', subtitle: 'ЧИСТЫЙ РАСЧЕТ' },
+        ];
+      default:
+        return [
+          { icon: Icons.Grid, title: '25 КАРТ', subtitle: 'СЕТКА 5×5' },
+          { icon: Icons.Target, title: 'ДУЭЛЬ', subtitle: '1 НА 1' },
+          { icon: Icons.Search, title: 'ПОИСК', subtitle: 'ДЕДУКЦИЯ' },
+        ];
+    }
+  };
 
-          <div className="flex flex-col gap-6">
+  const renderModeDetail = () => {
+    const summaryItems = getModeSummaryItems(activeModeData.id);
+
+    return (
+      <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden relative">
+        <div className="flex items-center px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 z-10 bg-[#080a0f] relative">
+          <Button variant="ghost" onClick={() => setScreen('MODES')} className="h-9 px-2 text-zinc-400 hover:text-white gap-1">
+            <Icons.ChevronLeft />
+            <span className="text-[10px] font-black uppercase tracking-widest">Назад</span>
+          </Button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto custom-scrollbar pb-24 sm:pb-28">
+          <div className="px-4 sm:px-6 py-3.5 sm:py-4 w-full max-w-xl mx-auto flex flex-col gap-4 sm:gap-4.5">
             <div>
-              <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">
+              <h1 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider leading-tight">
+                {activeModeData.title}
+              </h1>
+              <p className="text-xs text-zinc-400 leading-snug mt-1">
+                {activeModeData.description}
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
                 СВОДКА РАССЛЕДОВАНИЯ
               </h3>
-              <div className="grid grid-cols-3 gap-2.5 mb-6">
-                <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
-                  <Icons.CardsDeck className="w-6 h-6 text-zinc-300 mb-0.5" />
-                  <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">25 жителей</span>
-                  <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">подозреваемых в деле</span>
-                </div>
-                <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
-                  <Icons.EvidenceCards className="w-6 h-6 text-zinc-400 mb-0.5" />
-                  <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">База досье</span>
-                  <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">сбор доказательств</span>
-                </div>
-                <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
-                  <Icons.TokensGroup className="w-6 h-6 text-zinc-400 mb-0.5" />
-                  <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">Радар и алиби</span>
-                  <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">статусы свидетелей</span>
-                </div>
+              <div className="grid grid-cols-3 gap-2 sm:gap-2.5 w-full">
+                {summaryItems.map((item, idx) => {
+                  const ItemIcon = item.icon;
+                  return (
+                    <div
+                      key={idx}
+                      className="bg-zinc-950/60 border border-white/10 rounded-2xl p-2.5 sm:p-3 flex flex-col items-center text-center justify-between min-h-[92px] sm:min-h-[96px] shadow-sm"
+                    >
+                      <ItemIcon className="w-5 h-5 text-zinc-300" />
+                      <span className="text-xs sm:text-sm font-black font-mono text-zinc-100 tracking-wider mt-1.5">
+                        {item.title}
+                      </span>
+                      <span className="text-[9px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-tight mt-0.5">
+                        {item.subtitle}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
             <div>
-              <h3 className="text-[10px] md:text-xs font-black text-zinc-400 uppercase tracking-widest mb-2.5">
+              <h3 className="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
                 Формат партии
               </h3>
-              <div className="flex bg-zinc-950/80 p-1 rounded-xl border border-white/10 mb-5 shadow-inner">
+              <div className="bg-zinc-900/80 border border-white/10 p-1 rounded-xl flex gap-1 w-full shadow-inner">
                 {(['AI', 'PVP', 'ONLINE'] as OpponentType[]).map(opp => {
                   const isSelected = selectedOpponent === opp;
                   return (
                     <button
                       key={opp}
                       onClick={() => { setSelectedOpponent(opp); if (opp === 'PVP') setPlayerCount(2); }}
-                      className={`flex-1 py-2.5 md:py-3 text-[10px] md:text-xs font-black uppercase tracking-widest rounded-lg transition cursor-pointer ${
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg text-center transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-zinc-800 text-cyan-300 border border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
+                          ? 'text-white bg-zinc-800 border border-white/10 shadow-sm'
                           : 'text-zinc-400 hover:text-zinc-200'
                       }`}
                     >
@@ -711,24 +809,26 @@ export const MainMenu = ({
 
             {selectedOpponent === 'AI' && activeModeData.id !== 'SECRET_SERVICE' && (
               <div>
-                <h3 className="text-[10px] md:text-xs font-black text-zinc-400 uppercase tracking-widest mb-2.5">Ваша роль</h3>
-                <div className="flex gap-3 mb-5">
+                <h3 className="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
+                  Ваша роль
+                </h3>
+                <div className="flex gap-2.5">
                   <button
                     onClick={() => setSelectedRole('DETECTIVE')}
-                    className={`flex-1 py-3 rounded-xl border text-[10px] md:text-xs font-black uppercase tracking-widest transition cursor-pointer ${
+                    className={`flex-1 py-2.5 sm:py-3 px-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer text-center ${
                       selectedRole === 'DETECTIVE'
-                        ? 'bg-cyan-950/40 border-cyan-500/60 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
-                        : 'bg-zinc-900/60 border-white/10 text-zinc-400 hover:text-zinc-200'
+                        ? 'bg-blue-950/40 border border-blue-500/50 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.15)]'
+                        : 'bg-zinc-950/40 border border-white/10 text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
                     {activeModeData.detectiveRoleName}
                   </button>
                   <button
                     onClick={() => setSelectedRole('KILLER')}
-                    className={`flex-1 py-3 rounded-xl border text-[10px] md:text-xs font-black uppercase tracking-widest transition cursor-pointer ${
+                    className={`flex-1 py-2.5 sm:py-3 px-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer text-center ${
                       selectedRole === 'KILLER'
-                        ? 'bg-red-950/40 border-red-500/60 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.2)]'
-                        : 'bg-zinc-900/60 border-white/10 text-zinc-400 hover:text-zinc-200'
+                        ? 'bg-red-950/40 border border-red-500/50 text-red-300 shadow-[0_0_12px_rgba(239,68,68,0.15)]'
+                        : 'bg-zinc-950/40 border border-white/10 text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
                     {activeModeData.killerRoleName}
@@ -739,44 +839,44 @@ export const MainMenu = ({
 
             {activeModeData.id === 'SECRET_SERVICE' && (
               <div className="w-full">
-                <div className="flex items-center justify-between mb-2.5">
-                  <h3 className="text-[10px] md:text-xs font-black text-zinc-400 uppercase tracking-widest">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest">
                     Количество агентов
                   </h3>
                   <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
                     Сетка: {playerCount >= 5 ? "6×6 (36 карт)" : "5×5 (25 карт)"}
                   </span>
                 </div>
-                <div className="grid grid-cols-6 gap-1.5 mb-2">
+                <div className="flex items-center gap-2 mb-2">
                   {[2, 3, 4, 5, 6].map((num) => {
                     const isPvpDisabled = selectedOpponent === "PVP" && num > 2;
+                    const isSelected = playerCount === num && !isPvpDisabled;
                     return (
                       <button
                         key={num}
                         disabled={isPvpDisabled}
                         onClick={() => !isPvpDisabled && setPlayerCount(num)}
-                        className={`py-2.5 rounded-xl border text-[11px] font-black uppercase transition flex items-center justify-center gap-1 ${
-                          playerCount === num && !isPvpDisabled
-                            ? "bg-zinc-800 border-cyan-500/50 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.2)] scale-[1.02] cursor-pointer"
+                        className={`w-10 h-10 rounded-xl border text-xs font-bold uppercase transition flex items-center justify-center ${
+                          isSelected
+                            ? "bg-zinc-800 border-white/20 text-white font-black shadow-sm cursor-pointer"
                             : isPvpDisabled
                               ? "bg-zinc-950/40 border-white/[0.04] text-zinc-700 cursor-not-allowed opacity-50"
-                              : "bg-zinc-900/60 border-white/10 text-zinc-400 hover:text-zinc-200 cursor-pointer"
+                              : "bg-zinc-900/60 border-white/10 text-zinc-400 hover:text-zinc-200 hover:border-white/20 cursor-pointer"
                         }`}
                       >
-                        {isPvpDisabled && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3"><rect x="6" y="11" width="12" height="10" rx="2" ry="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>}
                         {num}
                       </button>
                     );
                   })}
                   <div
                     title="Сетка 7×7 (49 карт) доступна только в ТВ-режиме"
-                    className="py-2.5 rounded-xl border border-white/[0.04] bg-zinc-950/40 text-zinc-600 flex flex-col items-center justify-center cursor-not-allowed select-none opacity-50 relative group"
+                    className="w-10 h-10 rounded-xl border border-white/[0.04] bg-zinc-950/40 text-zinc-600 flex flex-col items-center justify-center cursor-not-allowed select-none opacity-50"
                   >
                     <span className="text-[10px] font-bold">7×7</span>
                     <span className="text-[7px] font-black text-red-500/80 uppercase tracking-tighter">ТВ</span>
                   </div>
                 </div>
-                <div className="text-[9px] font-mono text-zinc-500">
+                <div className="text-[10px] font-mono text-zinc-500">
                   {selectedOpponent === "AI"
                     ? `Вы против ${playerCount - 1} агентов ИИ. Цель: 4 компромата.`
                     : `Локальный матч на ${playerCount} человек. Передача устройства по кругу.`}
@@ -785,32 +885,32 @@ export const MainMenu = ({
             )}
           </div>
         </div>
-      </div>
 
-      <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/90 to-transparent pb-[max(1rem,env(safe-area-inset-bottom))] z-20">
-        <div className="w-full md:max-w-2xl lg:max-w-3xl mx-auto">
-          <Button
-            variant="primary-danger"
-            fullWidth
-            onClick={() => {
-              if (selectedOpponent === 'ONLINE') {
-                setCreateRoomMode(selectedMode);
-                setIsCreateRoomOpen(true);
-              } else {
-                const effectiveCount = (selectedMode === "SECRET_SERVICE" && selectedOpponent === "PVP") ? 2 : playerCount;
-                const targetTrophies = selectedMode === "SECRET_SERVICE" ? (effectiveCount === 2 ? 2 : effectiveCount === 3 ? 4 : 3) : 3;
-                onStartGame(selectedMode, selectedOpponent, selectedRole, effectiveCount, targetTrophies, 0, 0);
-              }
-            }}
-            className="h-14 md:h-16 rounded-full text-white font-black tracking-widest uppercase flex items-center justify-center gap-3 shadow-[0_10px_25px_rgba(220,38,38,0.5)] md:text-sm"
-          >
-            <span>НАЧАТЬ ИГРУ</span>
-            <Icons.ArrowRight />
-          </Button>
+        <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/95 to-transparent pb-[max(1rem,env(safe-area-inset-bottom))] z-20">
+          <div className="w-full max-w-xl mx-auto">
+            <Button
+              variant="primary-danger"
+              fullWidth
+              onClick={() => {
+                if (selectedOpponent === 'ONLINE') {
+                  setCreateRoomMode(selectedMode);
+                  setIsCreateRoomOpen(true);
+                } else {
+                  const effectiveCount = (selectedMode === "SECRET_SERVICE" && selectedOpponent === "PVP") ? 2 : playerCount;
+                  const targetTrophies = selectedMode === "SECRET_SERVICE" ? (effectiveCount === 2 ? 2 : effectiveCount === 3 ? 4 : 3) : 3;
+                  onStartGame(selectedMode, selectedOpponent, selectedRole, effectiveCount, targetTrophies, 0, 0);
+                }
+              }}
+              className="h-12 shadow-lg shadow-red-950/50 flex items-center justify-center gap-2 text-xs sm:text-sm font-black tracking-widest uppercase"
+            >
+              <span>НАЧАТЬ ИГРУ</span>
+              <span>➔</span>
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderTables = () => (
     <TablesScreen

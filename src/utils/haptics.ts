@@ -1,4 +1,4 @@
-﻿export const setHapticsEnabled = (enabled: boolean) => {
+export const setHapticsEnabled = (enabled: boolean) => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('crime_city_haptics', enabled ? 'true' : 'false');
   }
@@ -47,6 +47,9 @@ export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | '
         tickInput = document.createElement('input');
         tickInput.id = 'haptic-tick-input';
         tickInput.type = 'checkbox';
+        tickInput.tabIndex = -1;
+        tickInput.readOnly = true;
+        tickInput.setAttribute('aria-hidden', 'true');
         tickInput.setAttribute('role', 'switch');
         tickInput.style.position = 'fixed';
         tickInput.style.top = '-9999px';

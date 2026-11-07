@@ -1,4 +1,4 @@
-﻿// src/utils/audio.ts
+// src/utils/audio.ts
 
 type SoundType =
   | 'splash'
@@ -119,8 +119,17 @@ class SoundController {
 
   public unlockAudioContext(): void {
     this.initAudioContext();
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume().catch(() => {});
+    if (this.ctx) {
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
+      try {
+        const silentBuffer = this.ctx.createBuffer(1, 1, 22050);
+        const source = this.ctx.createBufferSource();
+        source.buffer = silentBuffer;
+        source.connect(this.ctx.destination);
+        source.start(0);
+      } catch (_) {}
     }
   }
 

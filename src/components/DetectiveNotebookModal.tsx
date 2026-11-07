@@ -92,7 +92,7 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/95 backdrop-blur-md p-2 sm:p-4 select-none">
+    <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/95 backdrop-blur-md p-2 sm:p-4 select-none modal-backdrop touch-none" onTouchMove={(e) => e.stopPropagation()}>
       <div className="w-full max-w-2xl bg-zinc-950/95 backdrop-blur-xl border border-white/10 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[92vh]">
         <div className="flex justify-between items-center mb-3 shrink-0 border-b border-white/10 pb-3">
           <div className="flex items-center gap-2">

@@ -395,6 +395,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
               myCharacterId={myCharacterId}
               isPVP={isPVP}
               myRoleColor={myRoleColor}
+              isModalOpen={isHandSheetOpen || isLogOpen || !isHumanTurn}
               onShift={handleShift}
               onSelectCharacter={(id) => {
                 soundManager.play('click');

@@ -33,8 +33,9 @@ export const PauseModal: React.FC<PauseModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none modal-backdrop touch-none"
       onClick={onClose}
+      onTouchMove={(e) => e.stopPropagation()}
     >
       <div
         className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-center shadow-2xl flex flex-col gap-3"

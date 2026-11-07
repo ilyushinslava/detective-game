@@ -18,11 +18,47 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   onStartGame,
   onExit,
 }) => {
+  const isLocalDev = useMemo(() => {
+    return typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  }, []);
+
+  const [lanHost, setLanHost] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return (
+        localStorage.getItem('dev_tv_lan_host') ||
+        (import.meta.env.VITE_DEV_LAN_HOST as string) ||
+        ''
+      );
+    }
+    return '';
+  });
+
+  const [isEditingLan, setIsEditingLan] = useState(false);
+  const [lanInput, setLanInput] = useState(lanHost);
+
+  const handleSaveLan = () => {
+    const trimmed = lanInput.trim();
+    setLanHost(trimmed);
+    if (typeof window !== 'undefined') {
+      if (trimmed) {
+        localStorage.setItem('dev_tv_lan_host', trimmed);
+      } else {
+        localStorage.removeItem('dev_tv_lan_host');
+      }
+    }
+    setIsEditingLan(false);
+  };
+
   const joinUrl = useMemo(() => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    let origin = typeof window !== 'undefined' ? window.location.origin : '';
+    if (isLocalDev && lanHost) {
+      const protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:';
+      origin = `${protocol}//${lanHost}`;
+    }
     const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
     return `${origin}${pathname}?clientType=CONTROLLER&room=${roomCode}`;
-  }, [roomCode]);
+  }, [roomCode, isLocalDev, lanHost]);
 
   const [selectedMode, setSelectedMode] = useState<GameModeType>('MANIAC_VS_OPERATIVE');
   const [isPassAndPlay, setIsPassAndPlay] = useState<boolean>(false);
@@ -169,6 +205,54 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           <div className="text-[11px] font-mono text-zinc-600 truncate max-w-xs">
             {joinUrl}
           </div>
+          {isLocalDev && (
+            <div className="mt-3 p-2 rounded-xl bg-zinc-900/90 border border-zinc-800 text-left text-[11px] font-mono text-zinc-400 max-w-xs w-full">
+              {isEditingLan ? (
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[9px] uppercase tracking-wider text-zinc-500 font-bold">Локальный IP (для Wi-Fi телефонов):</span>
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      value={lanInput}
+                      onChange={(e) => setLanInput(e.target.value)}
+                      placeholder="192.168.1.50:5173"
+                      className="px-2 py-1 bg-zinc-950 border border-zinc-700 rounded text-xs text-white flex-1 font-mono focus:outline-none focus:border-red-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveLan}
+                      className="px-2 py-1 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-bold cursor-pointer"
+                    >
+                      OK
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingLan(false)}
+                      className="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded text-xs cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <span className="truncate">
+                    LAN IP: <span className="text-zinc-200 font-bold">{lanHost || 'localhost'}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLanInput(lanHost || (typeof window !== 'undefined' ? `${window.location.hostname}:${window.location.port}` : ''));
+                      setIsEditingLan(true);
+                    }}
+                    className="text-[10px] text-red-400 hover:text-red-300 underline ml-2 shrink-0 cursor-pointer"
+                  >
+                    {lanHost ? 'Сменить IP' : 'Задать Wi-Fi IP'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Правая колонка: PIN-код и слоты игроков */}

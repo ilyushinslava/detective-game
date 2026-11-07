@@ -55,3 +55,38 @@ img, svg, button {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+/* DEBT-04: Изоляция фоновых тач-событий при открытых модальных окнах */
+.modal-backdrop {
+  touch-action: none !important;
+  overscroll-behavior: contain !important;
+}
+
+/* DEBT-06: Адаптивное масштабирование интерфейса TV Party для больших экранов */
+.tv-root {
+  font-size: 14px;
+}
+
+@media screen and (min-width: 1280px) {
+  .tv-root {
+    font-size: 16px;
+  }
+}
+
+@media screen and (min-width: 1920px) {
+  .tv-root {
+    font-size: 18px;
+  }
+}
+
+@media screen and (min-width: 2560px) {
+  .tv-root {
+    font-size: 22px;
+  }
+}
+
+@media screen and (min-width: 3840px) {
+  .tv-root {
+    font-size: 26px;
+  }
+}

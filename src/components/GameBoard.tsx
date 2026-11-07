@@ -24,6 +24,7 @@ interface GameBoardProps {
   myCharacterId?: string | null;
   isPVP?: boolean;
   myRoleColor?: "red" | "blue";
+  isModalOpen?: boolean;
   onShift: (
     type: "ROW" | "COL",
     index: number,
@@ -52,6 +53,7 @@ export const GameBoard = ({
   myCharacterId = null,
   isPVP = false,
   myRoleColor,
+  isModalOpen = false,
   onShift,
   onSelectCharacter,
 }: GameBoardProps) => {
@@ -70,6 +72,10 @@ export const GameBoard = ({
   const hasSwipedRef = useRef(false);
 
   const handleTouchStart = (rIdx: number, cIdx: number, e: React.TouchEvent) => {
+    if (isModalOpen) {
+      touchStartRef.current = null;
+      return;
+    }
     const touch = e.touches[0];
     if (!touch) return;
     touchStartRef.current = {
@@ -82,7 +88,10 @@ export const GameBoard = ({
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
+    if (isModalOpen || !touchStartRef.current) {
+      touchStartRef.current = null;
+      return;
+    }
     const touch = e.changedTouches[0];
     if (!touch) {
       touchStartRef.current = null;
@@ -124,6 +133,7 @@ export const GameBoard = ({
   };
 
   const handleCardClick = (id: string) => {
+    if (isModalOpen) return;
     if (hasSwipedRef.current) {
       hasSwipedRef.current = false;
       return;

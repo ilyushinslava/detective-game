@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface IdentityRevealModalProps {
@@ -41,7 +41,7 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
     : "bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4 select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4 select-none modal-backdrop touch-none" onTouchMove={(e) => e.stopPropagation()}>
       <AnimatePresence>
         {isFullscreen && character && characterImage && (
           <motion.div

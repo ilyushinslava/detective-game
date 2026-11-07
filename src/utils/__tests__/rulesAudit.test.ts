@@ -35,20 +35,20 @@ describe("Игровые правила (Rules Audit)", () => {
     expect(newState.currentTurn).toBe("KILLER");
   });
 
-  it("MANIAC_VS_OPERATIVE: Ложное задержание возвращает цель из victimList в evidenceDeck", () => {
+  it("MANIAC_VS_OPERATIVE: Ложное задержание не сокращает victimList, сыщик тратит ход", () => {
     let state = createInitialState("MANIAC_VS_OPERATIVE", "PVP");
     state.currentTurn = "DETECTIVE";
-    
-    const lastVictim = state.victimList[state.victimList.length - 1];
     
     const targetId = state.board.flat().find(c => c.id !== state.killerSecretId)!.id;
     state.detectiveSecretId = targetId; // Искусственно удовлетворяем условие соседства
     
+    const initialVictimsCount = state.victimList.length;
     const newState = accuseCharacter(state, targetId);
 
-    // Цель возвращается в колоду, но автодобор сразу восстанавливает пул жертв до 4
-    expect(newState.victimList.length).toBe(3);
-    expect(newState.evidenceDeck).toContain(lastVictim);
+    // При ошибке список жертв не сокращается, ход переходит маньяку
+    expect(newState.victimList.length).toBe(initialVictimsCount);
+    expect(newState.currentTurn).toBe("KILLER");
+    expect(newState.log[newState.log.length - 1]).toContain("Ошибка следствия");
   });
 
 

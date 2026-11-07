@@ -746,7 +746,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "THIEF" && lesson === 1 && step === 3 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Успешная кража!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Похищен жетон Синдиката (добыча 1/10).</p>
+                  <p className="text-xs text-zinc-400 font-mono">Похищен жетон Синдиката (добыча 1/8).</p>
                 </div>
               )}
               {false && currentModule === "THIEF" && lesson === 1 && step === 3 && (

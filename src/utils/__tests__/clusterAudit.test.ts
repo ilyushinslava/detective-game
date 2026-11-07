@@ -32,7 +32,7 @@ describe("Сквозной аудит инвариантов (Кластеры 1
       expect(nextState.log[nextState.log.length - 1]).toContain("Провал конспирации");
     });
 
-    it("escapeManiac: провал побега, если вытянута оправданная карта (isExonerated: true)", () => {
+    it("escapeManiac: пропускает оправданную карту наверху колоды и выбирает первую валидную", () => {
       const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
       const initialKillerId = state.killerSecretId;
       const initialVictimCount = state.victimList.length;
@@ -46,7 +46,28 @@ describe("Сквозной аудит инвариантов (Кластеры 1
 
       const nextState = escapeManiac(state);
 
-      // Личность не изменилась, список жертв не вырос
+      // Побег успешен: маньяк НЕ взял оправданную карту, а взял первую валидную карту из глубины колоды
+      expect(nextState.killerSecretId).not.toBe(initialKillerId);
+      expect(nextState.killerSecretId).not.toBe(targetChar.id);
+      expect(nextState.victimList.length).toBe(initialVictimCount + 1);
+      expect(nextState.currentTurn).toBe("DETECTIVE");
+      expect(nextState.log[nextState.log.length - 1]).toContain("Маньяк успешно сбежал");
+    });
+
+    it("escapeManiac: провал побега, если в колоде нет валидных карт (все оправданы)", () => {
+      const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
+      const initialKillerId = state.killerSecretId;
+      const initialVictimCount = state.victimList.length;
+
+      // Делаем всех кандидатов в колоде оправданными
+      state.evidenceDeck.forEach(id => {
+        const c = state.board.flat().find(card => card.id === id);
+        if (c) c.isExonerated = true;
+      });
+
+      const nextState = escapeManiac(state);
+
+      // Личность не изменилась, список жертв не вырос, в логе сообщение о провале
       expect(nextState.killerSecretId).toBe(initialKillerId);
       expect(nextState.victimList.length).toBe(initialVictimCount);
       expect(nextState.currentTurn).toBe("DETECTIVE");

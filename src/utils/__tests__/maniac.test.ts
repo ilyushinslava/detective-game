@@ -136,7 +136,7 @@ describe("Режим: Маньяк против оперативника (MANIAC
     expect(nextState.winner).toBe("KILLER");
   });
 
-  it("Ложное задержание: список жертв пополняется из колоды до 4", () => {
+  it("Ложное задержание: список жертв не сокращается при ошибке оперативника", () => {
     const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
     state.currentTurn = "DETECTIVE";
 
@@ -150,7 +150,10 @@ describe("Режим: Маньяк против оперативника (MANIAC
 
     const nextState = accuseCharacter(state, wrongTarget.id);
 
-    // singleVictim вернется в колоду, затем мы доберем до 4 целей
-    expect(nextState.victimList.length).toBe(0);
+    // singleVictim не удаляется из victimList при ошибке следствия, ход переходит маньяку
+    expect(nextState.victimList.length).toBe(1);
+    expect(nextState.victimList).toContain(singleVictim);
+    expect(nextState.currentTurn).toBe("KILLER");
+    expect(nextState.log[nextState.log.length - 1]).toContain("Ошибка следствия");
   });
 });

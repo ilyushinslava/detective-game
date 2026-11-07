@@ -241,7 +241,7 @@ export function createInitialState(
       };
     });
 
-    const defaultTrophies = count === 2 ? 2 : count === 3 || count === 9 ? 4 : 3;
+    const defaultTrophies = count === 3 || count === 9 ? 4 : 3;
     spyTargetTrophies = (targetTrophies && targetTrophies !== 3) ? targetTrophies : defaultTrophies;
     activeSpyIndex = 0;
     detectiveSecretId = spies[0].secretId;
@@ -564,7 +564,7 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
   if (!targetChar || targetChar.isRobbed) return state;
 
   const newTrophies = (state.trophiesKiller ?? 0) + 1;
-  const isWin = newTrophies >= 10;
+  const isWin = newTrophies >= 8;
 
   const newBoard = state.board.map((row) =>
     row.map((c) => (c.id === targetId ? { ...c, isRobbed: true } : c)),
@@ -582,7 +582,7 @@ export function robNeighbor(state: GameState, targetId: string): GameState {
     disguisedNotification: null,
     log: [
       ...state.log,
-      `Грабитель похитил сокровище у ${targetChar.name}! Добыча: ${newTrophies}/10.${
+      `Грабитель похитил сокровище у ${targetChar.name}! Добыча: ${newTrophies}/8.${
         isWin ? " Грабитель украл всё и победил!" : ""
       }`,
     ],
@@ -648,21 +648,15 @@ export function accuseCharacter(state: GameState, targetId: string): GameState {
 
   if (state.mode === "THIEF_HUNT") {
     logMsg = `Ложная проверка: ${targetName} не грабитель.`;
+  } else if (state.mode === "MANIAC_VS_OPERATIVE") {
+    newBoard = state.board.map((row) =>
+      row.map((c) => (c.id === targetId ? { ...c, isExonerated: true } : c)),
+    );
+    logMsg = `Ошибка следствия: ${targetName} не маньяк. Оперативник потратил ход впустую.`;
   } else {
     newBoard = state.board.map((row) =>
       row.map((c) => (c.id === targetId ? { ...c, isExonerated: true } : c)),
     );
-  }
-
-  if (state.mode === "MANIAC_VS_OPERATIVE" && nextVictims.length > 0) {
-    const returnedVictim = nextVictims.pop()!;
-    nextDeck.push(returnedVictim);
-    logMsg = `Ошибка следствия: одна из целей маньяка скрылась в колоде.`;
-
-    if (nextVictims.length === 0 && state.killCount < 4) {
-      nextWinner = "DETECTIVE";
-      logMsg += " У маньяка не осталось целей. Победа Оперативника!";
-    }
   }
 
   return {
@@ -1031,14 +1025,19 @@ export function escapeManiac(state: GameState): GameState {
   }
 
   const nextDeck = [...state.evidenceDeck];
-  const drawnId = nextDeck.shift();
+  const validIndex = nextDeck.findIndex((id) => {
+    const ch = state.board.flat().find((c) => c.id === id);
+    return Boolean(
+      ch &&
+        ch.isAlive &&
+        !ch.isExonerated &&
+        id !== state.killerSecretId &&
+        id !== state.detectiveSecretId,
+    );
+  });
 
-  if (!drawnId) return state;
-
-  const drawnChar = state.board.flat().find((c) => c.id === drawnId);
-  const isAvailable = Boolean(drawnChar && drawnChar.isAlive && !drawnChar.isExonerated);
-
-  if (isAvailable) {
+  if (validIndex !== -1) {
+    const [drawnId] = nextDeck.splice(validIndex, 1);
     nextDeck.push(state.killerSecretId);
     const newVictimId = nextDeck.shift();
 
@@ -1060,7 +1059,6 @@ export function escapeManiac(state: GameState): GameState {
       ],
     };
   } else {
-    nextDeck.push(drawnId);
     return {
       ...state,
       evidenceDeck: nextDeck,
@@ -1070,7 +1068,7 @@ export function escapeManiac(state: GameState): GameState {
       interrogationRadar: null,
       log: [
         ...state.log,
-        "Провал побега: вытянута карта убитого. Маньяк остался в прежнем облике.",
+        "Провал побега: в резерве колоды не найдено доступных живых прикрытий.",
       ],
     };
   }
@@ -1121,7 +1119,7 @@ export function swearInOfficer(
   );
 
   const newTrophies = (state.trophiesKiller ?? 0) + 1;
-  const isWin = newTrophies >= 10;
+  const isWin = newTrophies >= 8;
 
   return {
     ...state,
@@ -1134,7 +1132,7 @@ export function swearInOfficer(
     interrogationRadar: null,
     log: [
       ...state.log,
-      `Полиция призвала к присяге нового офицера. Пользуясь суматохой, Грабитель украл сокровище! Добыча: ${newTrophies}/10.`,
+      `Полиция призвала к присяге нового офицера. Пользуясь суматохой, Грабитель украл сокровище! Добыча: ${newTrophies}/8.`,
     ],
   };
 }

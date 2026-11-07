@@ -178,7 +178,7 @@ export const GameLifecycleModals: React.FC<GameLifecycleModalsProps> = memo(({
           <IdentityRevealModal
             isOpen={true}
             badge="Смена личности!"
-            badgeColor={gameState.mode === "THIEF_HUNT" ? "amber" : "red"}
+            badgeColor={gameState.mode === "THIEF_HUNT" ? "cyan" : "red"}
             title="Ваша новая личность:"
             character={allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId) ?? null}
             characterImage={(() => { const character = allChars.find(c => c.id === gameState.disguisedNotification?.newSecretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}

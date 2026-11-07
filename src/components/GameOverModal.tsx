@@ -1,122 +1,96 @@
-import type { Role, Character, GameModeType } from '../types/game';
-import { motion } from 'framer-motion';
+import React from 'react';
+import type { Character, GameModeType, Role } from '../types/game';
+import { Modal } from './ui/Modal';
+import { Button } from './ui/Button';
 
-const characterImages = import.meta.glob<{ default: string }>(
-  '../assets/characters/*.webp',
-  { eager: true }
-);
+export interface GameOverModalProps {
+  winner: Role;
+  playerRole?: Role;
+  mode?: GameModeType;
+  killer?: Character;
+  detective?: Character;
+  elapsedTime: string;
+  isMultiplayer?: boolean;
+  onRestart?: () => void;
+  onExitToMenu?: () => void;
+  onRematchSwap?: () => void;
+  onRematchRandom?: () => void;
+  onRematchSame?: () => void;
+}
 
 const Icons = {
   Trophy: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-10 h-10">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8">
       <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
       <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
       <path d="M4 22h16" />
-      <path d="M10 14.66V17c0 .55-.45 1-1 1H8c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-1c-.55 0-1-.45-1-1v-2.34" />
-      <path d="M6 4h12v6a6 6 0 0 1-12 0V4z" />
+      <path d="M10 14.66V17c0 .55-.45 1-1 1H8c-.55 0-1 .45-1 1v1h10v-1c0-.55-.45-1-1-1h-1c-.55 0-1-.45-1-1v-2.34" />
+      <path d="M6 4h12v7a6 6 0 0 1-12 0V4z" />
     </svg>
   ),
   Crosshair: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-10 h-10">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8">
       <circle cx="12" cy="12" r="10" />
       <line x1="22" y1="12" x2="18" y2="12" />
       <line x1="6" y1="12" x2="2" y2="12" />
       <line x1="12" y1="6" x2="12" y2="2" />
       <line x1="12" y1="22" x2="12" y2="18" />
-      <circle cx="12" cy="12" r="3" />
     </svg>
   ),
   ArrowRight: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5">
-      <path d="M5 12h14M12 5l7 7-7 7" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
     </svg>
   ),
 };
 
-interface GameOverModalProps {
-  winner: Role;
-  mode: GameModeType;
-  killer?: Character | undefined;
-  detective?: Character | undefined;
-  elapsedTime: string;
-  isMultiplayer?: boolean;
-  onRematchSwap?: () => void;
-  onRematchRandom?: () => void;
-  onRematchSame?: () => void;
-  onRestart: () => void;
-  onExitToMenu?: () => void;
-  playerRole?: Role;
-}
-
-export const GameOverModal = ({
+export const GameOverModal: React.FC<GameOverModalProps> = ({
   winner,
-  mode,
+  playerRole,
+  mode = 'MANIAC_VS_OPERATIVE',
   killer,
   detective,
   elapsedTime,
+  isMultiplayer = false,
   onRestart,
   onExitToMenu,
-  playerRole,
-  isMultiplayer,
   onRematchSwap,
-    onRematchRandom,
+  onRematchRandom,
   onRematchSame,
-  }: GameOverModalProps) => {
-  let killerTitle = 'Бандит';
-  let detectiveTitle = 'Инспектор';
-
-  if (mode === 'MANIAC_VS_OPERATIVE') {
-    killerTitle = 'Маньяк';
-    detectiveTitle = 'Оперативник';
-  } else if (mode === 'SECRET_SERVICE') {
-    killerTitle = 'Фантом';
-    detectiveTitle = 'Призрак';
-  } else if (mode === 'THIEF_HUNT') {
-    killerTitle = 'Грабитель';
-    detectiveTitle = 'Полиция';
-  } else if (mode === 'LINE_UP') {
-    killerTitle = 'Подозреваемый';
-    detectiveTitle = 'Следователь';
-  }
-
-  const isKillerWin = winner === 'KILLER';
-  const winnerTitle = isKillerWin ? killerTitle : detectiveTitle;
+}) => {
   const isVictory = playerRole ? winner === playerRole : true;
 
-  const renderRoleCard = (char: Character | undefined, roleName: string, isRedTheme: boolean) => {
-    const img = char?.id ? characterImages[`../assets/characters/${char.id}.webp`]?.default : null;
+  const killerTitle =
+    mode === 'THIEF_HUNT' ? 'Грабитель' :
+    mode === 'SECRET_SERVICE' ? 'Фантом' :
+    mode === 'LINE_UP' ? 'Подозреваемый' : 'Маньяк';
 
+  const detectiveTitle =
+    mode === 'THIEF_HUNT' ? 'Полиция' :
+    mode === 'SECRET_SERVICE' ? 'Призрак' :
+    mode === 'LINE_UP' ? 'Следователь' : 'Оперативник';
+
+  const winnerTitle = winner === 'KILLER' ? killerTitle : detectiveTitle;
+
+  const renderRoleCard = (char?: Character, roleName?: string, isKillerSide?: boolean) => {
     return (
-      <div className="relative overflow-hidden p-3.5 bg-zinc-900/60 border border-white/10 rounded-2xl flex flex-col justify-between min-h-[140px] shadow-lg">
-        {img && (
-          <img
-            src={img}
-            alt={char?.name || roleName}
-            className="absolute inset-0 w-full h-full object-cover opacity-65 grayscale contrast-125 pointer-events-none"
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent pointer-events-none" />
-
-        <div className="relative z-10 flex items-center justify-between">
-          <span
-            className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${
-              isRedTheme
-                ? 'bg-red-950/80 text-red-300 border-red-700/60'
-                : 'bg-blue-950/80 text-blue-300 border-blue-700/60'
-            }`}
-          >
+      <div className="bg-zinc-900/60 border border-white/5 rounded-xl p-2.5 flex items-center gap-3">
+        <div
+          className={`w-10 h-10 rounded-lg flex items-center justify-center font-mono font-bold text-xs shrink-0 border ${
+            isKillerSide
+              ? 'bg-red-950/40 border-red-500/40 text-red-400'
+              : 'bg-cyan-950/40 border-cyan-500/40 text-cyan-400'
+          }`}
+        >
+          {char ? `#${char.id.replace('c', '').padStart(2, '0')}` : '??'}
+        </div>
+        <div className="overflow-hidden">
+          <span className="text-[9px] font-black tracking-widest text-[#a1a1aa] uppercase block">
             {roleName}
           </span>
-          {char?.id && (
-            <span className="text-[9px] font-mono text-zinc-400 uppercase">
-              #{char.id.replace('c', '').padStart(2, '0')}
-            </span>
-          )}
-        </div>
-
-        <div className="relative z-10 pt-6">
-          <span className="text-sm font-black text-zinc-100 uppercase tracking-wider block drop-shadow-md">
-            {char?.name ?? 'Неизвестно'}
+          <span className="text-xs font-black tracking-wider text-[#f1f5f9] uppercase truncate block">
+            {char ? char.name : 'Не раскрыт'}
           </span>
         </div>
       </div>
@@ -124,81 +98,87 @@ export const GameOverModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#080a0f]/95 backdrop-blur-md p-4 select-none">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.35, ease: "easeOut" }}
-        className="w-full max-w-md bg-zinc-950 border border-white/10 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] p-6 sm:p-8 text-center flex flex-col items-center">
-        <div className="text-[10px] font-semibold tracking-wider text-zinc-400 uppercase mb-4">
-          Протокол закрытия дела
+    <Modal
+      isOpen={true}
+      maxWidth="max-w-md"
+      className="items-center p-6 sm:p-8"
+    >
+      <div className="text-[10px] font-semibold tracking-wider text-[#a1a1aa] uppercase mb-4">
+        Протокол закрытия дела
+      </div>
+
+      <div
+        className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-5 border shadow-lg ${
+          isVictory
+            ? 'bg-zinc-900/60 border-zinc-400/50 text-zinc-100 shadow-[0_0_30px_rgba(255,255,255,0.1)]'
+            : 'bg-red-950/30 border-red-500/50 text-red-500 shadow-[0_0_30px_rgba(239,68,68,0.3)]'
+        }`}
+      >
+        {isVictory ? <Icons.Trophy /> : <Icons.Crosshair />}
+      </div>
+
+      <h3 className="text-2xl font-black uppercase tracking-widest text-[#f1f5f9] mb-1">
+        {playerRole ? (isVictory ? 'Победа' : 'Поражение') : `Победа: ${winnerTitle}`}
+      </h3>
+
+      <p className="text-[10px] font-medium tracking-normal text-[#a1a1aa] uppercase mb-6">
+        Время операции: <span className="font-mono font-bold text-zinc-200">{elapsedTime}</span>
+      </p>
+
+      <div className="w-full grid grid-cols-2 gap-3 mb-6 text-left">
+        {renderRoleCard(killer, killerTitle, true)}
+        {renderRoleCard(detective, detectiveTitle, false)}
+      </div>
+
+      {isMultiplayer ? (
+        <div className="flex flex-col gap-2.5 w-full">
+          <Button
+            variant="primary-danger"
+            fullWidth
+            onClick={onRematchSwap}
+            className="from-red-950 text-[10px] sm:text-xs uppercase tracking-wider gap-2 !h-12"
+          >
+            <span>⇄</span> РЕВАНШ (СМЕНА РОЛЕЙ)
+          </Button>
+
+          <Button
+            variant="primary-info"
+            fullWidth
+            onClick={onRematchRandom}
+            className="from-blue-950 text-[10px] sm:text-xs uppercase tracking-wider gap-2 !h-12"
+          >
+            <span className="font-mono font-bold text-[10px] text-cyan-300">[RND]</span> РЕВАНШ (СЛУЧАЙНЫЕ РОЛИ)
+          </Button>
+
+          <Button
+            variant="secondary"
+            fullWidth
+            onClick={onRematchSame}
+            className="text-[10px] sm:text-xs uppercase tracking-wider gap-2 !h-12"
+          >
+            <span>↻</span> РЕВАНШ (ТЕ ЖЕ РОЛИ)
+          </Button>
         </div>
-
-        <div
-          className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-5 border shadow-lg ${
-            isVictory
-              ? 'bg-zinc-900/60 border-zinc-400/50 text-zinc-100 shadow-[0_0_30px_rgba(255,255,255,0.1)]'
-              : 'bg-red-950/30 border-red-500/50 text-red-500 shadow-[0_0_30px_rgba(239,68,68,0.3)]'
-          }`}
-        >
-          {isVictory ? <Icons.Trophy /> : <Icons.Crosshair />}
-        </div>
-
-        <h3 className="text-2xl font-black uppercase tracking-widest text-zinc-100 mb-1">
-          {playerRole ? (isVictory ? 'Победа' : 'Поражение') : `Победа: ${winnerTitle}`}
-        </h3>
-
-        <p className="text-[10px] font-medium tracking-normal text-zinc-400 uppercase mb-6">
-          Время операции: <span className="font-mono font-bold text-zinc-300">{elapsedTime}</span>
-        </p>
-
-        <div className="w-full grid grid-cols-2 gap-3 mb-6 text-left">
-          {renderRoleCard(killer, killerTitle, true)}
-          {renderRoleCard(detective, detectiveTitle, false)}
-        </div>
-
-        {isMultiplayer ? (
-            <div className="flex flex-col gap-2.5 w-full">
-              <button
-                onClick={onRematchSwap}
-                className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-red-950 via-zinc-900 to-red-950 hover:from-red-900 hover:via-zinc-800 hover:to-red-900 text-red-100 border border-red-600/70 shadow-[0_8px_20px_rgba(220,38,38,0.35)] rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98]"
-              >
-                <span>⇄</span> РЕВАНШ (СМЕНА РОЛЕЙ)
-              </button>
-                            <button
-                onClick={onRematchRandom}
-                className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 hover:from-blue-900 hover:via-blue-800 hover:to-blue-900 text-blue-100 border border-blue-500/70 shadow-[0_8px_20px_rgba(37,99,235,0.35)] rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98]"
-              >
-                <span className="font-mono font-bold text-[10px] text-blue-400">[RND]</span> РЕВАНШ (СЛУЧАЙНЫЕ РОЛИ)
-              </button>
-                <button
-                  onClick={onRematchSame}
-                  className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 hover:from-zinc-800 hover:via-zinc-700 hover:to-zinc-800 text-zinc-100 border border-zinc-500/70 shadow-[0_8px_20px_rgba(0,0,0,0.35)] rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98]"
-                >
-                  <span>↻</span> РЕВАНШ (ТЕ ЖЕ РОЛИ)
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={onRestart}
-              className={`w-full h-14 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition shadow-lg border-t border-white/25 cursor-pointer ${
-                isVictory
-                  ? 'bg-zinc-100 hover:bg-white text-zinc-950 shadow-[0_10px_25px_rgba(255,255,255,0.2)]'
-                  : 'bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white shadow-[0_10px_25px_rgba(220,38,38,0.5)]'
-              }`}
+      ) : (
+        <Button
+          variant={isVictory ? 'secondary' : 'primary-danger'}
+          fullWidth
+          onClick={onRestart}
+          className="rounded-full font-black text-[10px] uppercase tracking-widest gap-3 shadow-lg"
         >
           <span>Новое расследование</span>
           <Icons.ArrowRight />
-        </button>
+        </Button>
+      )}
 
-                  )}
-          <button
-            onClick={onExitToMenu}
-          className="w-full h-11 mt-2.5 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-white/10 transition cursor-pointer"
-        >
-          <span>В главное меню</span>
-        </button>
-      </motion.div>
-    </div>
+      <Button
+        variant="ghost"
+        fullWidth
+        onClick={onExitToMenu}
+        className="mt-2.5 rounded-full font-black text-[10px] uppercase tracking-widest gap-2 text-zinc-400 hover:text-zinc-200"
+      >
+        <span>В главное меню</span>
+      </Button>
+    </Modal>
   );
 };

@@ -1,6 +1,8 @@
 import { useState, useRef } from "react";
 import { triggerHaptic } from "../utils/haptics";
 import maniacBanner from "../assets/modes/maniac_preview.png";
+import { Modal } from "./ui/Modal";
+import { Button } from "./ui/Button";
 
 export interface RulesModalProps {
   isOpen: boolean;
@@ -308,26 +310,33 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
   ];
 
   return (
-    <div
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/95 backdrop-blur-md p-3 sm:p-4 select-none"
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      maxWidth="max-w-lg"
+      zIndexClass="z-[70]"
+      className="p-5 sm:p-6 max-h-[90vh] text-left"
     >
-      <div className="w-full max-w-lg bg-zinc-950/95 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[90vh]">
+      <div
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        className="flex flex-col h-full overflow-hidden"
+      >
         <div className="flex justify-between items-center mb-3 shrink-0 border-b border-white/10 pb-2.5">
           <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${isCrimeOriented ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" : "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"} animate-pulse`} />
-            <h2 className="text-sm font-black uppercase tracking-widest text-zinc-100">
+            <span className={`w-2 h-2 rounded-full ${isCrimeOriented ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" : "bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]"} animate-pulse`} />
+            <h2 className="text-sm font-black uppercase tracking-widest text-[#f1f5f9]">
               Справочник правил
             </h2>
           </div>
-          <button
+          <Button
+            variant="ghost"
             onClick={onClose}
-            className="text-zinc-500 hover:text-zinc-300 font-bold text-lg cursor-pointer p-1 transition"
+            className="!h-8 !w-8 !p-0 text-zinc-400 hover:text-white"
             title="Закрыть"
           >
             ✕
-          </button>
+          </Button>
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-3 shrink-0 custom-scrollbar">
@@ -448,14 +457,16 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
         </div>
 
         <div className="pt-3 border-t border-white/10 shrink-0">
-          <button
+          <Button
+            variant="secondary"
+            fullWidth
             onClick={onClose}
-            className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-xl text-xs font-black uppercase tracking-widest transition border border-white/5 cursor-pointer"
+            className="uppercase tracking-widest text-xs"
           >
             Закрыть справочник
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };

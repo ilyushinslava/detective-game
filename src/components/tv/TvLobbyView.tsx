@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 
 import type { GameModeType } from '../../types/game';
+import { GAME_TITLE, GAME_MODES_META } from '../../constants/gameMeta';
 
 interface TvLobbyViewProps {
   roomCode: string;
@@ -98,10 +99,10 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   };
 
   const GAME_MODES: Array<{ id: GameModeType; label: string; badge: string }> = [
-    { id: 'MANIAC_VS_OPERATIVE', label: 'Маньяк', badge: '4 ЦЕЛИ' },
-    { id: 'THIEF_HUNT', label: 'Грабитель', badge: '10 КРАЖ' },
-    { id: 'SECRET_SERVICE', label: 'Разведка', badge: 'ШПИОНЫ' },
-    { id: 'LINE_UP', label: 'Дуэль', badge: 'ДОСЬЕ' },
+    { id: 'MANIAC_VS_OPERATIVE', label: GAME_MODES_META.MANIAC_VS_OPERATIVE.title.ru, badge: '4 ЦЕЛИ' },
+    { id: 'THIEF_HUNT', label: GAME_MODES_META.THIEF_HUNT.title.ru, badge: '10 КРАЖ' },
+    { id: 'SECRET_SERVICE', label: GAME_MODES_META.SECRET_SERVICE.title.ru, badge: 'ШПИОНЫ' },
+    { id: 'LINE_UP', label: GAME_MODES_META.LINE_UP.title.ru, badge: 'ДОСЬЕ' },
   ];
 
       const rawPlayers = (connectedPlayers && Object.keys(connectedPlayers).length > 0)
@@ -178,13 +179,13 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   }, [focusArea, focusedModeIndex, selectedMode, isPassAndPlay, canStart, onStartGame, onExit]);
 
   return (
-    <div className="flex h-screen w-screen flex-col justify-between bg-[#06070a] text-zinc-100 select-none p-6 lg:p-8 overflow-hidden font-sans">
+    <div className="flex h-screen w-screen flex-col justify-between bg-[#080a0f] text-zinc-100 select-none p-6 lg:p-8 overflow-hidden font-sans">
       {/* Шапка */}
       <div className="flex items-center justify-between border-b border-zinc-800/80 pb-5">
         <div className="flex items-center gap-3">
           <span className="h-4 w-4 rounded-full bg-red-600 animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.8)]" />
           <h1 className="text-2xl font-black uppercase tracking-widest text-zinc-100">
-            Реквием <span className="text-red-500">Party Host</span>
+            {GAME_TITLE.ru} <span className="text-red-500">Party Host</span>
           </h1>
         </div>
         <div className="text-sm font-mono uppercase tracking-wider text-zinc-400">

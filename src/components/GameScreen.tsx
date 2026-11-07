@@ -5,6 +5,7 @@ import { GameBoard } from "./GameBoard";
 import { RoleCards } from "./RoleCards";
 import { GameSheets } from "./GameSheets";
 import { soundManager } from "../utils/audio";
+import { getGameModeTitle } from "../constants/gameMeta";
 
 export interface GameScreenProps {
   gameState: GameState;
@@ -296,6 +297,10 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
         )}
         <div className="flex items-center gap-1.5 text-zinc-500 font-medium">
           <span className="hidden md:inline">Режим:</span>
+          <span className="font-bold text-zinc-300">
+            {getGameModeTitle(gameState.mode, 'ru')}
+          </span>
+          <span className="text-zinc-600">•</span>
           <span>
             {gameState.opponent === "ONLINE"
               ? "онлайн"

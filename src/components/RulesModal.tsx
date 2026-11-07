@@ -3,6 +3,7 @@ import { triggerHaptic } from "../utils/haptics";
 import maniacBanner from "../assets/modes/maniac_preview.png";
 import { Modal } from "./ui/Modal";
 import { Button } from "./ui/Button";
+import { GAME_MODES_META } from "../constants/gameMeta";
 
 export interface RulesModalProps {
   isOpen: boolean;
@@ -89,7 +90,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
   },
   MANIAC: {
     id: "MANIAC",
-    title: "Маньяк против Оперативника",
+    title: GAME_MODES_META.MANIAC_VS_OPERATIVE.title.ru,
     badge: "Спецоперация",
     format: "5×5 • 2 игрока",
     desc: "Серийный убийца действует по скрытому заказу из 4 жертв. Оперативник идет по горячим следам, чтобы остановить кровавую цепочку.",
@@ -142,7 +143,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
   },
   THIEF: {
     id: "THIEF",
-    title: "Охота на грабителя",
+    title: GAME_MODES_META.THIEF_HUNT.title.ru,
     badge: "План-перехват",
     format: "5×5 • 2 игрока",
     desc: "Дерзкий вор-виртуоз похищает сокровища горожан без единого выстрела, а полиция стягивает оцепление и перекрывает улицы патрулями.",
@@ -185,7 +186,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
   },
   SECRET_SERVICE: {
     id: "SECRET_SERVICE",
-    title: "Секретная служба",
+    title: GAME_MODES_META.SECRET_SERVICE.title.ru,
     badge: "Контрразведка",
     format: "5×5 • 1-4 игрока",
     desc: "Закрытая операция разведок: опрашивайте связных в секторе 3×3, вычисляйте тайных резидентов конкурентов и собирайте трофеи компромата.",
@@ -228,7 +229,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
   },
   LINE_UP: {
     id: "LINE_UP",
-    title: "Очная ставка",
+    title: GAME_MODES_META.LINE_UP.title.ru,
     badge: "Интеллектуальная дуэль",
     format: "5×5 • 2 игрока",
     desc: "Чистая детективная дуэль на дедукцию без маневров поля: 25 подозреваемых, банк вопросов, сопоставление улик и штрафы за ложные обвинения.",

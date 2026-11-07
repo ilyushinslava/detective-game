@@ -70,10 +70,10 @@ describe("Интерактивное взаимодействие с экран�
         fireEvent.click(soloTabs[0]);
       }
 
-      // Клик по карточке режима Схватка
-      const modeCard = screen.getAllByText(/Маньяк против оперативника/i)[0];
-              fireEvent.click(modeCard);
-        expect(screen.getByText(/СВОДКА РАССЛЕДОВАНИЯ/i)).toBeDefined();
+      // Клик по карточке первого режима
+      const modeCard = screen.getAllByText(/Почерк убийцы|Маньяк против оперативника/i)[0];
+      fireEvent.click(modeCard);
+      expect(screen.getByText(/СВОДКА РАССЛЕДОВАНИЯ/i)).toBeDefined();
                   /*
 
       // Проверка компонентов состава игры по Макету 1
@@ -91,7 +91,7 @@ describe("Интерактивное взаимодействие с экран�
       fireEvent.click(backBtn!);
 
       // Убеждаемся, что вернулись в список режимов
-      expect(screen.getAllByText(/Маньяк против оперативника/i)[0]).toBeDefined();
+      expect(screen.getAllByText(/Почерк убийцы|Маньяк против оперативника/i)[0]).toBeDefined();
     });
   });
 

@@ -7,6 +7,7 @@ import type {
   OpponentType,
   Role,
 } from "../types/game";
+import { GAME_MODES_META } from "../constants/gameMeta";
 
 
 const characterImages = import.meta.glob<{ default: string }>(
@@ -696,7 +697,7 @@ export const RoleRevealModal = ({
           <>
             <div className="flex flex-col items-center justify-start flex-1 w-full">
               <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border mb-3 ${isRedTheme ? "bg-red-950/90 text-red-300 border-red-700/60 shadow-[0_0_15px_rgba(239,68,68,0.25)]" : "bg-blue-950/90 text-blue-300 border-blue-700/60 shadow-[0_0_15px_rgba(59,130,246,0.25)]"}`}>
-                Секретная служба: Ваша личность
+                {GAME_MODES_META.SECRET_SERVICE.title.ru}: Ваша личность
               </span>
               {renderCharacterCard(detective, currentRoleName, false)}
               <div className="w-full text-left space-y-2 mt-1">

@@ -10,6 +10,7 @@ import { BiometricSlider } from "./BiometricSlider";
 import { TablesScreen } from "./TablesScreen";
 import { ProfileScreen } from "./ProfileScreen";
 import { Button } from "./ui/Button";
+import { GAME_MODES_META, getGameModeTitle, getGameModeShortTitle } from "../constants/gameMeta";
 
 declare const __BUILD_TIMESTAMP__: string;
 import { useTranslation } from "../i18n/context";
@@ -65,56 +66,56 @@ const Icons = {
 const GAME_MODES = [
   {
     id: "MANIAC_VS_OPERATIVE" as GameModeType,
-    title: "Маньяк против оперативника",
-    players: "2 игрока",
-    time: "20 мин",
-    difficulty: "Средняя",
-    description: "Серийный маньяк ведет охоту по скрытому заказу из 4 целей. Задача оперативника — перехватить след и остановить расправу.",
+    title: GAME_MODES_META.MANIAC_VS_OPERATIVE.title.ru,
+    players: GAME_MODES_META.MANIAC_VS_OPERATIVE.players?.ru || "2 игрока",
+    time: GAME_MODES_META.MANIAC_VS_OPERATIVE.time?.ru || "20 мин",
+    difficulty: GAME_MODES_META.MANIAC_VS_OPERATIVE.difficulty?.ru || "Средняя",
+    description: GAME_MODES_META.MANIAC_VS_OPERATIVE.description?.ru || "",
     isAvailable: true,
-    killerRoleName: "Маньяк",
-    detectiveRoleName: "Оперативник",
+    killerRoleName: GAME_MODES_META.MANIAC_VS_OPERATIVE.killerRoleName?.ru || "Маньяк",
+    detectiveRoleName: GAME_MODES_META.MANIAC_VS_OPERATIVE.detectiveRoleName?.ru || "Оперативник",
   },
   {
     id: "THIEF_HUNT" as GameModeType,
-    title: "Охота на грабителя",
-    players: "2 игрока",
-    time: "25 мин",
-    difficulty: "Высокая",
-    description: "Дерзкий домушник методично обчищает карманы горожан и меняет маски, а полиция стягивает оцепление по кварталам.",
+    title: GAME_MODES_META.THIEF_HUNT.title.ru,
+    players: GAME_MODES_META.THIEF_HUNT.players?.ru || "2 игрока",
+    time: GAME_MODES_META.THIEF_HUNT.time?.ru || "25 мин",
+    difficulty: GAME_MODES_META.THIEF_HUNT.difficulty?.ru || "Высокая",
+    description: GAME_MODES_META.THIEF_HUNT.description?.ru || "",
     isAvailable: true,
-    killerRoleName: "Грабитель",
-    detectiveRoleName: "Полиция",
+    killerRoleName: GAME_MODES_META.THIEF_HUNT.killerRoleName?.ru || "Грабитель",
+    detectiveRoleName: GAME_MODES_META.THIEF_HUNT.detectiveRoleName?.ru || "Полиция",
   },
   {
     id: "SECRET_SERVICE" as GameModeType,
-    title: "Секретная служба",
-    players: "2-4 игрока",
-    time: "30 мин",
-    difficulty: "Средняя",
-    description: "Закрытая операция разведок: опрашивайте связных, вычисляйте резидентов конкурентов и собирайте компромат.",
+    title: GAME_MODES_META.SECRET_SERVICE.title.ru,
+    players: GAME_MODES_META.SECRET_SERVICE.players?.ru || "2-4 игрока",
+    time: GAME_MODES_META.SECRET_SERVICE.time?.ru || "30 мин",
+    difficulty: GAME_MODES_META.SECRET_SERVICE.difficulty?.ru || "Средняя",
+    description: GAME_MODES_META.SECRET_SERVICE.description?.ru || "",
     isAvailable: true,
-    killerRoleName: "Агент 1",
-    detectiveRoleName: "Агент 2",
+    killerRoleName: GAME_MODES_META.SECRET_SERVICE.killerRoleName?.ru || "Агент 1",
+    detectiveRoleName: GAME_MODES_META.SECRET_SERVICE.detectiveRoleName?.ru || "Агент 2",
   },
   {
     id: "LINE_UP" as GameModeType,
-    title: "Очная ставка",
-    players: "2 игрока",
-    time: "8 мин",
-    difficulty: "Средняя",
-    description: "Интеллектуальная детективная дуэль: 25 подозреваемых, каталог вопросов с дедукцией и штрафы за ложные обвинения.",
+    title: GAME_MODES_META.LINE_UP.title.ru,
+    players: GAME_MODES_META.LINE_UP.players?.ru || "2 игрока",
+    time: GAME_MODES_META.LINE_UP.time?.ru || "8 мин",
+    difficulty: GAME_MODES_META.LINE_UP.difficulty?.ru || "Средняя",
+    description: GAME_MODES_META.LINE_UP.description?.ru || "",
     isAvailable: true,
-    killerRoleName: "Подозреваемый",
-    detectiveRoleName: "Следователь",
+    killerRoleName: GAME_MODES_META.LINE_UP.killerRoleName?.ru || "Подозреваемый",
+    detectiveRoleName: GAME_MODES_META.LINE_UP.detectiveRoleName?.ru || "Следователь",
   },
 ];
 
 const ROOM_FILTERS = [
   { id: "ALL", label: "Все" },
-  { id: "LINE_UP", label: "Дуэль" },
-  { id: "SECRET_SERVICE", label: "Спецслужбы" },
-  { id: "MANIAC_VS_OPERATIVE", label: "Маньяк" },
-  { id: "THIEF_HUNT", label: "Охота" },
+  { id: "MANIAC_VS_OPERATIVE", label: GAME_MODES_META.MANIAC_VS_OPERATIVE.shortTitle.ru },
+  { id: "THIEF_HUNT", label: GAME_MODES_META.THIEF_HUNT.shortTitle.ru },
+  { id: "SECRET_SERVICE", label: GAME_MODES_META.SECRET_SERVICE.shortTitle.ru },
+  { id: "LINE_UP", label: GAME_MODES_META.LINE_UP.shortTitle.ru },
 ];
 
 type ScreenType = 'HOME' | 'MODES' | 'MODE_DETAIL' | 'PROFILE' | 'TABLES';
@@ -836,10 +837,10 @@ export const MainMenu = ({
                     onChange={(e) => setCreateRoomMode(e.target.value as GameModeType)}
                     className="w-full bg-zinc-950/80 border border-white/15 rounded-xl px-4 py-3 text-xs font-black tracking-widest text-zinc-200 focus:border-red-500 outline-none appearance-none transition uppercase shadow-inner cursor-pointer"
                   >
-                    <option value="LINE_UP">Очная ставка (Дуэль)</option>
-                    <option value="SECRET_SERVICE">Секретная служба</option>
-                    <option value="MANIAC_VS_OPERATIVE">Маньяк против оперативника</option>
-                    <option value="THIEF_HUNT">Охота на грабителя</option>
+                    <option value="LINE_UP">{GAME_MODES_META.LINE_UP.title.ru}</option>
+                    <option value="SECRET_SERVICE">{GAME_MODES_META.SECRET_SERVICE.title.ru}</option>
+                    <option value="MANIAC_VS_OPERATIVE">{GAME_MODES_META.MANIAC_VS_OPERATIVE.title.ru}</option>
+                    <option value="THIEF_HUNT">{GAME_MODES_META.THIEF_HUNT.title.ru}</option>
                   </select>
                 </div>
 

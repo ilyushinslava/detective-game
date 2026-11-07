@@ -4,6 +4,7 @@ import { CharacterCard } from '../CharacterCard';
 import { GameOverModal } from '../GameOverModal';
 import type { GameState, LastShift } from '../../types/game';
 import { SPY_COLORS } from '../../types/game';
+import { getGameModeTitle } from '../../constants/gameMeta';
 
 export interface TvBoardViewProps {
   gameState: GameState;
@@ -216,7 +217,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
     const finalDetectiveChar = flatCards.find((c) => c.id === gameState.detectiveSecretId);
 
     return (
-      <div className="relative h-screen w-screen bg-[#06070a] overflow-hidden select-none">
+      <div className="relative h-screen w-screen bg-[#080a0f] overflow-hidden select-none">
         <GameOverModal
           winner={isKillerWinner ? 'KILLER' : 'DETECTIVE'}
           mode={gameState.mode}
@@ -238,7 +239,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   }
 
   return (
-    <div className="tv-root flex h-screen w-screen flex-col bg-[#06070a] text-zinc-100 select-none overflow-hidden p-4 sm:p-5 lg:p-6 gap-3 sm:gap-4 font-sans">
+    <div className="tv-root flex h-screen w-screen flex-col bg-[#080a0f] text-zinc-100 select-none overflow-hidden p-4 sm:p-5 lg:p-6 gap-3 sm:gap-4 font-sans">
       {/* Верхняя статусная планка (Шапка ТВ) по макету ТВ3 */}
       <div className="flex items-center justify-between px-5 py-2.5 sm:px-6 sm:py-3 rounded-2xl bg-zinc-950/70 border border-zinc-800/80 backdrop-blur-xl shadow-lg shrink-0">
         {/* Левая группа: Статусы и счета участников */}
@@ -278,7 +279,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         <div className="hidden md:flex items-center gap-2 px-4 py-1 rounded-full border border-zinc-800/80 bg-zinc-900/60 shadow-inner">
           <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_6px_rgba(239,68,68,0.8)]" />
           <span className="text-xs 2xl:text-sm font-mono uppercase tracking-widest text-zinc-300 font-bold">
-            ФАЗА РАССЛЕДОВАНИЯ
+            {getGameModeTitle(gameState?.mode || 'MANIAC_VS_OPERATIVE', 'ru')}
           </span>
         </div>
 

@@ -7,9 +7,9 @@ export const en: TranslationSchema = {
     profile: "Profile",
   },
   menu: {
-    title: "REQUIEM",
+    title: "PRIME SUSPECT",
     subtitle: "THE LAST SHOT",
-    desc: "Detective games in a single deck",
+    desc: "Detective investigations in a single deck",
     resume: "RESUME CASE",
     quickPlay: "QUICK PLAY",
     searching: "SEARCHING...",

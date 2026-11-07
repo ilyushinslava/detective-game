@@ -1,6 +1,7 @@
 import React from 'react';
 import lobbyBg from "../assets/lobby_background.png";
 import { Button } from './ui/Button';
+import { getGameModeTitle } from '../constants/gameMeta';
 
 interface TablesScreenProps {
   roomFilter: string;
@@ -93,7 +94,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
                 <div className="flex flex-col">
                   <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest mb-0.5">Хост: {room.hostName}</span>
                   <span className="text-sm font-black text-zinc-100 uppercase tracking-widest">
-                    {GAME_MODES.find((m: any) => m.id === room.mode)?.title || room.mode}
+                    {GAME_MODES.find((m: any) => m.id === room.mode)?.title || getGameModeTitle(room.mode, 'ru') || room.mode}
                   </span>
                 </div>
                 <div className="flex flex-col items-end">

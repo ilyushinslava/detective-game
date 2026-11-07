@@ -520,12 +520,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Курс оперативника (Схватка)</h3>
+                <h3 className="text-base font-black text-white uppercase tracking-wider">Основы Син-Сити: Закон и Улицы</h3>
                 {completedModules.includes("SKHVATKA") && (
                   <span className="text-[9px] font-mono font-bold text-zinc-200 uppercase bg-zinc-900/80 px-2 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.1)]">✓ Сдано</span>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">Базовые механики: соседство, тактика сдвига рядов, опрос свидетелей в секторе 3х3 и задержание.</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Базовые механики: смещение кварталов по краю, радиус слышимости 3×3, отсечение невиновных по алиби и арест.</p>
             </div>
 
             <div
@@ -537,7 +537,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Контракт ликвидатора (Охота на маньяка)</h3>
+                <h3 className="text-base font-black text-white uppercase tracking-wider">Почерк убийцы (Охота на маньяка)</h3>
                 {completedModules.includes("MANIAC") && (
                   <span className="text-[9px] font-mono font-bold text-zinc-200 uppercase bg-zinc-900/80 px-2 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.1)]">✓ Сдано</span>
                 )}
@@ -554,12 +554,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Охота на грабителя</h3>
+                <h3 className="text-base font-black text-white uppercase tracking-wider">Оцепление (Охота на грабителя)</h3>
                 {completedModules.includes("THIEF") && (
                   <span className="text-[9px] font-mono font-bold text-zinc-200 uppercase bg-zinc-900/80 px-2 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.1)]">✓ Сдано</span>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">Кража сокровищ без ликвидаций, смена масок из руки и выставление патрулей оцепления.</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Кража сокровищ без ликвидаций, смена масок из руки и уход от облавы.</p>
             </div>
 
             <div
@@ -571,7 +571,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Секретная служба</h3>
+                <h3 className="text-base font-black text-white uppercase tracking-wider">Директива Ноль (Секретная служба)</h3>
                 {completedModules.includes("SECRET_SERVICE") && (
                   <span className="text-[9px] font-mono font-bold text-zinc-200 uppercase bg-zinc-900/80 px-2 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.1)]">✓ Сдано</span>
                 )}
@@ -622,7 +622,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
             ← К делам
           </button>
           <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase text-center flex-1">
-            {currentModule === "SKHVATKA" ? "СХВАТКА" : currentModule === "MANIAC" ? "МАНЬЯК" : currentModule === "THIEF" ? "ОХОТА НА ВОРА" : "СЕКРЕТНАЯ СЛУЖБА"}
+            {currentModule === "SKHVATKA" ? "ОСНОВЫ СИН-СИТИ" : currentModule === "MANIAC" ? "ПОЧЕРК УБИЙЦЫ" : currentModule === "THIEF" ? "ОЦЕПЛЕНИЕ" : "ДИРЕКТИВА НОЛЬ"}
           </h2>
           <div className="w-16 shrink-0" />
         </div>
@@ -632,21 +632,21 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
             <div>
               {currentModule === "SKHVATKA" && lesson === 1 && (step === 1 || step === 2) && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Урок 1: Основы маневра</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Бандит в центре (ВЫ). Подсвечена зона 8 соседей. Цель вне досягаемости. <b className="text-blue-400">НАЖМИТЕ стрелку ← у 3-го ряда</b> для смещения.</p>
+                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Улицы в движении (Сдвиг квартала)</h3>
+                  <p className="text-xs text-zinc-400 font-mono">Ночной дождь скрывает следы. Цель вне зоны контакта. <b className="text-blue-400">Нажмите стрелку ← у 3-го ряда:</b> карта выйдет за край поля и появится справа, подтянув окружение к вам.</p>
                 </div>
               )}
               {currentModule === "SKHVATKA" && lesson === 1 && step === 3 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Отлично!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Карта уходит за край и появляется справа, меняя окружение. Зона соседей переместилась вместе с вами.</p>
+                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Отличный маневр!</h3>
+                  <p className="text-xs text-zinc-400 font-mono">Отличный маневр. Сдвиг меняет соседей и выводит вас на новую позицию.</p>
                 </div>
               )}
 
               {currentModule === "SKHVATKA" && lesson === 2 && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Урок 2: Ликвидация</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Вы — Бандит. <b className="text-red-400">ВЫБЕРИТЕ цель для ликвидации среди 8 соседей.</b></p>
+                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Выстрел в упор (Радиус 3×3)</h3>
+                  <p className="text-xs text-zinc-400 font-mono"><b className="text-red-400">Контракт открыт.</b> Выберите любую цель среди 8 соседей в пределах одного квартала.</p>
                 </div>
               )}
               {currentModule === "SKHVATKA" && lesson === 2 && step === 2 && (
@@ -658,14 +658,14 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "SKHVATKA" && lesson === 2 && step === 3 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Показания очевидцев</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Свидетель сверху дает показания: в секторе 3×3 Инспектора не было.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Показания свидетеля: шум выстрела слышен строго в секторе 3×3. Если инспектора нет в этом квадрате — следствие заходит в тупик.</p>
                 </div>
               )}
 
               {currentModule === "SKHVATKA" && lesson === 3 && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Урок 3: Задержание</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Инспектор (ВЫ) в центре квартала. Свидетель подтвердил, что Бандит в секторе 3×3. Выберите любого соседа Инспектора без алиби в секторе.</p>
+                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Точечный арест (Дедукция алиби)</h3>
+                  <p className="text-xs text-zinc-400 font-mono">Инспектор на месте. Свидетель подтвердил: преступник в квадрате 3×3. Карты с синей отметкой имеют алиби. <b className="text-blue-400">Выберите единственного подозреваемого без алиби.</b></p>
                 </div>
               )}
               {currentModule === "SKHVATKA" && lesson === 3 && step === 2 && (
@@ -677,14 +677,14 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "SKHVATKA" && lesson === 3 && step === 3 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Точный арест!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Бандит задержан (штамп «АРЕСТОВАН»). Переходим к учебному делу.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Точный арест! Круг сужен дедукцией, подозреваемый обезврежен.</p>
                 </div>
               )}
 
               {currentModule === "SKHVATKA" && lesson === 4 && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Урок 4: Загромождение и Зачистка</h3>
-                  <p className="text-xs text-zinc-400 font-mono">На поле скопились тела, мешающие маневрам. Нажмите «Зачистить» — выбывшие жители сместятся в крайние линии сетки.</p>
+                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Загромождение улиц (Эвакуация тел)</h3>
+                  <p className="text-xs text-zinc-400 font-mono">Тела на мостовой блокируют маневры. Нажмите «Зачистить»: полиция смещает выбывших жителей к обочинам сетки, освобождая центр квартала.</p>
                 </div>
               )}
               {currentModule === "SKHVATKA" && lesson === 4 && step === 2 && (
@@ -696,14 +696,14 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
               {currentModule === "MANIAC" && lesson === 1 && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Очередь целей: список смертников и сближение</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Маньяк (ВЫ) в клетке ряда 3. Открыта цель — {targetVictimName} (дистанция 2 шага). <b className="text-blue-400">Сдвиньте 3-ю колонку вниз (↓)</b>, чтобы подвести её в зону удара.</p>
+                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Черный блокнот (Очередь целей)</h3>
+                  <p className="text-xs text-zinc-400 font-mono">Синдикат требует устранять цели строго по очереди контракта. Первая жертва — {targetVictimName}. <b className="text-blue-400">Сдвиньте 3-ю колонку вниз (↓)</b>, чтобы подвести её в зону прямого удара.</p>
                 </div>
               )}
               {currentModule === "MANIAC" && lesson === 1 && step === 2 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Цель в зоне удара</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Елена Соколова теперь сосед Маньяка. ВЫБЕРИТЕ её для ликвидации.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Соколова в зоне поражения. <b className="text-red-400">Выберите её карточку</b> для ликвидации по заказу.</p>
                 </div>
               )}
               {currentModule === "MANIAC" && lesson === 1 && step === 3 && (
@@ -720,21 +720,21 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               )}
               {currentModule === "MANIAC" && lesson === 2 && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">План перехвата и побег</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Оперативник выходит на след. Нажмите «Конспирация (Побег)» для сброса тела и перехода в новую тайную личность.</p>
+                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Сброс хвоста (Побег и новая маска)</h3>
+                  <p className="text-xs text-zinc-400 font-mono">Оперативники сели на хвост. Нажмите «Конспирация (Побег)», чтобы сбросить раскрытую личность и взять новое прикрытие из колоды.</p>
                 </div>
               )}
               {currentModule === "MANIAC" && lesson === 2 && step === 2 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Побег успешен!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Маньяк принял новое обличье ({newDisguiseChar?.name ?? "Житель"}). Метка «ВЫ» переместилась.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Новое прикрытие принято. Метка «ВЫ» переместилась, а полиция потеряла след.</p>
                 </div>
               )}
 
               {currentModule === "THIEF" && lesson === 1 && step === 1 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Карманная кража</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Вор (ВЫ) обчищает соседа без убийства. <b className="text-red-400">ТАПНИТЕ по любому подсвеченному соседу.</b></p>
+                  <p className="text-xs text-zinc-400 font-mono">Настоящий вор работает без стрельбы. <b className="text-red-400">Выберите любого соседа</b>, чтобы обчистить карманы.</p>
                 </div>
               )}
               {currentModule === "THIEF" && lesson === 1 && step === 2 && (
@@ -746,25 +746,19 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "THIEF" && lesson === 1 && step === 3 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Успешная кража!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Похищен жетон Синдиката (добыча 1/8).</p>
-                </div>
-              )}
-              {false && currentModule === "THIEF" && lesson === 1 && step === 3 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Успешная кража!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Похищен жетон Синдиката (добыча 1/5).</p>
+                  <p className="text-xs text-zinc-400 font-mono">Добыча получена (1/8 сокровищ). Каждая кража оставляет след, но приближает побег из города.</p>
                 </div>
               )}
               {currentModule === "THIEF" && lesson === 2 && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Маскировка из руки и патрули</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Нажмите «Конспирация (Маска)» для смены лица картой из руки.</p>
+                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Смена прикрытия (Маскировка из руки)</h3>
+                  <p className="text-xs text-zinc-400 font-mono">Патрули стягиваются к точке кражи. Нажмите «Конспирация (Маска)», чтобы раствориться в толпе под новым лицом из руки.</p>
                 </div>
               )}
               {currentModule === "THIEF" && lesson === 2 && step === 2 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Лицо изменено!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Вор принял новое прикрытие ({newDisguiseChar?.name ?? "Марк Вайс"}). Метка «ВЫ» переместилась на новую клетку. Демонстрация оцепления линии патрулем завершена.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Прикрытие изменено. Вы ускользнули из сектора облавы.</p>
                 </div>
               )}
 
@@ -774,7 +768,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   <p className="text-xs text-zinc-400 font-mono">
                     {scanResult === "FAR"
                       ? "Вне зоны (НЕТ). Опросите другого очевидца ближе к резиденту."
-                      : "Агент в центре (ВЫ). Вражеский резидент прячется в квартале. ВЫБЕРИТЕ очевидца для опроса. Помните: свидетель сам внутри сектора 3×3 и тоже может оказаться скрывающимся резидентом!"}
+                      : "Вражеский резидент перехватил радиоканал. Выберите очевидца для опроса. Помните: свидетель сканирует сектор 3×3 вокруг себя."}
                   </p>
                 </div>
               )}
@@ -787,13 +781,13 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "SECRET_SERVICE" && lesson === 1 && step === 3 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Враг рядом (ДА)!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Опрос свидетеля рядом с резидентом дает статус «Враг рядом (ДА)». Очевидец и его окружение охвачены сектором.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Связной вышел на связь: «ВРАГ РЯДОМ (ДА)». Сектор 3×3 взят на контроль контрразведки.</p>
                 </div>
               )}
               {currentModule === "SECRET_SERVICE" && lesson === 2 && step === 1 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Разоблачение резидента</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Выберите Софию Романову в выявленном секторе.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Квадрат сужен. Выберите выявленного резидента Софию Романову.</p>
                 </div>
               )}
               {currentModule === "SECRET_SERVICE" && lesson === 2 && step === 2 && (
@@ -805,7 +799,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {currentModule === "SECRET_SERVICE" && lesson === 2 && step === 3 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Трофей получен!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Резидент разоблачен (штамп «РАСКРЫТ»). Фиксация трофея 1/4. Операция завершена успешно.</p>
+                  <p className="text-xs text-zinc-400 font-mono">Резидент вскрыт! Получен первый компромат (1/3 трофея). Соберите 3 трофея в дуэли для полной ликвидации резидентуры.</p>
                 </div>
               )}
             </div>

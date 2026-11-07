@@ -15,7 +15,7 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
   it("Стартовое меню отображает 4 модуля и позволяет войти в каждый сценарий", () => {
     render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
 
-    expect(screen.getByText(/Курс оперативника \(Схватка\)/i)).toBeDefined();
+    expect(screen.getByText(/Основы Син-Сити/i)).toBeDefined();
     expect(screen.getByText(/Охота на маньяка/i)).toBeDefined();
     expect(screen.getByText(/Охота на грабителя/i)).toBeDefined();
     expect(screen.getByText(/Секретная служба/i)).toBeDefined();
@@ -32,7 +32,7 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
     render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
 
     // Запуск Схватки
-    const skhvatkaBtns = screen.getAllByText(/Курс оперативника \(Схватка\)/i);
+    const skhvatkaBtns = screen.getAllByText(/Основы Син-Сити/i);
     fireEvent.click(skhvatkaBtns[0]);
 
     // Проходим шаг 1 (клик по соседу)

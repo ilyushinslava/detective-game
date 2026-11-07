@@ -24,6 +24,7 @@ import { TvLobbyView } from "./components/tv/TvLobbyView";
 import { MobileControllerView } from "./components/controller/MobileControllerView";
 import { PassAndPlayModal } from "./components/controller/PassAndPlayModal";
 import { ControllerConnectView } from "./components/controller/ControllerConnectView";
+import { Button } from "./components/ui/Button";
 import type { ShiftPayload } from "./types/game";
 import { gameReducer } from "./utils/gameReducer";
 
@@ -809,6 +810,8 @@ export default function App() {
           <div className="fixed inset-0 z-50 bg-[#080a0f]">
           {!tvRoomCode ? (
             <ControllerConnectView
+              initialNickname={profile.nickname}
+              onUpdateNickname={(name) => updateProfile({ nickname: name })}
               onConnect={(code) => {
                 const newUrl = new URL(window.location.href);
                 newUrl.searchParams.set("room", code);
@@ -878,8 +881,8 @@ export default function App() {
               </button>
             </div>
           ) : !isControllerInGame ? (
-            <div className="flex h-screen w-screen flex-col justify-between p-6 text-zinc-100 select-none font-sans">
-              <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+            <div className="flex h-screen w-screen flex-col justify-between p-6 text-zinc-100 select-none font-sans bg-[#080a0f]">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
                   <span className="text-xs font-mono uppercase tracking-widest text-zinc-400">ПОДКЛЮЧЕНО</span>
@@ -888,7 +891,7 @@ export default function App() {
               </div>
 
               <div className="flex flex-col items-center text-center max-w-sm mx-auto my-auto space-y-4">
-                <div className="w-20 h-20 rounded-3xl border border-zinc-800 bg-zinc-950 flex items-center justify-center shadow-2xl text-zinc-300">
+                <div className="w-20 h-20 rounded-3xl border border-white/10 bg-zinc-950/60 backdrop-blur-md flex items-center justify-center shadow-2xl text-cyan-400">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-10 h-10">
                     <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
                     <line x1="12" y1="18" x2="12.01" y2="18" />
@@ -902,15 +905,17 @@ export default function App() {
                     Ожидайте запуска игры на телевизоре.
                   </p>
                 </div>
-                <div className="p-4 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 w-full text-left">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">ИГРОК</div>
+                <div className="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 backdrop-blur-md shadow-lg w-full text-left">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">ИГРОК</div>
                   <div className="text-base font-black text-zinc-100 truncate">
                     {profile.nickname || 'Агент'}
                   </div>
                 </div>
               </div>
 
-              <button
+              <Button
+                variant="secondary"
+                fullWidth
                 onClick={() => {
                   sessionStorage.removeItem("tv_controller_client_id");
                   sessionStorage.removeItem("tv_controller_role");
@@ -919,10 +924,10 @@ export default function App() {
                   setTvPartyState("NONE");
                   setIsLobbyOpen(true);
                 }}
-                className="w-full py-3.5 rounded-xl border border-zinc-800 bg-zinc-900/80 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-100 transition cursor-pointer"
+                className="h-12 rounded-xl text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-white"
               >
                 Выйти в меню
-              </button>
+              </Button>
             </div>
           ) : (
             <MobileControllerView

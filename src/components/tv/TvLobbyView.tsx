@@ -3,6 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 
 import type { GameModeType } from '../../types/game';
 import { GAME_TITLE, GAME_MODES_META } from '../../constants/gameMeta';
+import { Button } from '../ui/Button';
 
 interface TvLobbyViewProps {
   roomCode: string;
@@ -181,7 +182,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   return (
     <div className="flex h-screen w-screen flex-col justify-between bg-[#080a0f] text-zinc-100 select-none p-6 lg:p-8 overflow-hidden font-sans">
       {/* Шапка */}
-      <div className="flex items-center justify-between border-b border-zinc-800/80 pb-5">
+      <div className="flex items-center justify-between border-b border-white/10 pb-5">
         <div className="flex items-center gap-3">
           <span className="h-4 w-4 rounded-full bg-red-600 animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.8)]" />
           <h1 className="text-2xl font-black uppercase tracking-widest text-zinc-100">
@@ -196,18 +197,18 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
       {/* Основной контент лобби */}
       <div className="grid grid-cols-12 gap-6 my-auto flex-1 min-h-0 items-center w-full max-w-6xl mx-auto">
         {/* Левая колонка: QR-код и прямой адрес */}
-        <div className="col-span-6 flex flex-col items-center justify-center p-5 lg:p-6 rounded-3xl bg-zinc-950/80 border border-zinc-800/80 shadow-2xl text-center">
+        <div className="col-span-6 flex flex-col items-center justify-center p-5 lg:p-6 rounded-3xl bg-zinc-950/60 border border-white/10 shadow-2xl backdrop-blur-md text-center">
           <div className="p-3 lg:p-4 rounded-2xl bg-white shadow-inner mb-4">
             <QRCodeSVG value={joinUrl} size={170} level="M" />
           </div>
           <div className="text-xs font-mono uppercase tracking-wider text-zinc-400 mb-1">
             Наведите камеру смартфона для входа
           </div>
-          <div className="text-[11px] font-mono text-zinc-600 truncate max-w-xs">
+          <div className="text-[11px] font-mono text-zinc-500 truncate max-w-xs">
             {joinUrl}
           </div>
           {isLocalDev && (
-            <div className="mt-3 p-2 rounded-xl bg-zinc-900/90 border border-zinc-800 text-left text-[11px] font-mono text-zinc-400 max-w-xs w-full">
+            <div className="mt-3 p-2 rounded-xl bg-zinc-900/90 border border-white/10 text-left text-[11px] font-mono text-zinc-400 max-w-xs w-full">
               {isEditingLan ? (
                 <div className="flex flex-col gap-1.5">
                   <span className="text-[9px] uppercase tracking-wider text-zinc-500 font-bold">Локальный IP (для Wi-Fi телефонов):</span>
@@ -217,7 +218,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                       value={lanInput}
                       onChange={(e) => setLanInput(e.target.value)}
                       placeholder="192.168.1.50:5173"
-                      className="px-2 py-1 bg-zinc-950 border border-zinc-700 rounded text-xs text-white flex-1 font-mono focus:outline-none focus:border-red-500"
+                      className="px-2 py-1 bg-zinc-950 border border-white/15 rounded text-xs text-white flex-1 font-mono focus:outline-none focus:border-red-500"
                     />
                     <button
                       type="button"
@@ -259,14 +260,14 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
         {/* Правая колонка: PIN-код и слоты игроков */}
         <div className="col-span-6 flex flex-col justify-between gap-6">
           {/* Карточка PIN-кода */}
-          <div className="p-5 lg:p-6 rounded-3xl bg-zinc-950/80 border border-zinc-800/80 shadow-2xl">
-            <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
+          <div className="p-5 lg:p-6 rounded-3xl bg-zinc-950/60 border border-white/10 shadow-2xl backdrop-blur-md">
+            <div className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">
               ИЛИ ВВЕДИТЕ 5-ЗНАЧНЫЙ PIN-КОД
             </div>
             <div className="text-5xl lg:text-6xl font-black font-mono tracking-widest text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.4)]">
               {roomCode}
             </div>
-            <div className="mt-3 p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-between">
+            <div className="mt-3 p-2.5 rounded-xl bg-zinc-900/90 border border-white/10 flex items-center justify-between">
               <span className="text-[10px] font-mono font-bold uppercase text-red-400 tracking-wider">КЛЮЧ МОРЗЕ:</span>
               <span className="font-mono text-xs font-bold text-zinc-200 tracking-widest">{roomMorse}</span>
             </div>
@@ -276,14 +277,14 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           </div>
 
           {/* Слоты подключения контроллеров */}
-          <div className="p-4 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg space-y-3">
+          <div className="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 shadow-lg backdrop-blur-md space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">РЕЖИМ ИГРЫ</span>
-              <div className="flex gap-1.5 bg-zinc-900 p-1 rounded-xl border border-zinc-800 text-[10px] font-black uppercase">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">РЕЖИМ ИГРЫ</span>
+              <div className="flex gap-1.5 bg-zinc-900 p-1 rounded-xl border border-white/10 text-[10px] font-black uppercase">
                 <button
                   type="button"
                   onClick={() => setIsPassAndPlay(false)}
-                  className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${!isPassAndPlay ? 'bg-zinc-800 text-zinc-100 shadow' : 'text-zinc-500 hover:text-zinc-300'} ${focusArea === 'FORMAT' && !isPassAndPlay ? 'ring-2 ring-blue-400 scale-105' : ''}`}
+                  className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${!isPassAndPlay ? 'bg-zinc-800 text-zinc-100 shadow border border-white/10' : 'text-zinc-500 hover:text-zinc-300'} ${focusArea === 'FORMAT' && !isPassAndPlay ? 'ring-2 ring-cyan-400 scale-105' : ''}`}
                 >
                   2+ ТЕЛЕФОНА
                 </button>
@@ -312,15 +313,15 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                     }}
                     className={`py-2 px-1 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
                       isFocused
-                        ? 'ring-2 ring-blue-400 scale-105 shadow-[0_0_15px_rgba(59,130,246,0.5)] z-10'
+                        ? 'ring-2 ring-cyan-400 scale-105 shadow-[0_0_15px_rgba(6,182,212,0.4)] z-10'
                         : ''
                     } ${
                       isSelected
-                        ? 'bg-zinc-900 border-red-500 text-zinc-100 shadow-[0_0_12px_rgba(239,68,68,0.3)]'
-                        : 'bg-zinc-950/40 border-zinc-800/80 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                        ? 'bg-zinc-900 border-red-500/80 text-zinc-100 shadow-[0_0_12px_rgba(239,68,68,0.3)]'
+                        : 'bg-zinc-950/40 border-white/10 text-zinc-500 hover:text-zinc-300 hover:border-white/20'
                     }`}
                   >
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold uppercase">{m.badge}</span>
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 border border-white/10 text-zinc-300 font-bold uppercase">{m.badge}</span>
                     <span className="text-[9px] font-black uppercase tracking-tight">{m.label}</span>
                   </button>
                 );
@@ -328,113 +329,79 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
             </div>
           </div>
 
-                      <div className="grid grid-cols-2 gap-3 max-h-40 lg:max-h-48 overflow-y-auto custom-scrollbar pr-1">
-              {playerList.length === 0 ? (
-                <div className="col-span-2 p-6 rounded-2xl border border-zinc-800/80 bg-zinc-950/60 flex flex-col items-center justify-center text-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400">
-                    Ожидание подключения первого смартфона...
-                  </span>
-                  <span className="text-[10px] font-mono text-zinc-600">
-                    Отсканируйте QR-код или введите PIN
-                  </span>
-                </div>
-              ) : (
-                playerList.map((player, index) => (
-              <div
-                key={index}
-                className={`p-4 rounded-2xl border transition-all duration-300 ${
-                  player
-                    ? 'bg-zinc-900/90 border-zinc-700 shadow-lg'
-                    : 'bg-zinc-950/40 border-zinc-800/60 border-dashed'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                    Игрок {index + 1}
-                  </span>
-                  {player?.isHost && (
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-950/80 border border-blue-800 text-blue-300 font-bold uppercase">
-                      HOST
+          <div className="grid grid-cols-2 gap-3 max-h-40 lg:max-h-48 overflow-y-auto custom-scrollbar pr-1">
+            {playerList.length === 0 ? (
+              <div className="col-span-2 p-6 rounded-2xl border border-white/10 bg-zinc-950/60 flex flex-col items-center justify-center text-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400">
+                  Ожидание подключения первого смартфона...
+                </span>
+                <span className="text-[10px] font-mono text-zinc-600">
+                  Отсканируйте QR-код или введите PIN
+                </span>
+              </div>
+            ) : (
+              playerList.map((player, index) => (
+                <div
+                  key={index}
+                  className={`p-4 rounded-2xl border transition-all duration-300 ${
+                    player
+                      ? 'bg-zinc-900/80 border-white/10 shadow-lg'
+                      : 'bg-zinc-950/30 border-dashed border-white/10'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                      Игрок {index + 1}
                     </span>
-                  )}
+                    {player?.isHost && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800 text-cyan-300 font-bold uppercase">
+                        HOST
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm font-black text-zinc-100 truncate">
+                    {player ? player.nickname : 'Ожидание подключения...'}
+                  </div>
+                  <div className="text-[11px] mt-1 font-mono">
+                    {player ? (
+                      <div className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+                        <span>КОНТРОЛЛЕР ПОДКЛЮЧЕН</span>
+                      </div>
+                    ) : (
+                      <span className="text-zinc-600">Свободно</span>
+                    )}
+                  </div>
                 </div>
-                <div className="text-sm font-black text-zinc-100 truncate">
-                  {player ? player.nickname : 'Ожидание подключения...'}
-                </div>
-                <div className="text-[11px] mt-1 font-mono">
-                  {player ? (
-                    <span className="text-emerald-400 font-semibold">КОНТРОЛЛЕР ПОДКЛЮЧЕН</span>
-                  ) : (
-                    <span className="text-zinc-600">Свободно</span>
-                  )}
-                </div>
-                              </div>
-              )))}
-            </div>
-
-          {/* dead code removed */ false && (
-          <div className="grid grid-cols-2 gap-4">
-            {/* Слот 1 */}
-            <div className={`p-5 rounded-2xl border transition-all duration-300 ${
-              p1 ? 'bg-zinc-900/90 border-emerald-500/60 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-zinc-950/40 border-zinc-800/60 border-dashed'
-            }`}>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-mono font-bold text-zinc-400">{p1 ? '[CTRL]' : '[WAIT]'}</span>
-                <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Слот 1 (Охотник)</span>
-              </div>
-              <div className="text-base font-black text-zinc-100 truncate">
-                {p1 ? p1.nickname : 'Ожидание подключения...'}
-              </div>
-              <div className="text-[11px] mt-1 font-mono text-zinc-500">
-                {p1 ? 'КОНТРОЛЛЕР ГОТОВ' : 'Свободно'}
-              </div>
-            </div>
-
-            {/* Слот 2 */}
-            <div className={`p-5 rounded-2xl border transition-all duration-300 ${
-              p2 ? 'bg-zinc-900/90 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-zinc-950/40 border-zinc-800/60 border-dashed'
-            }`}>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-mono font-bold text-zinc-400">{p2 ? '[CTRL]' : '[WAIT]'}</span>
-                <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Слот 2 (Свидетель)</span>
-              </div>
-              <div className="text-base font-black text-zinc-100 truncate">
-                {p2 ? p2.nickname : 'Ожидание подключения...'}
-              </div>
-              <div className="text-[11px] mt-1 font-mono text-zinc-500">
-                {p2 ? 'КОНТРОЛЛЕР ГОТОВ' : 'Свободно'}
-              </div>
-            </div>
+              ))
+            )}
           </div>
-          )}
         </div>
       </div>
 
       {/* Нижняя панель действий */}
-      <div className="flex items-center justify-between border-t border-zinc-800/80 pt-5">
-        <button
+      <div className="flex items-center justify-between border-t border-white/10 pt-5">
+        <Button
+          variant="secondary"
           onClick={onExit}
-          className={`px-6 py-3 rounded-full border border-zinc-800 bg-zinc-900/80 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-100 hover:border-zinc-700 transition cursor-pointer ${
-            focusArea === 'EXIT' ? 'ring-2 ring-blue-400 scale-105 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : ''
+          className={`px-8 h-12 rounded-full text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-white ${
+            focusArea === 'EXIT' ? 'ring-2 ring-cyan-400 scale-105 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]' : ''
           }`}
         >
           В меню
-        </button>
+        </Button>
 
-        <button
+        <Button
+          variant="primary-danger"
           onClick={() => onStartGame?.(selectedMode, isPassAndPlay)}
           disabled={!canStart}
-          className={`px-10 py-4 rounded-full font-black uppercase tracking-widest text-sm transition-all shadow-xl ${
+          className={`px-12 h-14 rounded-full font-black uppercase tracking-widest text-sm shadow-[0_0_25px_rgba(239,68,68,0.5)] ${
             focusArea === 'START' && canStart ? 'ring-2 ring-white scale-105' : ''
-          } ${
-            canStart
-              ? 'bg-red-600 hover:bg-red-500 text-white shadow-[0_0_25px_rgba(239,68,68,0.5)] cursor-pointer active:scale-95'
-              : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
           }`}
         >
           НАЧАТЬ МАТЧ
-        </button>
+        </Button>
       </div>
     </div>
   );

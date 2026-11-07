@@ -568,14 +568,14 @@ export const MainMenu = ({
             <button
               key={mode.id}
               onClick={() => { setSelectedMode(mode.id); setScreen('MODE_DETAIL'); }}
-              className="w-full bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 backdrop-blur-xl border border-white/10 border-t-white/20 rounded-2xl p-4 md:p-5 flex flex-col justify-between hover:border-zinc-500/50 transition-all active:scale-[0.98] text-left shadow-[0_4px_20px_rgba(0,0,0,0.4)] cursor-pointer group"
+              className="w-full bg-zinc-950/60 hover:bg-zinc-900/80 backdrop-blur-md border border-white/10 hover:border-cyan-500/40 rounded-2xl p-4 md:p-5 flex flex-col justify-between transition-all active:scale-[0.98] text-left shadow-lg cursor-pointer group"
             >
               <div className="w-full">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-11 h-11 md:w-12 md:h-12 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-center text-zinc-500 shadow-inner group-hover:text-white transition-colors">
+                  <div className="w-11 h-11 md:w-12 md:h-12 rounded-xl bg-zinc-900/90 border border-white/10 flex items-center justify-center text-cyan-400 shadow-inner group-hover:text-cyan-300 transition-colors">
                     <Icons.Crosshair />
                   </div>
-                  <span className="text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all">
+                  <span className="text-zinc-500 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all">
                     <Icons.ChevronRight />
                   </span>
                 </div>
@@ -587,12 +587,6 @@ export const MainMenu = ({
                 </div>
                 <p className="text-[10px] md:text-xs text-zinc-400 line-clamp-2 md:line-clamp-3 leading-relaxed">{mode.description}</p>
               </div>
-              {false && (
-              <div className="flex items-center justify-between pt-3 border-t border-white/[0.08] mt-3 w-full">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-300">Открыть дело</span>
-                <span className="text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all"><Icons.ChevronRight /></span>
-              </div>
-              )}
             </button>
           ))}
         </div>
@@ -612,7 +606,7 @@ export const MainMenu = ({
       <div className="flex-1 overflow-y-auto custom-scrollbar pb-[max(7rem,env(safe-area-inset-bottom))]">
         <div className="px-6 py-5 w-full md:max-w-2xl lg:max-w-3xl mx-auto">
           <div className="flex items-center gap-2 mb-3">
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-950/80 border border-red-500/50 text-red-200 text-xs font-bold">
+            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900/80 border border-white/10 text-zinc-300 text-xs font-bold font-mono">
               {activeModeData.players}
             </span>
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900/80 border border-white/10 text-zinc-300 text-xs font-bold font-mono">
@@ -627,92 +621,83 @@ export const MainMenu = ({
             {activeModeData.description}
           </p>
 
-                      <div className="flex flex-col gap-6">
-              <div>
-                <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">
-                  СВОДКА РАССЛЕДОВАНИЯ
-                </h3>
-                <div className="grid grid-cols-3 gap-2.5 mb-6">
-                  <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
-                    <Icons.CardsDeck className="w-6 h-6 text-zinc-300 mb-0.5" />
-                    <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">25 жителей</span>
-                    <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">подозреваемых в деле</span>
-                  </div>
-                  <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
-                    <Icons.EvidenceCards className="w-6 h-6 text-zinc-400 mb-0.5" />
-                    <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">База досье</span>
-                    <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">сбор доказательств</span>
-                  </div>
-                  <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
-                    <Icons.TokensGroup className="w-6 h-6 text-zinc-400 mb-0.5" />
-                    <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">Радар и алиби</span>
-                    <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">статусы свидетелей</span>
-                  </div>
+          <div className="flex flex-col gap-6">
+            <div>
+              <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">
+                СВОДКА РАССЛЕДОВАНИЯ
+              </h3>
+              <div className="grid grid-cols-3 gap-2.5 mb-6">
+                <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
+                  <Icons.CardsDeck className="w-6 h-6 text-zinc-300 mb-0.5" />
+                  <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">25 жителей</span>
+                  <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">подозреваемых в деле</span>
+                </div>
+                <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
+                  <Icons.EvidenceCards className="w-6 h-6 text-zinc-400 mb-0.5" />
+                  <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">База досье</span>
+                  <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">сбор доказательств</span>
+                </div>
+                <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
+                  <Icons.TokensGroup className="w-6 h-6 text-zinc-400 mb-0.5" />
+                  <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">Радар и алиби</span>
+                  <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">статусы свидетелей</span>
                 </div>
               </div>
-              <div style={{ display: 'none' }}>
-                <div>
-                  <h3 className="hidden">
-            СОСТАВ ИГРЫ
-          </h3>
-          <div className="grid grid-cols-3 gap-2.5 mb-6">
-            <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
-              <Icons.CardsDeck className="w-6 h-6 text-zinc-300 mb-0.5" />
-              <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">25 жителей</span>
-              <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">подозреваемых</span>
             </div>
-            <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
-              <Icons.EvidenceCards className="w-6 h-6 text-zinc-400 mb-0.5" />
-              <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">База улик</span>
-              <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">доказательств</span>
-            </div>
-            <div className="bg-zinc-900/70 border border-white/10 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-md">
-              <Icons.TokensGroup className="w-6 h-6 text-zinc-400 mb-0.5" />
-              <span className="text-xs font-black text-zinc-100 uppercase tracking-wider">Радар и алиби</span>
-              <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">статусы сетки</span>
-            </div>
-                      </div>
-            </div>
-            </div>
-  
-            <div>
-              <h3 className="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest mb-2.5">
-            Формат партии
-          </h3>
-          <div className="flex bg-zinc-950/80 p-1 rounded-xl border border-white/[0.08] mb-5 shadow-inner">
-            {(['AI', 'PVP', 'ONLINE'] as OpponentType[]).map(opp => (
-              <button
-                key={opp}
-                onClick={() => { setSelectedOpponent(opp); if (opp === 'PVP') setPlayerCount(2); }}
-                className={`flex-1 py-2.5 md:py-3 text-[10px] md:text-xs font-black uppercase tracking-widest rounded-lg transition cursor-pointer ${selectedOpponent === opp ? 'bg-zinc-800 text-white shadow-md border border-white/10' : 'text-zinc-500 hover:text-zinc-300'}`}
-              >
-                {opp === 'AI' ? 'Против ИИ' : opp === 'PVP' ? 'Локально' : 'Онлайн'
-              }</button>
-            ))}
-          </div>
-          </div>
 
-          {selectedOpponent === 'AI' && activeModeData.id !== 'SECRET_SERVICE' && (
             <div>
-              <h3 className="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest mb-2.5">Ваша роль</h3>
-              <div className="flex gap-3 mb-5">
-                <button
-                  onClick={() => setSelectedRole('DETECTIVE')}
-                  className={`flex-1 py-3 rounded-xl border text-[10px] md:text-xs font-black uppercase tracking-widest transition cursor-pointer ${selectedRole === 'DETECTIVE' ? 'bg-blue-950/40 border-blue-500/60 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-zinc-900/60 border-white/[0.08] text-zinc-500'}`}
-                >
-                  {activeModeData.detectiveRoleName}
-                </button>
-                <button
-                  onClick={() => setSelectedRole('KILLER')}
-                  className={`flex-1 py-3 rounded-xl border text-[10px] md:text-xs font-black uppercase tracking-widest transition cursor-pointer ${selectedRole === 'KILLER' ? 'bg-red-950/40 border-red-500/60 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-zinc-900/60 border-white/[0.08] text-zinc-500'}`}
-                >
-                  {activeModeData.killerRoleName}
-                </button>
+              <h3 className="text-[10px] md:text-xs font-black text-zinc-400 uppercase tracking-widest mb-2.5">
+                Формат партии
+              </h3>
+              <div className="flex bg-zinc-950/80 p-1 rounded-xl border border-white/10 mb-5 shadow-inner">
+                {(['AI', 'PVP', 'ONLINE'] as OpponentType[]).map(opp => {
+                  const isSelected = selectedOpponent === opp;
+                  return (
+                    <button
+                      key={opp}
+                      onClick={() => { setSelectedOpponent(opp); if (opp === 'PVP') setPlayerCount(2); }}
+                      className={`flex-1 py-2.5 md:py-3 text-[10px] md:text-xs font-black uppercase tracking-widest rounded-lg transition cursor-pointer ${
+                        isSelected
+                          ? 'bg-zinc-800 text-cyan-300 border border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
+                          : 'text-zinc-400 hover:text-zinc-200'
+                      }`}
+                    >
+                      {opp === 'AI' ? 'Против ИИ' : opp === 'PVP' ? 'Локально' : 'Онлайн'}
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          )}
 
-          {activeModeData.id === 'SECRET_SERVICE' && (
+            {selectedOpponent === 'AI' && activeModeData.id !== 'SECRET_SERVICE' && (
+              <div>
+                <h3 className="text-[10px] md:text-xs font-black text-zinc-400 uppercase tracking-widest mb-2.5">Ваша роль</h3>
+                <div className="flex gap-3 mb-5">
+                  <button
+                    onClick={() => setSelectedRole('DETECTIVE')}
+                    className={`flex-1 py-3 rounded-xl border text-[10px] md:text-xs font-black uppercase tracking-widest transition cursor-pointer ${
+                      selectedRole === 'DETECTIVE'
+                        ? 'bg-cyan-950/40 border-cyan-500/60 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
+                        : 'bg-zinc-900/60 border-white/10 text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    {activeModeData.detectiveRoleName}
+                  </button>
+                  <button
+                    onClick={() => setSelectedRole('KILLER')}
+                    className={`flex-1 py-3 rounded-xl border text-[10px] md:text-xs font-black uppercase tracking-widest transition cursor-pointer ${
+                      selectedRole === 'KILLER'
+                        ? 'bg-red-950/40 border-red-500/60 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.2)]'
+                        : 'bg-zinc-900/60 border-white/10 text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    {activeModeData.killerRoleName}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeModeData.id === 'SECRET_SERVICE' && (
               <div className="w-full">
                 <div className="flex items-center justify-between mb-2.5">
                   <h3 className="text-[10px] md:text-xs font-black text-zinc-400 uppercase tracking-widest">
@@ -732,10 +717,10 @@ export const MainMenu = ({
                         onClick={() => !isPvpDisabled && setPlayerCount(num)}
                         className={`py-2.5 rounded-xl border text-[11px] font-black uppercase transition flex items-center justify-center gap-1 ${
                           playerCount === num && !isPvpDisabled
-                            ? "bg-zinc-800 border-zinc-400 text-white shadow-md scale-[1.02] cursor-pointer"
+                            ? "bg-zinc-800 border-cyan-500/50 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.2)] scale-[1.02] cursor-pointer"
                             : isPvpDisabled
                               ? "bg-zinc-950/40 border-white/[0.04] text-zinc-700 cursor-not-allowed opacity-50"
-                              : "bg-zinc-900/60 border-white/[0.08] text-zinc-500 hover:text-zinc-300 cursor-pointer"
+                              : "bg-zinc-900/60 border-white/10 text-zinc-400 hover:text-zinc-200 cursor-pointer"
                         }`}
                       >
                         {isPvpDisabled && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3"><rect x="6" y="11" width="12" height="10" rx="2" ry="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>}
@@ -1009,83 +994,93 @@ export const MainMenu = ({
         )}
 
         {isTvPartyModalOpen && (
-          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#080a0f]/90 backdrop-blur-md p-4" onClick={() => setIsTvPartyModalOpen(false)}>
-            <div className="bg-zinc-900/95 backdrop-blur-2xl border border-white/15 p-6 rounded-3xl w-full max-w-sm flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)]" onClick={(e) => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-5 border-b border-white/10 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
-                  <h3 className="text-xs font-black text-zinc-100 uppercase tracking-widest">
-                    ТВ ВЕЧЕРИНКА • РОЛЬ УСТРОЙСТВА
-                  </h3>
+          <Modal
+            isOpen={isTvPartyModalOpen}
+            onClose={() => setIsTvPartyModalOpen(false)}
+            maxWidth="max-w-md"
+            className="p-6 text-left"
+          >
+            <div className="flex justify-between items-center mb-5 border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                <h3 className="text-xs font-black text-zinc-100 uppercase tracking-widest">
+                  ТВ ВЕЧЕРИНКА • РОЛЬ УСТРОЙСТВА
+                </h3>
+              </div>
+              <Button
+                variant="ghost"
+                onClick={() => setIsTvPartyModalOpen(false)}
+                className="!h-8 !w-8 !p-0 text-zinc-400 hover:text-white"
+                title="Закрыть"
+              >
+                ✕
+              </Button>
+            </div>
+
+            <p className="text-[11px] text-zinc-400 mb-4 leading-relaxed">
+              Выберите, как использовать текущее устройство в партии:
+            </p>
+
+            <div className="space-y-3 mb-5">
+              <button
+                onClick={() => {
+                  setIsTvPartyModalOpen(false);
+                  if (onStartTvParty) {
+                    onStartTvParty("TV_DISPLAY");
+                  } else {
+                    const code = Math.floor(10000 + Math.random() * 90000).toString();
+                    window.location.href = `${window.location.pathname}?clientType=TV_DISPLAY&room=${code}`;
+                  }
+                }}
+                className="w-full p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-red-500/60 hover:bg-zinc-900/80 transition-all text-left flex items-center gap-3.5 group cursor-pointer shadow-md"
+              >
+                <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-white/10 group-hover:border-red-500/60 flex items-center justify-center text-red-500 shrink-0 shadow-inner">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
                 </div>
-                <button onClick={() => setIsTvPartyModalOpen(false)} className="text-zinc-500 hover:text-white transition cursor-pointer">
-                  ✕
-                </button>
-              </div>
-
-              <p className="text-[11px] text-zinc-400 mb-4 leading-relaxed">
-                Выберите, как использовать текущее устройство в партии:
-              </p>
-
-              <div className="space-y-3 mb-5">
-                <button
-                  onClick={() => {
-                    setIsTvPartyModalOpen(false);
-                    if (onStartTvParty) {
-                      onStartTvParty("TV_DISPLAY");
-                    } else {
-                      const code = Math.floor(10000 + Math.random() * 90000).toString();
-                      window.location.href = `${window.location.pathname}?clientType=TV_DISPLAY&room=${code}`;
-                    }
-                  }}
-                  className="w-full p-4 rounded-2xl bg-zinc-950/80 border border-zinc-800 hover:border-red-500/80 transition-all text-left flex items-center gap-3.5 group cursor-pointer"
-                >
-                  <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-700 group-hover:border-red-500 flex items-center justify-center text-red-500 shrink-0">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-black uppercase tracking-wider text-zinc-100 group-hover:text-red-400">
+                    ЭКРАН ТЕЛЕВИЗОРА
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-black uppercase tracking-wider text-zinc-100 group-hover:text-red-400">
-                      ЭКРАН ТЕЛЕВИЗОРА
-                    </div>
-                    <div className="text-[10px] text-zinc-400 mt-0.5 leading-tight">
-                      Общее игровое поле 5×5 для хоста (TV / Проектор)
-                    </div>
+                  <div className="text-[10px] text-zinc-400 mt-0.5 leading-tight">
+                    Общее игровое поле 5×5 для хоста (TV / Проектор)
                   </div>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setIsTvPartyModalOpen(false);
-                    if (onStartTvParty) {
-                      onStartTvParty("CONTROLLER");
-                    } else {
-                      window.location.href = `${window.location.pathname}?clientType=CONTROLLER`;
-                    }
-                  }}
-                  className="w-full p-4 rounded-2xl bg-zinc-950/80 border border-zinc-800 hover:border-blue-500/80 transition-all text-left flex items-center gap-3.5 group cursor-pointer"
-                >
-                  <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-700 group-hover:border-blue-500 flex items-center justify-center text-blue-400 shrink-0">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-black uppercase tracking-wider text-zinc-100 group-hover:text-blue-400">
-                      МОБИЛЬНЫЙ КОНТРОЛЛЕР
-                    </div>
-                    <div className="text-[10px] text-zinc-400 mt-0.5 leading-tight">
-                      Персональный пульт управления агента (Телефон)
-                    </div>
-                  </div>
-                </button>
-              </div>
+                </div>
+              </button>
 
               <button
-                onClick={() => setIsTvPartyModalOpen(false)}
-                className="w-full py-3 rounded-xl border border-zinc-800 bg-zinc-900 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+                onClick={() => {
+                  setIsTvPartyModalOpen(false);
+                  if (onStartTvParty) {
+                    onStartTvParty("CONTROLLER");
+                  } else {
+                    window.location.href = `${window.location.pathname}?clientType=CONTROLLER`;
+                  }
+                }}
+                className="w-full p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-cyan-500/60 hover:bg-zinc-900/80 transition-all text-left flex items-center gap-3.5 group cursor-pointer shadow-md"
               >
-                Отмена
+                <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-white/10 group-hover:border-cyan-500/60 flex items-center justify-center text-cyan-400 shrink-0 shadow-inner">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-black uppercase tracking-wider text-zinc-100 group-hover:text-cyan-400">
+                    МОБИЛЬНЫЙ КОНТРОЛЛЕР
+                  </div>
+                  <div className="text-[10px] text-zinc-400 mt-0.5 leading-tight">
+                    Персональный пульт управления агента (Телефон)
+                  </div>
+                </div>
               </button>
             </div>
-          </div>
+
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => setIsTvPartyModalOpen(false)}
+              className="h-11 text-xs font-bold uppercase tracking-wider text-zinc-300"
+            >
+              Отмена
+            </Button>
+          </Modal>
         )}
 
         {isSettingsOpen && (

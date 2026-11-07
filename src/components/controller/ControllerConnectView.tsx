@@ -1,10 +1,13 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { soundManager } from '../../utils/audio';
 import { triggerHaptic } from '../../utils/haptics';
+import { Button } from '../ui/Button';
 
 interface ControllerConnectViewProps {
   onConnect: (pin: string) => void;
   onBackToMenu: () => void;
+  initialNickname?: string;
+  onUpdateNickname?: (nickname: string) => void;
 }
 
 const MORSE_TO_DIGIT: Record<string, string> = {
@@ -45,7 +48,31 @@ const _rawMorseToDigit: Record<string, string> = {
 export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   onConnect,
   onBackToMenu,
+  initialNickname,
+  onUpdateNickname,
 }) => {
+  const [nickname, setNickname] = useState(() => {
+    if (initialNickname) return initialNickname;
+    try {
+      const saved = localStorage.getItem('crime_city_profile');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.nickname) return parsed.nickname;
+      }
+    } catch {}
+    return 'Агент';
+  });
+
+  const handleNicknameChange = (val: string) => {
+    setNickname(val);
+    onUpdateNickname?.(val);
+    try {
+      const saved = localStorage.getItem('crime_city_profile');
+      const base = saved ? JSON.parse(saved) : {};
+      localStorage.setItem('crime_city_profile', JSON.stringify({ ...base, nickname: val }));
+    } catch {}
+  };
+
   const [tab, setTab] = useState<'PIN' | 'MORSE'>('PIN');
   const [pin, setPin] = useState<string>('');
   const [morseBuffer, setMorseBuffer] = useState<string>('');
@@ -115,56 +142,75 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   return (
     <div className="flex h-[100dvh] w-screen flex-col justify-between bg-[#080a0f] p-5 pb-8 text-zinc-100 select-none overflow-y-auto font-sans">
       {/* Шапка */}
-      <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+      <div className="flex items-center justify-between border-b border-white/10 pb-3">
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-          <span className="text-xs font-mono uppercase tracking-widest text-zinc-400">ПОДКЛЮЧЕНИЕ ПУЛЬТА</span>
+          <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+          <span className="text-xs font-mono uppercase tracking-widest text-zinc-300">ПОДКЛЮЧЕНИЕ ПУЛЬТА</span>
         </div>
-        <button
+        <Button
+          variant="ghost"
           onClick={onBackToMenu}
-          className="text-xs font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
+          className="h-8 px-2.5 text-xs font-mono uppercase text-zinc-400 hover:text-white"
         >
           В МЕНЮ
-        </button>
+        </Button>
       </div>
 
-      {/* Переключатель вкладок */}
-      <div className="flex bg-zinc-950 p-1 rounded-2xl border border-zinc-800 my-4 max-w-sm mx-auto w-full shadow-inner">
-        <button
-          type="button"
-          onClick={() => { setTab('PIN'); triggerHaptic('light'); }}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer ${
-            tab === 'PIN' ? 'bg-zinc-800 text-zinc-100 shadow' : 'text-zinc-500 hover:text-zinc-300'
-          }`}
-        >
-          ЦИФРОВОЙ ШИФР
-        </button>
-        <button
-          type="button"
-          onClick={() => { setTab('MORSE'); triggerHaptic('light'); }}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer ${
-            tab === 'MORSE' ? 'bg-red-950/80 border border-red-700/80 text-red-200 shadow-[0_0_12px_rgba(239,68,68,0.3)]' : 'text-zinc-500 hover:text-zinc-300'
-          }`}
-        >
-          КЛЮЧ МОРЗЕ
-        </button>
+      <div className="max-w-sm mx-auto w-full my-3 space-y-3">
+        {/* Позывной агента */}
+        <div className="p-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 backdrop-blur-md shadow-lg space-y-1.5">
+          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-zinc-400">
+            <span>ПОЗЫВНОЙ АГЕНТА</span>
+            <span className="text-zinc-600">ТВ-СЕТЬ</span>
+          </div>
+          <input
+            type="text"
+            maxLength={16}
+            value={nickname}
+            onChange={(e) => handleNicknameChange(e.target.value)}
+            placeholder="Агент"
+            className="w-full px-3.5 py-2 rounded-xl bg-zinc-900/90 border border-white/10 text-zinc-100 text-xs font-mono uppercase font-bold focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/40 tracking-wider shadow-inner"
+          />
+        </div>
+
+        {/* Переключатель вкладок */}
+        <div className="flex bg-zinc-950/80 p-1 rounded-2xl border border-white/10 shadow-inner">
+          <button
+            type="button"
+            onClick={() => { setTab('PIN'); triggerHaptic('light'); }}
+            className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer ${
+              tab === 'PIN' ? 'bg-zinc-800 text-cyan-300 border border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.2)]' : 'text-zinc-500 hover:text-zinc-300'
+            }`}
+          >
+            ЦИФРОВОЙ ШИФР
+          </button>
+          <button
+            type="button"
+            onClick={() => { setTab('MORSE'); triggerHaptic('light'); }}
+            className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer ${
+              tab === 'MORSE' ? 'bg-zinc-800 text-red-300 border border-red-500/50 shadow-[0_0_12px_rgba(239,68,68,0.2)]' : 'text-zinc-500 hover:text-zinc-300'
+            }`}
+          >
+            КЛЮЧ МОРЗЕ
+          </button>
+        </div>
       </div>
 
       {/* Дисплей набранного кода */}
-      <div className="flex flex-col items-center text-center max-w-sm mx-auto w-full space-y-3">
+      <div className="flex flex-col items-center text-center max-w-sm mx-auto w-full space-y-2 mb-2">
         <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
           ШИФР КОМНАТЫ (5 ЗНАКОВ)
         </div>
-        <div className="flex items-center justify-center gap-2.5">
+        <div className="flex items-center justify-center gap-2">
           {[0, 1, 2, 3, 4].map((idx) => (
             <div
               key={idx}
               className={`w-12 h-14 rounded-2xl border flex items-center justify-center text-2xl font-black font-mono shadow-inner transition-all ${
                 pin[idx]
-                  ? 'border-red-500/80 bg-zinc-900 text-zinc-100 shadow-[0_0_12px_rgba(239,68,68,0.25)]'
+                  ? 'border-cyan-500/80 bg-zinc-900/90 text-zinc-100 shadow-[0_0_12px_rgba(6,182,212,0.25)]'
                   : idx === pin.length
-                    ? 'border-zinc-700 bg-zinc-950 text-red-400 animate-pulse'
-                    : 'border-zinc-800/80 bg-zinc-950/40 text-zinc-700'
+                    ? 'border-cyan-400 bg-zinc-950 text-cyan-400 animate-pulse'
+                    : 'border-white/10 bg-zinc-950/40 text-zinc-700'
               }`}
             >
               {pin[idx] || '•'}
@@ -193,12 +239,12 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
                       setPin((prev) => (prev.length < 5 ? prev + btn : prev));
                     }
                   }}
-                  className={`py-4 rounded-2xl border text-lg font-black font-mono transition active:scale-95 cursor-pointer ${
+                  className={`py-3.5 rounded-2xl border text-lg font-black font-mono transition active:scale-95 cursor-pointer ${
                     btn === 'C'
-                      ? 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-300'
+                      ? 'bg-zinc-950/60 border-white/10 text-zinc-500 hover:text-zinc-300'
                       : btn === '⌫'
-                        ? 'bg-zinc-950 border-zinc-800 text-red-400 hover:text-red-300'
-                        : 'bg-zinc-900 border-zinc-800 text-zinc-100 hover:border-zinc-700 shadow-md'
+                        ? 'bg-zinc-950/60 border-white/10 text-red-400 hover:text-red-300'
+                        : 'bg-zinc-900/80 border-white/10 text-zinc-100 hover:border-white/25 shadow-md'
                   }`}
                 >
                   {btn}
@@ -209,7 +255,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
         ) : (
           <div className="w-full flex flex-col items-center space-y-4">
             {/* Буфер ввода Морзе */}
-            <div className="h-12 w-full rounded-2xl bg-zinc-950 border border-zinc-800 flex items-center justify-center gap-1.5 px-4 shadow-inner">
+            <div className="h-12 w-full rounded-2xl bg-zinc-950/80 border border-white/10 flex items-center justify-center gap-1.5 px-4 shadow-inner">
               <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mr-2">СИГНАЛ:</span>
               <span className="text-2xl font-mono font-black text-red-400 tracking-widest min-w-[80px] text-center">
                 {morseBuffer || '•••••'}
@@ -235,7 +281,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
               className={`w-40 h-40 rounded-full border-4 flex flex-col items-center justify-center transition-all select-none touch-none cursor-pointer active:scale-95 shadow-2xl ${
                 isKeyDown
                   ? 'bg-red-600 border-red-400 text-white shadow-[0_0_35px_rgba(239,68,68,0.7)] scale-95'
-                  : 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-zinc-500 shadow-[0_0_20px_rgba(0,0,0,0.8)]'
+                  : 'bg-zinc-900/90 border-zinc-700 text-zinc-300 hover:border-zinc-500 shadow-[0_0_20px_rgba(0,0,0,0.8)]'
               }`}
             >
               <span className="text-3xl font-mono mb-1">{isKeyDown ? '[REC]' : '. / -'}</span>
@@ -248,7 +294,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
             </button>
 
             {/* Подсказка соответствия цифр Морзе */}
-            <div className="grid grid-cols-5 gap-1.5 p-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-[9px] font-mono text-zinc-400 text-center w-full">
+            <div className="grid grid-cols-5 gap-1.5 p-2 rounded-xl bg-zinc-950/80 border border-white/10 text-[9px] font-mono text-zinc-400 text-center w-full">
               <div>1: •----</div>
               <div>2: ••---</div>
               <div>3: •••--</div>
@@ -266,13 +312,15 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
 
       {/* Нижняя кнопка подтверждения */}
       <div className="space-y-2 max-w-sm mx-auto w-full pt-2">
-        <button
+        <Button
+          variant="primary-info"
+          fullWidth
           onClick={() => onConnect(pin)}
           disabled={!isConnectReady}
-          className="w-full py-4 rounded-2xl bg-red-600 hover:bg-red-500 disabled:opacity-30 disabled:cursor-not-allowed font-black uppercase tracking-widest text-xs text-white shadow-[0_0_20px_rgba(239,68,68,0.4)] transition cursor-pointer active:scale-[0.98]"
+          className="h-14 rounded-2xl text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(6,182,212,0.3)]"
         >
-          ВОЙТИ В ИГРУ
-        </button>
+          ПОДКЛЮЧИТЬСЯ К ТВ
+        </Button>
       </div>
     </div>
   );

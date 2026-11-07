@@ -12,6 +12,7 @@ const GameRoomServerModule = _load('./src/server/index.ts');
 const GameRoomServer = GameRoomServerModule.default || GameRoomServerModule;
 
 const PORT = process.env.PORT || 1999;
+const EMPTY_ROOM_CLEANUP_DELAY_MS = 90000;
 
 const rooms = new Map();
 
@@ -31,7 +32,13 @@ function getOrCreateRoom(roomId) {
   if (!entry) {
     const roomCtx = new StandaloneRoomContext(roomId);
     const server = new GameRoomServer(roomCtx);
-    entry = { roomCtx, server };
+    entry = {
+      roomCtx,
+      server,
+      generation: 1,
+      cleanupTimer: null,
+      cleanupScheduledAt: null,
+    };
     rooms.set(roomId, entry);
   }
   return entry;
@@ -113,7 +120,14 @@ wss.on('connection', (ws, req) => {
   const match = reqUrl.pathname.match(/^\/party\/([^\/]+)/);
   const roomId = match ? decodeURIComponent(match[1]) : 'default';
 
-  const { roomCtx, server: roomServer } = getOrCreateRoom(roomId);
+  const entry = getOrCreateRoom(roomId);
+  const { roomCtx, server: roomServer } = entry;
+  if (entry.cleanupTimer) {
+    clearTimeout(entry.cleanupTimer);
+    entry.cleanupTimer = null;
+    entry.cleanupScheduledAt = null;
+    entry.generation++;
+  }
   const connId = `conn_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
   const connProxy = {
@@ -155,7 +169,34 @@ wss.on('connection', (ws, req) => {
       roomCtx._connectionsMap.delete(connId);
       roomServer.onClose(connProxy);
       if (roomCtx._connectionsMap.size === 0) {
-        rooms.delete(roomId);
+        if (!entry.cleanupTimer) {
+          const scheduledGen = ++entry.generation;
+          entry.cleanupScheduledAt = Date.now() + EMPTY_ROOM_CLEANUP_DELAY_MS;
+          entry.cleanupTimer = setTimeout(() => {
+            try {
+              const currentEntry = rooms.get(roomId);
+              if (
+                currentEntry &&
+                currentEntry === entry &&
+                currentEntry.generation === scheduledGen &&
+                currentEntry.roomCtx._connectionsMap.size === 0
+              ) {
+                if (typeof currentEntry.server?.dispose === 'function') {
+                  currentEntry.server.dispose();
+                }
+                rooms.delete(roomId);
+                console.log(`[Standalone Server] Room ${roomId} safely cleaned up after grace period.`);
+              }
+            } catch (err) {
+              console.error(`[Standalone Server] Cleanup error for room ${roomId}:`, err);
+            } finally {
+              if (entry.cleanupTimer) {
+                entry.cleanupTimer = null;
+                entry.cleanupScheduledAt = null;
+              }
+            }
+          }, EMPTY_ROOM_CLEANUP_DELAY_MS);
+        }
       }
     } catch (err) {
       console.error(`[Standalone Server] onClose error in room ${roomId}:`, err);
@@ -167,6 +208,10 @@ wss.on('connection', (ws, req) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`[Standalone Server] Running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(PORT, () => {
+    console.log(`[Standalone Server] Running on port ${PORT}`);
+  });
+}
+
+export { rooms, getOrCreateRoom, EMPTY_ROOM_CLEANUP_DELAY_MS, StandaloneRoomContext, server, wss };

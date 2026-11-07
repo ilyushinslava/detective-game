@@ -45,10 +45,159 @@ const defer = (fn: () => void) => {
   }
 };
 
+export const DISCONNECT_GRACE_PERIOD_MS = 60000;
+
 export default class GameRoomServer {
   room: any;
   state: ServerRoomState;
   private disconnectTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+  private dualDisconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private dualDisconnectStartedAt: number | null = null;
+  private turnTimerState: {
+    role: Role | null;
+    remainingMs: number;
+    timer: ReturnType<typeof setTimeout> | null;
+    startedAt: number;
+    totalDurationMs: number;
+    isPaused: boolean;
+  } = {
+    role: null,
+    remainingMs: 0,
+    timer: null,
+    startedAt: 0,
+    totalDurationMs: 30000,
+    isPaused: false,
+  };
+
+  startTurnTimer(role: Role, durationMs: number = 30000): void {
+    if (this.turnTimerState.timer) {
+      clearTimeout(this.turnTimerState.timer);
+      this.turnTimerState.timer = null;
+    }
+    this.turnTimerState.role = role;
+    this.turnTimerState.totalDurationMs = durationMs;
+    this.turnTimerState.remainingMs = durationMs;
+    this.turnTimerState.startedAt = Date.now();
+    this.turnTimerState.isPaused = false;
+    this.turnTimerState.timer = setTimeout(() => {
+      this.handleTurnTimeout();
+    }, durationMs);
+  }
+
+  pauseTurnTimer(): void {
+    if (this.turnTimerState.timer && !this.turnTimerState.isPaused) {
+      const elapsed = Date.now() - this.turnTimerState.startedAt;
+      this.turnTimerState.remainingMs = Math.max(1000, this.turnTimerState.remainingMs - elapsed);
+      clearTimeout(this.turnTimerState.timer);
+      this.turnTimerState.timer = null;
+      this.turnTimerState.isPaused = true;
+      this.broadcastRaw(
+        JSON.stringify({
+          type: "TURN_TIMER_PAUSED",
+          remainingMs: this.turnTimerState.remainingMs,
+        })
+      );
+    }
+  }
+
+  resumeTurnTimer(): void {
+    if (this.turnTimerState.isPaused && this.turnTimerState.remainingMs > 0) {
+      this.turnTimerState.startedAt = Date.now();
+      this.turnTimerState.isPaused = false;
+      this.turnTimerState.timer = setTimeout(() => {
+        this.handleTurnTimeout();
+      }, this.turnTimerState.remainingMs);
+      this.broadcastRaw(
+        JSON.stringify({
+          type: "TURN_TIMER_RESUMED",
+          remainingMs: this.turnTimerState.remainingMs,
+        })
+      );
+    }
+  }
+
+  private handleTurnTimeout(): void {
+    this.turnTimerState.timer = null;
+    this.turnTimerState.isPaused = false;
+    // При истечении времени хода смена хода обрабатывается сервером
+    this.broadcastRaw(JSON.stringify({ type: "TURN_TIMEOUT" }));
+  }
+
+  private handleDualDisconnectTimeout(): void {
+    this.dualDisconnectTimer = null;
+    this.dualDisconnectStartedAt = null;
+
+    if (this.state.status === "PLAYING") {
+      this.state.status = "FINISHED";
+      if (this.state.gameState) {
+        this.state.gameState.winner = null;
+        (this.state.gameState as any).gameResult = {
+          winner: null,
+          reason: "DRAW_DISCONNECT",
+        };
+      }
+      this.broadcastRaw(
+        JSON.stringify({
+          type: "MATCH_ANNULLED",
+          reason: "DRAW_DISCONNECT",
+          message: "Матч аннулирован: оба игрока не вернулись в игру.",
+        })
+      );
+      this.broadcastStatus();
+      this.broadcastState();
+    }
+  }
+
+  private handleIndividualGraceTimeout(clientId: string): void {
+    this.disconnectTimers.delete(clientId);
+    const playerWhoLeft = this.state.players[clientId];
+    delete this.state.players[clientId];
+    this.state.readyClients.delete(clientId);
+    (this.state as any).restartRequestedBy = null;
+
+    const roomCode = this.getRoomCode();
+    const remainingPlayers = Object.values(this.state.players);
+    const remainingPlayersCount = remainingPlayers.length;
+
+    if (remainingPlayersCount === 0) {
+      const hasTv = Object.keys(this.state.tvDisplays).length > 0;
+      if (hasTv) {
+        // ТВ-экран в сети! Не уничтожаем комнату, переводим в статус ожидания подключения
+        this.state.status = "WAITING";
+        this.broadcastStatus();
+        return;
+      }
+      this.state.status = "EMPTY";
+      this.state.gameState = null;
+      publicRoomsRegistry.delete(roomCode);
+      this.state.readyClients.clear();
+    } else {
+      if (playerWhoLeft?.isHost && (this.state.status === "WAITING" || this.state.status === "READY_TO_START")) {
+        if (!remainingPlayers.some((p) => p.isHost)) {
+          remainingPlayers[0].isHost = true;
+        }
+      }
+      this.broadcastRaw(JSON.stringify({ type: "OPPONENT_LEFT" }));
+      if (this.state.status === "PLAYING") {
+        this.state.status = "FINISHED";
+      } else {
+        this.state.status = "WAITING";
+        const hostPlayer =
+          remainingPlayers.find((p) => p.isHost) ||
+          remainingPlayers[0];
+        publicRoomsRegistry.set(roomCode, {
+          roomCode,
+          mode: this.state.mode,
+          hostName: hostPlayer?.nickname || "Хост",
+          status: "WAITING",
+          playersCount: 1,
+          maxPlayers: 2,
+          bet: 250,
+        });
+      }
+      this.broadcastStatus();
+    }
+  }
 
   private getRoomCode(): string {
     const raw = String(this.room?.id || "room");
@@ -173,8 +322,30 @@ export default class GameRoomServer {
         clearTimeout(pendingTimer);
         this.disconnectTimers.delete(clientId);
       }
+
+      if (this.dualDisconnectTimer) {
+        clearTimeout(this.dualDisconnectTimer);
+        this.dualDisconnectTimer = null;
+        const elapsed = this.dualDisconnectStartedAt ? Date.now() - this.dualDisconnectStartedAt : 0;
+        const remainingGrace = Math.max(1000, DISCONNECT_GRACE_PERIOD_MS - elapsed);
+        this.dualDisconnectStartedAt = null;
+
+        for (const [otherId, otherPlayer] of Object.entries(this.state.players)) {
+          if (otherId !== clientId) {
+            const timer = setTimeout(() => {
+              this.handleIndividualGraceTimeout(otherId);
+            }, remainingGrace);
+            this.disconnectTimers.set(otherId, timer);
+          }
+        }
+      }
+
       this.state.players[clientId].connectionId = conn.id;
       this.state.players[clientId].clientType = clientType;
+
+      if (this.state.status === "PLAYING" && this.state.gameState?.currentTurn === this.state.players[clientId]?.role) {
+        this.resumeTurnTimer();
+      }
 
       try {
         conn.send(
@@ -336,46 +507,38 @@ export default class GameRoomServer {
       publicRoomsRegistry.delete(this.getRoomCode());
     }
 
+    // Если отключился игрок, чей сейчас ход — замораживаем блиц-таймер
+    if (this.state.status === "PLAYING" && this.state.gameState?.currentTurn === playerWhoLeft?.role) {
+      this.pauseTurnTimer();
+    }
+
     const timer = setTimeout(() => {
-      this.disconnectTimers.delete(clientId);
-      delete this.state.players[clientId];
-      this.state.readyClients.delete(clientId);
-
-      const roomCode = this.getRoomCode();
-      if (roomCode && Object.keys(this.state.players).length === 0) {
-        publicRoomsRegistry.delete(roomCode);
-      }
-
-      const remainingPlayersCount = Object.keys(this.state.players).length;
-      if (remainingPlayersCount === 0) {
-        this.state.status = "EMPTY";
-        this.state.gameState = null;
-        publicRoomsRegistry.delete(roomCode);
-        this.state.readyClients.clear();
-      } else {
-        this.broadcastRaw(JSON.stringify({ type: "OPPONENT_LEFT" }));
-        if (this.state.status === "PLAYING") {
-          this.state.status = "FINISHED";
-        } else {
-          this.state.status = "WAITING";
-          const hostPlayer =
-            Object.values(this.state.players).find((p) => p.isHost) ||
-            Object.values(this.state.players)[0];
-          publicRoomsRegistry.set(roomCode, {
-            roomCode,
-            mode: this.state.mode,
-            hostName: hostPlayer?.nickname || "Хост",
-            status: "WAITING",
-            playersCount: 1,
-            maxPlayers: 2,
-            bet: 250,
-          });
-        }
-        this.broadcastStatus();
-      }
-    }, 15000);
+      this.handleIndividualGraceTimeout(clientId);
+    }, DISCONNECT_GRACE_PERIOD_MS);
 
     this.disconnectTimers.set(clientId, timer);
+
+    // Проверка Dual Disconnect (все зарегистрированные участники отключены во время PLAYING)
+    const playerKeys = Object.keys(this.state.players);
+    if (this.state.status === "PLAYING" && playerKeys.length >= 2 && this.disconnectTimers.size >= playerKeys.length) {
+      for (const t of this.disconnectTimers.values()) {
+        clearTimeout(t);
+      }
+      this.disconnectTimers.clear();
+
+      this.dualDisconnectStartedAt = Date.now();
+      this.dualDisconnectTimer = setTimeout(() => {
+        this.handleDualDisconnectTimeout();
+      }, DISCONNECT_GRACE_PERIOD_MS);
+
+      this.broadcastRaw(
+        JSON.stringify({
+          type: "DUAL_DISCONNECT_PAUSE",
+          gracePeriodMs: DISCONNECT_GRACE_PERIOD_MS,
+        })
+      );
+      this.broadcastStatus();
+    }
   }
 
   onMessage(message: string, sender: any): void {
@@ -426,6 +589,7 @@ export default class GameRoomServer {
         "REQUEST_RESTART",
         "REJECT_RESTART",
         "CONFIRM_RESTART",
+        "CHANGE_SETTINGS",
         "START_MATCH",
       ];
       if (!SYSTEM_ACTIONS.includes(action.type)) {
@@ -443,9 +607,11 @@ export default class GameRoomServer {
           }
           delete this.state.players[senderClientId];
           this.state.readyClients.delete(senderClientId);
+          (this.state as any).restartRequestedBy = null;
 
           const roomCode = this.getRoomCode();
-          const remainingPlayersCount = Object.keys(this.state.players).length;
+          const remainingPlayers = Object.values(this.state.players);
+          const remainingPlayersCount = remainingPlayers.length;
 
           if (remainingPlayersCount === 0) {
             this.state.status = "EMPTY";
@@ -453,14 +619,19 @@ export default class GameRoomServer {
             publicRoomsRegistry.delete(roomCode);
             this.state.readyClients.clear();
           } else {
+            if (player?.isHost && (this.state.status === "WAITING" || this.state.status === "READY_TO_START")) {
+              if (!remainingPlayers.some((p) => p.isHost)) {
+                remainingPlayers[0].isHost = true;
+              }
+            }
             this.broadcastRaw(JSON.stringify({ type: "OPPONENT_LEFT" }));
             if (this.state.status === "PLAYING") {
               this.state.status = "FINISHED";
             } else {
               this.state.status = "WAITING";
               const hostPlayer =
-                Object.values(this.state.players).find((p) => p.isHost) ||
-                Object.values(this.state.players)[0];
+                remainingPlayers.find((p) => p.isHost) ||
+                remainingPlayers[0];
               publicRoomsRegistry.set(roomCode, {
                 roomCode,
                 mode: this.state.mode,
@@ -479,6 +650,7 @@ export default class GameRoomServer {
 
       if (action.type === "REQUEST_RESTART") {
         (this.state as any).pendingRematchMode = action.payload?.rematchMode || "SWAP";
+        (this.state as any).restartRequestedBy = senderClientId;
         this.broadcastRaw(
           JSON.stringify({
             type: "REQUEST_RESTART",
@@ -489,11 +661,59 @@ export default class GameRoomServer {
       }
 
       if (action.type === "REJECT_RESTART") {
+        (this.state as any).restartRequestedBy = null;
         this.broadcastRaw(JSON.stringify({ type: "REJECT_RESTART" }));
         return;
       }
 
+      if (action.type === "CHANGE_SETTINGS") {
+        if (!player?.isHost) {
+          try {
+            sender.send(JSON.stringify({ type: "ACTION_REJECTED", reason: "NOT_HOST" }));
+          } catch (_err) {}
+          console.warn("[GameRoomServer] Action rejected: CHANGE_SETTINGS can only be initiated by host.");
+          return;
+        }
+        if (this.state.status !== "WAITING" && this.state.status !== "READY_TO_START") {
+          try {
+            sender.send(JSON.stringify({ type: "ACTION_REJECTED", reason: "INVALID_PHASE" }));
+          } catch (_err) {}
+          return;
+        }
+        if (action.payload?.mode) {
+          this.state.mode = action.payload.mode;
+        }
+        this.broadcastStatus();
+        return;
+      }
+
       if (action.type === "CONFIRM_RESTART") {
+        if (this.state.status !== "FINISHED") {
+          try {
+            sender.send(JSON.stringify({ type: "ACTION_REJECTED", reason: "MATCH_NOT_FINISHED" }));
+          } catch (_err) {}
+          console.warn("[GameRoomServer] Action rejected: CONFIRM_RESTART only allowed when match is FINISHED.");
+          return;
+        }
+
+        const restartRequestedBy = (this.state as any).restartRequestedBy;
+        const isParticipant = Boolean(player && player.role !== "SPECTATOR");
+
+        let isAuthorizedToConfirm = false;
+        if (restartRequestedBy) {
+          isAuthorizedToConfirm = Boolean(isParticipant && senderClientId !== restartRequestedBy);
+        } else {
+          isAuthorizedToConfirm = Boolean(player?.isHost && isParticipant);
+        }
+
+        if (!isAuthorizedToConfirm) {
+          try {
+            sender.send(JSON.stringify({ type: "ACTION_REJECTED", reason: "NOT_AUTHORIZED_RESTART" }));
+          } catch (_err) {}
+          console.warn("[GameRoomServer] Action rejected: CONFIRM_RESTART not authorized.");
+          return;
+        }
+        (this.state as any).restartRequestedBy = null;
         const playerIds = Object.keys(this.state.players || {});
         if (playerIds.length >= 2) {
           const mode = (this.state as any).pendingRematchMode;
@@ -529,6 +749,9 @@ export default class GameRoomServer {
           return;
         }
         if (!player?.isHost && !isTvSender) {
+          try {
+            sender.send(JSON.stringify({ type: "ACTION_REJECTED", reason: "NOT_HOST" }));
+          } catch (_err) {}
           console.warn("[GameRoomServer] Action rejected: START_MATCH can only be initiated by host or TV.");
           return;
         }
@@ -596,6 +819,9 @@ export default class GameRoomServer {
             console.warn(
               `Move rejected: wrong turn in SECRET_SERVICE. Player isHost: ${player.isHost}, activeSpyIndex: ${activeSpyIndex}`
             );
+            try {
+              sender.send(JSON.stringify({ type: "ACTION_REJECTED", reason: "NOT_YOUR_TURN" }));
+            } catch (_err) {}
             return;
           }
         } else {
@@ -604,6 +830,9 @@ export default class GameRoomServer {
             console.warn(
               `Move rejected: wrong turn. Player role: ${player.role}, currentTurn: ${currentTurn}`
             );
+            try {
+              sender.send(JSON.stringify({ type: "ACTION_REJECTED", reason: "NOT_YOUR_TURN" }));
+            } catch (_err) {}
             return;
           }
         }
@@ -870,11 +1099,24 @@ export default class GameRoomServer {
     } catch (_err) {}
   }
 
+  dispose(): void {
+    this.close();
+  }
+
   close(): void {
+    if (this.dualDisconnectTimer) {
+      clearTimeout(this.dualDisconnectTimer);
+      this.dualDisconnectTimer = null;
+    }
+    if (this.turnTimerState.timer) {
+      clearTimeout(this.turnTimerState.timer);
+      this.turnTimerState.timer = null;
+    }
     for (const timer of this.disconnectTimers.values()) {
       clearTimeout(timer);
     }
     this.disconnectTimers.clear();
+    (this.state as any).restartRequestedBy = null;
     publicRoomsRegistry.delete(this.getRoomCode());
   }
 }

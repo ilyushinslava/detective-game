@@ -49,6 +49,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
       }`}
     >
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
+        {/* Deactivated original splash art for possible rollback:
         <picture className="w-full h-full flex items-center justify-center">
           <source media="(min-width: 1024px)" srcSet="./splash-bg-PC.png" />
           <img
@@ -61,6 +62,16 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             }}
           />
         </picture>
+        */}
+        <img
+          src="./bg-main.png"
+          alt="Под подозрением"
+          className="w-full h-full object-cover object-[70%_top] lg:object-[center_30%] opacity-90 shadow-[0_0_80px_rgba(0,0,0,0.9)]"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            if (!target.src.endsWith('/bg-main.png')) target.src = '/bg-main.png';
+          }}
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-[#050608] via-transparent to-[#050608]/70" />
       </div>
 

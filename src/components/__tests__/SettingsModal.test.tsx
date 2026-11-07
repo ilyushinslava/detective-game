@@ -58,6 +58,7 @@ vi.mock("../../i18n/context", () => ({
         soloDesc: "Solo desc",
         localDuel: "Local",
         localDesc: "Local desc",
+        tvMode: "TV Mode",
         onlineOps: "Online",
         onlineDesc: "Online desc",
         rulebook: "Rules",

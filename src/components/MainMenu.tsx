@@ -11,6 +11,7 @@ import { TablesScreen } from "./TablesScreen";
 import { ProfileScreen } from "./ProfileScreen";
 import { Button } from "./ui/Button";
 import { GAME_MODES_META, getGameModeTitle, getGameModeShortTitle } from "../constants/gameMeta";
+import lobbyBg from "../assets/lobby_background.png";
 
 declare const __BUILD_TIMESTAMP__: string;
 import { useTranslation } from "../i18n/context";
@@ -311,146 +312,243 @@ export const MainMenu = ({
   const activeModeData = GAME_MODES.find(m => m.id === selectedMode) || GAME_MODES[0];
 
   const renderHome = () => (
-    <div className="relative flex-1 flex flex-col bg-[#080a0f] overflow-hidden">
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+    <div className="relative flex-1 flex flex-col bg-[#080a0f] w-full max-w-full overflow-x-hidden overflow-y-auto custom-scrollbar">
+      {/* Background with vivid city lights and noir vignetting (no blur, 55% opacity) */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden select-none">
         <img 
-          src="./bg-main.png" 
-          alt="Реквием: последний выстрел" 
-          className="w-full h-full object-cover object-[70%_top] lg:object-[center_30%] opacity-95"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            if (!target.src.endsWith("/bg-main.png")) target.src = "/bg-main.png";
-          }}
+          src={lobbyBg} 
+          alt="Astoria City Noir" 
+          className="w-full h-full object-cover object-center opacity-55 scale-100 transition-opacity duration-700"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#080a0f]/20 to-[#080a0f]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#080a0f]/95 via-[#080a0f]/40 to-transparent w-[60%]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#080a0f]/80 via-transparent to-[#080a0f]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#080a0f_90%)] opacity-85" />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col justify-between pt-[max(0.5rem,env(safe-area-inset-top))] pb-3 px-5 lg:px-8 max-w-6xl w-full mx-auto">
-        <div>
-          <div className="flex items-center justify-between shrink-0 mb-4">
-            <button 
-              onClick={() => setIsSettingsOpen(true)}
-              className="w-10 h-10 rounded-full bg-black/75 border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white transition cursor-pointer shadow-lg active:scale-95"
-              title="Настройки"
-            >
-              <Icons.Settings />
-            </button>
-            
-            <div className="flex flex-col items-center drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-              <span className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">Позывной</span>
-              <span className="text-sm font-black tracking-widest text-zinc-100 uppercase">{profile.nickname}</span>
-              <span className="text-[10px] text-zinc-500 font-mono select-none mt-0.5">
-                Сборка: {typeof __BUILD_TIMESTAMP__ !== 'undefined' ? __BUILD_TIMESTAMP__ : 'dev'}
-              </span>
-            </div>
+      <div className="relative z-10 flex-1 flex flex-col justify-between pt-[max(0.5rem,env(safe-area-inset-top))] pb-3 px-4 sm:px-6 lg:px-8 max-w-7xl w-full max-w-full mx-auto min-h-0 overflow-x-hidden">
+        {/* Top Header Bar: Left Title, Right Service Info */}
+        <header className="flex items-center justify-between shrink-0 py-2 sm:py-3 lg:py-4 mb-2 lg:mb-4 border-b border-white/5 lg:border-b-0 w-full max-w-full">
+          <div className="flex flex-col select-none min-w-0 pr-2">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-white uppercase leading-none drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)] truncate sm:overflow-visible">
+              {t.menu.title}
+            </h1>
+          </div>
 
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Agent Callsign / Dossier Pill (Hidden on mobile < sm) */}
+            <button
+              onClick={() => { soundManager.play('tapMenu'); setScreen('PROFILE'); onTabChange('TOP'); }}
+              className="hidden sm:flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 rounded-full bg-zinc-900/80 border border-white/10 hover:border-cyan-500/40 hover:bg-zinc-800/80 transition cursor-pointer shadow-lg active:scale-95 group text-left shrink-0"
+              title="Досье агента"
+            >
+              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-zinc-950 border border-white/10 flex items-center justify-center text-xs sm:text-sm shrink-0">
+                {profile.avatar || "🕵️"}
+              </div>
+              <div className="flex flex-col leading-none">
+                <span className="text-[10px] sm:text-xs font-black tracking-wider text-zinc-200 uppercase group-hover:text-white transition truncate max-w-[85px] sm:max-w-[120px]">
+                  {profile.nickname}
+                </span>
+                <span className="text-[7px] sm:text-[8px] font-mono text-zinc-400 tracking-widest uppercase mt-0.5">
+                  {profile.rank || "Стажёр"}
+                </span>
+              </div>
+            </button>
+
+            {/* Dev Panel Cash Pill */}
             <div
               onClick={() => { onOpenDevPanel?.(); }}
-              className="rounded-full bg-black/75 border border-white/10 hover:border-zinc-500/50 hover:bg-zinc-800/40 px-3.5 py-1.5 flex items-center gap-1.5 shadow-lg cursor-pointer transition active:scale-95"
+              className="rounded-full bg-zinc-900/80 border border-white/10 hover:border-amber-500/40 hover:bg-zinc-800/80 px-3.5 py-1.5 flex items-center gap-1.5 shadow-lg cursor-pointer transition active:scale-95 shrink-0"
               title="Открыть Dev-панель"
             >
               <Icons.Coin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span className="text-zinc-100 font-mono text-xs font-bold">{profile.cash.toLocaleString()}</span>
             </div>
-          </div>
 
-          <div className="max-w-[60%] text-left -rotate-3 select-none">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter text-white uppercase leading-none drop-shadow-[0_4px_20px_rgba(0,0,0,1)]">
-              {t.menu.title}
-            </h1>
-            <div className="text-red-500 font-black text-xs sm:text-sm tracking-widest uppercase mt-1 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">
-              {t.menu.subtitle}
-            </div>
-            <p className="text-[9px] font-bold tracking-widest text-zinc-400 uppercase mt-2 leading-tight drop-shadow-md">
-              {t.menu.desc}
-            </p>
-          </div>
-        </div>
-
-        <div className="w-full max-w-lg md:max-w-xl lg:max-w-none flex flex-col lg:grid lg:grid-cols-2 lg:gap-4 shrink-0">
-          {hasActiveGame && (
-            <button
-              onClick={onResumeGame}
-              className="w-full h-11 sm:h-12 md:h-16 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 md:px-6 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer"
+            {/* Settings Cog Button */}
+            <button 
+              onClick={() => setIsSettingsOpen(true)}
+              className="w-10 h-10 rounded-full bg-zinc-900/80 border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white hover:border-white/20 transition cursor-pointer shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-cyan-400/80 shrink-0"
+              title="Настройки"
             >
-              <span className="font-black tracking-widest uppercase text-[10px] sm:text-xs md:text-sm">{t.menu.resume}</span>
-              <Icons.ArrowRight />
+              <Icons.Settings />
             </button>
-          )}
+          </div>
+        </header>
 
-          <BiometricSlider
-            onTrigger={handleQuickPlay}
-            disabled={isCreating}
-            text={isCreating ? (t.menu.searching || "Поиск соперника...") : (t.menu.quickPlay || "Быстрая игра")}
-            price={250}
-          />
-
-          <div className="flex flex-col gap-2 sm:gap-2.5 md:gap-3.5 mt-1">
-            <button onClick={() => { setSelectedOpponent("AI"); setScreen('MODES'); }} className="w-full h-11 sm:h-12 md:h-16 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 md:px-6 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
-              <div className="flex items-center gap-3.5">
-                <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-zinc-400 shrink-0"><Icons.Cards /></div>
-                <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[10px] sm:text-xs md:text-sm font-black text-zinc-100 uppercase tracking-widest">{t.menu.soloCases}</span>
-                  <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{t.menu.soloDesc}</span>
-                </div>
-              </div>
-              <Icons.ChevronRight />
-            </button>
-
-                          <button onClick={() => { setSelectedOpponent("PVP"); setScreen('MODES'); }} className="w-full h-11 sm:h-12 md:h-16 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 md:px-6 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-zinc-400 shrink-0"><Icons.Users /></div>
-                  <div className="flex flex-col items-start leading-tight">
-                    <span className="text-[10px] sm:text-xs md:text-sm font-black text-zinc-100 uppercase tracking-widest">{t.menu.localDuel}</span>
-                    <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{t.menu.localDesc}</span>
+        {/* Central Game Showcase: Hero (Quick Play) + 2x2 Modes Grid */}
+        <div className="w-full max-w-xl lg:max-w-none mx-auto flex-1 flex flex-col justify-center py-2 sm:py-6 sm:min-h-[calc(100vh-80px)] lg:min-h-0 lg:py-4 lg:grid lg:grid-cols-12 lg:gap-8 items-center my-auto min-h-0">
+          {/* Hero Block: Quick Play (5 cols on lg+, full width on mobile/tablet) */}
+          <div className="w-full lg:col-span-5 flex flex-col gap-3 mb-4 lg:mb-0">
+            {hasActiveGame && (
+              <button
+                onClick={onResumeGame}
+                className="w-full bg-gradient-to-r from-emerald-950/80 to-zinc-950/90 border border-emerald-500/50 hover:border-emerald-400 p-4 rounded-2xl flex items-center justify-between shadow-[0_0_25px_rgba(16,185,129,0.2)] hover:scale-[1.01] transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-950/90 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.3)]">
+                    <Icons.Play />
+                  </div>
+                  <div className="flex flex-col text-left">
+                    <span className="text-[9px] font-mono uppercase tracking-widest text-emerald-400 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      ДЕЛО ПРИОСТАНОВЛЕНО
+                    </span>
+                    <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white group-hover:text-emerald-300 transition">
+                      {t.menu.resume}
+                    </span>
                   </div>
                 </div>
-                <Icons.ChevronRight />
+                <Icons.ArrowRight />
+              </button>
+            )}
+
+            <div className="w-full h-auto flex flex-col bg-zinc-950/60 hover:bg-zinc-950/80 border border-cyan-500/30 hover:border-cyan-400/60 backdrop-blur-md rounded-2xl p-5 lg:p-6 shadow-[0_0_35px_rgba(6,182,212,0.12)] transition-all relative overflow-hidden group">
+              <div className="absolute -top-16 -right-16 w-44 h-44 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-cyan-500/20 transition-all duration-500" />
+              
+              <div className="relative z-10 flex flex-col">
+                <div className="flex items-center justify-end mb-2">
+                  <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/50 border border-white/10 text-[9px] font-mono text-amber-400">
+                    <Icons.Coin className="w-3 h-3 text-amber-400" />
+                    <span>250</span>
+                  </div>
+                </div>
+
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-white uppercase tracking-tight leading-tight mb-2 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+                  {t.menu.quickPlay}
+                </h2>
+                <p className="text-[10px] sm:text-xs text-zinc-400 leading-relaxed max-w-sm">
+                  Мгновенный вход в открытую партию. Если подходящий стол не найден, система автоматически создаст случайную игру и будет ждать соперника.
+                </p>
+              </div>
+
+              <div className="relative z-10 w-full mt-6">
+                <BiometricSlider
+                  onTrigger={handleQuickPlay}
+                  disabled={isCreating}
+                  text={isCreating ? (t.menu.searching || "Поиск соперника...") : (t.menu.quickPlay || "Быстрая игра")}
+                  price={250}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: 2x2 Showcase Grid + Aux Buttons (7 cols on lg+) */}
+          <div className="w-full lg:col-span-7 flex flex-col">
+            <div className="grid grid-cols-2 gap-4">
+              {/* Card 1: Solo Game (PVE) */}
+              <button
+                onClick={() => { setSelectedOpponent("AI"); setScreen('MODES'); }}
+                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-cyan-500/40 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-cyan-400 transition-colors shrink-0 shadow-inner">
+                    <Icons.Cards className="w-5 h-5" />
+                  </div>
+                  <span className="bg-zinc-800/60 text-zinc-400 border border-white/5 text-[10px] font-mono px-2 py-0.5 rounded-md uppercase font-bold tracking-wider shrink-0">
+                    PVE
+                  </span>
+                </div>
+                <div className="flex flex-col mt-3 min-w-0 flex-1 justify-center">
+                  <span className="font-bold text-xs sm:text-sm lg:text-base break-words leading-tight text-zinc-100 uppercase tracking-wider group-hover:text-white transition">
+                    {t.menu.soloCases}
+                  </span>
+                </div>
               </button>
 
-              <button onClick={() => {
-                setIsTvPartyModalOpen(true);
-              }} className="w-full h-11 sm:h-12 md:h-16 bg-gradient-to-b from-red-950/40 to-zinc-950/90 border border-red-500/30 border-t-red-500/50 rounded-2xl flex items-center justify-between px-5 md:px-6 text-white shadow-[0_4px_20px_rgba(239,68,68,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-red-500/60 active:scale-[0.99] transition cursor-pointer">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-red-500 shrink-0">
+              {/* Card 2: One Screen (PVP) */}
+              <button
+                onClick={() => { setSelectedOpponent("PVP"); setScreen('MODES'); }}
+                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-cyan-500/40 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-cyan-400 transition-colors shrink-0 shadow-inner">
+                    <Icons.Users className="w-5 h-5" />
+                  </div>
+                  <span className="bg-zinc-800/60 text-zinc-400 border border-white/5 text-[10px] font-mono px-2 py-0.5 rounded-md uppercase font-bold tracking-wider shrink-0">
+                    PVP
+                  </span>
+                </div>
+                <div className="flex flex-col mt-3 min-w-0 flex-1 justify-center">
+                  <span className="font-bold text-xs sm:text-sm lg:text-base break-words leading-tight text-zinc-100 uppercase tracking-wider group-hover:text-white transition">
+                    {t.menu.localDuel}
+                  </span>
+                </div>
+              </button>
+
+              {/* Card 3: TV Mode (TV PARTY) */}
+              <button
+                onClick={() => { setIsTvPartyModalOpen(true); }}
+                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-cyan-500/40 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-cyan-400 transition-colors shrink-0 shadow-inner">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
                   </div>
-                                                          <div className="flex flex-col items-start leading-tight">
-                      <span className="text-[10px] sm:text-xs md:text-sm font-black text-red-400 uppercase tracking-widest">ТВ ВЕЧЕРИНКА</span>
-                      <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-widest">ТЕЛЕВИЗОР + ТЕЛЕФОНЫ</span>
-                    </div>
+                  <span className="bg-zinc-800/60 text-zinc-400 border border-white/5 text-[10px] font-mono px-2 py-0.5 rounded-md uppercase font-bold tracking-wider shrink-0">
+                    TV PARTY
+                  </span>
                 </div>
-                <Icons.ChevronRight />
-              </button>
-
-            <button onClick={() => { setScreen('TABLES'); onTabChange('TABLES'); }} className="w-full h-11 sm:h-12 md:h-16 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-between px-5 md:px-6 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
-              <div className="flex items-center gap-3.5">
-                <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-zinc-400 shrink-0"><Icons.Users /></div>
-                <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[10px] sm:text-xs md:text-sm font-black text-zinc-100 uppercase tracking-widest">{t.menu.onlineOps}</span>
-                  <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{t.menu.onlineDesc}</span>
-                </div>
-              </div>
-              <Icons.ChevronRight />
-            </button>
-
-            <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3.5">
-              <button onClick={onOpenRules} className="w-full h-11 sm:h-12 md:h-16 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-center gap-2 px-2.5 md:px-4 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
-                <div className="text-zinc-400"><Icons.Shield /></div>
-                <div className="flex flex-col items-start">
-                  <span className="text-[9px] sm:text-[10px] md:text-xs font-black text-zinc-100 uppercase tracking-widest">{t.menu.rulebook}</span>
-                  <span className="text-[7px] sm:text-[8px] md:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{t.menu.rulebookDesc}</span>
+                <div className="flex flex-col mt-3 min-w-0 flex-1 justify-center">
+                  <span className="font-bold text-xs sm:text-sm lg:text-base break-words leading-tight text-zinc-100 uppercase tracking-wider group-hover:text-white transition">
+                    {t.menu.tvMode || "ТВ РЕЖИМ"}
+                  </span>
                 </div>
               </button>
 
-              <button onClick={() => setIsTutorialOpen(true)} className="w-full h-11 sm:h-12 md:h-16 bg-gradient-to-b from-zinc-800/60 to-zinc-950/80 border border-white/10 border-t-white/20 rounded-2xl flex items-center justify-center gap-2 px-2.5 md:px-4 text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-white/25 active:scale-[0.99] transition cursor-pointer">
-                <div className="text-zinc-400">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+              {/* Card 4: Multiplayer (ONLINE) */}
+              <button
+                onClick={() => { setScreen('TABLES'); onTabChange('TABLES'); }}
+                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-cyan-500/40 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-cyan-400 transition-colors shrink-0 shadow-inner">
+                    <Icons.Radar className="w-5 h-5" />
+                  </div>
+                  <span className="bg-zinc-800/60 text-zinc-400 border border-white/5 text-[10px] font-mono px-2 py-0.5 rounded-md uppercase font-bold tracking-wider shrink-0">
+                    ONLINE
+                  </span>
                 </div>
-                <div className="flex flex-col items-start">
-                  <span className="text-[9px] sm:text-[10px] md:text-xs font-black text-zinc-100 uppercase tracking-widest">{t.menu.tutorial}</span>
-                  <span className="text-[7px] sm:text-[8px] md:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{t.menu.tutorialDesc}</span>
+                <div className="flex flex-col mt-3 min-w-0 flex-1 justify-center">
+                  <span className="font-bold text-xs sm:text-sm lg:text-base break-words leading-tight text-zinc-100 uppercase tracking-wider group-hover:text-white transition">
+                    {t.menu.onlineOps}
+                  </span>
+                </div>
+              </button>
+            </div>
+
+            {/* Auxiliary Buttons: Rules & Tutorial */}
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <button
+                onClick={onOpenRules}
+                className="h-11 sm:h-12 rounded-xl bg-zinc-950/60 hover:bg-zinc-900/80 border border-white/10 hover:border-white/25 transition-all flex items-center justify-center gap-2.5 px-4 text-zinc-300 hover:text-white cursor-pointer active:scale-[0.99] shadow-md group focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
+              >
+                <div className="text-zinc-400 group-hover:text-cyan-400 transition-colors shrink-0">
+                  <Icons.Shield />
+                </div>
+                <div className="flex flex-col items-start leading-tight min-w-0">
+                  <span className="text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-widest text-zinc-200 group-hover:text-white truncate">
+                    {t.menu.rulebook}
+                  </span>
+                  <span className="text-[7px] sm:text-[8px] text-zinc-500 uppercase tracking-widest truncate">
+                    {t.menu.rulebookDesc}
+                  </span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => setIsTutorialOpen(true)}
+                className="h-11 sm:h-12 rounded-xl bg-zinc-950/60 hover:bg-zinc-900/80 border border-white/10 hover:border-white/25 transition-all flex items-center justify-center gap-2.5 px-4 text-zinc-300 hover:text-white cursor-pointer active:scale-[0.99] shadow-md group focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
+              >
+                <div className="text-zinc-400 group-hover:text-cyan-400 transition-colors shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 sm:w-5 sm:h-5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                <div className="flex flex-col items-start leading-tight min-w-0">
+                  <span className="text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-widest text-zinc-200 group-hover:text-white truncate">
+                    {t.menu.tutorial}
+                  </span>
+                  <span className="text-[7px] sm:text-[8px] text-zinc-500 uppercase tracking-widest truncate">
+                    {t.menu.tutorialDesc}
+                  </span>
                 </div>
               </button>
             </div>
@@ -696,26 +794,40 @@ export const MainMenu = ({
   );
 
   const renderTables = () => (
-    <TablesScreen
-      roomFilter={roomFilter}
-      setRoomFilter={setRoomFilter}
-      filteredRooms={filteredRooms}
-      joinCode={joinCode}
-      setJoinCode={setJoinCode}
-      handleJoinRoom={handleJoinRoom}
-      setIsCreateRoomOpen={setIsCreateRoomOpen}
-      ROOM_FILTERS={ROOM_FILTERS}
-      GAME_MODES={GAME_MODES}
-      soundManager={soundManager}
-    />
+    <div className="flex-1 min-h-0 flex flex-col relative">
+      <div className="hidden md:flex items-center px-6 py-2.5 bg-zinc-950/90 border-b border-white/10 shrink-0">
+        <Button variant="ghost" onClick={() => { setScreen('HOME'); onTabChange('LOBBY'); }} className="h-8 px-2 text-zinc-400 hover:text-white gap-1 text-[10px] font-black uppercase tracking-widest">
+          <Icons.ChevronLeft /> Назад в штаб
+        </Button>
+      </div>
+      <TablesScreen
+        roomFilter={roomFilter}
+        setRoomFilter={setRoomFilter}
+        filteredRooms={filteredRooms}
+        joinCode={joinCode}
+        setJoinCode={setJoinCode}
+        handleJoinRoom={handleJoinRoom}
+        setIsCreateRoomOpen={setIsCreateRoomOpen}
+        ROOM_FILTERS={ROOM_FILTERS}
+        GAME_MODES={GAME_MODES}
+        soundManager={soundManager}
+      />
+    </div>
   );
 
   const renderProfile = () => (
-    <ProfileScreen
-      profile={profile}
-      onUpdateProfile={onUpdateProfile || (() => {})}
-      onOpenSettings={() => setIsSettingsOpen(true)}
-    />
+    <div className="flex-1 min-h-0 flex flex-col relative">
+      <div className="hidden md:flex items-center px-6 py-2.5 bg-zinc-950/90 border-b border-white/10 shrink-0">
+        <Button variant="ghost" onClick={() => { setScreen('HOME'); onTabChange('LOBBY'); }} className="h-8 px-2 text-zinc-400 hover:text-white gap-1 text-[10px] font-black uppercase tracking-widest">
+          <Icons.ChevronLeft /> Назад в штаб
+        </Button>
+      </div>
+      <ProfileScreen
+        profile={profile}
+        onUpdateProfile={onUpdateProfile || (() => {})}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+      />
+    </div>
   );
 
   const handleFinishTutorial = () => {
@@ -786,17 +898,17 @@ export const MainMenu = ({
     <div 
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      className="fixed inset-0 z-50 bg-[#080a0f] flex justify-center overflow-hidden font-sans select-none text-zinc-100"
+      className="fixed inset-0 z-50 bg-[#080a0f] flex justify-center w-full max-w-full overflow-x-hidden overflow-y-auto font-sans select-none text-zinc-100"
     >
       <Toast message={toastMessage} type="error" onClose={() => setToastMessage(null)} />
       
-      <div className="w-full 2xl:max-w-5xl 2xl:mx-auto h-full flex flex-col justify-between bg-[#080a0f] 2xl:border-x 2xl:border-white/10 2xl:shadow-[0_0_80px_rgba(0,0,0,0.9)] relative overflow-hidden">
-        <div className="w-full flex-1 min-h-0 flex flex-col relative overflow-hidden">
+      <div className="w-full max-w-7xl mx-auto h-full flex flex-col justify-between bg-[#080a0f] xl:border-x xl:border-white/10 xl:shadow-[0_0_100px_rgba(0,0,0,0.95)] relative w-full max-w-full overflow-x-hidden overflow-y-auto">
+        <div className="w-full flex-1 min-h-0 flex flex-col relative w-full max-w-full overflow-x-hidden overflow-y-auto">
           {renderScreen()}
         </div>
 
         {screen !== 'MODE_DETAIL' && (
-          <nav className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] md:py-3 px-6 flex justify-around items-center z-40">
+          <nav className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] px-6 flex md:hidden justify-around items-center z-40">
           <button 
             onClick={() => { soundManager.play('tapMenu'); setScreen('HOME'); onTabChange('LOBBY'); }} 
             className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'HOME' || screen === 'MODES' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}

@@ -49,11 +49,11 @@ export const BiometricSlider = ({
       {!isTriggered ? (
         <motion.div
           style={{ opacity: textOpacity }}
-          className="absolute inset-0 flex items-center justify-center pointer-events-none font-black text-xs uppercase tracking-widest text-zinc-300 select-none gap-2 px-12"
+          className="absolute inset-0 flex items-center justify-center pointer-events-none font-black text-xs uppercase tracking-widest text-zinc-300 select-none pl-12 sm:pl-14 md:pl-20 pr-16 sm:pr-20"
         >
-          <span>{text}</span>
+          <span className="truncate">{text}</span>
           {price !== undefined && (
-            <span className="text-[10px] md:text-xs font-mono text-emerald-300 flex items-center gap-1 bg-black/40 px-2 py-0.5 rounded-full border border-emerald-500/20">
+            <span className="absolute right-3.5 sm:right-4 text-[10px] md:text-xs font-mono text-emerald-300 flex items-center gap-1 bg-black/40 px-2.5 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3 h-3 text-emerald-400 fill-emerald-400/20 shrink-0">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />

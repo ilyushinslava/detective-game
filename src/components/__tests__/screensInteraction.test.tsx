@@ -65,7 +65,7 @@ describe("Интерактивное взаимодействие с экран�
       );
 
       // Переход в каталог режимов, если отображается главный экран
-      const soloTabs = screen.queryAllByText(/ОДИНОЧНЫЕ ДЕЛА/i);
+      const soloTabs = screen.queryAllByText(/ОДИНОЧНАЯ ИГРА|ОДИНОЧНЫЕ ДЕЛА/i);
       if (soloTabs.length > 0) {
         fireEvent.click(soloTabs[0]);
       }

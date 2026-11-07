@@ -732,7 +732,7 @@ export const MainMenu = ({
       case 'THIEF_HUNT':
         return [
           { icon: Icons.Grid, title: '25 КВАРТАЛОВ', subtitle: 'ГОРОДСКАЯ СЕТКА' },
-          { icon: Icons.Coins, title: '10 МОНЕТ', subtitle: 'ЦЕЛЬ ГРАБИТЕЛЯ' },
+          { icon: Icons.Coins, title: '8 МОНЕТ', subtitle: 'ЦЕЛЬ ГРАБИТЕЛЯ' },
           { icon: Icons.ShieldLock, title: 'ОЦЕПЛЕНИЕ', subtitle: 'БЛОК ПАТРУЛЕЙ' },
         ];
       case 'SECRET_SERVICE':
@@ -918,7 +918,7 @@ export const MainMenu = ({
                   setIsCreateRoomOpen(true);
                 } else {
                   const effectiveCount = (selectedMode === "SECRET_SERVICE" && selectedOpponent === "PVP") ? 2 : playerCount;
-                  const targetTrophies = selectedMode === "SECRET_SERVICE" ? (effectiveCount === 2 ? 2 : effectiveCount === 3 ? 4 : 3) : 3;
+                  const targetTrophies = selectedMode === "SECRET_SERVICE" ? (effectiveCount === 3 ? 4 : 3) : 3;
                   onStartGame(selectedMode, selectedOpponent, selectedRole, effectiveCount, targetTrophies, 0, 0);
                 }
               }}

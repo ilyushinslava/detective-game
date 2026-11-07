@@ -136,7 +136,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
       },
       {
         name: "Оперативный перехват",
-        desc: "Оперативник производит задержание в зоне 3×3 вокруг себя. Ошибка ведет к потере темпа и продвижению списка жертв.",
+        desc: "Оперативник производит задержание в зоне 3×3 вокруг себя. Ошибка следствия не сокращает список жертв: сыщик просто теряет ход, а проверенный житель получает статус «Алиби».",
         tag: "Арест",
       },
     ],
@@ -154,7 +154,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     role1: {
       name: "Грабитель",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
-      goal: "Похитить 10 жетонов ценностей у соседей по сетке и скрыться с награбленным.",
+      goal: "Похитить 8 жетонов ценностей у соседей по сетке и скрыться с награбленным.",
     },
     role2: {
       name: "Полиция",
@@ -164,7 +164,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     mechanics: [
       {
         name: "Карманная кража",
-        desc: "Вор крадет жетон ценностей у любой из 8 соседних карт без убийства. Цель — 10 сокровищ. Ограбленный житель помечается маркером.",
+        desc: "Вор крадет жетон ценностей у любой из 8 соседних карт без убийства. Цель — 8 сокровищ. Ограбленный житель помечается маркером.",
         tag: "Добыча",
       },
       {
@@ -197,12 +197,12 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     role1: {
       name: "Агент Альфа",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
-      goal: "Первым собрать целевое число трофеев (2 в дуэли, 4 при 3 игроках, 3 при 4 игроках).",
+      goal: "Первым собрать целевое число трофеев (3 в дуэли, 4 при 3 игроках, 3 при 4+ игроках).",
     },
     role2: {
       name: "Агент Омега",
       badgeColor: "bg-blue-950/80 text-blue-300 border border-blue-700/60",
-      goal: "Первым собрать целевое число трофеев (2 в дуэли, 4 при 3 игроках, 3 при 4 игроках).",
+      goal: "Первым собрать целевое число трофеев (3 в дуэли, 4 при 3 игроках, 3 при 4+ игроках).",
     },
     mechanics: [
       {
@@ -212,7 +212,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
       },
       {
         name: "Разоблачение резидента",
-        desc: "Вскрытие подозреваемого рядом с собой. При успехе вражеский шпион раскрыт, вы берете трофей, а соперник — новую легенду. Цель: 2 трофея (2P), 4 (3P), 3 (4P).",
+        desc: "Вскрытие подозреваемого рядом с собой. При успехе вражеский шпион раскрыт, вы берете трофей, а соперник — новую легенду. Цель: 3 трофея (2P), 4 (3P), 3 (4+P).",
         tag: "Трофей",
       },
       {
@@ -272,14 +272,31 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
   },
 };
 
+const getBannerUrl = (path: string | null) => {
+  if (!path) return null;
+  const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+  return `${base}${path.startsWith("/") ? path : "/" + path}`;
+};
+
+const MODE_BANNERS: Record<ModeTab, string | null> = {
+  BASE: "/assets/modes/base-banner.png",          // Тестовая Схватка.png
+  MANIAC: "/assets/modes/maniac-banner.png",      // Тестовая Маньяк.png
+  THIEF: null,                                   // Заглушка (подставит пользователь)
+  SECRET_SERVICE: null,                          // Заглушка (подставит пользователь)
+  LINE_UP: null,                                 // Заглушка (подставит пользователь)
+};
+
 export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
   const [activeTab, setActiveTab] = useState<ModeTab>("BASE");
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   if (!isOpen) return null;
 
   const currentMode = MODES_DATA[activeTab];
   const isCrimeOriented = activeTab === "MANIAC";
+  const rawBanner = MODE_BANNERS[activeTab];
+  const bannerSrc = rawBanner && !imgErrors[activeTab] ? getBannerUrl(rawBanner) : null;
 
   const handleTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0];
@@ -303,11 +320,11 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
   };
 
   const tabs: Array<{ id: ModeTab; label: string }> = [
-    { id: "BASE", label: "База" },
-    { id: "MANIAC", label: "Маньяк" },
-    { id: "THIEF", label: "Вор" },
-    { id: "SECRET_SERVICE", label: "Служба" },
-    { id: "LINE_UP", label: "Ставка" },
+    { id: "BASE", label: "ОСНОВЫ" },
+    { id: "MANIAC", label: "ПОЧЕРК УБИЙЦЫ" },
+    { id: "THIEF", label: "ОЦЕПЛЕНИЕ" },
+    { id: "SECRET_SERVICE", label: "ДИРЕКТИВА НОЛЬ" },
+    { id: "LINE_UP", label: "ОЧНАЯ СТАВКА" },
   ];
 
   return (
@@ -325,31 +342,61 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
       >
         <div className="flex justify-between items-center mb-3 shrink-0 border-b border-white/10 pb-2.5">
           <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${isCrimeOriented ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" : "bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]"} animate-pulse`} />
+            <span className={`w-2 h-2 rounded-full ${isCrimeOriented ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" : "bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.8)]"} animate-pulse`} />
             <h2 className="text-sm font-black uppercase tracking-widest text-[#f1f5f9]">
               Справочник правил
             </h2>
           </div>
-          <Button
-            variant="ghost"
-            onClick={onClose}
-            className="!h-8 !w-8 !p-0 text-zinc-400 hover:text-white"
-            title="Закрыть"
-          >
-            ✕
-          </Button>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono font-bold text-zinc-400 bg-zinc-900 px-2 py-0.5 rounded-md border border-white/10">
+              {tabs.findIndex((t) => t.id === activeTab) + 1}/{tabs.length}
+            </span>
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              className="!h-8 !w-8 !p-0 text-zinc-400 hover:text-white"
+              title="Закрыть"
+            >
+              ✕
+            </Button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-3 shrink-0 custom-scrollbar">
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            const tabIsCrime = tab.id === "MANIAC";
-            const activeClasses = tab.id === "BASE"
-              ? "bg-zinc-800 text-zinc-100 border-zinc-500 shadow-[0_0_12px_rgba(255,255,255,0.15)]"
-              : tabIsCrime
-                ? "bg-red-950/80 text-red-300 border-red-600 shadow-[0_0_12px_rgba(239,68,68,0.3)]"
-                : "bg-blue-950/80 text-blue-200 border-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.3)]";
+        <div className="relative mb-2 shrink-0">
+          <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scrollbar-none pb-1 pr-6">
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.id;
+              const tabIsCrime = tab.id === "MANIAC";
+              const activeClasses = tab.id === "BASE"
+                ? "bg-zinc-800 text-zinc-100 border-zinc-500 shadow-[0_0_12px_rgba(255,255,255,0.15)]"
+                : tabIsCrime
+                  ? "bg-red-950/80 text-red-300 border-red-600 shadow-[0_0_12px_rgba(239,68,68,0.3)]"
+                  : "bg-blue-950/80 text-blue-200 border-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.3)]";
 
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    triggerHaptic("light");
+                    setActiveTab(tab.id);
+                  }}
+                  className={`px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-black uppercase tracking-wider transition cursor-pointer whitespace-nowrap shrink-0 ${
+                    isActive
+                      ? activeClasses
+                      : "bg-zinc-900/80 text-zinc-400 border-white/10 hover:border-white/20 hover:text-zinc-200"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-zinc-950 to-transparent pointer-events-none z-10" />
+        </div>
+
+        <div className="flex items-center justify-center gap-1 mb-3 shrink-0">
+          {tabs.map((tab) => {
+            const isCurrent = tab.id === activeTab;
             return (
               <button
                 key={tab.id}
@@ -357,45 +404,45 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
                   triggerHaptic("light");
                   setActiveTab(tab.id);
                 }}
-                className={`px-3 py-1.5 rounded-xl border text-[10px] sm:text-xs font-black uppercase tracking-wider transition cursor-pointer whitespace-nowrap shrink-0 ${
-                  isActive
-                    ? activeClasses
-                    : "bg-zinc-900/80 text-zinc-400 border-white/10 hover:border-white/20 hover:text-zinc-200"
+                className={`h-1 rounded-full transition-all duration-300 cursor-pointer ${
+                  isCurrent
+                    ? "w-5 sm:w-6 bg-white shadow-[0_0_6px_rgba(255,255,255,0.6)]"
+                    : "w-1.5 sm:w-2 bg-zinc-700/60 hover:bg-zinc-600"
                 }`}
-              >
-                {tab.label}
-              </button>
+                title={tab.label}
+              />
             );
           })}
         </div>
 
-        <div className={`relative w-full h-24 sm:h-28 rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${currentMode.borderColor} shadow-lg bg-zinc-900`}>
-          <img
-            src={currentMode.bannerImage || "/bg-main.png"}
-            alt={currentMode.title}
-            className="w-full h-full object-cover object-[center_35%] opacity-50"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              if (!target.src.endsWith("/bg-main.png")) {
-                target.src = "/bg-main.png";
-              } else {
-                target.style.display = "none";
-              }
-            }}
-          />
-          <div className={`absolute inset-0 bg-gradient-to-t ${currentMode.bannerGradient}`} />
-          <div className="absolute bottom-2.5 left-3.5 right-3.5 flex justify-between items-end">
-            <div>
-              <span className={`text-[9px] font-mono font-bold ${currentMode.badgeColor} uppercase tracking-widest block mb-0.5`}>
-                {currentMode.badge}
-              </span>
-              <span className="text-sm sm:text-base font-black text-white uppercase tracking-wider">
-                {currentMode.title}
-              </span>
-            </div>
-            <span className="text-[10px] font-semibold tracking-wider text-zinc-300 bg-black/70 px-2 py-0.5 rounded-full border border-white/10 backdrop-blur-sm">
-              {currentMode.format}
-            </span>
+        <div
+          className={`relative w-full min-h-[90px] sm:min-h-[110px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${
+            currentMode.borderColor
+          } shadow-lg ${
+            bannerSrc
+              ? "bg-zinc-950"
+              : "bg-gradient-to-r from-blue-950/40 via-zinc-900/60 to-zinc-950 border-white/10"
+          }`}
+        >
+          {bannerSrc && (
+            <>
+              <img
+                src={bannerSrc}
+                alt={currentMode.title}
+                className="absolute inset-0 w-full h-full object-cover object-center opacity-70 sm:opacity-80 pointer-events-none"
+                onError={(e) => {
+                  console.warn(`[RulesModal] Failed to load banner for ${activeTab}:`, bannerSrc, e);
+                  setImgErrors((prev) => ({ ...prev, [activeTab]: true }));
+                }}
+              />
+              <div className="absolute inset-y-0 left-0 w-3/4 bg-gradient-to-r from-zinc-950 via-zinc-950/70 to-transparent pointer-events-none" />
+            </>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent pointer-events-none" />
+          <div className="relative z-10 p-4 sm:p-5 flex items-center justify-start min-h-[90px] sm:min-h-[110px]">
+            <h3 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-white drop-shadow-md">
+              {currentMode.title}
+            </h3>
           </div>
         </div>
 

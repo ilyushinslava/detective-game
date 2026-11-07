@@ -6,7 +6,7 @@ import { RoleCards } from "../RoleCards";
 import { GameOverModal } from "../GameOverModal";
 
 describe("UI Компоненты и Тексты", () => {
-  it("RoleRevealModal: В SECRET_SERVICE везде фигурирует строго 4 трофея", () => {
+  it("RoleRevealModal: В SECRET_SERVICE в дуэли фигурирует 3 трофея, в AI 4", () => {
     const { unmount } = render(
       <RoleRevealModal
         mode="SECRET_SERVICE"
@@ -19,7 +19,7 @@ describe("UI Компоненты и Тексты", () => {
         onComplete={vi.fn()}
       />
     );
-    expect(screen.getAllByText(/4 трофея/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/4 трофе/i).length).toBeGreaterThan(0);
     unmount();
 
     render(
@@ -35,7 +35,7 @@ describe("UI Компоненты и Тексты", () => {
       />
     );
     fireEvent.click(screen.getByRole("button"));
-    expect(screen.getAllByText(/2/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/3/i).length).toBeGreaterThan(0);
     cleanup();
   });
 

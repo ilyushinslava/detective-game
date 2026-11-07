@@ -201,22 +201,22 @@ export const RoleRevealModal = ({
   } else if (mode === "THIEF_HUNT") {
     role1Name = propRole1Name || "Грабитель";
     role2Name = propRole2Name || "Полиция";
-    role1Goal = "Похитить 5 сокровищ у соседей и менять маски";
+    role1Goal = "Похитить 8 сокровищ у соседей и менять маски";
     role2Goal = "Выставлять патрули на улицы и арестовать Грабителя";
   } else if (mode === "SECRET_SERVICE") {
     role1Name = propRole1Name || "Фантом";
     role2Name = propRole2Name || "Призрак";
-    role1Goal = "Собрать 4 трофея, разоблачая шпиона";
-    role2Goal = "Собрать 4 трофея, разоблачая шпиона";
+    role1Goal = "Собрать 3 трофея, разоблачая шпиона";
+    role2Goal = "Собрать 3 трофея, разоблачая шпиона";
   }
 
   const isSoloOrOnline = opponent === "AI" || opponent === "ONLINE";
   if (mode === "THIEF_HUNT") {
-    role1Goal = "Похитить 10 сокровищ у соседей и менять маски";
+    role1Goal = "Похитить 8 сокровищ у соседей и менять маски";
   }
   if (mode === "SECRET_SERVICE") {
-    role1Goal = "Собрать целевое число трофеев (2 в дуэли, 4 при 3 игроках)";
-    role2Goal = "Собрать целевое число трофеев (2 в дуэли, 4 при 3 игроках)";
+    role1Goal = "Собрать целевое число трофеев (3 в дуэли, 4 при 3 игроках)";
+    role2Goal = "Собрать целевое число трофеев (3 в дуэли, 4 при 3 игроках)";
   }
 
   const [phase, setPhase] = useState<string>(() => {
@@ -231,12 +231,12 @@ export const RoleRevealModal = ({
     return "KILLER_PROMPT";
   });
 
-  const spyTargetTrophiesCount = (opponent === "PVP" || opponent === "ONLINE") ? 2 : 4;
+  const spyTargetTrophiesCount = (opponent === "PVP" || opponent === "ONLINE") ? 3 : 4;
   const spyGoalDescription = `Собрать ${spyTargetTrophiesCount} трофея для победы`;
 
   if (mode === "SECRET_SERVICE") {
-    role1Goal = "Собрать целевые трофеи (2 в дуэли, 4 при 3 игроках, 3 при 4+)";
-    role2Goal = "Собрать целевые трофеи (2 в дуэли, 4 при 3 игроках, 3 при 4+)";
+    role1Goal = "Собрать целевые трофеи (3 в дуэли, 4 при 3 игроках, 3 при 4+)";
+    role2Goal = "Собрать целевые трофеи (3 в дуэли, 4 при 3 игроках, 3 при 4+)";
   }
 
   const [selectedInspectorId, setSelectedInspectorId] = useState<string | null>(null);
@@ -501,7 +501,7 @@ export const RoleRevealModal = ({
           id: "steal",
           label: "Кража",
           icon: <Icons.Coins className="w-6 h-6 text-zinc-300" />,
-          desc: "Украсть сокровище из сейфа у себя или соседней клетки. Цель — 10 сокровищ.",
+          desc: "Украсть сокровище из сейфа у себя или соседней клетки. Цель — 8 сокровищ.",
         });
         tiles.push({
           id: "shift",

@@ -228,12 +228,6 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
           <div className="hidden md:flex items-center justify-center bg-zinc-950 border border-zinc-800 rounded-lg px-3 h-9 md:h-11 text-xs md:text-sm font-mono text-zinc-400">
             {formatTimer(secondsElapsed)}
           </div>
-          <button
-            onClick={handleReset}
-            className="px-3 h-7 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center text-[10px] md:text-sm font-bold cursor-pointer shrink-0"
-          >
-            Заново
-          </button>
         </div>
       </header>
 
@@ -262,16 +256,16 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
               </span>
             </div>
           </div>
-          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 pt-0.5 border-t border-white/[0.04]">
+          <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 pt-1 border-t border-white/[0.04]">
             {gameState.spies?.map((spy, idx) => {
               const color = SPY_COLORS[idx % SPY_COLORS.length];
               return (
-                <span
+                <div
                   key={spy.id}
-                  className="flex items-center gap-1.5 shrink-0"
+                  className="flex items-center gap-1.5 bg-zinc-900/80 border border-white/10 px-2 py-0.5 rounded-md font-mono text-[11px] shrink-0 shadow-sm"
                 >
                   <span
-                    className={`w-2 h-2 rounded-full ${color.bg} border ${color.border}`}
+                    className={`w-2 h-2 rounded-full ${color.bg} border ${color.border} shrink-0`}
                   />
                   <span className="text-zinc-300 font-medium">
                     {spy.name}:
@@ -279,7 +273,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
                   <b className={`${color.text} font-black`}>
                     {spy.trophies}/{gameState.spyTargetTrophies}
                   </b>
-                </span>
+                </div>
               );
             })}
           </div>
@@ -503,7 +497,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
                     key={action.id}
                     onClick={action.onClick}
                     disabled={action.disabled}
-                    className={`flex-1 min-w-0 h-10 sm:h-11 md:h-12 px-2.5 sm:px-3 text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none transition-all disabled:opacity-40 disabled:cursor-not-allowed rounded-xl ${colorClasses}`}
+                    className={`flex-1 min-w-0 h-10 sm:h-11 md:h-12 px-1.5 sm:px-2 text-[10px] sm:text-xs font-black uppercase tracking-tight sm:tracking-wider flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer select-none transition-all disabled:opacity-40 disabled:cursor-not-allowed rounded-xl ${colorClasses}`}
                   >
                     {(action.id === 'kill_basic' || action.id === 'capture_spy') && (
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
@@ -528,7 +522,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
                 <button
                   onClick={() => setIsHandSheetOpen(true)}
                   disabled={Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0)}
-                  className="flex-1 min-w-0 h-10 sm:h-11 md:h-12 px-2.5 sm:px-3 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-500 text-white font-black shadow-lg shadow-blue-950/50 border border-blue-400/40 active:scale-[0.97] rounded-xl text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer select-none transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 min-w-0 h-10 sm:h-11 md:h-12 px-1.5 sm:px-2 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-500 text-white font-black shadow-lg shadow-blue-950/50 border border-blue-400/40 active:scale-[0.97] rounded-xl text-[10px] sm:text-xs uppercase tracking-tight sm:tracking-wider flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer select-none transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-blue-200 shrink-0">
                     <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a2.5 2.5 0 0 1-2.5-2.5z" />
@@ -541,7 +535,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
                 <button
                   onClick={cleanupAction.onClick}
                   disabled={cleanupAction.disabled}
-                  className="flex-1 min-w-0 h-10 sm:h-11 md:h-12 px-2.5 sm:px-3 bg-gradient-to-r from-red-700 via-red-600 to-rose-600 hover:from-red-650 hover:to-rose-550 text-white font-black shadow-lg shadow-red-950/50 border border-red-400/40 active:scale-[0.97] text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-1.5 sm:gap-2 select-none"
+                  className="flex-1 min-w-0 h-10 sm:h-11 md:h-12 px-1.5 sm:px-2 bg-gradient-to-r from-red-700 via-red-600 to-rose-600 hover:from-red-650 hover:to-rose-550 text-white font-black shadow-lg shadow-red-950/50 border border-red-400/40 active:scale-[0.97] text-[10px] sm:text-xs uppercase tracking-tight sm:tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-1 sm:gap-1.5 select-none"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-red-200 shrink-0">
                     <circle cx="12" cy="12" r="9" />

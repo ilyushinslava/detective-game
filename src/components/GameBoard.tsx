@@ -1,8 +1,35 @@
-import { useRef } from "react";
+import { useRef, useState, useMemo } from "react";
 import { motion, LayoutGroup } from "framer-motion";
 import type { Character, LastShift, GameModeType } from "../types/game";
 import { CharacterCard } from "./CharacterCard";
 import { isOppositeShift } from "../utils/gameLogic";
+
+export type ShiftDirection = "up" | "down" | "left" | "right";
+
+export interface ShiftIndicatorState {
+  type: "col" | "row";
+  index: number;
+  direction: ShiftDirection;
+}
+
+export function getShiftIndicator(
+  type: "ROW" | "COL",
+  index: number,
+  direction: "FORWARD" | "BACKWARD"
+): ShiftIndicatorState {
+  if (type === "COL") {
+    return {
+      type: "col",
+      index,
+      direction: direction === "BACKWARD" ? "up" : "down",
+    };
+  }
+  return {
+    type: "row",
+    index,
+    direction: direction === "FORWARD" ? "right" : "left",
+  };
+}
 
 interface GameBoardProps {
   mode: GameModeType;
@@ -63,6 +90,45 @@ export const GameBoard = ({
   const colsArray = Array.from({ length: numCols }, (_, i) => i);
   const rowsArray = Array.from({ length: numRows }, (_, i) => i);
 
+  const [animatingShift, setAnimatingShift] = useState<ShiftIndicatorState | null>(null);
+
+  const activeIndicator = useMemo<ShiftIndicatorState | null>(() => {
+    if (animatingShift) return animatingShift;
+    if (lastShift) {
+      return getShiftIndicator(lastShift.type, lastShift.index, lastShift.direction);
+    }
+    return null;
+  }, [animatingShift, lastShift]);
+
+  const handleShiftCol = (colIdx: number, direction: "up" | "down") => {
+    const canonicalDir = direction === "up" ? "BACKWARD" : "FORWARD";
+    const indicator = getShiftIndicator("COL", colIdx, canonicalDir);
+    setAnimatingShift(indicator);
+    onShift("COL", colIdx, canonicalDir);
+  };
+
+  const handleShiftRow = (rIdx: number, direction: "left" | "right") => {
+    const canonicalDir = direction === "left" ? "BACKWARD" : "FORWARD";
+    const indicator = getShiftIndicator("ROW", rIdx, canonicalDir);
+    setAnimatingShift(indicator);
+    onShift("ROW", rIdx, canonicalDir);
+  };
+
+  const getArrowClassName = (
+    isBlocked: boolean,
+    isOpposite: boolean,
+    isActive: boolean,
+    baseSize: string
+  ) => {
+    if (isBlocked || isOpposite) {
+      return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-950/40 text-zinc-700 border-zinc-800/40 cursor-not-allowed opacity-30 select-none`;
+    }
+    if (isActive) {
+      return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-blue-950/70 border-blue-400 text-blue-200 shadow-[0_0_12px_rgba(59,130,246,0.5)] ring-1 ring-blue-400/50 cursor-pointer select-none active:scale-95 transition-all outline-none focus:outline-none`;
+    }
+    return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-950/70 hover:bg-zinc-900/80 active:bg-zinc-800 border border-white/10 hover:border-white/30 text-zinc-400 group-hover:text-white hover:text-white active:text-white cursor-pointer shadow-sm active:scale-95 transition-all select-none touch-manipulation outline-none focus:outline-none group`;
+  };
+
   const touchStartRef = useRef<{
     x: number;
     y: number;
@@ -111,21 +177,23 @@ export const GameBoard = ({
 
       if (absX > absY) {
         // Горизонтальный свайп по строке
-        const direction = deltaX > 0 ? "FORWARD" : "BACKWARD";
+        const direction = deltaX > 0 ? "right" : "left";
+        const canonicalDir = direction === "right" ? "FORWARD" : "BACKWARD";
         const isRowBlocked =
           blockedShift?.type === "ROW" && blockedShift.index === startR;
-        const isOpposite = isOppositeShift(lastShift, "ROW", startR, direction);
+        const isOpposite = isOppositeShift(lastShift, "ROW", startR, canonicalDir);
         if (!isRowBlocked && !isOpposite) {
-          onShift("ROW", startR, direction);
+          handleShiftRow(startR, direction);
         }
       } else {
         // Вертикальный свайп по колонке
-        const direction = deltaY > 0 ? "FORWARD" : "BACKWARD";
+        const direction = deltaY > 0 ? "down" : "up";
+        const canonicalDir = direction === "down" ? "FORWARD" : "BACKWARD";
         const isColBlocked =
           blockedShift?.type === "COL" && blockedShift.index === startC;
-        const isOpposite = isOppositeShift(lastShift, "COL", startC, direction);
+        const isOpposite = isOppositeShift(lastShift, "COL", startC, canonicalDir);
         if (!isColBlocked && !isOpposite) {
-          onShift("COL", startC, direction);
+          handleShiftCol(startC, direction);
         }
       }
     }
@@ -169,17 +237,24 @@ export const GameBoard = ({
                 colIdx,
                 "BACKWARD",
               );
+              const isActive =
+                activeIndicator?.type === "col" &&
+                activeIndicator.index === colIdx &&
+                activeIndicator.direction === "up";
 
               return (
                 <button
                   key={`col-up-${colIdx}`}
+                  data-testid={`col-up-${colIdx}`}
+                  data-active-shift={isActive ? "true" : undefined}
                   disabled={isBlocked || isOpposite}
-                  onClick={(e) => { e.currentTarget.blur(); onShift("COL", colIdx, "BACKWARD"); }}
-                  className={`w-full h-4 sm:h-5 md:h-7 lg:h-8 xl:h-9 min-h-[16px] sm:min-h-[20px] lg:min-h-[32px] xl:min-h-[36px] shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
-                    isBlocked || isOpposite
-                      ? "bg-zinc-900/30 text-zinc-700 border-zinc-800/40 cursor-not-allowed opacity-30"
-                      : "bg-zinc-900/60 active:bg-white/10 border border-white/10 active:border-white/60 text-zinc-400 active:text-white cursor-pointer shadow-inner active:scale-95 transition-none select-none touch-manipulation outline-none focus:outline-none"
-                  }`}
+                  onClick={(e) => { e.currentTarget.blur(); handleShiftCol(colIdx, "up"); }}
+                  className={getArrowClassName(
+                    isBlocked,
+                    isOpposite,
+                    isActive,
+                    "w-full h-4 sm:h-5 md:h-7 lg:h-8 xl:h-9 min-h-[16px] sm:min-h-[20px] lg:min-h-[32px] xl:min-h-[36px]"
+                  )}
                   title={
                     isBlocked
                       ? "Патруль полиции блокирует сдвиг"
@@ -191,7 +266,7 @@ export const GameBoard = ({
                   {isBlocked ? (
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                   ) : isOpposite ? (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 opacity-40"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                   ) : "↑"}
                 </button>
               );
@@ -217,17 +292,24 @@ export const GameBoard = ({
                 rIdx,
                 "BACKWARD",
               );
+              const isActive =
+                activeIndicator?.type === "row" &&
+                activeIndicator.index === rIdx &&
+                activeIndicator.direction === "left";
 
               return (
                 <button
                   key={`row-left-${rIdx}`}
+                  data-testid={`row-left-${rIdx}`}
+                  data-active-shift={isActive ? "true" : undefined}
                   disabled={isRowBlocked || isOppositeLeft}
-                  onClick={(e) => { e.currentTarget.blur(); onShift("ROW", rIdx, "BACKWARD"); }}
-                  className={`w-full h-full rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
-                    isRowBlocked || isOppositeLeft
-                      ? "bg-zinc-900/30 text-zinc-700 border-zinc-800/40 cursor-not-allowed opacity-30"
-                      : "bg-zinc-900/60 active:bg-white/10 border border-white/10 active:border-white/60 text-zinc-400 active:text-white cursor-pointer shadow-inner active:scale-95 transition-none select-none touch-manipulation outline-none focus:outline-none"
-                  }`}
+                  onClick={(e) => { e.currentTarget.blur(); handleShiftRow(rIdx, "left"); }}
+                  className={getArrowClassName(
+                    isRowBlocked,
+                    isOppositeLeft,
+                    isActive,
+                    "w-full h-full"
+                  )}
                   title={
                     isRowBlocked
                       ? "Патруль полиции блокирует сдвиг"
@@ -239,7 +321,7 @@ export const GameBoard = ({
                   {isRowBlocked ? (
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                   ) : isOppositeLeft ? (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 opacity-40"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                   ) : "←"}
                 </button>
               );
@@ -257,7 +339,7 @@ export const GameBoard = ({
             touchAction: "none",
           }}
         >
-          {board.map((row, rIdx) =>
+          {board.flatMap((row, rIdx) =>
             row.map((character, cIdx) => {
               const isSelected = selectedCharacterId === character.id;
               const isRadarCell = radarCellIds.includes(character.id);
@@ -302,25 +384,21 @@ export const GameBoard = ({
               const isRedRadar = Boolean(radarColorClass?.includes("red"));
 
               return (
-                                                    <motion.div
-                    key={character.id}
-                    layoutId={character.id}
-                    layout="position"
-                    animate={{
-                      scale: character.isAlive ? 1 : 0.95,
-                      opacity: character.isAlive ? 1 : 0.65,
-                    }}
-                    transition={{
-                      layout: {
-                        type: "spring",
-                        stiffness: 130,
-                        damping: 22,
-                        mass: 0.8,
-                      },
-                    }}
-                    className={`w-full h-full aspect-square relative touch-none select-none overflow-visible ${
-                      character.isAlive ? "z-10" : "z-0"
-                    } ${cellZIndex}`}
+                <motion.div
+                  key={character.id}
+                  layout
+                  animate={{
+                    scale: character.isAlive ? 1 : 0.95,
+                    opacity: character.isAlive ? 1 : 0.65,
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 350,
+                    damping: 25,
+                  }}
+                  className={`w-full h-full aspect-square relative touch-none select-none overflow-visible ${
+                    character.isAlive ? "z-10" : "z-0"
+                  } ${cellZIndex}`}
                   onTouchStart={(e) => handleTouchStart(rIdx, cIdx, e)}
                   onTouchEnd={handleTouchEnd}
                 >
@@ -436,17 +514,24 @@ export const GameBoard = ({
                 rIdx,
                 "FORWARD",
               );
+              const isActive =
+                activeIndicator?.type === "row" &&
+                activeIndicator.index === rIdx &&
+                activeIndicator.direction === "right";
 
               return (
                 <button
                   key={`row-right-${rIdx}`}
+                  data-testid={`row-right-${rIdx}`}
+                  data-active-shift={isActive ? "true" : undefined}
                   disabled={isRowBlocked || isOppositeRight}
-                  onClick={(e) => { e.currentTarget.blur(); onShift("ROW", rIdx, "FORWARD"); }}
-                  className={`w-full h-full rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
-                    isRowBlocked || isOppositeRight
-                      ? "bg-zinc-900/30 text-zinc-700 border-zinc-800/40 cursor-not-allowed opacity-30"
-                      : "bg-zinc-900/60 active:bg-white/10 border border-white/10 active:border-white/60 text-zinc-400 active:text-white cursor-pointer shadow-inner active:scale-95 transition-none select-none touch-manipulation outline-none focus:outline-none"
-                  }`}
+                  onClick={(e) => { e.currentTarget.blur(); handleShiftRow(rIdx, "right"); }}
+                  className={getArrowClassName(
+                    isRowBlocked,
+                    isOppositeRight,
+                    isActive,
+                    "w-full h-full"
+                  )}
                   title={
                     isRowBlocked
                       ? "Патруль полиции блокирует сдвиг"
@@ -458,7 +543,7 @@ export const GameBoard = ({
                   {isRowBlocked ? (
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                   ) : isOppositeRight ? (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 opacity-40"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                   ) : "→"}
                 </button>
               );
@@ -483,17 +568,24 @@ export const GameBoard = ({
                 colIdx,
                 "FORWARD",
               );
+              const isActive =
+                activeIndicator?.type === "col" &&
+                activeIndicator.index === colIdx &&
+                activeIndicator.direction === "down";
 
               return (
                 <button
                   key={`col-down-${colIdx}`}
+                  data-testid={`col-down-${colIdx}`}
+                  data-active-shift={isActive ? "true" : undefined}
                   disabled={isBlocked || isOpposite}
-                  onClick={(e) => { e.currentTarget.blur(); onShift("COL", colIdx, "FORWARD"); }}
-                  className={`w-full h-3.5 sm:h-5 md:h-7 lg:h-8 xl:h-9 min-h-[16px] sm:min-h-[20px] lg:min-h-[32px] xl:min-h-[36px] shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold transition-all duration-75 flex items-center justify-center border p-0 ${
-                    isBlocked || isOpposite
-                      ? "bg-zinc-900/30 text-zinc-700 border-zinc-800/40 cursor-not-allowed opacity-30"
-                      : "bg-zinc-900/60 active:bg-white/10 border border-white/10 active:border-white/60 text-zinc-400 active:text-white cursor-pointer shadow-inner active:scale-95 transition-none select-none touch-manipulation outline-none focus:outline-none"
-                  }`}
+                  onClick={(e) => { e.currentTarget.blur(); handleShiftCol(colIdx, "down"); }}
+                  className={getArrowClassName(
+                    isBlocked,
+                    isOpposite,
+                    isActive,
+                    "w-full h-3.5 sm:h-5 md:h-7 lg:h-8 xl:h-9 min-h-[16px] sm:min-h-[20px] lg:min-h-[32px] xl:min-h-[36px]"
+                  )}
                   title={
                     isBlocked
                       ? "Патруль полиции блокирует сдвиг"
@@ -505,7 +597,7 @@ export const GameBoard = ({
                   {isBlocked ? (
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-2.5 h-2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                   ) : isOpposite ? (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 opacity-40"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                   ) : "↓"}
                 </button>
               );

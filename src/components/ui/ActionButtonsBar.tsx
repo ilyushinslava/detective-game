@@ -135,7 +135,7 @@ export const ActionButtonsBar: React.FC<ActionButtonsBarProps> = ({
               key={act.id}
               onClick={act.onClick}
               disabled={act.disabled}
-              className={`flex-1 min-w-0 h-11 px-2.5 sm:px-3 text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed ${colorClasses}`}
+              className={`flex-1 min-w-0 h-11 px-1.5 sm:px-2 text-[10px] sm:text-xs font-black uppercase tracking-tight sm:tracking-wider flex items-center justify-center gap-1 sm:gap-1.5 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed ${colorClasses}`}
             >
               {renderIcon(act.id)}
               <span className="whitespace-nowrap overflow-hidden text-ellipsis">{act.label}</span>

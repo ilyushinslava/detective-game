@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
-import { GameBoard } from "../GameBoard";
+import { GameBoard, getShiftIndicator } from "../GameBoard";
 import type { Character } from "../../types/game";
 
 describe("GameBoard Controls", () => {
@@ -178,5 +178,65 @@ describe("GameBoard Controls", () => {
     const rowButtons = buttons.slice(7, 14);
     fireEvent.click(rowButtons[6]);
     expect(mockOnShift).toHaveBeenCalledWith("ROW", 6, expect.any(String));
+  });
+
+  describe("gridShift indication & regression", () => {
+    it("при вызове сдвига колонки colIndex: 2, direction: 'up' в стейт индикации попадает ровно { type: 'col', index: 2, direction: 'up' }, а не противоположное направление", () => {
+      // BACKWARD для COL соответствует стрелке вверх (up)
+      const indicator = getShiftIndicator("COL", 2, "BACKWARD");
+      expect(indicator).toEqual({ type: "col", index: 2, direction: "up" });
+      expect(indicator.direction).not.toBe("down");
+      expect(indicator.type).toBe("col");
+      expect(indicator.index).toBe(2);
+
+      // FORWARD для COL соответствует стрелке вниз (down)
+      const indicatorDown = getShiftIndicator("COL", 2, "FORWARD");
+      expect(indicatorDown).toEqual({ type: "col", index: 2, direction: "down" });
+      expect(indicatorDown.direction).not.toBe("up");
+
+      // FORWARD для ROW соответствует стрелке вправо (right)
+      const indicatorRight = getShiftIndicator("ROW", 1, "FORWARD");
+      expect(indicatorRight).toEqual({ type: "row", index: 1, direction: "right" });
+      expect(indicatorRight.direction).not.toBe("left");
+
+      // BACKWARD для ROW соответствует стрелке влево (left)
+      const indicatorLeft = getShiftIndicator("ROW", 1, "BACKWARD");
+      expect(indicatorLeft).toEqual({ type: "row", index: 1, direction: "left" });
+      expect(indicatorLeft.direction).not.toBe("right");
+    });
+
+    it("при клике на стрелку col-up-2 подсвечивается ровно col-up-2, а противоположная стрелка col-down-2 не получает активную подсветку", () => {
+      const mockOnShift = vi.fn();
+      const { getByTestId } = render(<GameBoard {...defaultProps} onShift={mockOnShift} />);
+
+      const colUp2 = getByTestId("col-up-2");
+      const colDown2 = getByTestId("col-down-2");
+
+      expect(colUp2.getAttribute("data-active-shift")).toBeNull();
+      expect(colDown2.getAttribute("data-active-shift")).toBeNull();
+
+      fireEvent.click(colUp2);
+
+      expect(mockOnShift).toHaveBeenCalledWith("COL", 2, "BACKWARD");
+      expect(colUp2.getAttribute("data-active-shift")).toBe("true");
+      expect(colDown2.getAttribute("data-active-shift")).toBeNull();
+    });
+
+    it("при получении lastShift с типом COL и direction BACKWARD подсвечивается верхняя стрелка col-up, а не противоположная col-down", () => {
+      const { getByTestId } = render(
+        <GameBoard
+          {...defaultProps}
+          lastShift={{ type: "COL", index: 2, direction: "BACKWARD" }}
+        />
+      );
+
+      const colUp2 = getByTestId("col-up-2");
+      const colDown2 = getByTestId("col-down-2");
+
+      expect(colUp2.getAttribute("data-active-shift")).toBe("true");
+      expect(colDown2.getAttribute("data-active-shift")).toBeNull();
+      // Противоположная стрелка заблокирована правилом запрета обратного хода
+      expect(colDown2.disabled).toBe(true);
+    });
   });
 });

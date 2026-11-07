@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, act } from "@testing-library/react";
 import { GameBoard, getShiftIndicator } from "../GameBoard";
 import type { Character } from "../../types/game";
 
@@ -205,7 +205,8 @@ describe("GameBoard Controls", () => {
       expect(indicatorLeft.direction).not.toBe("right");
     });
 
-    it("при клике на стрелку col-up-2 подсвечивается ровно col-up-2, а противоположная стрелка col-down-2 не получает активную подсветку", () => {
+    it("при клике на стрелку col-up-2 кратковременно подсвечивается ровно col-up-2 (250 мс), а затем сбрасывается в null", () => {
+      vi.useFakeTimers();
       const mockOnShift = vi.fn();
       const { getByTestId } = render(<GameBoard {...defaultProps} onShift={mockOnShift} />);
 
@@ -220,9 +221,18 @@ describe("GameBoard Controls", () => {
       expect(mockOnShift).toHaveBeenCalledWith("COL", 2, "BACKWARD");
       expect(colUp2.getAttribute("data-active-shift")).toBe("true");
       expect(colDown2.getAttribute("data-active-shift")).toBeNull();
+
+      // Спустя 250 мс подсветка обязана сброситься в null
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+
+      expect(colUp2.getAttribute("data-active-shift")).toBeNull();
+      expect(colDown2.getAttribute("data-active-shift")).toBeNull();
+      vi.useRealTimers();
     });
 
-    it("при получении lastShift с типом COL и direction BACKWARD подсвечивается верхняя стрелка col-up, а не противоположная col-down", () => {
+    it("отсутствует персистентная подсветка стрелки на основе lastShift, противоположная стрелка заблокирована", () => {
       const { getByTestId } = render(
         <GameBoard
           {...defaultProps}
@@ -233,10 +243,27 @@ describe("GameBoard Controls", () => {
       const colUp2 = getByTestId("col-up-2");
       const colDown2 = getByTestId("col-down-2");
 
-      expect(colUp2.getAttribute("data-active-shift")).toBe("true");
+      // Никакой персистентной подсветки от lastShift быть не должно:
+      expect(colUp2.getAttribute("data-active-shift")).toBeNull();
       expect(colDown2.getAttribute("data-active-shift")).toBeNull();
-      // Противоположная стрелка заблокирована правилом запрета обратного хода
+      // Противоположная стрелка заблокирована правилом запрета обратного хода (Anti-Undo):
       expect(colDown2.disabled).toBe(true);
+    });
+
+    it("при клике на стрелку 3-го ряда (row-left-2) подсвечивается строго row-left-2, а соседний 4-й ряд (row-left-3) не подсвечивается", () => {
+      const mockOnShift = vi.fn();
+      const { getByTestId } = render(<GameBoard {...defaultProps} onShift={mockOnShift} />);
+
+      const rowLeft2 = getByTestId("row-left-2");
+      const rowLeft3 = getByTestId("row-left-3");
+      const rowRight2 = getByTestId("row-right-2");
+
+      fireEvent.click(rowLeft2);
+
+      expect(mockOnShift).toHaveBeenCalledWith("ROW", 2, "BACKWARD");
+      expect(rowLeft2.getAttribute("data-active-shift")).toBe("true");
+      expect(rowLeft3.getAttribute("data-active-shift")).toBeNull();
+      expect(rowRight2.getAttribute("data-active-shift")).toBeNull();
     });
   });
 });

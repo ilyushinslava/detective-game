@@ -483,6 +483,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
                 const isRed = action.id === 'kill_basic' || action.id === 'capture_spy';
                 const isAmber = action.id === 'rob_basic';
                 const isBlue = action.id === 'accuse_basic' || action.id === 'patrol_call' || action.id === 'interrogate_spy';
+                const isDisguise = action.id === 'disguise_skhvatka' || action.id === 'escape_maniac' || action.id === 'disguise_thief' || action.id === 'DISGUISE' || action.id === 'FAST_DISGUISE' || action.id.includes('disguise') || action.id.includes('escape');
 
                 const colorClasses = isRed
                   ? "bg-gradient-to-r from-red-700 via-red-600 to-rose-600 hover:from-red-650 hover:to-rose-550 text-white font-black shadow-lg shadow-red-950/50 border border-red-400/40 active:scale-[0.97]"
@@ -490,6 +491,8 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
                   ? "bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-500 text-white font-black shadow-lg shadow-blue-950/50 border border-blue-400/40 active:scale-[0.97]"
                   : isAmber
                   ? "bg-gradient-to-r from-amber-600 to-yellow-500 text-zinc-950 font-black shadow-lg shadow-amber-950/50 border border-amber-300/50 active:scale-[0.97]"
+                  : isDisguise
+                  ? "bg-gradient-to-b from-zinc-900 via-zinc-950 to-black hover:from-zinc-800 hover:to-zinc-950 text-zinc-100 font-black tracking-wider uppercase border border-zinc-500/60 hover:border-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_0_12px_rgba(0,0,0,0.8)] active:scale-[0.97]"
                   : "bg-zinc-800 hover:bg-zinc-700 text-white font-bold border border-white/20 active:scale-[0.97]";
 
                 return (

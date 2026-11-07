@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, LayoutGroup } from "framer-motion";
 import type { Character, LastShift, GameModeType } from "../types/game";
 import { CharacterCard } from "./CharacterCard";
@@ -90,27 +90,36 @@ export const GameBoard = ({
   const colsArray = Array.from({ length: numCols }, (_, i) => i);
   const rowsArray = Array.from({ length: numRows }, (_, i) => i);
 
-  const [animatingShift, setAnimatingShift] = useState<ShiftIndicatorState | null>(null);
+  const [activeButtonId, setActiveButtonId] = useState<string | null>(null);
+  const shiftTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const activeIndicator = useMemo<ShiftIndicatorState | null>(() => {
-    if (animatingShift) return animatingShift;
-    if (lastShift) {
-      return getShiftIndicator(lastShift.type, lastShift.index, lastShift.direction);
+  useEffect(() => {
+    return () => {
+      if (shiftTimeoutRef.current) {
+        clearTimeout(shiftTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleArrowClick = (buttonId: string, shiftAction: () => void) => {
+    if (shiftTimeoutRef.current) {
+      clearTimeout(shiftTimeoutRef.current);
     }
-    return null;
-  }, [animatingShift, lastShift]);
+    setActiveButtonId(buttonId);
+    shiftTimeoutRef.current = setTimeout(() => {
+      setActiveButtonId(null);
+      shiftTimeoutRef.current = null;
+    }, 250);
+    shiftAction();
+  };
 
   const handleShiftCol = (colIdx: number, direction: "up" | "down") => {
     const canonicalDir = direction === "up" ? "BACKWARD" : "FORWARD";
-    const indicator = getShiftIndicator("COL", colIdx, canonicalDir);
-    setAnimatingShift(indicator);
     onShift("COL", colIdx, canonicalDir);
   };
 
   const handleShiftRow = (rIdx: number, direction: "left" | "right") => {
     const canonicalDir = direction === "left" ? "BACKWARD" : "FORWARD";
-    const indicator = getShiftIndicator("ROW", rIdx, canonicalDir);
-    setAnimatingShift(indicator);
     onShift("ROW", rIdx, canonicalDir);
   };
 
@@ -121,12 +130,12 @@ export const GameBoard = ({
     baseSize: string
   ) => {
     if (isBlocked || isOpposite) {
-      return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-950/40 text-zinc-700 border-zinc-800/40 cursor-not-allowed opacity-30 select-none`;
+      return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-950/40 text-zinc-600 border-zinc-800/40 cursor-not-allowed opacity-30 select-none`;
     }
     if (isActive) {
-      return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-blue-950/70 border-blue-400 text-blue-200 shadow-[0_0_12px_rgba(59,130,246,0.5)] ring-1 ring-blue-400/50 cursor-pointer select-none active:scale-95 transition-all outline-none focus:outline-none`;
+      return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-800 border-white/80 text-white shadow-[0_0_12px_rgba(255,255,255,0.5)] ring-1 ring-white/40 cursor-pointer select-none active:scale-95 outline-none focus:outline-none`;
     }
-    return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-950/70 hover:bg-zinc-900/80 active:bg-zinc-800 border border-white/10 hover:border-white/30 text-zinc-400 group-hover:text-white hover:text-white active:text-white cursor-pointer shadow-sm active:scale-95 transition-all select-none touch-manipulation outline-none focus:outline-none group`;
+    return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-950/70 hover:bg-zinc-900/80 active:bg-zinc-800 border border-white/10 hover:border-white/30 text-zinc-400 group-hover:text-white hover:text-white active:text-white cursor-pointer shadow-sm active:scale-95 select-none touch-manipulation outline-none focus:outline-none group`;
   };
 
   const touchStartRef = useRef<{
@@ -183,7 +192,8 @@ export const GameBoard = ({
           blockedShift?.type === "ROW" && blockedShift.index === startR;
         const isOpposite = isOppositeShift(lastShift, "ROW", startR, canonicalDir);
         if (!isRowBlocked && !isOpposite) {
-          handleShiftRow(startR, direction);
+          const buttonId = `row-${direction}-${startR}`;
+          handleArrowClick(buttonId, () => handleShiftRow(startR, direction));
         }
       } else {
         // Вертикальный свайп по колонке
@@ -193,7 +203,8 @@ export const GameBoard = ({
           blockedShift?.type === "COL" && blockedShift.index === startC;
         const isOpposite = isOppositeShift(lastShift, "COL", startC, canonicalDir);
         if (!isColBlocked && !isOpposite) {
-          handleShiftCol(startC, direction);
+          const buttonId = `col-${direction}-${startC}`;
+          handleArrowClick(buttonId, () => handleShiftCol(startC, direction));
         }
       }
     }
@@ -229,6 +240,7 @@ export const GameBoard = ({
             style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
           >
             {colsArray.map((colIdx) => {
+              const buttonId = `col-up-${colIdx}`;
               const isBlocked =
                 blockedShift?.type === "COL" && blockedShift.index === colIdx;
               const isOpposite = isOppositeShift(
@@ -237,18 +249,18 @@ export const GameBoard = ({
                 colIdx,
                 "BACKWARD",
               );
-              const isActive =
-                activeIndicator?.type === "col" &&
-                activeIndicator.index === colIdx &&
-                activeIndicator.direction === "up";
+              const isActive = activeButtonId === buttonId;
 
               return (
                 <button
-                  key={`col-up-${colIdx}`}
-                  data-testid={`col-up-${colIdx}`}
+                  key={buttonId}
+                  data-testid={buttonId}
                   data-active-shift={isActive ? "true" : undefined}
                   disabled={isBlocked || isOpposite}
-                  onClick={(e) => { e.currentTarget.blur(); handleShiftCol(colIdx, "up"); }}
+                  onClick={(e) => {
+                    e.currentTarget.blur();
+                    handleArrowClick(buttonId, () => handleShiftCol(colIdx, "up"));
+                  }}
                   className={getArrowClassName(
                     isBlocked,
                     isOpposite,
@@ -284,6 +296,7 @@ export const GameBoard = ({
             style={{ gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))` }}
           >
             {rowsArray.map((rIdx) => {
+              const buttonId = `row-left-${rIdx}`;
               const isRowBlocked =
                 blockedShift?.type === "ROW" && blockedShift.index === rIdx;
               const isOppositeLeft = isOppositeShift(
@@ -292,18 +305,18 @@ export const GameBoard = ({
                 rIdx,
                 "BACKWARD",
               );
-              const isActive =
-                activeIndicator?.type === "row" &&
-                activeIndicator.index === rIdx &&
-                activeIndicator.direction === "left";
+              const isActive = activeButtonId === buttonId;
 
               return (
                 <button
-                  key={`row-left-${rIdx}`}
-                  data-testid={`row-left-${rIdx}`}
+                  key={buttonId}
+                  data-testid={buttonId}
                   data-active-shift={isActive ? "true" : undefined}
                   disabled={isRowBlocked || isOppositeLeft}
-                  onClick={(e) => { e.currentTarget.blur(); handleShiftRow(rIdx, "left"); }}
+                  onClick={(e) => {
+                    e.currentTarget.blur();
+                    handleArrowClick(buttonId, () => handleShiftRow(rIdx, "left"));
+                  }}
                   className={getArrowClassName(
                     isRowBlocked,
                     isOppositeLeft,
@@ -344,12 +357,6 @@ export const GameBoard = ({
               const isSelected = selectedCharacterId === character.id;
               const isRadarCell = radarCellIds.includes(character.id);
               const isRadarTarget = character.id === radarTargetId;
-              const isLastShiftTrack = Boolean(
-                lastShift &&
-                  !errorCardId &&
-                  ((lastShift.type === "ROW" && lastShift.index === rIdx) ||
-                    (lastShift.type === "COL" && lastShift.index === cIdx))
-              );
 
               const isWrappingCell = Boolean(
                 lastShift &&
@@ -393,8 +400,8 @@ export const GameBoard = ({
                   }}
                   transition={{
                     type: "spring",
-                    stiffness: 350,
-                    damping: 25,
+                    stiffness: 180,
+                    damping: 24,
                   }}
                   className={`w-full h-full aspect-square relative touch-none select-none overflow-visible ${
                     character.isAlive ? "z-10" : "z-0"
@@ -422,41 +429,6 @@ export const GameBoard = ({
                     myRoleColor={myRoleColor}
                     onClick={() => handleCardClick(character.id)}
                   />
-
-                  {isLastShiftTrack && !isSelected && !isRadarCell && !isRadarTarget && (() => {
-                    const shiftStepIndex = lastShift?.type === "ROW"
-                      ? (lastShift.direction === "FORWARD" ? cIdx : (numCols - 1 - cIdx))
-                      : (lastShift?.direction === "FORWARD" ? rIdx : (numRows - 1 - rIdx));
-                    return (
-                    <motion.div
-                      key={`shift-track-${lastShift?.type}-${lastShift?.index}-${lastShift?.direction}-${lastShift?.timestamp || 0}`}
-                      initial={{
-                        opacity: 0.08,
-                        scale: 1,
-                      }}
-                      animate={{
-                        opacity: [0.06, 0.60, 0.06],
-                        scale: [1, 1.018, 1],
-                      }}
-                      transition={{
-                        duration: 1.4,
-                        delay: shiftStepIndex * 0.1,
-                        repeat: Infinity,
-                        repeatDelay: 0.25,
-                        ease: "easeInOut",
-                      }}
-                      className="pointer-events-none absolute inset-0 rounded-md sm:rounded-xl border border-white/35 shadow-[0_0_10px_rgba(255,255,255,0.15)] overflow-hidden z-15 will-change-[opacity,transform]"
-                    >
-                      <div
-                        className={`absolute inset-0 bg-gradient-to-${
-                          lastShift?.type === "ROW"
-                            ? (lastShift.direction === "FORWARD" ? "r" : "l")
-                            : (lastShift.direction === "FORWARD" ? "b" : "t")
-                        } from-transparent via-white/20 to-white/40`}
-                      />
-                    </motion.div>
-                    );
-                  })()}
 
                   {(isRadarCell || isRadarTarget) && (
                     <div className="absolute inset-0 rounded-md sm:rounded-xl pointer-events-none z-30 overflow-hidden">
@@ -506,6 +478,7 @@ export const GameBoard = ({
             style={{ gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))` }}
           >
             {rowsArray.map((rIdx) => {
+              const buttonId = `row-right-${rIdx}`;
               const isRowBlocked =
                 blockedShift?.type === "ROW" && blockedShift.index === rIdx;
               const isOppositeRight = isOppositeShift(
@@ -514,18 +487,18 @@ export const GameBoard = ({
                 rIdx,
                 "FORWARD",
               );
-              const isActive =
-                activeIndicator?.type === "row" &&
-                activeIndicator.index === rIdx &&
-                activeIndicator.direction === "right";
+              const isActive = activeButtonId === buttonId;
 
               return (
                 <button
-                  key={`row-right-${rIdx}`}
-                  data-testid={`row-right-${rIdx}`}
+                  key={buttonId}
+                  data-testid={buttonId}
                   data-active-shift={isActive ? "true" : undefined}
                   disabled={isRowBlocked || isOppositeRight}
-                  onClick={(e) => { e.currentTarget.blur(); handleShiftRow(rIdx, "right"); }}
+                  onClick={(e) => {
+                    e.currentTarget.blur();
+                    handleArrowClick(buttonId, () => handleShiftRow(rIdx, "right"));
+                  }}
                   className={getArrowClassName(
                     isRowBlocked,
                     isOppositeRight,
@@ -560,6 +533,7 @@ export const GameBoard = ({
             style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}
           >
             {colsArray.map((colIdx) => {
+              const buttonId = `col-down-${colIdx}`;
               const isBlocked =
                 blockedShift?.type === "COL" && blockedShift.index === colIdx;
               const isOpposite = isOppositeShift(
@@ -568,18 +542,18 @@ export const GameBoard = ({
                 colIdx,
                 "FORWARD",
               );
-              const isActive =
-                activeIndicator?.type === "col" &&
-                activeIndicator.index === colIdx &&
-                activeIndicator.direction === "down";
+              const isActive = activeButtonId === buttonId;
 
               return (
                 <button
-                  key={`col-down-${colIdx}`}
-                  data-testid={`col-down-${colIdx}`}
+                  key={buttonId}
+                  data-testid={buttonId}
                   data-active-shift={isActive ? "true" : undefined}
                   disabled={isBlocked || isOpposite}
-                  onClick={(e) => { e.currentTarget.blur(); handleShiftCol(colIdx, "down"); }}
+                  onClick={(e) => {
+                    e.currentTarget.blur();
+                    handleArrowClick(buttonId, () => handleShiftCol(colIdx, "down"));
+                  }}
                   className={getArrowClassName(
                     isBlocked,
                     isOpposite,

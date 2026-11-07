@@ -121,6 +121,7 @@ export const ActionButtonsBar: React.FC<ActionButtonsBarProps> = ({
           const isRed = act.id.includes('KILL') || act.id.includes('ATTACK') || act.id === 'kill_basic' || act.id === 'capture_spy';
           const isAmber = act.id.includes('ROB') || act.id === 'rob_basic';
           const isBlue = act.id.includes('ACCUSE') || act.id.includes('PATROL') || act.id.includes('INTERROGATE') || act.id.includes('SWEAR_IN') || act.id === 'accuse_basic' || act.id === 'patrol_call' || act.id === 'interrogate_spy' || act.id === 'QUESTION' || act.id === 'DUEL_ASK_QUESTION';
+          const isDisguise = act.id.includes('DISGUISE') || act.id.includes('ESCAPE') || act.id === 'disguise_skhvatka' || act.id === 'escape_maniac' || act.id === 'disguise_thief' || act.id === 'FAST_DISGUISE';
 
           const colorClasses = isRed
             ? "bg-gradient-to-r from-red-700 via-red-600 to-rose-600 hover:from-red-650 hover:to-rose-550 text-white font-black shadow-lg shadow-red-950/50 border border-red-400/40 active:scale-[0.97]"
@@ -128,6 +129,8 @@ export const ActionButtonsBar: React.FC<ActionButtonsBarProps> = ({
             ? "bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-500 text-white font-black shadow-lg shadow-blue-950/50 border border-blue-400/40 active:scale-[0.97]"
             : isAmber
             ? "bg-gradient-to-r from-amber-600 to-yellow-500 text-zinc-950 font-black shadow-lg shadow-amber-950/50 border border-amber-300/50 active:scale-[0.97]"
+            : isDisguise
+            ? "bg-gradient-to-b from-zinc-900 via-zinc-950 to-black hover:from-zinc-800 hover:to-zinc-950 text-zinc-100 font-black tracking-wider uppercase border border-zinc-500/60 hover:border-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_0_12px_rgba(0,0,0,0.8)] active:scale-[0.97]"
             : "bg-zinc-800 hover:bg-zinc-700 text-white font-bold border border-white/20 active:scale-[0.97]";
 
           return (

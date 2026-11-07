@@ -296,9 +296,18 @@ export const CharacterCard = memo(
           {mode === "THIEF_HUNT" && character.isAlive && !character.isRobbed && (
             <motion.div
               key="active-coin-edge"
-              initial={{ opacity: 0, scaleX: 0.8 }}
-              animate={{ opacity: 1, scaleX: 1 }}
-              exit={{ opacity: 0, y: -12, scaleX: 0.5, transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] } }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{
+                scale: [1, 1.4, 0],
+                opacity: [1, 1, 0],
+                boxShadow: [
+                  "0 0 8px rgba(245,158,11,0.7)",
+                  "0 0 10px rgba(245,158,11,0.9)",
+                  "0 0 0px rgba(245,158,11,0)",
+                ],
+                transition: { duration: 0.35, ease: "easeInOut" },
+              }}
               className="absolute bottom-0 inset-x-0 h-[2px] z-20 pointer-events-none bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_8px_rgba(245,158,11,0.7)]"
             />
           )}

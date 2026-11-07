@@ -1,5 +1,6 @@
 import React from 'react';
 import lobbyBg from "../assets/lobby_background.png";
+import { Button } from './ui/Button';
 
 interface TablesScreenProps {
   roomFilter: string;
@@ -110,13 +111,13 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
                   </svg>
                   <span className="text-xs font-mono font-bold text-emerald-400">{room.bet || 250}</span>
                 </div>
-                <button
-                  type="button"
+                <Button
+                  variant="primary-danger"
                   onClick={() => handleJoinRoom(room.roomCode, room.mode)}
-                  className="px-5 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-[0_0_15px_rgba(220,38,38,0.35)] transition cursor-pointer active:scale-95"
+                  className="from-red-600 px-5 h-9 text-[10px] font-black uppercase tracking-widest rounded-full shadow-[0_0_15px_rgba(220,38,38,0.35)]"
                 >
                   Войти ➔
-                </button>
+                </Button>
               </div>
             </div>
           ))
@@ -136,22 +137,23 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
                 className="w-full bg-zinc-900/90 border border-zinc-700 rounded-xl px-4 py-3 text-xs font-mono font-bold text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-red-500 transition uppercase tracking-widest text-center shadow-inner"
               />
             </div>
-            <button
-              type="button"
+            <Button
+              variant="secondary"
               onClick={() => handleJoinRoom(joinCode)}
               disabled={joinCode.length !== 4}
-              className="px-5 py-3 bg-zinc-800 border border-white/15 hover:bg-zinc-700 disabled:opacity-40 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition cursor-pointer disabled:cursor-not-allowed shrink-0 shadow-md active:scale-95"
+              className="px-5 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl shrink-0"
             >
               Применить
-            </button>
+            </Button>
           </div>
-                      <button
-              type="button"
-              onClick={() => setIsCreateRoomOpen(true)}
-              className="w-full py-3.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition cursor-pointer shadow-[0_4px_15px_rgba(185,28,28,0.4)] active:scale-95"
-            >
+          <Button
+            variant="primary-danger"
+            fullWidth
+            onClick={() => setIsCreateRoomOpen(true)}
+            className="from-red-600 py-3.5 text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[0_4px_15px_rgba(185,28,28,0.4)]"
+          >
             + Создать партию
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ import { TutorialScreen } from "./TutorialScreen";
 import { BiometricSlider } from "./BiometricSlider";
 import { TablesScreen } from "./TablesScreen";
 import { ProfileScreen } from "./ProfileScreen";
+import { Button } from "./ui/Button";
 
 declare const __BUILD_TIMESTAMP__: string;
 import { useTranslation } from "../i18n/context";
@@ -38,7 +39,7 @@ const Icons = {
       <path d="M9 7v4M7 9h4" opacity="0.6" />
     </svg>
   ),
-  Coin: ({ className = "w-4 h-4 text-amber-400" }: { className?: string }) => (
+  Coin: ({ className = "w-4 h-4 text-emerald-400" }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={className}>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
@@ -348,7 +349,7 @@ export const MainMenu = ({
               className="rounded-full bg-black/75 border border-white/10 hover:border-zinc-500/50 hover:bg-zinc-800/40 px-3.5 py-1.5 flex items-center gap-1.5 shadow-lg cursor-pointer transition active:scale-95"
               title="Открыть Dev-панель"
             >
-              <Icons.Coin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <Icons.Coin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
               <span className="text-zinc-100 font-mono text-xs font-bold">{profile.cash.toLocaleString()}</span>
             </div>
           </div>
@@ -461,10 +462,10 @@ export const MainMenu = ({
   const renderModes = () => (
     <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden">
       <div className="flex items-center px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-4 shrink-0 border-b border-white/10 bg-[#080a0f]">
-        <button onClick={() => setScreen('HOME')} className="text-zinc-400 hover:text-white transition flex items-center gap-1 cursor-pointer">
+        <Button variant="ghost" onClick={() => setScreen('HOME')} className="h-9 px-2 text-zinc-400 hover:text-white gap-1">
           <Icons.ChevronLeft />
           <span className="text-[10px] font-black uppercase tracking-widest">Назад</span>
-        </button>
+        </Button>
         <h2 className="absolute left-1/2 -translate-x-1/2 text-sm md:text-base font-black tracking-widest text-zinc-100 uppercase">Выбор игры</h2>
       </div>
 
@@ -509,10 +510,10 @@ export const MainMenu = ({
   const renderModeDetail = () => (
     <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden relative">
       <div className="flex items-center px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 z-10 bg-[#080a0f]">
-        <button onClick={() => setScreen('MODES')} className="text-zinc-400 hover:text-white transition flex items-center gap-1 cursor-pointer">
+        <Button variant="ghost" onClick={() => setScreen('MODES')} className="h-9 px-2 text-zinc-400 hover:text-white gap-1">
           <Icons.ChevronLeft />
           <span className="text-[10px] font-black uppercase tracking-widest">Назад</span>
-        </button>
+        </Button>
       </div>
       
       <div className="flex-1 overflow-y-auto custom-scrollbar pb-[max(7rem,env(safe-area-inset-bottom))]">
@@ -670,7 +671,9 @@ export const MainMenu = ({
 
       <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/90 to-transparent pb-[max(1rem,env(safe-area-inset-bottom))] z-20">
         <div className="w-full md:max-w-2xl lg:max-w-3xl mx-auto">
-          <button
+          <Button
+            variant="primary-danger"
+            fullWidth
             onClick={() => {
               if (selectedOpponent === 'ONLINE') {
                 setCreateRoomMode(selectedMode);
@@ -681,11 +684,11 @@ export const MainMenu = ({
                 onStartGame(selectedMode, selectedOpponent, selectedRole, effectiveCount, targetTrophies, 0, 0);
               }
             }}
-            className="w-full h-14 md:h-16 rounded-full bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white font-black tracking-widest uppercase flex items-center justify-center gap-3 border-t border-red-400/50 shadow-[0_10px_25px_rgba(220,38,38,0.5),inset_0_1px_2px_rgba(255,255,255,0.4)] hover:brightness-110 active:scale-[0.98] transition cursor-pointer md:text-sm"
+            className="h-14 md:h-16 rounded-full text-white font-black tracking-widest uppercase flex items-center justify-center gap-3 shadow-[0_10px_25px_rgba(220,38,38,0.5)] md:text-sm"
           >
             <span>НАЧАТЬ ИГРУ</span>
             <Icons.ArrowRight />
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -782,7 +785,7 @@ export const MainMenu = ({
     <div 
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      className="fixed inset-0 z-50 bg-[#050608] flex justify-center overflow-hidden font-sans select-none text-zinc-100"
+      className="fixed inset-0 z-50 bg-[#080a0f] flex justify-center overflow-hidden font-sans select-none text-zinc-100"
     >
       <Toast message={toastMessage} type="error" onClose={() => setToastMessage(null)} />
       
@@ -859,12 +862,12 @@ export const MainMenu = ({
                 </label>
 
                 <div className="flex gap-3 pt-3 border-t border-white/10">
-                  <button onClick={() => setIsCreateRoomOpen(false)} className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-[10px] font-black tracking-widest uppercase transition border border-white/5 cursor-pointer">
+                  <Button variant="ghost" onClick={() => setIsCreateRoomOpen(false)} className="flex-1 text-[10px] font-black tracking-widest uppercase">
                     Отмена
-                  </button>
-                  <button onClick={handleConfirmCreateRoom} disabled={isCreating} className="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 disabled:opacity-40 text-white rounded-xl text-[10px] font-black tracking-widest uppercase transition shadow-[0_0_15px_rgba(220,38,38,0.4)] cursor-pointer">
+                  </Button>
+                  <Button variant="primary-danger" onClick={handleConfirmCreateRoom} disabled={isCreating} className="flex-1 text-[10px] font-black tracking-widest uppercase">
                     {isCreating ? "Инициализация..." : "Утвердить"}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1073,9 +1076,9 @@ export const MainMenu = ({
                 </div>
               </div>
 
-              <button onClick={() => setIsSettingsOpen(false)} className="w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-[10px] font-black tracking-widest uppercase transition border border-white/5 cursor-pointer">
+              <Button variant="secondary" fullWidth onClick={() => setIsSettingsOpen(false)} className="text-[10px] font-black tracking-widest uppercase">
                 {t.settings.close}
-              </button>
+              </Button>
             </div>
           </div>
         )}

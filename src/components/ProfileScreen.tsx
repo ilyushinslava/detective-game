@@ -2,6 +2,7 @@ import React from 'react';
 import type { UserProfile } from '../types/profile';
 import { useTranslation } from '../i18n/context';
 import { soundManager } from '../utils/audio';
+import { Button } from './ui/Button';
 
 interface ProfileScreenProps {
   profile: UserProfile;
@@ -41,20 +42,20 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
 
           {onOpenSettings && (
-            <button
-              type="button"
+            <Button
+              variant="secondary"
               onClick={() => {
                 soundManager.play('tapMenu');
                 onOpenSettings();
               }}
-              className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-bold uppercase tracking-wider text-zinc-300 transition cursor-pointer flex items-center gap-2"
+              className="h-9 px-3 text-xs gap-2"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
                 <circle cx="12" cy="12" r="3" />
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
               </svg>
               <span>{t.menu?.settings || 'Настройки'}</span>
-            </button>
+            </Button>
           )}
         </div>
 
@@ -117,21 +118,17 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </h3>
           <div className="flex gap-2">
             {(['ru', 'en'] as const).map(l => (
-              <button
+              <Button
                 key={l}
-                type="button"
+                variant={lang === l ? "secondary" : "ghost"}
                 onClick={() => {
                   soundManager.play('tapMenu');
                   setLang(l);
                 }}
-                className={`flex-1 py-2.5 rounded-xl border text-xs font-black uppercase tracking-widest transition cursor-pointer ${
-                  lang === l
-                    ? 'bg-zinc-800 border-zinc-500 text-white shadow-md'
-                    : 'bg-zinc-900/60 border-white/5 text-zinc-500 hover:text-zinc-300'
-                }`}
+                className="flex-1 py-2.5 text-xs font-black uppercase tracking-widest"
               >
                 {l === 'ru' ? 'Русский' : 'English'}
-              </button>
+              </Button>
             ))}
           </div>
         </div>

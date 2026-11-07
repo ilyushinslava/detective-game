@@ -148,7 +148,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
 
   return (
     <>
-      <header className="w-full px-4 sm:px-6 pb-2.5 bg-zinc-950 border-b border-zinc-800 shrink-0 relative flex items-center justify-between z-50 pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <header className="w-full px-4 sm:px-6 pb-2.5 bg-[#080a0f] border-b border-white/10 shrink-0 relative flex items-center justify-between z-50 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsPauseOpen(true)}
@@ -266,11 +266,11 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
         ) : gameState.mode === "THIEF_HUNT" ? (
           <div className="flex items-center gap-1.5">
             <span>Добыча:</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-amber-400 shrink-0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-cyan-400 fill-cyan-500/20 shrink-0">
               <circle cx="12" cy="12" r="9" />
               <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
             </svg>
-            <b className="text-amber-300 font-bold">
+            <b className="text-cyan-400 font-bold">
               {gameState.trophiesKiller ?? 0}/10
             </b>
             <span className="ml-1">| Улики: {gameState.evidenceDeck.length}</span>

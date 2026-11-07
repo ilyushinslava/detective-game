@@ -44,7 +44,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
   return (
     <div
       onClick={handleStart}
-      className={`fixed inset-0 z-[100] flex items-center justify-center bg-[#050608] transition-opacity duration-500 select-none cursor-pointer overflow-hidden ${
+      className={`fixed inset-0 z-[100] flex items-center justify-center bg-[#080a0f] transition-opacity duration-500 select-none cursor-pointer overflow-hidden ${
         isFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >

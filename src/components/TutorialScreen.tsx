@@ -490,7 +490,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   if (currentModule === "MENU") {
     return (
-      <div className="fixed inset-0 z-[100] bg-[#050608] flex justify-center overflow-hidden font-sans select-none text-zinc-100 h-full w-full">
+      <div className="fixed inset-0 z-[100] bg-[#080a0f] flex justify-center overflow-hidden font-sans select-none text-zinc-100 h-full w-full">
         <div className="w-full max-w-lg md:max-w-2xl mx-auto h-full flex flex-col justify-between relative overflow-hidden bg-[#080a0f] md:border-x md:border-white/10 shadow-2xl">
           <div className="flex items-center justify-between px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-[#080a0f]">
             <button
@@ -604,7 +604,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-[#050608] flex justify-center overflow-hidden font-sans select-none text-zinc-100 h-full w-full">
+    <div className="fixed inset-0 z-[100] bg-[#080a0f] flex justify-center overflow-hidden font-sans select-none text-zinc-100 h-full w-full">
       <style>{`
         .tutorial-highlight-l1s2 button[title*="Сдвиг влево"]:nth-of-type(3),
         .tutorial-highlight-maniac button[title*="Сдвиг вниз"]:nth-of-type(3) {

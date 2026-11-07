@@ -953,7 +953,7 @@ export default function App() {
 
       {/* РЕЖИМ TV PARTY: Лобби ожидания подключения */}
       {tvPartyState === "TV_LOBBY" && (
-        <div className="fixed inset-0 z-50 bg-[#06070a]">
+        <div className="fixed inset-0 z-50 bg-[#080a0f]">
           <TvLobbyView
             roomCode={tvRoomCode}
             players={tvPlayers}
@@ -990,7 +990,7 @@ export default function App() {
 
       {/* РЕЖИМ TV PARTY: Главный экран телевизора */}
       {tvPartyState === "TV_BOARD" && (
-        <div className="fixed inset-0 z-50 bg-[#06070a]">
+        <div className="fixed inset-0 z-50 bg-[#080a0f]">
           <TvBoardView
             gameState={gameState}
             secondsLeft={60}

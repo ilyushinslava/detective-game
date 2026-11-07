@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from './Button';
 
 export interface ActionButtonItem {
   id: string;
@@ -92,6 +93,15 @@ export const ActionButtonsBar: React.FC<ActionButtonsBarProps> = ({
           </svg>
         );
 
+      case 'pause':
+      case 'PAUSE':
+        return (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0">
+            <rect x="6" y="4" width="4" height="16" />
+            <rect x="14" y="4" width="4" height="16" />
+          </svg>
+        );
+
       case 'CLEANUP':
       case 'cleanup':
       default:
@@ -109,31 +119,30 @@ export const ActionButtonsBar: React.FC<ActionButtonsBarProps> = ({
       {actions.map((act) => {
         const isRed = act.isRed ?? (act.id.includes('KILL') || act.id.includes('ACCUSE') || act.id.includes('ROB'));
         return (
-          <button
+          <Button
             key={act.id}
+            variant={isRed ? "primary-danger" : "secondary"}
             onClick={act.onClick}
             disabled={act.disabled}
-            className={`h-11 px-3 text-[11px] font-black uppercase tracking-wider rounded-xl border transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-2 active:scale-[0.98] ${
-              isRed
-                ? 'bg-gradient-to-r from-red-950 via-zinc-900 to-red-950 hover:from-red-900 hover:to-red-900 text-red-200 border-red-600/70 shadow-[0_0_15px_rgba(220,38,38,0.35)]'
-                : 'bg-zinc-900/90 hover:bg-zinc-800 text-zinc-200 border-zinc-700/80 shadow-md'
-            }`}
+            className="h-11 px-3 text-[11px] font-black uppercase tracking-wider gap-2 truncate"
           >
             {renderIcon(act.id)}
             <span className="truncate">{act.label}</span>
-          </button>
+          </Button>
         );
       })}
 
       {cleanupAction && (
-        <button
+        <Button
+          variant="primary-danger"
+          fullWidth
           onClick={cleanupAction.onClick}
           disabled={cleanupAction.disabled}
-          className="col-span-2 h-11 bg-gradient-to-r from-red-950 via-zinc-900 to-red-950 hover:from-red-900 hover:via-zinc-800 hover:to-red-900 disabled:opacity-40 text-red-200 hover:text-white text-[11px] font-black uppercase tracking-wider rounded-xl border border-red-600/70 transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.35)] active:scale-[0.98]"
+          className="col-span-2 h-11 text-[11px] font-black uppercase tracking-wider gap-2 shadow-[0_0_15px_rgba(220,38,38,0.35)]"
         >
           {renderIcon('CLEANUP')}
           <span>Зачистить поле</span>
-        </button>
+        </Button>
       )}
     </div>
   );

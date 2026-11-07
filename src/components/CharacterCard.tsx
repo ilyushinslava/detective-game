@@ -299,7 +299,7 @@ export const CharacterCard = memo(
               initial={{ opacity: 0, scaleX: 0.8 }}
               animate={{ opacity: 1, scaleX: 1 }}
               exit={{ opacity: 0, y: -12, scaleX: 0.5, transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] } }}
-              className="absolute bottom-0 inset-x-0 h-[2px] z-20 pointer-events-none bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_8px_rgba(6,182,212,0.6)]"
+              className="absolute bottom-0 inset-x-0 h-[2px] z-20 pointer-events-none bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_8px_rgba(245,158,11,0.7)]"
             />
           )}
         </AnimatePresence>

@@ -39,7 +39,7 @@ const Icons = {
       <path d="M9 7v4M7 9h4" opacity="0.6" />
     </svg>
   ),
-  Coin: ({ className = "w-4 h-4 text-emerald-400" }: { className?: string }) => (
+  Coin: ({ className = "w-4 h-4 text-amber-400" }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={className}>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
@@ -349,7 +349,7 @@ export const MainMenu = ({
               className="rounded-full bg-black/75 border border-white/10 hover:border-zinc-500/50 hover:bg-zinc-800/40 px-3.5 py-1.5 flex items-center gap-1.5 shadow-lg cursor-pointer transition active:scale-95"
               title="Открыть Dev-панель"
             >
-              <Icons.Coin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <Icons.Coin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span className="text-zinc-100 font-mono text-xs font-bold">{profile.cash.toLocaleString()}</span>
             </div>
           </div>

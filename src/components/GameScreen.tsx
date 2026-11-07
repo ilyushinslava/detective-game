@@ -194,7 +194,17 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
 
         <div className="absolute left-1/2 -translate-x-1/2 flex justify-center shrink-0">
           <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 md:px-5 md:py-2.5 rounded-full border text-[10px] md:text-xs font-black tracking-wider uppercase transition-all shadow max-w-[140px] sm:max-w-[200px] truncate ${gameState.winner === "KILLER" ? "bg-red-950/90 border-red-600 text-red-100 shadow-[0_0_15px_rgba(239,68,68,0.5)]" : gameState.winner === "DETECTIVE" ? "bg-blue-950/90 border-blue-600 text-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.5)]" : pillClasses}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 md:px-5 md:py-2.5 rounded-full border text-[10px] md:text-xs font-black tracking-wider uppercase transition-all shadow max-w-[140px] sm:max-w-[200px] truncate ${
+              gameState.winner === "KILLER"
+                ? "bg-red-950/90 border-red-600 text-red-100 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                : gameState.winner === "DETECTIVE"
+                ? (gameState.mode === "THIEF_HUNT"
+                    ? "bg-blue-900/40 border border-blue-800/50 text-blue-400"
+                    : "bg-blue-950/90 border-blue-600 text-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.5)]")
+                : (currentRoleName === "ПОЛИЦИЯ" || currentRoleName === "Полиция")
+                ? "bg-blue-900/40 border border-blue-800/50 text-blue-400"
+                : pillClasses
+            }`}
           >
             {gameState.winner === null && (
               <span className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
@@ -266,11 +276,11 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
         ) : gameState.mode === "THIEF_HUNT" ? (
           <div className="flex items-center gap-1.5">
             <span>Добыча:</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-cyan-400 fill-cyan-500/20 shrink-0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-amber-400 fill-amber-500/20 shrink-0">
               <circle cx="12" cy="12" r="9" />
               <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
             </svg>
-            <b className="text-cyan-400 font-bold">
+            <b className="text-amber-400 font-bold">
               {gameState.trophiesKiller ?? 0}/10
             </b>
             <span className="ml-1">| Улики: {gameState.evidenceDeck.length}</span>

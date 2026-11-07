@@ -375,7 +375,13 @@ export const RoleRevealModal = ({
         <div className={`absolute bottom-0 left-0 right-0 h-[60%] bg-gradient-to-t ${gradient} pointer-events-none`} />
 
         <div className="relative z-10 flex items-center justify-between pointer-events-none">
-          <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border ${isRed ? "bg-red-950/90 text-red-300 border-red-700/60" : "bg-blue-950/90 text-blue-300 border-blue-700/60"}`}>
+          <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border ${
+            isRed
+              ? "bg-red-950/90 text-red-300 border-red-700/60"
+              : titleLabel === "ПОЛИЦИЯ" || titleLabel === "Полиция"
+              ? "bg-blue-900/40 border border-blue-800/50 text-blue-400"
+              : "bg-blue-950/90 text-blue-300 border-blue-700/60"
+          }`}>
             {titleLabel}
           </span>
           <span className="text-xs font-mono font-bold text-zinc-400">

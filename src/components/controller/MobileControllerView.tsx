@@ -442,7 +442,11 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm ${
-                  isKiller ? 'bg-red-950/80 border-red-600/80 text-red-200' : 'bg-blue-950/80 border-blue-600/80 text-blue-200'
+                  isKiller
+                    ? 'bg-red-950/80 border-red-600/80 text-red-200'
+                    : (roleName === 'Полиция' || roleName === 'ПОЛИЦИЯ')
+                    ? 'bg-blue-900/40 border-blue-800/50 text-blue-400'
+                    : 'bg-blue-950/80 border-blue-600/80 text-blue-200'
                 }`}>
                   <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${isKiller ? 'bg-red-400' : 'bg-blue-400'}`} />
                   {roleName}

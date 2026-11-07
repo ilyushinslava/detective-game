@@ -334,6 +334,9 @@ export function useBoardVisuals({
         ? "bg-red-950/90 border-red-600 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
         : "bg-blue-950/90 border-blue-600 text-blue-200 shadow-[0_0_15px_rgba(59,130,246,0.3)]";
     }
+    if (gameState.mode === "THIEF_HUNT" && !isKillerTurn) {
+      return "bg-blue-900/40 border border-blue-800/50 text-blue-400";
+    }
     return isKillerTurn
       ? "bg-red-950/80 border-red-600 text-red-100 shadow-[0_0_15px_rgba(239,68,68,0.25)]"
       : "bg-blue-950/80 border-blue-600 text-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.25)]";

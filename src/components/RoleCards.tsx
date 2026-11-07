@@ -81,7 +81,11 @@ export const RoleCards = ({
       {showDetectiveCard && (
         <div className="flex-1 p-2 md:p-3.5 bg-zinc-900/60 backdrop-blur-md rounded-xl border border-white/10 flex flex-col justify-between gap-1.5 shadow-lg">
           <div className="flex items-start justify-between w-full gap-1.5">
-            <span className="text-[8px] sm:text-[8.5px] md:text-[10px] font-black text-blue-400 uppercase bg-blue-950/50 border border-blue-900/50 px-1.5 py-0.5 rounded-sm shrink-0 tracking-widest mt-0.5 whitespace-nowrap">
+            <span className={`text-[8px] sm:text-[8.5px] md:text-[10px] font-black uppercase px-1.5 py-0.5 rounded-sm shrink-0 tracking-widest mt-0.5 whitespace-nowrap ${
+              role2Name === "ПОЛИЦИЯ" || role2Name === "Полиция"
+                ? "bg-blue-900/40 border border-blue-800/50 text-blue-400"
+                : "text-blue-400 bg-blue-950/50 border border-blue-900/50"
+            }`}>
               {role2Name === "ОПЕРАТИВНИК" ? "ОПЕР" : role2Name}
             </span>
             <span className="text-[8.5px] sm:text-[9.5px] md:text-xs font-black text-zinc-100 text-right uppercase tracking-tight leading-[1.1] break-words line-clamp-2 flex-1 min-w-0">
@@ -101,8 +105,12 @@ export const RoleCards = ({
               !canPeekDetective
                 ? "bg-zinc-950/50 text-zinc-600 border-white/5 cursor-not-allowed"
                 : isDetectivePeeking
-                  ? "bg-blue-600 text-white border-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.6)] scale-[0.98]"
-                  : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-200 border-blue-700/50 shadow-[0_0_10px_rgba(59,130,246,0.2)] cursor-pointer"
+                  ? (role2Name === "ПОЛИЦИЯ" || role2Name === "Полиция"
+                      ? "bg-blue-900 text-white border-blue-700 shadow-[0_0_15px_rgba(30,64,175,0.5)] scale-[0.98]"
+                      : "bg-blue-600 text-white border-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.6)] scale-[0.98]")
+                  : (role2Name === "ПОЛИЦИЯ" || role2Name === "Полиция"
+                      ? "bg-blue-900/40 hover:bg-blue-900/60 active:bg-blue-900/80 text-blue-400 border border-blue-800/50 shadow-md cursor-pointer"
+                      : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-200 border-blue-700/50 shadow-[0_0_10px_rgba(59,130,246,0.2)] cursor-pointer")
             }`}
           >
             {!canPeekDetective ? (

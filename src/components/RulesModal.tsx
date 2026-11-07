@@ -416,7 +416,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
         </div>
 
         <div
-          className={`relative w-full min-h-[90px] sm:min-h-[110px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${
+          className={`relative w-full h-[100px] sm:h-[120px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${
             currentMode.borderColor
           } shadow-lg ${
             bannerSrc
@@ -425,22 +425,21 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
           }`}
         >
           {bannerSrc && (
-            <>
-              <img
-                src={bannerSrc}
-                alt={currentMode.title}
-                className="absolute inset-0 w-full h-full object-cover object-center opacity-70 sm:opacity-80 pointer-events-none"
-                onError={(e) => {
-                  console.warn(`[RulesModal] Failed to load banner for ${activeTab}:`, bannerSrc, e);
-                  setImgErrors((prev) => ({ ...prev, [activeTab]: true }));
-                }}
-              />
-              <div className="absolute inset-y-0 left-0 w-3/4 bg-gradient-to-r from-zinc-950 via-zinc-950/70 to-transparent pointer-events-none" />
-            </>
+            <img
+              src={bannerSrc}
+              alt={currentMode.title}
+              className="absolute inset-0 w-full h-full object-cover object-center opacity-80 pointer-events-none"
+              onError={(e) => {
+                console.warn(`[RulesModal] Failed to load banner for ${activeTab}:`, bannerSrc, e);
+                setImgErrors((prev) => ({ ...prev, [activeTab]: true }));
+              }}
+            />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent pointer-events-none" />
-          <div className="relative z-10 p-4 sm:p-5 flex items-center justify-start min-h-[90px] sm:min-h-[110px]">
-            <h3 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-white drop-shadow-md">
+
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent pointer-events-none" />
+
+          <div className="absolute bottom-2.5 left-3.5 right-3.5 z-10 flex items-end">
+            <h3 className="text-base sm:text-lg font-black uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
               {currentMode.title}
             </h3>
           </div>

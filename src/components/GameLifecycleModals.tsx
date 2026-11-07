@@ -205,6 +205,7 @@ export const GameLifecycleModals: React.FC<GameLifecycleModalsProps> = memo(({
           mode={gameState.mode}
           killer={killerChar}
           detective={detectiveChar}
+          characterImages={characterImages}
           elapsedTime={formatTimer(secondsElapsed)}
           onRestart={handleReset}
           onExitToMenu={handleExitToMenu}

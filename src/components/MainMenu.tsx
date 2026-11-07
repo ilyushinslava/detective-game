@@ -711,13 +711,13 @@ export const MainMenu = ({
       case 'THIEF_HUNT':
         return [
           { icon: Icons.Grid, title: '25 КВАРТАЛОВ', subtitle: 'ГОРОДСКАЯ СЕТКА' },
-          { icon: Icons.Coins, title: '3 КРАЖИ', subtitle: 'ЦЕЛЬ ВОРА' },
+          { icon: Icons.Coins, title: '10 МОНЕТ', subtitle: 'ЦЕЛЬ ГРАБИТЕЛЯ' },
           { icon: Icons.ShieldLock, title: 'ОЦЕПЛЕНИЕ', subtitle: 'БЛОК ПАТРУЛЕЙ' },
         ];
       case 'SECRET_SERVICE':
         return [
           { icon: Icons.Users, title: '2–6 АГЕНТОВ', subtitle: 'СПЕЦСЛУЖБЫ' },
-          { icon: Icons.FileText, title: 'КОМПРОМАТ', subtitle: 'СБОР ДАННЫХ' },
+          { icon: Icons.FileText, title: 'КОМПРОМАТ', subtitle: 'СБОР 4 УЛИК' },
           { icon: Icons.EyeOff, title: 'ПРИКРЫТИЕ', subtitle: 'ТАЙНЫЕ ЯВКИ' },
         ];
       case 'LINE_UP':

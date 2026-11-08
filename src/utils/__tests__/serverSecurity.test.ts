@@ -217,4 +217,60 @@ describe("GameRoomServer Security (SEC-01 & SEC-02)", () => {
       expect(lastGuestState.victimList[3]).toBe("UNKNOWN");
     });
   });
+
+  describe("SEC-04: CONFIRM_RESTART Privilege Enforcement (DEBT-03)", () => {
+    it("rejects CONFIRM_RESTART when issued by a non-host guest player without host authorization", () => {
+      const hostConn = createMockConn("conn_host");
+      connections.push(hostConn);
+      server.onConnect(hostConn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=host_id&isHost=true"),
+      });
+
+      const guestConn = createMockConn("conn_guest");
+      connections.push(guestConn);
+      server.onConnect(guestConn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=guest_id&isHost=false"),
+      });
+
+      server.state.status = "FINISHED";
+
+      // Guest sends CONFIRM_RESTART without host's consent
+      server.onMessage(
+        JSON.stringify({ type: "CONFIRM_RESTART" }),
+        guestConn
+      );
+
+      // Must remain FINISHED and reject the action with NOT_HOST
+      expect(server.state.status).toBe("FINISHED");
+      const rejected = guestConn.sent
+        .map((s) => JSON.parse(s))
+        .find((m) => m.type === "ACTION_REJECTED");
+      expect(rejected).toBeDefined();
+      expect(rejected.reason).toBe("NOT_HOST");
+    });
+
+    it("accepts CONFIRM_RESTART when issued by host directly", () => {
+      const hostConn = createMockConn("conn_host");
+      connections.push(hostConn);
+      server.onConnect(hostConn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=host_id&isHost=true"),
+      });
+
+      const guestConn = createMockConn("conn_guest");
+      connections.push(guestConn);
+      server.onConnect(guestConn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=guest_id&isHost=false"),
+      });
+
+      server.state.status = "FINISHED";
+
+      // Host sends CONFIRM_RESTART directly
+      server.onMessage(
+        JSON.stringify({ type: "CONFIRM_RESTART" }),
+        hostConn
+      );
+
+      expect(server.state.status).toBe("READY_TO_START");
+    });
+  });
 });

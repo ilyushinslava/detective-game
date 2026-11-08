@@ -697,6 +697,17 @@ export default class GameRoomServer {
         }
 
         const restartRequestedBy = (this.state as any).restartRequestedBy;
+        const hostPlayer = Object.values(this.state.players).find((p) => p.isHost);
+        const isHostConsentGiven = Boolean(restartRequestedBy && hostPlayer && restartRequestedBy === hostPlayer.clientId);
+
+        if (!player?.isHost && !isHostConsentGiven) {
+          try {
+            sender.send(JSON.stringify({ type: "ACTION_REJECTED", reason: "NOT_HOST" }));
+          } catch (_err) {}
+          console.warn("[GameRoomServer] Action rejected: CONFIRM_RESTART can only be initiated by host or with host consent.");
+          return;
+        }
+
         const isParticipant = Boolean(player && player.role !== "SPECTATOR");
 
         let isAuthorizedToConfirm = false;

@@ -230,7 +230,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         />
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 inline-flex items-center gap-3 px-6 py-2.5 rounded-full border border-zinc-800/80 bg-zinc-950/80 shadow-2xl backdrop-blur-md">
           <span className="h-2.5 w-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-          <span className="text-xs font-mono uppercase tracking-widest text-zinc-300">
+          <span className="text-xs 2xl:text-sm font-mono uppercase tracking-widest text-zinc-300">
             Ожидание выбора реванша на контроллерах
           </span>
         </div>
@@ -296,7 +296,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 <button
                   onClick={onRestart}
                   data-testid="tv-restart-btn"
-                  className={`px-3 py-1 rounded-xl border font-mono text-xs 2xl:text-sm uppercase tracking-wider transition cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-xl border font-mono text-xs sm:text-sm 2xl:text-base uppercase tracking-wider transition cursor-pointer ${
                     focusedControl === 'RESTART'
                       ? 'border-white/90 ring-2 ring-white/90 bg-zinc-800 text-white shadow-[0_0_12px_rgba(255,255,255,0.4)]'
                       : 'border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-300'
@@ -309,7 +309,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 <button
                   onClick={onExit}
                   data-testid="tv-exit-btn"
-                  className={`px-3 py-1 rounded-xl border font-mono text-xs 2xl:text-sm uppercase tracking-wider transition cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-xl border font-mono text-xs sm:text-sm 2xl:text-base uppercase tracking-wider transition cursor-pointer ${
                     focusedControl === 'EXIT'
                       ? 'border-red-500/90 ring-2 ring-red-500/90 bg-red-950/80 text-red-200 shadow-[0_0_12px_rgba(239,68,68,0.4)]'
                       : 'border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-400 hover:text-red-400'
@@ -358,7 +358,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                     } ${!char.isAlive ? 'grayscale opacity-35' : ''}`}
                   >
                     {/* Тактический номер ячейки #01–#25 */}
-                    <span className="absolute top-1 left-1.5 z-20 font-mono text-[10px] sm:text-xs 2xl:text-sm font-black text-zinc-300 bg-black/85 px-1.5 py-0.5 rounded border border-zinc-800/80 pointer-events-none shadow">
+                    <span className="absolute top-1 left-1.5 z-20 font-mono text-xs sm:text-sm 2xl:text-base font-black text-zinc-300 bg-black/90 px-2 py-0.5 rounded border border-zinc-800/80 pointer-events-none shadow">
                       #{String(index + 1).padStart(2, '0')}
                     </span>
 
@@ -391,9 +391,9 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                     {/* Состояние ликвидации: затемнение и красный глитч-маркер */}
                     {!char.isAlive && (
                       <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none bg-black/50 backdrop-blur-xs">
-                        <div className="flex items-center gap-1 px-2 py-0.5 rounded border border-red-500/60 bg-red-950/80 shadow-[0_0_10px_rgba(239,68,68,0.4)]">
-                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                          <span className="text-[9px] sm:text-[10px] font-mono font-black uppercase tracking-wider text-red-200">
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-red-500/60 bg-red-950/80 shadow-[0_0_10px_rgba(239,68,68,0.4)]">
+                          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                          <span className="text-xs sm:text-sm font-mono font-black uppercase tracking-wider text-red-200">
                             ВЫБЫЛ
                           </span>
                         </div>
@@ -415,7 +415,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 <Icons.Target />
                 СТАТУС МАТЧА
               </span>
-              <span className="text-[10px] 2xl:text-xs font-mono font-bold text-emerald-400 bg-emerald-950/50 border border-emerald-500/30 px-2 py-0.5 rounded-full flex items-center gap-1.5">
+              <span className="text-xs 2xl:text-sm font-mono font-bold text-emerald-400 bg-emerald-950/50 border border-emerald-500/30 px-2.5 py-1 rounded-full flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 АКТИВЕН
               </span>
@@ -443,7 +443,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   <span className="truncate">{killerRoleName}</span>
                 </div>
                 <div className="text-lg 2xl:text-xl font-mono font-black text-red-400">
-                  {killerScore} <span className="text-xs text-zinc-600 font-normal">/ {killerTarget}</span>
+                  {killerScore} <span className="text-xs 2xl:text-sm text-zinc-500 font-normal">/ {killerTarget}</span>
                 </div>
               </div>
 
@@ -453,7 +453,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   <span className="truncate">{detectiveRoleName}</span>
                 </div>
                 <div className="text-lg 2xl:text-xl font-mono font-black text-cyan-400">
-                  {detectiveScore} <span className="text-xs text-zinc-600 font-normal">/ {detectiveTarget}</span>
+                  {detectiveScore} <span className="text-xs 2xl:text-sm text-zinc-500 font-normal">/ {detectiveTarget}</span>
                 </div>
               </div>
             </div>
@@ -472,13 +472,13 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 {activeTurnName.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[10px] 2xl:text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
+                <div className="text-xs 2xl:text-sm font-mono uppercase tracking-widest text-zinc-400 font-bold">
                   АКТИВНЫЙ ИГРОК
                 </div>
                 <div className="text-lg sm:text-xl 2xl:text-2xl font-black tracking-wider uppercase truncate text-emerald-400">
                   ХОД: {activeTurnName.toUpperCase()}
                 </div>
-                <div className="text-[11px] 2xl:text-xs text-zinc-400 font-medium truncate">
+                <div className="text-xs 2xl:text-sm text-zinc-400 font-medium truncate">
                   Управление с мобильного контроллера
                 </div>
               </div>
@@ -530,7 +530,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 <Icons.Terminal />
                 ПОСЛЕДНИЕ СОБЫТИЯ
               </span>
-              <span className="text-[10px] text-zinc-600 font-normal">БОРТОВОЙ ЖУРНАЛ</span>
+              <span className="text-xs 2xl:text-sm font-mono uppercase tracking-wider text-zinc-500">БОРТОВОЙ ЖУРНАЛ</span>
             </div>
 
             <div className="flex-1 space-y-2 overflow-y-auto min-h-0 pr-1 text-xs md:text-sm 2xl:text-base font-mono">

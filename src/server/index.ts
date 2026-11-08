@@ -24,10 +24,11 @@ export interface ServerRoomState {
   isPassAndPlay?: boolean;
 }
 
-const publicRoomsRegistry = new Map<
+export const publicRoomsRegistry = new Map<
   string,
   {
     roomCode: string;
+    morseCode?: string;
     mode: string;
     hostName: string;
     status: string;
@@ -36,6 +37,74 @@ const publicRoomsRegistry = new Map<
     bet?: number;
   }
 >();
+
+export const morseToRoomRegistry = new Map<string, string>();
+export const roomToMorseRegistry = new Map<string, string>();
+
+export function normalizeMorse(input: string): string {
+  if (!input) return "";
+  return input
+    .replace(/[•\.]/g, ".")
+    .replace(/[—–\-]/g, "-")
+    .replace(/[^.\-]/g, "");
+}
+
+export function generateUniqueMorseCode(existingCodes: Set<string> | Map<string, any> = morseToRoomRegistry): string {
+  const hasCode = (c: string) =>
+    existingCodes instanceof Set ? existingCodes.has(c) : existingCodes.has(c);
+
+  const candidates: string[] = [];
+  // 16 комбинаций из 4 символов
+  for (let i = 0; i < 16; i++) {
+    candidates.push(i.toString(2).padStart(4, "0").replace(/0/g, ".").replace(/1/g, "-"));
+  }
+  // 32 комбинации из 5 символов
+  for (let i = 0; i < 32; i++) {
+    candidates.push(i.toString(2).padStart(5, "0").replace(/0/g, ".").replace(/1/g, "-"));
+  }
+
+  // Перемешивание кандидатов
+  for (let i = candidates.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+  }
+
+  for (const c of candidates) {
+    if (!hasCode(c)) {
+      return c;
+    }
+  }
+
+  // Расширение до 6 символов при переполнении пула
+  for (let i = 0; i < 64; i++) {
+    const c = i.toString(2).padStart(6, "0").replace(/0/g, ".").replace(/1/g, "-");
+    if (!hasCode(c)) return c;
+  }
+  return "...---";
+}
+
+export function resolveRoomByMorse(morse: string): string | null {
+  const norm = normalizeMorse(morse);
+  if (!norm) return null;
+  return morseToRoomRegistry.get(norm) || null;
+}
+
+export function resolveRoomByPin(pin: string): string | null {
+  const clean = String(pin || "").trim();
+  if (!clean) return null;
+  if (publicRoomsRegistry.has(clean)) return clean;
+  if (roomToMorseRegistry.has(clean)) return clean;
+  return null;
+}
+
+export function unregisterRoom(roomCode: string): void {
+  const morse = roomToMorseRegistry.get(roomCode);
+  if (morse) {
+    morseToRoomRegistry.delete(morse);
+    roomToMorseRegistry.delete(roomCode);
+  }
+  publicRoomsRegistry.delete(roomCode);
+}
 
 const defer = (fn: () => void) => {
   if (typeof process !== "undefined" && (process.env?.VITEST || process.env?.NODE_ENV === "test")) {
@@ -174,7 +243,7 @@ export default class GameRoomServer {
       }
       this.state.status = "EMPTY";
       this.state.gameState = null;
-      publicRoomsRegistry.delete(roomCode);
+      unregisterRoom(roomCode);
       this.state.readyClients.clear();
     } else {
       if (playerWhoLeft?.isHost && (this.state.status === "WAITING" || this.state.status === "READY_TO_START")) {
@@ -192,6 +261,7 @@ export default class GameRoomServer {
           remainingPlayers[0];
         publicRoomsRegistry.set(roomCode, {
           roomCode,
+          morseCode: this.getMorseCode(),
           mode: this.state.mode,
           hostName: hostPlayer?.nickname || "Хост",
           status: "WAITING",
@@ -213,6 +283,17 @@ export default class GameRoomServer {
         .split("/")
         .pop() || "room"
     );
+  }
+
+  getMorseCode(): string {
+    const roomCode = this.getRoomCode();
+    let code = roomToMorseRegistry.get(roomCode);
+    if (!code) {
+      code = generateUniqueMorseCode(morseToRoomRegistry);
+      roomToMorseRegistry.set(roomCode, code);
+      morseToRoomRegistry.set(code, roomCode);
+    }
+    return code;
   }
 
   constructor(room: any) {
@@ -240,6 +321,61 @@ export default class GameRoomServer {
       });
     }
     const url = new URL(req.url);
+
+    // Резолв комнат по короткому Морзе-позывному или цифровому PIN-коду (TASK-NET-002)
+    const isResolveRequest =
+      url.pathname.endsWith("/resolve") ||
+      url.pathname.includes("/resolve") ||
+      url.searchParams.get("action") === "resolve" ||
+      url.searchParams.has("morse") ||
+      url.searchParams.has("code") ||
+      url.searchParams.has("pin");
+
+    if (isResolveRequest) {
+      const rawMorse = url.searchParams.get("morse") || url.searchParams.get("code") || "";
+      const rawPin = url.searchParams.get("pin") || url.searchParams.get("room") || "";
+      const foundByMorse = rawMorse ? resolveRoomByMorse(rawMorse) : null;
+      const foundByPin = rawPin ? resolveRoomByPin(rawPin) : null;
+      const foundRoomCode = foundByMorse || foundByPin;
+
+      if (foundRoomCode) {
+        const roomMeta = publicRoomsRegistry.get(foundRoomCode);
+        const morseCode = roomToMorseRegistry.get(foundRoomCode);
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            roomCode: foundRoomCode,
+            morseCode: morseCode || null,
+            mode: roomMeta?.mode || "MANIAC_VS_OPERATIVE",
+            status: roomMeta?.status || "WAITING",
+            playersCount: roomMeta?.playersCount || 0,
+            maxPlayers: roomMeta?.maxPlayers || 2,
+          }),
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+            },
+          }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: "ROOM_NOT_FOUND",
+          message: "Комната с данным позывным или кодом не найдена.",
+        }),
+        {
+          status: 404,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
     const isRoomsListRequest =
       url.pathname.endsWith("/rooms") ||
       url.pathname.endsWith("/rooms/") ||
@@ -299,6 +435,7 @@ export default class GameRoomServer {
 
       publicRoomsRegistry.set(roomCode, {
         roomCode,
+        morseCode: this.getMorseCode(),
         mode: this.state.mode,
         hostName: nickname || "TV_HOST",
         status: this.state.status,
@@ -456,6 +593,7 @@ export default class GameRoomServer {
 
       publicRoomsRegistry.set(roomCode, {
         roomCode,
+        morseCode: this.getMorseCode(),
         mode,
         hostName: nickname,
         status: "WAITING",
@@ -517,6 +655,7 @@ export default class GameRoomServer {
       } else {
         publicRoomsRegistry.set(roomCode, {
           roomCode,
+          morseCode: this.getMorseCode(),
           mode: this.state.mode,
           hostName: hostPlayer?.nickname || "Хост",
           status: "READY_TO_START",
@@ -558,7 +697,7 @@ export default class GameRoomServer {
 
     const playerWhoLeft = this.state.players[clientId];
     if (playerWhoLeft?.isHost && this.state.status === "WAITING") {
-      publicRoomsRegistry.delete(this.getRoomCode());
+      unregisterRoom(this.getRoomCode());
     }
 
     // Если отключился игрок, чей сейчас ход — замораживаем блиц-таймер
@@ -602,6 +741,42 @@ export default class GameRoomServer {
         try {
           sender?.send(JSON.stringify({ type: "PONG" }));
         } catch (_) {}
+        return;
+      }
+
+      if (action.type === "RESOLVE_ROOM") {
+        const { morse, pin } = action.payload || {};
+        const foundRoomCode = (morse ? resolveRoomByMorse(morse) : null) || (pin ? resolveRoomByPin(pin) : null);
+        if (foundRoomCode) {
+          const roomMeta = publicRoomsRegistry.get(foundRoomCode);
+          const morseCode = roomToMorseRegistry.get(foundRoomCode);
+          try {
+            sender?.send(
+              JSON.stringify({
+                type: "ROOM_RESOLVED",
+                payload: {
+                  ok: true,
+                  roomCode: foundRoomCode,
+                  morseCode: morseCode || null,
+                  status: roomMeta?.status || "WAITING",
+                  mode: roomMeta?.mode || "MANIAC_VS_OPERATIVE",
+                },
+              })
+            );
+          } catch (_) {}
+        } else {
+          try {
+            sender?.send(
+              JSON.stringify({
+                type: "RESOLVE_FAILED",
+                payload: {
+                  ok: false,
+                  error: "ROOM_NOT_FOUND",
+                },
+              })
+            );
+          } catch (_) {}
+        }
         return;
       }
 
@@ -670,7 +845,7 @@ export default class GameRoomServer {
           if (remainingPlayersCount === 0) {
             this.state.status = "EMPTY";
             this.state.gameState = null;
-            publicRoomsRegistry.delete(roomCode);
+            unregisterRoom(roomCode);
             this.state.readyClients.clear();
           } else {
             if (player?.isHost && (this.state.status === "WAITING" || this.state.status === "READY_TO_START")) {
@@ -688,6 +863,7 @@ export default class GameRoomServer {
                 remainingPlayers[0];
               publicRoomsRegistry.set(roomCode, {
                 roomCode,
+                morseCode: this.getMorseCode(),
                 mode: this.state.mode,
                 hostName: hostPlayer?.nickname || "Хост",
                 status: "WAITING",
@@ -978,6 +1154,8 @@ export default class GameRoomServer {
     const payload = JSON.stringify({
       type: "ROOM_STATUS",
       status: this.state.status,
+      roomCode: this.getRoomCode(),
+      morseCode: this.getMorseCode(),
       players: sanitizedPlayers,
       isReady: this.state.status === "READY_TO_START" || this.state.status === "PLAYING",
       ready: this.state.status === "READY_TO_START" || this.state.status === "PLAYING",
@@ -1187,6 +1365,6 @@ export default class GameRoomServer {
     }
     this.disconnectTimers.clear();
     (this.state as any).restartRequestedBy = null;
-    publicRoomsRegistry.delete(this.getRoomCode());
+    unregisterRoom(this.getRoomCode());
   }
 }

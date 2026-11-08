@@ -91,6 +91,7 @@ export default function App() {
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [isNotebookOpen, setIsNotebookOpen] = useState(false);
   const [tvRoomCode, setTvRoomCode] = useState<string>(roomParam || "");
+  const [tvMorseCode, setTvMorseCode] = useState<string>("");
   const [pinInput, setPinInput] = useState<string>("");
   const [tvPartyState, setTvPartyState] = useState<"NONE" | "TV_LOBBY" | "TV_BOARD" | "CONTROLLER">(() => {
     if (clientTypeParam === "CONTROLLER") return "CONTROLLER";
@@ -116,7 +117,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (clientTypeParam === "CONTROLLER" && tvRoomCode) {
+    if ((clientTypeParam === "CONTROLLER" || tvPartyState === "CONTROLLER") && tvRoomCode) {
       let controllerClientId = typeof window !== "undefined" ? sessionStorage.getItem("tv_controller_client_id") : null;
       if (!controllerClientId && typeof window !== "undefined") {
         controllerClientId = `client_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -125,7 +126,7 @@ export default function App() {
       if (typeof window !== "undefined") {
         sessionStorage.setItem("tv_controller_room", tvRoomCode);
       }
-      partyService.connect(tvRoomCode, profile.nickname || 'Агент', false, 'MANIAC_VS_OPERATIVE', controllerClientId || undefined, clientTypeParam);
+      partyService.connect(tvRoomCode, profile.nickname || 'Агент', false, 'MANIAC_VS_OPERATIVE', controllerClientId || undefined, 'CONTROLLER');
 
       const prevOnRoomStatus = partyService.onRoomStatus;
       const prevOnSyncState = partyService.onSyncState;
@@ -195,6 +196,9 @@ export default function App() {
       prevOnRoomStatus?.(data);
       if (data?.players) {
         setTvPlayers(data.players);
+      }
+      if (data?.morseCode) {
+        setTvMorseCode(data.morseCode);
       }
       if (data?.status === "PLAYING" || data?.status === "FINISHED") {
         setTvPartyState((prev) => (prev === "TV_LOBBY" ? "TV_BOARD" : prev));
@@ -837,10 +841,14 @@ export default function App() {
                   initialNickname={profile.nickname}
                   onUpdateNickname={(name) => updateProfile({ nickname: name })}
                   onConnect={(code) => {
-                    const newUrl = new URL(window.location.href);
-                    newUrl.searchParams.set("room", code);
-                    newUrl.searchParams.set("clientType", "CONTROLLER");
-                    window.location.replace(newUrl.toString());
+                    setTvRoomCode(code);
+                    setTvPartyState("CONTROLLER");
+                    try {
+                      const newUrl = new URL(window.location.href);
+                      newUrl.searchParams.set("room", code);
+                      newUrl.searchParams.set("clientType", "CONTROLLER");
+                      window.history.replaceState({}, "", newUrl.toString());
+                    } catch (_) {}
                   }}
                   onBackToMenu={() => {
                     sessionStorage.removeItem("tv_controller_client_id");
@@ -933,6 +941,7 @@ export default function App() {
           <Suspense fallback={<ScreenFallback />}>
             <TvLobbyView
               roomCode={tvRoomCode}
+              morseCode={tvMorseCode}
               players={tvPlayers}
               connectedPlayers={tvPlayers}
               onStartGame={(mode, passAndPlay) => {

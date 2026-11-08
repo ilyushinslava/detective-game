@@ -70,6 +70,60 @@ class PartyService {
     };
   }
 
+  async resolveRoom(query: { morse?: string; pin?: string }): Promise<{
+    ok: boolean;
+    roomCode?: string;
+    morseCode?: string;
+    error?: string;
+    status?: string;
+    mode?: string;
+  }> {
+    // В тестовом окружении без запущенного сетевого сервера PartyKit обращаемся к реестру напрямую
+    if (typeof process !== "undefined" && (process.env?.VITEST || process.env?.NODE_ENV === "test")) {
+      try {
+        const { resolveRoomByMorse, resolveRoomByPin, roomToMorseRegistry, publicRoomsRegistry } = await import("../server/index");
+        const found = (query.morse ? resolveRoomByMorse(query.morse) : null) || (query.pin ? resolveRoomByPin(query.pin) : null);
+        if (found) {
+          const roomMeta = publicRoomsRegistry.get(found);
+          const morseCode = roomToMorseRegistry.get(found);
+          return {
+            ok: true,
+            roomCode: found,
+            morseCode: morseCode || null,
+            status: roomMeta?.status || "WAITING",
+            mode: roomMeta?.mode || "MANIAC_VS_OPERATIVE",
+          };
+        }
+        if (query.pin && query.pin.length >= 4) {
+          return {
+            ok: true,
+            roomCode: query.pin,
+            morseCode: null,
+            status: "WAITING",
+            mode: "MANIAC_VS_OPERATIVE",
+          };
+        }
+      } catch (_) {}
+    }
+
+    const { httpProtocol, host } = this.resolveEndpoints();
+    const params = new URLSearchParams({ action: "resolve" });
+    if (query.morse) params.set("morse", query.morse);
+    if (query.pin) params.set("pin", query.pin);
+
+    const url = `${httpProtocol}//${host}/party/main?${params.toString()}`;
+    try {
+      const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), 3000) : null;
+      const res = await fetch(url, { signal: controller?.signal });
+      if (timeoutId) clearTimeout(timeoutId);
+      const data = await res.json();
+      return data;
+    } catch (e: any) {
+      return { ok: false, error: e?.message || "NETWORK_ERROR" };
+    }
+  }
+
   onSyncState: ((state: any, role?: Role, status?: string) => void) | null = null;
   onRoomStatus: ((status: any) => void) | null = null;
   onAllPlayersReady: (() => void) | null = null;

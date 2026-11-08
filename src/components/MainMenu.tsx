@@ -643,6 +643,35 @@ export const MainMenu = ({
               </button>
             </div>
 
+            {/* Быстрое подключение к ТВ-вечеринке с телефона (TASK-NET-002) */}
+            <button
+              onClick={() => {
+                if (onStartTvParty) {
+                  onStartTvParty("CONTROLLER");
+                } else {
+                  window.location.href = `${window.location.pathname}?clientType=CONTROLLER`;
+                }
+              }}
+              className="w-full mt-3 h-12 rounded-2xl bg-zinc-950/70 hover:bg-zinc-900/90 border border-cyan-500/30 hover:border-cyan-400/60 transition-all flex items-center justify-between px-4 text-zinc-100 cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.1)] active:scale-[0.99] group backdrop-blur-md"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-400 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="text-xs font-black uppercase tracking-wider text-cyan-300 group-hover:text-cyan-200">
+                    ПОДКЛЮЧИТЬСЯ К ТВ
+                  </span>
+                  <span className="text-[10px] font-mono text-zinc-400">
+                    Пульт контроллера • Ввод PIN или Морзе
+                  </span>
+                </div>
+              </div>
+              <span className="text-xs font-mono text-cyan-400 font-bold group-hover:translate-x-0.5 transition-transform">
+                Войти →
+              </span>
+            </button>
+
             {/* Auxiliary Buttons: Rules & Tutorial */}
             <div className="grid grid-cols-2 gap-4 mt-4">
               <button
@@ -1317,10 +1346,10 @@ export const MainMenu = ({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-xs font-black uppercase tracking-wider text-zinc-100 group-hover:text-cyan-400">
-                    МОБИЛЬНЫЙ КОНТРОЛЛЕР
+                    ПОДКЛЮЧИТЬСЯ К ТВ (ПУЛЬТ)
                   </div>
                   <div className="text-[10px] text-zinc-400 mt-0.5 leading-tight">
-                    Персональный пульт управления агента (Телефон)
+                    Ввести PIN или передать позывной Морзе для подключения
                   </div>
                 </div>
               </button>

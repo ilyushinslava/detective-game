@@ -5,16 +5,32 @@ import type { GameModeType } from '../../types/game';
 import { GAME_TITLE, GAME_MODES_META } from '../../constants/gameMeta';
 import { Button } from '../ui/Button';
 
-interface TvLobbyViewProps {
+export interface TvLobbyViewProps {
   roomCode: string;
+  morseCode?: string;
   players?: Record<string, { nickname: string; isHost?: boolean }>;
   connectedPlayers?: Record<string, { nickname: string; isHost?: boolean }>;
   onStartGame?: (mode: GameModeType, isPassAndPlay: boolean) => void;
   onExit?: () => void;
 }
 
+export function getDeterministicMorse(roomCode: string): string {
+  if (!roomCode) return '.-.-';
+  let hash = 0;
+  for (let i = 0; i < roomCode.length; i++) {
+    hash = (hash * 31 + roomCode.charCodeAt(i)) >>> 0;
+  }
+  const len = 4 + (hash % 2);
+  let res = '';
+  for (let i = 0; i < len; i++) {
+    res += (hash & (1 << i)) ? '-' : '.';
+  }
+  return res;
+}
+
 export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   roomCode,
+  morseCode,
   players = {},
   connectedPlayers,
   onStartGame,
@@ -68,45 +84,18 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
       origin = `${protocol}//${lanHost}`;
     }
     const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-    return `${origin}${pathname}?clientType=CONTROLLER&room=${roomCode}`;
-  }, [roomCode, isLocalDev, lanHost]);
+    // QR-код ведет строго на корень приложения (главное меню) без лишних URL-параметров (TASK-NET-002)
+    return `${origin}${pathname}`;
+  }, [isLocalDev, lanHost]);
 
   const [selectedMode, setSelectedMode] = useState<GameModeType>('MANIAC_VS_OPERATIVE');
   const [isPassAndPlay, setIsPassAndPlay] = useState<boolean>(false);
   const [focusArea, setFocusArea] = useState<'FORMAT' | 'MODES' | 'START' | 'EXIT'>('MODES');
   const [focusedModeIndex, setFocusedModeIndex] = useState<number>(0);
 
-  const DIGIT_TO_MORSE: Record<string, string> = {
-    '0': '-----',
-    '1': '.----',
-    '2': '..---',
-    '3': '...--',
-    '4': '....-',
-    '5': '.....',
-          '6': '-....',
-      '7': '--...',
-      '8': '---..',
-      '9': '----.',
-    };
-
-    const _dummyOldMorse: Record<string, string> = {
-    '7': '--...',
-    '8': '---..',
-    '9': '----.',
-  };
-
-  const _oldDigitToMorse: Record<string, string> = {
-    '0': '-----',
-    '1': '•----',
-    '2': '••---',
-    '3': '•••--',
-    '4': '••••-',
-    '5': '•••••',
-    '6': '-••••',
-    '7': '--•••',
-    '8': '---••',
-    '9': '----•',
-  };
+  const displayMorse = useMemo(() => {
+    return morseCode || getDeterministicMorse(roomCode);
+  }, [morseCode, roomCode]);
 
   const GAME_MODES: Array<{ id: GameModeType; label: string; badge: string }> = [
     { id: 'MANIAC_VS_OPERATIVE', label: GAME_MODES_META.MANIAC_VS_OPERATIVE.title.ru, badge: '4 ЦЕЛИ' },
@@ -120,10 +109,6 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
     : players;
   const playerList = Array.isArray(rawPlayers) ? rawPlayers : Object.values(rawPlayers || {});
   const canStart = isPassAndPlay ? playerList.length >= 1 : playerList.length >= 2;
-
-  const roomMorse = useMemo(() => {
-    return String(roomCode).split('').map((c) => DIGIT_TO_MORSE[c] || c).join('   ');
-  }, [roomCode]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -210,8 +195,11 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           <div className="p-3 lg:p-4 rounded-2xl bg-white shadow-inner mb-4">
             <QRCodeSVG value={joinUrl} size={170} level="M" />
           </div>
-          <div className="text-xs font-mono uppercase tracking-wider text-zinc-400 mb-1">
-            Наведите камеру смартфона для входа
+          <div className="text-xs font-mono uppercase tracking-wider text-zinc-300 mb-1 font-bold">
+            Наведите камеру смартфона, чтобы открыть игру
+          </div>
+          <div className="text-[11px] text-zinc-400 mb-1">
+            Затем нажмите «Подключиться к ТВ»
           </div>
           <div className="text-[11px] font-mono text-zinc-500 truncate max-w-xs">
             {joinUrl}
@@ -283,20 +271,41 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
 
         {/* Правая колонка: PIN-код и слоты игроков */}
         <div className="col-span-6 flex flex-col justify-between gap-6">
-          {/* Карточка PIN-кода */}
+          {/* Карточка PIN-кода и Морзе-позывного */}
           <div className="p-5 lg:p-6 rounded-3xl bg-zinc-950/60 border border-white/10 shadow-2xl backdrop-blur-md">
             <div className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">
-              ИЛИ ВВЕДИТЕ 5-ЗНАЧНЫЙ PIN-КОД
+              ЧИСЛОВОЙ ID КОМНАТЫ
             </div>
             <div className="text-5xl lg:text-6xl font-black font-mono tracking-widest text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.4)]">
               {roomCode}
             </div>
-            <div className="mt-3 p-2.5 rounded-xl bg-zinc-900/90 border border-white/10 flex items-center justify-between">
-              <span className="text-[10px] font-mono font-bold uppercase text-red-400 tracking-wider">КЛЮЧ МОРЗЕ:</span>
-              <span className="font-mono text-xs font-bold text-zinc-200 tracking-widest">{roomMorse}</span>
+
+            {/* Визуальный паттерн короткого Морзе-кода */}
+            <div className="mt-4 p-3.5 rounded-2xl bg-zinc-900/90 border border-white/10 flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold uppercase text-cyan-400 tracking-wider">
+                  ТАКТИЧЕСКИЙ ПОЗЫВНОЙ (МОРЗЕ):
+                </span>
+                <span className="font-mono text-xs font-black text-cyan-300 tracking-widest">
+                  {displayMorse.split('').map((s) => s === '.' ? '•' : '—').join(' ')}
+                </span>
+              </div>
+              <div className="flex items-center gap-2.5 py-1">
+                {displayMorse.split('').map((sym, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex items-center justify-center transition-all ${
+                      sym === '.'
+                        ? 'w-6 h-6 rounded-full bg-cyan-400 shadow-[0_0_14px_rgba(6,182,212,0.9)]'
+                        : 'w-14 h-6 rounded-full bg-cyan-400 shadow-[0_0_14px_rgba(6,182,212,0.9)]'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="text-xs text-zinc-400 mt-2">
-              Откройте сайт игры на телефоне и укажите этот номер комнаты
+
+            <div className="text-xs text-zinc-400 mt-3">
+              Откройте игру на телефоне, нажмите «Подключиться к ТВ» и укажите числовой ID либо отстучите позывной Морзе.
             </div>
           </div>
 

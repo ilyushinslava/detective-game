@@ -12,9 +12,21 @@ export const getHapticsEnabled = (): boolean => {
   return true;
 };
 
+const safeVibrate = (pattern: number | number[]): boolean => {
+  try {
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      return Boolean(navigator.vibrate(pattern));
+    }
+  } catch {
+    // Safari iOS / WebKit may throw NotAllowedError if not directly in user gesture
+  }
+  return false;
+};
+
 export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | 'error') => {
   if (!getHapticsEnabled() || typeof window === 'undefined') return;
 
+  // 1. Telegram WebApp Haptic
   const tg = (window as unknown as { Telegram?: { WebApp?: { HapticFeedback?: { impactOccurred: (s: string) => void; notificationOccurred: (s: string) => void } } } }).Telegram?.WebApp?.HapticFeedback;
   if (tg) {
     try {
@@ -27,19 +39,29 @@ export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | '
     } catch {}
   }
 
-  if (typeof navigator !== 'undefined' && navigator.vibrate) {
-    try {
-      switch (type) {
-        case 'light': navigator.vibrate(15); return;
-        case 'medium': navigator.vibrate([40, 30, 40]); return;
-        case 'heavy': navigator.vibrate(100); return;
-        case 'success': navigator.vibrate([20, 40, 20]); return;
-        case 'error': navigator.vibrate([40, 30, 60]); return;
-      }
-    } catch {}
+  // 2. Native WebKit iOS WebView message handler (if hosted in native iOS wrapper)
+  try {
+    const webkitHandler = (window as unknown as { webkit?: { messageHandlers?: { haptic?: { postMessage: (msg: string) => void } } } }).webkit?.messageHandlers?.haptic;
+    if (webkitHandler && typeof webkitHandler.postMessage === 'function') {
+      webkitHandler.postMessage(type);
+      return;
+    }
+  } catch {}
+
+  // 3. W3C Vibration API (Android / Supported Browsers)
+  if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+    let triggered = false;
+    switch (type) {
+      case 'light': triggered = safeVibrate(15); break;
+      case 'medium': triggered = safeVibrate([40, 30, 40]); break;
+      case 'heavy': triggered = safeVibrate(100); break;
+      case 'success': triggered = safeVibrate([20, 40, 20]); break;
+      case 'error': triggered = safeVibrate([40, 30, 60]); break;
+    }
+    if (triggered) return;
   }
 
-  // iOS Safari WebKit Fallback (Taptic Engine Tick)
+  // 4. iOS Safari WebKit Fallback (Taptic Engine Tick via input switch)
   if (typeof document !== 'undefined' && document.body) {
     try {
       let tickInput = document.getElementById('haptic-tick-input') as HTMLInputElement | null;

@@ -76,5 +76,39 @@ describe("Звуковая система и тактильный отклик (
       triggerHaptic("heavy");
       expect(vibrateMock).not.toHaveBeenCalled();
     });
+
+    it("Безопасно отрабатывает на iOS Safari при отсутствии navigator.vibrate (DEBT-05)", () => {
+      Object.defineProperty(navigator, "vibrate", {
+        value: undefined,
+        writable: true,
+        configurable: true,
+      });
+
+      setHapticsEnabled(true);
+      expect(() => {
+        triggerHaptic("light");
+        triggerHaptic("medium");
+        triggerHaptic("heavy");
+      }).not.toThrow();
+
+      const tickInput = document.getElementById("haptic-tick-input");
+      expect(tickInput).not.toBeNull();
+      expect(tickInput?.getAttribute("role")).toBe("switch");
+    });
+
+    it("Перехватывает исключения NotAllowedError/SecurityError из navigator.vibrate без падения приложения", () => {
+      const failingVibrate = vi.fn().mockImplementation(() => {
+        throw new Error("NotAllowedError: vibration not allowed without user gesture");
+      });
+      Object.defineProperty(navigator, "vibrate", {
+        value: failingVibrate,
+        writable: true,
+        configurable: true,
+      });
+
+      setHapticsEnabled(true);
+      expect(() => triggerHaptic("error")).not.toThrow();
+      expect(failingVibrate).toHaveBeenCalledWith([40, 30, 60]);
+    });
   });
 });

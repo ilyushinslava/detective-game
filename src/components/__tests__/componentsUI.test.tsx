@@ -4,6 +4,7 @@ import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { RoleRevealModal } from "../RoleRevealModal";
 import { RoleCards } from "../RoleCards";
 import { GameOverModal } from "../GameOverModal";
+import { Modal } from "../ui/Modal";
 
 describe("UI Компоненты и Тексты", () => {
   it("RoleRevealModal: В SECRET_SERVICE в дуэли фигурирует 3 трофея, в AI 4", () => {
@@ -108,6 +109,36 @@ describe("UI Компоненты и Тексты", () => {
 
     expect(screen.getByText("Фантом")).toBeDefined();
     expect(screen.getByText("Призрак")).toBeDefined();
+    cleanup();
+  });
+
+  it("Modal (DEBT-04): Блокирует всплытие тач- и pointer-событий к фоновому слою и изолирует скролл", () => {
+    const parentTouchStart = vi.fn();
+    const parentPointerDown = vi.fn();
+
+    render(
+      <div onTouchStart={parentTouchStart} onPointerDown={parentPointerDown} data-testid="parent-container">
+        <Modal isOpen={true} title="Тестовое окно">
+          <div data-testid="modal-content">Содержимое модального окна</div>
+        </Modal>
+      </div>
+    );
+
+    const content = screen.getByTestId("modal-content");
+    fireEvent.touchStart(content);
+    fireEvent.pointerDown(content);
+
+    // Parent container must not receive touchStart or pointerDown due to stopPropagation in Modal
+    expect(parentTouchStart).not.toHaveBeenCalled();
+    expect(parentPointerDown).not.toHaveBeenCalled();
+
+    const backdrop = document.querySelector(".modal-backdrop");
+    expect(backdrop).not.toBeNull();
+    expect(backdrop?.classList.contains("touch-none")).toBe(true);
+
+    const dialogCard = backdrop?.querySelector(".touch-pan-y");
+    expect(dialogCard).not.toBeNull();
+
     cleanup();
   });
 });

@@ -62,6 +62,12 @@ img, svg, button {
   overscroll-behavior: contain !important;
 }
 
+.modal-content-scrollable {
+  touch-action: pan-y !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* DEBT-06: Адаптивное масштабирование интерфейса TV Party для больших экранов */
 .tv-root {
   font-size: 14px;

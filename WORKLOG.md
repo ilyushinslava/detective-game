@@ -5,6 +5,42 @@
 
 ---
 
+## Запись: TASK-UI-001 — Блокировка сквозных тач-событий, QR-код лобби ТВ и безопасный виброотклик
+
+- **ID задачи:** TASK-UI-001
+- **Хэш коммита:** 3ee261bf8f539e7ca9bef8c8b7a50cebb610e8df
+- **Дата:** 2026-11-08
+- **Что сделано:**
+  1. **Изоляция тач- и pointer-событий модальных окон (DEBT-04):**
+     - В `src/components/ui/Modal.tsx` на оверлее и модальной карточке реализован перехват и остановка всплытия событий: `onTouchStart`, `onTouchMove`, `onTouchEnd`, `onPointerDown`, `onPointerMove`, `onPointerUp`.
+     - Карточке диалога заданы `touch-pan-y` и `overscroll-contain` (а в `src/index.css` добавлен вспомогательный класс `.modal-content-scrollable`), гарантирующие плавный вертикальный скролл длинного текста внутри модалки без сквозных жестов на `GameBoard`.
+     - Добавлен юнит-тест в `src/components/__tests__/componentsUI.test.tsx`, подтверждающий изоляцию событий от родительских слоев.
+  2. **Локальная LAN-маршрутизация QR-кода в TV Party (DEBT-02):**
+     - В `src/components/tv/TvLobbyView.tsx` расширен механизм работы с локальным сетевым адресом хоста (`localStorage`, query-параметр `lanHost`, автодополнение порта текущего сервера при вводе IP).
+     - При запуске ТВ на `localhost` добавлен визуальный блок предупреждения и быстрого указания IP для подключения смартфонов по домашней сети Wi-Fi.
+  3. **Безопасная инициализация тактильного отклика и фолбеки для iOS (DEBT-05):**
+     - В `src/utils/haptics.ts` внедрена обёртка `safeVibrate` со строгой проверкой `typeof navigator.vibrate === 'function'` и перехватом исключений безопасности WebKit (`NotAllowedError`).
+     - Обеспечен устойчивый DOM-фолбек на основе скрытого switch-элемента для Taptic Engine в Safari iOS и поддержка `webkit.messageHandlers`.
+     - В `src/utils/__tests__/audioAndHaptics.test.ts` добавлены тесты на отсутствие сбоев при `navigator.vibrate === undefined` и при перехвате ошибок.
+  4. **Реестр технического долга (`docs/TECHNICAL_DEBT.md`):**
+     - Статусы `DEBT-02`, `DEBT-04` и `DEBT-05` обновлены на `RESOLVED`.
+- **Изменённые файлы:**
+  - `src/components/ui/Modal.tsx`
+  - `src/index.css`
+  - `src/components/tv/TvLobbyView.tsx`
+  - `src/utils/haptics.ts`
+  - `src/components/__tests__/componentsUI.test.tsx`
+  - `src/utils/__tests__/audioAndHaptics.test.ts`
+  - `docs/TECHNICAL_DEBT.md`
+  - `WORKLOG.md`
+- **Проверки и результаты:**
+  - `npm test`: 42 тест-файла, 260/260 тестов passed (100%).
+  - `npm run build`: Сборка Vite и генерация PWA Service Worker завершены успешно без ошибок (exit code 0).
+- **Способ отката:**
+  - `git reset --hard HEAD~1`
+
+---
+
 ## Запись: TASK-SEC-001 — Устранение уязвимости несанкционированного перезапуска матча гостем (DEBT-03)
 
 - **ID задачи:** TASK-SEC-001

@@ -27,6 +27,12 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
 
   const [lanHost, setLanHost] = useState<string>(() => {
     if (typeof window !== 'undefined') {
+      const urlParam = new URLSearchParams(window.location.search).get('lanHost');
+      if (urlParam) {
+        const clean = urlParam.trim();
+        localStorage.setItem('dev_tv_lan_host', clean);
+        return clean;
+      }
       return (
         localStorage.getItem('dev_tv_lan_host') ||
         (import.meta.env.VITE_DEV_LAN_HOST as string) ||
@@ -40,7 +46,10 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   const [lanInput, setLanInput] = useState(lanHost);
 
   const handleSaveLan = () => {
-    const trimmed = lanInput.trim();
+    let trimmed = lanInput.trim();
+    if (trimmed && !trimmed.includes(':') && typeof window !== 'undefined' && window.location.port) {
+      trimmed = `${trimmed}:${window.location.port}`;
+    }
     setLanHost(trimmed);
     if (typeof window !== 'undefined') {
       if (trimmed) {
@@ -208,22 +217,29 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
             {joinUrl}
           </div>
           {isLocalDev && (
-            <div className="mt-3 p-2 rounded-xl bg-zinc-900/90 border border-white/10 text-left text-[11px] font-mono text-zinc-400 max-w-xs w-full">
+            <div className={`mt-3 p-2.5 rounded-xl border text-left text-[11px] font-mono max-w-xs w-full transition-colors ${
+              !lanHost ? 'bg-amber-950/40 border-amber-500/40 text-amber-200' : 'bg-zinc-900/90 border-white/10 text-zinc-400'
+            }`}>
               {isEditingLan ? (
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[9px] uppercase tracking-wider text-zinc-500 font-bold">Локальный IP (для Wi-Fi телефонов):</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] uppercase tracking-wider text-amber-300 font-bold">
+                      IP ПК в сети Wi-Fi (для телефонов):
+                    </span>
+                  </div>
                   <div className="flex gap-1">
                     <input
                       type="text"
                       value={lanInput}
                       onChange={(e) => setLanInput(e.target.value)}
-                      placeholder="192.168.1.50:5173"
-                      className="px-2 py-1 bg-zinc-950 border border-white/15 rounded text-xs text-white flex-1 font-mono focus:outline-none focus:border-red-500"
+                      placeholder={typeof window !== 'undefined' ? `192.168.1.X:${window.location.port || '5173'}` : '192.168.1.50:5173'}
+                      className="px-2 py-1 bg-zinc-950 border border-white/20 rounded text-xs text-white flex-1 font-mono focus:outline-none focus:border-red-500"
+                      autoFocus
                     />
                     <button
                       type="button"
                       onClick={handleSaveLan}
-                      className="px-2 py-1 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-bold cursor-pointer"
+                      className="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-bold cursor-pointer"
                     >
                       OK
                     </button>
@@ -235,22 +251,30 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                       ✕
                     </button>
                   </div>
+                  <span className="text-[9px] text-zinc-500">Порт подставится автоматически</span>
                 </div>
               ) : (
-                <div className="flex items-center justify-between">
-                  <span className="truncate">
-                    LAN IP: <span className="text-zinc-200 font-bold">{lanHost || 'localhost'}</span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLanInput(lanHost || (typeof window !== 'undefined' ? `${window.location.hostname}:${window.location.port}` : ''));
-                      setIsEditingLan(true);
-                    }}
-                    className="text-[10px] text-red-400 hover:text-red-300 underline ml-2 shrink-0 cursor-pointer"
-                  >
-                    {lanHost ? 'Сменить IP' : 'Задать Wi-Fi IP'}
-                  </button>
+                <div className="flex flex-col gap-1">
+                  {!lanHost && (
+                    <div className="text-[10px] text-amber-400 font-sans leading-tight">
+                      ⚠️ QR-код указывает на localhost. Смартфоны не подключатся без LAN IP.
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="truncate">
+                      LAN IP: <span className={lanHost ? 'text-emerald-400 font-bold' : 'text-zinc-200 font-bold'}>{lanHost || 'localhost'}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLanInput(lanHost || (typeof window !== 'undefined' ? `${window.location.hostname}:${window.location.port}` : ''));
+                        setIsEditingLan(true);
+                      }}
+                      className="text-[10px] text-red-400 hover:text-red-300 underline ml-2 shrink-0 cursor-pointer font-bold"
+                    >
+                      {lanHost ? 'Сменить IP' : 'Указать Wi-Fi IP'}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

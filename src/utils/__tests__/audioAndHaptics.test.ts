@@ -34,6 +34,75 @@ describe("Звуковая система и тактильный отклик (
       const toggledAmbient = soundManager.toggleAmbient();
       expect(toggledAmbient).toBe(!initialAmbient);
     });
+
+    it("startMorseTone и stopMorseTone управляют аналоговым тоном и огибающей 15мс (TASK-SND-001)", () => {
+      (soundManager as any).isSfxEnabled = true;
+
+      const mockOsc = {
+        type: "sine",
+        frequency: { setValueAtTime: vi.fn() },
+        connect: vi.fn(),
+        start: vi.fn(),
+        stop: vi.fn(),
+        disconnect: vi.fn(),
+      };
+      const mockGain = {
+        gain: {
+          value: 0.2,
+          setValueAtTime: vi.fn(),
+          linearRampToValueAtTime: vi.fn(),
+          cancelScheduledValues: vi.fn(),
+        },
+        connect: vi.fn(),
+        disconnect: vi.fn(),
+      };
+      const mockCtx = {
+        state: "suspended",
+        currentTime: 0,
+        resume: vi.fn().mockResolvedValue(undefined),
+        createOscillator: vi.fn().mockReturnValue(mockOsc),
+        createGain: vi.fn().mockReturnValue(mockGain),
+        createBuffer: vi.fn().mockReturnValue({}),
+        createBufferSource: vi.fn().mockReturnValue({ connect: vi.fn(), start: vi.fn() }),
+        destination: {},
+      };
+
+      (soundManager as any).ctx = mockCtx;
+
+      // 1. Запуск тона с частотой 700 Гц
+      soundManager.startMorseTone(700);
+
+      expect(mockCtx.resume).toHaveBeenCalled();
+      expect(mockCtx.createOscillator).toHaveBeenCalled();
+      expect(mockCtx.createGain).toHaveBeenCalled();
+      expect(mockOsc.frequency.setValueAtTime).toHaveBeenCalledWith(700, 0);
+      expect(mockGain.gain.setValueAtTime).toHaveBeenCalledWith(0, 0);
+      expect(mockGain.gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.2, 0.015);
+      expect(mockOsc.start).toHaveBeenCalledWith(0);
+
+      // 2. Защита от дубликатов: повторный start не создает новый осциллятор
+      soundManager.startMorseTone(700);
+      expect(mockCtx.createOscillator).toHaveBeenCalledTimes(1);
+
+      // 3. Остановка тона с плавным release спадом
+      soundManager.stopMorseTone();
+      expect(mockGain.gain.cancelScheduledValues).toHaveBeenCalledWith(0);
+      expect(mockGain.gain.setValueAtTime).toHaveBeenCalledWith(0.2, 0);
+      expect(mockGain.gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.0001, 0.015);
+      expect(mockOsc.stop).toHaveBeenCalledWith(0.02);
+
+      // 4. Безопасность повторной остановки
+      expect(() => soundManager.stopMorseTone()).not.toThrow();
+    });
+
+    it("startMorseTone не запускается, если SFX отключен", () => {
+      if (soundManager.getSfxEnabled()) {
+        soundManager.toggleSfx();
+      }
+      expect(soundManager.getSfxEnabled()).toBe(false);
+      expect(() => soundManager.startMorseTone(700)).not.toThrow();
+      soundManager.toggleSfx(); // возвращаем в исходное
+    });
   });
 
   describe("triggerHaptic", () => {

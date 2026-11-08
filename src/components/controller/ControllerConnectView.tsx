@@ -54,27 +54,33 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
     setErrorMessage(null);
   }, [pin, morseBuffer, tab]);
 
+  // Гарантированная остановка тона Морзе при размонтировании экрана
+  useEffect(() => {
+    return () => {
+      soundManager.stopMorseTone();
+    };
+  }, []);
+
   // Детектор коротких (<250мс) и длинных (>=250мс) нажатий
   const handlePointerDown = () => {
     pressStartRef.current = performance.now();
     setIsKeyDown(true);
-    soundManager.play('click');
+    soundManager.startMorseTone(700);
     triggerHaptic('light');
   };
 
   const handlePointerUp = () => {
     if (!isKeyDown) return;
     setIsKeyDown(false);
+    soundManager.stopMorseTone();
     const duration = performance.now() - pressStartRef.current;
     // Порог: <250мс — точка (.), >=250мс — тире (-)
     const isDash = duration >= 250;
     const symbol = isDash ? '-' : '.';
 
     if (isDash) {
-      soundManager.play('impact');
       triggerHaptic('medium');
     } else {
-      soundManager.play('click');
       triggerHaptic('light');
     }
 
@@ -327,7 +333,11 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
               onPointerDown={handlePointerDown}
               onPointerUp={handlePointerUp}
               onPointerLeave={() => {
-                if (isKeyDown) handlePointerUp();
+                if (isKeyDown) {
+                  handlePointerUp();
+                } else {
+                  soundManager.stopMorseTone();
+                }
               }}
               className={`w-40 h-40 rounded-full border-4 flex flex-col items-center justify-center transition-all select-none touch-none cursor-pointer active:scale-95 shadow-2xl relative ${
                 isKeyDown

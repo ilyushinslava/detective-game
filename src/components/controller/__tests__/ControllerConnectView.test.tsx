@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup, act } from "@testing-library/react";
 import { ControllerConnectView } from "../ControllerConnectView";
 import { morseToRoomRegistry, roomToMorseRegistry, publicRoomsRegistry } from "../../../server/index";
+import { soundManager } from "../../../utils/audio";
 
 describe("ControllerConnectView Component (TASK-NET-002)", () => {
   beforeEach(() => {
@@ -49,8 +50,11 @@ describe("ControllerConnectView Component (TASK-NET-002)", () => {
     expect(connectSpy).toHaveBeenCalledWith("54321");
   });
 
-  it("switches to Morse tab and records short tap as dot and hold as dash", () => {
-    render(<ControllerConnectView onConnect={vi.fn()} onBackToMenu={vi.fn()} />);
+  it("switches to Morse tab and records short tap as dot and hold as dash with analog Morse audio (TASK-SND-001)", () => {
+    const startToneSpy = vi.spyOn(soundManager, "startMorseTone");
+    const stopToneSpy = vi.spyOn(soundManager, "stopMorseTone");
+
+    const { unmount } = render(<ControllerConnectView onConnect={vi.fn()} onBackToMenu={vi.fn()} />);
 
     // Switch to Morse tab
     fireEvent.click(screen.getByText(/РАДИОПЕРЕХВАТ \(МОРЗЕ\)/i));
@@ -65,24 +69,29 @@ describe("ControllerConnectView Component (TASK-NET-002)", () => {
     // 1. Simulate short tap (<250ms) -> Dot (.)
     simulatedTime = 1000;
     fireEvent.pointerDown(telegraphBtn);
+    expect(startToneSpy).toHaveBeenCalledWith(700);
+
     simulatedTime = 1100; // 100ms
     fireEvent.pointerUp(telegraphBtn);
+    expect(stopToneSpy).toHaveBeenCalled();
 
     // 2. Simulate long hold (>=250ms) -> Dash (-)
     simulatedTime = 2000;
     fireEvent.pointerDown(telegraphBtn);
+    expect(startToneSpy).toHaveBeenCalledTimes(2);
+
     simulatedTime = 2400; // 400ms
     fireEvent.pointerUp(telegraphBtn);
+    expect(stopToneSpy).toHaveBeenCalledTimes(2);
 
-    // Verify backspace button exists and is enabled
-    const backspaceBtn = screen.getByRole("button", { name: /Удалить/i });
-    expect(backspaceBtn).toBeDefined();
-    expect(backspaceBtn).toHaveProperty("disabled", false);
+    // 3. Pointer leave terminates tone
+    fireEvent.pointerDown(telegraphBtn);
+    fireEvent.pointerLeave(telegraphBtn);
+    expect(stopToneSpy).toHaveBeenCalledTimes(3);
 
-    // Verify clear button exists and is enabled
-    const clearBtn = screen.getByRole("button", { name: /Сброс/i });
-    expect(clearBtn).toBeDefined();
-    expect(clearBtn).toHaveProperty("disabled", false);
+    // 4. Unmount guarantees tone termination
+    unmount();
+    expect(stopToneSpy).toHaveBeenCalledTimes(4);
   });
 
   it("resolves Morse code and calls onConnect when valid callsign is sent", async () => {

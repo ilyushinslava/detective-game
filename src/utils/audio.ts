@@ -51,6 +51,8 @@ class SoundController {
   private ctx: AudioContext | null = null;
   private bufferCache: Map<string, AudioBuffer> = new Map();
   private isDecodingMap: Map<string, Promise<AudioBuffer | null>> = new Map();
+  private morseOsc: OscillatorNode | null = null;
+  private morseGain: GainNode | null = null;
 
   // HTMLAudio fallback pool
   private audioPool: Map<string, HTMLAudioElement[]> = new Map();
@@ -253,6 +255,84 @@ class SoundController {
   public stopAmbient(): void {
     if (this.ambientAudio) {
       this.ambientAudio.pause();
+    }
+  }
+
+  /**
+   * Запуск аналогового тона телеграфного ключа через Web Audio API (TASK-SND-001)
+   * @param frequency Частота тона в Гц (по умолчанию 700 Гц — стандартный CW радиосигнал)
+   */
+  public startMorseTone(frequency: number = 700): void {
+    if (!this.isSfxEnabled) return;
+
+    this.unlockAudioContext();
+    if (!this.ctx) return;
+
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+
+    if (this.morseOsc) {
+      return; // Уже играет
+    }
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(frequency, now);
+
+      const gain = this.ctx.createGain();
+      // Атака (Envelope attack): плавное нарастание от 0 за 15 мс для исключения щелчков
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.2, now + 0.015);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+
+      this.morseOsc = osc;
+      this.morseGain = gain;
+    } catch (err) {
+      console.warn('[Audio] Ошибка воспроизведения тона Морзе:', err);
+    }
+  }
+
+  /**
+   * Остановка тона телеграфного ключа с мягким спадом огибающей (Release envelope: 15 мс)
+   */
+  public stopMorseTone(): void {
+    if (!this.ctx || !this.morseGain || !this.morseOsc) {
+      this.morseOsc = null;
+      this.morseGain = null;
+      return;
+    }
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.morseOsc;
+      const gain = this.morseGain;
+
+      this.morseOsc = null;
+      this.morseGain = null;
+
+      const currentGain = typeof gain.gain.value === 'number' ? gain.gain.value : 0.2;
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(currentGain, now);
+      gain.gain.linearRampToValueAtTime(0.0001, now + 0.015);
+
+      osc.stop(now + 0.02);
+      setTimeout(() => {
+        try {
+          osc.disconnect();
+          gain.disconnect();
+        } catch (_) {}
+      }, 50);
+    } catch (err) {
+      console.warn('[Audio] Ошибка остановки тона Морзе:', err);
+      this.morseOsc = null;
+      this.morseGain = null;
     }
   }
 

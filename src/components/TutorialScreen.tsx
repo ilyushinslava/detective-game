@@ -17,12 +17,27 @@ interface TutorialScreenProps {
   onFinish: () => void;
 }
 
-type TutorialModule = "MENU" | "BASICS" | "MANIAC" | "THIEF" | "SECRET_SERVICE" | "LINE_UP";
+export type TutorialModule =
+  | "MENU"
+  | "BASICS"
+  | "MANIAC_KILLER"
+  | "MANIAC_DETECTIVE"
+  | "THIEF_ROBBER"
+  | "THIEF_POLICE"
+  | "SECRET_SERVICE"
+  | "LINE_UP";
 
-const L4_KILLER_ID = ALL_CHARACTERS[6].id;
-const L4_PLAYER_ID = ALL_CHARACTERS[24].id;
+const ALL_MODULES_LIST: TutorialModule[] = [
+  "BASICS",
+  "MANIAC_KILLER",
+  "MANIAC_DETECTIVE",
+  "THIEF_ROBBER",
+  "THIEF_POLICE",
+  "SECRET_SERVICE",
+  "LINE_UP",
+];
 
-const getInitialBoard = (module: TutorialModule, lesson: number = 1) => {
+const getInitialBoard = (module: TutorialModule) => {
   const chars = ALL_CHARACTERS.slice(0, 25).map((c) => ({
     ...c,
     isAlive: true,
@@ -31,55 +46,25 @@ const getInitialBoard = (module: TutorialModule, lesson: number = 1) => {
   }));
 
   if (module === "LINE_UP") {
-    const c1Index = chars.findIndex(c => c.id === 'c1');
+    const c1Index = chars.findIndex((c) => c.id === "c1");
     if (c1Index !== -1 && c1Index !== 12) {
       const temp = chars[12];
       chars[12] = chars[c1Index];
       chars[c1Index] = temp;
     }
-    const newBoard: Character[][] = [];
-    for (let i = 0; i < 5; i++) {
-      newBoard.push(chars.slice(i * 5, i * 5 + 5));
-    }
-    return newBoard;
-  }
-
-  if (module === "BASICS") {
-    if (lesson === 4) {
-      const temp = chars[14];
-      chars[14] = chars[24];
-      chars[24] = temp;
-    }
-
-    const newBoard: Character[][] = [];
-    for (let i = 0; i < 5; i++) {
-      newBoard.push(chars.slice(i * 5, i * 5 + 5));
-    }
-
-    if (lesson === 3) {
-      newBoard[1][2].isExonerated = true;
-      newBoard[2][1].isExonerated = true;
-    } else if (lesson === 4) {
-      newBoard[1][2].isAlive = false;
-      newBoard[2][0].isAlive = false;
-      newBoard[3][0].isAlive = false;
-      newBoard[3][1].isAlive = false;
-    }
-    return newBoard;
-  }
-
-  if (module === "MANIAC") {
-    const elenaIndex = chars.findIndex(c => c.id === 'c3');
+  } else if (module === "MANIAC_KILLER") {
+    const elenaIndex = chars.findIndex((c) => c.id === "c3");
     if (elenaIndex !== -1 && elenaIndex !== 2) {
       const temp = chars[2];
       chars[2] = chars[elenaIndex];
       chars[elenaIndex] = temp;
     }
-    const newBoard: Character[][] = [];
-    for (let i = 0; i < 5; i++) {
-      newBoard.push(chars.slice(i * 5, i * 5 + 5));
-    }
-    return newBoard;
+  } else if (module === "MANIAC_DETECTIVE") {
+    chars[7].isExonerated = true; // [1][2]
+    chars[11].isExonerated = true; // [2][1]
+    chars[18].isAlive = false; // [3][3] victim
+  } else if (module === "THIEF_POLICE") {
+    chars[7].isRobbed = true; // [1][2]
   }
 
   const newBoard: Character[][] = [];
@@ -91,12 +76,10 @@ const getInitialBoard = (module: TutorialModule, lesson: number = 1) => {
 
 export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   const [currentModule, setCurrentModule] = useState<TutorialModule>("MENU");
-  const [lesson, setLesson] = useState<number>(1);
   const [step, setStep] = useState<number>(1);
-  const [board, setBoard] = useState<Character[][]>(() => getInitialBoard("BASICS", 1));
+  const [board, setBoard] = useState<Character[][]>(() => getInitialBoard("BASICS"));
   const [lastShift, setLastShift] = useState<LastShift | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [killedTargetId, setKilledTargetId] = useState<string | null>(null);
 
   const [thiefSecretId, setThiefSecretId] = useState<string | null>(null);
   const [maniacSecretId, setManiacSecretId] = useState<string | null>(null);
@@ -107,12 +90,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   const [scanResult, setScanResult] = useState<"NEAR" | "FAR" | null>(null);
   const [fullscreenImage, setFullscreenImage] = useState<{ url: string; name: string; id: string } | null>(null);
 
-  const isRewardClaimed = typeof window !== 'undefined' && localStorage.getItem("crime_city_tutorial") === "true";
+  const isRewardClaimed = typeof window !== "undefined" && localStorage.getItem("crime_city_tutorial") === "true";
 
   const [completedModules, setCompletedModules] = useState<string[]>(() => {
     try {
-      if (typeof window !== 'undefined' && localStorage.getItem("crime_city_tutorial") === "true") {
-        return ["BASICS", "MANIAC", "THIEF", "SECRET_SERVICE", "LINE_UP"];
+      if (typeof window !== "undefined" && localStorage.getItem("crime_city_tutorial") === "true") {
+        return ALL_MODULES_LIST;
       }
       const saved = localStorage.getItem("crime_city_completed_modules");
       return saved ? JSON.parse(saved) : [];
@@ -133,43 +116,43 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     });
   };
 
-  const allModulesCompleted = ["BASICS", "MANIAC", "THIEF", "SECRET_SERVICE", "LINE_UP"].every(m =>
-    completedModules.includes(m)
-  );
-
-  const basicsPlayerId = useMemo(() => {
-    return ALL_CHARACTERS[12].id;
-  }, []);
+  const allModulesCompleted = ALL_MODULES_LIST.every((m) => completedModules.includes(m));
 
   const spyEnemyId = board[1]?.[1]?.id;
+  const detectiveSuspectId = board[1]?.[1]?.id;
+  const policeSuspectId = board[0]?.[2]?.id;
 
   const tutorialMyRoleColor = useMemo<"red" | "blue">((): "red" | "blue" => {
-    if (currentModule === "BASICS") {
-      return lesson === 3 || lesson === 4 ? "blue" : "red";
-    }
-    if (currentModule === "MANIAC" || currentModule === "THIEF") {
+    if (currentModule === "MANIAC_KILLER" || currentModule === "THIEF_ROBBER") {
       return "red";
     }
     return "blue";
-  }, [currentModule, lesson]);
+  }, [currentModule]);
 
   const currentMyCharacterId = useMemo(() => {
     if (currentModule === "BASICS") {
-      if (lesson === 3) return board[2]?.[2]?.id || null;
-      if (lesson === 4) return L4_PLAYER_ID;
-      return basicsPlayerId;
+      return board[2]?.[2]?.id || null;
     }
-    if (currentModule === "THIEF") {
+    if (currentModule === "MANIAC_KILLER") {
+      return maniacSecretId || board[2]?.[1]?.id;
+    }
+    if (currentModule === "MANIAC_DETECTIVE") {
+      return board[2]?.[2]?.id;
+    }
+    if (currentModule === "THIEF_ROBBER") {
       return thiefSecretId || board[2]?.[2]?.id;
     }
-    if (currentModule === "MANIAC") {
-      return maniacSecretId || board[2]?.[1]?.id;
+    if (currentModule === "THIEF_POLICE") {
+      return board[2]?.[2]?.id;
     }
     if (currentModule === "SECRET_SERVICE") {
       return board[2]?.[2]?.id;
     }
+    if (currentModule === "LINE_UP") {
+      return null;
+    }
     return null;
-  }, [currentModule, lesson, basicsPlayerId, thiefSecretId, maniacSecretId, board]);
+  }, [currentModule, board, maniacSecretId, thiefSecretId]);
 
   const adjacentIds = useMemo(() => {
     if (!currentMyCharacterId) return [];
@@ -177,43 +160,31 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   }, [board, currentMyCharacterId]);
 
   const targetVictimId = "c3";
-  const targetVictimChar = useMemo(
-    () => board.flat().find((c) => c.id === targetVictimId),
-    [board]
-  );
-  const targetVictimName = targetVictimChar?.name ?? "Елена Соколова";
 
   const { radarTargetId, radarCellIds, radarColorClass } = useMemo(() => {
     const tacticalRadarClass = "border-blue-500 ring-2 ring-blue-500/70";
 
-    if (currentModule === "BASICS") {
-      if (lesson === 2 && step === 3 && killedTargetId) {
-        const neighborIds = getAdjacentCharacters(board, killedTargetId).map((c) => c.id);
+    if (currentModule === "MANIAC_DETECTIVE" && step === 1) {
+      const witnessId = board[1]?.[2]?.id;
+      if (witnessId) {
+        const neighborIds = getAdjacentCharacters(board, witnessId).map((c) => c.id);
         return {
-          radarTargetId: killedTargetId,
-          radarCellIds: [killedTargetId, ...neighborIds],
+          radarTargetId: witnessId,
+          radarCellIds: [witnessId, ...neighborIds],
           radarColorClass: tacticalRadarClass,
         };
       }
-      if (lesson === 3 && (step === 1 || step === 2)) {
-        const witnessId = board[1]?.[2]?.id;
-        if (witnessId) {
-          const neighborIds = getAdjacentCharacters(board, witnessId).map((c) => c.id);
-          return {
-            radarTargetId: witnessId,
-            radarCellIds: [witnessId, ...neighborIds],
-            radarColorClass: tacticalRadarClass,
-          };
-        }
-      }
     }
 
-    if (currentModule === "SECRET_SERVICE" && lesson === 1 && interrogatedTargetId) {
+    if (currentModule === "SECRET_SERVICE" && step >= 2 && interrogatedTargetId) {
       const neighborIds = getAdjacentCharacters(board, interrogatedTargetId).map((c) => c.id);
       return {
         radarTargetId: interrogatedTargetId,
         radarCellIds: [interrogatedTargetId, ...neighborIds],
-        radarColorClass: scanResult === "NEAR" ? "border-red-500 ring-2 ring-red-500/80" : "border-blue-500 ring-2 ring-blue-500/80",
+        radarColorClass:
+          scanResult === "NEAR"
+            ? "border-red-500 ring-2 ring-red-500/80"
+            : "border-blue-500 ring-2 ring-blue-500/80",
       };
     }
 
@@ -222,118 +193,124 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       radarCellIds: [] as string[],
       radarColorClass: null,
     };
-  }, [currentModule, lesson, step, killedTargetId, interrogatedTargetId, scanResult, board]);
+  }, [currentModule, step, interrogatedTargetId, scanResult, board]);
 
   const getHudStatus = () => {
-    if (currentModule === "SECRET_SERVICE") {
-      if (lesson === 1) {
-        if (scanResult === "NEAR") return <span className="text-red-400 font-bold animate-pulse">Показания: ВРАГ РЯДОМ (ДА)</span>;
-        if (scanResult === "FAR") return <span className="text-blue-400 font-bold">Показания: ВНЕ ЗОНЫ (НЕТ) — резидента рядом нет. Опросите другого очевидца</span>;
-        return <span className="text-zinc-300 font-bold">Оперативные показания: выберите очевидца для опроса</span>;
-      }
-      if (lesson === 2) {
-        return <span className="text-blue-400 font-bold">Разоблачение: укажите на вражеского резидента (София Романова)</span>;
-      }
+    switch (currentModule) {
+      case "BASICS":
+        if (step === 1) return <span className="text-cyan-400 font-bold">ОСНОВЫ: СДВИГ 3-ГО РЯДА ВЛЕВО (←)</span>;
+        if (step === 2) return <span className="text-cyan-400 font-bold">РАДИУС 3×3: ВЫБЕРИТЕ СОСЕДНЕГО ЖИТЕЛЯ</span>;
+        if (step === 3) return <span className="text-emerald-400 font-bold">ПРАВИЛО ANTI-UNDO: ОБРАТНЫЙ ХОД ЗАБЛОКИРОВАН</span>;
+        break;
+      case "MANIAC_KILLER":
+        if (step === 1) return <span className="text-red-400 font-bold">ОХОТА: СДВИНЬТЕ 3-Ю КОЛОНКУ ВНИЗ (↓)</span>;
+        if (step === 2) return <span className="text-red-400 font-bold">ЦЕЛЬ ЗАКАЗА: ВЫБЕРИТЕ ЕЛЕНУ СОКОЛОВУ</span>;
+        if (step === 3) return <span className="text-red-400 font-bold">ЛИКВИДАЦИЯ: ПОДТВЕРДИТЕ ВЫСТРЕЛ ПО ЗАКАЗУ</span>;
+        if (step === 4) return <span className="text-amber-400 font-bold">ОБЛАВА: СМЕНИТЕ МАСКУ ДЛЯ ПОБЕГА</span>;
+        if (step === 5) return <span className="text-emerald-400 font-bold">ПОБЕГ УСПЕШЕН: НОВАЯ ЛИЧНОСТЬ ПРИНЯТА</span>;
+        break;
+      case "MANIAC_DETECTIVE":
+        if (step === 1) return <span className="text-blue-400 font-bold">ДЕРАДАРИЗАЦИЯ: ВЫБЕРИТЕ ПОДОЗРЕВАЕМОГО БЕЗ АЛИБИ</span>;
+        if (step === 2) return <span className="text-blue-400 font-bold">ЗАДЕРЖАНИЕ: ПОДТВЕРДИТЕ АРЕСТ УБИЙЦЫ</span>;
+        if (step === 3) return <span className="text-cyan-400 font-bold">ЭВАКУАЦИЯ: ЗАЧИСТИТЕ МОСТОВУЮ ОТ ТЕЛ</span>;
+        if (step === 4) return <span className="text-emerald-400 font-bold">СЕКТОР ЗАЧИЩЕН: ДЕТЕКТИВ ВЫПОЛНИЛ ДОЛГ</span>;
+        break;
+      case "THIEF_ROBBER":
+        if (step === 1) return <span className="text-red-400 font-bold">РАЗВЕДКА: ВЫБЕРИТЕ СОСЕДА ДЛЯ КРАЖИ</span>;
+        if (step === 2) return <span className="text-red-400 font-bold">ОГРАБЛЕНИЕ: ПОХИТЬТЕ СОКРОВИЩЕ БЕЗ ШУМА</span>;
+        if (step === 3) return <span className="text-amber-400 font-bold">МАСКИРОВКА: СМЕНИТЕ ЛИЧНОСТЬ ИЗ РУКИ</span>;
+        if (step === 4) return <span className="text-emerald-400 font-bold">ОПЕРАЦИЯ ЗАВЕРШЕНА: ПРИКРЫТИЕ СМЕНЕНО</span>;
+        break;
+      case "THIEF_POLICE":
+        if (step === 1) return <span className="text-blue-400 font-bold">МЕСТО ПРЕСТУПЛЕНИЯ: ВЫБЕРИТЕ СОСЕДА ОГРАБЛЕННОГО</span>;
+        if (step === 2) return <span className="text-blue-400 font-bold">КОРДОН: ВЫЗОВИТЕ ПАТРУЛЬНУЮ ГРУППУ</span>;
+        if (step === 3) return <span className="text-emerald-400 font-bold">ЗАДЕРЖАНИЕ: АРЕСТУЙТЕ ГРАБИТЕЛЯ</span>;
+        break;
+      case "SECRET_SERVICE":
+        if (step === 1) return <span className="text-blue-400 font-bold">РАДИОСВЯЗЬ: ВЫБЕРИТЕ ОЧЕВИДЦА В СЕКТОРЕ</span>;
+        if (step === 2) return <span className="text-cyan-400 font-bold">СКАНИРОВАНИЕ: ПРОВЕДИТЕ ОПРОС РАДАРОМ</span>;
+        if (step === 3) return <span className="text-red-400 font-bold">КОНТАКТ: ВЫБЕРИТЕ ВРАЖЕСКОГО РЕЗИДЕНТА</span>;
+        if (step === 4) return <span className="text-emerald-400 font-bold">ТРОФЕЙ: РАЗОБЛАЧИТЕ ШПИОНА (1/3)</span>;
+        break;
+      case "LINE_UP":
+        if (step === 1) return <span className="text-cyan-400 font-bold">ОПРОС: ЗАДАЙТЕ ВОПРОС О ПРИМЕТАХ</span>;
+        if (step === 2) return <span className="text-emerald-400 font-bold">ОТВЕТ: «ДА, ЕСТЬ ГОЛОВНОЙ УБОР»</span>;
+        if (step === 3) return <span className="text-blue-400 font-bold">ИСКЛЮЧЕНИЕ: ВЫБЕРИТЕ ФИГУРАНТА БЕЗ АЛИБИ</span>;
+        if (step === 4) return <span className="text-red-400 font-bold">ВЕРДИКТ: ПОДТВЕРДИТЕ ФИНАЛЬНОЕ ОБВИНЕНИЕ</span>;
+        if (step === 5) return <span className="text-emerald-400 font-bold">ДЕЛО ЗАКРЫТО: ПОДОЗРЕВАЕМЫЙ ИЗОБЛИЧЕН</span>;
+        break;
     }
-    if (currentModule === "BASICS") {
-      if (lesson === 2 && step >= 3) return <span className="text-blue-400 font-bold">Показания очевидцев: ИНСПЕКТОР ВНЕ ЗОНЫ</span>;
-      if (lesson === 3) return <span className="text-blue-400 font-bold">Зона очевидца: СЕКТОР 3×3 (сужение круга поиска)</span>;
-      if (lesson === 4) return <span className="text-zinc-400 font-bold">Зачистка: устраните скопление тел для маневра</span>;
-    }
-    if (currentModule === "MANIAC") {
-      if (lesson === 1) return <span className="text-red-400 font-bold">Текущая цель заказа: {targetVictimName}</span>;
-      if (lesson === 2) return <span className="text-red-400 font-bold">Уход от погони: смените личность</span>;
-    }
-    if (currentModule === "LINE_UP") {
-      if (step === 1) return <span className="text-cyan-400 font-bold">Опрос: задайте вопрос о приметах подозреваемого</span>;
-      if (step === 2) return <span className="text-emerald-400 font-bold">Ответ свидетеля: «ДА, ЕСТЬ ГОЛОВНОЙ УБОР»</span>;
-      if (step === 3) return <span className="text-blue-400 font-bold">Исключение: выберите фигуранта без алиби (Руслан Громов)</span>;
-      if (step === 4) return <span className="text-red-400 font-bold">Финальный вердикт: подтвердите обвинение фигуранта</span>;
-      if (step === 5) return <span className="text-emerald-400 font-bold animate-pulse">Очная ставка выиграна: фигурант изобличен!</span>;
-    }
-    if (currentModule === "THIEF") {
-      if (step === 4) return <span className="text-blue-400 font-bold">Маскировка успешна: принято новое прикрытие</span>;
-      return <span className="text-red-400 font-bold">Операция Вора: Похищение сокровищ без ликвидаций</span>;
-    }
-    return <span className="text-zinc-500 font-bold">Ожидание...</span>;
+    return <span className="text-zinc-500 font-bold">ОЖИДАНИЕ...</span>;
   };
 
   const startModule = (mod: TutorialModule) => {
     setCurrentModule(mod);
-    setLesson(1);
     setStep(1);
-    const initialB = getInitialBoard(mod, 1);
+    const initialB = getInitialBoard(mod);
     setBoard(initialB);
     setLastShift(null);
     setSelectedId(null);
-    setKilledTargetId(null);
     setInterrogatedTargetId(null);
     setScanResult(null);
     setIsDisguiseModalOpen(false);
     setNewDisguiseChar(null);
-    if (mod === "THIEF") {
+    if (mod === "THIEF_ROBBER") {
       setThiefSecretId(initialB[2][2].id);
     } else {
       setThiefSecretId(null);
     }
-    if (mod === "MANIAC") {
+    if (mod === "MANIAC_KILLER") {
       setManiacSecretId(initialB[2][1].id);
     } else {
       setManiacSecretId(null);
     }
   };
 
+  // Жесткая блокировка нецелевых кликов (Input Guarding)
   const handleSelectCharacter = (id: string) => {
     if (currentModule === "BASICS") {
-      if (lesson === 1 && (step === 1 || step === 2)) {
-        triggerHaptic("light");
-        setSelectedId(id);
-      } else if (lesson === 2 && step === 1 && adjacentIds.includes(id)) {
-        triggerHaptic("light");
-        setSelectedId(id);
-        setStep(2);
-      } else if (lesson === 3 && step === 1) {
-        const char = board.flat().find((c) => c.id === id);
-        if (
-          char?.isAlive &&
-          !char?.isExonerated &&
-          (adjacentIds.includes(id) || radarCellIds.includes(id))
-        ) {
-          setSelectedId(id);
-          setStep(2);
-          triggerHaptic("light");
-        }
-      } else if (lesson === 4 && step === 2 && id === L4_KILLER_ID) {
+      if (step === 2 && adjacentIds.includes(id)) {
         triggerHaptic("light");
         setSelectedId(id);
         setStep(3);
       }
-    } else if (currentModule === "MANIAC") {
-      if (lesson === 1 && step === 2 && id === targetVictimId && adjacentIds.includes(id)) {
+    } else if (currentModule === "MANIAC_KILLER") {
+      if (step === 2 && id === targetVictimId && adjacentIds.includes(id)) {
         triggerHaptic("light");
         setSelectedId(id);
         setStep(3);
-      } 
-    } else if (currentModule === "THIEF") {
-      if (lesson === 1 && step === 1 && adjacentIds.includes(id)) {
+      }
+    } else if (currentModule === "MANIAC_DETECTIVE") {
+      if (step === 1 && id === detectiveSuspectId) {
+        triggerHaptic("light");
+        setSelectedId(id);
+        setStep(2);
+      }
+    } else if (currentModule === "THIEF_ROBBER") {
+      if (step === 1 && adjacentIds.includes(id)) {
+        triggerHaptic("light");
+        setSelectedId(id);
+        setStep(2);
+      }
+    } else if (currentModule === "THIEF_POLICE") {
+      if (step === 1 && id === policeSuspectId) {
         triggerHaptic("light");
         setSelectedId(id);
         setStep(2);
       }
     } else if (currentModule === "SECRET_SERVICE") {
-      if (lesson === 1 && (step === 1 || step === 2) && adjacentIds.includes(id)) {
+      if (step === 1 && adjacentIds.includes(id)) {
         triggerHaptic("light");
         setSelectedId(id);
         setScanResult(null);
         setStep(2);
-      } else if (lesson === 2 && step === 1 && id === spyEnemyId) {
+      } else if (step === 3 && id === spyEnemyId) {
         triggerHaptic("light");
         setSelectedId(id);
-        setScanResult(null);
-        setStep(2);
+        setStep(4);
       }
     } else if (currentModule === "LINE_UP") {
-      if (lesson === 1 && step === 3 && id === "c1") {
+      if (step === 3 && id === "c1") {
         triggerHaptic("light");
         setSelectedId(id);
         setStep(4);
@@ -341,16 +318,15 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     }
   };
 
+  // Жесткая блокировка нецелевых сдвигов (Input Guarding)
   const handleShift = (
     type: "ROW" | "COL",
     index: number,
     direction: "FORWARD" | "BACKWARD"
   ) => {
-    setSelectedId(null);
     if (
       currentModule === "BASICS" &&
-      lesson === 1 &&
-      (step === 1 || step === 2) &&
+      step === 1 &&
       type === "ROW" &&
       index === 2 &&
       direction === "BACKWARD"
@@ -360,10 +336,10 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       setLastShift({ type, index, direction });
       soundManager.play("slide");
       triggerHaptic("medium");
-      setStep(3);
+      setStep(2);
+      setSelectedId(null);
     } else if (
-      currentModule === "MANIAC" &&
-      lesson === 1 &&
+      currentModule === "MANIAC_KILLER" &&
       step === 1 &&
       type === "COL" &&
       index === 2 &&
@@ -375,25 +351,14 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       soundManager.play("slide");
       triggerHaptic("medium");
       setStep(2);
+      setSelectedId(null);
     }
   };
 
   const handleKill = () => {
-    if (currentModule === "BASICS" && lesson === 2 && step === 2 && selectedId) {
-      const targetId = selectedId;
+    if (currentModule === "MANIAC_KILLER" && step === 3 && selectedId === targetVictimId) {
       const newBoard = board.map((row) =>
-        row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c))
-      );
-      setBoard(newBoard);
-      setKilledTargetId(targetId);
-      soundManager.play("kill");
-      triggerHaptic("heavy");
-      setStep(3);
-      setSelectedId(null);
-    } else if (currentModule === "MANIAC" && lesson === 1 && step === 3 && selectedId && adjacentIds.includes(selectedId)) {
-      const targetId = selectedId;
-      const newBoard = board.map((row) =>
-        row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c))
+        row.map((c) => (c.id === targetVictimId ? { ...c, isAlive: false } : c))
       );
       setBoard(newBoard);
       soundManager.play("kill");
@@ -404,7 +369,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   };
 
   const handleEscape = () => {
-    if (currentModule === "MANIAC" && lesson === 2 && step === 1) {
+    if (currentModule === "MANIAC_KILLER" && step === 4) {
       triggerHaptic("medium");
       soundManager.play("disguise");
       const targetMaskChar = board[3][3];
@@ -414,11 +379,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   };
 
   const handleArrest = () => {
-    if (
-      currentModule === "BASICS" &&
-      ((lesson === 3 && step === 2 && selectedId) ||
-       (lesson === 4 && step === 3 && selectedId))
-    ) {
+    if (currentModule === "MANIAC_DETECTIVE" && step === 2 && selectedId) {
       const targetId = selectedId;
       const newBoard = board.map((row) =>
         row.map((c) => (c.id === targetId ? ({ ...c, isAlive: false, isArrested: true } as any) : c))
@@ -426,29 +387,29 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       setBoard(newBoard);
       soundManager.play("arrest");
       triggerHaptic("success");
-      setStep(lesson === 3 ? 3 : 4);
+      setStep(3);
       setSelectedId(null);
     }
   };
 
   const handleCleanup = () => {
-    if (currentModule === "BASICS" && lesson === 4 && step === 1) {
+    if (currentModule === "MANIAC_DETECTIVE" && step === 3) {
       triggerHaptic("medium");
       soundManager.play("slide");
-      const living = board.flat().filter(c => c.isAlive);
-      const dead = board.flat().filter(c => !c.isAlive);
+      const living = board.flat().filter((c) => c.isAlive);
+      const dead = board.flat().filter((c) => !c.isAlive);
       const reordered = [...living, ...dead];
       const newBoard: Character[][] = [];
       for (let i = 0; i < 5; i++) {
         newBoard.push(reordered.slice(i * 5, i * 5 + 5));
       }
       setBoard(newBoard);
-      setStep(2);
+      setStep(4);
     }
   };
 
   const handleRob = () => {
-    if (currentModule === "THIEF" && lesson === 1 && step === 2 && selectedId) {
+    if (currentModule === "THIEF_ROBBER" && step === 2 && selectedId) {
       const targetId = selectedId;
       const newBoard = board.map((row) =>
         row.map((c) => (c.id === targetId ? { ...c, isRobbed: true } : c))
@@ -462,7 +423,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   };
 
   const handleFastDisguise = () => {
-    if (currentModule === "THIEF" && lesson === 2 && step === 1) {
+    if (currentModule === "THIEF_ROBBER" && step === 3) {
       soundManager.play("disguise");
       triggerHaptic("medium");
       const targetMaskChar = board[1][1];
@@ -473,59 +434,65 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   const handleConfirmDisguise = () => {
     if (newDisguiseChar) {
-      if (currentModule === "LINE_UP") {
-      if (step === 1) return <span className="text-cyan-400 font-bold">Опрос: задайте вопрос о приметах подозреваемого</span>;
-      if (step === 2) return <span className="text-emerald-400 font-bold">Ответ свидетеля: «ДА, ЕСТЬ ГОЛОВНОЙ УБОР»</span>;
-      if (step === 3) return <span className="text-blue-400 font-bold">Исключение: выберите фигуранта без алиби (Руслан Громов)</span>;
-      if (step === 4) return <span className="text-red-400 font-bold">Финальный вердикт: подтвердите обвинение фигуранта</span>;
-      if (step === 5) return <span className="text-emerald-400 font-bold animate-pulse">Очная ставка выиграна: фигурант изобличен!</span>;
-    }
-    if (currentModule === "THIEF") {
+      if (currentModule === "THIEF_ROBBER") {
         setThiefSecretId(newDisguiseChar.id);
-      } else if (currentModule === "MANIAC") {
+      } else if (currentModule === "MANIAC_KILLER") {
         setManiacSecretId(newDisguiseChar.id);
       }
     }
     setIsDisguiseModalOpen(false);
-    setStep(2);
+    if (currentModule === "MANIAC_KILLER") setStep(5);
+    if (currentModule === "THIEF_ROBBER") setStep(4);
   };
 
-  const handleInterrogate = () => {
-    if (currentModule === "SECRET_SERVICE" && lesson === 1 && step === 2 && selectedId) {
+  const handlePoliceBlock = () => {
+    if (currentModule === "THIEF_POLICE" && step === 2) {
       soundManager.play("radar");
-      triggerHaptic("light");
-      setInterrogatedTargetId(selectedId);
-
-      const spyNeighbors = getAdjacentCharacters(board, spyEnemyId!).map((c) => c.id);
-      const isNearSpy = spyNeighbors.includes(selectedId) || selectedId === spyEnemyId;
-
-      if (isNearSpy) {
-        setScanResult("NEAR");
-        setStep(3);
-        setSelectedId(null);
-      } else {
-        setScanResult("FAR");
-        setSelectedId(null);
-      }
+      triggerHaptic("medium");
+      setStep(3);
     }
   };
 
-  const handleCaptureSpy = () => {
-    if (currentModule === "SECRET_SERVICE" && lesson === 2 && step === 2 && selectedId) {
+  const handlePoliceArrest = () => {
+    if (currentModule === "THIEF_POLICE" && step === 3 && selectedId) {
       const targetId = selectedId;
       const newBoard = board.map((row) =>
-        row.map((c) => (c.id === targetId ? { ...c, isAlive: false, unmaskedSpyIndex: 0 } : c))
+        row.map((c) => (c.id === targetId ? ({ ...c, isAlive: false, isArrested: true } as any) : c))
       );
       setBoard(newBoard);
       soundManager.play("arrest");
       triggerHaptic("success");
+      markModuleCompleted("THIEF_POLICE");
+      setCurrentModule("MENU");
+    }
+  };
+
+  const handleInterrogate = () => {
+    if (currentModule === "SECRET_SERVICE" && step === 2 && selectedId) {
+      soundManager.play("radar");
+      triggerHaptic("light");
+      setInterrogatedTargetId(selectedId);
+      setScanResult("NEAR");
       setStep(3);
       setSelectedId(null);
     }
   };
 
+  const handleCaptureSpy = () => {
+    if (currentModule === "SECRET_SERVICE" && step === 4 && selectedId === spyEnemyId) {
+      const newBoard = board.map((row) =>
+        row.map((c) => (c.id === spyEnemyId ? { ...c, isAlive: false, unmaskedSpyIndex: 0 } : c))
+      );
+      setBoard(newBoard);
+      soundManager.play("arrest");
+      triggerHaptic("success");
+      markModuleCompleted("SECRET_SERVICE");
+      setCurrentModule("MENU");
+    }
+  };
+
   const handleAskQuestionDuel = () => {
-    if (currentModule === "LINE_UP" && lesson === 1 && step === 1) {
+    if (currentModule === "LINE_UP" && step === 1) {
       soundManager.play("radar");
       triggerHaptic("medium");
       setStep(2);
@@ -533,7 +500,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   };
 
   const handleEliminateDuel = () => {
-    if (currentModule === "LINE_UP" && lesson === 1 && step === 2) {
+    if (currentModule === "LINE_UP" && step === 2) {
       soundManager.play("slide");
       triggerHaptic("medium");
       const newBoard = board.map((row) =>
@@ -545,7 +512,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   };
 
   const handleAccuseDuel = () => {
-    if (currentModule === "LINE_UP" && lesson === 1 && step === 4 && selectedId === "c1") {
+    if (currentModule === "LINE_UP" && step === 4 && selectedId === "c1") {
       const newBoard = board.map((row) =>
         row.map((c) => (c.id === "c1" ? ({ ...c, isAlive: false, isArrested: true } as any) : c))
       );
@@ -574,12 +541,13 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
             </div>
             <div className="text-right">
               <span className="text-[10px] font-mono text-zinc-400">
-                Пройдено: <b className="text-blue-400">{completedModules.length}</b>/5
+                Пройдено: <b className="text-blue-400">{completedModules.length}</b>/7
               </span>
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 custom-scrollbar">
+            {/* 1. BASICS */}
             <div
               onClick={() => startModule("BASICS")}
               className={`p-4 rounded-2xl border transition cursor-pointer shadow-lg active:scale-99 ${
@@ -589,48 +557,87 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Основы Син-Сити: Закон и Улицы</h3>
+                <h3 className="text-base font-black text-white uppercase tracking-wider">Основы Син-Сити: Механика кварталов</h3>
                 {completedModules.includes("BASICS") && (
                   <span className="text-[9px] font-mono font-bold text-zinc-200 uppercase bg-zinc-900/80 px-2 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.1)]">✓ Сдано</span>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">Базовые механики: смещение кварталов по краю, радиус слышимости 3×3, отсечение невиновных по алиби и арест.</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Базовые механики: циклический сдвиг рядов, радиус контакта 3×3 и правило Anti-Undo.</p>
             </div>
 
+            {/* 2. MANIAC_KILLER */}
             <div
-              onClick={() => startModule("MANIAC")}
+              onClick={() => startModule("MANIAC_KILLER")}
               className={`p-4 rounded-2xl border transition cursor-pointer shadow-lg active:scale-99 ${
-                completedModules.includes("MANIAC")
+                completedModules.includes("MANIAC_KILLER")
                   ? "bg-zinc-900/40 border-white/10"
                   : "bg-zinc-900/60 border-white/10 hover:border-red-500/50"
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Почерк убийцы (Охота на маньяка)</h3>
-                {completedModules.includes("MANIAC") && (
+                <h3 className="text-base font-black text-white uppercase tracking-wider">Почерк убийцы: Контракт синдиката (Убийца)</h3>
+                {completedModules.includes("MANIAC_KILLER") && (
                   <span className="text-[9px] font-mono font-bold text-zinc-200 uppercase bg-zinc-900/80 px-2 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.1)]">✓ Сдано</span>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">Особенности открытого списка смертников: убийства строго по очереди целей и побег маньяка.</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Тактика охоты: подвод жертвы, ликвидация строго по очереди целей и конспиративный побег.</p>
             </div>
 
+            {/* 3. MANIAC_DETECTIVE */}
             <div
-              onClick={() => startModule("THIEF")}
+              onClick={() => startModule("MANIAC_DETECTIVE")}
               className={`p-4 rounded-2xl border transition cursor-pointer shadow-lg active:scale-99 ${
-                completedModules.includes("THIEF")
+                completedModules.includes("MANIAC_DETECTIVE")
+                  ? "bg-zinc-900/40 border-white/10"
+                  : "bg-zinc-900/60 border-white/10 hover:border-blue-500/50"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-base font-black text-white uppercase tracking-wider">Почерк убийцы: Логика алиби (Детектив)</h3>
+                {completedModules.includes("MANIAC_DETECTIVE") && (
+                  <span className="text-[9px] font-mono font-bold text-zinc-200 uppercase bg-zinc-900/80 px-2 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.1)]">✓ Сдано</span>
+                )}
+              </div>
+              <p className="text-xs text-zinc-400 leading-relaxed">Методика расследования: анализ слышимости выстрела 3×3, отсечение невиновных, задержание и зачистка.</p>
+            </div>
+
+            {/* 4. THIEF_ROBBER */}
+            <div
+              onClick={() => startModule("THIEF_ROBBER")}
+              className={`p-4 rounded-2xl border transition cursor-pointer shadow-lg active:scale-99 ${
+                completedModules.includes("THIEF_ROBBER")
                   ? "bg-zinc-900/40 border-white/10"
                   : "bg-zinc-900/60 border-white/10 hover:border-red-500/50"
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Оцепление (Охота на грабителя)</h3>
-                {completedModules.includes("THIEF") && (
+                <h3 className="text-base font-black text-white uppercase tracking-wider">Оцепление: Карманная кража (Вор)</h3>
+                {completedModules.includes("THIEF_ROBBER") && (
                   <span className="text-[9px] font-mono font-bold text-zinc-200 uppercase bg-zinc-900/80 px-2 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.1)]">✓ Сдано</span>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">Кража сокровищ без ликвидаций, смена масок из руки и уход от облавы.</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Бесшумные кражи сокровищ без ликвидаций и оперативная смена маски из руки.</p>
             </div>
 
+            {/* 5. THIEF_POLICE */}
+            <div
+              onClick={() => startModule("THIEF_POLICE")}
+              className={`p-4 rounded-2xl border transition cursor-pointer shadow-lg active:scale-99 ${
+                completedModules.includes("THIEF_POLICE")
+                  ? "bg-zinc-900/40 border-white/10"
+                  : "bg-zinc-900/60 border-white/10 hover:border-blue-500/50"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-base font-black text-white uppercase tracking-wider">Оцепление: Патрульный кордон (Полиция)</h3>
+                {completedModules.includes("THIEF_POLICE") && (
+                  <span className="text-[9px] font-mono font-bold text-zinc-200 uppercase bg-zinc-900/80 px-2 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.1)]">✓ Сдано</span>
+                )}
+              </div>
+              <p className="text-xs text-zinc-400 leading-relaxed">Патрулирование: локализация ограбленного жителя, блокировка сектора и арест с поличным.</p>
+            </div>
+
+            {/* 6. SECRET_SERVICE */}
             <div
               onClick={() => startModule("SECRET_SERVICE")}
               className={`p-4 rounded-2xl border transition cursor-pointer shadow-lg active:scale-99 ${
@@ -640,14 +647,15 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Директива Ноль (Секретная служба)</h3>
+                <h3 className="text-base font-black text-white uppercase tracking-wider">Директива Ноль: Радиоперехват (Агент)</h3>
                 {completedModules.includes("SECRET_SERVICE") && (
                   <span className="text-[9px] font-mono font-bold text-zinc-200 uppercase bg-zinc-900/80 px-2 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.1)]">✓ Сдано</span>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">Шпионские дуэли: перекрестный опрос очевидцев в секторе 3x3 и разоблачение вражеского резидента.</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Контрразведка: радиоопрос очевидцев радаром, разоблачение резидента и сбор компромата.</p>
             </div>
 
+            {/* 7. LINE_UP */}
             <div
               onClick={() => startModule("LINE_UP")}
               className={`p-4 rounded-2xl border transition cursor-pointer shadow-lg active:scale-99 ${
@@ -657,7 +665,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Очная ставка (Дуэль дедукции)</h3>
+                <h3 className="text-base font-black text-white uppercase tracking-wider">Очная ставка: Дуэль дедукции (Детектив)</h3>
                 {completedModules.includes("LINE_UP") && (
                   <span className="text-[9px] font-mono font-bold text-zinc-200 uppercase bg-zinc-900/80 px-2 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.1)]">✓ Сдано</span>
                 )}
@@ -689,6 +697,19 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     );
   }
 
+  const getModuleTitle = () => {
+    switch (currentModule) {
+      case "BASICS": return "ОСНОВЫ СИН-СИТИ";
+      case "MANIAC_KILLER": return "ПОЧЕРК УБИЙЦЫ: УБИЙЦА";
+      case "MANIAC_DETECTIVE": return "ПОЧЕРК УБИЙЦЫ: ДЕТЕКТИВ";
+      case "THIEF_ROBBER": return "ОЦЕПЛЕНИЕ: ВОР";
+      case "THIEF_POLICE": return "ОЦЕПЛЕНИЕ: ПОЛИЦИЯ";
+      case "SECRET_SERVICE": return "ДИРЕКТИВА НОЛЬ";
+      case "LINE_UP": return "ОЧНАЯ СТАВКА";
+      default: return "АКАДЕМИЯ";
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[100] bg-[#080a0f] flex justify-center overflow-hidden font-sans select-none text-zinc-100 h-full w-full">
       <style>{`
@@ -708,248 +729,345 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
             ← К делам
           </button>
           <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase text-center flex-1">
-            {currentModule === "BASICS" ? "ОСНОВЫ СИН-СИТИ" : currentModule === "MANIAC" ? "ПОЧЕРК УБИЙЦЫ" : currentModule === "THIEF" ? "ОЦЕПЛЕНИЕ" : currentModule === "SECRET_SERVICE" ? "ДИРЕКТИВА НОЛЬ" : "ОЧНАЯ СТАВКА"}
+            {getModuleTitle()}
           </h2>
           <div className="w-16 shrink-0" />
         </div>
 
         <div className="flex-1 w-full flex flex-col relative min-h-0 overflow-hidden">
-          <div className="min-h-[60px] md:min-h-[50px] max-h-[90px] shrink-0 py-1 px-4 flex flex-col justify-center items-center text-center z-10">
+          {/* Инструктивный блок: ЦЕЛЬ -> ДЕЙСТВИЕ -> РЕЗУЛЬТАТ */}
+          <div className="min-h-[70px] md:min-h-[60px] max-h-[110px] shrink-0 py-1.5 px-4 flex flex-col justify-center items-center text-center z-10">
             <div>
-              {currentModule === "BASICS" && lesson === 1 && (step === 1 || step === 2) && (
+              {/* 1. BASICS */}
+              {currentModule === "BASICS" && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Улицы в движении (Сдвиг квартала)</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Ночной дождь скрывает следы. Цель вне зоны контакта. <b className="text-blue-400">Нажмите стрелку ← у 3-го ряда:</b> карта выйдет за край поля и появится справа, подтянув окружение к вам.</p>
+                  <h3 className="text-sm sm:text-base font-black text-cyan-400 uppercase tracking-wider mb-0.5">Тороидальный сдвиг</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Освоить круговой сдвиг рядов по сетке 5×5.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите стрелку <b className="text-cyan-300">←</b> слева от 3-го ряда.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Ряд сдвинется влево, крайняя карта перейдет на противоположный край.</div>
+                  </div>
                 </div>
               )}
-              {currentModule === "BASICS" && lesson === 1 && step === 3 && (
+              {currentModule === "BASICS" && step === 2 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Отличный маневр!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Отличный маневр. Сдвиг меняет соседей и выводит вас на новую позицию.</p>
+                  <h3 className="text-sm sm:text-base font-black text-cyan-400 uppercase tracking-wider mb-0.5">Сектор контакта 3×3</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Определить зону взаимодействия персонажа.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Выберите любого из 8 соседних жителей вокруг вашего агента.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Карта зафиксируется в прицеле. Взаимодействие доступно только в секторе 3×3.</div>
+                  </div>
                 </div>
               )}
-
-              {currentModule === "BASICS" && lesson === 2 && step === 1 && (
+              {currentModule === "BASICS" && step === 3 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Выстрел в упор (Радиус 3×3)</h3>
-                  <p className="text-xs text-zinc-400 font-mono"><b className="text-red-400">Контракт открыт.</b> Выберите любую цель среди 8 соседей в пределах одного квартала.</p>
-                </div>
-              )}
-              {currentModule === "BASICS" && lesson === 2 && step === 2 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Цель выбрана</h3>
-                  <p className="text-xs text-zinc-400 font-mono"><b className="text-red-400">НАЖМИТЕ кнопку "Ликвидировать" внизу.</b></p>
-                </div>
-              )}
-              {currentModule === "BASICS" && lesson === 2 && step === 3 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Показания очевидцев</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Показания свидетеля: шум выстрела слышен строго в секторе 3×3. Если инспектора нет в этом квадрате — следствие заходит в тупик.</p>
-                </div>
-              )}
-
-              {currentModule === "BASICS" && lesson === 3 && step === 1 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Точечный арест (Дедукция алиби)</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Инспектор на месте. Свидетель подтвердил: преступник в квадрате 3×3. Карты с синей отметкой имеют алиби. <b className="text-blue-400">Выберите единственного подозреваемого без алиби.</b></p>
-                </div>
-              )}
-              {currentModule === "BASICS" && lesson === 3 && step === 2 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Предъявление обвинения</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Нажмите «Задержание» для ареста подозреваемого.</p>
-                </div>
-              )}
-              {currentModule === "BASICS" && lesson === 3 && step === 3 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Точный арест!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Точный арест! Круг сужен дедукцией, подозреваемый обезврежен.</p>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Защита от отката (Anti-Undo)</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Запомнить правило блокировки обратного хода.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Обратный сдвиг того же ряда заблокирован. Нажмите кнопку завершения.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Базовые принципы сетки Син-Сити усвоены.</div>
+                  </div>
                 </div>
               )}
 
-              {currentModule === "BASICS" && lesson === 4 && step === 1 && (
+              {/* 2. MANIAC_KILLER */}
+              {currentModule === "MANIAC_KILLER" && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Загромождение улиц (Эвакуация тел)</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Тела на мостовой блокируют маневры. Нажмите «Зачистить»: полиция смещает выбывших жителей к обочинам сетки, освобождая центр квартала.</p>
+                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Охота: Подвод жертвы</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Подвести первую жертву контракта (Елену Соколову) в зону удара.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите стрелку <b className="text-cyan-300">↓</b> у 3-й колонки.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Жертва окажется в секторе 3×3 вокруг Убийцы.</div>
+                  </div>
                 </div>
               )}
-              {currentModule === "BASICS" && lesson === 4 && step === 2 && (
+              {currentModule === "MANIAC_KILLER" && step === 2 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Курс пройден!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Вы успешно освоили тактику маневров и дедукции.</p>
+                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Охота: Захват цели</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Зафиксировать контрактную цель.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите на карточку Елены Соколовой (#03).</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Цель захвачена прицелом. В режиме Убийцы жертвы устраняются строго по очереди.</div>
+                  </div>
                 </div>
               )}
-
-              {currentModule === "MANIAC" && lesson === 1 && step === 1 && (
+              {currentModule === "MANIAC_KILLER" && step === 3 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Черный блокнот (Очередь целей)</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Синдикат требует устранять цели строго по очереди контракта. Первая жертва — {targetVictimName}. <b className="text-blue-400">Сдвиньте 3-ю колонку вниз (↓)</b>, чтобы подвести её в зону прямого удара.</p>
+                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Охота: Ликвидация цели</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Выполнить заказ синдиката.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите «Ликвидировать по заказу» внизу.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Жертва выбывает. Свидетели в секторе 3×3 слышат выстрел.</div>
+                  </div>
                 </div>
               )}
-              {currentModule === "MANIAC" && lesson === 1 && step === 2 && (
+              {currentModule === "MANIAC_KILLER" && step === 4 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Цель в зоне удара</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Соколова в зоне поражения. <b className="text-red-400">Выберите её карточку</b> для ликвидации по заказу.</p>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Охота: Сброс хвоста (Побег)</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Уйти от облавы детектива.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите «Конспирация (Побег)» и примите новую маску.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Убийца меняет карту личности на новую из колоды.</div>
+                  </div>
                 </div>
               )}
-              {currentModule === "MANIAC" && lesson === 1 && step === 3 && (
+              {currentModule === "MANIAC_KILLER" && step === 5 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Ликвидация цели</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Нажмите «Ликвидировать по заказу» внизу.</p>
-                </div>
-              )}
-              {currentModule === "MANIAC" && lesson === 1 && step === 4 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Цель поражена!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Жертва ликвидирована строго по контракту.</p>
-                </div>
-              )}
-              {currentModule === "MANIAC" && lesson === 2 && step === 1 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Сброс хвоста (Побег и новая маска)</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Оперативники сели на хвост. Нажмите «Конспирация (Побег)», чтобы сбросить раскрытую личность и взять новое прикрытие из колоды.</p>
-                </div>
-              )}
-              {currentModule === "MANIAC" && lesson === 2 && step === 2 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Побег успешен!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Новое прикрытие принято. Метка «ВЫ» переместилась, а полиция потеряла след.</p>
-                </div>
-              )}
-
-              {currentModule === "THIEF" && lesson === 1 && step === 1 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Карманная кража</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Настоящий вор работает без стрельбы. <b className="text-red-400">Выберите любого соседа</b>, чтобы обчистить карманы.</p>
-                </div>
-              )}
-              {currentModule === "THIEF" && lesson === 1 && step === 2 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Кража сокровища</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Нажмите «Кража сокровища» внизу.</p>
-                </div>
-              )}
-              {currentModule === "THIEF" && lesson === 1 && step === 3 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Успешная кража!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Добыча получена (1/8 сокровищ). Каждая кража оставляет след, но приближает побег из города.</p>
-                </div>
-              )}
-              {currentModule === "THIEF" && lesson === 2 && step === 1 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Смена прикрытия (Маскировка из руки)</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Патрули стягиваются к точке кражи. Нажмите «Конспирация (Маска)», чтобы раствориться в толпе под новым лицом из руки.</p>
-                </div>
-              )}
-              {currentModule === "THIEF" && lesson === 2 && step === 2 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Лицо изменено!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Прикрытие изменено. Вы ускользнули из сектора облавы.</p>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Охота: Побег успешен</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Завершить курс Убийцы.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите «Завершить модуль ➔».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Навык ликвидации по списку и побега освоен.</div>
+                  </div>
                 </div>
               )}
 
-              {currentModule === "SECRET_SERVICE" && lesson === 1 && (step === 1 || (step === 2 && scanResult === "FAR")) && (
+              {/* 3. MANIAC_DETECTIVE */}
+              {currentModule === "MANIAC_DETECTIVE" && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Перекрестный опрос</h3>
-                  <p className="text-xs text-zinc-400 font-mono">
-                    {scanResult === "FAR"
-                      ? "Вне зоны (НЕТ). Опросите другого очевидца ближе к резиденту."
-                      : "Вражеский резидент перехватил радиоканал. Выберите очевидца для опроса. Помните: свидетель сканирует сектор 3×3 вокруг себя."}
-                  </p>
+                  <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Детектив: Анализ алиби</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Вычислить убийцу среди жителей в зоне выстрела.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Карты с синим щитом имеют алиби. Нажмите на фигуранта без алиби (#07).</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Единственный подозреваемый взят в разработку.</div>
+                  </div>
                 </div>
               )}
-              {currentModule === "SECRET_SERVICE" && lesson === 1 && step === 2 && scanResult !== "FAR" && (
+              {currentModule === "MANIAC_DETECTIVE" && step === 2 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Опрос очевидцев</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Нажмите «Опрос свидетелей» внизу.</p>
+                  <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Детектив: Задержание</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Обезвредить убийцу.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите кнопку «Задержание» внизу.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Преступник арестован по неопровержимым уликам.</div>
+                  </div>
                 </div>
               )}
-              {currentModule === "SECRET_SERVICE" && lesson === 1 && step === 3 && (
+              {currentModule === "MANIAC_DETECTIVE" && step === 3 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Враг рядом (ДА)!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Связной вышел на связь: «ВРАГ РЯДОМ (ДА)». Сектор 3×3 взят на контроль контрразведки.</p>
+                  <h3 className="text-sm sm:text-base font-black text-cyan-400 uppercase tracking-wider mb-0.5">Детектив: Зачистка улиц</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Освободить мостовую для патрулей.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите «Зачистить» для эвакуации тел.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Тела смещены к границам сетки, центр свободен.</div>
+                  </div>
                 </div>
               )}
-              {currentModule === "SECRET_SERVICE" && lesson === 2 && step === 1 && (
+              {currentModule === "MANIAC_DETECTIVE" && step === 4 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Разоблачение резидента</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Квадрат сужен. Выберите выявленного резидента Софию Романову.</p>
-                </div>
-              )}
-              {currentModule === "SECRET_SERVICE" && lesson === 2 && step === 2 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Разоблачение</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Нажмите «Разоблачение шпиона» для задержания.</p>
-                </div>
-              )}
-              {currentModule === "SECRET_SERVICE" && lesson === 2 && step === 3 && (
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Трофей получен!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Резидент вскрыт! Получен первый компромат (1/3 трофея). Соберите 3 трофея в дуэли для полной ликвидации резидентуры.</p>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Детектив: Дело закрыто</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Закрепить дедуктивный курс.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите «Завершить модуль ➔».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Вы освоили сужение круга по алиби и арест убийцы.</div>
+                  </div>
                 </div>
               )}
 
-              {currentModule === "LINE_UP" && lesson === 1 && step === 1 && (
+              {/* 4. THIEF_ROBBER */}
+              {currentModule === "THIEF_ROBBER" && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-cyan-400 uppercase tracking-wider mb-0.5">Очная ставка (Каталог улик)</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Тайный свидетель готов отвечать «ДА» или «НЕТ». Задайте вопрос из картотеки примет: <b className="text-cyan-300">«Есть ли головной убор?»</b> Нажмите кнопку внизу.</p>
+                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Вор: Выбор цели</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Найти жертву для кражи в радиусе 3×3.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Выберите любого соседнего жителя.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Цель выбрана для бесшумного ограбления без оружия.</div>
+                  </div>
                 </div>
               )}
-              {currentModule === "LINE_UP" && lesson === 1 && step === 2 && (
+              {currentModule === "THIEF_ROBBER" && step === 2 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Ответ получен: ДА</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Свидетель подтвердил: подозреваемый был в шляпе. Все лица без головного убора получают алиби. <b className="text-blue-400">Нажмите «Исключить непричастных».</b></p>
+                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Вор: Кража сокровища</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Похитить сокровище без ликвидации.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите «Кража сокровища» внизу.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Добыча получена (1/8). На карте появляется метка ограбления.</div>
+                  </div>
                 </div>
               )}
-              {currentModule === "LINE_UP" && lesson === 1 && step === 3 && (
+              {currentModule === "THIEF_ROBBER" && step === 3 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Круг сужен!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Непричастные отсечены синей меткой алиби. <b className="text-cyan-300">Выберите карточку оставшегося фигуранта — Руслана Громова (#01).</b></p>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Вор: Смена маски</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Сбросить ориентировку патрулей.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите «Конспирация (Маска)» и подтвердите смену.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Личность изменена картой из руки. Вор снова в тени.</div>
+                  </div>
                 </div>
               )}
-              {currentModule === "LINE_UP" && lesson === 1 && step === 4 && (
+              {currentModule === "THIEF_ROBBER" && step === 4 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Финальное обвинение</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Фигурант заблокирован доказательствами. <b className="text-red-400">Нажмите «Вынести обвинение (Арест)» внизу.</b></p>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Вор: Операция завершена</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Зафиксировать курс Вора.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите «Завершить модуль ➔».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Механика кражи и маскировки усвоена.</div>
+                  </div>
                 </div>
               )}
-              {currentModule === "LINE_UP" && lesson === 1 && step === 5 && (
+
+              {/* 5. THIEF_POLICE */}
+              {currentModule === "THIEF_POLICE" && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Победа в ставке!</h3>
-                  <p className="text-xs text-zinc-400 font-mono">Точное обвинение сломало защиту противника. Курс «Очная ставка» успешно сдан.</p>
+                  <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Полиция: Анализ места преступления</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Локализовать грабителя по оставленным следам.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Найдите ограбленную карту (с желтой меткой) и выберите соседа (#03).</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Подозрительный житель взят в разработку патрулем.</div>
+                  </div>
+                </div>
+              )}
+              {currentModule === "THIEF_POLICE" && step === 2 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Полиция: Оцепление</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Перекрыть грабителю пути отхода.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите «Вызов патруля» внизу.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Сектор заблокирован кордоном.</div>
+                  </div>
+                </div>
+              )}
+              {currentModule === "THIEF_POLICE" && step === 3 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Полиция: Арест с поличным</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Задержать грабителя и вернуть ценности.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите «Арестовать вора».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Грабитель обезврежен, сокровища возвращены. Модуль сдан.</div>
+                  </div>
+                </div>
+              )}
+
+              {/* 6. SECRET_SERVICE */}
+              {currentModule === "SECRET_SERVICE" && step === 1 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Агент: Радиоперехват</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Выбрать очевидца в радиусе действия агента.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Выберите соседнего жителя для радиоопроса.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Очевидец готов дать показания по закрытому каналу.</div>
+                  </div>
+                </div>
+              )}
+              {currentModule === "SECRET_SERVICE" && step === 2 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-cyan-400 uppercase tracking-wider mb-0.5">Агент: Опрос радаром</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Просканировать сектор 3×3 на наличие резидента.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите «Опрос свидетелей» внизу.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Радар выдал: «ВРАГ РЯДОМ (ДА)».</div>
+                  </div>
+                </div>
+              )}
+              {currentModule === "SECRET_SERVICE" && step === 3 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Агент: Захват цели</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Локализовать вражеского резидента.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Выберите карточку выявленного шпиона (София Романова).</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Шпион захвачен в прицел контрразведки.</div>
+                  </div>
+                </div>
+              )}
+              {currentModule === "SECRET_SERVICE" && step === 4 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Агент: Разоблачение резидента</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Ликвидировать шпионскую ячейку.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите «Разоблачение шпиона».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Шпион арестован, получен трофей компромата (1/3). Модуль сдан.</div>
+                  </div>
+                </div>
+              )}
+
+              {/* 7. LINE_UP */}
+              {currentModule === "LINE_UP" && step === 1 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-cyan-400 uppercase tracking-wider mb-0.5">Очная ставка: Каталог улик</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Запросить приметы подозреваемого у свидетеля.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите кнопку «Задать вопрос: Головной убор?».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Свидетель подтверждает: «ДА, ЕСТЬ ГОЛОВНОЙ УБОР».</div>
+                  </div>
+                </div>
+              )}
+              {currentModule === "LINE_UP" && step === 2 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Очная ставка: Исключение непричастных</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Отсечь фигурантов без головного убора.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите кнопку «Исключить непричастных ➔».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Все лица без шляп и кепок получают алиби.</div>
+                  </div>
+                </div>
+              )}
+              {currentModule === "LINE_UP" && step === 3 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Очная ставка: Оставшийся фигурант</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Выбрать единственного подозреваемого без алиби.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите на карточку Руслана Громова (#01).</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Фигурант выбран для оглашения вердикта.</div>
+                  </div>
+                </div>
+              )}
+              {currentModule === "LINE_UP" && step === 4 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Очная ставка: Финальное обвинение</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Предъявить обвинение подозреваемому.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите «Вынести обвинение (Арест)».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Алиби сломано, подозреваемый арестован. Победа в дуэли.</div>
+                  </div>
+                </div>
+              )}
+              {currentModule === "LINE_UP" && step === 5 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Очная ставка: Победа в дуэли</h3>
+                  <div className="text-xs text-zinc-300 font-mono space-y-0.5">
+                    <div><b className="text-blue-400">ЦЕЛЬ:</b> Зафиксировать сдачу дедуктивного курса.</div>
+                    <div><b className="text-amber-400">ДЕЙСТВИЕ:</b> Нажмите «Завершить модуль ➔».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Модуль сдан. Полный курс Академии завершен!</div>
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
+          {/* Статусная строка HUD */}
           <div className="h-7 md:h-8 px-4 w-full shrink-0 flex items-center justify-center bg-zinc-950/80 border-y border-white/5 shadow-sm z-10">
             <div className="text-[10px] md:text-xs tracking-widest uppercase font-mono text-center leading-tight flex flex-wrap justify-center items-center">
               {getHudStatus()}
             </div>
           </div>
 
-                      <div className={`relative z-10 w-full h-full flex-1 min-h-0 max-h-full flex items-center justify-center my-auto py-1 md:py-3 px-2 overflow-hidden ${
-            currentModule === "BASICS" && lesson === 1 && (step === 1 || step === 2) ? "tutorial-highlight-l1s2" : ""
-          } ${currentModule === "MANIAC" && lesson === 1 && step === 1 ? "tutorial-highlight-maniac" : ""}`}>
+          {/* Игровое поле GameBoard */}
+          <div className={`relative z-10 w-full h-full flex-1 min-h-0 max-h-full flex items-center justify-center my-auto py-1 md:py-3 px-2 overflow-hidden ${
+            currentModule === "BASICS" && step === 1 ? "tutorial-highlight-l1s2" : ""
+          } ${currentModule === "MANIAC_KILLER" && step === 1 ? "tutorial-highlight-maniac" : ""}`}>
             <GameBoard
-              mode={currentModule === "THIEF" ? "THIEF_HUNT" : currentModule === "SECRET_SERVICE" ? "SECRET_SERVICE" : currentModule === "LINE_UP" ? "LINE_UP" : "MANIAC_VS_OPERATIVE"}
+              mode={
+                currentModule === "THIEF_ROBBER" || currentModule === "THIEF_POLICE"
+                  ? "THIEF_HUNT"
+                  : currentModule === "SECRET_SERVICE"
+                  ? "SECRET_SERVICE"
+                  : currentModule === "LINE_UP"
+                  ? "LINE_UP"
+                  : "MANIAC_VS_OPERATIVE"
+              }
               board={board}
               selectedCharacterId={selectedId}
               killerAdjacentIds={adjacentIds}
               detectiveAdjacentIds={adjacentIds}
               showKillerHints={
-                (currentModule === "BASICS" && lesson === 1) ||
-                (currentModule === "BASICS" && lesson === 2 && step === 1) ||
-                (currentModule === "MANIAC" && lesson === 1 && step === 2) ||
-                (currentModule === "THIEF" && lesson === 1 && step === 1) ||
-                (currentModule === "SECRET_SERVICE" && lesson === 1 && (step === 1 || (step === 2 && scanResult === "FAR"))) ||
-                (currentModule === "SECRET_SERVICE" && lesson === 2 && step === 1) ||
-                (currentModule === "LINE_UP" && lesson === 1 && step === 3)
+                (currentModule === "BASICS" && step === 2) ||
+                (currentModule === "MANIAC_KILLER" && step === 2) ||
+                (currentModule === "THIEF_ROBBER" && step === 1) ||
+                (currentModule === "SECRET_SERVICE" && step === 1) ||
+                (currentModule === "LINE_UP" && step === 3)
               }
               showDetectiveHints={false}
-              targetVictimId={
-                currentModule === "MANIAC" ? targetVictimId : null
-              }
+              targetVictimId={currentModule === "MANIAC_KILLER" ? targetVictimId : null}
               radarTargetId={radarTargetId}
               radarCellIds={radarCellIds}
               radarColorClass={radarColorClass}
@@ -962,27 +1080,11 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
             />
           </div>
 
+          {/* Нижняя панель действий */}
           <div className="h-14 md:h-16 shrink-0 w-full flex items-center justify-center px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[#080a0f] border-t border-white/5 z-20">
             <AnimatePresence mode="wait">
-              {currentModule === "BASICS" && lesson === 1 && step === 3 && (
-                <motion.button onClick={() => { setLesson(2); setStep(1); setBoard(getInitialBoard("BASICS", 2)); }} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Урок 2: Ликвидация ➔</motion.button>
-              )}
-              {currentModule === "BASICS" && lesson === 2 && step === 2 && (
-                <motion.button onClick={handleKill} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(220,38,38,0.4)] cursor-pointer">Ликвидировать</motion.button>
-              )}
-              {currentModule === "BASICS" && lesson === 2 && step === 3 && (
-                <motion.button onClick={() => { setLesson(3); setStep(1); setBoard(getInitialBoard("BASICS", 3)); }} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Урок 3: Задержание ➔</motion.button>
-              )}
-              {currentModule === "BASICS" && lesson === 3 && step === 2 && (
-                <motion.button onClick={handleArrest} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Задержание</motion.button>
-              )}
-              {currentModule === "BASICS" && lesson === 3 && step === 3 && (
-                <motion.button onClick={() => { setLesson(4); setStep(1); setBoard(getInitialBoard("BASICS", 4)); }} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Урок 4: Зачистка ➔</motion.button>
-              )}
-              {currentModule === "BASICS" && lesson === 4 && step === 1 && (
-                <motion.button onClick={handleCleanup} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Зачистить</motion.button>
-              )}
-              {currentModule === "BASICS" && lesson === 4 && step === 2 && (
+              {/* 1. BASICS */}
+              {currentModule === "BASICS" && step === 3 && (
                 <motion.button
                   onClick={() => {
                     markModuleCompleted("BASICS");
@@ -994,19 +1096,17 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                 </motion.button>
               )}
 
-              {currentModule === "MANIAC" && lesson === 1 && step === 3 && (
+              {/* 2. MANIAC_KILLER */}
+              {currentModule === "MANIAC_KILLER" && step === 3 && (
                 <motion.button onClick={handleKill} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(220,38,38,0.4)] cursor-pointer">Ликвидировать по заказу</motion.button>
               )}
-              {currentModule === "MANIAC" && lesson === 1 && step === 4 && (
-                <motion.button onClick={() => { setLesson(2); setStep(1); setBoard(getInitialBoard("MANIAC", 2)); }} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Урок 2: Побег ➔</motion.button>
-              )}
-              {currentModule === "MANIAC" && lesson === 2 && step === 1 && (
+              {currentModule === "MANIAC_KILLER" && step === 4 && (
                 <motion.button onClick={handleEscape} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(220,38,38,0.4)] cursor-pointer">Конспирация (Побег)</motion.button>
               )}
-              {currentModule === "MANIAC" && lesson === 2 && step === 2 && (
+              {currentModule === "MANIAC_KILLER" && step === 5 && (
                 <motion.button
                   onClick={() => {
-                    markModuleCompleted("MANIAC");
+                    markModuleCompleted("MANIAC_KILLER");
                     setCurrentModule("MENU");
                   }}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-zinc-800 hover:bg-zinc-700 text-white border border-white/10 font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer"
@@ -1015,19 +1115,36 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                 </motion.button>
               )}
 
-              {currentModule === "THIEF" && lesson === 1 && step === 2 && (
+              {/* 3. MANIAC_DETECTIVE */}
+              {currentModule === "MANIAC_DETECTIVE" && step === 2 && (
+                <motion.button onClick={handleArrest} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Задержание</motion.button>
+              )}
+              {currentModule === "MANIAC_DETECTIVE" && step === 3 && (
+                <motion.button onClick={handleCleanup} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Зачистить</motion.button>
+              )}
+              {currentModule === "MANIAC_DETECTIVE" && step === 4 && (
+                <motion.button
+                  onClick={() => {
+                    markModuleCompleted("MANIAC_DETECTIVE");
+                    setCurrentModule("MENU");
+                  }}
+                  className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-zinc-800 hover:bg-zinc-700 text-white border border-white/10 font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer"
+                >
+                  Завершить модуль ➔
+                </motion.button>
+              )}
+
+              {/* 4. THIEF_ROBBER */}
+              {currentModule === "THIEF_ROBBER" && step === 2 && (
                 <motion.button onClick={handleRob} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(220,38,38,0.4)] cursor-pointer">Кража сокровища</motion.button>
               )}
-              {currentModule === "THIEF" && lesson === 1 && step === 3 && (
-                <motion.button onClick={() => { setLesson(2); setStep(1); setBoard(getInitialBoard("THIEF", 2)); }} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Урок 2: Маскировка ➔</motion.button>
-              )}
-              {currentModule === "THIEF" && lesson === 2 && step === 1 && (
+              {currentModule === "THIEF_ROBBER" && step === 3 && (
                 <motion.button onClick={handleFastDisguise} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(220,38,38,0.4)] cursor-pointer">Конспирация (Маска)</motion.button>
               )}
-              {currentModule === "THIEF" && lesson === 2 && step === 2 && (
+              {currentModule === "THIEF_ROBBER" && step === 4 && (
                 <motion.button
                   onClick={() => {
-                    markModuleCompleted("THIEF");
+                    markModuleCompleted("THIEF_ROBBER");
                     setCurrentModule("MENU");
                   }}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-zinc-800 hover:bg-zinc-700 text-white border border-white/10 font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer"
@@ -1036,37 +1153,33 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                 </motion.button>
               )}
 
-              {currentModule === "SECRET_SERVICE" && lesson === 1 && step === 2 && Boolean(selectedId) && (
+              {/* 5. THIEF_POLICE */}
+              {currentModule === "THIEF_POLICE" && step === 2 && (
+                <motion.button onClick={handlePoliceBlock} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Вызов патруля</motion.button>
+              )}
+              {currentModule === "THIEF_POLICE" && step === 3 && (
+                <motion.button onClick={handlePoliceArrest} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Арестовать вора</motion.button>
+              )}
+
+              {/* 6. SECRET_SERVICE */}
+              {currentModule === "SECRET_SERVICE" && step === 2 && Boolean(selectedId) && (
                 <motion.button onClick={handleInterrogate} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Опрос свидетелей</motion.button>
               )}
-              {currentModule === "SECRET_SERVICE" && lesson === 1 && step === 3 && (
-                <motion.button onClick={() => { setLesson(2); setStep(1); setBoard(getInitialBoard("SECRET_SERVICE", 2)); setInterrogatedTargetId(null); setScanResult(null); }} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Урок 2: Разоблачение ➔</motion.button>
-              )}
-              {currentModule === "SECRET_SERVICE" && lesson === 2 && step === 2 && (
+              {currentModule === "SECRET_SERVICE" && step === 4 && (
                 <motion.button onClick={handleCaptureSpy} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Разоблачение шпиона</motion.button>
               )}
-              {currentModule === "SECRET_SERVICE" && lesson === 2 && step === 3 && (
-                <motion.button
-                  onClick={() => {
-                    markModuleCompleted("SECRET_SERVICE");
-                    setCurrentModule("MENU");
-                  }}
-                  className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-zinc-800 hover:bg-zinc-700 text-white border border-white/10 font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer"
-                >
-                  Завершить модуль ➔
-                </motion.button>
-              )}
 
-              {currentModule === "LINE_UP" && lesson === 1 && step === 1 && (
+              {/* 7. LINE_UP */}
+              {currentModule === "LINE_UP" && step === 1 && (
                 <motion.button onClick={handleAskQuestionDuel} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(6,182,212,0.4)] cursor-pointer">Задать вопрос: Головной убор?</motion.button>
               )}
-              {currentModule === "LINE_UP" && lesson === 1 && step === 2 && (
+              {currentModule === "LINE_UP" && step === 2 && (
                 <motion.button onClick={handleEliminateDuel} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Исключить непричастных ➔</motion.button>
               )}
-              {currentModule === "LINE_UP" && lesson === 1 && step === 4 && (
+              {currentModule === "LINE_UP" && step === 4 && (
                 <motion.button onClick={handleAccuseDuel} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(220,38,38,0.4)] cursor-pointer">Вынести обвинение (Арест)</motion.button>
               )}
-              {currentModule === "LINE_UP" && lesson === 1 && step === 5 && (
+              {currentModule === "LINE_UP" && step === 5 && (
                 <motion.button
                   onClick={() => {
                     markModuleCompleted("LINE_UP");
@@ -1081,6 +1194,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
           </div>
         </div>
 
+        {/* Модальное окно смены маски/прикрытия */}
         {isDisguiseModalOpen && newDisguiseChar && (
           <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none">
             <div className="w-full max-w-sm bg-zinc-950/85 backdrop-blur-xl border border-red-500/50 rounded-3xl p-6 text-center shadow-[0_0_50px_rgba(220,38,38,0.3)] flex flex-col items-center">
@@ -1121,6 +1235,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
           </div>
         )}
 
+        {/* Полноэкранный просмотр досье */}
         {fullscreenImage && (
           <div className="fixed inset-0 z-[130] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 select-none" onClick={() => setFullscreenImage(null)}>
             <button

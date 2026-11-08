@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import type { GameModeType, OpponentType, Role } from "../types/game";
 import type { UserProfile } from "../types/profile";
@@ -6,14 +6,27 @@ import { triggerHaptic, setHapticsEnabled } from "../utils/haptics";
 import { partyService } from "../utils/partyPeer";
 import { soundManager } from "../utils/audio";
 import { Toast } from "./Toast";
-import { TutorialScreen } from "./TutorialScreen";
 import { BiometricSlider } from "./BiometricSlider";
-import { TablesScreen } from "./TablesScreen";
-import { ProfileScreen } from "./ProfileScreen";
 import { Button } from "./ui/Button";
 import { Modal } from "./ui/Modal";
 import { GAME_MODES_META, getGameModeTitle, getGameModeShortTitle } from "../constants/gameMeta";
 import lobbyBg from "../assets/lobby_background.png";
+
+// Асинхронные динамические чанки второстепенных экранов (TASK-ARCH-001)
+const TutorialScreen = lazy(() => import("./TutorialScreen").then((m) => ({ default: m.TutorialScreen })));
+const TablesScreen = lazy(() => import("./TablesScreen").then((m) => ({ default: m.TablesScreen })));
+const ProfileScreen = lazy(() => import("./ProfileScreen").then((m) => ({ default: m.ProfileScreen })));
+
+const ScreenFallback = () => (
+  <div className="flex-1 w-full flex items-center justify-center min-h-[300px] text-cyan-400 select-none">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-8 h-8 border-2 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin" />
+      <span className="text-[11px] font-mono tracking-widest text-zinc-400 uppercase">
+        Загрузка...
+      </span>
+    </div>
+  </div>
+);
 
 declare const __BUILD_TIMESTAMP__: string;
 import { useTranslation } from "../i18n/context";
@@ -934,28 +947,32 @@ export const MainMenu = ({
   };
 
   const renderTables = () => (
-    <TablesScreen
-      roomFilter={roomFilter}
-      setRoomFilter={setRoomFilter}
-      filteredRooms={filteredRooms}
-      joinCode={joinCode}
-      setJoinCode={setJoinCode}
-      handleJoinRoom={handleJoinRoom}
-      setIsCreateRoomOpen={setIsCreateRoomOpen}
-      ROOM_FILTERS={ROOM_FILTERS}
-      GAME_MODES={GAME_MODES}
-      soundManager={soundManager}
-      onBack={() => { setNavDirection('none'); setScreen('HOME'); onTabChange('LOBBY'); }}
-    />
+    <Suspense fallback={<ScreenFallback />}>
+      <TablesScreen
+        roomFilter={roomFilter}
+        setRoomFilter={setRoomFilter}
+        filteredRooms={filteredRooms}
+        joinCode={joinCode}
+        setJoinCode={setJoinCode}
+        handleJoinRoom={handleJoinRoom}
+        setIsCreateRoomOpen={setIsCreateRoomOpen}
+        ROOM_FILTERS={ROOM_FILTERS}
+        GAME_MODES={GAME_MODES}
+        soundManager={soundManager}
+        onBack={() => { setNavDirection('none'); setScreen('HOME'); onTabChange('LOBBY'); }}
+      />
+    </Suspense>
   );
 
   const renderProfile = () => (
-    <ProfileScreen
-      profile={profile}
-      onUpdateProfile={onUpdateProfile || (() => {})}
-      onOpenSettings={() => setIsSettingsOpen(true)}
-      onBack={() => { setNavDirection('none'); setScreen('HOME'); onTabChange('LOBBY'); }}
-    />
+    <Suspense fallback={<ScreenFallback />}>
+      <ProfileScreen
+        profile={profile}
+        onUpdateProfile={onUpdateProfile || (() => {})}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+        onBack={() => { setNavDirection('none'); setScreen('HOME'); onTabChange('LOBBY'); }}
+      />
+    </Suspense>
   );
 
   const handleFinishTutorial = () => {
@@ -1222,10 +1239,12 @@ export const MainMenu = ({
         )}
 
         {isTutorialOpen && (
-          <TutorialScreen 
-            onExit={() => setIsTutorialOpen(false)} 
-            onFinish={handleFinishTutorial} 
-          />
+          <Suspense fallback={<ScreenFallback />}>
+            <TutorialScreen 
+              onExit={() => setIsTutorialOpen(false)} 
+              onFinish={handleFinishTutorial} 
+            />
+          </Suspense>
         )}
 
         {isTvPartyModalOpen && (

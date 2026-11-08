@@ -5,6 +5,42 @@
 
 ---
 
+## Запись: TASK-ARCH-001 — Оптимизация размера стартового JS-бандла (Code Splitting via React.lazy)
+
+- **ID задачи:** TASK-ARCH-001
+- **Хэш коммита:** a80945096e877b533b9cf94c336326a61574b5e6
+- **Дата:** 2026-11-08
+- **Что сделано:**
+  1. **Динамический импорт второстепенных экранов в `src/App.tsx`:**
+     - Переведены на `React.lazy`: `DuelScreen`, `TvBoardView`, `TvLobbyView`, `MobileControllerView`, `ControllerConnectView`.
+     - Все ленивые экраны обёрнуты в `<Suspense fallback={<ScreenFallback />}>` с нео-нуарным легковесным индикатором загрузки (`ScreenFallback`).
+  2. **Динамический импорт модульных экранов в `src/components/MainMenu.tsx`:**
+     - Переведены на `React.lazy`: `TutorialScreen`, `TablesScreen`, `ProfileScreen`.
+     - Отрендерены с использованием `Suspense` и fallback-компонента при переключении табов и открытии академии.
+  3. **Результаты разделения чанков и устранение предупреждений Vite:**
+     - Размер стартового чанка `index.js` уменьшен с **509.79 kB** (gzip: 125.96 kB) до **362.15 kB** (gzip: 89.76 kB) — снижение на ~29% (~148 kB).
+     - Предупреждение сборщика Vite `(!) Some chunks are larger than 500 kB after minification` полностью устранено.
+     - Логически выделены изолированные чанки в `dist/assets`:
+       - `dist/assets/TablesScreen-*.js` — 7.43 kB (gzip: 2.66 kB)
+       - `dist/assets/ControllerConnectView-*.js` — 7.43 kB (gzip: 2.54 kB)
+       - `dist/assets/DuelScreen-*.js` — 9.34 kB (gzip: 3.38 kB)
+       - `dist/assets/ProfileScreen-*.js` — 10.64 kB (gzip: 2.82 kB)
+       - `dist/assets/TvBoardView-*.js` — 18.36 kB (gzip: 5.18 kB)
+       - `dist/assets/TvLobbyView-*.js` — 28.16 kB (gzip: 10.10 kB)
+       - `dist/assets/MobileControllerView-*.js` — 35.24 kB (gzip: 9.35 kB)
+       - `dist/assets/TutorialScreen-*.js` — 37.09 kB (gzip: 9.19 kB)
+- **Изменённые файлы:**
+  - `src/App.tsx`
+  - `src/components/MainMenu.tsx`
+  - `WORKLOG.md`
+- **Проверки и результаты:**
+  - `npm run build`: Код завершения 0, чистая сборка, 0 предупреждений о превышении лимита 500 kB.
+  - `npm test`: 42 сьюта, 260/260 тестов passed (100%).
+- **Способ отката:**
+  - `git reset --hard HEAD~1`
+
+---
+
 ## Запись: TASK-UI-001 — Блокировка сквозных тач-событий, QR-код лобби ТВ и безопасный виброотклик
 
 - **ID задачи:** TASK-UI-001

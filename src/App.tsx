@@ -1,9 +1,8 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, lazy, Suspense } from "react";
 import { SplashScreen } from './components/SplashScreen';
 import { type GameModeType, type OpponentType, type Role, type GameState } from "./types/game";
 import { GameLifecycleModals } from "./components/GameLifecycleModals";
 import { GameScreen } from "./components/GameScreen";
-import { DuelScreen } from "./components/duel/DuelScreen";
 import { MainMenu } from "./components/MainMenu";
 import { GameModalsContainer } from "./components/GameModalsContainer";
 import { usePlayerProfile } from "./utils/usePlayerProfile";
@@ -19,14 +18,28 @@ import { createInitialState } from "./utils/gameLogic";
 import { soundManager } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
 import type { GameAction } from "./types/multiplayer";
-import { TvBoardView } from "./components/tv/TvBoardView";
-import { TvLobbyView } from "./components/tv/TvLobbyView";
-import { MobileControllerView } from "./components/controller/MobileControllerView";
 import { PassAndPlayModal } from "./components/controller/PassAndPlayModal";
-import { ControllerConnectView } from "./components/controller/ControllerConnectView";
 import { Button } from "./components/ui/Button";
 import type { ShiftPayload } from "./types/game";
 import { gameReducer } from "./utils/gameReducer";
+
+// Асинхронные динамические чанки второстепенных экранов (TASK-ARCH-001)
+const DuelScreen = lazy(() => import("./components/duel/DuelScreen").then((m) => ({ default: m.DuelScreen })));
+const TvBoardView = lazy(() => import("./components/tv/TvBoardView").then((m) => ({ default: m.TvBoardView })));
+const TvLobbyView = lazy(() => import("./components/tv/TvLobbyView").then((m) => ({ default: m.TvLobbyView })));
+const MobileControllerView = lazy(() => import("./components/controller/MobileControllerView").then((m) => ({ default: m.MobileControllerView })));
+const ControllerConnectView = lazy(() => import("./components/controller/ControllerConnectView").then((m) => ({ default: m.ControllerConnectView })));
+
+const ScreenFallback = () => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#080a0f] text-cyan-400 select-none">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-10 h-10 border-2 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin" />
+      <span className="text-xs font-mono tracking-widest text-zinc-400 uppercase">
+        Загрузка модуля...
+      </span>
+    </div>
+  </div>
+);
 
 
 const characterImages = import.meta.glob<{ default: string }>(
@@ -706,13 +719,15 @@ export default function App() {
             className="w-full h-full flex flex-col min-h-0 overflow-hidden"
           >
               {gameState.mode === "LINE_UP" ? (
-                <DuelScreen
-                  onBackToMenu={handleExitToMenu}
-                  playerRole={gameState.playerRole}
-                  gameState={gameState}
-                  isOnline={gameState.opponent === "ONLINE"}
-                  onDispatchAction={dispatchAction}
-                />
+                <Suspense fallback={<ScreenFallback />}>
+                  <DuelScreen
+                    onBackToMenu={handleExitToMenu}
+                    playerRole={gameState.playerRole}
+                    gameState={gameState}
+                    isOnline={gameState.opponent === "ONLINE"}
+                    onDispatchAction={dispatchAction}
+                  />
+                </Suspense>
               ) : (
                 <GameScreen
                   gameState={gameState}
@@ -812,211 +827,163 @@ export default function App() {
       </div>
 
       {/* РЕЖИМ TV PARTY: Мобильный пульт управления */}
-              {tvPartyState === "CONTROLLER" && (() => {
-          const isControllerInGame = controllerRoomStatus === "PLAYING";
+      {tvPartyState === "CONTROLLER" && (() => {
+        const isControllerInGame = controllerRoomStatus === "PLAYING";
         return (
           <div className="fixed inset-0 z-50 bg-[#080a0f]">
-          {!tvRoomCode ? (
-            <ControllerConnectView
-              initialNickname={profile.nickname}
-              onUpdateNickname={(name) => updateProfile({ nickname: name })}
-              onConnect={(code) => {
-                const newUrl = new URL(window.location.href);
-                newUrl.searchParams.set("room", code);
-                newUrl.searchParams.set("clientType", "CONTROLLER");
-                window.location.replace(newUrl.toString());
-              }}
-              onBackToMenu={() => {
-                sessionStorage.removeItem("tv_controller_client_id");
-                sessionStorage.removeItem("tv_controller_role");
-                window.location.search = "";
-                setTvPartyState("NONE");
-                setIsLobbyOpen(true);
-              }}
-            />
-          ) : false ? (
-            <div className="flex h-screen w-screen flex-col justify-between p-6 text-zinc-100 select-none font-sans">
-              <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-                <span className="text-xs font-mono uppercase tracking-widest text-zinc-400">ПОДКЛЮЧЕНИЕ К ТВ</span>
-              </div>
-              <div className="flex flex-col items-center text-center max-w-sm mx-auto my-auto space-y-4 w-full">
-                <div className="w-16 h-16 rounded-2xl border border-zinc-800 bg-zinc-950 flex items-center justify-center shadow-xl text-zinc-300">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-8 h-8">
-                    <rect x="2" y="7" width="20" height="15" rx="2" ry="2" />
-                    <polyline points="17 2 12 7 7 2" />
-                  </svg>
-                </div>
-                <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100">
-                  ВВЕДИТЕ PIN-КОД
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Укажите 5-значный код комнаты с экрана телевизора
-                </p>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={5}
-                  value={pinInput}
-                  onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ""))}
-                  placeholder="00000"
-                  className="w-full py-4 text-center font-mono text-3xl font-black tracking-widest rounded-2xl bg-zinc-950 border border-zinc-700 text-zinc-100 focus:outline-none focus:border-red-500"
-                />
-                <button
-                  onClick={() => {
-                    if (pinInput.length >= 4) {
-                      const newUrl = new URL(window.location.href);
-                      newUrl.searchParams.set("room", pinInput);
-                      newUrl.searchParams.set("clientType", "CONTROLLER");
-                      window.location.replace(newUrl.toString());
-                    }
+            <Suspense fallback={<ScreenFallback />}>
+              {!tvRoomCode ? (
+                <ControllerConnectView
+                  initialNickname={profile.nickname}
+                  onUpdateNickname={(name) => updateProfile({ nickname: name })}
+                  onConnect={(code) => {
+                    const newUrl = new URL(window.location.href);
+                    newUrl.searchParams.set("room", code);
+                    newUrl.searchParams.set("clientType", "CONTROLLER");
+                    window.location.replace(newUrl.toString());
                   }}
-                  disabled={pinInput.length < 4}
-                  className="w-full py-4 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 font-black uppercase tracking-wider text-xs text-white transition cursor-pointer disabled:cursor-not-allowed"
-                >
-                  ВОЙТИ В ИГРУ
-                </button>
-              </div>
-              <button
-                onClick={() => {
-                  sessionStorage.removeItem("tv_controller_client_id");
-                  window.location.search = "";
-                  setTvPartyState("NONE");
-                  setIsLobbyOpen(true);
-                }}
-                className="w-full py-3 rounded-xl border border-zinc-800 bg-zinc-900/60 text-xs text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
-              >
-                Назад в меню
-              </button>
-            </div>
-          ) : !isControllerInGame ? (
-            <div className="flex h-screen w-screen flex-col justify-between p-6 text-zinc-100 select-none font-sans bg-[#080a0f]">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
-                  <span className="text-xs font-mono uppercase tracking-widest text-zinc-400">ПОДКЛЮЧЕНО</span>
-                </div>
-                <div className="text-xs font-mono text-zinc-500">КОМНАТА #{tvRoomCode}</div>
-              </div>
-
-              <div className="flex flex-col items-center text-center max-w-sm mx-auto my-auto space-y-4">
-                <div className="w-20 h-20 rounded-3xl border border-white/10 bg-zinc-950/60 backdrop-blur-md flex items-center justify-center shadow-2xl text-cyan-400">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-10 h-10">
-                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-                    <line x1="12" y1="18" x2="12.01" y2="18" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100">
-                    ВЫ В ЛОББИ
-                  </h2>
-                  <p className="text-sm text-zinc-400 mt-2 leading-relaxed">
-                    Ожидайте запуска игры на телевизоре.
-                  </p>
-                </div>
-                <div className="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 backdrop-blur-md shadow-lg w-full text-left">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">ИГРОК</div>
-                  <div className="text-base font-black text-zinc-100 truncate">
-                    {profile.nickname || 'Агент'}
+                  onBackToMenu={() => {
+                    sessionStorage.removeItem("tv_controller_client_id");
+                    sessionStorage.removeItem("tv_controller_role");
+                    window.location.search = "";
+                    setTvPartyState("NONE");
+                    setIsLobbyOpen(true);
+                  }}
+                />
+              ) : !isControllerInGame ? (
+                <div className="flex h-screen w-screen flex-col justify-between p-6 text-zinc-100 select-none font-sans bg-[#080a0f]">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                      <span className="text-xs font-mono uppercase tracking-widest text-zinc-400">ПОДКЛЮЧЕНО</span>
+                    </div>
+                    <div className="text-xs font-mono text-zinc-500">КОМНАТА #{tvRoomCode}</div>
                   </div>
-                </div>
-              </div>
 
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={() => {
-                  sessionStorage.removeItem("tv_controller_client_id");
-                  sessionStorage.removeItem("tv_controller_role");
-                  partyService.disconnect();
-                  window.location.search = "";
-                  setTvPartyState("NONE");
-                  setIsLobbyOpen(true);
-                }}
-                className="h-12 rounded-xl text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-white"
-              >
-                Выйти в меню
-              </Button>
-            </div>
-          ) : (
-            <MobileControllerView
-                gameState={gameState}
-                              playerRole={
-                isTvPassAndPlay
-                  ? (gameState.mode === "SECRET_SERVICE"
-                      ? ((gameState.activeSpyIndex ?? 0) === 1 ? "DETECTIVE" : "KILLER")
-                      : (gameState.currentTurn || "KILLER"))
-                  : controllerRole
-              }
-                isPassAndPlay={isTvPassAndPlay}
-                onDispatchAction={dispatchAction}
-                onSelectLinePreview={setTvLinePreview}
-                onExit={() => {
-                  sessionStorage.removeItem("tv_controller_client_id");
-                  sessionStorage.removeItem("tv_controller_role");
-                  partyService.disconnect();
-                  window.location.search = "";
-                  setTvPartyState("NONE");
-                  setIsLobbyOpen(true);
-                }}
-              />
-          )}
-        </div>
+                  <div className="flex flex-col items-center text-center max-w-sm mx-auto my-auto space-y-4">
+                    <div className="w-20 h-20 rounded-3xl border border-white/10 bg-zinc-950/60 backdrop-blur-md flex items-center justify-center shadow-2xl text-cyan-400">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-10 h-10">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                        <line x1="12" y1="18" x2="12.01" y2="18" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100">
+                        ВЫ В ЛОББИ
+                      </h2>
+                      <p className="text-sm text-zinc-400 mt-2 leading-relaxed">
+                        Ожидайте запуска игры на телевизоре.
+                      </p>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 backdrop-blur-md shadow-lg w-full text-left">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">ИГРОК</div>
+                      <div className="text-base font-black text-zinc-100 truncate">
+                        {profile.nickname || 'Агент'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="secondary"
+                    fullWidth
+                    onClick={() => {
+                      sessionStorage.removeItem("tv_controller_client_id");
+                      sessionStorage.removeItem("tv_controller_role");
+                      partyService.disconnect();
+                      window.location.search = "";
+                      setTvPartyState("NONE");
+                      setIsLobbyOpen(true);
+                    }}
+                    className="h-12 rounded-xl text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-white"
+                  >
+                    Выйти в меню
+                  </Button>
+                </div>
+              ) : (
+                <MobileControllerView
+                  gameState={gameState}
+                  playerRole={
+                    isTvPassAndPlay
+                      ? (gameState.mode === "SECRET_SERVICE"
+                          ? ((gameState.activeSpyIndex ?? 0) === 1 ? "DETECTIVE" : "KILLER")
+                          : (gameState.currentTurn || "KILLER"))
+                      : controllerRole
+                  }
+                  isPassAndPlay={isTvPassAndPlay}
+                  onDispatchAction={dispatchAction}
+                  onSelectLinePreview={setTvLinePreview}
+                  onExit={() => {
+                    sessionStorage.removeItem("tv_controller_client_id");
+                    sessionStorage.removeItem("tv_controller_role");
+                    partyService.disconnect();
+                    window.location.search = "";
+                    setTvPartyState("NONE");
+                    setIsLobbyOpen(true);
+                  }}
+                />
+              )}
+            </Suspense>
+          </div>
         );
       })()}
 
       {/* РЕЖИМ TV PARTY: Лобби ожидания подключения */}
       {tvPartyState === "TV_LOBBY" && (
         <div className="fixed inset-0 z-50 bg-[#080a0f]">
-          <TvLobbyView
-            roomCode={tvRoomCode}
-            players={tvPlayers}
-            connectedPlayers={tvPlayers}
-            onStartGame={(mode, passAndPlay) => {
-              setIsTvPassAndPlay(passAndPlay);
-              partyService.sendAction({
-                type: "START_MATCH",
-                senderId: "TV_HOST",
-                payload: { mode, isPassAndPlay: passAndPlay },
-              } as any);
+          <Suspense fallback={<ScreenFallback />}>
+            <TvLobbyView
+              roomCode={tvRoomCode}
+              players={tvPlayers}
+              connectedPlayers={tvPlayers}
+              onStartGame={(mode, passAndPlay) => {
+                setIsTvPassAndPlay(passAndPlay);
+                partyService.sendAction({
+                  type: "START_MATCH",
+                  senderId: "TV_HOST",
+                  payload: { mode, isPassAndPlay: passAndPlay },
+                } as any);
 
-              const playerKeys = Object.keys(tvPlayers);
-              const p2Name = playerKeys[1] ? tvPlayers[playerKeys[1]].nickname : "Player 2";
-              setGameState(createInitialState(
-                mode,
-                "ONLINE",
-                "KILLER",
-                Math.max(2, playerKeys.length),
-                mode === "SECRET_SERVICE" ? 2 : 3,
-                16,
-                p2Name
-              ));
-              setTvPartyState("TV_BOARD");
-            }}
-            onExit={() => {
-              partyService.disconnect();
-              setTvPartyState("NONE");
-              setIsLobbyOpen(true);
-            }}
-          />
+                const playerKeys = Object.keys(tvPlayers);
+                const p2Name = playerKeys[1] ? tvPlayers[playerKeys[1]].nickname : "Player 2";
+                setGameState(createInitialState(
+                  mode,
+                  "ONLINE",
+                  "KILLER",
+                  Math.max(2, playerKeys.length),
+                  mode === "SECRET_SERVICE" ? 2 : 3,
+                  16,
+                  p2Name
+                ));
+                setTvPartyState("TV_BOARD");
+              }}
+              onExit={() => {
+                partyService.disconnect();
+                setTvPartyState("NONE");
+                setIsLobbyOpen(true);
+              }}
+            />
+          </Suspense>
         </div>
       )}
 
       {/* РЕЖИМ TV PARTY: Главный экран телевизора */}
       {tvPartyState === "TV_BOARD" && (
         <div className="fixed inset-0 z-50 bg-[#080a0f]">
-          <TvBoardView
-            gameState={gameState}
-            secondsLeft={60}
-            selectedLine={tvLinePreview}
-            onExit={() => {
-              partyService.disconnect();
-              setTvPartyState("NONE");
-              setIsLobbyOpen(true);
-            }}
-            onRestart={() => {
-              partyService.sendAction({ type: "RESTART_GAME" });
-            }}
-          />
+          <Suspense fallback={<ScreenFallback />}>
+            <TvBoardView
+              gameState={gameState}
+              secondsLeft={60}
+              selectedLine={tvLinePreview}
+              onExit={() => {
+                partyService.disconnect();
+                setTvPartyState("NONE");
+                setIsLobbyOpen(true);
+              }}
+              onRestart={() => {
+                partyService.sendAction({ type: "RESTART_GAME" });
+              }}
+            />
+          </Suspense>
         </div>
       )}
     </div>

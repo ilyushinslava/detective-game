@@ -4,6 +4,7 @@ import {
   getAdjacentCharacters,
   createInitialState,
   cleanupDeadCharacters,
+  canCleanupBoard,
 } from "../gameLogic";
 import type { Character, GameState } from "../../types/game";
 
@@ -70,5 +71,18 @@ describe("Ядро правил игры (gameLogic)", () => {
     expect(nextState.board.flat().length).toBe(25);
     expect(nextState.board.flat()[24].id).toBe("c_0_0");
     expect(nextState.board.flat()[24].isAlive).toBe(false);
+  });
+
+  it("canCleanupBoard: неактивна (false) при всех живых персонажах, активна (true) при наличии убитых", () => {
+    const aliveBoard: Character[][] = Array(5).fill(null).map((_, r) =>
+      Array(5).fill(null).map((__, c) => createMockChar(`c_${r}_${c}`, `Персонаж ${r}_${c}`, true))
+    );
+
+    // При полном здоровье всех персонажей зачистка строго недоступна
+    expect(canCleanupBoard(aliveBoard)).toBe(false);
+
+    // Убиваем персонажа в начале поля
+    aliveBoard[0][1].isAlive = false;
+    expect(canCleanupBoard(aliveBoard)).toBe(true);
   });
 });

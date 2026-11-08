@@ -1,5 +1,7 @@
 import type { Role } from "./game";
 
+export type ClientDeviceType = "TV_DISPLAY" | "CONTROLLER" | "PLAYER" | "SPECTATOR";
+
 export type BaseGameAction = {
   senderId?: string;
   timestamp?: number;

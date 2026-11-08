@@ -273,4 +273,85 @@ describe("GameRoomServer Security (SEC-01 & SEC-02)", () => {
       expect(server.state.status).toBe("READY_TO_START");
     });
   });
+
+  describe("SEC-05: TV Party Session Constraints & Controller Limits (TASK-NET-001)", () => {
+    it("allows only 1 TV_DISPLAY per room and rejects subsequent TV connections with MAX_TV_REACHED", () => {
+      const tv1Conn = createMockConn("conn_tv_1");
+      connections.push(tv1Conn);
+      server.onConnect(tv1Conn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=tv_1&clientType=TV_DISPLAY"),
+      });
+
+      expect(server.state.tvDisplays["tv_1"]).toBeDefined();
+      expect(Object.keys(server.state.tvDisplays).length).toBe(1);
+      // TV must not occupy player slots
+      expect(Object.keys(server.state.players).length).toBe(0);
+
+      // Attempt to connect a second TV
+      const tv2Conn = createMockConn("conn_tv_2");
+      connections.push(tv2Conn);
+      server.onConnect(tv2Conn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=tv_2&clientType=TV_DISPLAY"),
+      });
+
+      expect(tv2Conn.close).toHaveBeenCalled();
+      const err = tv2Conn.sent.map((s) => JSON.parse(s)).find((m) => m.type === "ERROR");
+      expect(err?.message).toBe("MAX_TV_REACHED");
+      expect(Object.keys(server.state.tvDisplays).length).toBe(1);
+    });
+
+    it("enforces controller limit based on game mode and rejects excess players with ROOM_FULL", () => {
+      // Connect 2 controllers in MANIAC_VS_OPERATIVE (max 2 players)
+      const p1Conn = createMockConn("conn_p1");
+      connections.push(p1Conn);
+      server.onConnect(p1Conn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=c_p1&clientType=CONTROLLER&isHost=true&mode=MANIAC_VS_OPERATIVE"),
+      });
+
+      const p2Conn = createMockConn("conn_p2");
+      connections.push(p2Conn);
+      server.onConnect(p2Conn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=c_p2&clientType=CONTROLLER&isHost=false"),
+      });
+
+      expect(Object.keys(server.state.players).length).toBe(2);
+
+      // Attempt to connect a 3rd controller
+      const p3Conn = createMockConn("conn_p3");
+      connections.push(p3Conn);
+      server.onConnect(p3Conn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=c_p3&clientType=CONTROLLER&isHost=false"),
+      });
+
+      expect(p3Conn.close).toHaveBeenCalled();
+      const err = p3Conn.sent.map((s) => JSON.parse(s)).find((m) => m.type === "ERROR");
+      expect(err?.message).toBe("ROOM_FULL");
+      expect(Object.keys(server.state.players).length).toBe(2);
+    });
+
+    it("successfully rebinds session when client reconnects with new clientId but valid authToken", () => {
+      const p1Conn = createMockConn("conn_p1");
+      connections.push(p1Conn);
+      server.onConnect(p1Conn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=initial_client_id&clientType=CONTROLLER&isHost=true"),
+      });
+
+      const tokenMsg = p1Conn.sent.map((s) => JSON.parse(s)).find((m) => m.type === "AUTH_TOKEN");
+      const validToken = tokenMsg.authToken;
+      expect(validToken).toBeDefined();
+
+      // Mobile browser reloaded, new socket ID and new clientId, but with saved authToken
+      const p1NewConn = createMockConn("conn_p1_reloaded");
+      connections.push(p1NewConn);
+      server.onConnect(p1NewConn, {
+        request: new Request(`http://localhost:1999/party/security-test-room?clientId=brand_new_client_id&clientType=CONTROLLER&isHost=false&authToken=${validToken}`),
+      });
+
+      // Session must be rebound to the new clientId
+      expect(server.state.players["brand_new_client_id"]).toBeDefined();
+      expect(server.state.players["initial_client_id"]).toBeUndefined();
+      expect(server.state.players["brand_new_client_id"].authToken).toBe(validToken);
+      expect(server.state.players["brand_new_client_id"].connectionId).toBe("conn_p1_reloaded");
+    });
+  });
 });

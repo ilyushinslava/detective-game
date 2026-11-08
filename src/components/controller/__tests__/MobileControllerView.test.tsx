@@ -80,4 +80,28 @@ describe("MobileControllerView Component", () => {
       },
     });
   });
+
+  it("allows selecting player's own card in 3x3 radar grid", () => {
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "KILLER");
+    state.currentTurn = "KILLER";
+
+    render(
+      <MobileControllerView
+        gameState={state}
+        playerRole="KILLER"
+        onDispatchAction={vi.fn()}
+      />
+    );
+
+    // Find the center card with "ВЫ" badge
+    const youBadge = screen.getByText("ВЫ");
+    expect(youBadge).toBeDefined();
+
+    const centerCardContainer = youBadge.closest(".cursor-pointer");
+    expect(centerCardContainer).toBeDefined();
+
+    // Clicking center card is enabled and marks it as target
+    fireEvent.click(centerCardContainer!);
+    expect(centerCardContainer?.className).toContain("scale-105");
+  });
 });

@@ -69,6 +69,11 @@ export default class GameRoomServer {
     isPaused: false,
   };
 
+  getMaxPlayersForMode(mode: GameModeType): number {
+    if (mode === "SECRET_SERVICE") return 4;
+    return 2;
+  }
+
   startTurnTimer(role: Role, durationMs: number = 30000): void {
     if (this.turnTimerState.timer) {
       clearTimeout(this.turnTimerState.timer);
@@ -273,6 +278,19 @@ export default class GameRoomServer {
 
     // Режим ТВ-экрана: экран не занимает слот игрока, а подписывается на события
     if (clientType === "TV_DISPLAY") {
+      const existingTvIds = Object.keys(this.state.tvDisplays);
+      const isExistingTv = Boolean(this.state.tvDisplays[clientId]);
+
+      // К комнате может подключиться только 1 ТВ-дисплей
+      if (existingTvIds.length >= 1 && !isExistingTv) {
+        try {
+          conn.send(JSON.stringify({ type: "ERROR", message: "MAX_TV_REACHED" }));
+          conn.close();
+        } catch (_err) {}
+        console.warn(`[GameRoomServer] TV connection rejected for room ${roomCode}: only 1 TV allowed.`);
+        return;
+      }
+
       this.state.tvDisplays[clientId] = { clientId, connectionId: conn.id };
       if (!this.state.status || this.state.status === "EMPTY") {
         this.state.status = "WAITING";
@@ -285,7 +303,7 @@ export default class GameRoomServer {
         hostName: nickname || "TV_HOST",
         status: this.state.status,
         playersCount: Object.keys(this.state.players).length,
-        maxPlayers: 4,
+        maxPlayers: this.getMaxPlayersForMode(this.state.mode),
         bet: 250,
       });
 
@@ -303,10 +321,24 @@ export default class GameRoomServer {
         ? crypto.randomUUID()
         : `auth_${Date.now()}_${Math.random().toString(36).substring(2)}${Math.random().toString(36).substring(2)}`;
 
-    // Повторное подключение игрока
+    // Повторное подключение игрока: поиск по clientId или по authToken
+    const incomingAuthToken = url.searchParams.get("authToken");
+
+    let existingPlayerId: string | null = null;
     if (this.state.players[clientId]) {
-      const incomingAuthToken = url.searchParams.get("authToken");
-      const expectedToken = this.state.players[clientId].authToken;
+      existingPlayerId = clientId;
+    } else if (incomingAuthToken) {
+      const matchByToken = Object.values(this.state.players).find(
+        (p) => p.authToken === incomingAuthToken
+      );
+      if (matchByToken) {
+        existingPlayerId = matchByToken.clientId;
+      }
+    }
+
+    if (existingPlayerId) {
+      const existingPlayer = this.state.players[existingPlayerId];
+      const expectedToken = existingPlayer.authToken;
 
       // Если у игрока зарегистрирован секретный токен, он обязан совпадать
       if (expectedToken && incomingAuthToken !== expectedToken) {
@@ -317,10 +349,10 @@ export default class GameRoomServer {
         return;
       }
 
-      const pendingTimer = this.disconnectTimers.get(clientId);
+      const pendingTimer = this.disconnectTimers.get(existingPlayerId);
       if (pendingTimer) {
         clearTimeout(pendingTimer);
-        this.disconnectTimers.delete(clientId);
+        this.disconnectTimers.delete(existingPlayerId);
       }
 
       if (this.dualDisconnectTimer) {
@@ -330,13 +362,24 @@ export default class GameRoomServer {
         const remainingGrace = Math.max(1000, DISCONNECT_GRACE_PERIOD_MS - elapsed);
         this.dualDisconnectStartedAt = null;
 
-        for (const [otherId, otherPlayer] of Object.entries(this.state.players)) {
-          if (otherId !== clientId) {
+        for (const [otherId] of Object.entries(this.state.players)) {
+          if (otherId !== existingPlayerId) {
             const timer = setTimeout(() => {
               this.handleIndividualGraceTimeout(otherId);
             }, remainingGrace);
             this.disconnectTimers.set(otherId, timer);
           }
+        }
+      }
+
+      // Если clientId изменился при том же токене, переносим сессию
+      if (existingPlayerId !== clientId) {
+        delete this.state.players[existingPlayerId];
+        existingPlayer.clientId = clientId;
+        this.state.players[clientId] = existingPlayer;
+        if (this.state.readyClients.has(existingPlayerId)) {
+          this.state.readyClients.delete(existingPlayerId);
+          this.state.readyClients.add(clientId);
         }
       }
 
@@ -373,6 +416,17 @@ export default class GameRoomServer {
         conn.send(JSON.stringify({ type: "ERROR", message: "ROOM_NOT_FOUND" }));
         conn.close();
       } catch (_err) {}
+      return;
+    }
+
+    // Проверка лимита игроков в соответствии с выбранным режимом
+    const maxPlayersForMode = this.getMaxPlayersForMode(this.state.mode);
+    if (activePlayersCount >= maxPlayersForMode) {
+      try {
+        conn.send(JSON.stringify({ type: "ERROR", message: "ROOM_FULL" }));
+        conn.close();
+      } catch (_err) {}
+      console.warn(`[GameRoomServer] Connection rejected: room ${roomCode} is full (${activePlayersCount}/${maxPlayersForMode}).`);
       return;
     }
 
@@ -994,8 +1048,13 @@ export default class GameRoomServer {
     const copy: any = { ...state };
     copy.killerSecretId = null;
     copy.detectiveSecretId = null;
+    copy.duelSecretKillerId = null;
+    copy.duelSecretDetectiveId = null;
+    copy.killerRoleCard = null;
+    copy.detectiveRoleCard = null;
     copy.killerHand = [];
     copy.detectiveHand = [];
+    copy.robberHand = [];
     copy.inspectorChoices = [];
     copy.disguisedNotification = null;
     copy.evidenceDeck = [];

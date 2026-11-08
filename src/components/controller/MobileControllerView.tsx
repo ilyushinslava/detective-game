@@ -6,7 +6,6 @@ import { CharacterCard } from '../CharacterCard';
 import { PassAndPlayModal } from './PassAndPlayModal';
 import { InspectorChoiceModal } from '../InspectorChoiceModal';
 import { ActionButtonsBar } from '../ui/ActionButtonsBar';
-import { RoleCards } from '../RoleCards';
 import { GameSheets } from '../GameSheets';
 import { soundManager } from '../../utils/audio';
 import { triggerHaptic } from '../../utils/haptics';
@@ -676,23 +675,25 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   // 3. Основной экран хода контроллера
   return (
     <div className="flex h-[100dvh] w-screen flex-col justify-between bg-[#080a0f] p-5 pb-8 text-zinc-100 select-none overflow-y-auto font-sans">
-      {/* Верхний статус */}
+      {/* Верхний статус роли */}
       <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3 gap-3">
         <div className="flex-1 min-w-0">
-          <RoleCards
-            mode={gameState.mode}
-            role1Name={isKiller ? roleName : ''}
-            role2Name={!isKiller ? roleName : ''}
-            killerNameText={isKiller ? (myCharacter?.name || '••••••••') : ''}
-            detectiveNameText={!isKiller ? (myCharacter?.name || '••••••••') : ''}
-            canPeekKiller={isKiller}
-            canPeekDetective={!isKiller}
-            onPeekKillerStart={() => setIsPeeking(true)}
-            onPeekKillerEnd={() => setIsPeeking(false)}
-            onPeekDetectiveStart={() => setIsPeeking(true)}
-            onPeekDetectiveEnd={() => setIsPeeking(false)}
-            isPVP={false}
-          />
+          <div className="flex items-center gap-2.5 p-2 rounded-xl bg-zinc-900/70 border border-white/10 shadow-sm">
+            <span
+              className={`text-[9px] sm:text-[10px] font-black uppercase px-2 py-0.5 rounded tracking-wider shrink-0 ${
+                isKiller
+                  ? 'bg-red-950/80 border border-red-600/80 text-red-200'
+                  : roleName === 'Полиция' || roleName === 'ПОЛИЦИЯ'
+                    ? 'bg-blue-900/40 border border-blue-800/50 text-blue-400'
+                    : 'bg-blue-950/80 border border-blue-600/80 text-blue-200'
+              }`}
+            >
+              {roleName}
+            </span>
+            <span className="text-xs sm:text-sm font-black text-zinc-100 truncate">
+              {myCharacter?.name || '••••••••'}
+            </span>
+          </div>
         </div>
         {onExit && (
           <button
@@ -785,12 +786,12 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
               return (
                 <div
                   key={char.id}
-                  onClick={() => !isCenter && setSelectedTargetId(char.id)}
+                  onClick={() => setSelectedTargetId(char.id)}
                   className={`aspect-square rounded-2xl border p-1 flex flex-col justify-between transition-all relative ${
-                    isCenter
-                      ? 'border-white/20 bg-zinc-900/90 shadow-inner cursor-default'
-                      : isSelected
-                        ? `${targetBorderClass} scale-105 z-10 cursor-pointer`
+                    isSelected
+                      ? `${targetBorderClass} scale-105 z-10 cursor-pointer`
+                      : isCenter
+                        ? 'border-white/30 bg-zinc-900/90 shadow-inner hover:border-white/50 cursor-pointer'
                         : 'border-white/10 bg-zinc-950/70 hover:border-zinc-500 cursor-pointer'
                   }`}
                 >
@@ -800,7 +801,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                       character={char}
                       isSelected={isSelected}
                       isPVP={true}
-                      onClick={() => !isCenter && setSelectedTargetId(char.id)}
+                      onClick={() => setSelectedTargetId(char.id)}
                     />
                     {isCenter && (
                       <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded bg-zinc-950/90 border border-white/20 text-[8px] font-black uppercase text-zinc-300 pointer-events-none">

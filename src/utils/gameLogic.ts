@@ -781,6 +781,10 @@ export function canCleanupBoard(board: Character[][] | Character[]): boolean {
     ? (board as Character[][]).flat()
     : (board as Character[]);
 
+  // Действие «Зачистить» доступно ТОЛЬКО если на поле есть минимум один выбывший персонаж
+  const hasDead = flat.some((char) => !char.isAlive);
+  if (!hasDead) return false;
+
   let foundDead = false;
   for (const char of flat) {
     if (!char.isAlive) {

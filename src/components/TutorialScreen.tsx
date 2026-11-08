@@ -17,7 +17,7 @@ interface TutorialScreenProps {
   onFinish: () => void;
 }
 
-type TutorialModule = "MENU" | "BASICS" | "MANIAC" | "THIEF" | "SECRET_SERVICE";
+type TutorialModule = "MENU" | "BASICS" | "MANIAC" | "THIEF" | "SECRET_SERVICE" | "LINE_UP";
 
 const L4_KILLER_ID = ALL_CHARACTERS[6].id;
 const L4_PLAYER_ID = ALL_CHARACTERS[24].id;
@@ -29,6 +29,20 @@ const getInitialBoard = (module: TutorialModule, lesson: number = 1) => {
     isExonerated: false,
     isRobbed: false,
   }));
+
+  if (module === "LINE_UP") {
+    const c1Index = chars.findIndex(c => c.id === 'c1');
+    if (c1Index !== -1 && c1Index !== 12) {
+      const temp = chars[12];
+      chars[12] = chars[c1Index];
+      chars[c1Index] = temp;
+    }
+    const newBoard: Character[][] = [];
+    for (let i = 0; i < 5; i++) {
+      newBoard.push(chars.slice(i * 5, i * 5 + 5));
+    }
+    return newBoard;
+  }
 
   if (module === "BASICS") {
     if (lesson === 4) {
@@ -98,7 +112,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   const [completedModules, setCompletedModules] = useState<string[]>(() => {
     try {
       if (typeof window !== 'undefined' && localStorage.getItem("crime_city_tutorial") === "true") {
-        return ["BASICS", "MANIAC", "THIEF", "SECRET_SERVICE"];
+        return ["BASICS", "MANIAC", "THIEF", "SECRET_SERVICE", "LINE_UP"];
       }
       const saved = localStorage.getItem("crime_city_completed_modules");
       return saved ? JSON.parse(saved) : [];
@@ -119,7 +133,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     });
   };
 
-  const allModulesCompleted = ["BASICS", "MANIAC", "THIEF", "SECRET_SERVICE"].every(m =>
+  const allModulesCompleted = ["BASICS", "MANIAC", "THIEF", "SECRET_SERVICE", "LINE_UP"].every(m =>
     completedModules.includes(m)
   );
 
@@ -230,6 +244,13 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       if (lesson === 1) return <span className="text-red-400 font-bold">Текущая цель заказа: {targetVictimName}</span>;
       if (lesson === 2) return <span className="text-red-400 font-bold">Уход от погони: смените личность</span>;
     }
+    if (currentModule === "LINE_UP") {
+      if (step === 1) return <span className="text-cyan-400 font-bold">Опрос: задайте вопрос о приметах подозреваемого</span>;
+      if (step === 2) return <span className="text-emerald-400 font-bold">Ответ свидетеля: «ДА, ЕСТЬ ГОЛОВНОЙ УБОР»</span>;
+      if (step === 3) return <span className="text-blue-400 font-bold">Исключение: выберите фигуранта без алиби (Руслан Громов)</span>;
+      if (step === 4) return <span className="text-red-400 font-bold">Финальный вердикт: подтвердите обвинение фигуранта</span>;
+      if (step === 5) return <span className="text-emerald-400 font-bold animate-pulse">Очная ставка выиграна: фигурант изобличен!</span>;
+    }
     if (currentModule === "THIEF") {
       if (step === 4) return <span className="text-blue-400 font-bold">Маскировка успешна: принято новое прикрытие</span>;
       return <span className="text-red-400 font-bold">Операция Вора: Похищение сокровищ без ликвидаций</span>;
@@ -310,6 +331,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
         setSelectedId(id);
         setScanResult(null);
         setStep(2);
+      }
+    } else if (currentModule === "LINE_UP") {
+      if (lesson === 1 && step === 3 && id === "c1") {
+        triggerHaptic("light");
+        setSelectedId(id);
+        setStep(4);
       }
     }
   };
@@ -446,7 +473,14 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   const handleConfirmDisguise = () => {
     if (newDisguiseChar) {
-      if (currentModule === "THIEF") {
+      if (currentModule === "LINE_UP") {
+      if (step === 1) return <span className="text-cyan-400 font-bold">Опрос: задайте вопрос о приметах подозреваемого</span>;
+      if (step === 2) return <span className="text-emerald-400 font-bold">Ответ свидетеля: «ДА, ЕСТЬ ГОЛОВНОЙ УБОР»</span>;
+      if (step === 3) return <span className="text-blue-400 font-bold">Исключение: выберите фигуранта без алиби (Руслан Громов)</span>;
+      if (step === 4) return <span className="text-red-400 font-bold">Финальный вердикт: подтвердите обвинение фигуранта</span>;
+      if (step === 5) return <span className="text-emerald-400 font-bold animate-pulse">Очная ставка выиграна: фигурант изобличен!</span>;
+    }
+    if (currentModule === "THIEF") {
         setThiefSecretId(newDisguiseChar.id);
       } else if (currentModule === "MANIAC") {
         setManiacSecretId(newDisguiseChar.id);
@@ -490,6 +524,39 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     }
   };
 
+  const handleAskQuestionDuel = () => {
+    if (currentModule === "LINE_UP" && lesson === 1 && step === 1) {
+      soundManager.play("radar");
+      triggerHaptic("medium");
+      setStep(2);
+    }
+  };
+
+  const handleEliminateDuel = () => {
+    if (currentModule === "LINE_UP" && lesson === 1 && step === 2) {
+      soundManager.play("slide");
+      triggerHaptic("medium");
+      const newBoard = board.map((row) =>
+        row.map((c) => (c.id !== "c1" ? { ...c, isExonerated: true } : c))
+      );
+      setBoard(newBoard);
+      setStep(3);
+    }
+  };
+
+  const handleAccuseDuel = () => {
+    if (currentModule === "LINE_UP" && lesson === 1 && step === 4 && selectedId === "c1") {
+      const newBoard = board.map((row) =>
+        row.map((c) => (c.id === "c1" ? ({ ...c, isAlive: false, isArrested: true } as any) : c))
+      );
+      setBoard(newBoard);
+      soundManager.play("arrest");
+      triggerHaptic("success");
+      setStep(5);
+      setSelectedId(null);
+    }
+  };
+
   if (currentModule === "MENU") {
     return (
       <div className="fixed inset-0 z-[100] bg-[#080a0f] flex justify-center overflow-hidden font-sans select-none text-zinc-100 h-full w-full">
@@ -507,7 +574,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
             </div>
             <div className="text-right">
               <span className="text-[10px] font-mono text-zinc-400">
-                Пройдено: <b className="text-blue-400">{completedModules.length}</b>/4
+                Пройдено: <b className="text-blue-400">{completedModules.length}</b>/5
               </span>
             </div>
           </div>
@@ -580,6 +647,23 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               </div>
               <p className="text-xs text-zinc-400 leading-relaxed">Шпионские дуэли: перекрестный опрос очевидцев в секторе 3x3 и разоблачение вражеского резидента.</p>
             </div>
+
+            <div
+              onClick={() => startModule("LINE_UP")}
+              className={`p-4 rounded-2xl border transition cursor-pointer shadow-lg active:scale-99 ${
+                completedModules.includes("LINE_UP")
+                  ? "bg-zinc-900/40 border-white/10"
+                  : "bg-zinc-900/60 border-white/10 hover:border-cyan-500/50"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-base font-black text-white uppercase tracking-wider">Очная ставка (Дуэль дедукции)</h3>
+                {completedModules.includes("LINE_UP") && (
+                  <span className="text-[9px] font-mono font-bold text-zinc-200 uppercase bg-zinc-900/80 px-2 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.1)]">✓ Сдано</span>
+                )}
+              </div>
+              <p className="text-xs text-zinc-400 leading-relaxed">Дедуктивная дуэль: опрос свидетелей по каталогу улик, отсечение непричастных и вынесение обвинения.</p>
+            </div>
           </div>
 
           <div className="p-4 border-t border-white/10 shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
@@ -624,7 +708,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
             ← К делам
           </button>
           <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase text-center flex-1">
-            {currentModule === "BASICS" ? "ОСНОВЫ СИН-СИТИ" : currentModule === "MANIAC" ? "ПОЧЕРК УБИЙЦЫ" : currentModule === "THIEF" ? "ОЦЕПЛЕНИЕ" : "ДИРЕКТИВА НОЛЬ"}
+            {currentModule === "BASICS" ? "ОСНОВЫ СИН-СИТИ" : currentModule === "MANIAC" ? "ПОЧЕРК УБИЙЦЫ" : currentModule === "THIEF" ? "ОЦЕПЛЕНИЕ" : currentModule === "SECRET_SERVICE" ? "ДИРЕКТИВА НОЛЬ" : "ОЧНАЯ СТАВКА"}
           </h2>
           <div className="w-16 shrink-0" />
         </div>
@@ -804,6 +888,37 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   <p className="text-xs text-zinc-400 font-mono">Резидент вскрыт! Получен первый компромат (1/3 трофея). Соберите 3 трофея в дуэли для полной ликвидации резидентуры.</p>
                 </div>
               )}
+
+              {currentModule === "LINE_UP" && lesson === 1 && step === 1 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-cyan-400 uppercase tracking-wider mb-0.5">Очная ставка (Каталог улик)</h3>
+                  <p className="text-xs text-zinc-400 font-mono">Тайный свидетель готов отвечать «ДА» или «НЕТ». Задайте вопрос из картотеки примет: <b className="text-cyan-300">«Есть ли головной убор?»</b> Нажмите кнопку внизу.</p>
+                </div>
+              )}
+              {currentModule === "LINE_UP" && lesson === 1 && step === 2 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Ответ получен: ДА</h3>
+                  <p className="text-xs text-zinc-400 font-mono">Свидетель подтвердил: подозреваемый был в шляпе. Все лица без головного убора получают алиби. <b className="text-blue-400">Нажмите «Исключить непричастных».</b></p>
+                </div>
+              )}
+              {currentModule === "LINE_UP" && lesson === 1 && step === 3 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Круг сужен!</h3>
+                  <p className="text-xs text-zinc-400 font-mono">Непричастные отсечены синей меткой алиби. <b className="text-cyan-300">Выберите карточку оставшегося фигуранта — Руслана Громова (#01).</b></p>
+                </div>
+              )}
+              {currentModule === "LINE_UP" && lesson === 1 && step === 4 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-red-400 uppercase tracking-wider mb-0.5">Финальное обвинение</h3>
+                  <p className="text-xs text-zinc-400 font-mono">Фигурант заблокирован доказательствами. <b className="text-red-400">Нажмите «Вынести обвинение (Арест)» внизу.</b></p>
+                </div>
+              )}
+              {currentModule === "LINE_UP" && lesson === 1 && step === 5 && (
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Победа в ставке!</h3>
+                  <p className="text-xs text-zinc-400 font-mono">Точное обвинение сломало защиту противника. Курс «Очная ставка» успешно сдан.</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -817,7 +932,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
             currentModule === "BASICS" && lesson === 1 && (step === 1 || step === 2) ? "tutorial-highlight-l1s2" : ""
           } ${currentModule === "MANIAC" && lesson === 1 && step === 1 ? "tutorial-highlight-maniac" : ""}`}>
             <GameBoard
-              mode={currentModule === "THIEF" ? "THIEF_HUNT" : currentModule === "SECRET_SERVICE" ? "SECRET_SERVICE" : "MANIAC_VS_OPERATIVE"}
+              mode={currentModule === "THIEF" ? "THIEF_HUNT" : currentModule === "SECRET_SERVICE" ? "SECRET_SERVICE" : currentModule === "LINE_UP" ? "LINE_UP" : "MANIAC_VS_OPERATIVE"}
               board={board}
               selectedCharacterId={selectedId}
               killerAdjacentIds={adjacentIds}
@@ -828,7 +943,8 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                 (currentModule === "MANIAC" && lesson === 1 && step === 2) ||
                 (currentModule === "THIEF" && lesson === 1 && step === 1) ||
                 (currentModule === "SECRET_SERVICE" && lesson === 1 && (step === 1 || (step === 2 && scanResult === "FAR"))) ||
-                (currentModule === "SECRET_SERVICE" && lesson === 2 && step === 1)
+                (currentModule === "SECRET_SERVICE" && lesson === 2 && step === 1) ||
+                (currentModule === "LINE_UP" && lesson === 1 && step === 3)
               }
               showDetectiveHints={false}
               targetVictimId={
@@ -933,6 +1049,27 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                 <motion.button
                   onClick={() => {
                     markModuleCompleted("SECRET_SERVICE");
+                    setCurrentModule("MENU");
+                  }}
+                  className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-zinc-800 hover:bg-zinc-700 text-white border border-white/10 font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer"
+                >
+                  Завершить модуль ➔
+                </motion.button>
+              )}
+
+              {currentModule === "LINE_UP" && lesson === 1 && step === 1 && (
+                <motion.button onClick={handleAskQuestionDuel} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(6,182,212,0.4)] cursor-pointer">Задать вопрос: Головной убор?</motion.button>
+              )}
+              {currentModule === "LINE_UP" && lesson === 1 && step === 2 && (
+                <motion.button onClick={handleEliminateDuel} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Исключить непричастных ➔</motion.button>
+              )}
+              {currentModule === "LINE_UP" && lesson === 1 && step === 4 && (
+                <motion.button onClick={handleAccuseDuel} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(220,38,38,0.4)] cursor-pointer">Вынести обвинение (Арест)</motion.button>
+              )}
+              {currentModule === "LINE_UP" && lesson === 1 && step === 5 && (
+                <motion.button
+                  onClick={() => {
+                    markModuleCompleted("LINE_UP");
                     setCurrentModule("MENU");
                   }}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-zinc-800 hover:bg-zinc-700 text-white border border-white/10 font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer"

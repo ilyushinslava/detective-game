@@ -20,12 +20,18 @@ export interface MobileControllerViewProps {
   isPassAndPlay?: boolean;
 }
 
-type ShiftStep = 'IDLE' | 'SELECT_AXIS' | 'SELECT_INDEX' | 'SELECT_DIR' | 'CONFIRM';
+export type ShiftWizardStep =
+  | 'IDLE'          // 0: Основной экран хода
+  | 'SELECT_AXIS'   // Шаг 1: Выбор оси (Горизонталь / Вертикаль)
+  | 'SELECT_INDEX'  // Шаг 2: Выбор линии (1–5) с отправкой PREVIEW_SHIFT
+  | 'SELECT_DIR'    // Шаг 3: Выбор направления (Влево/Вправо или Вверх/Вниз)
+  | 'CONFIRM';      // Шаг 4: Подтверждение действия -> Шаг 5: SHIFT_BOARD -> Шаг 6: Ожидание
+
 type ActionDef = ActionDescriptor;
 
 const Icons = {
   Clock: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-9 h-9">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-10 h-10">
       <circle cx="12" cy="12" r="10" />
       <polyline points="12 6 12 12 16 14" />
     </svg>
@@ -80,7 +86,8 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   const isKiller = playerRole === 'KILLER';
   const mySpyIndex = playerRole === 'KILLER' ? 0 : 1;
 
-  const isMyTurn = isSecretService
+  // Очередь хода по каноническим правилам
+  const isTurnActuallyMine = isSecretService
     ? gameState.activeSpyIndex === mySpyIndex
     : gameState.currentTurn === playerRole;
 
@@ -97,11 +104,13 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       ? (gameState.mode === 'THIEF_HUNT' ? 'Грабитель' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Маньяк' : 'Бандит')
       : (gameState.mode === 'THIEF_HUNT' ? 'Полиция' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Оперативник' : 'Инспектор');
 
-  const [shiftStep, setShiftStep] = useState<ShiftStep>('IDLE');
+  // Локальные состояния визарда сдвига и блокировки ожидания
+  const [shiftStep, setShiftStep] = useState<ShiftWizardStep>('IDLE');
   const [selectedAxis, setSelectedAxis] = useState<'ROW' | 'COL'>('ROW');
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [selectedDir, setSelectedDir] = useState<'LEFT' | 'RIGHT' | 'UP' | 'DOWN'>('LEFT');
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
+  const [isAwaitingTurnEnd, setIsAwaitingTurnEnd] = useState<boolean>(false);
 
   const [isCoverOpen, setIsCoverOpen] = useState(false);
   const [isDossierOpen, setIsDossierOpen] = useState(false);
@@ -111,19 +120,23 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   const [pendingAction, setPendingAction] = useState<ActionDef | null>(null);
   const [isPeeking, setIsPeeking] = useState(false);
 
+  // Проверка Anti-Undo для сдвига
   const isUndoMove = useMemo(() => {
     const dir = (selectedDir === 'LEFT' || selectedDir === 'UP') ? 'BACKWARD' : 'FORWARD';
     return isOppositeShift(gameState.lastShift, selectedAxis, selectedIndex, dir);
   }, [gameState.lastShift, selectedAxis, selectedIndex, selectedDir]);
 
+  // Сброс при смене активного хода на сервере
   useEffect(() => {
     setSelectedTargetId(null);
     setPendingAction(null);
     setShiftStep('IDLE');
     setIsDossierOpen(false);
     setIsPeeking(false);
+    setIsAwaitingTurnEnd(false);
   }, [gameState.currentTurn, gameState.activeSpyIndex]);
 
+  // Карточка персонажа текущего игрока
   const myCharacter = useMemo(() => {
     if (!mySecretId || !gameState.board || gameState.board.length === 0) return null;
     return gameState.board.flat().find((c) => c.id === mySecretId) || null;
@@ -133,6 +146,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     ? 'border-red-500 bg-red-950/40 shadow-[0_0_14px_rgba(239,68,68,0.4)]'
     : 'border-blue-500 bg-blue-950/40 shadow-[0_0_14px_rgba(59,130,246,0.4)]';
 
+  // Соседи персонажа (вырезка 3x3)
   const neighbors = useMemo(() => {
     if (!gameState.board || gameState.board.length === 0) return [];
     const all = gameState.board.flat();
@@ -157,6 +171,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     return Array.from(map.values());
   }, [gameState.board, gameState.mode, mySecretId, isKiller, gameState.uniformedOfficers]);
 
+  // Сетка 3x3 локатора вокруг игрока
   const locatorGrid = useMemo(() => {
     if (!mySecretId || !gameState.board || gameState.board.length === 0) return [];
     const board = gameState.board;
@@ -209,7 +224,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     gameState.mode === ('SKHVATKA' as any) &&
     Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) &&
     !isKiller &&
-    isMyTurn;
+    isTurnActuallyMine;
 
   const inspectorChoiceCharacters = useMemo(() => {
     if (!isInspectorPending || !gameState.inspectorChoices || !gameState.board) return [];
@@ -247,7 +262,8 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     };
   }, [gameState.mode, gameState.spies, gameState.activeSpyIndex, gameState.currentTurn, isSecretService]);
 
-  const updateLinePreview = (line: any) => {
+  // Обновление и трансляция подсветки линии на ТВ
+  const updateLinePreview = (line: { type: 'ROW' | 'COL'; index: number; direction?: 'FORWARD' | 'BACKWARD' } | null) => {
     triggerHaptic('light');
     onSelectLinePreview?.(line);
     onDispatchAction({
@@ -256,7 +272,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     });
     onDispatchAction({
       type: 'PREVIEW_SHIFT',
-      payload: line ? { type: line.type, index: line.index } : null,
+      payload: line ? { type: line.type, index: line.index, direction: line.direction } : null,
     });
   };
 
@@ -265,10 +281,12 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     updateLinePreview(null);
   };
 
+  // Шаг 5: Выполнение действия (отправка SHIFT_BOARD) -> Шаг 6: Автоматический переход в ожидание
   const handleConfirmShift = () => {
     soundManager.play('slide');
     triggerHaptic('medium');
     const direction = (selectedDir === 'LEFT' || selectedDir === 'UP') ? 'BACKWARD' : 'FORWARD';
+
     onDispatchAction({
       type: 'SHIFT_BOARD',
       payload: {
@@ -277,7 +295,14 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         direction,
       },
     });
-    handleResetShift();
+
+    // Очистка предпросмотра линии
+    updateLinePreview(null);
+    setShiftStep('IDLE');
+
+    // Шаг 6: Мгновенная блокировка экрана до подтверждения сервером смены хода
+    setIsAwaitingTurnEnd(true);
+
     if (isPassAndPlay) {
       setIsCoverOpen(true);
     }
@@ -306,6 +331,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     }
     if (act.id === 'END_TURN') {
       onDispatchAction({ type: 'END_TURN' });
+      setIsAwaitingTurnEnd(true);
+      if (isPassAndPlay) {
+        setIsCoverOpen(true);
+      }
       return;
     }
     if (act.id === 'DUEL_ASK_QUESTION') {
@@ -384,12 +413,18 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     );
   }
 
-  // 1. Экран ожидания хода
-  if (!isMyTurn) {
+  // =========================================================================
+  // 1. РЕЖИМ «ОЖИДАНИЕ» (Глухая блокировка при !isTurnActuallyMine или после хода)
+  // =========================================================================
+  if (!isTurnActuallyMine || isAwaitingTurnEnd) {
     return (
-      <div className="flex h-[100dvh] w-screen flex-col items-center justify-between bg-[#080a0f] p-6 pb-8 text-center text-zinc-100 select-none font-sans">
+      <div className="flex h-[100dvh] w-screen flex-col items-center justify-between bg-[#080a0f] p-5 pb-8 text-center text-zinc-100 select-none font-sans">
+        {/* Верхняя статусная строка */}
         <div className="w-full flex justify-between items-center border-b border-zinc-800/80 pb-3">
-          <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">КОНТРОЛЛЕР</span>
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
+            <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">КОНТРОЛЛЕР</span>
+          </div>
           {onExit && (
             <button
               onClick={onExit}
@@ -400,119 +435,184 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           )}
         </div>
 
-        <div className="my-auto flex flex-col items-center max-w-xs">
-          <div className="w-20 h-20 rounded-3xl border border-white/10 bg-zinc-950/80 flex items-center justify-center text-zinc-400 mb-6 shadow-2xl animate-pulse">
+        {/* Центральный блок: Экран ожидания (по мастер-макетам ТВ1.jpg и ТВ2.jpg) */}
+        <div className="my-auto flex flex-col items-center max-w-sm w-full px-2">
+          <div className="w-20 h-20 rounded-3xl border border-white/10 bg-zinc-950/80 flex items-center justify-center text-zinc-300 mb-5 shadow-2xl backdrop-blur-xl animate-pulse">
             <Icons.Clock />
           </div>
-          <h2 className="text-2xl font-black uppercase tracking-wider text-white mb-2">
+          <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-wider text-white mb-2">
             ОЖИДАНИЕ
           </h2>
-          <p className="text-sm text-zinc-400 leading-relaxed">
-            Сейчас ход соперника. Следите за игрой на экране ТВ.
+          <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed max-w-xs mb-6">
+            Сейчас ход другого игрока. Следите за происходящим на телевизоре.
           </p>
-        </div>
 
-        <div className="p-4 rounded-3xl bg-zinc-950/80 border border-white/10 w-full max-w-sm text-left shadow-lg">
-          <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500 mb-2">
-            ВАШЕ ДОСЬЕ
-          </div>
-          <div
-            onPointerDown={() => setIsPeeking(true)}
-            onPointerUp={() => setIsPeeking(false)}
-            onPointerLeave={() => setIsPeeking(false)}
-            onPointerCancel={() => setIsPeeking(false)}
-            className="flex items-center gap-3.5 cursor-pointer select-none"
-            title="Удерживайте для просмотра"
-          >
-            {isPeeking && myCharacter ? (
-              <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/20 bg-zinc-900 shrink-0 shadow-md">
-                <CharacterCard
-                  mode={gameState?.mode || 'MANIAC_VS_OPERATIVE'}
-                  character={myCharacter}
-                  isSelected={false}
-                  isPVP={true}
-                />
-              </div>
-            ) : (
-              <div className="w-12 h-12 rounded-2xl border border-white/10 bg-zinc-900/90 flex flex-col items-center justify-center text-zinc-400 shrink-0 shadow-inner">
-                <Icons.Eye />
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm ${
-                  isKiller
-                    ? 'bg-red-950/80 border-red-600/80 text-red-200'
-                    : (roleName === 'Полиция' || roleName === 'ПОЛИЦИЯ')
-                    ? 'bg-blue-900/40 border-blue-800/50 text-blue-400'
-                    : 'bg-blue-950/80 border-blue-600/80 text-blue-200'
-                }`}>
-                  <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${isKiller ? 'bg-red-400' : 'bg-blue-400'}`} />
-                  {roleName}
-                </span>
-                {myCharacter && (
-                  <span className="text-[10px] font-mono text-zinc-500">
-                    #{myCharacter.id.replace('c', '').padStart(2, '0')}
+          {/* Карточка досье игрока */}
+          <div className="p-4 rounded-3xl bg-zinc-950/80 border border-white/10 w-full text-left shadow-lg backdrop-blur-xl mb-3">
+            <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500 mb-2">
+              ВАША РОЛЬ • ВАШЕ ДОСЬЕ
+            </div>
+            <div
+              onPointerDown={() => setIsPeeking(true)}
+              onPointerUp={() => setIsPeeking(false)}
+              onPointerLeave={() => setIsPeeking(false)}
+              onPointerCancel={() => setIsPeeking(false)}
+              className="flex items-center gap-3.5 cursor-pointer select-none"
+              title="Удерживайте для просмотра"
+            >
+              {isPeeking && myCharacter ? (
+                <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/20 bg-zinc-900 shrink-0 shadow-md">
+                  <CharacterCard
+                    mode={gameState?.mode || 'MANIAC_VS_OPERATIVE'}
+                    character={myCharacter}
+                    isSelected={false}
+                    isPVP={true}
+                  />
+                </div>
+              ) : (
+                <div className="w-12 h-12 rounded-2xl border border-white/10 bg-zinc-900/90 flex flex-col items-center justify-center text-zinc-400 shrink-0 shadow-inner">
+                  <Icons.Eye />
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm ${
+                    isKiller
+                      ? 'bg-red-950/80 border-red-600/80 text-red-200'
+                      : (roleName === 'Полиция' || roleName === 'ПОЛИЦИЯ')
+                      ? 'bg-blue-900/40 border-blue-800/50 text-blue-400'
+                      : 'bg-blue-950/80 border-blue-600/80 text-blue-200'
+                  }`}>
+                    <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${isKiller ? 'bg-red-400' : 'bg-blue-400'}`} />
+                    {roleName}
                   </span>
-                )}
-              </div>
-              <div className="text-sm font-black text-zinc-200 truncate mt-1 font-mono">
-                {isPeeking && myCharacter ? myCharacter.name : '••••••••'}
+                  {myCharacter && (
+                    <span className="text-[10px] font-mono text-zinc-500">
+                      #{myCharacter.id.replace('c', '').padStart(2, '0')}
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm font-black text-zinc-200 truncate mt-1 font-mono">
+                  {isPeeking && myCharacter ? myCharacter.name : '•••••••• (Удерживайте)'}
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Сводка соседей персонажа (как в референсе ТВ2.jpg) */}
+          {neighbors.length > 0 && (
+            <div className="p-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 w-full text-left shadow-md backdrop-blur-md">
+              <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500 mb-2 flex items-center justify-between">
+                <span>ВАШИ СОСЕДИ</span>
+                <span className="text-zinc-400">({neighbors.length})</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {neighbors.map((c) => (
+                  <span
+                    key={c.id}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-zinc-900/80 border border-white/5 text-[11px] font-mono text-zinc-300"
+                  >
+                    <span className="text-zinc-500">#{c.id.replace('c', '').padStart(2, '0')}</span>
+                    <span className="truncate max-w-[120px] font-sans font-semibold">{c.name}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Нижний статус-индикатор ожидания */}
+        <div className="text-xs font-mono text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-zinc-600 animate-pulse" />
+          Дождитесь своего хода
         </div>
       </div>
     );
   }
 
-  // 2. Мастер сдвига линии (4 шага)
+  // =========================================================================
+  // 2. ПОШАГОВЫЙ ВИЗАРД СДВИГА ПОЛЯ (6 ШАГОВ)
+  // =========================================================================
   if (shiftStep !== 'IDLE') {
     return (
       <div className="flex h-[100dvh] w-screen flex-col justify-between bg-[#080a0f] p-5 pb-8 text-zinc-100 select-none font-sans">
+        {/* Шапка визарда */}
         <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-          <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-zinc-300">
-            МАНЕВР СДВИГА
-          </h3>
-          <button onClick={handleResetShift} className="text-xs text-zinc-400 uppercase font-mono cursor-pointer hover:text-white transition">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono font-bold uppercase tracking-widest text-white">
+              МАНЕВР СДВИГА
+            </span>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-950/80 border border-blue-500/50 text-blue-300 font-bold">
+              {shiftStep === 'SELECT_AXIS' && 'ШАГ 1/5'}
+              {shiftStep === 'SELECT_INDEX' && 'ШАГ 2/5'}
+              {shiftStep === 'SELECT_DIR' && 'ШАГ 3/5'}
+              {shiftStep === 'CONFIRM' && 'ШАГ 4/5'}
+            </span>
+          </div>
+          <button
+            onClick={handleResetShift}
+            className="text-xs text-zinc-400 uppercase font-mono cursor-pointer hover:text-white transition"
+          >
             Отмена
           </button>
         </div>
 
+        {/* Тело активного шага визарда */}
         <div className="my-auto flex flex-col items-center justify-center w-full max-w-sm mx-auto">
+          {/* ШАГ 1: ВЫБОР ОСИ (ГОРИЗОНТАЛЬ / ВЕРТИКАЛЬ) */}
           {shiftStep === 'SELECT_AXIS' && (
             <div className="w-full space-y-4">
-              <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 text-center">
-                ШАГ 1 • ВЫБЕРИТЕ ОСЬ
+              <div className="text-center space-y-1">
+                <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
+                  ШАГ 1 • ВЫБЕРИТЕ ОСЬ
+                </div>
+                <div className="text-xs text-zinc-500">
+                  Выберите, какую линию переместить на поле
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 w-full">
+
+              <div className="grid grid-cols-2 gap-4 w-full pt-2">
                 <button
-                  onClick={() => { setSelectedAxis('ROW'); setShiftStep('SELECT_INDEX'); }}
-                  className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-500 transition cursor-pointer shadow-xl active:scale-95"
+                  onClick={() => {
+                    setSelectedAxis('ROW');
+                    setShiftStep('SELECT_INDEX');
+                  }}
+                  className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-500 hover:bg-blue-950/20 transition cursor-pointer shadow-xl active:scale-95 group"
                 >
-                  <div className="text-xs font-mono font-bold text-zinc-400 mb-2">[ROW]</div>
-                  <div className="text-sm font-black uppercase text-white">Горизонталь</div>
-                  <div className="text-[11px] font-mono text-zinc-500 mt-1">5 рядов</div>
+                  <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center mx-auto mb-3 group-hover:border-blue-400 group-hover:text-blue-300">
+                    <span className="font-mono text-sm font-black">↔</span>
+                  </div>
+                  <div className="text-sm font-black uppercase tracking-wider text-white">Горизонталь</div>
+                  <div className="text-[11px] font-mono text-zinc-500 mt-1">Ряды 1–5</div>
                 </button>
+
                 <button
-                  onClick={() => { setSelectedAxis('COL'); setShiftStep('SELECT_INDEX'); }}
-                  className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-500 transition cursor-pointer shadow-xl active:scale-95"
+                  onClick={() => {
+                    setSelectedAxis('COL');
+                    setShiftStep('SELECT_INDEX');
+                  }}
+                  className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-500 hover:bg-blue-950/20 transition cursor-pointer shadow-xl active:scale-95 group"
                 >
-                  <div className="text-xs font-mono font-bold text-zinc-400 mb-2">[COL]</div>
-                  <div className="text-sm font-black uppercase text-white">Вертикаль</div>
-                  <div className="text-[11px] font-mono text-zinc-500 mt-1">5 столбцов</div>
+                  <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center mx-auto mb-3 group-hover:border-blue-400 group-hover:text-blue-300">
+                    <span className="font-mono text-sm font-black">↕</span>
+                  </div>
+                  <div className="text-sm font-black uppercase tracking-wider text-white">Вертикаль</div>
+                  <div className="text-[11px] font-mono text-zinc-500 mt-1">Столбцы 1–5</div>
                 </button>
               </div>
             </div>
           )}
 
+          {/* ШАГ 2: ВЫБОР ЛИНИИ (1–5) С ОТПРАВКОЙ PREVIEW_SHIFT НА ТВ */}
           {shiftStep === 'SELECT_INDEX' && (
             <div className="space-y-3 w-full">
-              <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 text-center mb-1">
-                {selectedAxis === 'ROW' ? 'ШАГ 2 • ВЫБЕРИТЕ ГОРИЗОНТАЛЬНЫЙ РЯД' : 'ШАГ 2 • ВЫБЕРИТЕ ВЕРТИКАЛЬНЫЙ СТОЛБЕЦ'}
-              </div>
-              <div className="text-[11px] font-mono text-zinc-500 text-center mb-2">
-                Выбранная линия сразу подсветится на телевизоре
+              <div className="text-center space-y-1 mb-2">
+                <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
+                  {selectedAxis === 'ROW' ? 'ШАГ 2 • ВЫБЕРИТЕ ГОРИЗОНТАЛЬНЫЙ РЯД' : 'ШАГ 2 • ВЫБЕРИТЕ ВЕРТИКАЛЬНЫЙ СТОЛБЕЦ'}
+                </div>
+                <div className="text-[11px] font-mono text-blue-400">
+                  Линия сразу подсвечивается на телевизоре
+                </div>
               </div>
 
               {selectedAxis === 'ROW' ? (
@@ -526,25 +626,25 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         updateLinePreview({ type: 'ROW', index: i });
                         setShiftStep('SELECT_DIR');
                       }}
-                      className="w-full h-11 sm:h-12 rounded-xl bg-zinc-950/90 border border-white/10 hover:border-blue-400 hover:bg-blue-950/30 flex items-center justify-between px-4 transition cursor-pointer active:scale-[0.98] shadow-md group"
+                      className="w-full h-12 rounded-2xl bg-zinc-950/90 border border-white/10 hover:border-blue-400 hover:bg-blue-950/30 flex items-center justify-between px-4 transition cursor-pointer active:scale-[0.98] shadow-md group"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="w-6 h-6 rounded-lg bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-xs font-bold text-zinc-300 group-hover:border-blue-400 group-hover:text-blue-300">
+                        <span className="w-7 h-7 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-xs font-black text-zinc-300 group-hover:border-blue-400 group-hover:text-blue-300">
                           {i + 1}
                         </span>
                         <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
-                          Ряд #{i + 1}
+                          РЯД #{i + 1}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 text-zinc-500 group-hover:text-blue-400">
-                        <span className="text-xs font-mono">Выбрать →</span>
+                        <span className="text-xs font-mono font-bold">Выбрать →</span>
                       </div>
                     </button>
                   ))}
                 </div>
               ) : (
-                /* Схема из 5 вертикальных столбиков (колонок) */
-                <div className="grid grid-cols-5 gap-2 w-full h-44 my-2">
+                /* Схема из 5 вертикальных столбиков */
+                <div className="flex flex-col gap-2 w-full">
                   {Array.from({ length: boardSize }, (_, i) => i).map((i) => (
                     <button
                       key={i}
@@ -553,15 +653,19 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         updateLinePreview({ type: 'COL', index: i });
                         setShiftStep('SELECT_DIR');
                       }}
-                      className="h-full rounded-2xl bg-zinc-950/90 border border-white/10 hover:border-blue-400 hover:bg-blue-950/30 flex flex-col items-center justify-between py-3 transition cursor-pointer active:scale-95 shadow-md group"
+                      className="w-full h-12 rounded-2xl bg-zinc-950/90 border border-white/10 hover:border-blue-400 hover:bg-blue-950/30 flex items-center justify-between px-4 transition cursor-pointer active:scale-[0.98] shadow-md group"
                     >
-                      <span className="w-6 h-6 rounded-lg bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-xs font-bold text-zinc-300 group-hover:border-blue-400 group-hover:text-blue-300">
-                        {i + 1}
-                      </span>
-                      <div className="w-1.5 flex-1 bg-white/10 rounded-full my-2 group-hover:bg-blue-500/50 transition-colors" />
-                      <span className="text-[10px] font-mono uppercase font-bold text-zinc-400 group-hover:text-blue-300">
-                        Ст. {i + 1}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="w-7 h-7 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-xs font-black text-zinc-300 group-hover:border-blue-400 group-hover:text-blue-300">
+                          {i + 1}
+                        </span>
+                        <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+                          СТОЛБЕЦ #{i + 1}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-zinc-500 group-hover:text-blue-400">
+                        <span className="text-xs font-mono font-bold">Выбрать →</span>
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -569,12 +673,19 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             </div>
           )}
 
+          {/* ШАГ 3: ВЫБОР НАПРАВЛЕНИЯ (ВЛЕВО/ВПРАВО ИЛИ ВВЕРХ/ВНИЗ) */}
           {shiftStep === 'SELECT_DIR' && (
             <div className="w-full space-y-4">
-              <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 text-center">
-                {`ШАГ 3 • НАПРАВЛЕНИЕ ДЛЯ ${selectedAxis === 'ROW' ? `РЯДА #${selectedIndex + 1}` : `СТОЛБЦА #${selectedIndex + 1}`}`}
+              <div className="text-center space-y-1">
+                <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
+                  {`ШАГ 3 • НАПРАВЛЕНИЕ ДЛЯ ${selectedAxis === 'ROW' ? `РЯДА #${selectedIndex + 1}` : `СТОЛБЦА #${selectedIndex + 1}`}`}
+                </div>
+                <div className="text-xs text-zinc-500">
+                  Укажите вектор перемещения карточек
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 w-full">
+
+              <div className="grid grid-cols-2 gap-4 w-full pt-2">
                 {selectedAxis === 'ROW' ? (
                   <>
                     <button
@@ -583,10 +694,11 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'BACKWARD' });
                         setShiftStep('CONFIRM');
                       }}
-                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
+                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
                     >
                       <Icons.ArrowLeft />
                       <div className="text-xs font-black uppercase tracking-wider text-white">ВЛЕВО</div>
+                      <span className="text-[10px] font-mono text-zinc-500">← Сдвиг</span>
                     </button>
                     <button
                       onClick={() => {
@@ -594,10 +706,11 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'FORWARD' });
                         setShiftStep('CONFIRM');
                       }}
-                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
+                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
                     >
                       <Icons.ArrowRight />
                       <div className="text-xs font-black uppercase tracking-wider text-white">ВПРАВО</div>
+                      <span className="text-[10px] font-mono text-zinc-500">Сдвиг →</span>
                     </button>
                   </>
                 ) : (
@@ -608,10 +721,11 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'BACKWARD' });
                         setShiftStep('CONFIRM');
                       }}
-                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
+                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
                     >
                       <Icons.ArrowUp />
                       <div className="text-xs font-black uppercase tracking-wider text-white">ВВЕРХ</div>
+                      <span className="text-[10px] font-mono text-zinc-500">↑ Сдвиг</span>
                     </button>
                     <button
                       onClick={() => {
@@ -619,10 +733,11 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'FORWARD' });
                         setShiftStep('CONFIRM');
                       }}
-                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
+                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
                     >
                       <Icons.ArrowDown />
                       <div className="text-xs font-black uppercase tracking-wider text-white">ВНИЗ</div>
+                      <span className="text-[10px] font-mono text-zinc-500">↓ Сдвиг</span>
                     </button>
                   </>
                 )}
@@ -630,55 +745,108 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             </div>
           )}
 
+          {/* ШАГ 4: ЭКРАН ПОДТВЕРЖДЕНИЯ ДЕЙСТВИЯ */}
           {shiftStep === 'CONFIRM' && (
-            <div className="p-6 rounded-3xl bg-zinc-950/90 border border-white/10 w-full text-center space-y-4 shadow-2xl">
-              <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
-                ШАГ 4 • ПОДТВЕРЖДЕНИЕ
+            <div className="p-6 rounded-3xl bg-zinc-950/90 border border-white/10 w-full text-center space-y-4 shadow-2xl backdrop-blur-xl">
+              <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-bold">
+                ШАГ 4 • ПОДТВЕРДИТЕ ДЕЙСТВИЕ
               </div>
-              <div className="text-base font-black text-white uppercase tracking-wider">
-                {`СДВИНУТЬ ${selectedAxis === 'ROW' ? `РЯД #${selectedIndex + 1}` : `СТОЛБЕЦ #${selectedIndex + 1}`} ${selectedDir === 'LEFT' ? 'ВЛЕВО' : selectedDir === 'RIGHT' ? 'ВПРАВО' : selectedDir === 'UP' ? 'ВВЕРХ' : 'ВНИЗ'}?`}
+
+              <div className="text-base sm:text-lg font-black text-white uppercase tracking-wider">
+                {`Переместить ${selectedAxis === 'ROW' ? `ряд #${selectedIndex + 1}` : `столбец #${selectedIndex + 1}`} ${
+                  selectedDir === 'LEFT' ? 'влево' : selectedDir === 'RIGHT' ? 'вправо' : selectedDir === 'UP' ? 'вверх' : 'вниз'
+                }?`}
               </div>
+
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 border border-white/10 font-mono text-xs text-zinc-300">
+                <span>{selectedAxis === 'ROW' ? `РЯД ${selectedIndex + 1}` : `СТОЛБЕЦ ${selectedIndex + 1}`}</span>
+                <span className="text-blue-400 font-bold">
+                  {selectedDir === 'LEFT' && '← ВЛЕВО'}
+                  {selectedDir === 'RIGHT' && 'ВПРАВО →'}
+                  {selectedDir === 'UP' && '↑ ВВЕРХ'}
+                  {selectedDir === 'DOWN' && 'ВНИЗ ↓'}
+                </span>
+              </div>
+
               {isUndoMove && (
                 <div className="p-3 rounded-2xl border border-red-900/60 bg-red-950/40 text-xs font-bold text-red-400 font-mono">
                   Anti-Undo: ход отменяет предыдущий сдвиг соперника
                 </div>
               )}
-              <div className="flex gap-3 pt-2">
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
                 <button
-                  onClick={handleResetShift}
-                  className="flex-1 py-3.5 rounded-2xl bg-zinc-900 border border-white/10 text-xs font-bold uppercase text-zinc-400 hover:text-white cursor-pointer transition"
+                  onClick={() => setShiftStep('SELECT_DIR')}
+                  className="py-3.5 rounded-2xl bg-zinc-900 border border-white/10 text-xs font-bold uppercase text-zinc-400 hover:text-white cursor-pointer transition"
                 >
                   Отмена
                 </button>
                 <button
                   onClick={handleConfirmShift}
                   disabled={isUndoMove}
-                  className="flex-1 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-black uppercase text-white shadow-lg cursor-pointer transition active:scale-95"
+                  className="py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-black uppercase text-white shadow-lg cursor-pointer transition active:scale-95"
                 >
-                  Применить
+                  Подтвердить
                 </button>
               </div>
             </div>
           )}
         </div>
 
-        <button
-          onClick={handleResetShift}
-          className="w-full py-3 rounded-2xl border border-white/10 text-xs font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
-        >
-          Назад к действиям
-        </button>
+        {/* Кнопка возврата на предыдущий шаг или отмены */}
+        <div className="pt-2">
+          {shiftStep === 'SELECT_INDEX' && (
+            <button
+              onClick={() => {
+                setShiftStep('SELECT_AXIS');
+                updateLinePreview(null);
+              }}
+              className="w-full py-3 rounded-2xl border border-white/10 text-xs font-mono uppercase text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+            >
+              ← Назад к выбору оси
+            </button>
+          )}
+          {shiftStep === 'SELECT_DIR' && (
+            <button
+              onClick={() => {
+                setShiftStep('SELECT_INDEX');
+                updateLinePreview({ type: selectedAxis, index: selectedIndex });
+              }}
+              className="w-full py-3 rounded-2xl border border-white/10 text-xs font-mono uppercase text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+            >
+              ← Назад к выбору линии
+            </button>
+          )}
+          {shiftStep === 'CONFIRM' && (
+            <button
+              onClick={() => setShiftStep('SELECT_DIR')}
+              className="w-full py-3 rounded-2xl border border-white/10 text-xs font-mono uppercase text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+            >
+              ← Назад к выбору направления
+            </button>
+          )}
+          {shiftStep === 'SELECT_AXIS' && (
+            <button
+              onClick={handleResetShift}
+              className="w-full py-3 rounded-2xl border border-white/10 text-xs font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
+            >
+              Отмена и возврат к пульту
+            </button>
+          )}
+        </div>
       </div>
     );
   }
 
-  // 3. Основной экран хода контроллера
+  // =========================================================================
+  // 3. ОСНОВНОЙ ЭКРАН ХОДА КОНТРОЛЛЕРА
+  // =========================================================================
   return (
     <div className="flex h-[100dvh] w-screen flex-col justify-between bg-[#080a0f] p-5 pb-8 text-zinc-100 select-none overflow-y-auto font-sans">
       {/* Верхний статус роли */}
       <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3 gap-3">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2.5 p-2 rounded-xl bg-zinc-900/70 border border-white/10 shadow-sm">
+          <div className="flex items-center gap-2.5 p-2 rounded-xl bg-zinc-900/70 border border-white/10 shadow-sm backdrop-blur-md">
             <span
               className={`text-[9px] sm:text-[10px] font-black uppercase px-2 py-0.5 rounded tracking-wider shrink-0 ${
                 isKiller
@@ -709,11 +877,11 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       {handCards.length > 0 && (
         <div
           onClick={() => setIsHandSheetOpen(true)}
-          className="my-2 p-3 rounded-2xl bg-zinc-950/80 border border-white/10 shadow-md cursor-pointer active:scale-[0.99] transition-transform"
+          className="my-2 p-3 rounded-2xl bg-zinc-950/80 border border-white/10 shadow-md cursor-pointer active:scale-[0.99] transition-transform backdrop-blur-md"
         >
           <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500 mb-2 flex items-center justify-between">
             <span>{isKiller ? 'КАРТЫ МАСОК (В РУКЕ)' : 'ДОСЬЕ АЛИБИ (В РУКЕ)'}</span>
-            <span className="text-[10px] text-zinc-400">КАРТ: {handCards.length}</span>
+            <span className="text-[10px] text-zinc-400 font-mono">КАРТ: {handCards.length}</span>
           </div>
           <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none">
             {handCards.map((char) => (
@@ -844,6 +1012,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         <button
           onClick={() => {
             onDispatchAction({ type: 'END_TURN' });
+            setIsAwaitingTurnEnd(true);
             if (isPassAndPlay) {
               setIsCoverOpen(true);
             }
@@ -868,7 +1037,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         gameState={gameState}
         allChars={gameState.board ? gameState.board.flat() : []}
         characterImages={characterImages as any}
-        isHumanTurn={isMyTurn}
+        isHumanTurn={isTurnActuallyMine}
         isDetectiveTurn={!isKiller}
         isKillerTurn={isKiller}
         isHandSheetOpen={isHandSheetOpen || isDossierOpen}

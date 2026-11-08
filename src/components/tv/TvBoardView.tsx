@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CharacterCard } from '../CharacterCard';
 import { GameOverModal } from '../GameOverModal';
 import type { GameState, LastShift } from '../../types/game';
@@ -241,7 +241,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   return (
     <div className="tv-root flex h-screen w-screen flex-col bg-[#080a0f] text-zinc-100 select-none overflow-hidden p-4 sm:p-5 lg:p-6 gap-3 sm:gap-4 font-sans">
       {/* Верхняя статусная планка (Шапка ТВ) по макету ТВ3 */}
-      <div className="flex items-center justify-between px-5 py-2.5 sm:px-6 sm:py-3 rounded-2xl bg-zinc-950/70 border border-zinc-800/80 backdrop-blur-xl shadow-lg shrink-0">
+      <div className="flex items-center justify-between px-5 py-2.5 sm:px-6 sm:py-3 rounded-2xl bg-zinc-950/70 border border-white/10 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.8)] shrink-0">
         {/* Левая группа: Статусы и счета участников */}
         <div className="flex items-center gap-5 sm:gap-6">
           {isSecretService && spies.length > 0 ? (
@@ -264,7 +264,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   {killerRoleName}: <span className="text-red-400 font-mono font-black">{killerScore}/{killerTarget}</span>
                 </span>
               </div>
-              <div className="h-4 w-px bg-zinc-800" />
+              <div className="h-4 w-px bg-white/10" />
               <div className="flex items-center gap-2.5">
                 <span className="h-2.5 w-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.7)]" />
                 <span className="text-xs sm:text-sm 2xl:text-base font-bold tracking-wider text-zinc-300">
@@ -276,8 +276,8 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         </div>
 
         {/* Центральный индикатор глобальной фазы матча */}
-        <div className="hidden md:flex items-center gap-2 px-4 py-1 rounded-full border border-zinc-800/80 bg-zinc-900/60 shadow-inner">
-          <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_6px_rgba(239,68,68,0.8)]" />
+        <div className="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-zinc-900/50 backdrop-blur-md shadow-inner">
+          <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
           <span className="text-xs 2xl:text-sm font-mono uppercase tracking-widest text-zinc-300 font-bold">
             {getGameModeTitle(gameState?.mode || 'MANIAC_VS_OPERATIVE', 'ru')}
           </span>
@@ -285,7 +285,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
         {/* Правый блок: Эфир и кнопки пульта управления ТВ */}
         <div className="flex items-center gap-3">
-          <span className="text-xs 2xl:text-sm font-mono uppercase tracking-widest text-zinc-400 flex items-center gap-2 px-3 py-1 rounded-lg bg-zinc-900/60 border border-zinc-800/80">
+          <span className="text-xs 2xl:text-sm font-mono uppercase tracking-widest text-zinc-300 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900/50 border border-white/10 backdrop-blur-md">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
             ТВ ЭФИР • 5×5
           </span>
@@ -327,7 +327,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
       <div className="flex-1 flex gap-4 lg:gap-6 min-h-0 overflow-hidden">
         {/* ЛЕВАЯ ЗОНА (~68%): Primary Stage (Поле 5×5 с сохранением aspect-square) */}
         <div className="w-[66%] lg:w-[68%] h-full flex items-center justify-center min-w-0">
-          <div className="relative w-full h-full max-w-[min(100%,calc(100vh-120px))] aspect-square p-2.5 sm:p-3 2xl:p-4 rounded-3xl bg-zinc-950/50 border border-zinc-800/80 shadow-[0_0_50px_rgba(0,0,0,0.8)] backdrop-blur-md flex items-center justify-center">
+          <div className="relative w-full h-full max-w-[min(100%,calc(100vh-120px))] aspect-square p-2.5 sm:p-3 2xl:p-4 rounded-3xl bg-zinc-950/70 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.8),0_0_80px_rgba(0,0,0,0.9)] backdrop-blur-xl flex items-center justify-center">
             <div
               className="grid gap-2 sm:gap-2.5 2xl:gap-3 w-full h-full"
               style={{
@@ -345,16 +345,16 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 return (
                   <motion.div
                     key={char.id || `cell_${index}`}
-                    layout
-                    transition={{ type: 'spring', damping: 28, stiffness: 240 }}
-                    className={`relative w-full h-full rounded-xl sm:rounded-2xl transition-all duration-300 overflow-hidden bg-zinc-900/60 backdrop-blur-md border ${
+                    layout="position"
+                    transition={{ type: 'spring', damping: 26, stiffness: 220, mass: 0.8 }}
+                    className={`relative w-full h-full rounded-xl sm:rounded-2xl transition-all duration-300 overflow-hidden bg-zinc-950/60 backdrop-blur-md border ${
                       isLineActive
-                        ? 'border-emerald-400 ring-2 ring-emerald-400/80 shadow-[0_0_20px_rgba(16,185,129,0.35)] scale-[1.01] z-20'
+                        ? 'border-white/90 ring-2 ring-white/60 shadow-[0_0_25px_rgba(255,255,255,0.45)] bg-white/5 scale-[1.01] z-20'
                         : inRadarCenter
-                          ? 'border-red-500 ring-2 ring-red-500 shadow-[0_0_18px_rgba(239,68,68,0.7)] z-10'
+                          ? 'border-red-500/90 ring-2 ring-red-500/80 shadow-[0_0_20px_rgba(239,68,68,0.5)] bg-red-950/30 z-10'
                           : inRadarArea
-                            ? 'border-cyan-400/60 ring-1 ring-cyan-400/40 bg-cyan-950/20 z-0'
-                            : 'border-zinc-800/80 hover:border-zinc-700/80'
+                            ? 'border-blue-500/80 ring-1 ring-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.35)] bg-blue-950/20 z-0'
+                            : 'border-white/10 hover:border-zinc-500/50 shadow-[0_4px_16px_rgba(0,0,0,0.6)]'
                     } ${!char.isAlive ? 'grayscale opacity-35' : ''}`}
                   >
                     {/* Тактический номер ячейки #01–#25 */}
@@ -375,30 +375,46 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                     />
 
                     {/* Индикатор направления сдвига на крайних карточках выбранной линии */}
-                    {isLineActive && selectedLineDir && (
-                      ((selectedLineType === 'ROW' && ((selectedLineDir === 'FORWARD' && col === boardSize - 1) || (selectedLineDir === 'BACKWARD' && col === 0))) ||
-                       (selectedLineType === 'COL' && ((selectedLineDir === 'FORWARD' && row === boardSize - 1) || (selectedLineDir === 'BACKWARD' && row === 0)))) && (
-                        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none bg-black/60 backdrop-blur-xs rounded-xl sm:rounded-2xl">
-                          <span className="text-emerald-400 animate-pulse drop-shadow-[0_0_12px_rgba(16,185,129,0.9)]">
-                            {selectedLineType === 'ROW'
-                              ? (selectedLineDir === 'FORWARD' ? <Icons.ArrowRight /> : <Icons.ArrowLeft />)
-                              : (selectedLineDir === 'FORWARD' ? <Icons.ArrowDown /> : <Icons.ArrowUp />)}
-                          </span>
-                        </div>
-                      )
-                    )}
+                    <AnimatePresence>
+                      {isLineActive && selectedLineDir && (
+                        ((selectedLineType === 'ROW' && ((selectedLineDir === 'FORWARD' && col === boardSize - 1) || (selectedLineDir === 'BACKWARD' && col === 0))) ||
+                         (selectedLineType === 'COL' && ((selectedLineDir === 'FORWARD' && row === boardSize - 1) || (selectedLineDir === 'BACKWARD' && row === 0)))) && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.85 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.85 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none bg-black/60 backdrop-blur-xs rounded-xl sm:rounded-2xl"
+                          >
+                            <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.9)] animate-pulse">
+                              {selectedLineType === 'ROW'
+                                ? (selectedLineDir === 'FORWARD' ? <Icons.ArrowRight /> : <Icons.ArrowLeft />)
+                                : (selectedLineDir === 'FORWARD' ? <Icons.ArrowDown /> : <Icons.ArrowUp />)}
+                            </span>
+                          </motion.div>
+                        )
+                      )}
+                    </AnimatePresence>
 
                     {/* Состояние ликвидации: затемнение и красный глитч-маркер */}
-                    {!char.isAlive && (
-                      <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none bg-black/50 backdrop-blur-xs">
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-red-500/60 bg-red-950/80 shadow-[0_0_10px_rgba(239,68,68,0.4)]">
-                          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                          <span className="text-xs sm:text-sm font-mono font-black uppercase tracking-wider text-red-200">
-                            ВЫБЫЛ
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                    <AnimatePresence>
+                      {!char.isAlive && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none bg-black/50 backdrop-blur-xs"
+                        >
+                          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-red-500/60 bg-red-950/80 shadow-[0_0_15px_rgba(239,68,68,0.5)]">
+                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                            <span className="text-xs sm:text-sm font-mono font-black uppercase tracking-wider text-red-200">
+                              ВЫБЫЛ
+                            </span>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 );
               })}
@@ -409,13 +425,13 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         {/* ПРАВАЯ ЗОНА (~32%): Информационная панель (Ровно 3 модульных стеклянных виджета) */}
         <div className="w-[34%] lg:w-[32%] h-full flex flex-col gap-3 sm:gap-4 min-w-0 justify-between">
           {/* ВИДЖЕТ 1 (ВЕРХ): Статус матча и Счёт */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950/60 border border-zinc-800/60 backdrop-blur-xl shadow-lg flex flex-col gap-3 shrink-0">
+          <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950/70 border border-white/10 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.8)] flex flex-col gap-3 shrink-0">
             <div className="flex items-center justify-between font-mono text-xs 2xl:text-sm uppercase tracking-widest text-zinc-400 font-bold">
               <span className="flex items-center gap-2">
                 <Icons.Target />
                 СТАТУС МАТЧА
               </span>
-              <span className="text-xs 2xl:text-sm font-mono font-bold text-emerald-400 bg-emerald-950/50 border border-emerald-500/30 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+              <span className="text-xs 2xl:text-sm font-mono font-bold text-emerald-400 bg-emerald-950/50 border border-emerald-500/30 px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.3)]">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 АКТИВЕН
               </span>
@@ -427,32 +443,32 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 <span>ПРОГРЕСС РАССЛЕДОВАНИЯ</span>
                 <span className="text-zinc-200 font-bold">{investigationProgress}%</span>
               </div>
-              <div className="h-2 w-full bg-zinc-900 rounded-full overflow-hidden border border-zinc-800/80">
+              <div className="h-2 w-full bg-zinc-900 rounded-full overflow-hidden border border-white/10">
                 <div
-                  className="h-full bg-gradient-to-r from-emerald-500 via-cyan-500 to-cyan-400 transition-all duration-500 shadow-[0_0_10px_rgba(6,182,212,0.4)]"
+                  className="h-full bg-gradient-to-r from-emerald-500 via-cyan-500 to-cyan-400 transition-all duration-500 shadow-[0_0_12px_rgba(6,182,212,0.5)]"
                   style={{ width: `${Math.max(5, investigationProgress)}%` }}
                 />
               </div>
             </div>
 
             {/* Счётчики очков сторон */}
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              <div className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 flex flex-col gap-1">
-                <div className="flex items-center gap-1.5 text-xs 2xl:text-sm text-zinc-400 font-bold truncate">
-                  <span className="h-2 w-2 rounded-full bg-red-500 shrink-0 shadow-[0_0_6px_rgba(239,68,68,0.7)]" />
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
+              <div className="p-3 rounded-xl bg-zinc-900/50 border border-white/10 backdrop-blur-md flex flex-col gap-1 shadow-inner">
+                <div className="flex items-center gap-1.5 text-xs 2xl:text-sm text-zinc-300 font-bold truncate">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-500 shrink-0 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
                   <span className="truncate">{killerRoleName}</span>
                 </div>
-                <div className="text-lg 2xl:text-xl font-mono font-black text-red-400">
+                <div className="text-lg 2xl:text-xl font-mono font-black text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]">
                   {killerScore} <span className="text-xs 2xl:text-sm text-zinc-500 font-normal">/ {killerTarget}</span>
                 </div>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 flex flex-col gap-1">
-                <div className="flex items-center gap-1.5 text-xs 2xl:text-sm text-zinc-400 font-bold truncate">
-                  <span className="h-2 w-2 rounded-full bg-cyan-400 shrink-0 shadow-[0_0_6px_rgba(6,182,212,0.7)]" />
+              <div className="p-3 rounded-xl bg-zinc-900/50 border border-white/10 backdrop-blur-md flex flex-col gap-1 shadow-inner">
+                <div className="flex items-center gap-1.5 text-xs 2xl:text-sm text-zinc-300 font-bold truncate">
+                  <span className="h-2.5 w-2.5 rounded-full bg-cyan-400 shrink-0 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
                   <span className="truncate">{detectiveRoleName}</span>
                 </div>
-                <div className="text-lg 2xl:text-xl font-mono font-black text-cyan-400">
+                <div className="text-lg 2xl:text-xl font-mono font-black text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.4)]">
                   {detectiveScore} <span className="text-xs 2xl:text-sm text-zinc-500 font-normal">/ {detectiveTarget}</span>
                 </div>
               </div>
@@ -460,22 +476,22 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           </div>
 
           {/* ВИДЖЕТ 2 (ЦЕНТР): Активный ход и Выбранная линия */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950/60 border border-zinc-800/60 backdrop-blur-xl shadow-lg flex flex-col gap-3.5 shrink-0">
+          <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950/70 border border-white/10 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.8)] flex flex-col gap-3.5 shrink-0">
             <div className="flex items-center gap-2 font-mono text-xs 2xl:text-sm uppercase tracking-widest text-zinc-400 font-bold">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
               ТЕКУЩИЙ ХОД
             </div>
 
             {/* Карточка активного хода по макету ТВ3 */}
-            <div className="flex items-center gap-3.5 p-3 rounded-xl bg-zinc-900/60 border border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
-              <div className="w-12 h-12 2xl:w-14 2xl:h-14 rounded-xl border border-emerald-500/60 bg-black/80 flex items-center justify-center font-mono text-xl 2xl:text-2xl font-black text-emerald-400 shrink-0 shadow-inner">
+            <div className="flex items-center gap-3.5 p-3 rounded-xl bg-zinc-900/50 border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.6)] backdrop-blur-md">
+              <div className="w-12 h-12 2xl:w-14 2xl:h-14 rounded-xl border border-white/20 bg-black/80 flex items-center justify-center font-mono text-xl 2xl:text-2xl font-black text-white shrink-0 shadow-inner">
                 {activeTurnName.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-xs 2xl:text-sm font-mono uppercase tracking-widest text-zinc-400 font-bold">
                   АКТИВНЫЙ ИГРОК
                 </div>
-                <div className="text-lg sm:text-xl 2xl:text-2xl font-black tracking-wider uppercase truncate text-emerald-400">
+                <div className="text-lg sm:text-xl 2xl:text-2xl font-black tracking-wider uppercase truncate text-zinc-100">
                   ХОД: {activeTurnName.toUpperCase()}
                 </div>
                 <div className="text-xs 2xl:text-sm text-zinc-400 font-medium truncate">
@@ -491,24 +507,24 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   <Icons.Clock />
                   ТАЙМЕР ХОДА
                 </span>
-                <span className="text-zinc-500">БЕЗ ЛИМИТА (DEV)</span>
+                <span className="text-zinc-500 font-mono">БЕЗ ЛИМИТА (DEV)</span>
               </div>
-              <div className="h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden border border-zinc-800/80">
-                <div className="h-full bg-emerald-400/70 w-full shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+              <div className="h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden border border-white/10">
+                <div className="h-full bg-white/70 w-full shadow-[0_0_8px_rgba(255,255,255,0.4)]" />
               </div>
             </div>
 
             {/* Блок «Выбранная линия» (предпросмотр тактического сдвига) */}
             {selectedLine ? (
-              <div className="p-3 rounded-xl bg-zinc-900/70 border border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.1)] space-y-1.5">
-                <div className="text-xs 2xl:text-sm font-mono uppercase tracking-widest text-emerald-400 flex items-center gap-1.5 font-bold">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="p-3.5 rounded-xl bg-zinc-900/60 border border-white/20 shadow-[0_0_25px_rgba(255,255,255,0.06)] space-y-2 backdrop-blur-md">
+                <div className="text-xs 2xl:text-sm font-mono uppercase tracking-widest text-white flex items-center gap-2 font-bold">
+                  <span className="h-2 w-2 rounded-full bg-white animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
                   ВЫБРАННАЯ ЛИНИЯ
                 </div>
                 <div className="text-sm md:text-base 2xl:text-lg font-black text-white tracking-wide flex items-center justify-between">
                   <span>{selectedLineType === 'ROW' ? `РЯД #${selectedLineIdx}` : `СТОЛБЕЦ #${selectedLineIdx}`}</span>
                   {selectedLineDir && (
-                    <span className="text-xs md:text-sm 2xl:text-base font-mono uppercase text-emerald-400 font-bold px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.3)]">
+                    <span className="text-xs md:text-sm 2xl:text-base font-mono uppercase text-white font-black px-2.5 py-0.5 rounded-lg bg-zinc-800/90 border border-white/30 shadow-[0_0_12px_rgba(255,255,255,0.25)]">
                       {selectedLineType === 'ROW'
                         ? (selectedLineDir === 'FORWARD' ? 'ВПРАВО →' : '← ВЛЕВО')
                         : (selectedLineDir === 'FORWARD' ? 'ВНИЗ ↓' : '↑ ВВЕРХ')}
@@ -517,14 +533,14 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="p-2.5 rounded-xl bg-zinc-900/30 border border-zinc-800/50 text-xs 2xl:text-sm font-mono text-zinc-500 uppercase tracking-wider text-center">
+              <div className="p-3 rounded-xl bg-zinc-900/30 border border-white/5 text-xs 2xl:text-sm font-mono text-zinc-500 uppercase tracking-wider text-center">
                 Сдвиг линии не выбран
               </div>
             )}
           </div>
 
           {/* ВИДЖЕТ 3 (НИЗ): Публичный бортовой журнал (Logs) */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950/60 border border-zinc-800/60 backdrop-blur-xl shadow-lg flex-1 flex flex-col min-h-0">
+          <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950/70 border border-white/10 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.8)] flex-1 flex flex-col min-h-0">
             <div className="flex items-center justify-between text-xs 2xl:text-sm font-mono uppercase tracking-widest text-zinc-400 mb-3 font-bold shrink-0">
               <span className="flex items-center gap-2">
                 <Icons.Terminal />
@@ -538,7 +554,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 gameState.log.slice(-4).map((entry, idx) => (
                   <div
                     key={idx}
-                    className="p-2 rounded-lg bg-zinc-900/40 border border-zinc-800/40 text-zinc-300 flex items-start gap-2 shadow-xs"
+                    className="p-2.5 rounded-lg bg-zinc-900/40 border border-white/5 text-zinc-300 flex items-start gap-2 shadow-xs backdrop-blur-xs"
                   >
                     <span className="text-cyan-400 shrink-0 font-bold">›</span>
                     <span className="truncate flex-1">{entry}</span>

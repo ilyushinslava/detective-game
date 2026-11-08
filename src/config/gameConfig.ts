@@ -1,7 +1,7 @@
 export const GAME_CONFIG = {
-  APP_NAME: "Реквием",
+  APP_NAME: "Под подозрением",
   APP_SUBTITLE: "Последний выстрел",
-  APP_FULL_TITLE: "Реквием: Последний выстрел",
+  APP_FULL_TITLE: "Под подозрением: Последний выстрел",
   VERSION: "0.9.0",
   TIMERS: {
     TURN_TIME_LIMIT_SEC: 60,

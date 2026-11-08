@@ -17,7 +17,7 @@ interface TutorialScreenProps {
   onFinish: () => void;
 }
 
-type TutorialModule = "MENU" | "SKHVATKA" | "MANIAC" | "THIEF" | "SECRET_SERVICE";
+type TutorialModule = "MENU" | "BASICS" | "MANIAC" | "THIEF" | "SECRET_SERVICE";
 
 const L4_KILLER_ID = ALL_CHARACTERS[6].id;
 const L4_PLAYER_ID = ALL_CHARACTERS[24].id;
@@ -30,7 +30,7 @@ const getInitialBoard = (module: TutorialModule, lesson: number = 1) => {
     isRobbed: false,
   }));
 
-  if (module === "SKHVATKA") {
+  if (module === "BASICS") {
     if (lesson === 4) {
       const temp = chars[14];
       chars[14] = chars[24];
@@ -79,7 +79,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   const [currentModule, setCurrentModule] = useState<TutorialModule>("MENU");
   const [lesson, setLesson] = useState<number>(1);
   const [step, setStep] = useState<number>(1);
-  const [board, setBoard] = useState<Character[][]>(() => getInitialBoard("SKHVATKA", 1));
+  const [board, setBoard] = useState<Character[][]>(() => getInitialBoard("BASICS", 1));
   const [lastShift, setLastShift] = useState<LastShift | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [killedTargetId, setKilledTargetId] = useState<string | null>(null);
@@ -98,7 +98,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   const [completedModules, setCompletedModules] = useState<string[]>(() => {
     try {
       if (typeof window !== 'undefined' && localStorage.getItem("crime_city_tutorial") === "true") {
-        return ["SKHVATKA", "MANIAC", "THIEF", "SECRET_SERVICE"];
+        return ["BASICS", "MANIAC", "THIEF", "SECRET_SERVICE"];
       }
       const saved = localStorage.getItem("crime_city_completed_modules");
       return saved ? JSON.parse(saved) : [];
@@ -119,16 +119,18 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     });
   };
 
-  const allModulesCompleted = ["SKHVATKA", "MANIAC", "THIEF", "SECRET_SERVICE"].every(m => completedModules.includes(m));
+  const allModulesCompleted = ["BASICS", "MANIAC", "THIEF", "SECRET_SERVICE"].every(m =>
+    completedModules.includes(m)
+  );
 
-  const skhvatkaBanditId = useMemo(() => {
+  const basicsPlayerId = useMemo(() => {
     return ALL_CHARACTERS[12].id;
   }, []);
 
   const spyEnemyId = board[1]?.[1]?.id;
 
   const tutorialMyRoleColor = useMemo<"red" | "blue">((): "red" | "blue" => {
-    if (currentModule === "SKHVATKA") {
+    if (currentModule === "BASICS") {
       return lesson === 3 || lesson === 4 ? "blue" : "red";
     }
     if (currentModule === "MANIAC" || currentModule === "THIEF") {
@@ -138,10 +140,10 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   }, [currentModule, lesson]);
 
   const currentMyCharacterId = useMemo(() => {
-    if (currentModule === "SKHVATKA") {
+    if (currentModule === "BASICS") {
       if (lesson === 3) return board[2]?.[2]?.id || null;
       if (lesson === 4) return L4_PLAYER_ID;
-      return skhvatkaBanditId;
+      return basicsPlayerId;
     }
     if (currentModule === "THIEF") {
       return thiefSecretId || board[2]?.[2]?.id;
@@ -153,7 +155,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       return board[2]?.[2]?.id;
     }
     return null;
-  }, [currentModule, lesson, skhvatkaBanditId, thiefSecretId, maniacSecretId, board]);
+  }, [currentModule, lesson, basicsPlayerId, thiefSecretId, maniacSecretId, board]);
 
   const adjacentIds = useMemo(() => {
     if (!currentMyCharacterId) return [];
@@ -170,7 +172,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   const { radarTargetId, radarCellIds, radarColorClass } = useMemo(() => {
     const tacticalRadarClass = "border-blue-500 ring-2 ring-blue-500/70";
 
-    if (currentModule === "SKHVATKA") {
+    if (currentModule === "BASICS") {
       if (lesson === 2 && step === 3 && killedTargetId) {
         const neighborIds = getAdjacentCharacters(board, killedTargetId).map((c) => c.id);
         return {
@@ -219,7 +221,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
         return <span className="text-blue-400 font-bold">Разоблачение: укажите на вражеского резидента (София Романова)</span>;
       }
     }
-    if (currentModule === "SKHVATKA") {
+    if (currentModule === "BASICS") {
       if (lesson === 2 && step >= 3) return <span className="text-blue-400 font-bold">Показания очевидцев: ИНСПЕКТОР ВНЕ ЗОНЫ</span>;
       if (lesson === 3) return <span className="text-blue-400 font-bold">Зона очевидца: СЕКТОР 3×3 (сужение круга поиска)</span>;
       if (lesson === 4) return <span className="text-zinc-400 font-bold">Зачистка: устраните скопление тел для маневра</span>;
@@ -261,7 +263,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   };
 
   const handleSelectCharacter = (id: string) => {
-    if (currentModule === "SKHVATKA") {
+    if (currentModule === "BASICS") {
       if (lesson === 1 && (step === 1 || step === 2)) {
         triggerHaptic("light");
         setSelectedId(id);
@@ -319,7 +321,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   ) => {
     setSelectedId(null);
     if (
-      currentModule === "SKHVATKA" &&
+      currentModule === "BASICS" &&
       lesson === 1 &&
       (step === 1 || step === 2) &&
       type === "ROW" &&
@@ -350,7 +352,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   };
 
   const handleKill = () => {
-    if (currentModule === "SKHVATKA" && lesson === 2 && step === 2 && selectedId) {
+    if (currentModule === "BASICS" && lesson === 2 && step === 2 && selectedId) {
       const targetId = selectedId;
       const newBoard = board.map((row) =>
         row.map((c) => (c.id === targetId ? { ...c, isAlive: false } : c))
@@ -386,7 +388,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   const handleArrest = () => {
     if (
-      currentModule === "SKHVATKA" &&
+      currentModule === "BASICS" &&
       ((lesson === 3 && step === 2 && selectedId) ||
        (lesson === 4 && step === 3 && selectedId))
     ) {
@@ -403,7 +405,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   };
 
   const handleCleanup = () => {
-    if (currentModule === "SKHVATKA" && lesson === 4 && step === 1) {
+    if (currentModule === "BASICS" && lesson === 4 && step === 1) {
       triggerHaptic("medium");
       soundManager.play("slide");
       const living = board.flat().filter(c => c.isAlive);
@@ -512,16 +514,16 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 custom-scrollbar">
             <div
-              onClick={() => startModule("SKHVATKA")}
+              onClick={() => startModule("BASICS")}
               className={`p-4 rounded-2xl border transition cursor-pointer shadow-lg active:scale-99 ${
-                completedModules.includes("SKHVATKA")
+                completedModules.includes("BASICS")
                   ? "bg-zinc-900/40 border-white/10"
                   : "bg-zinc-900/60 border-white/10 hover:border-blue-500/50"
               }`}
             >
               <div className="flex items-center justify-between mb-1">
                 <h3 className="text-base font-black text-white uppercase tracking-wider">Основы Син-Сити: Закон и Улицы</h3>
-                {completedModules.includes("SKHVATKA") && (
+                {completedModules.includes("BASICS") && (
                   <span className="text-[9px] font-mono font-bold text-zinc-200 uppercase bg-zinc-900/80 px-2 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.1)]">✓ Сдано</span>
                 )}
               </div>
@@ -622,7 +624,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
             ← К делам
           </button>
           <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase text-center flex-1">
-            {currentModule === "SKHVATKA" ? "ОСНОВЫ СИН-СИТИ" : currentModule === "MANIAC" ? "ПОЧЕРК УБИЙЦЫ" : currentModule === "THIEF" ? "ОЦЕПЛЕНИЕ" : "ДИРЕКТИВА НОЛЬ"}
+            {currentModule === "BASICS" ? "ОСНОВЫ СИН-СИТИ" : currentModule === "MANIAC" ? "ПОЧЕРК УБИЙЦЫ" : currentModule === "THIEF" ? "ОЦЕПЛЕНИЕ" : "ДИРЕКТИВА НОЛЬ"}
           </h2>
           <div className="w-16 shrink-0" />
         </div>
@@ -630,64 +632,64 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
         <div className="flex-1 w-full flex flex-col relative min-h-0 overflow-hidden">
           <div className="min-h-[60px] md:min-h-[50px] max-h-[90px] shrink-0 py-1 px-4 flex flex-col justify-center items-center text-center z-10">
             <div>
-              {currentModule === "SKHVATKA" && lesson === 1 && (step === 1 || step === 2) && (
+              {currentModule === "BASICS" && lesson === 1 && (step === 1 || step === 2) && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Улицы в движении (Сдвиг квартала)</h3>
                   <p className="text-xs text-zinc-400 font-mono">Ночной дождь скрывает следы. Цель вне зоны контакта. <b className="text-blue-400">Нажмите стрелку ← у 3-го ряда:</b> карта выйдет за край поля и появится справа, подтянув окружение к вам.</p>
                 </div>
               )}
-              {currentModule === "SKHVATKA" && lesson === 1 && step === 3 && (
+              {currentModule === "BASICS" && lesson === 1 && step === 3 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Отличный маневр!</h3>
                   <p className="text-xs text-zinc-400 font-mono">Отличный маневр. Сдвиг меняет соседей и выводит вас на новую позицию.</p>
                 </div>
               )}
 
-              {currentModule === "SKHVATKA" && lesson === 2 && step === 1 && (
+              {currentModule === "BASICS" && lesson === 2 && step === 1 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Выстрел в упор (Радиус 3×3)</h3>
                   <p className="text-xs text-zinc-400 font-mono"><b className="text-red-400">Контракт открыт.</b> Выберите любую цель среди 8 соседей в пределах одного квартала.</p>
                 </div>
               )}
-              {currentModule === "SKHVATKA" && lesson === 2 && step === 2 && (
+              {currentModule === "BASICS" && lesson === 2 && step === 2 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Цель выбрана</h3>
                   <p className="text-xs text-zinc-400 font-mono"><b className="text-red-400">НАЖМИТЕ кнопку "Ликвидировать" внизу.</b></p>
                 </div>
               )}
-              {currentModule === "SKHVATKA" && lesson === 2 && step === 3 && (
+              {currentModule === "BASICS" && lesson === 2 && step === 3 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Показания очевидцев</h3>
                   <p className="text-xs text-zinc-400 font-mono">Показания свидетеля: шум выстрела слышен строго в секторе 3×3. Если инспектора нет в этом квадрате — следствие заходит в тупик.</p>
                 </div>
               )}
 
-              {currentModule === "SKHVATKA" && lesson === 3 && step === 1 && (
+              {currentModule === "BASICS" && lesson === 3 && step === 1 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Точечный арест (Дедукция алиби)</h3>
                   <p className="text-xs text-zinc-400 font-mono">Инспектор на месте. Свидетель подтвердил: преступник в квадрате 3×3. Карты с синей отметкой имеют алиби. <b className="text-blue-400">Выберите единственного подозреваемого без алиби.</b></p>
                 </div>
               )}
-              {currentModule === "SKHVATKA" && lesson === 3 && step === 2 && (
+              {currentModule === "BASICS" && lesson === 3 && step === 2 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Предъявление обвинения</h3>
                   <p className="text-xs text-zinc-400 font-mono">Нажмите «Задержание» для ареста подозреваемого.</p>
                 </div>
               )}
-              {currentModule === "SKHVATKA" && lesson === 3 && step === 3 && (
+              {currentModule === "BASICS" && lesson === 3 && step === 3 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Точный арест!</h3>
                   <p className="text-xs text-zinc-400 font-mono">Точный арест! Круг сужен дедукцией, подозреваемый обезврежен.</p>
                 </div>
               )}
 
-              {currentModule === "SKHVATKA" && lesson === 4 && step === 1 && (
+              {currentModule === "BASICS" && lesson === 4 && step === 1 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider mb-0.5">Загромождение улиц (Эвакуация тел)</h3>
                   <p className="text-xs text-zinc-400 font-mono">Тела на мостовой блокируют маневры. Нажмите «Зачистить»: полиция смещает выбывших жителей к обочинам сетки, освобождая центр квартала.</p>
                 </div>
               )}
-              {currentModule === "SKHVATKA" && lesson === 4 && step === 2 && (
+              {currentModule === "BASICS" && lesson === 4 && step === 2 && (
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-blue-400 uppercase tracking-wider mb-0.5">Курс пройден!</h3>
                   <p className="text-xs text-zinc-400 font-mono">Вы успешно освоили тактику маневров и дедукции.</p>
@@ -812,17 +814,17 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
           </div>
 
                       <div className={`relative z-10 w-full h-full flex-1 min-h-0 max-h-full flex items-center justify-center my-auto py-1 md:py-3 px-2 overflow-hidden ${
-            currentModule === "SKHVATKA" && lesson === 1 && (step === 1 || step === 2) ? "tutorial-highlight-l1s2" : ""
+            currentModule === "BASICS" && lesson === 1 && (step === 1 || step === 2) ? "tutorial-highlight-l1s2" : ""
           } ${currentModule === "MANIAC" && lesson === 1 && step === 1 ? "tutorial-highlight-maniac" : ""}`}>
             <GameBoard
-              mode={currentModule === "THIEF" ? "THIEF_HUNT" : currentModule === "SECRET_SERVICE" ? "SECRET_SERVICE" : "SKHVATKA"}
+              mode={currentModule === "THIEF" ? "THIEF_HUNT" : currentModule === "SECRET_SERVICE" ? "SECRET_SERVICE" : "MANIAC_VS_OPERATIVE"}
               board={board}
               selectedCharacterId={selectedId}
               killerAdjacentIds={adjacentIds}
               detectiveAdjacentIds={adjacentIds}
               showKillerHints={
-                (currentModule === "SKHVATKA" && lesson === 1) ||
-                (currentModule === "SKHVATKA" && lesson === 2 && step === 1) ||
+                (currentModule === "BASICS" && lesson === 1) ||
+                (currentModule === "BASICS" && lesson === 2 && step === 1) ||
                 (currentModule === "MANIAC" && lesson === 1 && step === 2) ||
                 (currentModule === "THIEF" && lesson === 1 && step === 1) ||
                 (currentModule === "SECRET_SERVICE" && lesson === 1 && (step === 1 || (step === 2 && scanResult === "FAR"))) ||
@@ -846,28 +848,28 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
           <div className="h-14 md:h-16 shrink-0 w-full flex items-center justify-center px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[#080a0f] border-t border-white/5 z-20">
             <AnimatePresence mode="wait">
-              {currentModule === "SKHVATKA" && lesson === 1 && step === 3 && (
-                <motion.button onClick={() => { setLesson(2); setStep(1); setBoard(getInitialBoard("SKHVATKA", 2)); }} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Урок 2: Ликвидация ➔</motion.button>
+              {currentModule === "BASICS" && lesson === 1 && step === 3 && (
+                <motion.button onClick={() => { setLesson(2); setStep(1); setBoard(getInitialBoard("BASICS", 2)); }} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Урок 2: Ликвидация ➔</motion.button>
               )}
-              {currentModule === "SKHVATKA" && lesson === 2 && step === 2 && (
+              {currentModule === "BASICS" && lesson === 2 && step === 2 && (
                 <motion.button onClick={handleKill} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(220,38,38,0.4)] cursor-pointer">Ликвидировать</motion.button>
               )}
-              {currentModule === "SKHVATKA" && lesson === 2 && step === 3 && (
-                <motion.button onClick={() => { setLesson(3); setStep(1); setBoard(getInitialBoard("SKHVATKA", 3)); }} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Урок 3: Задержание ➔</motion.button>
+              {currentModule === "BASICS" && lesson === 2 && step === 3 && (
+                <motion.button onClick={() => { setLesson(3); setStep(1); setBoard(getInitialBoard("BASICS", 3)); }} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Урок 3: Задержание ➔</motion.button>
               )}
-              {currentModule === "SKHVATKA" && lesson === 3 && step === 2 && (
+              {currentModule === "BASICS" && lesson === 3 && step === 2 && (
                 <motion.button onClick={handleArrest} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Задержание</motion.button>
               )}
-              {currentModule === "SKHVATKA" && lesson === 3 && step === 3 && (
-                <motion.button onClick={() => { setLesson(4); setStep(1); setBoard(getInitialBoard("SKHVATKA", 4)); }} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Урок 4: Зачистка ➔</motion.button>
+              {currentModule === "BASICS" && lesson === 3 && step === 3 && (
+                <motion.button onClick={() => { setLesson(4); setStep(1); setBoard(getInitialBoard("BASICS", 4)); }} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Урок 4: Зачистка ➔</motion.button>
               )}
-              {currentModule === "SKHVATKA" && lesson === 4 && step === 1 && (
+              {currentModule === "BASICS" && lesson === 4 && step === 1 && (
                 <motion.button onClick={handleCleanup} className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">Зачистить</motion.button>
               )}
-              {currentModule === "SKHVATKA" && lesson === 4 && step === 2 && (
+              {currentModule === "BASICS" && lesson === 4 && step === 2 && (
                 <motion.button
                   onClick={() => {
-                    markModuleCompleted("SKHVATKA");
+                    markModuleCompleted("BASICS");
                     setCurrentModule("MENU");
                   }}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-zinc-800 hover:bg-zinc-700 text-white border border-white/10 font-black uppercase tracking-wider rounded-full shadow-lg cursor-pointer"

@@ -31,9 +31,9 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
   it("Действие задержания (handleArrest) не вешает штамп 'УБИТ'", () => {
     render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
 
-    // Запуск Схватки
-    const skhvatkaBtns = screen.getAllByText(/Основы Син-Сити/i);
-    fireEvent.click(skhvatkaBtns[0]);
+    // Запуск Основ Син-Сити
+    const basicsBtns = screen.getAllByText(/Основы Син-Сити/i);
+    fireEvent.click(basicsBtns[0]);
 
     // Проходим шаг 1 (клик по соседу)
     const cards = screen.getAllByText(/#/i);
@@ -59,7 +59,7 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
     cleanup();
 
     // 2. Все модули пройдены -> вызывается onFinish
-    localStorage.setItem("crime_city_completed_modules", JSON.stringify(["SKHVATKA", "MANIAC", "THIEF", "SECRET_SERVICE"]));
+    localStorage.setItem("crime_city_completed_modules", JSON.stringify(["BASICS", "MANIAC", "THIEF", "SECRET_SERVICE"]));
     const onFinishCompleted = vi.fn();
     const view2 = render(<TutorialScreen onExit={vi.fn()} onFinish={onFinishCompleted} />);
     const finishBtn = view2.getAllByTestId("tutorial-main-action-btn")[0];

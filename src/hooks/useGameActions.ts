@@ -54,7 +54,7 @@ export function getAvailableActionDescriptors(
       if (gameState.mode === "MANIAC_VS_OPERATIVE") {
         list.push(
           { id: "CLEANUP", label: "Зачистка", icon: "[CLEAR]" },
-          { id: "ESCAPE_MANIAC", label: "Побег", icon: "[ESCAPE]" }
+          { id: "ESCAPE_MANIAC", label: "Конспирация", icon: "[ESCAPE]" }
         );
       }
     }
@@ -443,7 +443,7 @@ export function useGameActions({
       });
       actions.push({
         id: "duel_accuse",
-        label: "Обвинить",
+        label: "Обвинение",
         onClick: () => setIsAccuseModalOpen(true),
         disabled: !isHumanTurn || !selectedId || isGameOver,
         className:
@@ -494,7 +494,7 @@ export function useGameActions({
       });
       actions.push({
         id: "cleanup_ss",
-        label: "Зачистить",
+        label: "Зачистка",
         onClick: handleCleanup,
         disabled: !isHumanTurn || !isCleanupAvailable,
         className:
@@ -629,7 +629,7 @@ export function useGameActions({
       if (gameState.mode !== "THIEF_HUNT") {
         actions.push({
           id: "cleanup_basic",
-          label: "Зачистить",
+          label: "Зачистка",
           onClick: handleCleanup,
           disabled: !isHumanTurn || !isCleanupAvailable,
           className:

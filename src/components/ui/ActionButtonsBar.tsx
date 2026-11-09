@@ -79,7 +79,7 @@ export const ActionButtonsBar: React.FC<ActionButtonsBarProps> = ({
           className="w-full min-h-[44px] py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 bg-gradient-to-r from-red-700 via-red-600 to-rose-600 hover:from-red-650 hover:to-rose-550 text-white shadow-lg shadow-red-950/50 border border-red-400/40 active:scale-[0.97] rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
           {renderIcon('CLEANUP')}
-          <span className="whitespace-normal break-words">Зачистить поле</span>
+          <span className="whitespace-normal break-words">Зачистка</span>
         </button>
       )}
     </div>

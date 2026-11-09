@@ -555,7 +555,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
                     <circle cx="12" cy="12" r="9" />
                     <path d="M9 10h.01M15 10h.01M10 15h4" />
                   </svg>
-                  <span className="whitespace-nowrap overflow-hidden text-ellipsis">Зачистить</span>
+                  <span className="whitespace-nowrap overflow-hidden text-ellipsis">Зачистка</span>
                 </button>
               )}
             </div>

@@ -99,11 +99,11 @@ export const GAME_MODES_META: Record<GameModeType, GameModeMeta> = {
   SECRET_SERVICE: {
     id: 'SECRET_SERVICE',
     title: {
-      ru: 'Директива ноль',
+      ru: 'Директива "Ноль"',
       en: 'Directive Zero',
     },
     shortTitle: {
-      ru: 'Директива ноль',
+      ru: 'Директива "Ноль"',
       en: 'Directive Zero',
     },
     description: {

@@ -185,12 +185,10 @@ describe("MobileControllerView Component", () => {
       />
     );
 
-    // Execute valid shift
+    // Execute valid shift (Этап 1: линия -> Этап 2: стрелка с мгновенным выполнением)
     fireEvent.click(screen.getByRole("button", { name: /Сдвиг поля/i }));
-    fireEvent.click(screen.getByText(/Горизонталь/i));
     fireEvent.click(screen.getByText(/РЯД #2/i));
     fireEvent.click(screen.getByText(/ВПРАВО/i));
-    fireEvent.click(screen.getByRole("button", { name: /Подтвердить/i }));
 
     // Controller should instantly show waiting screen
     expect(screen.getByText(/ОЖИДАНИЕ/i)).toBeDefined();

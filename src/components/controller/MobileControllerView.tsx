@@ -21,6 +21,10 @@ export interface MobileControllerViewProps {
   onSelectLinePreview?: (line: any) => void;
   onExit?: () => void;
   isPassAndPlay?: boolean;
+  initialShiftStep?: ShiftWizardStep;
+  initialSelectedAxis?: 'ROW' | 'COL';
+  initialSelectedIndex?: number;
+  initialIsAwaitingTurnEnd?: boolean;
 }
 
 export type ShiftWizardStep =
@@ -92,6 +96,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   onSelectLinePreview,
   onExit,
   isPassAndPlay = false,
+  initialShiftStep,
+  initialSelectedAxis,
+  initialSelectedIndex,
+  initialIsAwaitingTurnEnd,
 }) => {
   const boardSize = gameState?.board?.length || 5;
   const isSecretService = gameState.mode === 'SECRET_SERVICE';
@@ -117,12 +125,12 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       : (gameState.mode === 'THIEF_HUNT' ? 'Полиция' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Оперативник' : 'Инспектор');
 
   // Локальные состояния визарда сдвига и блокировки ожидания
-  const [shiftStep, setShiftStep] = useState<ShiftWizardStep>('IDLE');
-  const [selectedAxis, setSelectedAxis] = useState<'ROW' | 'COL'>('ROW');
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [shiftStep, setShiftStep] = useState<ShiftWizardStep>(initialShiftStep ?? 'IDLE');
+  const [selectedAxis, setSelectedAxis] = useState<'ROW' | 'COL'>(initialSelectedAxis ?? 'ROW');
+  const [selectedIndex, setSelectedIndex] = useState<number>(initialSelectedIndex ?? 0);
   const [selectedDir, setSelectedDir] = useState<'LEFT' | 'RIGHT' | 'UP' | 'DOWN'>('LEFT');
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
-  const [isAwaitingTurnEnd, setIsAwaitingTurnEnd] = useState<boolean>(false);
+  const [isAwaitingTurnEnd, setIsAwaitingTurnEnd] = useState<boolean>(initialIsAwaitingTurnEnd ?? false);
 
   const [isCoverOpen, setIsCoverOpen] = useState(false);
   const [isDossierOpen, setIsDossierOpen] = useState(false);

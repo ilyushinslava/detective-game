@@ -97,7 +97,7 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
 
     // Шаг 3: Зачистка сетки (уплотнение мертвых вниз)
     expect(screen.getAllByText(/Зачистка/i).length).toBeGreaterThan(0);
-    const cleanupBtn = screen.getByRole("button", { name: /Зачистка|Зачистить/i });
+    const cleanupBtn = screen.getByRole("button", { name: /Зачистка/i });
     fireEvent.click(cleanupBtn);
 
     // Шаг 4: Сектор чист -> Завершить модуль

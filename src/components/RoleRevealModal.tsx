@@ -692,7 +692,7 @@ export const RoleRevealModal = ({
       </AnimatePresence>
       <div className="w-full max-w-lg h-[92dvh] max-h-[85vh] bg-zinc-950 border border-white/10 rounded-3xl p-5 sm:p-7 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col justify-between text-center overflow-y-auto custom-scrollbar">
 
-        {/* Одиночная Секретная служба */}
+        {/* Одиночная Директива "Ноль" */}
         {phase === "SECRET_SERVICE_SOLO" && (
           <>
             <div className="flex flex-col items-center justify-start flex-1 w-full">
@@ -725,7 +725,7 @@ export const RoleRevealModal = ({
           </>
         )}
 
-        {/* PVP Секретная служба: Игрок 1 */}
+        {/* PVP Директива "Ноль": Игрок 1 */}
         {phase === "SPY_P1_PROMPT" && (
           <>
             <div className="flex flex-col items-center justify-center flex-1 my-auto">
@@ -766,7 +766,7 @@ export const RoleRevealModal = ({
           </>
         )}
 
-        {/* PVP Секретная служба: Игрок 2 */}
+        {/* PVP Директива "Ноль": Игрок 2 */}
         {phase === "SPY_P2_PROMPT" && (
           <>
             <div className="flex flex-col items-center justify-center flex-1 my-auto">

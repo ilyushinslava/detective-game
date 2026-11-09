@@ -71,7 +71,7 @@ describe("Интерактивное взаимодействие с экран�
       }
 
       // Клик по карточке первого режима
-      const modeCard = screen.getAllByText(/Почерк убийцы|Маньяк против оперативника/i)[0];
+      const modeCard = screen.getAllByText(/Почерк убийцы/i)[0];
       fireEvent.click(modeCard);
       expect(screen.getByText(/СВОДКА РАССЛЕДОВАНИЯ/i)).toBeDefined();
                   /*
@@ -91,7 +91,7 @@ describe("Интерактивное взаимодействие с экран�
       fireEvent.click(backBtn!);
 
       // Убеждаемся, что вернулись в список режимов
-      expect(screen.getAllByText(/Почерк убийцы|Маньяк против оперативника/i)[0]).toBeDefined();
+      expect(screen.getAllByText(/Почерк убийцы/i)[0]).toBeDefined();
     });
   });
 

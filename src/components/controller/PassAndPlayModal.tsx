@@ -1,5 +1,6 @@
 import React from "react";
 import type { Role } from "../../types/game";
+import { Button } from "../ui/Button";
 
 export interface PassAndPlayModalProps {
   isOpen: boolean;
@@ -68,12 +69,14 @@ export const PassAndPlayModal: React.FC<PassAndPlayModalProps> = ({
 
       {/* Кнопка подтверждения взятия телефона */}
       <div className="w-full">
-        <button
+        <Button
+          variant="secondary"
+          fullWidth
           onClick={onConfirmTakeDevice}
-          className={`w-full py-4 rounded-xl border ${displayBorder} bg-zinc-900 text-base font-black uppercase tracking-wider text-zinc-100 shadow-xl active:scale-98 transition-all hover:bg-zinc-800 cursor-pointer`}
+          className={`py-4 rounded-xl border ${displayBorder} bg-zinc-900 text-base font-black uppercase tracking-wider text-zinc-100 shadow-xl`}
         >
           Я взял телефон
-        </button>
+        </Button>
       </div>
     </div>
   );

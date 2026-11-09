@@ -1246,33 +1246,38 @@ export const MainMenu = ({
         )}
 
         {isWaitingForOpponent && (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#080a0f]/90 backdrop-blur-md p-4">
-            <div className="bg-zinc-900/90 backdrop-blur-2xl border border-white/15 p-8 rounded-3xl w-full max-w-sm flex flex-col items-center text-center shadow-[0_20px_50px_rgba(0,0,0,0.7)]">
-              <div className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3">Шифр операции</div>
-              <div className="text-4xl font-black text-zinc-100 tracking-widest font-mono mb-8 border border-white/10 rounded-2xl px-8 py-4 bg-zinc-950/70 shadow-inner">
-                {partyService.roomCode || partyRoomCode}
-              </div>
-
-              <div className="flex justify-center mb-8">
-                <div className="w-12 h-12 border-2 border-zinc-800 border-t-red-600 rounded-full animate-spin" />
-              </div>
-
-              <div className="text-[10px] text-zinc-300 font-black tracking-widest uppercase animate-pulse mb-8">
-                {partyService.isHost ? "Ожидание подключения агента..." : "Синхронизация с хостом..."}
-              </div>
-
-              <button
-                onClick={() => {
-                  partyService.disconnect();
-                  setIsWaitingForOpponent(false);
-                  setIsCreating(false);
-                }}
-                className="w-full py-3.5 bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 border border-white/5 rounded-xl text-[10px] font-black tracking-widest uppercase transition pointer-events-auto cursor-pointer z-50"
-              >
-                Прервать операцию
-              </button>
+          <Modal
+            isOpen={isWaitingForOpponent}
+            maxWidth="max-w-sm"
+            zIndexClass="z-[70]"
+            className="items-center p-8 text-center"
+          >
+            <div className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3">Шифр операции</div>
+            <div className="text-4xl font-black text-zinc-100 tracking-widest font-mono mb-6 border border-white/10 rounded-2xl px-8 py-4 bg-zinc-950/70 shadow-inner">
+              {partyService.roomCode || partyRoomCode}
             </div>
-          </div>
+
+            <div className="flex justify-center mb-6">
+              <div className="w-12 h-12 border-2 border-zinc-800 border-t-red-600 rounded-full animate-spin" />
+            </div>
+
+            <div className="text-[10px] text-zinc-300 font-black tracking-widest uppercase animate-pulse mb-6">
+              {partyService.isHost ? "Ожидание подключения агента..." : "Синхронизация с хостом..."}
+            </div>
+
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => {
+                partyService.disconnect();
+                setIsWaitingForOpponent(false);
+                setIsCreating(false);
+              }}
+              className="text-[10px] font-black tracking-widest uppercase"
+            >
+              Прервать операцию
+            </Button>
+          </Modal>
         )}
 
         {isTutorialOpen && (
@@ -1375,95 +1380,97 @@ export const MainMenu = ({
         )}
 
         {isSettingsOpen && (
-          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#080a0f]/90 backdrop-blur-md p-4" onClick={() => setIsSettingsOpen(false)}>
-            <div className="bg-zinc-900/90 backdrop-blur-2xl border border-white/10 p-6 rounded-3xl w-full max-w-sm flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.7)]" onClick={(e) => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3">
-                <h3 className="text-sm font-black text-zinc-100 uppercase tracking-widest">
-                  {t.settings.title}
-                </h3>
-                <button onClick={() => setIsSettingsOpen(false)} className="text-zinc-500 hover:text-white transition cursor-pointer">
-                  ✕
+          <Modal
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+            title={t.settings.title}
+            maxWidth="max-w-sm"
+            showCloseButton={true}
+            zIndexClass="z-[80]"
+            className="p-6 text-left"
+          >
+            <div className="space-y-3.5 mb-6 mt-1">
+              <div className="flex items-center justify-between p-3 bg-zinc-950/60 rounded-xl border border-white/5">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.sfx}</span>
+                  <span className="text-[9px] text-zinc-500 font-mono mt-0.5">{t.settings.sfxDesc}</span>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    const enabled = soundManager.toggleSfx();
+                    setIsSfxEnabled(enabled);
+                  }}
+                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isSfxEnabled ? 'bg-red-600 shadow-[0_0_12px_rgba(239,68,68,0.4)]' : 'bg-zinc-700'}`}
+                >
+                  <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isSfxEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
                 </button>
               </div>
-              
-              <div className="space-y-4 mb-6">
-                <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.sfx}</span>
-                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">{t.settings.sfxDesc}</span>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      const enabled = soundManager.toggleSfx();
-                      setIsSfxEnabled(enabled);
-                    }}
-                    className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isSfxEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}
-                  >
-                    <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isSfxEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
-                  </button>
-                </div>
 
-                <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.ambient}</span>
-                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">{t.settings.ambientDesc}</span>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      const enabled = soundManager.toggleAmbient();
-                      setIsAmbientEnabled(enabled);
-                    }}
-                    className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isAmbientEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}
-                  >
-                    <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isAmbientEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
-                  </button>
+              <div className="flex items-center justify-between p-3 bg-zinc-950/60 rounded-xl border border-white/5">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.ambient}</span>
+                  <span className="text-[9px] text-zinc-500 font-mono mt-0.5">{t.settings.ambientDesc}</span>
                 </div>
-
-                <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.haptics}</span>
-                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">{t.settings.hapticsDesc}</span>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      const newVal = !isHapticsEnabled;
-                      setIsHapticsEnabled(newVal);
-                      setHapticsEnabled(newVal);
-                      if (newVal) triggerHaptic("medium");
-                    }}
-                    className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isHapticsEnabled ? 'bg-red-600' : 'bg-zinc-700'}`}
-                  >
-                    <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isHapticsEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.language}</span>
-                    <span className="text-[9px] text-zinc-600 font-mono mt-0.5">Выберите язык / Select language</span>
-                  </div>
-                  <div className="flex gap-1">
-                    <button 
-                      onClick={() => setLang('ru')}
-                      className={`px-3 py-1 rounded-md text-[10px] font-black transition-colors cursor-pointer ${lang === 'ru' ? 'bg-red-600 text-white shadow-md' : 'bg-zinc-800 text-zinc-400 hover:text-white'}`}
-                    >
-                      RU
-                    </button>
-                    <button 
-                      onClick={() => setLang('en')}
-                      className={`px-3 py-1 rounded-md text-[10px] font-black transition-colors cursor-pointer ${lang === 'en' ? 'bg-red-600 text-white shadow-md' : 'bg-zinc-800 text-zinc-400 hover:text-white'}`}
-                    >
-                      EN
-                    </button>
-                  </div>
-                </div>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    const enabled = soundManager.toggleAmbient();
+                    setIsAmbientEnabled(enabled);
+                  }}
+                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isAmbientEnabled ? 'bg-red-600 shadow-[0_0_12px_rgba(239,68,68,0.4)]' : 'bg-zinc-700'}`}
+                >
+                  <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isAmbientEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                </button>
               </div>
 
-              <Button variant="secondary" fullWidth onClick={() => setIsSettingsOpen(false)} className="text-[10px] font-black tracking-widest uppercase">
-                {t.settings.close}
-              </Button>
+              <div className="flex items-center justify-between p-3 bg-zinc-950/60 rounded-xl border border-white/5">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.haptics}</span>
+                  <span className="text-[9px] text-zinc-500 font-mono mt-0.5">{t.settings.hapticsDesc}</span>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    const newVal = !isHapticsEnabled;
+                    setIsHapticsEnabled(newVal);
+                    setHapticsEnabled(newVal);
+                    if (newVal) triggerHaptic("medium");
+                  }}
+                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isHapticsEnabled ? 'bg-red-600 shadow-[0_0_12px_rgba(239,68,68,0.4)]' : 'bg-zinc-700'}`}
+                >
+                  <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isHapticsEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-zinc-950/60 rounded-xl border border-white/5">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.language}</span>
+                  <span className="text-[9px] text-zinc-500 font-mono mt-0.5">Выберите язык / Select language</span>
+                </div>
+                <div className="flex gap-1.5">
+                  <button 
+                    type="button"
+                    onClick={() => setLang('ru')}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider ${lang === 'ru' ? 'bg-red-600 text-white shadow-[0_0_12px_rgba(239,68,68,0.4)]' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/10'}`}
+                  >
+                    RU
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setLang('en')}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider ${lang === 'en' ? 'bg-red-600 text-white shadow-[0_0_12px_rgba(239,68,68,0.4)]' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/10'}`}
+                  >
+                    EN
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
+
+            <Button variant="secondary" fullWidth onClick={() => setIsSettingsOpen(false)} className="text-[10px] font-black tracking-widest uppercase">
+              {t.settings.close}
+            </Button>
+          </Modal>
         )}
       </div>
     </div>

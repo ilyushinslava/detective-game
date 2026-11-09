@@ -40,12 +40,12 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
     fireEvent.click(screen.getByText(/Синдикат \(Охота: Убийца\)/i));
     expect(screen.getAllByText(/Подвод жертвы/i).length).toBeGreaterThan(0);
 
-    // Нецелевое действие: клик по карточке на шаге сдвига заблокирован и не меняет шаг
+    // Нецелевое действие: клик по карточке на шаге маневра заблокирован и не меняет шаг
     const randomCard = screen.getAllByText(/#/i)[0];
     fireEvent.click(randomCard);
     expect(screen.getAllByText(/Подвод жертвы/i).length).toBeGreaterThan(0);
 
-    // Шаг 1: сдвиг 3-й колонки вниз (col index 2, forward)
+    // Шаг 1: маневр 3-й колонки вниз (col index 2, forward)
     const colDownBtn = screen.getByTestId("col-down-2");
     fireEvent.click(colDownBtn);
 

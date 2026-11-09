@@ -297,23 +297,25 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             </Button>
           </div>
         ) : (
-          <button
-            type="button"
+          <Button
+            variant="primary-danger"
+            fullWidth
             onClick={onRestart}
-            className="bg-zinc-100 hover:bg-white text-zinc-950 font-black tracking-wider uppercase rounded-2xl rounded-full h-12 w-full active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-lg cursor-pointer"
+            className="rounded-full !h-12 text-xs sm:text-sm font-black uppercase tracking-wider gap-2 shadow-lg"
           >
             <span>НОВОЕ РАССЛЕДОВАНИЕ</span>
             <Icons.ArrowRight />
-          </button>
+          </Button>
         )}
 
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          fullWidth
           onClick={onExitToMenu}
-          className="text-zinc-400 hover:text-zinc-200 text-xs font-bold uppercase tracking-wider py-3 mt-2.5 w-full transition-colors cursor-pointer"
+          className="text-zinc-400 hover:text-zinc-200 text-xs font-bold uppercase tracking-wider py-3 mt-2.5 transition-colors"
         >
           <span>В главное меню</span>
-        </button>
+        </Button>
       </Modal>
     </>
   );

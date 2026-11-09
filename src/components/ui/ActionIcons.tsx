@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const ActionIcons = {
-  // 1. Сдвиг поля — встречные параллельные стрелки перемещения линий
+  // 1. Маневр поля — встречные параллельные стрелки маневра линий
   Shift: ({ className = 'w-4 h-4 shrink-0' }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
       <path d="M4 8h16M4 8l4-4M4 8l4 4" />

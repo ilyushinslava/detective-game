@@ -52,7 +52,7 @@ export const DuelCandidatesSheet = ({
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col justify-end select-none">
       <div className="absolute inset-0" onClick={onClose} />
       
-      <div className="relative bg-zinc-950 border-t border-zinc-800 rounded-t-3xl p-5 max-h-[85vh] flex flex-col z-10 shadow-2xl w-full max-w-2xl mx-auto animate-in slide-in-from-bottom-8 duration-300">
+      <div className="relative bg-zinc-950/95 backdrop-blur-xl border-t border-white/10 rounded-t-3xl p-5 max-h-[85vh] flex flex-col z-10 shadow-2xl w-full max-w-2xl mx-auto animate-in slide-in-from-bottom-8 duration-300">
         {/* Swipe Indicator */}
         <div className="w-12 h-1 bg-zinc-700 rounded-full mx-auto mb-4 shrink-0" />
 

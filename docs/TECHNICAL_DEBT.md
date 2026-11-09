@@ -39,7 +39,7 @@
 ### DEBT-04: Изоляция тач-событий при открытых модальных окнах (BOARD-01)
 - **Категория:** Мобильный UI / Тач-взаимодействие.
 - **Файлы:** `src/components/ui/Modal.tsx`, `src/index.css`, `src/components/__tests__/componentsUI.test.tsx`.
-- **Описание:** На бэкдропе и контейнере модальных окон реализована полная блокировка распространения тач- и pointer-событий (`stopPropagation` для `touchStart`, `touchMove`, `touchEnd`, `pointerDown`, `pointerMove`, `pointerUp`). Внутреннему контейнеру заданы `touch-action: pan-y` и `overscroll-behavior: contain` (`.modal-content-scrollable`), что полностью исключает случайные сдвиги рядов игрового поля `GameBoard` и сохраняет плавный вертикальный скролл содержимого модалок.
+- **Описание:** На бэкдропе и контейнере модальных окон реализована полная блокировка распространения тач- и pointer-событий (`stopPropagation` для `touchStart`, `touchMove`, `touchEnd`, `pointerDown`, `pointerMove`, `pointerUp`). Внутреннему контейнеру заданы `touch-action: pan-y` и `overscroll-behavior: contain` (`.modal-content-scrollable`), что полностью исключает случайные маневры рядов игрового поля `GameBoard` и сохраняет плавный вертикальный скролл содержимого модалок.
 - **Статус:** `RESOLVED` (закрыто в рамках TASK-UI-001, покрыто тестом в `componentsUI.test.tsx`).
 
 ### DEBT-05: Разблокировка AudioContext и тактильного отклика на iOS

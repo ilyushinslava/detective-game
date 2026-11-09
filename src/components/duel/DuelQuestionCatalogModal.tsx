@@ -80,7 +80,7 @@ export const DuelQuestionCatalogModal = ({
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col justify-end sm:justify-center p-3 sm:p-4 select-none">
       <div
-        className="bg-zinc-950 border border-zinc-800 rounded-3xl p-5 max-w-lg w-full mx-auto max-h-[85vh] flex flex-col shadow-2xl"
+        className="bg-zinc-950/95 backdrop-blur-xl border border-white/10 rounded-3xl p-5 max-w-lg w-full mx-auto max-h-[85vh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -106,7 +106,7 @@ export const DuelQuestionCatalogModal = ({
             placeholder="Поиск по тексту или тегам..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-10 pr-10 py-3 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-blue-500/50 transition shadow-inner"
+            className="w-full bg-zinc-900/80 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-500/50 transition shadow-inner"
           />
           {searchQuery && (
             <button

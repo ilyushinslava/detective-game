@@ -425,9 +425,9 @@ export const RoleRevealModal = ({
         });
         tiles.push({
           id: "shift",
-          label: "Сдвиг",
+          label: "Маневр",
           icon: <Icons.Shift className="w-6 h-6 text-rose-500" />,
-          desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
+          desc: "Выполнить маневр ряда или колонки на 1 клетку. Нельзя отменять ход противника.",
         });
         tiles.push({
           id: "disguise",
@@ -444,9 +444,9 @@ export const RoleRevealModal = ({
         });
         tiles.push({
           id: "shift",
-          label: "Сдвиг",
+          label: "Маневр",
           icon: <Icons.Shift className="w-6 h-6 text-sky-400" />,
-          desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
+          desc: "Выполнить маневр ряда или колонки на 1 клетку. Нельзя отменять ход противника.",
         });
         tiles.push({
           id: "alibi",
@@ -465,9 +465,9 @@ export const RoleRevealModal = ({
         });
         tiles.push({
           id: "shift",
-          label: "Сдвиг",
+          label: "Маневр",
           icon: <Icons.Shift className="w-6 h-6 text-rose-500" />,
-          desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
+          desc: "Выполнить маневр ряда или колонки на 1 клетку. Нельзя отменять ход противника.",
         });
         tiles.push({
           id: "escape",
@@ -484,9 +484,9 @@ export const RoleRevealModal = ({
         });
         tiles.push({
           id: "shift",
-          label: "Сдвиг",
+          label: "Маневр",
           icon: <Icons.Shift className="w-6 h-6 text-sky-400" />,
-          desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
+          desc: "Выполнить маневр ряда или колонки на 1 клетку. Нельзя отменять ход противника.",
         });
         tiles.push({
           id: "alibi",
@@ -505,9 +505,9 @@ export const RoleRevealModal = ({
         });
         tiles.push({
           id: "shift",
-          label: "Сдвиг",
+          label: "Маневр",
           icon: <Icons.Shift className="w-6 h-6 text-rose-500" />,
-          desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
+          desc: "Выполнить маневр ряда или колонки на 1 клетку. Нельзя отменять ход противника.",
         });
         tiles.push({
           id: "disguise_thief",
@@ -524,9 +524,9 @@ export const RoleRevealModal = ({
         });
         tiles.push({
           id: "shift",
-          label: "Сдвиг",
+          label: "Маневр",
           icon: <Icons.Shift className="w-6 h-6 text-sky-400" />,
-          desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
+          desc: "Выполнить маневр ряда или колонки на 1 клетку. Нельзя отменять ход противника.",
         });
         tiles.push({
           id: "patrol",
@@ -544,9 +544,9 @@ export const RoleRevealModal = ({
       });
       tiles.push({
         id: "shift",
-        label: "Сдвиг",
+        label: "Маневр",
         icon: <Icons.Shift className={`w-6 h-6 ${isRed ? "text-rose-500" : "text-sky-400"}`} />,
-        desc: "Сместить ряд или колонку на 1 клетку. Нельзя отменять ход противника.",
+        desc: "Выполнить маневр ряда или колонки на 1 клетку. Нельзя отменять ход противника.",
       });
       tiles.push({
         id: "interrogate_spy",

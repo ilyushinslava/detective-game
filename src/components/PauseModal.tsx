@@ -118,7 +118,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
                   type="button"
                   onClick={onToggleSfx}
                   className={`w-10 h-5 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${
-                    isSfxEnabled ? "bg-red-600" : "bg-zinc-700"
+                    isSfxEnabled ? "bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.4)]" : "bg-zinc-700"
                   }`}
                 >
                   <div
@@ -139,7 +139,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
                   type="button"
                   onClick={onToggleAmbient}
                   className={`w-10 h-5 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${
-                    isAmbientEnabled ? "bg-red-600" : "bg-zinc-700"
+                    isAmbientEnabled ? "bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.4)]" : "bg-zinc-700"
                   }`}
                 >
                   <div
@@ -160,7 +160,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
                   type="button"
                   onClick={onToggleHaptics}
                   className={`w-10 h-5 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${
-                    isHapticsEnabled ? "bg-red-600" : "bg-zinc-700"
+                    isHapticsEnabled ? "bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.4)]" : "bg-zinc-700"
                   }`}
                 >
                   <div

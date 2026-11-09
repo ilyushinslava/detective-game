@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Character } from '../../types/game';
 import type { CharacterNoteStatus } from '../../hooks/useDetectiveNotebook';
+import { Button } from '../ui/Button';
 
 export interface DetectiveNotebookModalProps {
   isOpen: boolean;
@@ -57,9 +58,9 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md select-none font-sans animate-fadeIn">
-      <div className="w-full max-w-lg max-h-[92dvh] rounded-t-3xl sm:rounded-3xl bg-zinc-950 border border-white/15 flex flex-col shadow-2xl overflow-hidden">
+      <div className="w-full max-w-lg max-h-[92dvh] rounded-t-3xl sm:rounded-3xl bg-zinc-950/95 backdrop-blur-xl border border-white/10 flex flex-col shadow-2xl overflow-hidden">
         {/* Шапка блокнота */}
-        <div className="p-4 sm:p-5 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-900/60">
+        <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-zinc-900/40">
           <div className="flex items-center gap-2.5">
             <Icons.Book />
             <div>
@@ -72,6 +73,7 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer active:scale-95"
             aria-label="Закрыть блокнот"
@@ -174,19 +176,21 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
         </div>
 
         {/* Подвал блокнота */}
-        <div className="p-3 sm:p-4 border-t border-zinc-800/80 bg-zinc-900/60 flex items-center justify-between">
-          <button
+        <div className="p-3 sm:p-4 border-t border-white/10 bg-zinc-900/40 flex items-center justify-between">
+          <Button
+            variant="ghost"
             onClick={onClearNotebook}
-            className="text-xs text-zinc-400 hover:text-zinc-200 transition font-medium cursor-pointer"
+            className="!h-9 px-3 text-xs text-zinc-400 hover:text-zinc-200 transition font-medium"
           >
             Сбросить все метки
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary-info"
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg transition cursor-pointer active:scale-95"
+            className="!h-9 px-5 text-xs font-bold uppercase tracking-wider"
           >
             Готово
-          </button>
+          </Button>
         </div>
       </div>
     </div>

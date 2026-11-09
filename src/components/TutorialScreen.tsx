@@ -54,7 +54,7 @@ const getInitialBoard = (module: TutorialModule): Character[][] => {
       chars[c1Index] = temp;
     }
   } else if (module === "MANIAC_KILLER") {
-    // Елена Соколова (c3) ставится в верхний ряд [0][2] (индекс 2), чтобы при сдвиге колонки 2 вниз войти в сектор убийцы
+    // Елена Соколова (c3) ставится в верхний ряд [0][2] (индекс 2), чтобы при маневре колонки 2 вниз войти в сектор убийцы
     const elenaIndex = chars.findIndex((c) => c.id === "c3");
     if (elenaIndex !== -1 && elenaIndex !== 2) {
       const temp = chars[2];
@@ -282,13 +282,13 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     }
   };
 
-  // Аппаратная защита ввода: сдвиг разрешен ТОЛЬКО на шагах, обучающих сдвигу
+  // Аппаратная защита ввода: маневр разрешен ТОЛЬКО на шагах, обучающих маневру
   const handleShift = (
     type: "ROW" | "COL",
     index: number,
     direction: "FORWARD" | "BACKWARD"
   ) => {
-    // BASICS: шаг 1 требует сдвига 3-го ряда влево (row index 2, direction BACKWARD)
+    // BASICS: шаг 1 требует маневра 3-го ряда влево (row index 2, direction BACKWARD)
     if (
       currentModule === "BASICS" &&
       step === 1 &&
@@ -306,7 +306,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       return;
     }
 
-    // MANIAC_KILLER: шаг 1 требует сдвига 3-й колонки вниз (col index 2, direction FORWARD)
+    // MANIAC_KILLER: шаг 1 требует маневра 3-й колонки вниз (col index 2, direction FORWARD)
     if (
       currentModule === "MANIAC_KILLER" &&
       step === 1 &&
@@ -362,7 +362,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     }
   };
 
-  // Механика зачистки: уплотнение поля со смещением выбывших персонажей строго ВНИЗ сетки
+  // Механика зачистки: уплотнение поля с переносом выбывших персонажей строго ВНИЗ сетки
   const handleCleanup = () => {
     if (currentModule === "MANIAC_DETECTIVE" && step === 3) {
       triggerHaptic("medium");
@@ -498,12 +498,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   const getHudStatus = () => {
     switch (currentModule) {
       case "BASICS":
-        if (step === 1) return <span className="text-amber-400 font-bold">ОСНОВЫ: СДВИГ 3-ГО РЯДА ВЛЕВО (←)</span>;
+        if (step === 1) return <span className="text-amber-400 font-bold">ОСНОВЫ: МАНЕВР 3-ГО РЯДА ВЛЕВО (←)</span>;
         if (step === 2) return <span className="text-amber-400 font-bold">РАДИУС 3×3: ВЫБЕРИТЕ СОСЕДА</span>;
         if (step === 3) return <span className="text-emerald-400 font-bold">ANTI-UNDO: ОБРАТНЫЙ ХОД ЗАБЛОКИРОВАН</span>;
         break;
       case "MANIAC_KILLER":
-        if (step === 1) return <span className="text-amber-400 font-bold">ОХОТА: СДВИНЬТЕ 3-Ю КОЛОНКУ ВНИЗ (↓)</span>;
+        if (step === 1) return <span className="text-amber-400 font-bold">ОХОТА: МАНЕВР 3-Й КОЛОНКИ ВНИЗ (↓)</span>;
         if (step === 2) return <span className="text-amber-400 font-bold">ЗАХВАТ ЦЕЛИ: ВЫБЕРИТЕ ЕЛЕНУ СОКОЛОВУ</span>;
         if (step === 3) return <span className="text-amber-400 font-bold">ЛИКВИДАЦИЯ: ПРОИЗВЕДИТЕ ВЫСТРЕЛ</span>;
         if (step === 4) return <span className="text-amber-400 font-bold">ПОБЕГ: СМЕНИТЕ ЛИЧНОСТЬ</span>;
@@ -594,7 +594,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   <span className="text-[9px] font-mono font-bold text-emerald-400 uppercase bg-emerald-900/20 px-2 py-0.5 rounded border border-emerald-500/30">✓ Сдано</span>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">Первые шаги: тороидальный сдвиг улиц, работа в радиусе 3×3 и жесткое правило Anti-Undo.</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Первые шаги: тороидальный маневр улиц, работа в радиусе 3×3 и жесткое правило Anti-Undo.</p>
             </div>
 
             {/* 2. MANIAC_KILLER */}
@@ -736,8 +736,8 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   return (
     <div className="fixed inset-0 z-[100] bg-[#080a0f] flex justify-center overflow-hidden font-sans select-none text-zinc-100 h-full w-full">
       <style>{`
-        .tutorial-highlight-l1s2 button[title*="Сдвиг влево"]:nth-of-type(3),
-        .tutorial-highlight-maniac button[title*="Сдвиг вниз"]:nth-of-type(3) {
+        .tutorial-highlight-l1s2 button[title*="Маневр влево"]:nth-of-type(3),
+        .tutorial-highlight-maniac button[title*="Маневр вниз"]:nth-of-type(3) {
           position: relative; z-index: 30;
           box-shadow: 0 0 20px rgba(245,158,11,0.9) !important;
           border-color: #f59e0b !important;
@@ -768,7 +768,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
                     <div><b className="text-amber-500">КОНТЕКСТ:</b> Добро пожаловать в The Wicked City. Улицы здесь постоянно меняются.</div>
                     <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите стрелку <b className="text-emerald-400">←</b> слева от 3-го ряда.</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Ряд смещен. Крайний житель вернулся с противоположной стороны.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Маневр выполнен. Крайний житель вернулся с противоположной стороны.</div>
                   </div>
                 </div>
               )}
@@ -787,7 +787,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Правило Anti-Undo</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
                     <div><b className="text-amber-500">КОНТЕКСТ:</b> Улицы не прощают сомнений. Отменить ход оппонента нельзя.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Обратный сдвиг заблокирован. Завершите первый модуль.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Обратный маневр заблокирован. Завершите первый модуль.</div>
                     <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Базовые законы The Wicked City усвоены.</div>
                   </div>
                 </div>
@@ -799,7 +799,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Охота: Подвод жертвы</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
                     <div><b className="text-amber-500">КОНТЕКСТ:</b> Синдикат ждет смерти Елены Соколовой. Она должна войти в ваш сектор 3×3.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Сдвиньте 3-ю колонку <b className="text-emerald-400">↓</b> вниз.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Выполните маневр 3-й колонки <b className="text-emerald-400">↓</b> вниз.</div>
                     <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Жертва загнана в ловушку.</div>
                   </div>
                 </div>

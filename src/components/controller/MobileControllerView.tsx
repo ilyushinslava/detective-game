@@ -26,7 +26,7 @@ export interface MobileControllerViewProps {
 export type ShiftWizardStep =
   | 'IDLE'          // 0: Основной экран хода
   | 'SELECT_LINE'   // Этап 1: Выбор типа линии (Ряды/Столбцы) и её номера (1–5) с подсветкой на ТВ
-  | 'SELECT_DIR'    // Этап 2: Выбор направления (стрелка) и немедленное выполнение сдвига
+  | 'SELECT_DIR'    // Этап 2: Выбор направления (стрелка) и немедленное выполнение маневра
   | 'SELECT_AXIS'   // Совместимость: выбор оси
   | 'SELECT_INDEX'  // Совместимость: выбор индекса
   | 'CONFIRM';      // Совместимость: подтверждение
@@ -116,7 +116,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       ? (gameState.mode === 'THIEF_HUNT' ? 'Грабитель' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Маньяк' : 'Бандит')
       : (gameState.mode === 'THIEF_HUNT' ? 'Полиция' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Оперативник' : 'Инспектор');
 
-  // Локальные состояния визарда сдвига и блокировки ожидания
+  // Локальные состояния визарда маневра и блокировки ожидания
   const [shiftStep, setShiftStep] = useState<ShiftWizardStep>('IDLE');
   const [selectedAxis, setSelectedAxis] = useState<'ROW' | 'COL'>('ROW');
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
@@ -137,7 +137,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   const { notes, marks, setMark, updateNote, clearNotebook } = useDetectiveNotebook(gameState, playerRole);
   const flatBoardCards = useMemo(() => (gameState?.board ? gameState.board.flat() : []), [gameState.board]);
 
-  // Проверка Anti-Undo для сдвига
+  // Проверка Anti-Undo для маневра
   const isUndoMove = useMemo(() => {
     const dir = (selectedDir === 'LEFT' || selectedDir === 'UP') ? 'BACKWARD' : 'FORWARD';
     return isOppositeShift(gameState.lastShift, selectedAxis, selectedIndex, dir);
@@ -309,7 +309,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     );
   };
 
-  // Немедленное выполнение сдвига по нажатию стрелки направления (Этап 2)
+  // Немедленное выполнение маневра по нажатию стрелки направления (Этап 2)
   const handleExecuteShift = (dir: 'LEFT' | 'RIGHT' | 'UP' | 'DOWN') => {
     soundManager.play('slide');
     triggerHaptic('medium');
@@ -619,7 +619,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   }
 
   // =========================================================================
-  // 2. КОМПАКТНАЯ ПАНЕЛЬ СДВИГА ПОЛЯ (ВАРИАНТ Б ЧЕРЕЗ FLOATING DOCK)
+  // 2. КОМПАКТНАЯ ПАНЕЛЬ МАНЕВРА ПОЛЯ (ВАРИАНТ Б ЧЕРЕЗ FLOATING DOCK)
   // =========================================================================
   const renderCompactShiftPanel = () => {
     if (shiftStep === 'IDLE') return null;
@@ -633,11 +633,11 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           transition={{ type: 'spring', damping: 28, stiffness: 280 }}
           className="w-full h-[390px] p-4 bg-gradient-to-b from-slate-950 via-zinc-950 to-black border-t-2 border-blue-500/80 rounded-t-3xl shadow-[0_-20px_50px_rgba(0,0,0,0.9)] backdrop-blur-2xl flex flex-col justify-between"
         >
-          {/* Шапка панели сдвига — фиксированная высота */}
+          {/* Шапка панели маневра — фиксированная высота */}
           <div className="h-8 flex items-center justify-between border-b border-white/10 pb-2 shrink-0">
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono font-bold uppercase tracking-widest text-white">
-                СДВИГ ПОЛЯ
+                МАНЕВР ПОЛЯ
               </span>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-950/80 border border-blue-500/50 text-blue-300 font-bold">
                 {shiftStep === 'SELECT_DIR' ? 'ЭТАП 2/2' : shiftStep === 'CONFIRM' ? 'ПОДТВЕРЖДЕНИЕ' : 'ЭТАП 1/2'}
@@ -658,7 +658,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
               <div className="w-full space-y-2.5">
                 <div className="text-center space-y-0.5">
                   <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
-                    ЭТАП 1 • ВЫБЕРИТЕ ЛИНИЮ ДЛЯ СДВИГА
+                    ЭТАП 1 • ВЫБЕРИТЕ ЛИНИЮ ДЛЯ МАНЕВРА
                   </div>
                   <div className="text-[10px] font-mono text-blue-400">
                     Линия сразу подсвечивается на телевизоре
@@ -810,7 +810,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
                 {(isDirUndo('LEFT') || isDirUndo('RIGHT') || isDirUndo('UP') || isDirUndo('DOWN')) && (
                   <div className="p-2 rounded-xl border border-red-900/60 bg-red-950/40 text-[11px] font-bold text-red-400 font-mono text-center max-w-xs mx-auto">
-                    Anti-Undo: ход отменяет предыдущий сдвиг соперника
+                    Anti-Undo: ход отменяет предыдущий маневр соперника
                   </div>
                 )}
               </div>
@@ -824,7 +824,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                 </div>
 
                 <div className="text-sm font-black text-white uppercase tracking-wider">
-                  {`Переместить ${selectedAxis === 'ROW' ? `ряд #${selectedIndex + 1}` : `столбец #${selectedIndex + 1}`} ${
+                  {`Выполнить маневр: ${selectedAxis === 'ROW' ? `ряд #${selectedIndex + 1}` : `столбец #${selectedIndex + 1}`} ${
                     selectedDir === 'LEFT' ? 'влево' : selectedDir === 'RIGHT' ? 'вправо' : selectedDir === 'UP' ? 'вверх' : 'вниз'
                   }?`}
                 </div>
@@ -1044,7 +1044,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         )}
       </div>
 
-      {/* Компактная панель сдвига (Вариант Б) */}
+      {/* Компактная панель маневра (Вариант Б) */}
       {renderCompactShiftPanel()}
 
       {/* Доступные действия (SSOT ActionButtonsBar) */}
@@ -1054,7 +1054,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         </div>
         <ActionButtonsBar
           actions={[
-            ...(gameState.mode === 'LINE_UP' ? [] : [{ id: 'SHIFT', label: 'Сдвиг поля', isRed: false, requiresTarget: false }]),
+            ...(gameState.mode === 'LINE_UP' ? [] : [{ id: 'SHIFT', label: 'Маневр', isRed: false, requiresTarget: false }]),
             ...getAvailableActionDescriptors(gameState, playerRole),
           ].map((act) => ({
             id: act.id,

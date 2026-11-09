@@ -42,7 +42,7 @@ describe("MobileControllerView Component", () => {
     );
 
     expect(screen.getByText(/ДОСТУПНЫЕ ДЕЙСТВИЯ/i)).toBeDefined();
-    expect(screen.getByRole("button", { name: /Сдвиг поля/i })).toBeDefined();
+    expect(screen.getByRole("button", { name: /Маневр/i })).toBeDefined();
     expect(screen.getByText(/Ликвидация/i)).toBeDefined();
   });
 
@@ -60,14 +60,14 @@ describe("MobileControllerView Component", () => {
     );
 
     // Click on Shift action button
-    const shiftButton = screen.getByRole("button", { name: /Сдвиг поля/i });
+    const shiftButton = screen.getByRole("button", { name: /Маневр/i });
     fireEvent.click(shiftButton);
 
     // Этап 1: Select ROW & Row 1 (Ряд #1)
     fireEvent.click(screen.getByText(/Горизонталь/i));
     fireEvent.click(screen.getByText(/РЯД #1/i));
 
-    // Этап 2: Select Direction Left (Влево) -> сдвиг немедленно выполняется в 1 клик
+    // Этап 2: Select Direction Left (Влево) -> маневр немедленно выполняется в 1 клик
     fireEvent.click(screen.getByText(/ВЛЕВО/i));
 
     expect(dispatchSpy).toHaveBeenCalledWith({
@@ -96,7 +96,7 @@ describe("MobileControllerView Component", () => {
     );
 
     // Этап 1: open wizard and select COL (Вертикаль)
-    fireEvent.click(screen.getByRole("button", { name: /Сдвиг поля/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Маневр/i }));
     fireEvent.click(screen.getByText(/Вертикаль/i));
 
     // Select Column 3 (Столбец #3)
@@ -129,8 +129,8 @@ describe("MobileControllerView Component", () => {
     );
 
     // Open shift panel -> Этап 1
-    fireEvent.click(screen.getByRole("button", { name: /Сдвиг поля/i }));
-    expect(screen.getByText(/ЭТАП 1 • ВЫБЕРИТЕ ЛИНИЮ ДЛЯ СДВИГА/i)).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: /Маневр/i }));
+    expect(screen.getByText(/ЭТАП 1 • ВЫБЕРИТЕ ЛИНИЮ ДЛЯ МАНЕВРА/i)).toBeDefined();
 
     // Select Row 1 -> Этап 2
     fireEvent.click(screen.getByText(/РЯД #1/i));
@@ -138,7 +138,7 @@ describe("MobileControllerView Component", () => {
 
     // Go back to Этап 1
     fireEvent.click(screen.getByRole("button", { name: /Назад к выбору линии/i }));
-    expect(screen.getByText(/ЭТАП 1 • ВЫБЕРИТЕ ЛИНИЮ ДЛЯ СДВИГА/i)).toBeDefined();
+    expect(screen.getByText(/ЭТАП 1 • ВЫБЕРИТЕ ЛИНИЮ ДЛЯ МАНЕВРА/i)).toBeDefined();
 
     // Cancel -> returns to main screen
     fireEvent.click(screen.getByRole("button", { name: /Отмена и возврат к пульту/i }));
@@ -164,11 +164,11 @@ describe("MobileControllerView Component", () => {
     );
 
     // Этап 1: ROW & Row 1 (index 0)
-    fireEvent.click(screen.getByRole("button", { name: /Сдвиг поля/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Маневр/i }));
     fireEvent.click(screen.getByText(/РЯД #1/i));
 
     // Этап 2: Direction screen displays Anti-Undo warning and disables LEFT button
-    expect(screen.getByText(/Anti-Undo: ход отменяет предыдущий сдвиг соперника/i)).toBeDefined();
+    expect(screen.getByText(/Anti-Undo: ход отменяет предыдущий маневр соперника/i)).toBeDefined();
     const leftButton = screen.getByRole("button", { name: /ВЛЕВО/i });
     expect(leftButton).toHaveProperty("disabled", true);
   });
@@ -186,7 +186,7 @@ describe("MobileControllerView Component", () => {
     );
 
     // Execute valid shift (Этап 1: линия -> Этап 2: стрелка с мгновенным выполнением)
-    fireEvent.click(screen.getByRole("button", { name: /Сдвиг поля/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Маневр/i }));
     fireEvent.click(screen.getByText(/РЯД #2/i));
     fireEvent.click(screen.getByText(/ВПРАВО/i));
 

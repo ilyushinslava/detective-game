@@ -463,7 +463,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                       onClick={() => {}}
                     />
 
-                    {/* Индикатор направления сдвига на крайних карточках выбранной линии */}
+                    {/* Индикатор направления маневра на крайних карточках выбранной линии */}
                     <AnimatePresence>
                       {isLineActive && selectedLineDir && (
                         ((selectedLineType === 'ROW' && ((selectedLineDir === 'FORWARD' && col === boardSize - 1) || (selectedLineDir === 'BACKWARD' && col === 0))) ||
@@ -568,7 +568,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
           {/* ВИДЖЕТ 2: БЛОК ДОСТУПНЫХ ДЕЙСТВИЙ ТЕКУЩЕЙ РОЛИ И ВЫБРАННАЯ ЛИНИЯ */}
           <div className="p-4 sm:p-5 rounded-3xl bg-zinc-950/80 border border-white/10 backdrop-blur-xl shadow-xl flex flex-col gap-3 shrink-0">
-            {/* Блок «Выбранная линия» (живой предпросмотр тактического сдвига) */}
+            {/* Блок «Выбранная линия» (живой предпросмотр тактического маневра) */}
             {selectedLine ? (
               <div className="p-3.5 rounded-2xl bg-zinc-900/80 border border-blue-400/50 shadow-[0_0_25px_rgba(37,99,235,0.25)] space-y-1.5">
                 <div className="text-[10px] 2xl:text-xs font-mono uppercase tracking-widest text-blue-300 flex items-center gap-2 font-bold">
@@ -598,7 +598,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 <span className="text-[10px] 2xl:text-xs text-zinc-500 font-mono">ОБЩИЙ ОБЗОР</span>
               </div>
 
-              {/* Действие 1: Сдвиг поля */}
+              {/* Действие 1: Маневр поля */}
               <div className={`p-2.5 2xl:p-3 rounded-2xl border flex items-center justify-between transition-all ${
                 selectedLine
                   ? 'bg-gradient-to-r from-blue-900/80 via-blue-950/90 to-zinc-950 border-blue-400 shadow-[0_0_20px_rgba(37,99,235,0.4)]'
@@ -609,9 +609,9 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                     <ActionIcons.Shift className="w-4 h-4" />
                   </span>
                   <div>
-                    <div className="text-xs 2xl:text-sm font-black uppercase text-white tracking-wide">СДВИГ ПОЛЯ</div>
+                    <div className="text-xs 2xl:text-sm font-black uppercase text-white tracking-wide">МАНЕВР ПОЛЯ</div>
                     <div className="text-[10px] 2xl:text-xs font-mono text-zinc-400">
-                      {selectedLine ? 'Манёвр перемещения линии активен' : 'Перемещение ряда или столбца'}
+                      {selectedLine ? 'Маневр линии активен' : 'Маневр ряда или столбца'}
                     </div>
                   </div>
                 </div>

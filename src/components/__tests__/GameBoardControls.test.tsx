@@ -75,7 +75,7 @@ describe("GameBoard Controls", () => {
     expect(mockOnSelect).toHaveBeenCalledWith("c1");
   });
 
-  it("вызывает onShift при клике на доступную кнопку сдвига столбца", () => {
+  it("вызывает onShift при клике на доступную кнопку маневра столбца", () => {
     const mockOnShift = vi.fn();
     const { container } = render(<GameBoard {...defaultProps} onShift={mockOnShift} />);
     
@@ -88,7 +88,7 @@ describe("GameBoard Controls", () => {
     expect(mockOnShift).toHaveBeenCalledWith("COL", 0, expect.any(String));
   });
 
-  it("блокирует кнопку сдвига (disabled) при наличии blockedShift", () => {
+  it("блокирует кнопку маневра (disabled) при наличии blockedShift", () => {
     const mockOnShift = vi.fn();
     const { container } = render(
       <GameBoard 
@@ -108,7 +108,7 @@ describe("GameBoard Controls", () => {
     expect(mockOnShift).not.toHaveBeenCalled();
   });
 
-  it("блокирует обратный сдвиг (isOppositeShift) для предотвращения мгновенной отмены хода", () => {
+  it("блокирует обратный маневр (isOppositeShift) для предотвращения мгновенной отмены хода", () => {
     const mockOnShift = vi.fn();
     const { container } = render(
       <GameBoard 
@@ -118,7 +118,7 @@ describe("GameBoard Controls", () => {
       />
     );
     
-    // Ищем все заблокированные кнопки. Должна быть ровно одна (обратный сдвиг).
+    // Ищем все заблокированные кнопки. Должна быть ровно одна (обратный маневр).
     const disabledButtons = Array.from(container.querySelectorAll("button")).filter(b => b.disabled);
     
     expect(disabledButtons.length).toBe(1);
@@ -181,7 +181,7 @@ describe("GameBoard Controls", () => {
   });
 
   describe("gridShift indication & regression", () => {
-    it("при вызове сдвига колонки colIndex: 2, direction: 'up' в стейт индикации попадает ровно { type: 'col', index: 2, direction: 'up' }, а не противоположное направление", () => {
+    it("при вызове маневра колонки colIndex: 2, direction: 'up' в стейт индикации попадает ровно { type: 'col', index: 2, direction: 'up' }, а не противоположное направление", () => {
       // BACKWARD для COL соответствует стрелке вверх (up)
       const indicator = getShiftIndicator("COL", 2, "BACKWARD");
       expect(indicator).toEqual({ type: "col", index: 2, direction: "up" });

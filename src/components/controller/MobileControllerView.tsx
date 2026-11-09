@@ -25,10 +25,11 @@ export interface MobileControllerViewProps {
 
 export type ShiftWizardStep =
   | 'IDLE'          // 0: Основной экран хода
-  | 'SELECT_AXIS'   // Шаг 1: Выбор оси (Горизонталь / Вертикаль)
-  | 'SELECT_INDEX'  // Шаг 2: Выбор линии (1–5) с отправкой PREVIEW_SHIFT
-  | 'SELECT_DIR'    // Шаг 3: Выбор направления (Влево/Вправо или Вверх/Вниз)
-  | 'CONFIRM';      // Шаг 4: Подтверждение действия -> Шаг 5: SHIFT_BOARD -> Шаг 6: Ожидание
+  | 'SELECT_LINE'   // Этап 1: Выбор типа линии (Ряды/Столбцы) и её номера (1–5) с подсветкой на ТВ
+  | 'SELECT_DIR'    // Этап 2: Выбор направления (стрелка) и немедленное выполнение сдвига
+  | 'SELECT_AXIS'   // Совместимость: выбор оси
+  | 'SELECT_INDEX'  // Совместимость: выбор индекса
+  | 'CONFIRM';      // Совместимость: подтверждение
 
 type ActionDef = ActionDescriptor;
 
@@ -297,11 +298,22 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     updateLinePreview(null);
   };
 
-  // Шаг 5: Выполнение действия (отправка SHIFT_BOARD) -> Шаг 6: Автоматический переход в ожидание
-  const handleConfirmShift = () => {
+  // Проверка правила Anti-Undo для конкретного направления
+  const isDirUndo = (dir: 'LEFT' | 'RIGHT' | 'UP' | 'DOWN') => {
+    if (!gameState.lastShift) return false;
+    const direction = (dir === 'LEFT' || dir === 'UP') ? 'BACKWARD' : 'FORWARD';
+    return (
+      gameState.lastShift.type === selectedAxis &&
+      gameState.lastShift.index === selectedIndex &&
+      gameState.lastShift.direction !== direction
+    );
+  };
+
+  // Немедленное выполнение сдвига по нажатию стрелки направления (Этап 2)
+  const handleExecuteShift = (dir: 'LEFT' | 'RIGHT' | 'UP' | 'DOWN') => {
     soundManager.play('slide');
     triggerHaptic('medium');
-    const direction = (selectedDir === 'LEFT' || selectedDir === 'UP') ? 'BACKWARD' : 'FORWARD';
+    const direction = (dir === 'LEFT' || dir === 'UP') ? 'BACKWARD' : 'FORWARD';
 
     onDispatchAction({
       type: 'SHIFT_BOARD',
@@ -312,16 +324,19 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       },
     });
 
-    // Очистка предпросмотра линии
+    // Очистка предпросмотра линии и мгновенный переход в ожидание
     updateLinePreview(null);
     setShiftStep('IDLE');
-
-    // Шаг 6: Мгновенная блокировка экрана до подтверждения сервером смены хода
     setIsAwaitingTurnEnd(true);
 
     if (isPassAndPlay) {
       setIsCoverOpen(true);
     }
+  };
+
+  // Подтверждение для совместимости с окном подтверждения
+  const handleConfirmShift = () => {
+    handleExecuteShift(selectedDir);
   };
 
   const handleFastDisguise = (id: string) => {
@@ -342,7 +357,8 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
   const handleExecuteAction = (act: ActionDef) => {
     if (act.id === 'SHIFT') {
-      setShiftStep('SELECT_AXIS');
+      setSelectedAxis('ROW');
+      setShiftStep('SELECT_LINE');
       return;
     }
     if (act.id === 'END_TURN') {
@@ -621,10 +637,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                 СДВИГ ПОЛЯ
               </span>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-950/80 border border-blue-500/50 text-blue-300 font-bold">
-                {shiftStep === 'SELECT_AXIS' && 'ШАГ 1/4'}
-                {shiftStep === 'SELECT_INDEX' && 'ШАГ 2/4'}
-                {shiftStep === 'SELECT_DIR' && 'ШАГ 3/4'}
-                {shiftStep === 'CONFIRM' && 'ШАГ 4/4'}
+                {shiftStep === 'SELECT_DIR' ? 'ЭТАП 2/2' : shiftStep === 'CONFIRM' ? 'ПОДТВЕРЖДЕНИЕ' : 'ЭТАП 1/2'}
               </span>
             </div>
             <button
@@ -637,63 +650,52 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
           {/* Центральная зона с плавной анимацией шагов без скачков высоты */}
           <div className="flex-1 min-h-0 flex flex-col justify-center py-2 relative overflow-hidden">
-            {/* ШАГ 1: ВЫБОР ОСИ (ГОРИЗОНТАЛЬ / ВЕРТИКАЛЬ) */}
-            {shiftStep === 'SELECT_AXIS' && (
-              <div className="w-full space-y-3">
+            {/* ЭТАП 1: ВЫБОР ТИПА ЛИНИИ И ЕЁ НОМЕРА (1–5) С ПОДСВЕТКОЙ НА ТВ */}
+            {(shiftStep === 'SELECT_LINE' || shiftStep === 'SELECT_AXIS' || shiftStep === 'SELECT_INDEX') && (
+              <div className="w-full space-y-2.5">
                 <div className="text-center space-y-0.5">
                   <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
-                    ШАГ 1 • ВЫБЕРИТЕ ОСЬ
-                  </div>
-                  <div className="text-xs text-zinc-500">
-                    Выберите, какую линию переместить на поле
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 w-full pt-1">
-                  <button
-                    onClick={() => {
-                      setSelectedAxis('ROW');
-                      setShiftStep('SELECT_INDEX');
-                    }}
-                    className="p-4 rounded-2xl bg-zinc-900 border border-white/10 text-center hover:border-blue-500 hover:bg-blue-950/20 transition cursor-pointer shadow-lg active:scale-95 group"
-                  >
-                    <div className="w-8 h-8 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-center mx-auto mb-2 group-hover:border-blue-400 group-hover:text-blue-300">
-                      <span className="font-mono text-xs font-black">↔</span>
-                    </div>
-                    <div className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">Горизонталь</div>
-                    <div className="text-[10px] font-mono text-zinc-500 mt-0.5">Ряды 1–5</div>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setSelectedAxis('COL');
-                      setShiftStep('SELECT_INDEX');
-                    }}
-                    className="p-4 rounded-2xl bg-zinc-900 border border-white/10 text-center hover:border-blue-500 hover:bg-blue-950/20 transition cursor-pointer shadow-lg active:scale-95 group"
-                  >
-                    <div className="w-8 h-8 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-center mx-auto mb-2 group-hover:border-blue-400 group-hover:text-blue-300">
-                      <span className="font-mono text-xs font-black">↕</span>
-                    </div>
-                    <div className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">Вертикаль</div>
-                    <div className="text-[10px] font-mono text-zinc-500 mt-0.5">Столбцы 1–5</div>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* ШАГ 2: ВЫБОР ЛИНИИ (1–5) С ОТПРАВКОЙ PREVIEW_SHIFT НА ТВ */}
-            {shiftStep === 'SELECT_INDEX' && (
-              <div className="space-y-2 w-full">
-                <div className="text-center space-y-0.5 mb-1">
-                  <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
-                    {selectedAxis === 'ROW' ? 'ШАГ 2 • ВЫБЕРИТЕ ГОРИЗОНТАЛЬНЫЙ РЯД' : 'ШАГ 2 • ВЫБЕРИТЕ ВЕРТИКАЛЬНЫЙ СТОЛБЕЦ'}
+                    ЭТАП 1 • ВЫБЕРИТЕ ЛИНИЮ ДЛЯ СДВИГА
                   </div>
                   <div className="text-[10px] font-mono text-blue-400">
                     Линия сразу подсвечивается на телевизоре
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-1.5 w-full">
+                {/* Переключатель оси: Горизонталь (Ряды) / Вертикаль (Столбцы) */}
+                <div className="grid grid-cols-2 gap-2 w-full max-w-xs mx-auto">
+                  <button
+                    onClick={() => {
+                      setSelectedAxis('ROW');
+                      updateLinePreview({ type: 'ROW', index: selectedIndex });
+                    }}
+                    className={`py-2 px-3 rounded-xl text-xs font-mono font-bold uppercase transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                      selectedAxis === 'ROW'
+                        ? 'bg-blue-600 text-white shadow-lg border border-blue-400'
+                        : 'bg-zinc-900 text-zinc-400 border border-white/10 hover:text-white hover:border-zinc-500'
+                    }`}
+                  >
+                    <span>↔</span>
+                    <span>Горизонталь</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedAxis('COL');
+                      updateLinePreview({ type: 'COL', index: selectedIndex });
+                    }}
+                    className={`py-2 px-3 rounded-xl text-xs font-mono font-bold uppercase transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                      selectedAxis === 'COL'
+                        ? 'bg-blue-600 text-white shadow-lg border border-blue-400'
+                        : 'bg-zinc-900 text-zinc-400 border border-white/10 hover:text-white hover:border-zinc-500'
+                    }`}
+                  >
+                    <span>↕</span>
+                    <span>Вертикаль</span>
+                  </button>
+                </div>
+
+                {/* Выбор номера линии 1–5 */}
+                <div className="flex flex-col gap-1 w-full max-w-xs mx-auto">
                   {Array.from({ length: boardSize }, (_, i) => i).map((i) => (
                     <button
                       key={i}
@@ -702,10 +704,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         updateLinePreview({ type: selectedAxis, index: i });
                         setShiftStep('SELECT_DIR');
                       }}
-                      className="w-full h-9 rounded-xl bg-zinc-900 border border-white/10 hover:border-blue-400 hover:bg-blue-950/30 flex items-center justify-between px-3 transition cursor-pointer active:scale-[0.98] shadow-sm group"
+                      className="w-full h-8 rounded-xl bg-zinc-900 border border-white/10 hover:border-blue-400 hover:bg-blue-950/30 flex items-center justify-between px-3 transition cursor-pointer active:scale-[0.98] shadow-sm group"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <span className="w-5 h-5 rounded-md bg-zinc-950 border border-white/10 flex items-center justify-center font-mono text-xs font-black text-zinc-300 group-hover:border-blue-400 group-hover:text-blue-300">
+                      <div className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded bg-zinc-950 border border-white/10 flex items-center justify-center font-mono text-[10px] font-black text-zinc-300 group-hover:border-blue-400 group-hover:text-blue-300">
                           {i + 1}
                         </span>
                         <span className="text-xs font-black uppercase tracking-wider text-white">
@@ -713,7 +715,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         </span>
                       </div>
                       <div className="flex items-center gap-1 text-zinc-500 group-hover:text-blue-400">
-                        <span className="text-[11px] font-mono font-bold">Выбрать →</span>
+                        <span className="text-[10px] font-mono font-bold">Выбрать →</span>
                       </div>
                     </button>
                   ))}
@@ -721,83 +723,101 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
               </div>
             )}
 
-            {/* ШАГ 3: ВЫБОР НАПРАВЛЕНИЯ (ВЛЕВО/ВПРАВО ИЛИ ВВЕРХ/ВНИЗ) */}
+            {/* ЭТАП 2: ВЫБОР НАПРАВЛЕНИЯ С МГНОВЕННЫМ ВЫПОЛНЕНИЕМ ХОДА */}
             {shiftStep === 'SELECT_DIR' && (
               <div className="w-full space-y-3">
                 <div className="text-center space-y-0.5">
                   <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
-                    {`ШАГ 3 • НАПРАВЛЕНИЕ ДЛЯ ${selectedAxis === 'ROW' ? `РЯДА #${selectedIndex + 1}` : `СТОЛБЦА #${selectedIndex + 1}`}`}
+                    {`ЭТАП 2 • НАПРАВЛЕНИЕ ДЛЯ ${selectedAxis === 'ROW' ? `РЯДА #${selectedIndex + 1}` : `СТОЛБЦА #${selectedIndex + 1}`}`}
                   </div>
-                  <div className="text-xs text-zinc-500">
-                    Укажите вектор перемещения карточек
+                  <div className="text-xs text-emerald-400 font-bold">
+                    Нажатие стрелки сразу завершает ход
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 w-full pt-1">
+                <div className="grid grid-cols-2 gap-3 w-full pt-1 max-w-xs mx-auto">
                   {selectedAxis === 'ROW' ? (
                     <>
                       <button
-                        onClick={() => {
-                          setSelectedDir('LEFT');
-                          updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'BACKWARD' });
-                          setShiftStep('CONFIRM');
-                        }}
-                        className="p-4 rounded-2xl bg-zinc-900 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-1.5 active:scale-95 shadow-md"
+                        onClick={() => handleExecuteShift('LEFT')}
+                        disabled={isDirUndo('LEFT')}
+                        className={`p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md ${
+                          isDirUndo('LEFT')
+                            ? 'bg-zinc-950/70 border border-red-900/40 opacity-40 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-blue-700 to-indigo-600 hover:from-blue-600 border border-blue-400 text-white active:scale-95'
+                        }`}
                       >
                         <Icons.ArrowLeft />
                         <div className="text-xs font-black uppercase tracking-wider text-white">ВЛЕВО</div>
-                        <span className="text-[9px] font-mono text-zinc-500">← Сдвиг</span>
+                        <span className="text-[9px] font-mono text-blue-200">
+                          {isDirUndo('LEFT') ? '⊘ Anti-Undo' : 'Ход в 1 касание'}
+                        </span>
                       </button>
                       <button
-                        onClick={() => {
-                          setSelectedDir('RIGHT');
-                          updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'FORWARD' });
-                          setShiftStep('CONFIRM');
-                        }}
-                        className="p-4 rounded-2xl bg-zinc-900 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-1.5 active:scale-95 shadow-md"
+                        onClick={() => handleExecuteShift('RIGHT')}
+                        disabled={isDirUndo('RIGHT')}
+                        className={`p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md ${
+                          isDirUndo('RIGHT')
+                            ? 'bg-zinc-950/70 border border-red-900/40 opacity-40 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-blue-700 to-indigo-600 hover:from-blue-600 border border-blue-400 text-white active:scale-95'
+                        }`}
                       >
                         <Icons.ArrowRight />
                         <div className="text-xs font-black uppercase tracking-wider text-white">ВПРАВО</div>
-                        <span className="text-[9px] font-mono text-zinc-500">Сдвиг →</span>
+                        <span className="text-[9px] font-mono text-blue-200">
+                          {isDirUndo('RIGHT') ? '⊘ Anti-Undo' : 'Ход в 1 касание'}
+                        </span>
                       </button>
                     </>
                   ) : (
                     <>
                       <button
-                        onClick={() => {
-                          setSelectedDir('UP');
-                          updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'BACKWARD' });
-                          setShiftStep('CONFIRM');
-                        }}
-                        className="p-4 rounded-2xl bg-zinc-900 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-1.5 active:scale-95 shadow-md"
+                        onClick={() => handleExecuteShift('UP')}
+                        disabled={isDirUndo('UP')}
+                        className={`p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md ${
+                          isDirUndo('UP')
+                            ? 'bg-zinc-950/70 border border-red-900/40 opacity-40 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-blue-700 to-indigo-600 hover:from-blue-600 border border-blue-400 text-white active:scale-95'
+                        }`}
                       >
                         <Icons.ArrowUp />
                         <div className="text-xs font-black uppercase tracking-wider text-white">ВВЕРХ</div>
-                        <span className="text-[9px] font-mono text-zinc-500">↑ Сдвиг</span>
+                        <span className="text-[9px] font-mono text-blue-200">
+                          {isDirUndo('UP') ? '⊘ Anti-Undo' : 'Ход в 1 касание'}
+                        </span>
                       </button>
                       <button
-                        onClick={() => {
-                          setSelectedDir('DOWN');
-                          updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'FORWARD' });
-                          setShiftStep('CONFIRM');
-                        }}
-                        className="p-4 rounded-2xl bg-zinc-900 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-1.5 active:scale-95 shadow-md"
+                        onClick={() => handleExecuteShift('DOWN')}
+                        disabled={isDirUndo('DOWN')}
+                        className={`p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md ${
+                          isDirUndo('DOWN')
+                            ? 'bg-zinc-950/70 border border-red-900/40 opacity-40 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-blue-700 to-indigo-600 hover:from-blue-600 border border-blue-400 text-white active:scale-95'
+                        }`}
                       >
                         <Icons.ArrowDown />
                         <div className="text-xs font-black uppercase tracking-wider text-white">ВНИЗ</div>
-                        <span className="text-[9px] font-mono text-zinc-500">↓ Сдвиг</span>
+                        <span className="text-[9px] font-mono text-blue-200">
+                          {isDirUndo('DOWN') ? '⊘ Anti-Undo' : 'Ход в 1 касание'}
+                        </span>
                       </button>
                     </>
                   )}
                 </div>
+
+                {(isDirUndo('LEFT') || isDirUndo('RIGHT') || isDirUndo('UP') || isDirUndo('DOWN')) && (
+                  <div className="p-2 rounded-xl border border-red-900/60 bg-red-950/40 text-[11px] font-bold text-red-400 font-mono text-center max-w-xs mx-auto">
+                    Anti-Undo: ход отменяет предыдущий сдвиг соперника
+                  </div>
+                )}
               </div>
             )}
 
-            {/* ШАГ 4: ЭКРАН ПОДТВЕРЖДЕНИЯ ДЕЙСТВИЯ */}
+            {/* ШАГ 4: ЭКРАН ПОДТВЕРЖДЕНИЯ ДЕЙСТВИЯ (СОВМЕСТИМОСТЬ) */}
             {shiftStep === 'CONFIRM' && (
               <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10 w-full text-center space-y-3 shadow-lg">
                 <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold">
-                  ШАГ 4 • ПОДТВЕРДИТЕ ДЕЙСТВИЕ
+                  ПОДТВЕРДИТЕ ДЕЙСТВИЕ
                 </div>
 
                 <div className="text-sm font-black text-white uppercase tracking-wider">
@@ -815,19 +835,13 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                     {selectedDir === 'DOWN' && 'ВНИЗ ↓'}
                   </span>
                 </div>
-
-                {isUndoMove && (
-                  <div className="p-2.5 rounded-xl border border-red-900/60 bg-red-950/40 text-xs font-bold text-red-400 font-mono">
-                    Anti-Undo: ход отменяет предыдущий сдвиг соперника
-                  </div>
-                )}
               </div>
             )}
           </div>
 
           {/* Фиксированная нижняя панель навигации */}
           <div className="h-12 flex items-center gap-2 pt-2 border-t border-zinc-800/60 shrink-0">
-            {shiftStep === 'SELECT_AXIS' && (
+            {(shiftStep === 'SELECT_LINE' || shiftStep === 'SELECT_AXIS' || shiftStep === 'SELECT_INDEX') && (
               <button
                 onClick={handleResetShift}
                 className="w-full py-2.5 rounded-xl border border-white/10 text-xs font-mono uppercase text-zinc-400 hover:text-zinc-200 transition cursor-pointer bg-zinc-900/50"
@@ -836,22 +850,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
               </button>
             )}
 
-            {shiftStep === 'SELECT_INDEX' && (
-              <button
-                onClick={() => {
-                  setShiftStep('SELECT_AXIS');
-                  updateLinePreview(null);
-                }}
-                className="w-full py-2.5 rounded-xl border border-white/10 text-xs font-mono uppercase text-zinc-400 hover:text-zinc-200 transition cursor-pointer bg-zinc-900/50"
-              >
-                ← Назад к выбору оси
-              </button>
-            )}
-
             {shiftStep === 'SELECT_DIR' && (
               <button
                 onClick={() => {
-                  setShiftStep('SELECT_INDEX');
+                  setShiftStep('SELECT_LINE');
                   updateLinePreview({ type: selectedAxis, index: selectedIndex });
                 }}
                 className="w-full py-2.5 rounded-xl border border-white/10 text-xs font-mono uppercase text-zinc-400 hover:text-zinc-200 transition cursor-pointer bg-zinc-900/50"

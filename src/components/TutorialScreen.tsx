@@ -955,7 +955,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Полиция: Перехват</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
                     <div><b className="text-amber-500">КОНТЕКСТ:</b> Мы зажали его в угол.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Арестовать вора».</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Задержание».</div>
                     <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Воришка в камере. Ценности возвращены.</div>
                   </div>
                 </div>
@@ -1162,7 +1162,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   onClick={handleCleanup}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
                 >
-                  Зачистить
+                  Зачистка
                 </motion.button>
               )}
               {currentModule === "MANIAC_DETECTIVE" && step === 4 && (
@@ -1183,7 +1183,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   onClick={handleRob}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
                 >
-                  Кража сокровища
+                  Кража
                 </motion.button>
               )}
               {currentModule === "THIEF_ROBBER" && step === 3 && (
@@ -1191,7 +1191,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   onClick={handleFastDisguise}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
                 >
-                  Конспирация (Маска)
+                  Конспирация
                 </motion.button>
               )}
               {currentModule === "THIEF_ROBBER" && step === 4 && (
@@ -1220,7 +1220,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   onClick={handlePoliceArrest}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
                 >
-                  Арестовать вора
+                  Задержание
                 </motion.button>
               )}
 

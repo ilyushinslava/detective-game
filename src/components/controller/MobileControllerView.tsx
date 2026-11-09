@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { GameState, Role, Character } from '../../types/game';
 import { SPY_COLORS } from '../../types/game';
 import { getAdjacentCharacters, isOppositeShift } from '../../utils/gameLogic';
@@ -10,6 +11,8 @@ import { GameSheets } from '../GameSheets';
 import { soundManager } from '../../utils/audio';
 import { triggerHaptic } from '../../utils/haptics';
 import { getAvailableActionDescriptors, type ActionDescriptor } from '../../hooks/useGameActions';
+import { useDetectiveNotebook } from '../../hooks/useDetectiveNotebook';
+import { DetectiveNotebookModal } from './DetectiveNotebookModal';
 
 export interface MobileControllerViewProps {
   gameState: GameState;
@@ -71,6 +74,14 @@ const Icons = {
       <line x1="12" y1="22" x2="12" y2="18" />
     </svg>
   ),
+  Notebook: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      <line x1="8" y1="7" x2="16" y2="7" />
+      <line x1="8" y1="11" x2="14" y2="11" />
+    </svg>
+  ),
 };
 
 export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
@@ -116,9 +127,14 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   const [isDossierOpen, setIsDossierOpen] = useState(false);
   const [isHandSheetOpen, setIsHandSheetOpen] = useState(false);
   const [isLogOpen, setIsLogOpen] = useState(false);
+  const [isNotebookOpen, setIsNotebookOpen] = useState(false);
   const logContainerRef = useRef<HTMLDivElement>(null);
   const [pendingAction, setPendingAction] = useState<ActionDef | null>(null);
   const [isPeeking, setIsPeeking] = useState(false);
+
+  // Личный блокнот расследования (IndexedDB / 0 WebSocket / 0 GameState)
+  const { notes, marks, setMark, updateNote, clearNotebook } = useDetectiveNotebook(gameState, playerRole);
+  const flatBoardCards = useMemo(() => (gameState?.board ? gameState.board.flat() : []), [gameState.board]);
 
   // Проверка Anti-Undo для сдвига
   const isUndoMove = useMemo(() => {
@@ -380,6 +396,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       });
     }
     setPendingAction(null);
+    setIsAwaitingTurnEnd(true);
     if (isPassAndPlay) {
       setIsCoverOpen(true);
     }
@@ -417,40 +434,80 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   // 1. РЕЖИМ «ОЖИДАНИЕ» (Глухая блокировка при !isTurnActuallyMine или после хода)
   // =========================================================================
   if (!isTurnActuallyMine || isAwaitingTurnEnd) {
+    const activePlayerTitle = nextPlayerInfo.nextRole === 'KILLER'
+      ? (gameState.mode === 'THIEF_HUNT' ? 'Полиция' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Оперативник' : 'Инспектор')
+      : (gameState.mode === 'THIEF_HUNT' ? 'Грабитель' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Маньяк' : 'Бандит');
+
     return (
-      <div className="flex h-[100dvh] w-screen flex-col items-center justify-between bg-[#080a0f] p-5 pb-8 text-center text-zinc-100 select-none font-sans">
-        {/* Верхняя статусная строка */}
-        <div className="w-full flex justify-between items-center border-b border-zinc-800/80 pb-3">
+      <div className="flex h-[100dvh] w-screen flex-col items-center justify-between bg-gradient-to-b from-[#090d16] via-[#06080e] to-[#040508] p-5 pb-8 text-center text-zinc-100 select-none font-sans overflow-y-auto">
+        {/* Верхняя статусная строка синхронизации */}
+        <div className="w-full flex justify-between items-center border-b border-zinc-800/80 pb-3 gap-2">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
-            <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">КОНТРОЛЛЕР</span>
+            <span className="h-2.5 w-2.5 rounded-full bg-blue-500 animate-ping shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+            <span className="text-xs font-mono uppercase tracking-widest text-blue-400 font-bold">ТВ-ЭФИР СИНХРОНИЗИРОВАН</span>
           </div>
-          {onExit && (
+          <div className="flex items-center gap-2">
             <button
-              onClick={onExit}
-              className="text-xs font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
+              onClick={() => setIsNotebookOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 border border-white/20 text-xs font-mono text-zinc-200 hover:border-blue-400 hover:text-white transition shadow-sm active:scale-95 cursor-pointer"
             >
-              Выйти
+              <Icons.Notebook />
+              <span>БЛОКНОТ</span>
             </button>
-          )}
+            {onExit && (
+              <button
+                onClick={onExit}
+                className="text-xs font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
+              >
+                Выйти
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Центральный блок: Экран ожидания (по мастер-макетам ТВ1.jpg и ТВ2.jpg) */}
-        <div className="my-auto flex flex-col items-center max-w-sm w-full px-2">
-          <div className="w-20 h-20 rounded-3xl border border-white/10 bg-zinc-950/80 flex items-center justify-center text-zinc-300 mb-5 shadow-2xl backdrop-blur-xl animate-pulse">
-            <Icons.Clock />
+        {/* Центральный блок: Атмосферный тактический радар ожидания */}
+        <div className="my-auto flex flex-col items-center max-w-sm w-full px-2 py-4">
+          
+          {/* Круговой сканер радиоперехвата с динамическим лучом */}
+          <div className="relative w-36 h-36 rounded-full border border-blue-500/30 bg-blue-950/20 flex items-center justify-center overflow-hidden shadow-[0_0_40px_rgba(37,99,235,0.25)] mb-5">
+            <div className="absolute inset-2 rounded-full border border-blue-500/20" />
+            <div className="absolute inset-6 rounded-full border border-blue-500/20" />
+            <div className="absolute inset-12 rounded-full border border-blue-500/20" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-full h-px bg-blue-500/20" />
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="h-full w-px bg-blue-500/20" />
+            </div>
+            
+            {/* Анимированный световой маяк */}
+            <div className="w-14 h-14 rounded-2xl bg-zinc-950/90 border border-white/20 flex flex-col items-center justify-center z-10 shadow-2xl">
+              <span className="text-xl animate-pulse">📡</span>
+              <span className="text-[7.5px] font-mono text-blue-400 font-black uppercase mt-0.5">РАДАР</span>
+            </div>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-wider text-white mb-2">
+
+          <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-wider text-white mb-1.5">
             ОЖИДАНИЕ
           </h2>
+
+          {/* Индикатор текущего активного игрока */}
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/70 border border-blue-500/40 shadow-sm mb-3">
+            <span className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
+            <span className="text-xs font-mono font-bold text-blue-200 uppercase tracking-wide">
+              СЕЙЧАС ХОД СОПЕРНИКА
+            </span>
+          </div>
+
           <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed max-w-xs mb-6">
             Сейчас ход другого игрока. Следите за происходящим на телевизоре.
           </p>
 
-          {/* Карточка досье игрока */}
-          <div className="p-4 rounded-3xl bg-zinc-950/80 border border-white/10 w-full text-left shadow-lg backdrop-blur-xl mb-3">
-            <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500 mb-2">
-              ВАША РОЛЬ • ВАШЕ ДОСЬЕ
+          {/* Карточка досье игрока с защитой приватности (Удерживайте) */}
+          <div className="p-4 rounded-3xl bg-zinc-950/90 border border-white/10 w-full text-left shadow-xl backdrop-blur-xl mb-3">
+            <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500 mb-2 flex items-center justify-between">
+              <span>ВАША РОЛЬ • ВАШЕ ДОСЬЕ</span>
+              <span className="text-emerald-400 font-mono text-[9px] font-black">ПРИВАТНО</span>
             </div>
             <div
               onPointerDown={() => setIsPeeking(true)}
@@ -492,16 +549,16 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                     </span>
                   )}
                 </div>
-                <div className="text-sm font-black text-zinc-200 truncate mt-1 font-mono">
+                <div className="text-sm font-black text-zinc-100 leading-tight break-words mt-1 font-sans">
                   {isPeeking && myCharacter ? myCharacter.name : '•••••••• (Удерживайте)'}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Сводка соседей персонажа (как в референсе ТВ2.jpg) */}
+          {/* Сводка соседей персонажа с полными именами */}
           {neighbors.length > 0 && (
-            <div className="p-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 w-full text-left shadow-md backdrop-blur-md">
+            <div className="p-3.5 rounded-2xl bg-zinc-950/70 border border-white/10 w-full text-left shadow-md backdrop-blur-md">
               <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500 mb-2 flex items-center justify-between">
                 <span>ВАШИ СОСЕДИ</span>
                 <span className="text-zinc-400">({neighbors.length})</span>
@@ -510,10 +567,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                 {neighbors.map((c) => (
                   <span
                     key={c.id}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-zinc-900/80 border border-white/5 text-[11px] font-mono text-zinc-300"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-zinc-900/90 border border-white/5 text-[11px] font-mono text-zinc-300"
                   >
-                    <span className="text-zinc-500">#{c.id.replace('c', '').padStart(2, '0')}</span>
-                    <span className="truncate max-w-[120px] font-sans font-semibold">{c.name}</span>
+                    <span className="text-zinc-500 font-bold">#{c.id.replace('c', '').padStart(2, '0')}</span>
+                    <span className="font-sans font-semibold text-zinc-200">{c.name}</span>
                   </span>
                 ))}
               </div>
@@ -523,320 +580,308 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
         {/* Нижний статус-индикатор ожидания */}
         <div className="text-xs font-mono text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-zinc-600 animate-pulse" />
-          Дождитесь своего хода
+          <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+          Дождитесь своего хода • Смотрите на ТВ
         </div>
+
+        {/* Личный блокнот расследования (открывается в любой момент ожидания) */}
+        <DetectiveNotebookModal
+          isOpen={isNotebookOpen}
+          onClose={() => setIsNotebookOpen(false)}
+          characters={flatBoardCards}
+          marks={marks}
+          notes={notes}
+          onSetMark={setMark}
+          onUpdateNote={updateNote}
+          onClear={clearNotebook}
+        />
       </div>
     );
   }
 
   // =========================================================================
-  // 2. ПОШАГОВЫЙ ВИЗАРД СДВИГА ПОЛЯ (6 ШАГОВ)
+  // 2. КОМПАКТНАЯ ПАНЕЛЬ СДВИГА ПОЛЯ (ВАРИАНТ Б ЧЕРЕЗ FLOATING DOCK)
   // =========================================================================
-  if (shiftStep !== 'IDLE') {
+  const renderCompactShiftPanel = () => {
+    if (shiftStep === 'IDLE') return null;
+
     return (
-      <div className="flex h-[100dvh] w-screen flex-col justify-between bg-[#080a0f] p-5 pb-8 text-zinc-100 select-none font-sans">
-        {/* Шапка визарда */}
-        <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-bold uppercase tracking-widest text-white">
-              МАНЕВР СДВИГА
-            </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-950/80 border border-blue-500/50 text-blue-300 font-bold">
-              {shiftStep === 'SELECT_AXIS' && 'ШАГ 1/5'}
-              {shiftStep === 'SELECT_INDEX' && 'ШАГ 2/5'}
-              {shiftStep === 'SELECT_DIR' && 'ШАГ 3/5'}
-              {shiftStep === 'CONFIRM' && 'ШАГ 4/5'}
-            </span>
+      <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-xs select-none">
+        <motion.div
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+          className="w-full h-[390px] p-4 bg-zinc-950 border-t-2 border-blue-500 rounded-t-3xl shadow-2xl backdrop-blur-2xl flex flex-col justify-between"
+        >
+          {/* Шапка панели сдвига — фиксированная высота */}
+          <div className="h-8 flex items-center justify-between border-b border-zinc-800/80 pb-2 shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono font-bold uppercase tracking-widest text-white">
+                СДВИГ ПОЛЯ
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-950/80 border border-blue-500/50 text-blue-300 font-bold">
+                {shiftStep === 'SELECT_AXIS' && 'ШАГ 1/4'}
+                {shiftStep === 'SELECT_INDEX' && 'ШАГ 2/4'}
+                {shiftStep === 'SELECT_DIR' && 'ШАГ 3/4'}
+                {shiftStep === 'CONFIRM' && 'ШАГ 4/4'}
+              </span>
+            </div>
+            <button
+              onClick={handleResetShift}
+              className="text-xs text-zinc-400 uppercase font-mono cursor-pointer hover:text-white transition px-2.5 py-1 rounded-lg border border-white/10 bg-zinc-900 active:scale-95"
+            >
+              ✕ Отмена
+            </button>
           </div>
-          <button
-            onClick={handleResetShift}
-            className="text-xs text-zinc-400 uppercase font-mono cursor-pointer hover:text-white transition"
-          >
-            Отмена
-          </button>
-        </div>
 
-        {/* Тело активного шага визарда */}
-        <div className="my-auto flex flex-col items-center justify-center w-full max-w-sm mx-auto">
-          {/* ШАГ 1: ВЫБОР ОСИ (ГОРИЗОНТАЛЬ / ВЕРТИКАЛЬ) */}
-          {shiftStep === 'SELECT_AXIS' && (
-            <div className="w-full space-y-4">
-              <div className="text-center space-y-1">
-                <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
-                  ШАГ 1 • ВЫБЕРИТЕ ОСЬ
-                </div>
-                <div className="text-xs text-zinc-500">
-                  Выберите, какую линию переместить на поле
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 w-full pt-2">
-                <button
-                  onClick={() => {
-                    setSelectedAxis('ROW');
-                    setShiftStep('SELECT_INDEX');
-                  }}
-                  className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-500 hover:bg-blue-950/20 transition cursor-pointer shadow-xl active:scale-95 group"
-                >
-                  <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center mx-auto mb-3 group-hover:border-blue-400 group-hover:text-blue-300">
-                    <span className="font-mono text-sm font-black">↔</span>
+          {/* Центральная зона с плавной анимацией шагов без скачков высоты */}
+          <div className="flex-1 min-h-0 flex flex-col justify-center py-2 relative overflow-hidden">
+            {/* ШАГ 1: ВЫБОР ОСИ (ГОРИЗОНТАЛЬ / ВЕРТИКАЛЬ) */}
+            {shiftStep === 'SELECT_AXIS' && (
+              <div className="w-full space-y-3">
+                <div className="text-center space-y-0.5">
+                  <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
+                    ШАГ 1 • ВЫБЕРИТЕ ОСЬ
                   </div>
-                  <div className="text-sm font-black uppercase tracking-wider text-white">Горизонталь</div>
-                  <div className="text-[11px] font-mono text-zinc-500 mt-1">Ряды 1–5</div>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setSelectedAxis('COL');
-                    setShiftStep('SELECT_INDEX');
-                  }}
-                  className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-500 hover:bg-blue-950/20 transition cursor-pointer shadow-xl active:scale-95 group"
-                >
-                  <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center mx-auto mb-3 group-hover:border-blue-400 group-hover:text-blue-300">
-                    <span className="font-mono text-sm font-black">↕</span>
+                  <div className="text-xs text-zinc-500">
+                    Выберите, какую линию переместить на поле
                   </div>
-                  <div className="text-sm font-black uppercase tracking-wider text-white">Вертикаль</div>
-                  <div className="text-[11px] font-mono text-zinc-500 mt-1">Столбцы 1–5</div>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ШАГ 2: ВЫБОР ЛИНИИ (1–5) С ОТПРАВКОЙ PREVIEW_SHIFT НА ТВ */}
-          {shiftStep === 'SELECT_INDEX' && (
-            <div className="space-y-3 w-full">
-              <div className="text-center space-y-1 mb-2">
-                <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
-                  {selectedAxis === 'ROW' ? 'ШАГ 2 • ВЫБЕРИТЕ ГОРИЗОНТАЛЬНЫЙ РЯД' : 'ШАГ 2 • ВЫБЕРИТЕ ВЕРТИКАЛЬНЫЙ СТОЛБЕЦ'}
                 </div>
-                <div className="text-[11px] font-mono text-blue-400">
-                  Линия сразу подсвечивается на телевизоре
+
+                <div className="grid grid-cols-2 gap-3 w-full pt-1">
+                  <button
+                    onClick={() => {
+                      setSelectedAxis('ROW');
+                      setShiftStep('SELECT_INDEX');
+                    }}
+                    className="p-4 rounded-2xl bg-zinc-900 border border-white/10 text-center hover:border-blue-500 hover:bg-blue-950/20 transition cursor-pointer shadow-lg active:scale-95 group"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-center mx-auto mb-2 group-hover:border-blue-400 group-hover:text-blue-300">
+                      <span className="font-mono text-xs font-black">↔</span>
+                    </div>
+                    <div className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">Горизонталь</div>
+                    <div className="text-[10px] font-mono text-zinc-500 mt-0.5">Ряды 1–5</div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setSelectedAxis('COL');
+                      setShiftStep('SELECT_INDEX');
+                    }}
+                    className="p-4 rounded-2xl bg-zinc-900 border border-white/10 text-center hover:border-blue-500 hover:bg-blue-950/20 transition cursor-pointer shadow-lg active:scale-95 group"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-center mx-auto mb-2 group-hover:border-blue-400 group-hover:text-blue-300">
+                      <span className="font-mono text-xs font-black">↕</span>
+                    </div>
+                    <div className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">Вертикаль</div>
+                    <div className="text-[10px] font-mono text-zinc-500 mt-0.5">Столбцы 1–5</div>
+                  </button>
                 </div>
               </div>
+            )}
 
-              {selectedAxis === 'ROW' ? (
-                /* Схема из 5 горизонтальных полос (рядов) */
-                <div className="flex flex-col gap-2 w-full">
+            {/* ШАГ 2: ВЫБОР ЛИНИИ (1–5) С ОТПРАВКОЙ PREVIEW_SHIFT НА ТВ */}
+            {shiftStep === 'SELECT_INDEX' && (
+              <div className="space-y-2 w-full">
+                <div className="text-center space-y-0.5 mb-1">
+                  <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
+                    {selectedAxis === 'ROW' ? 'ШАГ 2 • ВЫБЕРИТЕ ГОРИЗОНТАЛЬНЫЙ РЯД' : 'ШАГ 2 • ВЫБЕРИТЕ ВЕРТИКАЛЬНЫЙ СТОЛБЕЦ'}
+                  </div>
+                  <div className="text-[10px] font-mono text-blue-400">
+                    Линия сразу подсвечивается на телевизоре
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5 w-full">
                   {Array.from({ length: boardSize }, (_, i) => i).map((i) => (
                     <button
                       key={i}
                       onClick={() => {
                         setSelectedIndex(i);
-                        updateLinePreview({ type: 'ROW', index: i });
+                        updateLinePreview({ type: selectedAxis, index: i });
                         setShiftStep('SELECT_DIR');
                       }}
-                      className="w-full h-12 rounded-2xl bg-zinc-950/90 border border-white/10 hover:border-blue-400 hover:bg-blue-950/30 flex items-center justify-between px-4 transition cursor-pointer active:scale-[0.98] shadow-md group"
+                      className="w-full h-9 rounded-xl bg-zinc-900 border border-white/10 hover:border-blue-400 hover:bg-blue-950/30 flex items-center justify-between px-3 transition cursor-pointer active:scale-[0.98] shadow-sm group"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="w-7 h-7 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-xs font-black text-zinc-300 group-hover:border-blue-400 group-hover:text-blue-300">
+                      <div className="flex items-center gap-2.5">
+                        <span className="w-5 h-5 rounded-md bg-zinc-950 border border-white/10 flex items-center justify-center font-mono text-xs font-black text-zinc-300 group-hover:border-blue-400 group-hover:text-blue-300">
                           {i + 1}
                         </span>
-                        <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
-                          РЯД #{i + 1}
+                        <span className="text-xs font-black uppercase tracking-wider text-white">
+                          {selectedAxis === 'ROW' ? `РЯД #${i + 1}` : `СТОЛБЕЦ #${i + 1}`}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-zinc-500 group-hover:text-blue-400">
-                        <span className="text-xs font-mono font-bold">Выбрать →</span>
+                      <div className="flex items-center gap-1 text-zinc-500 group-hover:text-blue-400">
+                        <span className="text-[11px] font-mono font-bold">Выбрать →</span>
                       </div>
                     </button>
                   ))}
-                </div>
-              ) : (
-                /* Схема из 5 вертикальных столбиков */
-                <div className="flex flex-col gap-2 w-full">
-                  {Array.from({ length: boardSize }, (_, i) => i).map((i) => (
-                    <button
-                      key={i}
-                      onClick={() => {
-                        setSelectedIndex(i);
-                        updateLinePreview({ type: 'COL', index: i });
-                        setShiftStep('SELECT_DIR');
-                      }}
-                      className="w-full h-12 rounded-2xl bg-zinc-950/90 border border-white/10 hover:border-blue-400 hover:bg-blue-950/30 flex items-center justify-between px-4 transition cursor-pointer active:scale-[0.98] shadow-md group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="w-7 h-7 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-xs font-black text-zinc-300 group-hover:border-blue-400 group-hover:text-blue-300">
-                          {i + 1}
-                        </span>
-                        <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
-                          СТОЛБЕЦ #{i + 1}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-zinc-500 group-hover:text-blue-400">
-                        <span className="text-xs font-mono font-bold">Выбрать →</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ШАГ 3: ВЫБОР НАПРАВЛЕНИЯ (ВЛЕВО/ВПРАВО ИЛИ ВВЕРХ/ВНИЗ) */}
-          {shiftStep === 'SELECT_DIR' && (
-            <div className="w-full space-y-4">
-              <div className="text-center space-y-1">
-                <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
-                  {`ШАГ 3 • НАПРАВЛЕНИЕ ДЛЯ ${selectedAxis === 'ROW' ? `РЯДА #${selectedIndex + 1}` : `СТОЛБЦА #${selectedIndex + 1}`}`}
-                </div>
-                <div className="text-xs text-zinc-500">
-                  Укажите вектор перемещения карточек
                 </div>
               </div>
+            )}
 
-              <div className="grid grid-cols-2 gap-4 w-full pt-2">
-                {selectedAxis === 'ROW' ? (
-                  <>
-                    <button
-                      onClick={() => {
-                        setSelectedDir('LEFT');
-                        updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'BACKWARD' });
-                        setShiftStep('CONFIRM');
-                      }}
-                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
-                    >
-                      <Icons.ArrowLeft />
-                      <div className="text-xs font-black uppercase tracking-wider text-white">ВЛЕВО</div>
-                      <span className="text-[10px] font-mono text-zinc-500">← Сдвиг</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedDir('RIGHT');
-                        updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'FORWARD' });
-                        setShiftStep('CONFIRM');
-                      }}
-                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
-                    >
-                      <Icons.ArrowRight />
-                      <div className="text-xs font-black uppercase tracking-wider text-white">ВПРАВО</div>
-                      <span className="text-[10px] font-mono text-zinc-500">Сдвиг →</span>
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => {
-                        setSelectedDir('UP');
-                        updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'BACKWARD' });
-                        setShiftStep('CONFIRM');
-                      }}
-                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
-                    >
-                      <Icons.ArrowUp />
-                      <div className="text-xs font-black uppercase tracking-wider text-white">ВВЕРХ</div>
-                      <span className="text-[10px] font-mono text-zinc-500">↑ Сдвиг</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedDir('DOWN');
-                        updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'FORWARD' });
-                        setShiftStep('CONFIRM');
-                      }}
-                      className="p-6 rounded-3xl bg-zinc-950/80 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-2 active:scale-95 shadow-xl"
-                    >
-                      <Icons.ArrowDown />
-                      <div className="text-xs font-black uppercase tracking-wider text-white">ВНИЗ</div>
-                      <span className="text-[10px] font-mono text-zinc-500">↓ Сдвиг</span>
-                    </button>
-                  </>
+            {/* ШАГ 3: ВЫБОР НАПРАВЛЕНИЯ (ВЛЕВО/ВПРАВО ИЛИ ВВЕРХ/ВНИЗ) */}
+            {shiftStep === 'SELECT_DIR' && (
+              <div className="w-full space-y-3">
+                <div className="text-center space-y-0.5">
+                  <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
+                    {`ШАГ 3 • НАПРАВЛЕНИЕ ДЛЯ ${selectedAxis === 'ROW' ? `РЯДА #${selectedIndex + 1}` : `СТОЛБЦА #${selectedIndex + 1}`}`}
+                  </div>
+                  <div className="text-xs text-zinc-500">
+                    Укажите вектор перемещения карточек
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 w-full pt-1">
+                  {selectedAxis === 'ROW' ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          setSelectedDir('LEFT');
+                          updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'BACKWARD' });
+                          setShiftStep('CONFIRM');
+                        }}
+                        className="p-4 rounded-2xl bg-zinc-900 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-1.5 active:scale-95 shadow-md"
+                      >
+                        <Icons.ArrowLeft />
+                        <div className="text-xs font-black uppercase tracking-wider text-white">ВЛЕВО</div>
+                        <span className="text-[9px] font-mono text-zinc-500">← Сдвиг</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedDir('RIGHT');
+                          updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'FORWARD' });
+                          setShiftStep('CONFIRM');
+                        }}
+                        className="p-4 rounded-2xl bg-zinc-900 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-1.5 active:scale-95 shadow-md"
+                      >
+                        <Icons.ArrowRight />
+                        <div className="text-xs font-black uppercase tracking-wider text-white">ВПРАВО</div>
+                        <span className="text-[9px] font-mono text-zinc-500">Сдвиг →</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          setSelectedDir('UP');
+                          updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'BACKWARD' });
+                          setShiftStep('CONFIRM');
+                        }}
+                        className="p-4 rounded-2xl bg-zinc-900 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-1.5 active:scale-95 shadow-md"
+                      >
+                        <Icons.ArrowUp />
+                        <div className="text-xs font-black uppercase tracking-wider text-white">ВВЕРХ</div>
+                        <span className="text-[9px] font-mono text-zinc-500">↑ Сдвиг</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedDir('DOWN');
+                          updateLinePreview({ type: selectedAxis, index: selectedIndex, direction: 'FORWARD' });
+                          setShiftStep('CONFIRM');
+                        }}
+                        className="p-4 rounded-2xl bg-zinc-900 border border-white/10 text-center hover:border-blue-400 hover:bg-blue-950/20 transition cursor-pointer flex flex-col items-center justify-center gap-1.5 active:scale-95 shadow-md"
+                      >
+                        <Icons.ArrowDown />
+                        <div className="text-xs font-black uppercase tracking-wider text-white">ВНИЗ</div>
+                        <span className="text-[9px] font-mono text-zinc-500">↓ Сдвиг</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ШАГ 4: ЭКРАН ПОДТВЕРЖДЕНИЯ ДЕЙСТВИЯ */}
+            {shiftStep === 'CONFIRM' && (
+              <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10 w-full text-center space-y-3 shadow-lg">
+                <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold">
+                  ШАГ 4 • ПОДТВЕРДИТЕ ДЕЙСТВИЕ
+                </div>
+
+                <div className="text-sm font-black text-white uppercase tracking-wider">
+                  {`Переместить ${selectedAxis === 'ROW' ? `ряд #${selectedIndex + 1}` : `столбец #${selectedIndex + 1}`} ${
+                    selectedDir === 'LEFT' ? 'влево' : selectedDir === 'RIGHT' ? 'вправо' : selectedDir === 'UP' ? 'вверх' : 'вниз'
+                  }?`}
+                </div>
+
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-zinc-950 border border-white/10 font-mono text-xs text-zinc-300">
+                  <span>{selectedAxis === 'ROW' ? `РЯД ${selectedIndex + 1}` : `СТОЛБЕЦ ${selectedIndex + 1}`}</span>
+                  <span className="text-blue-400 font-bold">
+                    {selectedDir === 'LEFT' && '← ВЛЕВО'}
+                    {selectedDir === 'RIGHT' && 'ВПРАВО →'}
+                    {selectedDir === 'UP' && '↑ ВВЕРХ'}
+                    {selectedDir === 'DOWN' && 'ВНИЗ ↓'}
+                  </span>
+                </div>
+
+                {isUndoMove && (
+                  <div className="p-2.5 rounded-xl border border-red-900/60 bg-red-950/40 text-xs font-bold text-red-400 font-mono">
+                    Anti-Undo: ход отменяет предыдущий сдвиг соперника
+                  </div>
                 )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* ШАГ 4: ЭКРАН ПОДТВЕРЖДЕНИЯ ДЕЙСТВИЯ */}
-          {shiftStep === 'CONFIRM' && (
-            <div className="p-6 rounded-3xl bg-zinc-950/90 border border-white/10 w-full text-center space-y-4 shadow-2xl backdrop-blur-xl">
-              <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-bold">
-                ШАГ 4 • ПОДТВЕРДИТЕ ДЕЙСТВИЕ
-              </div>
+          {/* Фиксированная нижняя панель навигации */}
+          <div className="h-12 flex items-center gap-2 pt-2 border-t border-zinc-800/60 shrink-0">
+            {shiftStep === 'SELECT_AXIS' && (
+              <button
+                onClick={handleResetShift}
+                className="w-full py-2.5 rounded-xl border border-white/10 text-xs font-mono uppercase text-zinc-400 hover:text-zinc-200 transition cursor-pointer bg-zinc-900/50"
+              >
+                Отмена и возврат к пульту
+              </button>
+            )}
 
-              <div className="text-base sm:text-lg font-black text-white uppercase tracking-wider">
-                {`Переместить ${selectedAxis === 'ROW' ? `ряд #${selectedIndex + 1}` : `столбец #${selectedIndex + 1}`} ${
-                  selectedDir === 'LEFT' ? 'влево' : selectedDir === 'RIGHT' ? 'вправо' : selectedDir === 'UP' ? 'вверх' : 'вниз'
-                }?`}
-              </div>
+            {shiftStep === 'SELECT_INDEX' && (
+              <button
+                onClick={() => {
+                  setShiftStep('SELECT_AXIS');
+                  updateLinePreview(null);
+                }}
+                className="w-full py-2.5 rounded-xl border border-white/10 text-xs font-mono uppercase text-zinc-400 hover:text-zinc-200 transition cursor-pointer bg-zinc-900/50"
+              >
+                ← Назад к выбору оси
+              </button>
+            )}
 
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 border border-white/10 font-mono text-xs text-zinc-300">
-                <span>{selectedAxis === 'ROW' ? `РЯД ${selectedIndex + 1}` : `СТОЛБЕЦ ${selectedIndex + 1}`}</span>
-                <span className="text-blue-400 font-bold">
-                  {selectedDir === 'LEFT' && '← ВЛЕВО'}
-                  {selectedDir === 'RIGHT' && 'ВПРАВО →'}
-                  {selectedDir === 'UP' && '↑ ВВЕРХ'}
-                  {selectedDir === 'DOWN' && 'ВНИЗ ↓'}
-                </span>
-              </div>
+            {shiftStep === 'SELECT_DIR' && (
+              <button
+                onClick={() => {
+                  setShiftStep('SELECT_INDEX');
+                  updateLinePreview({ type: selectedAxis, index: selectedIndex });
+                }}
+                className="w-full py-2.5 rounded-xl border border-white/10 text-xs font-mono uppercase text-zinc-400 hover:text-zinc-200 transition cursor-pointer bg-zinc-900/50"
+              >
+                ← Назад к выбору линии
+              </button>
+            )}
 
-              {isUndoMove && (
-                <div className="p-3 rounded-2xl border border-red-900/60 bg-red-950/40 text-xs font-bold text-red-400 font-mono">
-                  Anti-Undo: ход отменяет предыдущий сдвиг соперника
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-3 pt-2">
+            {shiftStep === 'CONFIRM' && (
+              <div className="grid grid-cols-2 gap-2.5 w-full">
                 <button
                   onClick={() => setShiftStep('SELECT_DIR')}
-                  className="py-3.5 rounded-2xl bg-zinc-900 border border-white/10 text-xs font-bold uppercase text-zinc-400 hover:text-white cursor-pointer transition"
+                  className="py-2.5 rounded-xl bg-zinc-950 border border-white/10 text-xs font-bold uppercase text-zinc-400 hover:text-white cursor-pointer transition"
                 >
                   Отмена
                 </button>
                 <button
                   onClick={handleConfirmShift}
                   disabled={isUndoMove}
-                  className="py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-black uppercase text-white shadow-lg cursor-pointer transition active:scale-95"
+                  className="py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-black uppercase text-white shadow-lg cursor-pointer transition active:scale-95"
                 >
                   Подтвердить
                 </button>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Кнопка возврата на предыдущий шаг или отмены */}
-        <div className="pt-2">
-          {shiftStep === 'SELECT_INDEX' && (
-            <button
-              onClick={() => {
-                setShiftStep('SELECT_AXIS');
-                updateLinePreview(null);
-              }}
-              className="w-full py-3 rounded-2xl border border-white/10 text-xs font-mono uppercase text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
-            >
-              ← Назад к выбору оси
-            </button>
-          )}
-          {shiftStep === 'SELECT_DIR' && (
-            <button
-              onClick={() => {
-                setShiftStep('SELECT_INDEX');
-                updateLinePreview({ type: selectedAxis, index: selectedIndex });
-              }}
-              className="w-full py-3 rounded-2xl border border-white/10 text-xs font-mono uppercase text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
-            >
-              ← Назад к выбору линии
-            </button>
-          )}
-          {shiftStep === 'CONFIRM' && (
-            <button
-              onClick={() => setShiftStep('SELECT_DIR')}
-              className="w-full py-3 rounded-2xl border border-white/10 text-xs font-mono uppercase text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
-            >
-              ← Назад к выбору направления
-            </button>
-          )}
-          {shiftStep === 'SELECT_AXIS' && (
-            <button
-              onClick={handleResetShift}
-              className="w-full py-3 rounded-2xl border border-white/10 text-xs font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
-            >
-              Отмена и возврат к пульту
-            </button>
-          )}
-        </div>
+            )}
+          </div>
+        </motion.div>
       </div>
     );
-  }
+  };
 
   // =========================================================================
   // 3. ОСНОВНОЙ ЭКРАН ХОДА КОНТРОЛЛЕРА
@@ -858,19 +903,28 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             >
               {roleName}
             </span>
-            <span className="text-xs sm:text-sm font-black text-zinc-100 truncate">
+            <span className="text-xs sm:text-sm font-black text-zinc-100 whitespace-normal break-words leading-tight">
               {myCharacter?.name || '••••••••'}
             </span>
           </div>
         </div>
-        {onExit && (
+        <div className="flex items-center gap-2 shrink-0 self-start mt-1">
           <button
-            onClick={onExit}
-            className="text-[11px] font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer shrink-0 self-start mt-1"
+            onClick={() => setIsNotebookOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 border border-white/20 text-xs font-mono text-zinc-200 hover:border-blue-400 hover:text-white transition shadow-sm active:scale-95 cursor-pointer"
           >
-            Выйти
+            <Icons.Notebook />
+            <span>БЛОКНОТ</span>
           </button>
-        )}
+          {onExit && (
+            <button
+              onClick={onExit}
+              className="text-[11px] font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
+            >
+              Выйти
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Рука игрока (маски / алиби) */}
@@ -892,7 +946,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                   if (gameState.mode === 'THIEF_HUNT' && isKiller) {
                     setPendingAction({
                       id: 'FAST_DISGUISE',
-                      label: 'Смена маски',
+                      label: 'Конспирация',
                       requiresTarget: true,
                     });
                     setSelectedTargetId(char.id);
@@ -905,9 +959,9 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                     setSelectedTargetId(char.id);
                   }
                 }}
-                className="w-20 sm:w-24 shrink-0 rounded-xl overflow-hidden border border-white/10 bg-zinc-900/90 p-1.5 hover:border-zinc-500 active:scale-95 transition cursor-pointer"
+                className="w-20 sm:w-24 shrink-0 rounded-2xl overflow-hidden border border-white/10 bg-zinc-900/90 p-1 hover:border-zinc-500 active:scale-95 transition cursor-pointer"
               >
-                <div className="aspect-square w-full rounded-lg overflow-hidden bg-zinc-950 mb-1">
+                <div className="aspect-square w-full rounded-xl overflow-hidden bg-zinc-950">
                   <CharacterCard
                     mode={gameState.mode}
                     character={char}
@@ -915,8 +969,6 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                     isPVP={true}
                   />
                 </div>
-                <div className="text-[9px] font-bold text-zinc-200 truncate">{char.name}</div>
-                <div className="text-[8px] font-mono text-zinc-500">#{char.id.replace('c', '').padStart(2, '0')}</div>
               </div>
             ))}
           </div>
@@ -955,7 +1007,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                 <div
                   key={char.id}
                   onClick={() => setSelectedTargetId(char.id)}
-                  className={`aspect-square rounded-2xl border p-1 flex flex-col justify-between transition-all relative ${
+                  className={`aspect-square rounded-2xl border p-1 transition-all relative ${
                     isSelected
                       ? `${targetBorderClass} scale-105 z-10 cursor-pointer`
                       : isCenter
@@ -963,7 +1015,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         : 'border-white/10 bg-zinc-950/70 hover:border-zinc-500 cursor-pointer'
                   }`}
                 >
-                  <div className="aspect-square w-full rounded-xl overflow-hidden bg-zinc-900 relative">
+                  <div className="w-full h-full rounded-xl overflow-hidden bg-zinc-900 relative">
                     <CharacterCard
                       mode={gameState?.mode || 'MANIAC_VS_OPERATIVE'}
                       character={char}
@@ -977,16 +1029,15 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center justify-between gap-0.5 mt-0.5">
-                    <span className="text-[10px] font-bold text-zinc-100 truncate">{char.name}</span>
-                    <span className="text-[9px] font-mono font-bold text-zinc-400">#{char.id.replace('c', '').padStart(2, '0')}</span>
-                  </div>
                 </div>
               );
             })}
           </div>
         )}
       </div>
+
+      {/* Компактная панель сдвига (Вариант Б) */}
+      {renderCompactShiftPanel()}
 
       {/* Доступные действия (SSOT ActionButtonsBar) */}
       <div className="space-y-2 mb-2">
@@ -995,7 +1046,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         </div>
         <ActionButtonsBar
           actions={[
-            ...(gameState.mode === 'LINE_UP' ? [] : [{ id: 'SHIFT', label: 'Переместить ряд/столбец', isRed: false, requiresTarget: false }]),
+            ...(gameState.mode === 'LINE_UP' ? [] : [{ id: 'SHIFT', label: 'Сдвиг поля', isRed: false, requiresTarget: false }]),
             ...getAvailableActionDescriptors(gameState, playerRole),
           ].map((act) => ({
             id: act.id,
@@ -1005,23 +1056,6 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             onClick: () => handleExecuteAction(act),
           }))}
         />
-      </div>
-
-      {/* Кнопка явного завершения хода */}
-      <div className="pt-2 pb-1">
-        <button
-          onClick={() => {
-            onDispatchAction({ type: 'END_TURN' });
-            setIsAwaitingTurnEnd(true);
-            if (isPassAndPlay) {
-              setIsCoverOpen(true);
-            }
-          }}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-black text-xs sm:text-sm uppercase tracking-widest shadow-[0_4px_20px_rgba(220,38,38,0.4)] transition cursor-pointer active:scale-[0.98] flex items-center justify-center gap-2"
-        >
-          <span>Завершить ход</span>
-          <span className="text-red-200 font-mono">➔</span>
-        </button>
       </div>
 
       {/* Шторка Pass-and-Play */}
@@ -1082,7 +1116,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                   <div className="text-[10px] font-mono text-zinc-500">
                     ЦЕЛЬ #{pendingTargetCharacter.id.replace('c', '').padStart(2, '0')}
                   </div>
-                  <div className="text-sm font-black text-zinc-100 truncate">
+                  <div className="text-sm font-black text-zinc-100 whitespace-normal break-words leading-tight">
                     {pendingTargetCharacter.name}
                   </div>
                 </div>
@@ -1116,6 +1150,18 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Личный блокнот расследования */}
+      <DetectiveNotebookModal
+        isOpen={isNotebookOpen}
+        onClose={() => setIsNotebookOpen(false)}
+        characters={flatBoardCards}
+        marks={marks}
+        notes={notes}
+        onSetMark={setMark}
+        onUpdateNote={updateNote}
+        onClear={clearNotebook}
+      />
     </div>
   );
 };

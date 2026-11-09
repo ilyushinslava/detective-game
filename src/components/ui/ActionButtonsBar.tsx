@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from './Button';
+import { ActionIcons } from './ActionIcons';
 
 export interface ActionButtonItem {
   id: string;
@@ -24,99 +24,24 @@ export const ActionButtonsBar: React.FC<ActionButtonsBarProps> = ({
   className = '',
 }) => {
   const renderIcon = (id: string) => {
-    switch (id) {
-      case 'kill_basic':
-      case 'capture_spy':
-      case 'KILL':
-      case 'CAPTURE_SPY':
-      case 'ROB_NEIGHBOR':
-      case 'DUEL_ACCUSE':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="22" y1="12" x2="18" y2="12" />
-            <line x1="6" y1="12" x2="2" y2="12" />
-            <line x1="12" y1="6" x2="12" y2="2" />
-            <line x1="12" y1="22" x2="12" y2="18" />
-          </svg>
-        );
+    const upperId = id.toUpperCase();
 
-      case 'accuse_basic':
-      case 'patrol_call':
-      case 'ACCUSE':
-      case 'SWEAR_IN_OFFICER':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          </svg>
-        );
+    if (upperId === 'SHIFT') return <ActionIcons.Shift />;
+    if (upperId.includes('KILL') || upperId.includes('ATTACK')) return <ActionIcons.Kill />;
+    if (upperId.includes('CLEANUP')) return <ActionIcons.Cleanup />;
+    if (upperId.includes('EXONERATE') || upperId.includes('ALIBI')) return <ActionIcons.Exonerate />;
+    if (upperId.includes('ACCUSE') || upperId.includes('CAPTURE') || upperId.includes('ARREST')) return <ActionIcons.Arrest />;
+    if (upperId.includes('INTERROGATE') || upperId.includes('QUESTION') || upperId.includes('RADAR')) return <ActionIcons.Interrogate />;
+    if (upperId.includes('DISGUISE') || upperId.includes('ESCAPE')) return <ActionIcons.Disguise />;
+    if (upperId.includes('ROB')) return <ActionIcons.Rob />;
+    if (upperId.includes('PATROL') || upperId.includes('OFFICER') || upperId.includes('SWEAR_IN')) return <ActionIcons.Patrol />;
 
-      case 'interrogate_spy':
-      case 'INTERROGATE':
-      case 'RADAR':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0">
-            <circle cx="12" cy="12" r="10" />
-            <circle cx="12" cy="12" r="6" />
-            <circle cx="12" cy="12" r="2" />
-            <line x1="12" y1="2" x2="12" y2="12" />
-          </svg>
-        );
-
-      case 'disguise_skhvatka':
-      case 'escape_maniac':
-      case 'disguise_thief':
-      case 'DISGUISE':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0">
-            <path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6" />
-          </svg>
-        );
-
-      case 'SHIFT':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0">
-            <polyline points="17 11 21 7 17 3" />
-            <line x1="21" y1="7" x2="9" y2="7" />
-            <polyline points="7 21 3 17 7 13" />
-            <line x1="3" y1="17" x2="15" y2="17" />
-          </svg>
-        );
-
-      case 'DUEL_ASK_QUESTION':
-      case 'QUESTION':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-            <line x1="12" y1="17" x2="12.01" y2="17" />
-          </svg>
-        );
-
-      case 'pause':
-      case 'PAUSE':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0">
-            <rect x="6" y="4" width="4" height="16" />
-            <rect x="14" y="4" width="4" height="16" />
-          </svg>
-        );
-
-      case 'CLEANUP':
-      case 'cleanup':
-      default:
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 shrink-0">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M9 10h.01M15 10h.01M10 15h4" />
-          </svg>
-        );
-    }
+    return <ActionIcons.Shift />;
   };
 
   return (
     <div className={`w-full flex flex-col gap-2 ${className}`}>
-      <div className="w-full flex items-center gap-2">
+      <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2">
         {actions.map((act) => {
           const isRed = act.id.includes('KILL') || act.id.includes('ATTACK') || act.id === 'kill_basic' || act.id === 'capture_spy';
           const isAmber = act.id.includes('ROB') || act.id === 'rob_basic';
@@ -138,10 +63,10 @@ export const ActionButtonsBar: React.FC<ActionButtonsBarProps> = ({
               key={act.id}
               onClick={act.onClick}
               disabled={act.disabled}
-              className={`flex-1 min-w-0 h-11 px-1.5 sm:px-2 text-[10px] sm:text-xs font-black uppercase tracking-tight sm:tracking-wider flex items-center justify-center gap-1 sm:gap-1.5 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed ${colorClasses}`}
+              className={`w-full min-h-[44px] py-2.5 px-3 text-[11px] sm:text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed text-center leading-snug cursor-pointer ${colorClasses}`}
             >
               {renderIcon(act.id)}
-              <span className="whitespace-nowrap overflow-hidden text-ellipsis">{act.label}</span>
+              <span className="whitespace-normal break-words">{act.label}</span>
             </button>
           );
         })}
@@ -151,10 +76,10 @@ export const ActionButtonsBar: React.FC<ActionButtonsBarProps> = ({
         <button
           onClick={cleanupAction.onClick}
           disabled={cleanupAction.disabled}
-          className="w-full h-11 text-xs sm:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 bg-gradient-to-r from-red-700 via-red-600 to-rose-600 hover:from-red-650 hover:to-rose-550 text-white shadow-lg shadow-red-950/50 border border-red-400/40 active:scale-[0.97] rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full min-h-[44px] py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 bg-gradient-to-r from-red-700 via-red-600 to-rose-600 hover:from-red-650 hover:to-rose-550 text-white shadow-lg shadow-red-950/50 border border-red-400/40 active:scale-[0.97] rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
           {renderIcon('CLEANUP')}
-          <span className="whitespace-nowrap overflow-hidden text-ellipsis">Зачистить поле</span>
+          <span className="whitespace-normal break-words">Зачистить поле</span>
         </button>
       )}
     </div>

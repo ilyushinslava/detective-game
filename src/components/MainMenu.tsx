@@ -800,6 +800,7 @@ export const MainMenu = ({
 
   const renderModeDetail = () => {
     const summaryItems = getModeSummaryItems(activeModeData.id);
+    const modeMeta = GAME_MODES_META[activeModeData.id];
 
     return (
       <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden relative w-full h-full">
@@ -812,6 +813,32 @@ export const MainMenu = ({
         
         <div className="flex-1 overflow-y-auto custom-scrollbar pb-24 sm:pb-28">
           <div className="px-4 sm:px-6 py-3.5 sm:py-4 w-full max-w-xl mx-auto flex flex-col gap-4 sm:gap-4.5">
+            {modeMeta?.banner && (
+              <div className={`relative w-full rounded-2xl overflow-hidden border ${modeMeta.banner.borderColor} bg-gradient-to-br ${modeMeta.banner.gradient} p-4 sm:p-5 shadow-xl`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span
+                    className="text-[9px] font-mono font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border shadow-sm"
+                    style={{
+                      borderColor: `${modeMeta.banner.accentColor}60`,
+                      backgroundColor: `${modeMeta.banner.accentColor}20`,
+                      color: modeMeta.banner.accentColor,
+                    }}
+                  >
+                    {modeMeta.banner.badge}
+                  </span>
+                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                    НЕО-НУАР
+                  </span>
+                </div>
+                <div className="text-sm sm:text-base font-black tracking-wide text-zinc-100 uppercase">
+                  {modeMeta.banner.atmosphereTitle}
+                </div>
+                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                  {modeMeta.banner.atmosphereSubtitle}
+                </p>
+              </div>
+            )}
+
             <div>
               <h1 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider leading-tight">
                 {activeModeData.title}

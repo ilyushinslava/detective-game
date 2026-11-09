@@ -11,6 +11,14 @@ export interface GameModeMeta {
   difficulty?: { ru: string; en: string };
   killerRoleName?: { ru: string; en: string };
   detectiveRoleName?: { ru: string; en: string };
+  banner?: {
+    gradient: string;
+    borderColor: string;
+    accentColor: string;
+    atmosphereTitle: string;
+    atmosphereSubtitle: string;
+    badge: string;
+  };
 }
 
 export const GAME_TITLE = {
@@ -47,6 +55,14 @@ export const GAME_MODES_META: Record<GameModeType, GameModeMeta> = {
     difficulty: { ru: 'Средняя', en: 'Medium' },
     killerRoleName: { ru: 'Маньяк', en: 'Killer' },
     detectiveRoleName: { ru: 'Оперативник', en: 'Operative' },
+    banner: {
+      gradient: 'from-rose-950/60 via-zinc-950 to-zinc-950',
+      borderColor: 'border-rose-900/40',
+      accentColor: '#E11D48',
+      atmosphereTitle: 'ТУМАННЫЙ ДОЖДЬ И ВСПЫШКА ВЫСТРЕЛА',
+      atmosphereSubtitle: 'Капли стекают по стеклу телефонной будки. В отражении — силуэт в плаще.',
+      badge: 'КРАСНЫЙ СЕКТОР',
+    },
   },
   THIEF_HUNT: {
     id: 'THIEF_HUNT',
@@ -71,20 +87,28 @@ export const GAME_MODES_META: Record<GameModeType, GameModeMeta> = {
     difficulty: { ru: 'Высокая', en: 'Hard' },
     killerRoleName: { ru: 'Грабитель', en: 'Thief' },
     detectiveRoleName: { ru: 'Полиция', en: 'Police' },
+    banner: {
+      gradient: 'from-blue-950/60 via-zinc-950 to-zinc-950',
+      borderColor: 'border-blue-900/40',
+      accentColor: '#2563EB',
+      atmosphereTitle: 'НЕОНОВЫЕ ОГНИ И БЛИКИ НА МОКРОМ АСФАЛЬТЕ',
+      atmosphereSubtitle: 'Мигалки патрулей разрезают ночной квартал. Грабитель меняет маски в толпе.',
+      badge: 'СИНИЙ ПЕРЕХВАТ',
+    },
   },
   SECRET_SERVICE: {
     id: 'SECRET_SERVICE',
     title: {
-      ru: 'Директива «Ноль»',
+      ru: 'Директива ноль',
       en: 'Directive Zero',
     },
     shortTitle: {
-      ru: 'Директива «Ноль»',
+      ru: 'Директива ноль',
       en: 'Directive Zero',
     },
     description: {
-      ru: 'Битва спецслужб на улицах мегаполиса. Опрашивайте связных и вскрывайте резидентов.',
-      en: 'Intelligence battle on city streets. Interrogate liaisons and expose handlers.',
+      ru: 'Битва спецслужб на улицах мегаполиса. Опрашивайте свидетелей и вскрывайте резидентов.',
+      en: 'Intelligence battle on city streets. Interrogate witnesses and expose handlers.',
     },
     tags: {
       ru: ['2–4 ИГРОКА', 'КОНТРРАЗВЕДКА', 'БЛЕФ'],
@@ -95,6 +119,14 @@ export const GAME_MODES_META: Record<GameModeType, GameModeMeta> = {
     difficulty: { ru: 'Средняя', en: 'Medium' },
     killerRoleName: { ru: 'Агент 1', en: 'Agent 1' },
     detectiveRoleName: { ru: 'Агент 2', en: 'Agent 2' },
+    banner: {
+      gradient: 'from-emerald-950/50 via-zinc-950 to-zinc-950',
+      borderColor: 'border-emerald-900/40',
+      accentColor: '#10B981',
+      atmosphereTitle: 'ТИХИЙ ОФИС И МОНИТОРЫ ШИФРОВАНИЯ',
+      atmosphereSubtitle: 'Зеленый монохромный терминал и папка «СОВЕРШЕННО СЕКРЕТНО». Война спецслужб.',
+      badge: 'ГРИФ СЕКРЕТНО',
+    },
   },
   LINE_UP: {
     id: 'LINE_UP',
@@ -119,6 +151,14 @@ export const GAME_MODES_META: Record<GameModeType, GameModeMeta> = {
     difficulty: { ru: 'Средняя', en: 'Medium' },
     killerRoleName: { ru: 'Подозреваемый', en: 'Suspect' },
     detectiveRoleName: { ru: 'Следователь', en: 'Inspector' },
+    banner: {
+      gradient: 'from-amber-950/40 via-zinc-950 to-zinc-950',
+      borderColor: 'border-amber-900/40',
+      accentColor: '#F59E0B',
+      atmosphereTitle: 'ДОПРОСНАЯ КОМНАТА И ЛАМПА ПОД АБАЖУРОМ',
+      atmosphereSubtitle: 'Зеркало Гезелла, сигаретный дым и досье 25 подозреваемых на столе.',
+      badge: 'ОЧНАЯ СТАВКА',
+    },
   },
 };
 

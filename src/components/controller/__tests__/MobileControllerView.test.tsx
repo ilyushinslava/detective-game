@@ -42,7 +42,7 @@ describe("MobileControllerView Component", () => {
     );
 
     expect(screen.getByText(/ДОСТУПНЫЕ ДЕЙСТВИЯ/i)).toBeDefined();
-    expect(screen.getByRole("button", { name: /Переместить ряд\/столбец/i })).toBeDefined();
+    expect(screen.getByRole("button", { name: /Сдвиг поля/i })).toBeDefined();
     expect(screen.getByText(/Ликвидация/i)).toBeDefined();
   });
 
@@ -60,7 +60,7 @@ describe("MobileControllerView Component", () => {
     );
 
     // Click on Shift action button
-    const shiftButton = screen.getByRole("button", { name: /Переместить ряд\/столбец/i });
+    const shiftButton = screen.getByRole("button", { name: /Сдвиг поля/i });
     fireEvent.click(shiftButton);
 
     // Step 1: Select ROW (Горизонталь)
@@ -101,7 +101,7 @@ describe("MobileControllerView Component", () => {
     );
 
     // Step 1: open wizard and select COL (Вертикаль)
-    fireEvent.click(screen.getByRole("button", { name: /Переместить ряд\/столбец/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Сдвиг поля/i }));
     fireEvent.click(screen.getByText(/Вертикаль/i));
 
     // Step 2: select Column 3 (Столбец #3)
@@ -134,7 +134,7 @@ describe("MobileControllerView Component", () => {
     );
 
     // Open wizard -> Step 1
-    fireEvent.click(screen.getByRole("button", { name: /Переместить ряд\/столбец/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Сдвиг поля/i }));
     expect(screen.getByText(/ШАГ 1 • ВЫБЕРИТЕ ОСЬ/i)).toBeDefined();
 
     // Select ROW -> Step 2
@@ -169,7 +169,7 @@ describe("MobileControllerView Component", () => {
     );
 
     // Step 1: ROW
-    fireEvent.click(screen.getByRole("button", { name: /Переместить ряд\/столбец/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Сдвиг поля/i }));
     fireEvent.click(screen.getByText(/Горизонталь/i));
 
     // Step 2: Row 1 (index 0)
@@ -197,7 +197,7 @@ describe("MobileControllerView Component", () => {
     );
 
     // Execute valid shift
-    fireEvent.click(screen.getByRole("button", { name: /Переместить ряд\/столбец/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Сдвиг поля/i }));
     fireEvent.click(screen.getByText(/Горизонталь/i));
     fireEvent.click(screen.getByText(/РЯД #2/i));
     fireEvent.click(screen.getByText(/ВПРАВО/i));
@@ -231,5 +231,43 @@ describe("MobileControllerView Component", () => {
     // Clicking center card is enabled and marks it as target
     fireEvent.click(centerCardContainer!);
     expect(centerCardContainer?.className).toContain("scale-105");
+  });
+
+  it("opens DetectiveNotebookModal when clicking БЛОКНОТ button both on turn and waiting screen", () => {
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "KILLER");
+    state.currentTurn = "KILLER";
+
+    const { rerender } = render(
+      <MobileControllerView
+        gameState={state}
+        playerRole="KILLER"
+        onDispatchAction={vi.fn()}
+      />
+    );
+
+    // 1. On turn screen
+    const notebookBtn = screen.getByRole("button", { name: /БЛОКНОТ/i });
+    expect(notebookBtn).toBeDefined();
+    fireEvent.click(notebookBtn);
+    expect(screen.getByText(/БЛОКНОТ РАССЛЕДОВАНИЯ/i)).toBeDefined();
+
+    // Close notebook
+    fireEvent.click(screen.getByRole("button", { name: /Закрыть блокнот/i }));
+    expect(screen.queryByText(/БЛОКНОТ РАССЛЕДОВАНИЯ/i)).toBeNull();
+
+    // 2. On waiting screen
+    state.currentTurn = "DETECTIVE";
+    rerender(
+      <MobileControllerView
+        gameState={state}
+        playerRole="KILLER"
+        onDispatchAction={vi.fn()}
+      />
+    );
+
+    const waitingNotebookBtn = screen.getByRole("button", { name: /БЛОКНОТ/i });
+    expect(waitingNotebookBtn).toBeDefined();
+    fireEvent.click(waitingNotebookBtn);
+    expect(screen.getByText(/БЛОКНОТ РАССЛЕДОВАНИЯ/i)).toBeDefined();
   });
 });

@@ -13,7 +13,7 @@ describe("TvBoardView Component", () => {
 
     const killerElements = screen.getAllByText("Маньяк");
     expect(killerElements.length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText(/ТВ ЭФИР/i)).toBeDefined();
+    expect(screen.getByText(/МЕНЮ ПАУЗЫ/i)).toBeDefined();
   });
 
   it("отображает блок выбранной линии, если она передана", () => {

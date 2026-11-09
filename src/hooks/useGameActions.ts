@@ -26,7 +26,7 @@ export function getAvailableActionDescriptors(
 
   if (gameState.mode === "LINE_UP") {
     return [
-      { id: "DUEL_ASK_QUESTION", label: "Вопрос по досье", icon: "[?]" },
+      { id: "DUEL_ASK_QUESTION", label: "Вопрос", icon: "[?]" },
       { id: "DUEL_ACCUSE", label: "Обвинение", icon: "[TARGET]", isRed: true, requiresTarget: true },
     ];
   }
@@ -35,7 +35,7 @@ export function getAvailableActionDescriptors(
     return [
       { id: "CAPTURE_SPY", label: "Разоблачение", icon: "[TARGET]", isRed: true, requiresTarget: true },
       { id: "INTERROGATE", label: "Опрос свидетелей", icon: "[RADAR]", requiresTarget: true },
-      { id: "CLEANUP", label: "Зачистить", icon: "[CLEAR]" },
+      { id: "CLEANUP", label: "Зачистка", icon: "[CLEAR]" },
     ];
   }
 
@@ -44,30 +44,32 @@ export function getAvailableActionDescriptors(
   if (isKiller) {
     if (gameState.mode === "THIEF_HUNT") {
       list.push(
-        { id: "ROB_NEIGHBOR", label: "Кража у соседа", icon: "[STEAL]", isRed: true, requiresTarget: true },
-        { id: "FAST_DISGUISE", label: "Сменить маску", icon: "[MASK]" }
+        { id: "ROB_NEIGHBOR", label: "Кража", icon: "[STEAL]", isRed: true, requiresTarget: true },
+        { id: "FAST_DISGUISE", label: "Конспирация", icon: "[MASK]" }
       );
     } else {
       list.push(
-        { id: "KILL_CHARACTER", label: "Ликвидация цели", icon: "[TARGET]", isRed: true, requiresTarget: true }
+        { id: "KILL_CHARACTER", label: "Ликвидация", icon: "[TARGET]", isRed: true, requiresTarget: true }
       );
-      if (gameState.mode === "SKHVATKA") {
-        list.push({ id: "DISGUISE", label: "Конспирация", icon: "[MASK]" });
-      } else if (gameState.mode === "MANIAC_VS_OPERATIVE") {
-        list.push({ id: "ESCAPE_MANIAC", label: "Сменить личность", icon: "[ESCAPE]" });
+      if (gameState.mode === "MANIAC_VS_OPERATIVE") {
+        list.push(
+          { id: "CLEANUP", label: "Зачистка", icon: "[CLEAR]" },
+          { id: "ESCAPE_MANIAC", label: "Побег", icon: "[ESCAPE]" }
+        );
       }
     }
   } else {
-    list.push(
-      { id: "ACCUSE", label: "Задержание", icon: "[TARGET]", isRed: true, requiresTarget: true }
-    );
-    if (gameState.mode === "THIEF_HUNT") {
-      list.push({ id: "SWEAR_IN_OFFICER", label: "Вызов патруля", icon: "[PATROL]", requiresTarget: true });
+    if (gameState.mode === "MANIAC_VS_OPERATIVE") {
+      list.push(
+        { id: "EXONERATE", label: "Проверка алиби", icon: "[SEARCH]", requiresTarget: true },
+        { id: "ACCUSE", label: "Задержание", icon: "[TARGET]", isRed: true, requiresTarget: true }
+      );
+    } else if (gameState.mode === "THIEF_HUNT") {
+      list.push(
+        { id: "SWEAR_IN_OFFICER", label: "Вызов патруля", icon: "[PATROL]", requiresTarget: true },
+        { id: "ACCUSE", label: "Задержание", icon: "[TARGET]", isRed: true, requiresTarget: true }
+      );
     }
-  }
-
-  if (gameState.mode !== "THIEF_HUNT") {
-    list.push({ id: "CLEANUP", label: "Зачистить поле", icon: "[CLEAR]" });
   }
 
   return list;

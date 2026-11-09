@@ -117,6 +117,10 @@ const renderSilhouette = (id: string) => {
   }
 };
 
+export const formatCompactName = (fullName: string): string => {
+  return fullName || "";
+};
+
 export const CharacterCard = memo(
   ({
     mode,
@@ -184,7 +188,7 @@ export const CharacterCard = memo(
         {!isDead && (() => {
           const imageAsset = characterImages[`../assets/characters/${character.id}.webp`]?.default;
           return (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+            <div className="absolute inset-0 pb-6 sm:pb-7 flex items-center justify-center pointer-events-none z-0">
               {imageAsset && !imgError ? (
                 <img
                   src={imageAsset}
@@ -330,9 +334,10 @@ export const CharacterCard = memo(
           </div>
         )}
 
-        <div className="absolute bottom-0.5 inset-x-0.5 z-10 flex items-end justify-center pointer-events-none transform-none">
+        <div className="absolute bottom-1 inset-x-1 z-10 flex items-end justify-center pointer-events-none transform-none">
           <span
-            className={`block w-full text-[7.5px] sm:text-[8.5px] md:text-[11px] font-bold text-zinc-200 leading-[1.05] md:leading-tight tracking-tight uppercase text-center px-1 py-0.5 rounded-sm bg-black/60 backdrop-blur-[1px] transform-none break-normal whitespace-pre-line hyphens-none ${
+            title={character.name}
+            className={`block w-full text-[8.5px] sm:text-[9.5px] md:text-[11px] xl:text-[12px] 2xl:text-[13px] font-black text-zinc-100 leading-snug tracking-normal uppercase text-center px-1.5 py-1 rounded-md bg-black/90 backdrop-blur-md border border-white/15 shadow-md transform-none whitespace-pre-line hyphens-none font-sans ${
               isDead
                 ? isSecretService
                   ? "text-red-400 line-through"
@@ -344,7 +349,7 @@ export const CharacterCard = memo(
                     : ""
             }`}
           >
-            {character.name.replace(" ", "\n")}
+            {character.name.includes(" ") ? character.name.replace(" ", "\n") : character.name}
           </span>
         </div>
       </motion.div>

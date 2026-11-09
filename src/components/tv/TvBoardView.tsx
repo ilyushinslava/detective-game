@@ -300,7 +300,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
       return [
         { name: 'ЛИКВИДАЦИЯ', desc: 'Устранение цели в радиусе 3×3', badge: 'ДОСТУПНО', icon: <ActionIcons.Kill className="w-4 h-4 text-rose-400" />, tone: 'red' as const },
         { name: 'ЗАЧИСТКА', desc: 'Уничтожение улик на месте преступления', badge: 'ДОСТУПНО', icon: <ActionIcons.Cleanup className="w-4 h-4 text-zinc-300" />, tone: 'neutral' as const },
-        { name: 'ПОБЕГ', desc: 'Экстренная смена сектора при угрозе', badge: 'ДОСТУПНО', icon: <ActionIcons.Disguise className="w-4 h-4 text-zinc-300" />, tone: 'neutral' as const },
+        { name: 'КОНСПИРАЦИЯ', desc: 'Экстренная смена маскировки и уход от слежки', badge: 'ДОСТУПНО', icon: <ActionIcons.Disguise className="w-4 h-4 text-zinc-300" />, tone: 'neutral' as const },
       ];
     }
     return [

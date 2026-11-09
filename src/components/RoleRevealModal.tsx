@@ -459,7 +459,7 @@ export const RoleRevealModal = ({
       if (isRed) {
         tiles.push({
           id: "target_kill",
-          label: "Заказная цель",
+          label: "Ликвидация",
           icon: <Icons.Target className="w-6 h-6 text-red-400" />,
           desc: "Ликвидировать текущую цель строго по открытому списку из 4 жертв.",
         });
@@ -471,7 +471,7 @@ export const RoleRevealModal = ({
         });
         tiles.push({
           id: "escape",
-          label: "Побег",
+          label: "Конспирация",
           icon: <Icons.Eye className="w-6 h-6 text-red-400" />,
           desc: "Взять карту из колоды и сменить тайную личность.",
         });
@@ -511,7 +511,7 @@ export const RoleRevealModal = ({
         });
         tiles.push({
           id: "disguise_thief",
-          label: "Смена маски",
+          label: "Конспирация",
           icon: <Icons.Eye className="w-6 h-6 text-zinc-300" />,
           desc: "Взять карту из колоды и сменить тайную личность.",
         });

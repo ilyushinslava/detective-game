@@ -871,7 +871,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Детектив: Зачистка сетки</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
                     <div><b className="text-amber-500">КОНТЕКСТ:</b> Улицы завалены трупами. Нужно уплотнить зону.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Выполните действие «Зачистить».</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Выполните действие «Зачистка».</div>
                     <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Ликвидированные ушли на дно (вниз сетки), живые сместились вверх.</div>
                   </div>
                 </div>

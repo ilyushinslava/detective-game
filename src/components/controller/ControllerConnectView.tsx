@@ -170,28 +170,31 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   const isReady = tab === 'PIN' ? pin.length >= 4 : morseBuffer.length >= 4;
 
   return (
-    <div className="flex h-[100dvh] w-screen flex-col justify-between bg-[#080a0f] p-5 pb-8 text-zinc-100 select-none overflow-y-auto font-sans">
+    <div className="flex h-[100dvh] w-screen flex-col justify-between bg-[#080a0f] p-5 pb-8 text-zinc-100 select-none overflow-y-auto font-sans relative">
+      {/* Мягкая контровая подсветка нео-нуара */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/15 via-transparent to-black/80 pointer-events-none" />
+
       {/* Шапка */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-3">
+      <div className="flex items-center justify-between border-b border-white/10 pb-3 relative z-10">
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-          <span className="text-xs font-mono uppercase tracking-widest text-zinc-300">ПОДКЛЮЧЕНИЕ ПУЛЬТА</span>
+          <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+          <span className="text-xs font-mono uppercase tracking-widest text-zinc-300 font-bold">ПОДКЛЮЧЕНИЕ ПУЛЬТА</span>
         </div>
         <Button
           variant="ghost"
           onClick={onBackToMenu}
-          className="h-8 px-2.5 text-xs font-mono uppercase text-zinc-400 hover:text-white"
+          className="h-8 px-3 text-xs font-mono uppercase text-zinc-400 hover:text-white rounded-xl border border-white/5 hover:border-white/15 bg-zinc-900/40 transition"
         >
           В МЕНЮ
         </Button>
       </div>
 
-      <div className="max-w-sm mx-auto w-full my-2 space-y-3">
+      <div className="max-w-sm mx-auto w-full my-2 space-y-3 relative z-10">
         {/* Позывной агента */}
-        <div className="p-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 backdrop-blur-md shadow-lg space-y-1.5">
+        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-slate-900/50 via-zinc-950/80 to-slate-950/80 border border-white/10 backdrop-blur-xl shadow-lg space-y-1.5">
           <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-zinc-400">
             <span>ПОЗЫВНОЙ АГЕНТА</span>
-            <span className="text-zinc-600">ТВ-СЕТЬ</span>
+            <span className="text-zinc-500">ТВ-СЕТЬ</span>
           </div>
           <input
             type="text"
@@ -199,12 +202,12 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
             value={nickname}
             onChange={(e) => handleNicknameChange(e.target.value)}
             placeholder="Агент"
-            className="w-full px-3.5 py-2 rounded-xl bg-zinc-900/90 border border-white/10 text-zinc-100 text-xs font-mono uppercase font-bold focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/40 tracking-wider shadow-inner"
+            className="w-full px-3.5 py-2 rounded-xl bg-zinc-900/90 border border-white/10 text-zinc-100 text-xs font-mono uppercase font-bold focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/40 tracking-wider shadow-inner"
           />
         </div>
 
         {/* Переключатель вкладок (PIN vs РАДИОПЕРЕХВАТ МОРЗЕ) */}
-        <div className="flex bg-zinc-950/80 p-1 rounded-2xl border border-white/10 shadow-inner">
+        <div className="flex bg-zinc-950/90 p-1 rounded-2xl border border-white/10 shadow-inner">
           <button
             type="button"
             onClick={() => {
@@ -213,7 +216,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
             }}
             className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer ${
               tab === 'PIN'
-                ? 'bg-zinc-800 text-cyan-300 border border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
+                ? 'bg-zinc-800 text-blue-300 border border-blue-500/50 shadow-[0_0_12px_rgba(59,130,246,0.25)]'
                 : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
@@ -227,7 +230,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
             }}
             className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer ${
               tab === 'MORSE'
-                ? 'bg-zinc-800 text-red-300 border border-red-500/50 shadow-[0_0_12px_rgba(239,68,68,0.2)]'
+                ? 'bg-zinc-800 text-red-300 border border-red-500/50 shadow-[0_0_12px_rgba(239,68,68,0.25)]'
                 : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
@@ -237,8 +240,8 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
       </div>
 
       {/* Дисплей набранного кода */}
-      <div className="flex flex-col items-center text-center max-w-sm mx-auto w-full space-y-2 mb-2">
-        <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-bold">
+      <div className="flex flex-col items-center text-center max-w-sm mx-auto w-full space-y-2 mb-2 relative z-10">
+        <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold">
           {tab === 'PIN' ? 'ЧИСЛОВОЙ ID КОМНАТЫ (НА ЭКРАНЕ ТВ)' : 'ТАКТИЧЕСКИЙ ПОЗЫВНОЙ (4–5 СИГНАЛОВ)'}
         </div>
 
@@ -250,9 +253,9 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
                 key={idx}
                 className={`w-12 h-14 rounded-2xl border flex items-center justify-center text-2xl font-black font-mono shadow-inner transition-all ${
                   pin[idx]
-                    ? 'border-cyan-500/80 bg-zinc-900/90 text-zinc-100 shadow-[0_0_12px_rgba(6,182,212,0.25)]'
+                    ? 'border-blue-500/80 bg-zinc-900/90 text-zinc-100 shadow-[0_0_12px_rgba(59,130,246,0.25)]'
                     : idx === pin.length
-                      ? 'border-cyan-400 bg-zinc-950 text-cyan-400 animate-pulse'
+                      ? 'border-blue-400 bg-blue-950/30 text-blue-400 animate-pulse'
                       : 'border-white/10 bg-zinc-950/40 text-zinc-700'
                 }`}
               >
@@ -270,12 +273,12 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
                   key={idx}
                   className={`flex items-center justify-center transition-all ${
                     sym === '.'
-                      ? 'w-7 h-7 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.9)]'
+                      ? 'w-6 h-6 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.9)]'
                       : sym === '-'
-                        ? 'w-12 h-6 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.9)]'
+                        ? 'w-12 h-5 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.9)]'
                         : idx === morseBuffer.length
-                          ? 'w-6 h-6 rounded-full border-2 border-dashed border-cyan-400/60 animate-pulse'
-                          : 'w-6 h-6 rounded-full border border-white/10 bg-zinc-900/40'
+                          ? 'w-6 h-6 rounded-full border-2 border-dashed border-blue-400/60 animate-pulse'
+                          : 'w-5 h-5 rounded-full border border-white/10 bg-zinc-900/40'
                   }`}
                 />
               );
@@ -284,14 +287,14 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
         )}
 
         {errorMessage && (
-          <div className="p-2 px-3 rounded-xl bg-red-950/60 border border-red-500/50 text-xs font-mono text-red-300 animate-fadeIn">
+          <div className="p-2 px-3 rounded-xl bg-red-950/60 border border-red-500/50 text-xs font-mono text-red-300 shadow-[0_0_12px_rgba(239,68,68,0.2)] animate-fadeIn">
             {errorMessage}
           </div>
         )}
       </div>
 
       {/* Основной интерактивный блок */}
-      <div className="my-auto flex flex-col items-center justify-center max-w-sm mx-auto w-full">
+      <div className="my-auto flex flex-col items-center justify-center max-w-sm mx-auto w-full relative z-10">
         {tab === 'PIN' ? (
           /* Цифровая клавиатура (Numpad) */
           <div className="w-full space-y-4">
@@ -312,10 +315,10 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
                   }}
                   className={`py-3.5 rounded-2xl border text-lg font-black font-mono transition active:scale-95 cursor-pointer ${
                     btn === 'C'
-                      ? 'bg-zinc-950/60 border-white/10 text-zinc-500 hover:text-zinc-300'
+                      ? 'bg-zinc-950/60 border-white/10 text-zinc-400 hover:text-zinc-200'
                       : btn === '⌫'
-                        ? 'bg-zinc-950/60 border-white/10 text-red-400 hover:text-red-300'
-                        : 'bg-zinc-900/80 border-white/10 text-zinc-100 hover:border-white/25 shadow-md'
+                        ? 'bg-red-950/30 border-red-900/40 text-red-400 hover:text-red-300'
+                        : 'bg-zinc-900/80 border-white/10 text-zinc-100 hover:border-blue-500/40 shadow-md'
                   }`}
                 >
                   {btn}
@@ -341,8 +344,8 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
               }}
               className={`w-40 h-40 rounded-full border-4 flex flex-col items-center justify-center transition-all select-none touch-none cursor-pointer active:scale-95 shadow-2xl relative ${
                 isKeyDown
-                  ? 'bg-cyan-500 border-cyan-300 text-zinc-950 shadow-[0_0_40px_rgba(6,182,212,0.8)] scale-95'
-                  : 'bg-zinc-900/90 border-white/20 text-zinc-300 hover:border-cyan-400 shadow-[0_0_25px_rgba(0,0,0,0.8)]'
+                  ? 'bg-blue-600 border-blue-300 text-white shadow-[0_0_40px_rgba(37,99,235,0.9)] scale-95'
+                  : 'bg-zinc-900/90 border-white/20 text-zinc-300 hover:border-blue-400 shadow-[0_0_25px_rgba(0,0,0,0.8)]'
               }`}
             >
               <span className="text-3xl font-mono mb-1 font-black">
@@ -383,13 +386,17 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
       </div>
 
       {/* Нижняя кнопка подключения */}
-      <div className="space-y-2 max-w-sm mx-auto w-full pt-2">
+      <div className="space-y-2 max-w-sm mx-auto w-full pt-2 relative z-10">
         <Button
-          variant="primary-info"
+          variant="secondary"
           fullWidth
           onClick={handleResolveAndConnect}
           disabled={!isReady || isSearching}
-          className="h-14 rounded-2xl text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(6,182,212,0.3)] cursor-pointer"
+          className={`h-14 rounded-2xl text-xs font-mono font-bold uppercase tracking-widest transition cursor-pointer ${
+            !isReady || isSearching
+              ? 'opacity-40 cursor-not-allowed bg-zinc-900/50 border-white/10 text-zinc-500'
+              : 'bg-gradient-to-r from-blue-700 to-indigo-600 hover:from-blue-600 border border-blue-400/50 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] active:scale-95'
+          }`}
         >
           {isSearching
             ? 'ПОИСК ЛОББИ В СЕТИ...'

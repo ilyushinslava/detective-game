@@ -18,9 +18,9 @@ const TablesScreen = lazy(() => import("./TablesScreen").then((m) => ({ default:
 const ProfileScreen = lazy(() => import("./ProfileScreen").then((m) => ({ default: m.ProfileScreen })));
 
 const ScreenFallback = () => (
-  <div className="flex-1 w-full flex items-center justify-center min-h-[300px] text-cyan-400 select-none">
+  <div className="flex-1 w-full flex items-center justify-center min-h-[300px] text-blue-400 select-none">
     <div className="flex flex-col items-center gap-3">
-      <div className="w-8 h-8 border-2 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin" />
+      <div className="w-8 h-8 border-2 border-blue-500/20 border-t-blue-400 rounded-full animate-spin" />
       <span className="text-[11px] font-mono tracking-widest text-zinc-400 uppercase">
         Загрузка...
       </span>
@@ -462,7 +462,8 @@ export const MainMenu = ({
       <div className="relative z-10 flex-1 flex flex-col justify-between pt-[max(0.5rem,env(safe-area-inset-top))] pb-3 px-4 sm:px-6 lg:px-8 max-w-7xl w-full max-w-full mx-auto min-h-0 overflow-x-hidden">
         {/* Top Header Bar: Left Title, Right Service Info */}
         <header className="flex items-center justify-between shrink-0 py-2 sm:py-3 lg:py-4 mb-2 lg:mb-4 border-b border-white/5 lg:border-b-0 w-full max-w-full">
-          <div className="flex flex-col select-none min-w-0 pr-2">
+          <div className="flex items-center gap-2.5 sm:gap-3.5 select-none min-w-0 pr-2">
+            <span className="h-3 w-3 sm:h-3.5 sm:w-3.5 rounded-full bg-red-600 animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.85)] shrink-0" />
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-white uppercase leading-none drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)] truncate sm:overflow-visible">
               {t.menu.title}
             </h1>
@@ -472,7 +473,7 @@ export const MainMenu = ({
             {/* Agent Callsign / Dossier Pill (Hidden on mobile < sm) */}
             <button
               onClick={() => { soundManager.play('tapMenu'); setNavDirection('none'); setScreen('PROFILE'); onTabChange('TOP'); }}
-              className="hidden sm:flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 rounded-full bg-zinc-900/80 border border-white/10 hover:border-cyan-500/40 hover:bg-zinc-800/80 transition cursor-pointer shadow-lg active:scale-95 group text-left shrink-0"
+              className="hidden sm:flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 rounded-full bg-zinc-900/80 border border-white/10 hover:border-blue-500/40 hover:bg-zinc-800/80 transition cursor-pointer shadow-lg active:scale-95 group text-left shrink-0"
               title="Досье агента"
             >
               <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-zinc-950 border border-white/10 flex items-center justify-center text-xs sm:text-sm shrink-0">
@@ -501,7 +502,7 @@ export const MainMenu = ({
             {/* Settings Cog Button */}
             <button 
               onClick={() => setIsSettingsOpen(true)}
-              className="w-10 h-10 rounded-full bg-zinc-900/80 border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white hover:border-white/20 transition cursor-pointer shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-cyan-400/80 shrink-0"
+              className="w-10 h-10 rounded-full bg-zinc-900/80 border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white hover:border-white/20 transition cursor-pointer shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500/50 shrink-0"
               title="Настройки"
             >
               <Icons.Settings />
@@ -536,8 +537,8 @@ export const MainMenu = ({
               </button>
             )}
 
-            <div className="w-full h-auto flex flex-col bg-zinc-950/60 hover:bg-zinc-950/80 border border-cyan-500/30 hover:border-cyan-400/60 backdrop-blur-md rounded-2xl p-5 lg:p-6 shadow-[0_0_35px_rgba(6,182,212,0.12)] transition-all relative overflow-hidden group">
-              <div className="absolute -top-16 -right-16 w-44 h-44 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-cyan-500/20 transition-all duration-500" />
+            <div className="w-full h-auto flex flex-col bg-zinc-950/70 hover:bg-zinc-950/90 border border-blue-500/30 hover:border-blue-400/60 backdrop-blur-xl rounded-2xl p-5 lg:p-6 shadow-[0_0_35px_rgba(37,99,235,0.12)] transition-all relative overflow-hidden group">
+              <div className="absolute -top-16 -right-16 w-44 h-44 bg-blue-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-500/20 transition-all duration-500" />
               
               <div className="relative z-10 flex flex-col">
                 <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-white uppercase tracking-tight leading-tight mb-2 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
@@ -561,17 +562,17 @@ export const MainMenu = ({
 
           {/* Right Column: 2x2 Showcase Grid + Aux Buttons (7 cols on lg+) */}
           <div className="w-full lg:col-span-7 flex flex-col">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3.5 sm:gap-4">
               {/* Card 1: Solo Game (PVE) */}
               <button
                 onClick={() => { setSelectedOpponent("AI"); navigateTo('MODES'); }}
-                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-white/30 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/40"
+                className="h-auto min-h-[110px] sm:min-h-[125px] border border-white/10 hover:border-white/25 bg-zinc-950/70 hover:bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-4 sm:p-4.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/30"
               >
                 <div className="flex items-center justify-between w-full">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-white transition-colors shrink-0 shadow-inner">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-zinc-900/90 text-zinc-300 border border-white/10 flex items-center justify-center group-hover:text-white group-hover:border-white/25 transition-all shrink-0 shadow-inner">
                     <Icons.Cards className="w-5 h-5" />
                   </div>
-                  <span className="bg-zinc-800/60 text-zinc-400 border border-white/5 text-[10px] font-mono px-2 py-0.5 rounded-md uppercase font-bold tracking-wider shrink-0">
+                  <span className="bg-zinc-900/90 text-zinc-400 border border-white/10 text-[10px] font-mono px-2.5 py-0.5 rounded-lg uppercase font-bold tracking-wider shrink-0">
                     PVE
                   </span>
                 </div>
@@ -585,13 +586,13 @@ export const MainMenu = ({
               {/* Card 2: One Screen (PVP) */}
               <button
                 onClick={() => { setSelectedOpponent("PVP"); navigateTo('MODES'); }}
-                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-white/30 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/40"
+                className="h-auto min-h-[110px] sm:min-h-[125px] border border-white/10 hover:border-white/25 bg-zinc-950/70 hover:bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-4 sm:p-4.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/30"
               >
                 <div className="flex items-center justify-between w-full">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-white transition-colors shrink-0 shadow-inner">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-zinc-900/90 text-zinc-300 border border-white/10 flex items-center justify-center group-hover:text-white group-hover:border-white/25 transition-all shrink-0 shadow-inner">
                     <Icons.Users className="w-5 h-5" />
                   </div>
-                  <span className="bg-zinc-800/60 text-zinc-400 border border-white/5 text-[10px] font-mono px-2 py-0.5 rounded-md uppercase font-bold tracking-wider shrink-0">
+                  <span className="bg-zinc-900/90 text-zinc-400 border border-white/10 text-[10px] font-mono px-2.5 py-0.5 rounded-lg uppercase font-bold tracking-wider shrink-0">
                     PVP
                   </span>
                 </div>
@@ -605,13 +606,13 @@ export const MainMenu = ({
               {/* Card 3: TV Mode (TV PARTY) */}
               <button
                 onClick={() => { setIsTvPartyModalOpen(true); }}
-                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-white/30 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/40"
+                className="h-auto min-h-[110px] sm:min-h-[125px] border border-white/10 hover:border-red-500/40 bg-zinc-950/70 hover:bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-4 sm:p-4.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-red-500/40"
               >
                 <div className="flex items-center justify-between w-full">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-white transition-colors shrink-0 shadow-inner">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-red-950/40 text-red-400 border border-red-500/30 flex items-center justify-center group-hover:text-red-300 group-hover:border-red-500/50 transition-all shrink-0 shadow-[0_0_15px_rgba(239,68,68,0.15)]">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
                   </div>
-                  <span className="bg-zinc-800/60 text-zinc-400 border border-white/5 text-[10px] font-mono px-2 py-0.5 rounded-md uppercase font-bold tracking-wider shrink-0">
+                  <span className="bg-red-950/80 text-red-400 border border-red-500/40 text-[10px] font-mono px-2.5 py-0.5 rounded-lg uppercase font-black tracking-wider shrink-0 shadow-[0_0_8px_rgba(239,68,68,0.25)]">
                     TV PARTY
                   </span>
                 </div>
@@ -625,13 +626,13 @@ export const MainMenu = ({
               {/* Card 4: Multiplayer (ONLINE) */}
               <button
                 onClick={() => { navigateTo('TABLES'); onTabChange('TABLES'); }}
-                className="h-auto min-h-[110px] sm:min-h-[120px] border border-white/10 hover:border-white/30 bg-zinc-950/60 hover:bg-zinc-900/70 backdrop-blur-md rounded-2xl p-4 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/40"
+                className="h-auto min-h-[110px] sm:min-h-[125px] border border-white/10 hover:border-blue-500/40 bg-zinc-950/70 hover:bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-4 sm:p-4.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500/40"
               >
                 <div className="flex items-center justify-between w-full">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-900/80 text-zinc-300 border border-white/5 flex items-center justify-center group-hover:text-white transition-colors shrink-0 shadow-inner">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-950/40 text-blue-400 border border-blue-500/30 flex items-center justify-center group-hover:text-blue-300 group-hover:border-blue-500/50 transition-all shrink-0 shadow-[0_0_15px_rgba(37,99,235,0.15)]">
                     <Icons.Radar className="w-5 h-5" />
                   </div>
-                  <span className="bg-zinc-800/60 text-zinc-400 border border-white/5 text-[10px] font-mono px-2 py-0.5 rounded-md uppercase font-bold tracking-wider shrink-0">
+                  <span className="bg-blue-950/80 text-blue-400 border border-blue-500/40 text-[10px] font-mono px-2.5 py-0.5 rounded-lg uppercase font-bold tracking-wider shrink-0 shadow-[0_0_8px_rgba(37,99,235,0.25)]">
                     ONLINE
                   </span>
                 </div>
@@ -643,49 +644,20 @@ export const MainMenu = ({
               </button>
             </div>
 
-            {/* Быстрое подключение к ТВ-вечеринке с телефона (TASK-NET-002) */}
-            <button
-              onClick={() => {
-                if (onStartTvParty) {
-                  onStartTvParty("CONTROLLER");
-                } else {
-                  window.location.href = `${window.location.pathname}?clientType=CONTROLLER`;
-                }
-              }}
-              className="w-full mt-3 h-12 rounded-2xl bg-zinc-950/70 hover:bg-zinc-900/90 border border-cyan-500/30 hover:border-cyan-400/60 transition-all flex items-center justify-between px-4 text-zinc-100 cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.1)] active:scale-[0.99] group backdrop-blur-md"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-400 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-                </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-xs font-black uppercase tracking-wider text-cyan-300 group-hover:text-cyan-200">
-                    ПОДКЛЮЧИТЬСЯ К ТВ
-                  </span>
-                  <span className="text-[10px] font-mono text-zinc-400">
-                    Пульт контроллера • Ввод PIN или Морзе
-                  </span>
-                </div>
-              </div>
-              <span className="text-xs font-mono text-cyan-400 font-bold group-hover:translate-x-0.5 transition-transform">
-                Войти →
-              </span>
-            </button>
-
             {/* Auxiliary Buttons: Rules & Tutorial */}
-            <div className="grid grid-cols-2 gap-4 mt-4">
+            <div className="grid grid-cols-2 gap-3.5 sm:gap-4 mt-3.5 sm:mt-4">
               <button
                 onClick={onOpenRules}
-                className="h-11 sm:h-12 rounded-xl bg-zinc-950/60 hover:bg-zinc-900/80 border border-white/10 hover:border-white/25 transition-all flex items-center justify-center gap-2.5 px-4 text-zinc-300 hover:text-white cursor-pointer active:scale-[0.99] shadow-md group focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
+                className="h-11 sm:h-12 rounded-2xl bg-zinc-950/70 hover:bg-zinc-900/80 border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2.5 px-4 text-zinc-300 hover:text-white cursor-pointer active:scale-[0.99] shadow-md group focus:outline-none focus:ring-2 focus:ring-blue-500/40 backdrop-blur-xl"
               >
-                <div className="text-zinc-400 group-hover:text-cyan-400 transition-colors shrink-0">
+                <div className="text-zinc-400 group-hover:text-blue-400 transition-colors shrink-0">
                   <Icons.Shield />
                 </div>
                 <div className="flex flex-col items-start leading-tight min-w-0">
                   <span className="text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-widest text-zinc-200 group-hover:text-white truncate">
                     {t.menu.rulebook}
                   </span>
-                  <span className="text-[7px] sm:text-[8px] text-zinc-500 uppercase tracking-widest truncate">
+                  <span className="text-[7px] sm:text-[8px] font-mono text-zinc-500 uppercase tracking-widest truncate">
                     {t.menu.rulebookDesc}
                   </span>
                 </div>
@@ -693,16 +665,16 @@ export const MainMenu = ({
 
               <button
                 onClick={() => setIsTutorialOpen(true)}
-                className="h-11 sm:h-12 rounded-xl bg-zinc-950/60 hover:bg-zinc-900/80 border border-white/10 hover:border-white/25 transition-all flex items-center justify-center gap-2.5 px-4 text-zinc-300 hover:text-white cursor-pointer active:scale-[0.99] shadow-md group focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
+                className="h-11 sm:h-12 rounded-2xl bg-zinc-950/70 hover:bg-zinc-900/80 border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2.5 px-4 text-zinc-300 hover:text-white cursor-pointer active:scale-[0.99] shadow-md group focus:outline-none focus:ring-2 focus:ring-blue-500/40 backdrop-blur-xl"
               >
-                <div className="text-zinc-400 group-hover:text-cyan-400 transition-colors shrink-0">
+                <div className="text-zinc-400 group-hover:text-blue-400 transition-colors shrink-0">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 sm:w-5 sm:h-5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                 </div>
                 <div className="flex flex-col items-start leading-tight min-w-0">
                   <span className="text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-widest text-zinc-200 group-hover:text-white truncate">
                     {t.menu.tutorial}
                   </span>
-                  <span className="text-[7px] sm:text-[8px] text-zinc-500 uppercase tracking-widest truncate">
+                  <span className="text-[7px] sm:text-[8px] font-mono text-zinc-500 uppercase tracking-widest truncate">
                     {t.menu.tutorialDesc}
                   </span>
                 </div>
@@ -1165,7 +1137,7 @@ export const MainMenu = ({
         {renderScreen()}
 
         {screen !== 'MODE_DETAIL' && (
-          <nav className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] px-6 flex md:hidden justify-around items-center z-40">
+          <nav className="w-full shrink-0 bg-zinc-950/90 backdrop-blur-xl border-t border-white/10 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] px-6 flex md:hidden justify-around items-center z-40">
           <button 
             onClick={() => {
               soundManager.play('tapMenu');
@@ -1174,10 +1146,13 @@ export const MainMenu = ({
               setScreen('HOME');
               onTabChange('LOBBY');
             }} 
-            className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'HOME' || screen === 'MODES' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+            className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer relative ${screen === 'HOME' || screen === 'MODES' ? 'text-white font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             <Icons.Home />
-            <span className="text-[8px] md:text-[10px] font-black tracking-widest uppercase">{t.nav.hq}</span>
+            <span className="text-[8px] md:text-[10px] font-mono tracking-widest uppercase">{t.nav.hq}</span>
+            {(screen === 'HOME' || screen === 'MODES') && (
+              <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.9)]" />
+            )}
           </button>
           <button 
             onClick={() => {
@@ -1187,10 +1162,13 @@ export const MainMenu = ({
               setScreen('TABLES');
               onTabChange('TABLES');
             }} 
-            className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'TABLES' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+            className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer relative ${screen === 'TABLES' ? 'text-white font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             <Icons.Cards />
-            <span className="text-[8px] md:text-[10px] font-black tracking-widest uppercase">{t.nav.tables}</span>
+            <span className="text-[8px] md:text-[10px] font-mono tracking-widest uppercase">{t.nav.tables}</span>
+            {screen === 'TABLES' && (
+              <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.9)]" />
+            )}
           </button>
           <button 
             onClick={() => {
@@ -1200,10 +1178,13 @@ export const MainMenu = ({
               setScreen('PROFILE');
               onTabChange('TOP');
             }} 
-            className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer ${screen === 'PROFILE' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+            className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer relative ${screen === 'PROFILE' ? 'text-white font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             <Icons.User />
-            <span className="text-[8px] md:text-[10px] font-black tracking-widest uppercase">{t.nav.profile}</span>
+            <span className="text-[8px] md:text-[10px] font-mono tracking-widest uppercase">{t.nav.profile}</span>
+            {screen === 'PROFILE' && (
+              <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.9)]" />
+            )}
           </button>
         </nav>
         )}
@@ -1225,7 +1206,7 @@ export const MainMenu = ({
                 <select
                   value={createRoomMode}
                   onChange={(e) => setCreateRoomMode(e.target.value as GameModeType)}
-                  className="w-full bg-zinc-950/80 border border-white/15 rounded-xl px-4 py-3 text-xs font-black tracking-widest text-zinc-200 focus:border-cyan-500 outline-none appearance-none transition uppercase shadow-inner cursor-pointer"
+                  className="w-full bg-zinc-950/80 border border-white/15 rounded-xl px-4 py-3 text-xs font-black tracking-widest text-zinc-200 focus:border-blue-500 outline-none appearance-none transition uppercase shadow-inner cursor-pointer"
                 >
                   <option value="LINE_UP">{GAME_MODES_META.LINE_UP.title.ru}</option>
                   <option value="SECRET_SERVICE">{GAME_MODES_META.SECRET_SERVICE.title.ru}</option>
@@ -1247,7 +1228,7 @@ export const MainMenu = ({
                   type="checkbox"
                   checked={createRoomIsPrivate}
                   onChange={(e) => setCreateRoomIsPrivate(e.target.checked)}
-                  className="w-4 h-4 accent-cyan-500 bg-zinc-900 border-zinc-700 rounded-sm"
+                  className="w-4 h-4 accent-blue-500 bg-zinc-900 border-zinc-700 rounded-sm"
                 />
                 <span className="text-[10px] font-black tracking-widest text-zinc-300 uppercase">Закрытый канал (по шифру)</span>
               </label>
@@ -1342,13 +1323,13 @@ export const MainMenu = ({
                     window.location.href = `${window.location.pathname}?clientType=TV_DISPLAY&room=${code}`;
                   }
                 }}
-                className="w-full p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-red-500/60 hover:bg-zinc-900/80 transition-all text-left flex items-center gap-3.5 group cursor-pointer shadow-md"
+                className="w-full p-4 rounded-2xl bg-zinc-950/70 border border-white/10 hover:border-red-500/60 hover:bg-zinc-900/90 transition-all text-left flex items-center gap-3.5 group cursor-pointer shadow-lg active:scale-[0.99]"
               >
-                <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-white/10 group-hover:border-red-500/60 flex items-center justify-center text-red-500 shrink-0 shadow-inner">
+                <div className="w-12 h-12 rounded-xl bg-red-950/40 border border-red-500/30 group-hover:border-red-500/60 flex items-center justify-center text-red-500 shrink-0 shadow-inner group-hover:scale-105 transition-transform">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-xs font-black uppercase tracking-wider text-zinc-100 group-hover:text-red-400">
+                  <div className="text-xs font-black uppercase tracking-wider text-zinc-100 group-hover:text-red-400 transition-colors">
                     ЭКРАН ТЕЛЕВИЗОРА
                   </div>
                   <div className="text-[10px] text-zinc-400 mt-0.5 leading-tight">
@@ -1366,13 +1347,13 @@ export const MainMenu = ({
                     window.location.href = `${window.location.pathname}?clientType=CONTROLLER`;
                   }
                 }}
-                className="w-full p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-cyan-500/60 hover:bg-zinc-900/80 transition-all text-left flex items-center gap-3.5 group cursor-pointer shadow-md"
+                className="w-full p-4 rounded-2xl bg-zinc-950/70 border border-white/10 hover:border-blue-500/60 hover:bg-zinc-900/90 transition-all text-left flex items-center gap-3.5 group cursor-pointer shadow-lg active:scale-[0.99]"
               >
-                <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-white/10 group-hover:border-cyan-500/60 flex items-center justify-center text-cyan-400 shrink-0 shadow-inner">
+                <div className="w-12 h-12 rounded-xl bg-blue-950/40 border border-blue-500/30 group-hover:border-blue-500/60 flex items-center justify-center text-blue-400 shrink-0 shadow-inner group-hover:scale-105 transition-transform">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-xs font-black uppercase tracking-wider text-zinc-100 group-hover:text-cyan-400">
+                  <div className="text-xs font-black uppercase tracking-wider text-zinc-100 group-hover:text-blue-400 transition-colors">
                     ПОДКЛЮЧИТЬСЯ К ТВ (ПУЛЬТ)
                   </div>
                   <div className="text-[10px] text-zinc-400 mt-0.5 leading-tight">

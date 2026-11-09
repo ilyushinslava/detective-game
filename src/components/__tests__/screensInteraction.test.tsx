@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { MainMenu } from "../MainMenu";
 import { PauseModal } from "../PauseModal";
 import { GameOverModal } from "../GameOverModal";
@@ -12,6 +12,10 @@ describe("Интерактивное взаимодействие с экран�
     window.HTMLMediaElement.prototype.play = vi.fn().mockImplementation(() => Promise.resolve());
     window.HTMLMediaElement.prototype.pause = vi.fn();
     window.HTMLMediaElement.prototype.load = vi.fn();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   describe("MainMenu", () => {
@@ -92,6 +96,62 @@ describe("Интерактивное взаимодействие с экран�
 
       // Убеждаемся, что вернулись в список режимов
       expect(screen.getAllByText(/Почерк убийцы/i)[0]).toBeDefined();
+    });
+
+    it("Кнопка «ТВ РЕЖИМ» открывает модалку с выбором роли, а отдельная кнопка «Подключиться к ТВ» отсутствует в меню", () => {
+      const onStartTvParty = vi.fn();
+      render(
+        <I18nProvider>
+          <MainMenu
+            profile={mockProfile}
+            activeTab="LOBBY"
+            onTabChange={vi.fn()}
+            onStartGame={vi.fn()}
+            hasActiveGame={false}
+            onResumeGame={vi.fn()}
+            onOpenRules={vi.fn()}
+            onStartTvParty={onStartTvParty}
+          />
+        </I18nProvider>
+      );
+
+      // 1. Отдельная широкая кнопка «Подключиться к ТВ» отсутствует на дашборде
+      expect(screen.queryByText(/Пульт контроллера • Ввод PIN или Морзе/i)).toBeNull();
+
+      // 2. Клик по карточке ТВ РЕЖИМ открывает модальное окно выбора роли устройства
+      const tvModeButton = screen.getAllByRole("button", { name: /ТВ РЕЖИМ|TV PARTY/i })[0];
+      fireEvent.click(tvModeButton);
+      expect(screen.getByText(/ТВ ВЕЧЕРИНКА • РОЛЬ УСТРОЙСТВА/i)).toBeDefined();
+
+      // 3. Выбор контроллера смартфона запускает onStartTvParty("CONTROLLER")
+      const controllerChoice = screen.getByText(/ПОДКЛЮЧИТЬСЯ К ТВ \(ПУЛЬТ\)/i);
+      fireEvent.click(controllerChoice);
+      expect(onStartTvParty).toHaveBeenCalledWith("CONTROLLER");
+    });
+
+    it("В модалке ТВ-режима выбор экрана телевизора запускает onStartTvParty('TV_DISPLAY')", () => {
+      const onStartTvParty = vi.fn();
+      render(
+        <I18nProvider>
+          <MainMenu
+            profile={mockProfile}
+            activeTab="LOBBY"
+            onTabChange={vi.fn()}
+            onStartGame={vi.fn()}
+            hasActiveGame={false}
+            onResumeGame={vi.fn()}
+            onOpenRules={vi.fn()}
+            onStartTvParty={onStartTvParty}
+          />
+        </I18nProvider>
+      );
+
+      const tvModeButton = screen.getAllByRole("button", { name: /ТВ РЕЖИМ|TV PARTY/i })[0];
+      fireEvent.click(tvModeButton);
+
+      const tvDisplayChoice = screen.getByText(/ЭКРАН ТЕЛЕВИЗОРА/i);
+      fireEvent.click(tvDisplayChoice);
+      expect(onStartTvParty).toHaveBeenCalledWith("TV_DISPLAY");
     });
   });
 

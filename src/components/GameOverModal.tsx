@@ -196,7 +196,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-2xl flex flex-col items-center justify-center p-4 select-none cursor-pointer"
+            className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-4 select-none cursor-pointer"
             onClick={() => setSelectedPhotoChar(null)}
           >
             <motion.button

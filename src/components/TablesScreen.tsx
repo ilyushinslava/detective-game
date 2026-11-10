@@ -81,25 +81,25 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex flex-wrap gap-2 px-4 sm:px-6 py-2.5 shrink-0 border-b border-white/5 bg-zinc-950/40 w-full">
+      <div className="flex flex-wrap gap-1.5 px-4 sm:px-6 py-2.5 shrink-0 border-b border-white/5 bg-zinc-950/40 w-full items-center">
         {ROOM_FILTERS.map((filter) => {
           const isActive = roomFilter === filter.id;
           return (
-            <Button
+            <button
               key={filter.id}
-              variant={isActive ? "secondary" : "ghost"}
+              type="button"
               onClick={() => {
                 if (soundManager?.play) soundManager.play('tapMenu');
                 setRoomFilter(filter.id);
               }}
-              className={`h-8 px-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
+              className={`h-8 px-3 text-xs font-black uppercase tracking-wider rounded-xl transition-colors duration-150 cursor-pointer select-none border focus:outline-none focus-visible:outline-none active:scale-95 ${
                 isActive
-                  ? 'bg-zinc-800/90 text-cyan-300 border border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-zinc-800/90 text-cyan-300 border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.25)]'
+                  : 'bg-transparent text-zinc-400 hover:text-zinc-200 hover:bg-white/5 border-transparent'
               }`}
             >
               {filter.label}
-            </Button>
+            </button>
           );
         })}
       </div>

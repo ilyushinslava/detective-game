@@ -631,7 +631,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-          className="w-full h-[390px] p-4 bg-gradient-to-b from-slate-950 via-zinc-950 to-black border-t-2 border-blue-500/80 rounded-t-3xl shadow-[0_-20px_50px_rgba(0,0,0,0.9)] backdrop-blur-2xl flex flex-col justify-between"
+          className="w-full h-[390px] p-4 bg-gradient-to-b from-slate-950/95 via-zinc-950/95 to-black/95 border-t-2 border-blue-500/80 rounded-t-3xl shadow-[0_-20px_50px_rgba(0,0,0,0.9)] backdrop-blur-md flex flex-col justify-between"
         >
           {/* Шапка панели маневра — фиксированная высота */}
           <div className="h-8 flex items-center justify-between border-b border-white/10 pb-2 shrink-0">
@@ -1097,7 +1097,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       {/* Модальное окно подтверждения действия */}
       {pendingAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn font-sans">
-          <div className="w-full max-w-sm rounded-3xl bg-gradient-to-b from-slate-950 via-zinc-950 to-black border border-white/15 p-6 flex flex-col items-center text-center shadow-[0_25px_50px_rgba(0,0,0,0.9)] relative backdrop-blur-2xl">
+          <div className="w-full max-w-sm rounded-3xl bg-gradient-to-b from-slate-950/95 via-zinc-950/95 to-black/95 border border-white/15 p-6 flex flex-col items-center text-center shadow-[0_25px_50px_rgba(0,0,0,0.9)] relative backdrop-blur-md">
             <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center mb-3 shadow-lg ${
               pendingAction.isRed
                 ? 'border-red-500/40 bg-red-950/50 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.3)]'

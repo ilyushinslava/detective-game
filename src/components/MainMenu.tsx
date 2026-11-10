@@ -12,10 +12,11 @@ import { Modal } from "./ui/Modal";
 import { GAME_MODES_META, getGameModeTitle, getGameModeShortTitle } from "../constants/gameMeta";
 import lobbyBg from "../assets/lobby_background.png";
 
-// Асинхронные динамические чанки второстепенных экранов (TASK-ARCH-001)
+import { TablesScreen } from "./TablesScreen";
+import { ProfileScreen } from "./ProfileScreen";
+
+// Асинхронный динамический чанк для тяжелого модуля Академии (TASK-ARCH-001)
 const TutorialScreen = lazy(() => import("./TutorialScreen").then((m) => ({ default: m.TutorialScreen })));
-const TablesScreen = lazy(() => import("./TablesScreen").then((m) => ({ default: m.TablesScreen })));
-const ProfileScreen = lazy(() => import("./ProfileScreen").then((m) => ({ default: m.ProfileScreen })));
 
 const ScreenFallback = () => (
   <div className="flex-1 w-full flex items-center justify-center min-h-[300px] text-blue-400 select-none">
@@ -23,6 +24,17 @@ const ScreenFallback = () => (
       <div className="w-8 h-8 border-2 border-blue-500/20 border-t-blue-400 rounded-full animate-spin" />
       <span className="text-[11px] font-mono tracking-widest text-zinc-400 uppercase">
         Загрузка...
+      </span>
+    </div>
+  </div>
+);
+
+const TutorialFullscreenFallback = () => (
+  <div className="fixed inset-0 z-[100] bg-[#080a0f] flex items-center justify-center select-none">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-9 h-9 border-2 border-emerald-500/20 border-t-emerald-400 rounded-full animate-spin" />
+      <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">
+        Загрузка Академии...
       </span>
     </div>
   </div>
@@ -334,6 +346,14 @@ export const MainMenu = ({
       setScreen('PROFILE');
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    // Фоновая предзагрузка тяжелого чанка Академии после инициализации меню
+    const prefetchTimer = setTimeout(() => {
+      import("./TutorialScreen");
+    }, 1200);
+    return () => clearTimeout(prefetchTimer);
+  }, []);
 
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
@@ -665,6 +685,7 @@ export const MainMenu = ({
 
               <button
                 onClick={() => setIsTutorialOpen(true)}
+                onPointerEnter={() => import("./TutorialScreen")}
                 className="h-11 sm:h-12 rounded-2xl bg-zinc-950/70 hover:bg-zinc-900/80 border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2.5 px-4 text-zinc-300 hover:text-white cursor-pointer active:scale-[0.99] shadow-md group focus:outline-none focus:ring-2 focus:ring-blue-500/40 backdrop-blur-xl"
               >
                 <div className="text-zinc-400 group-hover:text-blue-400 transition-colors shrink-0">
@@ -975,32 +996,28 @@ export const MainMenu = ({
   };
 
   const renderTables = () => (
-    <Suspense fallback={<ScreenFallback />}>
-      <TablesScreen
-        roomFilter={roomFilter}
-        setRoomFilter={setRoomFilter}
-        filteredRooms={filteredRooms}
-        joinCode={joinCode}
-        setJoinCode={setJoinCode}
-        handleJoinRoom={handleJoinRoom}
-        setIsCreateRoomOpen={setIsCreateRoomOpen}
-        ROOM_FILTERS={ROOM_FILTERS}
-        GAME_MODES={GAME_MODES}
-        soundManager={soundManager}
-        onBack={() => { setNavDirection('none'); setScreen('HOME'); onTabChange('LOBBY'); }}
-      />
-    </Suspense>
+    <TablesScreen
+      roomFilter={roomFilter}
+      setRoomFilter={setRoomFilter}
+      filteredRooms={filteredRooms}
+      joinCode={joinCode}
+      setJoinCode={setJoinCode}
+      handleJoinRoom={handleJoinRoom}
+      setIsCreateRoomOpen={setIsCreateRoomOpen}
+      ROOM_FILTERS={ROOM_FILTERS}
+      GAME_MODES={GAME_MODES}
+      soundManager={soundManager}
+      onBack={() => { setNavDirection('none'); setScreen('HOME'); onTabChange('LOBBY'); }}
+    />
   );
 
   const renderProfile = () => (
-    <Suspense fallback={<ScreenFallback />}>
-      <ProfileScreen
-        profile={profile}
-        onUpdateProfile={onUpdateProfile || (() => {})}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onBack={() => { setNavDirection('none'); setScreen('HOME'); onTabChange('LOBBY'); }}
-      />
-    </Suspense>
+    <ProfileScreen
+      profile={profile}
+      onUpdateProfile={onUpdateProfile || (() => {})}
+      onOpenSettings={() => setIsSettingsOpen(true)}
+      onBack={() => { setNavDirection('none'); setScreen('HOME'); onTabChange('LOBBY'); }}
+    />
   );
 
   const handleFinishTutorial = () => {
@@ -1020,7 +1037,7 @@ export const MainMenu = ({
   const screenVariants = {
     enter: (direction: 'forward' | 'backward' | 'none') => {
       if (direction === 'none') {
-        return { x: 0, opacity: 1 };
+        return { x: 0, opacity: 0 };
       }
       return {
         x: direction === 'forward' ? '100%' : '-15%',
@@ -1102,7 +1119,7 @@ export const MainMenu = ({
             exit="exit"
             transition={
               navDirection === 'none'
-                ? { duration: 0 }
+                ? { duration: 0.14, ease: "easeOut" }
                 : { duration: 0.22, ease: [0.22, 1, 0.36, 1] }
             }
             className={`absolute inset-0 w-full h-full flex flex-col will-change-transform transform-gpu select-none bg-[#080a0f] ${
@@ -1281,7 +1298,7 @@ export const MainMenu = ({
         )}
 
         {isTutorialOpen && (
-          <Suspense fallback={<ScreenFallback />}>
+          <Suspense fallback={<TutorialFullscreenFallback />}>
             <TutorialScreen 
               onExit={() => setIsTutorialOpen(false)} 
               onFinish={handleFinishTutorial} 

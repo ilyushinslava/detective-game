@@ -164,18 +164,11 @@ export function unregisterRoom(roomCode: string): void {
   publicRoomsRegistry.delete(roomCode);
 }
 
+// Мгновенная диспетчеризация без искусственных задержек (устранение defer(50ms))
 const defer = (fn: () => void) => {
-  if (typeof process !== "undefined" && (process.env?.VITEST || process.env?.NODE_ENV === "test")) {
-    try { fn(); } catch (_) {}
-  } else if (typeof queueMicrotask === "function") {
-    queueMicrotask(() => {
-      try { fn(); } catch (_) {}
-    });
-  } else {
-    setTimeout(() => {
-      try { fn(); } catch (_) {}
-    }, 0);
-  }
+  try {
+    fn();
+  } catch (_) {}
 };
 
 export const DISCONNECT_GRACE_PERIOD_MS = 60000;

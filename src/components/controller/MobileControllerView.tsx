@@ -83,6 +83,12 @@ const Icons = {
       <line x1="8" y1="11" x2="14" y2="11" />
     </svg>
   ),
+  Radar: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
+    </svg>
+  ),
 };
 
 export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
@@ -160,8 +166,8 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   }, [gameState.board, mySecretId]);
 
   const targetBorderClass = isKiller
-    ? 'border-red-500 bg-red-950/40 shadow-[0_0_14px_rgba(239,68,68,0.4)]'
-    : 'border-blue-500 bg-blue-950/40 shadow-[0_0_14px_rgba(59,130,246,0.4)]';
+    ? 'border-rose-500 bg-rose-950/40 shadow-[0_0_15px_rgba(225,29,72,0.35)]'
+    : 'border-blue-500 bg-blue-950/40 shadow-[0_0_15px_rgba(37,99,235,0.35)]';
 
   // Соседи персонажа (вырезка 3x3)
   const neighbors = useMemo(() => {
@@ -455,20 +461,20 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       : (gameState.mode === 'THIEF_HUNT' ? 'Грабитель' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Маньяк' : 'Бандит');
 
     return (
-      <div className="flex h-[100dvh] w-screen flex-col items-center justify-between bg-[#080a0f] p-5 pb-8 text-center text-zinc-100 select-none font-sans overflow-y-auto relative">
+      <div className="flex h-[100dvh] w-screen flex-col items-center justify-between bg-[#07090e] p-5 pb-8 text-center text-zinc-100 select-none font-sans overflow-y-auto relative">
         {/* Мягкая контровая подсветка нео-нуара */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/15 via-transparent to-black/80 pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-transparent to-black/90 pointer-events-none" />
 
         {/* Верхняя статусная строка синхронизации */}
         <div className="w-full flex justify-between items-center border-b border-white/10 pb-3 gap-2 relative z-10">
           <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-blue-500 animate-ping shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
-            <span className="text-xs font-mono uppercase tracking-widest text-blue-400 font-bold">ТВ-ЭФИР СИНХРОНИЗИРОВАН</span>
+            <span className="h-2 w-2 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
+            <span className="text-xs font-mono uppercase tracking-widest text-zinc-300 font-bold">ТВ-ЭФИР СИНХРОНИЗИРОВАН</span>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsNotebookOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-white/20 text-xs font-mono text-zinc-200 hover:border-blue-400 hover:text-white transition shadow-sm active:scale-95 cursor-pointer backdrop-blur-md"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-white/15 text-xs font-mono text-zinc-200 hover:border-blue-400 hover:text-white transition shadow-sm active:scale-95 cursor-pointer backdrop-blur-md"
             >
               <Icons.Notebook />
               <span>БЛОКНОТ</span>
@@ -487,22 +493,22 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         {/* Центральный блок: Атмосферный тактический радар ожидания */}
         <div className="my-auto flex flex-col items-center max-w-sm w-full px-2 py-4 relative z-10">
           
-          {/* Круговой сканер радиоперехвата с динамическим лучом */}
-          <div className="relative w-36 h-36 rounded-full border border-blue-500/30 bg-blue-950/20 flex items-center justify-center overflow-hidden shadow-[0_0_40px_rgba(37,99,235,0.25)] mb-5">
-            <div className="absolute inset-2 rounded-full border border-blue-500/20" />
-            <div className="absolute inset-6 rounded-full border border-blue-500/20" />
-            <div className="absolute inset-12 rounded-full border border-blue-500/20" />
+          {/* Круговой сканер радиоперехвата */}
+          <div className="relative w-36 h-36 rounded-full border border-white/10 bg-zinc-950/60 flex items-center justify-center overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.8)] mb-5">
+            <div className="absolute inset-2 rounded-full border border-white/5" />
+            <div className="absolute inset-6 rounded-full border border-white/5" />
+            <div className="absolute inset-12 rounded-full border border-white/5" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-full h-px bg-blue-500/20" />
+              <div className="w-full h-px bg-white/5" />
             </div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-full w-px bg-blue-500/20" />
+              <div className="h-full w-px bg-white/5" />
             </div>
             
-            {/* Анимированный световой маяк */}
-            <div className="w-14 h-14 rounded-2xl bg-zinc-950/90 border border-white/20 flex flex-col items-center justify-center z-10 shadow-2xl">
-              <span className="text-xl animate-pulse">📡</span>
-              <span className="text-[7.5px] font-mono text-blue-400 font-black uppercase mt-0.5">РАДАР</span>
+            {/* Лаконичный векторный маяк (Zero Emoji) */}
+            <div className="w-14 h-14 rounded-2xl bg-zinc-950 border border-white/15 flex flex-col items-center justify-center z-10 shadow-2xl text-blue-400">
+              <Icons.Radar />
+              <span className="text-[8px] font-mono text-zinc-400 font-bold uppercase mt-0.5">РАДАР</span>
             </div>
           </div>
 
@@ -511,9 +517,9 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           </h2>
 
           {/* Индикатор текущего активного игрока */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/70 border border-blue-500/40 shadow-sm mb-3">
-            <span className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
-            <span className="text-xs font-mono font-bold text-blue-200 uppercase tracking-wide">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-zinc-900/90 border border-white/10 shadow-sm mb-3">
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
+            <span className="text-xs font-mono font-medium text-zinc-300 uppercase tracking-wide">
               СЕЙЧАС ХОД СОПЕРНИКА
             </span>
           </div>
@@ -523,10 +529,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           </p>
 
           {/* Карточка досье игрока с защитой приватности (Удерживайте) */}
-          <div className="p-4 rounded-3xl bg-gradient-to-br from-slate-900/50 via-zinc-950/80 to-slate-950/80 border border-white/10 w-full text-left shadow-xl backdrop-blur-xl mb-3">
+          <div className="p-4 rounded-3xl bg-gradient-to-br from-slate-900/60 via-zinc-950/90 to-slate-950/80 border border-white/10 w-full text-left shadow-xl backdrop-blur-xl mb-3">
             <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500 mb-2 flex items-center justify-between">
               <span>ВАША РОЛЬ • ВАШЕ ДОСЬЕ</span>
-              <span className="text-emerald-400 font-mono text-[9px] font-black">ПРИВАТНО</span>
+              <span className="text-emerald-400 font-mono text-[9px] font-bold">ПРИВАТНО</span>
             </div>
             <div
               onPointerDown={() => setIsPeeking(true)}
@@ -552,14 +558,14 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm ${
+                  <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm ${
                     isKiller
-                      ? 'bg-red-950/80 border-red-600/80 text-red-200'
+                      ? 'bg-rose-950/80 border-rose-600/60 text-rose-200'
                       : (roleName === 'Полиция' || roleName === 'ПОЛИЦИЯ')
-                      ? 'bg-blue-900/40 border-blue-800/50 text-blue-400'
-                      : 'bg-blue-950/80 border-blue-600/80 text-blue-200'
+                      ? 'bg-blue-900/40 border-blue-700/50 text-blue-300'
+                      : 'bg-blue-950/80 border-blue-600/60 text-blue-200'
                   }`}>
-                    <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${isKiller ? 'bg-red-400' : 'bg-blue-400'}`} />
+                    <span className={`h-1.5 w-1.5 rounded-full ${isKiller ? 'bg-rose-400' : 'bg-blue-400'}`} />
                     {roleName}
                   </span>
                   {myCharacter && (
@@ -568,7 +574,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                     </span>
                   )}
                 </div>
-                <div className="text-sm font-black text-zinc-100 leading-tight break-words mt-1 font-sans">
+                <div className="text-sm font-bold text-zinc-100 leading-tight break-words mt-1 font-sans">
                   {isPeeking && myCharacter ? myCharacter.name : '•••••••• (Удерживайте)'}
                 </div>
               </div>
@@ -599,7 +605,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
         {/* Нижний статус-индикатор ожидания */}
         <div className="text-xs font-mono text-zinc-500 uppercase tracking-widest flex items-center gap-2 relative z-10">
-          <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_6px_rgba(59,130,246,0.8)]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" />
           Дождитесь своего хода • Смотрите на ТВ
         </div>
 
@@ -631,15 +637,15 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-          className="w-full h-[390px] p-4 bg-gradient-to-b from-slate-950/95 via-zinc-950/95 to-black/95 border-t-2 border-blue-500/80 rounded-t-3xl shadow-[0_-20px_50px_rgba(0,0,0,0.9)] backdrop-blur-md flex flex-col justify-between"
+          className="w-full h-[390px] p-4 bg-gradient-to-b from-slate-950/98 via-zinc-950/98 to-black/98 border-t border-white/15 rounded-t-3xl shadow-[0_-20px_50px_rgba(0,0,0,0.9)] backdrop-blur-md flex flex-col justify-between"
         >
-          {/* Шапка панели маневра — фиксированная высота */}
+          {/* Шапка панели маневра — фиксированная высота (Zero Layout Shift) */}
           <div className="h-8 flex items-center justify-between border-b border-white/10 pb-2 shrink-0">
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono font-bold uppercase tracking-widest text-white">
                 МАНЕВР ПОЛЯ
               </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-950/80 border border-blue-500/50 text-blue-300 font-bold">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-900 border border-white/10 text-zinc-300 font-medium">
                 {shiftStep === 'SELECT_DIR' ? 'ЭТАП 2/2' : shiftStep === 'CONFIRM' ? 'ПОДТВЕРЖДЕНИЕ' : 'ЭТАП 1/2'}
               </span>
             </div>
@@ -660,7 +666,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                   <div className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
                     ЭТАП 1 • ВЫБЕРИТЕ ЛИНИЮ ДЛЯ МАНЕВРА
                   </div>
-                  <div className="text-[10px] font-mono text-blue-400">
+                  <div className="text-[10px] font-mono text-zinc-400">
                     Линия сразу подсвечивается на телевизоре
                   </div>
                 </div>
@@ -674,7 +680,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                     }}
                     className={`py-2 px-3 rounded-xl text-xs font-mono font-bold uppercase transition cursor-pointer flex items-center justify-center gap-1.5 ${
                       selectedAxis === 'ROW'
-                        ? 'bg-gradient-to-r from-blue-700 to-indigo-600 text-white shadow-md border border-blue-400/60'
+                        ? 'bg-blue-600 text-white shadow-md border border-blue-400/50'
                         : 'bg-zinc-900/90 text-zinc-400 border border-white/10 hover:text-white hover:border-zinc-500'
                     }`}
                   >
@@ -688,7 +694,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                     }}
                     className={`py-2 px-3 rounded-xl text-xs font-mono font-bold uppercase transition cursor-pointer flex items-center justify-center gap-1.5 ${
                       selectedAxis === 'COL'
-                        ? 'bg-gradient-to-r from-blue-700 to-indigo-600 text-white shadow-md border border-blue-400/60'
+                        ? 'bg-blue-600 text-white shadow-md border border-blue-400/50'
                         : 'bg-zinc-900/90 text-zinc-400 border border-white/10 hover:text-white hover:border-zinc-500'
                     }`}
                   >
@@ -707,13 +713,13 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         updateLinePreview({ type: selectedAxis, index: i });
                         setShiftStep('SELECT_DIR');
                       }}
-                      className="w-full h-8 rounded-xl bg-zinc-900/90 border border-white/10 hover:border-blue-400 hover:bg-blue-950/30 flex items-center justify-between px-3 transition cursor-pointer active:scale-[0.98] shadow-sm group"
+                      className="w-full h-8 rounded-xl bg-zinc-900/90 border border-white/10 hover:border-blue-400 hover:bg-zinc-800/80 flex items-center justify-between px-3 transition cursor-pointer active:scale-[0.98] shadow-sm group"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded bg-zinc-950 border border-white/10 flex items-center justify-center font-mono text-[10px] font-black text-zinc-300 group-hover:border-blue-400 group-hover:text-blue-300">
+                        <span className="w-4 h-4 rounded bg-zinc-950 border border-white/10 flex items-center justify-center font-mono text-[10px] font-bold text-zinc-300 group-hover:border-blue-400 group-hover:text-blue-300">
                           {i + 1}
                         </span>
-                        <span className="text-xs font-black uppercase tracking-wider text-white">
+                        <span className="text-xs font-bold uppercase tracking-wider text-white">
                           {selectedAxis === 'ROW' ? `РЯД #${i + 1}` : `СТОЛБЕЦ #${i + 1}`}
                         </span>
                       </div>
@@ -746,12 +752,12 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         disabled={isDirUndo('LEFT')}
                         className={`p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md ${
                           isDirUndo('LEFT')
-                            ? 'bg-zinc-950/70 border border-red-900/40 opacity-40 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-blue-700 to-indigo-600 hover:from-blue-600 border border-blue-400 text-white active:scale-95'
+                            ? 'bg-zinc-950/80 border border-rose-950/50 text-zinc-600 opacity-40 cursor-not-allowed'
+                            : 'bg-blue-600 hover:bg-blue-500 border border-blue-400/50 text-white active:scale-95 shadow-lg'
                         }`}
                       >
                         <Icons.ArrowLeft />
-                        <div className="text-xs font-black uppercase tracking-wider text-white">ВЛЕВО</div>
+                        <div className="text-xs font-bold uppercase tracking-wider text-white">ВЛЕВО</div>
                         <span className="text-[9px] font-mono text-blue-200">
                           {isDirUndo('LEFT') ? '⊘ Anti-Undo' : 'Ход в 1 касание'}
                         </span>
@@ -761,12 +767,12 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         disabled={isDirUndo('RIGHT')}
                         className={`p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md ${
                           isDirUndo('RIGHT')
-                            ? 'bg-zinc-950/70 border border-red-900/40 opacity-40 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-blue-700 to-indigo-600 hover:from-blue-600 border border-blue-400 text-white active:scale-95'
+                            ? 'bg-zinc-950/80 border border-rose-950/50 text-zinc-600 opacity-40 cursor-not-allowed'
+                            : 'bg-blue-600 hover:bg-blue-500 border border-blue-400/50 text-white active:scale-95 shadow-lg'
                         }`}
                       >
                         <Icons.ArrowRight />
-                        <div className="text-xs font-black uppercase tracking-wider text-white">ВПРАВО</div>
+                        <div className="text-xs font-bold uppercase tracking-wider text-white">ВПРАВО</div>
                         <span className="text-[9px] font-mono text-blue-200">
                           {isDirUndo('RIGHT') ? '⊘ Anti-Undo' : 'Ход в 1 касание'}
                         </span>
@@ -779,12 +785,12 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         disabled={isDirUndo('UP')}
                         className={`p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md ${
                           isDirUndo('UP')
-                            ? 'bg-zinc-950/70 border border-red-900/40 opacity-40 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-blue-700 to-indigo-600 hover:from-blue-600 border border-blue-400 text-white active:scale-95'
+                            ? 'bg-zinc-950/80 border border-rose-950/50 text-zinc-600 opacity-40 cursor-not-allowed'
+                            : 'bg-blue-600 hover:bg-blue-500 border border-blue-400/50 text-white active:scale-95 shadow-lg'
                         }`}
                       >
                         <Icons.ArrowUp />
-                        <div className="text-xs font-black uppercase tracking-wider text-white">ВВЕРХ</div>
+                        <div className="text-xs font-bold uppercase tracking-wider text-white">ВВЕРХ</div>
                         <span className="text-[9px] font-mono text-blue-200">
                           {isDirUndo('UP') ? '⊘ Anti-Undo' : 'Ход в 1 касание'}
                         </span>
@@ -794,12 +800,12 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         disabled={isDirUndo('DOWN')}
                         className={`p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md ${
                           isDirUndo('DOWN')
-                            ? 'bg-zinc-950/70 border border-red-900/40 opacity-40 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-blue-700 to-indigo-600 hover:from-blue-600 border border-blue-400 text-white active:scale-95'
+                            ? 'bg-zinc-950/80 border border-rose-950/50 text-zinc-600 opacity-40 cursor-not-allowed'
+                            : 'bg-blue-600 hover:bg-blue-500 border border-blue-400/50 text-white active:scale-95 shadow-lg'
                         }`}
                       >
                         <Icons.ArrowDown />
-                        <div className="text-xs font-black uppercase tracking-wider text-white">ВНИЗ</div>
+                        <div className="text-xs font-bold uppercase tracking-wider text-white">ВНИЗ</div>
                         <span className="text-[9px] font-mono text-blue-200">
                           {isDirUndo('DOWN') ? '⊘ Anti-Undo' : 'Ход в 1 касание'}
                         </span>
@@ -809,7 +815,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                 </div>
 
                 {(isDirUndo('LEFT') || isDirUndo('RIGHT') || isDirUndo('UP') || isDirUndo('DOWN')) && (
-                  <div className="p-2 rounded-xl border border-red-900/60 bg-red-950/40 text-[11px] font-bold text-red-400 font-mono text-center max-w-xs mx-auto">
+                  <div className="p-2 rounded-xl border border-rose-900/50 bg-rose-950/40 text-[11px] font-bold text-rose-300 font-mono text-center max-w-xs mx-auto">
                     Anti-Undo: ход отменяет предыдущий маневр соперника
                   </div>
                 )}
@@ -892,26 +898,26 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   // 3. ОСНОВНОЙ ЭКРАН ХОДА КОНТРОЛЛЕРА
   // =========================================================================
   return (
-    <div className="flex h-[100dvh] w-screen flex-col justify-between bg-[#080a0f] p-5 pb-8 text-zinc-100 select-none overflow-y-auto font-sans relative">
+    <div className="flex h-[100dvh] w-screen flex-col justify-between bg-[#07090e] p-5 pb-8 text-zinc-100 select-none overflow-y-auto font-sans relative">
       {/* Мягкая контровая подсветка нео-нуара */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/15 via-transparent to-black/80 pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-transparent to-black/90 pointer-events-none" />
 
       {/* Верхний статус роли */}
       <div className="flex items-center justify-between border-b border-white/10 pb-3 gap-3 relative z-10">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2.5 p-2 rounded-xl bg-gradient-to-r from-slate-900/80 via-zinc-950/80 to-slate-900/80 border border-white/10 shadow-lg backdrop-blur-xl">
             <span
-              className={`text-[9px] sm:text-[10px] font-black uppercase px-2.5 py-1 rounded-lg tracking-wider shrink-0 shadow-sm ${
+              className={`text-[9px] sm:text-[10px] font-bold uppercase px-2.5 py-1 rounded-lg tracking-wider shrink-0 shadow-sm ${
                 isKiller
-                  ? 'bg-red-950/80 border border-red-600/80 text-red-200'
+                  ? 'bg-rose-950/80 border border-rose-600/60 text-rose-200'
                   : roleName === 'Полиция' || roleName === 'ПОЛИЦИЯ'
-                    ? 'bg-blue-900/40 border border-blue-800/50 text-blue-400'
-                    : 'bg-blue-950/80 border border-blue-600/80 text-blue-200'
+                    ? 'bg-blue-900/40 border border-blue-700/50 text-blue-300'
+                    : 'bg-blue-950/80 border border-blue-600/60 text-blue-200'
               }`}
             >
               {roleName}
             </span>
-            <span className="text-xs sm:text-sm font-black text-zinc-100 whitespace-normal break-words leading-tight">
+            <span className="text-xs sm:text-sm font-bold text-zinc-100 whitespace-normal break-words leading-tight">
               {myCharacter?.name || '••••••••'}
             </span>
           </div>
@@ -1150,10 +1156,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
               </button>
               <button
                 onClick={handleConfirmAction}
-                className={`py-3.5 rounded-2xl text-xs font-mono font-black uppercase tracking-wider text-white shadow-lg cursor-pointer transition active:scale-95 ${
+                className={`py-3.5 rounded-2xl text-xs font-mono font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer transition active:scale-95 ${
                   pendingAction.isRed
-                    ? 'bg-gradient-to-r from-red-700 to-rose-600 hover:from-red-650 border border-red-500/40 shadow-red-950/50'
-                    : 'bg-gradient-to-r from-blue-700 to-indigo-600 hover:from-blue-600 border border-blue-400/50 shadow-blue-950/50'
+                    ? 'bg-rose-700 hover:bg-rose-600 border border-rose-500/40 shadow-rose-950/50'
+                    : 'bg-blue-600 hover:bg-blue-500 border border-blue-400/50 shadow-blue-950/50'
                 }`}
               >
                 Подтвердить

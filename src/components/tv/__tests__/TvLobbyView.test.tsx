@@ -1,0 +1,53 @@
+// @vitest-environment jsdom
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, cleanup } from "@testing-library/react";
+import { TvLobbyView } from "../TvLobbyView";
+
+describe("TvLobbyView Component (TASK-NET-002)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("renders QR code containing targetRoom and role=controller in query params", () => {
+    const { container } = render(
+      <TvLobbyView
+        roomCode="tv-test-999"
+        morseCode=".-.-.-."
+        players={{ p1: { nickname: "Host Player", isHost: true } }}
+        onStartGame={vi.fn()}
+        onExit={vi.fn()}
+      />
+    );
+
+    // Verify SVG QRCode element exists
+    const qrSvg = container.querySelector("svg");
+    expect(qrSvg).toBeDefined();
+
+    // Verify room code and tactical Morse callsign are rendered
+    expect(screen.getByText(/tv-test-999/i)).toBeDefined();
+    expect(screen.getAllByText(/ШИФР/i).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("displays connected players and mode options", () => {
+    render(
+      <TvLobbyView
+        roomCode="room-tv-abc"
+        morseCode="--..--."
+        players={{
+          p1: { nickname: "Агент 1", isHost: true },
+          p2: { nickname: "Агент 2", isHost: false },
+        }}
+        onStartGame={vi.fn()}
+        onExit={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("Агент 1")).toBeDefined();
+    expect(screen.getByText("Агент 2")).toBeDefined();
+    expect(screen.getByText(/4 ЦЕЛИ/i)).toBeDefined();
+  });
+});

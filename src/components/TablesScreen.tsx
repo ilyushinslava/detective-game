@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from './ui/Button';
 import { getGameModeTitle } from '../constants/gameMeta';
+import { ControllerConnectView } from './controller/ControllerConnectView';
 
 const Icons = {
   Coin: ({ className = "w-3.5 h-3.5 text-amber-400" }: { className?: string }) => (
@@ -23,14 +24,27 @@ const Icons = {
       <circle cx="12" cy="12" r="1.5" fill="currentColor" />
     </svg>
   ),
+  Lock: ({ className = "w-3.5 h-3.5 text-purple-400" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={className}>
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  ),
+  Globe: ({ className = "w-3.5 h-3.5 text-cyan-400" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="2" y1="12" x2="22" y2="12" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+  ),
 };
 
 interface TablesScreenProps {
   roomFilter: string;
   setRoomFilter: (filter: string) => void;
   filteredRooms: any[];
-  joinCode: string;
-  setJoinCode: (code: string) => void;
+  joinCode?: string;
+  setJoinCode?: (code: string) => void;
   handleJoinRoom: (code: string, mode?: any) => void;
   setIsCreateRoomOpen: (open: boolean) => void;
   ROOM_FILTERS: Array<{ id: string; label: string }>;
@@ -43,8 +57,8 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
   roomFilter,
   setRoomFilter,
   filteredRooms,
-  joinCode,
-  setJoinCode,
+  joinCode: _joinCode,
+  setJoinCode: _setJoinCode,
   handleJoinRoom,
   setIsCreateRoomOpen,
   ROOM_FILTERS,
@@ -52,6 +66,15 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
   soundManager,
   onBack,
 }) => {
+  const [lobbyTab, setLobbyTab] = useState<'PUBLIC' | 'PRIVATE'>('PUBLIC');
+  const [selectedPrivateRoom, setSelectedPrivateRoom] = useState<any | null>(null);
+  const [isMorseOpen, setIsMorseOpen] = useState(false);
+
+  // Разделение списка комнат на "Открытые игры" и "Приватные игры"
+  const openRooms = filteredRooms.filter((r) => !r.isPrivate);
+  const privateRooms = filteredRooms.filter((r) => Boolean(r.isPrivate));
+  const currentRooms = lobbyTab === 'PUBLIC' ? openRooms : privateRooms;
+
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-[#080a0f] overflow-hidden relative w-full max-w-full">
       {/* Top Header Bar */}
@@ -80,7 +103,52 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
         </div>
       </div>
 
-      {/* Filter Tabs */}
+      {/* Два списка: Вкладки "Открытые игры" и "Приватные игры" */}
+      <div className="flex border-b border-white/10 bg-zinc-950/80 px-4 sm:px-6 pt-2 pb-0 gap-3 shrink-0">
+        <button
+          type="button"
+          onClick={() => {
+            if (soundManager?.play) soundManager.play('tapMenu');
+            setLobbyTab('PUBLIC');
+          }}
+          className={`pb-2.5 px-3 text-xs font-black uppercase tracking-wider transition-all relative border-b-2 cursor-pointer select-none ${
+            lobbyTab === 'PUBLIC'
+              ? 'border-cyan-400 text-white shadow-[0_4px_12px_rgba(6,182,212,0.3)]'
+              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          <span className="flex items-center gap-2">
+            <Icons.Globe className={`w-3.5 h-3.5 ${lobbyTab === 'PUBLIC' ? 'text-cyan-400' : 'text-zinc-500'}`} />
+            <span>Открытые игры</span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/30">
+              {openRooms.length}
+            </span>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (soundManager?.play) soundManager.play('tapMenu');
+            setLobbyTab('PRIVATE');
+          }}
+          className={`pb-2.5 px-3 text-xs font-black uppercase tracking-wider transition-all relative border-b-2 cursor-pointer select-none ${
+            lobbyTab === 'PRIVATE'
+              ? 'border-purple-400 text-white shadow-[0_4px_12px_rgba(168,85,247,0.3)]'
+              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          <span className="flex items-center gap-2">
+            <Icons.Lock className={`w-3.5 h-3.5 ${lobbyTab === 'PRIVATE' ? 'text-purple-400' : 'text-zinc-500'}`} />
+            <span>Приватные игры</span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-500/30">
+              {privateRooms.length}
+            </span>
+          </span>
+        </button>
+      </div>
+
+      {/* Filter Tabs (Игровые режимы) */}
       <div className="flex flex-wrap gap-1.5 px-4 sm:px-6 py-2.5 shrink-0 border-b border-white/5 bg-zinc-950/40 w-full items-center">
         {ROOM_FILTERS.map((filter) => {
           const isActive = roomFilter === filter.id;
@@ -106,10 +174,9 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
 
       {/* Rooms List / Empty State */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 space-y-3 custom-scrollbar flex flex-col">
-        {filteredRooms.length === 0 ? (
+        {currentRooms.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-white/10 rounded-2xl bg-zinc-950/60 backdrop-blur-md shadow-xl my-auto max-w-lg mx-auto w-full">
             <div className="relative mb-5 flex items-center justify-center">
-              {/* Concentric semi-transparent radar circles with scanner sweep */}
               <div className="w-24 h-24 rounded-full border border-cyan-500/20 flex items-center justify-center animate-pulse">
                 <div className="w-16 h-16 rounded-full border border-cyan-500/40 flex items-center justify-center bg-cyan-950/30 shadow-[0_0_20px_rgba(6,182,212,0.15)] relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/25 to-transparent rounded-full animate-spin" style={{ animationDuration: '4s' }} />
@@ -118,10 +185,12 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
               </div>
             </div>
             <span className="text-xs sm:text-sm font-black tracking-widest text-zinc-200 uppercase mb-1">
-              Сканирование закрытых частот...
+              {lobbyTab === 'PUBLIC' ? 'Открытых столов не найдено' : 'Приватных штабов не обнаружено'}
             </span>
             <p className="text-[10px] sm:text-xs text-zinc-400 max-w-xs leading-relaxed mb-6">
-              В данном секторе нет активных дел. Откройте новый канал и начните собственную операцию.
+              {lobbyTab === 'PUBLIC'
+                ? 'В эфире нет активных открытых комнат. Создайте открытую партию для свободного подключения игроков.'
+                : 'Нет активных закрытых каналов. Создайте приватную партию с защитой 7-значным шифром Морзе.'}
             </p>
             <Button
               variant="primary-info"
@@ -132,9 +201,11 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
             </Button>
           </div>
         ) : (
-          filteredRooms.map((room) => {
+          currentRooms.map((room) => {
             const modeMeta = GAME_MODES.find((m: any) => m.id === room.mode);
             const modeTitle = modeMeta?.title || getGameModeTitle(room.mode, 'ru') || room.mode;
+            const isPrivateRoom = Boolean(room.isPrivate);
+
             return (
               <div
                 key={room.roomCode}
@@ -142,9 +213,17 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
               >
                 <div className="flex items-start justify-between">
                   <div className="flex flex-col min-w-0 pr-2">
-                    <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest mb-0.5">
-                      Хост: {room.hostName}
-                    </span>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest">
+                        Хост: {room.hostName}
+                      </span>
+                      {isPrivateRoom && (
+                        <span className="text-[9px] font-mono font-bold text-purple-300 bg-purple-950/60 border border-purple-500/40 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                          <Icons.Lock className="w-2.5 h-2.5 text-purple-400" />
+                          ЗАКРЫТЫЙ КАНАЛ
+                        </span>
+                      )}
+                    </div>
                     <span className="text-xs sm:text-sm font-black text-zinc-100 uppercase tracking-wider truncate group-hover:text-cyan-300 transition-colors">
                       {modeTitle}
                     </span>
@@ -165,13 +244,29 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
                     <Icons.Coin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                     <span className="text-xs font-mono font-bold text-amber-400">{room.bet || 250}</span>
                   </div>
-                  <Button
-                    variant="primary-info"
-                    onClick={() => handleJoinRoom(room.roomCode, room.mode)}
-                    className="from-red-600 px-5 h-10 text-xs font-bold uppercase tracking-wider rounded-xl shadow-[0_0_15px_rgba(6,182,212,0.3)]"
-                  >
-                    Войти ➔
-                  </Button>
+
+                  {isPrivateRoom ? (
+                    /* Приватная игра: вход по 7-значному шифру Морзе к выбранному хосту */
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setSelectedPrivateRoom(room);
+                        setIsMorseOpen(true);
+                      }}
+                      className="px-5 h-10 text-xs font-bold uppercase tracking-wider rounded-xl border border-purple-500/40 text-purple-200 hover:border-cyan-400 hover:text-white bg-zinc-900/80 shadow-[0_0_15px_rgba(168,85,247,0.2)] cursor-pointer"
+                    >
+                      Ввести шифр ➔
+                    </Button>
+                  ) : (
+                    /* Открытая игра: свободный вход в 1 клик без паролей */
+                    <Button
+                      variant="primary-info"
+                      onClick={() => handleJoinRoom(room.roomCode, room.mode)}
+                      className="from-red-600 px-5 h-10 text-xs font-bold uppercase tracking-wider rounded-xl shadow-[0_0_15px_rgba(6,182,212,0.3)] cursor-pointer"
+                    >
+                      Войти ➔
+                    </Button>
+                  )}
                 </div>
               </div>
             );
@@ -179,29 +274,9 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
         )}
       </div>
 
-      {/* Bottom Code Input and Create Table Bar */}
+      {/* Нижняя панель действий */}
       <div className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 p-4 flex flex-col items-center gap-2.5 z-20">
-        <div className="w-full max-w-xl flex flex-col gap-2.5">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <input
-                type="tel"
-                maxLength={4}
-                placeholder="ШИФР (4 ЗНАКА)"
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value.replace(/[^0-9]/g, ''))}
-                className="w-full bg-zinc-950/80 border border-white/15 focus:border-cyan-500 rounded-xl px-4 py-3 text-xs font-mono font-bold text-zinc-100 placeholder:text-zinc-500 outline-none transition uppercase tracking-widest text-center shadow-inner"
-              />
-            </div>
-            <Button
-              variant="secondary"
-              onClick={() => handleJoinRoom(joinCode)}
-              disabled={joinCode.length !== 4}
-              className="px-5 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl shrink-0"
-            >
-              Применить
-            </Button>
-          </div>
+        <div className="w-full max-w-xl flex gap-2.5">
           <Button
             variant="primary-info"
             fullWidth
@@ -212,6 +287,26 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
           </Button>
         </div>
       </div>
+
+      {/* Оверлей ввода 7-значного шифра Морзе (пароль к выбранной приватной комнате) */}
+      {isMorseOpen && (
+        <div className="fixed inset-0 z-50 bg-[#080a0f] flex flex-col">
+          <ControllerConnectView
+            targetRoomCode={selectedPrivateRoom?.roomCode}
+            targetHostName={selectedPrivateRoom?.hostName}
+            targetExpectedMorse={selectedPrivateRoom?.morseCode}
+            onConnect={(roomCode) => {
+              setIsMorseOpen(false);
+              setSelectedPrivateRoom(null);
+              handleJoinRoom(roomCode);
+            }}
+            onBackToMenu={() => {
+              setIsMorseOpen(false);
+              setSelectedPrivateRoom(null);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

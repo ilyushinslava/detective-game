@@ -2,12 +2,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup, act } from "@testing-library/react";
 import { ControllerConnectView } from "../ControllerConnectView";
-import { morseToRoomRegistry, roomToMorseRegistry, publicRoomsRegistry } from "../../../server/index";
+import {
+  morseToRoomRegistry,
+  morseToRoomsRegistry,
+  roomToMorseRegistry,
+  publicRoomsRegistry,
+} from "../../../server/index";
 import { soundManager } from "../../../utils/audio";
 
 describe("ControllerConnectView Component (TASK-NET-002)", () => {
   beforeEach(() => {
     morseToRoomRegistry.clear();
+    morseToRoomsRegistry.clear();
     roomToMorseRegistry.clear();
     publicRoomsRegistry.clear();
   });
@@ -16,49 +22,25 @@ describe("ControllerConnectView Component (TASK-NET-002)", () => {
     cleanup();
   });
 
-  it("renders PIN mode by default with 5-digit slots and Numpad", () => {
+  it("renders pure Morse interface by default without obsolete PIN numpad", () => {
     render(<ControllerConnectView onConnect={vi.fn()} onBackToMenu={vi.fn()} />);
 
-    expect(screen.getByText(/ПОДКЛЮЧЕНИЕ ПУЛЬТА/i)).toBeDefined();
-    expect(screen.getByText(/ЦИФРОВОЙ КОД/i)).toBeDefined();
-    expect(screen.getByText(/РАДИОПЕРЕХВАТ/i)).toBeDefined();
-    expect(screen.getByRole("button", { name: "1" })).toBeDefined();
-    expect(screen.getByRole("button", { name: "9" })).toBeDefined();
-    expect(screen.getByRole("button", { name: "C" })).toBeDefined();
+    expect(screen.getByText(/ПУЛЬТ УПРАВЛЕНИЯ/i)).toBeDefined();
+    expect(screen.getByText("ШИФР")).toBeDefined();
+    expect(screen.getByRole("button", { name: "Ключ телеграфа" })).toBeDefined();
+
+    // Verify obsolete numeric numpad is completely gone
+    expect(screen.queryByRole("button", { name: "1" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "9" })).toBeNull();
   });
 
-  it("enters numeric digits via numpad and triggers onConnect with entered PIN", async () => {
-    const connectSpy = vi.fn();
-    render(<ControllerConnectView onConnect={connectSpy} onBackToMenu={vi.fn()} />);
-
-    // Tap 5 4 3 2 1
-    fireEvent.click(screen.getByRole("button", { name: "5" }));
-    fireEvent.click(screen.getByRole("button", { name: "4" }));
-    fireEvent.click(screen.getByRole("button", { name: "3" }));
-    fireEvent.click(screen.getByRole("button", { name: "2" }));
-    fireEvent.click(screen.getByRole("button", { name: "1" }));
-
-    // Click connect button
-    const connectBtn = screen.getByRole("button", { name: /ПОДКЛЮЧИТЬСЯ ПО PIN/i });
-    expect(connectBtn).toBeDefined();
-    expect(connectBtn).toHaveProperty("disabled", false);
-
-    await act(async () => {
-      fireEvent.click(connectBtn);
-    });
-
-    expect(connectSpy).toHaveBeenCalledWith("54321");
-  });
-
-  it("switches to Morse tab and records short tap as dot and hold as dash with analog Morse audio (TASK-SND-001)", () => {
+  it("records short tap as dot and hold as dash with analog Morse audio & haptics (TASK-SND-001)", () => {
     const startToneSpy = vi.spyOn(soundManager, "startMorseTone");
     const stopToneSpy = vi.spyOn(soundManager, "stopMorseTone");
 
     const { unmount } = render(<ControllerConnectView onConnect={vi.fn()} onBackToMenu={vi.fn()} />);
-
-    // Switch to Morse tab
-    fireEvent.click(screen.getByText(/РАДИОПЕРЕХВАТ \(МОРЗЕ\)/i));
-    expect(screen.getByText(/ТАКТИЧЕСКИЙ ПОЗЫВНОЙ/i)).toBeDefined();
+    startToneSpy.mockClear();
+    stopToneSpy.mockClear();
 
     const telegraphBtn = screen.getByRole("button", { name: "Ключ телеграфа" });
     expect(telegraphBtn).toBeDefined();
@@ -66,16 +48,16 @@ describe("ControllerConnectView Component (TASK-NET-002)", () => {
     let simulatedTime = 1000;
     vi.spyOn(performance, "now").mockImplementation(() => simulatedTime);
 
-    // 1. Simulate short tap (<250ms) -> Dot (.)
+    // 1. Short tap (<250ms) -> Dot (.)
     simulatedTime = 1000;
     fireEvent.pointerDown(telegraphBtn);
     expect(startToneSpy).toHaveBeenCalledWith(700);
 
     simulatedTime = 1100; // 100ms
     fireEvent.pointerUp(telegraphBtn);
-    expect(stopToneSpy).toHaveBeenCalled();
+    expect(stopToneSpy).toHaveBeenCalledTimes(1);
 
-    // 2. Simulate long hold (>=250ms) -> Dash (-)
+    // 2. Long hold (>=250ms) -> Dash (-)
     simulatedTime = 2000;
     fireEvent.pointerDown(telegraphBtn);
     expect(startToneSpy).toHaveBeenCalledTimes(2);
@@ -84,7 +66,7 @@ describe("ControllerConnectView Component (TASK-NET-002)", () => {
     fireEvent.pointerUp(telegraphBtn);
     expect(stopToneSpy).toHaveBeenCalledTimes(2);
 
-    // 3. Pointer leave terminates tone
+    // 3. Pointer leave terminates tone safely
     fireEvent.pointerDown(telegraphBtn);
     fireEvent.pointerLeave(telegraphBtn);
     expect(stopToneSpy).toHaveBeenCalledTimes(3);
@@ -94,13 +76,13 @@ describe("ControllerConnectView Component (TASK-NET-002)", () => {
     expect(stopToneSpy).toHaveBeenCalledTimes(4);
   });
 
-  it("resolves Morse code and calls onConnect when valid callsign is sent", async () => {
-    // Register active room with morse .-.-
-    morseToRoomRegistry.set(".-.-", "room-morse-8888");
+  it("resolves Morse code and calls onConnect when valid single callsign is sent", async () => {
+    // Register active room with 7-signal morse .-.-.-.
+    morseToRoomRegistry.set(".-.-.-.", "room-morse-8888");
     publicRoomsRegistry.set("room-morse-8888", {
       roomCode: "room-morse-8888",
       mode: "MANIAC_VS_OPERATIVE",
-      hostName: "TV",
+      hostName: "Host TV",
       status: "WAITING",
       playersCount: 0,
       maxPlayers: 2,
@@ -109,43 +91,132 @@ describe("ControllerConnectView Component (TASK-NET-002)", () => {
     const connectSpy = vi.fn();
     render(<ControllerConnectView onConnect={connectSpy} onBackToMenu={vi.fn()} />);
 
-    // Switch to Morse tab
-    fireEvent.click(screen.getByText(/РАДИОПЕРЕХВАТ \(МОРЗЕ\)/i));
     const telegraphBtn = screen.getByRole("button", { name: "Ключ телеграфа" });
 
     let simulatedTime = 1000;
     vi.spyOn(performance, "now").mockImplementation(() => simulatedTime);
 
-    // Tap . (short)
+    // Tap 7 symbols: . - . - . - .
+    // 1. .
     simulatedTime = 1000;
     fireEvent.pointerDown(telegraphBtn);
     simulatedTime = 1100;
     fireEvent.pointerUp(telegraphBtn);
 
-    // Tap - (long)
+    // 2. -
     simulatedTime = 2000;
     fireEvent.pointerDown(telegraphBtn);
     simulatedTime = 2400;
     fireEvent.pointerUp(telegraphBtn);
 
-    // Tap . (short)
+    // 3. .
     simulatedTime = 3000;
     fireEvent.pointerDown(telegraphBtn);
     simulatedTime = 3100;
     fireEvent.pointerUp(telegraphBtn);
 
-    // Tap - (long)
+    // 4. -
     simulatedTime = 4000;
     fireEvent.pointerDown(telegraphBtn);
     simulatedTime = 4400;
     fireEvent.pointerUp(telegraphBtn);
 
+    // 5. .
+    simulatedTime = 5000;
+    fireEvent.pointerDown(telegraphBtn);
+    simulatedTime = 5100;
+    fireEvent.pointerUp(telegraphBtn);
+
+    // 6. -
+    simulatedTime = 6000;
+    fireEvent.pointerDown(telegraphBtn);
+    simulatedTime = 6400;
+    fireEvent.pointerUp(telegraphBtn);
+
+    // 7. .
+    simulatedTime = 7000;
+    fireEvent.pointerDown(telegraphBtn);
+    simulatedTime = 7100;
+    fireEvent.pointerUp(telegraphBtn);
+
     // Click search button
-    const searchBtn = screen.getByRole("button", { name: /РАДИОПЕРЕХВАТ: НАЙТИ ЛОББИ/i });
+    const searchBtn = screen.getByRole("button", { name: /НАЙТИ ШТАБ/i });
     await act(async () => {
       fireEvent.click(searchBtn);
     });
 
     expect(connectSpy).toHaveBeenCalledWith("room-morse-8888");
+  });
+
+  it("rejects invalid password when targetRoomCode receives wrong Morse code", async () => {
+    const connectSpy = vi.fn();
+    render(
+      <ControllerConnectView
+        onConnect={connectSpy}
+        onBackToMenu={vi.fn()}
+        targetRoomCode="tv-room-777"
+        targetHostName="ТВ-Экран"
+        targetExpectedMorse="-------"
+      />
+    );
+
+    const telegraphBtn = screen.getByRole("button", { name: "Ключ телеграфа" });
+    let simulatedTime = 1000;
+    vi.spyOn(performance, "now").mockImplementation(() => simulatedTime);
+
+    // Enter 7 dots: .......
+    for (let i = 0; i < 7; i++) {
+      simulatedTime += 200;
+      fireEvent.pointerDown(telegraphBtn);
+      simulatedTime += 80;
+      fireEvent.pointerUp(telegraphBtn);
+    }
+
+    const submitBtn = screen.getByRole("button", { name: /ПОДТВЕРДИТЬ ШИФР/i });
+    await act(async () => {
+      fireEvent.click(submitBtn);
+    });
+
+    expect(connectSpy).not.toHaveBeenCalled();
+    expect(screen.getByText(/Неверный шифр доступа/i)).toBeDefined();
+  });
+
+  it("works strictly as room password verification when targetRoomCode is passed", async () => {
+    const connectSpy = vi.fn();
+    render(
+      <ControllerConnectView
+        onConnect={connectSpy}
+        onBackToMenu={vi.fn()}
+        targetRoomCode="room-priv-xyz"
+        targetHostName="Агент 007"
+        targetExpectedMorse="......-"
+      />
+    );
+
+    expect(screen.getByText(/ШИФР ДОСТУПА: Агент 007/i)).toBeDefined();
+    expect(screen.getByRole("button", { name: /ПОДТВЕРДИТЬ ШИФР/i })).toBeDefined();
+
+    const telegraphBtn = screen.getByRole("button", { name: "Ключ телеграфа" });
+    let simulatedTime = 1000;
+    vi.spyOn(performance, "now").mockImplementation(() => simulatedTime);
+
+    // Enter 7 symbols: 6 dots and 1 dash
+    for (let i = 0; i < 6; i++) {
+      simulatedTime += 200;
+      fireEvent.pointerDown(telegraphBtn);
+      simulatedTime += 80;
+      fireEvent.pointerUp(telegraphBtn);
+    }
+    simulatedTime += 200;
+    fireEvent.pointerDown(telegraphBtn);
+    simulatedTime += 300; // dash
+    fireEvent.pointerUp(telegraphBtn);
+
+    const submitBtn = screen.getByRole("button", { name: /ПОДТВЕРДИТЬ ШИФР/i });
+    await act(async () => {
+      fireEvent.click(submitBtn);
+    });
+
+    expect(connectSpy).toHaveBeenCalledWith("room-priv-xyz");
   });
 });

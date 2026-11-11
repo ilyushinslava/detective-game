@@ -406,6 +406,7 @@ export const MainMenu = ({
     mode: GameModeType,
     isHost: boolean,
     _bet: number = 250,
+    isPrivate: boolean = false,
   ) => {
     const cleanCode = String(code).trim();
     partyService.roomCode = cleanCode;
@@ -424,7 +425,7 @@ export const MainMenu = ({
       })
     );
 
-    partyService.connect(cleanCode, profile.nickname || "Агент", isHost, mode);
+    partyService.connect(cleanCode, profile.nickname || "Агент", isHost, mode, undefined, undefined, isPrivate);
   };
   
 
@@ -433,7 +434,7 @@ export const MainMenu = ({
     setIsCreating(true);
     try {
       const rooms = await partyService.fetchPublicRooms();
-      const waitingRoom = rooms.find((r) => r.status === "WAITING");
+      const waitingRoom = rooms.find((r) => r.status === "WAITING" && !r.isPrivate);
       if (waitingRoom && waitingRoom.roomCode) {
         setIsCreating(false);
         handleJoinRoom(waitingRoom.roomCode, waitingRoom.mode as GameModeType);
@@ -442,24 +443,24 @@ export const MainMenu = ({
     } catch (e) {
       console.warn("fetchPublicRooms error:", e);
     }
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
-    connectToPartyRoom(code, "MANIAC_VS_OPERATIVE", true, 250);
+    const code = `room_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`;
+    connectToPartyRoom(code, "MANIAC_VS_OPERATIVE", true, 250, false);
   };
 
   const handleConfirmCreateRoom = () => {
     triggerHaptic("medium");
     setIsCreating(true);
     setIsCreateRoomOpen(false);
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
-    connectToPartyRoom(code, createRoomMode, true, createRoomBet);
+    const code = `room_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`;
+    connectToPartyRoom(code, createRoomMode, true, createRoomBet, createRoomIsPrivate);
   };
 
   const handleJoinRoom = (code: string, mode?: GameModeType) => {
     const cleanCode = String(code).trim();
-    if (cleanCode.length !== 4) return;
+    if (!cleanCode) return;
     triggerHaptic("light");
     setIsCreating(true);
-    connectToPartyRoom(cleanCode, mode || "MANIAC_VS_OPERATIVE", false, 0);
+    connectToPartyRoom(cleanCode, mode || "MANIAC_VS_OPERATIVE", false, 0, false);
   };
 
   const filteredRooms = publicRooms.filter((r) => roomFilter === "ALL" || r.mode === roomFilter);
@@ -1269,13 +1270,49 @@ export const MainMenu = ({
             zIndexClass="z-[70]"
             className="items-center p-8 text-center"
           >
-            <div className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3">Шифр операции</div>
-            <div className="text-4xl font-black text-zinc-100 tracking-widest font-mono mb-6 border border-white/10 rounded-2xl px-8 py-4 bg-zinc-950/70 shadow-inner">
-              {partyService.roomCode || partyRoomCode}
+            <div className="text-[9px] font-black text-cyan-400 uppercase tracking-widest mb-2">
+              {createRoomIsPrivate ? "ШИФРОВАННЫЙ КАНАЛ (МОРЗЕ)" : "ОПЕРАТИВНЫЙ СТОЛ"}
             </div>
 
+            {createRoomIsPrivate ? (
+              (partyService.morseCode || partyService.lastSyncedState?.morseCode) ? (
+                <div className="flex flex-col items-center gap-2 mb-6">
+                  <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-zinc-950/90 border border-white/20 shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
+                    {(partyService.morseCode || partyService.lastSyncedState?.morseCode)
+                      .split("")
+                      .map((sym: string, i: number) => (
+                        <div key={i} className="flex items-center justify-center">
+                          {sym === "." ? (
+                            <div className="w-3.5 h-3.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
+                          ) : (
+                            <div className="w-8 h-3.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                  <span className="text-[10px] font-mono text-zinc-400 tracking-wider">
+                    {(partyService.morseCode || partyService.lastSyncedState?.morseCode)
+                      .split("")
+                      .map((s: string) => (s === "." ? "•" : "—"))
+                      .join(" ")}
+                  </span>
+                  <span className="text-[9px] font-mono text-zinc-400 uppercase">
+                    Продиктуйте этот 7-значный шифр напарнику
+                  </span>
+                </div>
+              ) : (
+                <div className="text-sm font-mono text-cyan-400 animate-pulse mb-6 border border-white/10 rounded-2xl px-6 py-4 bg-zinc-950/70 shadow-inner">
+                  Генерация 7-значного шифра...
+                </div>
+              )
+            ) : (
+              <div className="text-base font-black text-emerald-400 tracking-widest font-mono mb-6 border border-emerald-500/20 rounded-2xl px-6 py-4 bg-zinc-950/70 shadow-inner">
+                ОТКРЫТЫЙ СТОЛ (ВХОД БЕЗ ПАРОЛЯ)
+              </div>
+            )}
+
             <div className="flex justify-center mb-6">
-              <div className="w-12 h-12 border-2 border-zinc-800 border-t-red-600 rounded-full animate-spin" />
+              <div className="w-12 h-12 border-2 border-zinc-800 border-t-cyan-500 rounded-full animate-spin shadow-[0_0_15px_rgba(6,182,212,0.3)]" />
             </div>
 
             <div className="text-[10px] text-zinc-300 font-black tracking-widest uppercase animate-pulse mb-6">

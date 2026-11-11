@@ -50,6 +50,7 @@ const characterImages = import.meta.glob<{ default: string }>(
 export default function App() {
   const urlParams = useMemo(() => new URLSearchParams(typeof window !== "undefined" ? window.location.search : ""), []);
   const clientTypeParam = (urlParams.get("clientType") || urlParams.get("role"))?.toUpperCase();
+  const targetRoomParam = urlParams.get("targetRoom");
   const roomParam = urlParams.get("room");
 
   if (clientTypeParam === "TV_DISPLAY" && !roomParam && typeof window !== "undefined" && typeof window.location?.replace === "function") {
@@ -90,11 +91,14 @@ export default function App() {
   const [showSpyP2Role, setShowSpyP2Role] = useState(false);
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [isNotebookOpen, setIsNotebookOpen] = useState(false);
-  const [tvRoomCode, setTvRoomCode] = useState<string>(roomParam || "");
+  const [tvRoomCode, setTvRoomCode] = useState<string>(() => {
+    if (targetRoomParam) return "";
+    return roomParam || "";
+  });
   const [tvMorseCode, setTvMorseCode] = useState<string>("");
   const [pinInput, setPinInput] = useState<string>("");
   const [tvPartyState, setTvPartyState] = useState<"NONE" | "TV_LOBBY" | "TV_BOARD" | "CONTROLLER">(() => {
-    if (clientTypeParam === "CONTROLLER") return "CONTROLLER";
+    if (clientTypeParam === "CONTROLLER" || targetRoomParam) return "CONTROLLER";
     if (clientTypeParam === "TV_DISPLAY") return "TV_LOBBY";
     return "NONE";
   });
@@ -840,11 +844,14 @@ export default function App() {
                 <ControllerConnectView
                   initialNickname={profile.nickname}
                   onUpdateNickname={(name) => updateProfile({ nickname: name })}
+                  targetRoomCode={targetRoomParam || undefined}
+                  targetHostName={targetRoomParam ? "ТВ-Экран" : undefined}
                   onConnect={(code) => {
                     setTvRoomCode(code);
                     setTvPartyState("CONTROLLER");
                     try {
                       const newUrl = new URL(window.location.href);
+                      newUrl.searchParams.delete("targetRoom");
                       newUrl.searchParams.set("room", code);
                       newUrl.searchParams.set("clientType", "CONTROLLER");
                       window.history.replaceState({}, "", newUrl.toString());

@@ -336,6 +336,26 @@ class SoundController {
     }
   }
 
+  /**
+   * Полная остановка всех звуковых эффектов, фонового эмбиента и тонов Морзе
+   */
+  public stopAll(): void {
+    this.stopMorseTone();
+    this.stopAmbient();
+    if (this.audioPool && (typeof process === 'undefined' || !process.env?.VITEST)) {
+      for (const pool of this.audioPool.values()) {
+        for (const audio of pool) {
+          try {
+            if (typeof audio.pause === 'function' && !audio.paused) {
+              audio.pause();
+              audio.currentTime = 0;
+            }
+          } catch (_) {}
+        }
+      }
+    }
+  }
+
   public toggleSfx(): boolean {
     this.isSfxEnabled = !this.isSfxEnabled;
     if (typeof window !== 'undefined') {

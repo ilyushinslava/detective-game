@@ -2,8 +2,31 @@ import type { Role } from "../types/game";
 import type { GameAction } from "../types/multiplayer";
 import { GAME_CONFIG } from "../config/gameConfig";
 
+export interface MorseCandidate {
+  roomCode: string;
+  hostName: string;
+  mode: string;
+  status: string;
+  playersCount: number;
+  maxPlayers: number;
+}
+
+export interface ResolveRoomResponse {
+  ok: boolean;
+  disambiguation?: boolean;
+  candidates?: MorseCandidate[];
+  roomCode?: string;
+  morseCode?: string | null;
+  hostName?: string;
+  status?: string;
+  mode?: string;
+  error?: string;
+  message?: string;
+}
+
 class PartyService {
   roomCode: string = "";
+  morseCode: string | null = null;
   myClientId: string = "local-stub";
   authToken: string | null = null;
   isHost: boolean = true;
@@ -20,7 +43,7 @@ class PartyService {
   private failedAttempts: number = 0;
 
   resolveEndpoints(): { wsProtocol: string; httpProtocol: string; host: string } {
-    const fallbackHost = GAME_CONFIG.NETWORK.FALLBACK_GATEWAYS[0] || "detective-game-haxi.onrender.com";
+    const fallbackHost = GAME_CONFIG.NETWORK.FALLBACK_GATEWAYS[0] || "detective-game-server.partykit.dev";
     const rawHost = (import.meta.env?.VITE_WS_GATEWAY || import.meta.env?.VITE_PARTYKIT_HOST)?.trim();
     if (rawHost) {
       const isSecure = rawHost.startsWith("https://") || rawHost.startsWith("wss://");
@@ -55,14 +78,6 @@ class PartyService {
       }
     }
 
-    if (this.failedAttempts >= 2) {
-      return {
-        wsProtocol: "wss:",
-        httpProtocol: "https:",
-        host: fallbackHost,
-      };
-    }
-
     return {
       wsProtocol: "wss:",
       httpProtocol: "https:",
@@ -70,40 +85,80 @@ class PartyService {
     };
   }
 
-  async resolveRoom(query: { morse?: string; pin?: string }): Promise<{
-    ok: boolean;
-    roomCode?: string;
-    morseCode?: string;
-    error?: string;
-    status?: string;
-    mode?: string;
-  }> {
+  async resolveRoom(query: { morse?: string; pin?: string }): Promise<ResolveRoomResponse> {
     // В тестовом окружении без запущенного сетевого сервера PartyKit обращаемся к реестру напрямую
-    if (typeof process !== "undefined" && (process.env?.VITEST || process.env?.NODE_ENV === "test")) {
+    const isTestEnv =
+      (typeof process !== "undefined" && (Boolean(process.env?.VITEST) || process.env?.NODE_ENV === "test")) ||
+      import.meta.env?.MODE === "test" ||
+      Boolean(import.meta.env?.VITEST);
+
+    if (isTestEnv) {
       try {
-        const { resolveRoomByMorse, resolveRoomByPin, roomToMorseRegistry, publicRoomsRegistry } = await import("../server/index");
-        const found = (query.morse ? resolveRoomByMorse(query.morse) : null) || (query.pin ? resolveRoomByPin(query.pin) : null);
-        if (found) {
-          const roomMeta = publicRoomsRegistry.get(found);
-          const morseCode = roomToMorseRegistry.get(found);
-          return {
-            ok: true,
-            roomCode: found,
-            morseCode: morseCode || null,
-            status: roomMeta?.status || "WAITING",
-            mode: roomMeta?.mode || "MANIAC_VS_OPERATIVE",
-          };
+        const {
+          resolveRoomsByMorse,
+          resolveRoomByPin,
+          roomToMorseRegistry,
+          morseToRoomRegistry,
+          morseToRoomsRegistry,
+          publicRoomsRegistry,
+        } = await import("../server/index");
+        if (query.morse) {
+          const candidates = resolveRoomsByMorse(query.morse);
+          if (candidates.length === 1) {
+            const single = candidates[0];
+            return {
+              ok: true,
+              disambiguation: false,
+              roomCode: single.roomCode,
+              morseCode: query.morse,
+              hostName: single.hostName,
+              status: single.status,
+              mode: single.mode,
+              playersCount: single.playersCount,
+              maxPlayers: single.maxPlayers,
+            };
+          }
+          if (candidates.length > 1) {
+            return {
+              ok: true,
+              disambiguation: true,
+              morseCode: query.morse,
+              candidates,
+            };
+          }
         }
-        if (query.pin && query.pin.length >= 4) {
-          return {
-            ok: true,
-            roomCode: query.pin,
-            morseCode: null,
-            status: "WAITING",
-            mode: "MANIAC_VS_OPERATIVE",
-          };
+
+        if (query.pin) {
+          const found = resolveRoomByPin(query.pin);
+          if (found) {
+            const roomMeta = publicRoomsRegistry.get(found);
+            const morseCode = roomToMorseRegistry.get(found);
+            return {
+              ok: true,
+              disambiguation: false,
+              roomCode: found,
+              morseCode: morseCode || null,
+              hostName: roomMeta?.hostName || "Хост",
+              status: roomMeta?.status || "WAITING",
+              mode: roomMeta?.mode || "MANIAC_VS_OPERATIVE",
+              playersCount: roomMeta?.playersCount || 0,
+              maxPlayers: roomMeta?.maxPlayers || 2,
+            };
+          }
+          if (query.pin.length >= 4) {
+            return {
+              ok: true,
+              disambiguation: false,
+              roomCode: query.pin,
+              morseCode: null,
+              status: "WAITING",
+              mode: "MANIAC_VS_OPERATIVE",
+            };
+          }
         }
-      } catch (_) {}
+      } catch (err) {
+        console.error("CATCH IN partyService.resolveRoom:", err);
+      }
     }
 
     const { httpProtocol, host } = this.resolveEndpoints();
@@ -136,7 +191,8 @@ class PartyService {
     isHost: boolean,
     mode: string,
     clientId?: string,
-    clientType?: string
+    clientType?: string,
+    isPrivate?: boolean
   ): void {
     if (this.socket && this.socket.readyState === WebSocket.CONNECTING && this.roomCode === roomCode) {
       return;
@@ -177,7 +233,8 @@ class PartyService {
 
     const encodedNick = encodeURIComponent(this.nick);
     const authParam = this.authToken ? `&authToken=${encodeURIComponent(this.authToken)}` : "";
-    const url = `${wsProtocol}//${host}/party/${roomCode}?clientId=${this.myClientId}&nickname=${encodedNick}&isHost=${this.isHost}&mode=${this.mode}&randomRoles=true${this.clientType ? `&clientType=${this.clientType}` : ""}${authParam}`;
+    const privateParam = isPrivate ? `&isPrivate=true` : "";
+    const url = `${wsProtocol}//${host}/party/${roomCode}?clientId=${this.myClientId}&nickname=${encodedNick}&isHost=${this.isHost}&mode=${this.mode}&randomRoles=true${this.clientType ? `&clientType=${this.clientType}` : ""}${privateParam}${authParam}`;
 
     try {
       const ws = new WebSocket(url);
@@ -224,11 +281,17 @@ class PartyService {
 
           if (data.type === "SYNC_STATE") {
             this.lastSyncedState = data.state;
+            if (data.morseCode) {
+              this.morseCode = data.morseCode;
+            }
             this.onSyncState?.(data.state, data.role, data.status);
             return;
           }
 
           if (data.type === "ROOM_STATUS") {
+            if (data.morseCode) {
+              this.morseCode = data.morseCode;
+            }
             this.onRoomStatus?.(data);
             return;
           }
@@ -341,6 +404,7 @@ class PartyService {
     }
     this.authToken = null;
     this.roomCode = "";
+    this.morseCode = null;
     this.clientType = null;
     this.lastSyncedState = null;
     this.onPresenceChanged?.(false);
@@ -370,6 +434,35 @@ class PartyService {
 
     if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
       console.warn("[PartyService] Socket is still connecting, action dropped:", action?.type);
+    }
+  }
+
+  async verifyRoomMorse(roomCode: string, morse: string): Promise<{ ok: boolean; roomCode?: string; error?: string }> {
+    const cleanMorse = morse.replace(/[•\.]/g, ".").replace(/[—–\-]/g, "-").replace(/[^.\-]/g, "");
+    const isTestEnv =
+      (typeof process !== "undefined" && (Boolean(process.env?.VITEST) || process.env?.NODE_ENV === "test")) ||
+      import.meta.env?.MODE === "test" ||
+      Boolean(import.meta.env?.VITEST);
+    if (isTestEnv) {
+      try {
+        const { publicRoomsRegistry, roomToMorseRegistry } = await import("../server/index");
+        const meta = publicRoomsRegistry.get(roomCode);
+        const expected = roomToMorseRegistry.get(roomCode) || meta?.morseCode;
+        if (expected && expected === cleanMorse) {
+          return { ok: true, roomCode };
+        }
+        return { ok: false, error: "INVALID_MORSE_CODE" };
+      } catch (_) {}
+    }
+
+    const { httpProtocol, host } = this.resolveEndpoints();
+    try {
+      const url = `${httpProtocol}//${host}/party/main?action=verify_morse&roomCode=${encodeURIComponent(roomCode)}&morse=${encodeURIComponent(cleanMorse)}`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
+      const data = await res.json();
+      return data;
+    } catch (e: any) {
+      return { ok: false, error: e?.message || "NETWORK_ERROR" };
     }
   }
 

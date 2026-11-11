@@ -389,7 +389,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
         {/* Центральный индикатор глобальной фазы матча */}
         <div className="hidden md:flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-white/10 bg-zinc-900/60 backdrop-blur-md shadow-inner">
-          <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+          <span className="h-2 w-2 rounded-full bg-white/40 shadow-[0_0_6px_rgba(255,255,255,0.4)]" />
           <span className="text-xs 2xl:text-sm font-mono uppercase tracking-widest text-zinc-200 font-bold">
             {getGameModeTitle(gameState?.mode || 'MANIAC_VS_OPERATIVE', 'ru')}
           </span>
@@ -416,7 +416,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
       <div className="flex-1 flex gap-4 lg:gap-6 min-h-0 overflow-hidden z-10">
         {/* ЛЕВАЯ ЗОНА (~68%): Primary Stage (Поле 5×5 с монолитной тактической плитой) */}
         <div className="w-[66%] lg:w-[68%] h-full flex items-center justify-center min-w-0">
-          <div className="relative w-full h-full max-w-[min(100%,calc(100vh-120px))] aspect-square p-3 sm:p-4 2xl:p-5 rounded-3xl bg-gradient-to-br from-slate-900/90 via-zinc-950/95 to-slate-950/95 border border-blue-500/30 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(37,99,235,0.15)] backdrop-blur-2xl flex items-center justify-center">
+          <div className="relative w-full h-full max-w-[min(100%,calc(100vh-120px))] aspect-square p-3 sm:p-4 2xl:p-5 rounded-3xl bg-[#07090e]/95 border border-white/[0.08] shadow-[0_30px_90px_rgba(0,0,0,0.95),0_0_50px_rgba(37,99,235,0.06)] backdrop-blur-2xl flex items-center justify-center">
             <div
               className="grid gap-2 sm:gap-2.5 2xl:gap-3 w-full h-full"
               style={{
@@ -436,21 +436,16 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                     key={char.id || `cell_${index}`}
                     layout="position"
                     transition={{ type: 'spring', damping: 26, stiffness: 220, mass: 0.8 }}
-                    className={`relative w-full h-full rounded-xl sm:rounded-2xl transition-all duration-300 overflow-hidden bg-zinc-950/60 backdrop-blur-md border ${
+                    className={`relative w-full h-full rounded-xl sm:rounded-2xl transition-all duration-300 overflow-hidden bg-zinc-950/60 backdrop-blur-md border p-0.5 sm:p-1 pb-2 sm:pb-2.5 2xl:pb-3 flex flex-col justify-between ${
                       isLineActive
-                        ? 'border-white/90 ring-2 ring-white/60 shadow-[0_0_25px_rgba(255,255,255,0.45)] bg-white/5 scale-[1.01] z-20'
+                        ? 'border-white ring-2 ring-white/80 shadow-[0_0_30px_rgba(255,255,255,0.5)] bg-white/10 scale-[1.01] z-20'
                         : inRadarCenter
-                          ? 'border-red-500/90 ring-2 ring-red-500/80 shadow-[0_0_20px_rgba(239,68,68,0.5)] bg-red-950/30 z-10'
+                          ? 'border-red-500/90 shadow-[0_0_20px_rgba(225,29,72,0.4)] bg-red-950/20 z-10'
                           : inRadarArea
-                            ? 'border-blue-500/80 ring-1 ring-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.35)] bg-blue-950/20 z-0'
-                            : 'border-white/10 hover:border-zinc-500/50 shadow-[0_4px_16px_rgba(0,0,0,0.6)]'
+                            ? 'border-blue-500/70 shadow-[0_0_15px_rgba(37,99,235,0.25)] bg-blue-950/15 z-0'
+                            : 'border-white/10 hover:border-zinc-500/40 shadow-[0_4px_16px_rgba(0,0,0,0.6)]'
                     } ${!char.isAlive ? 'grayscale opacity-35' : ''}`}
                   >
-                    {/* Тактический номер ячейки #01–#25 */}
-                    <span className="absolute top-1 left-1.5 z-20 font-mono text-xs sm:text-sm 2xl:text-base font-black text-zinc-300 bg-black/90 px-2 py-0.5 rounded border border-zinc-800/80 pointer-events-none shadow">
-                      #{String(index + 1).padStart(2, '0')}
-                    </span>
-
                     {/* Карточка персонажа */}
                     <CharacterCard
                       mode={gameState?.mode || 'MANIAC_VS_OPERATIVE'}
@@ -517,27 +512,29 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           {/* СУПЕР-ДОМИНАНТА: ТЕКУЩИЙ АКТИВНЫЙ ХОД (ВИДНО С ДИВАНА) */}
           <div className={`p-4 sm:p-5 rounded-3xl border-2 transition-all duration-500 shadow-2xl relative overflow-hidden shrink-0 ${
             isKillerTurn
-              ? 'border-rose-600/90 bg-gradient-to-br from-red-950/85 via-zinc-900/95 to-zinc-950 shadow-[0_0_40px_rgba(225,29,72,0.35)]'
-              : 'border-blue-500/90 bg-gradient-to-br from-blue-950/85 via-zinc-900/95 to-zinc-950 shadow-[0_0_40px_rgba(37,99,235,0.35)]'
+              ? 'border-red-600/80 bg-gradient-to-br from-red-950/85 via-[#0c0f17] to-zinc-950 shadow-[0_0_40px_rgba(225,29,72,0.3)]'
+              : 'border-blue-600/80 bg-gradient-to-br from-blue-950/85 via-[#0c0f17] to-zinc-950 shadow-[0_0_40px_rgba(37,99,235,0.3)]'
           }`}>
             <div className="flex items-center justify-between mb-2">
-              <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[10px] 2xl:text-xs font-mono font-bold uppercase tracking-widest border shadow-sm ${
+              <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] 2xl:text-xs font-mono font-bold uppercase tracking-widest border shadow-sm ${
                 isKillerTurn
-                  ? 'bg-rose-950/80 border-rose-500/50 text-rose-300'
-                  : 'bg-blue-950/80 border-blue-500/50 text-blue-300'
+                  ? 'bg-red-950/80 border-red-500/40 text-red-300'
+                  : 'bg-blue-950/80 border-blue-500/40 text-blue-300'
               }`}>
-                <span className={`h-2 w-2 rounded-full animate-ping ${isKillerTurn ? 'bg-rose-400' : 'bg-blue-400'}`} />
+                <span className={`h-2 w-2 rounded-full ${isKillerTurn ? 'bg-red-400' : 'bg-blue-400'}`} />
                 ТЕКУЩИЙ ХОД
               </span>
-              <span className="text-xs font-mono text-zinc-400 font-bold uppercase">ФАЗА ДЕЙСТВИЯ</span>
+              <span className="text-xs font-mono text-zinc-400 font-bold uppercase">
+                {killerRoleName && detectiveRoleName ? `${killerRoleName} vs ${detectiveRoleName}` : 'ПАРТИЯ'}
+              </span>
             </div>
 
             {/* Карточка активного хода */}
-            <div className="flex items-center gap-3.5 my-1">
+            <div className="flex items-center gap-3.5 my-1.5">
               <div className={`w-14 h-14 2xl:w-16 2xl:h-16 rounded-2xl border-2 flex items-center justify-center font-mono text-2xl 2xl:text-3xl font-black text-white shrink-0 shadow-2xl ${
                 isKillerTurn
-                  ? 'bg-red-600 border-white/40 shadow-[0_0_20px_rgba(225,29,72,0.6)]'
-                  : 'bg-blue-600 border-white/40 shadow-[0_0_20px_rgba(37,99,235,0.6)]'
+                  ? 'bg-red-600 border-white/30 shadow-[0_0_20px_rgba(225,29,72,0.6)]'
+                  : 'bg-blue-600 border-white/30 shadow-[0_0_20px_rgba(37,99,235,0.6)]'
               }`}>
                 {activeTurnName.charAt(0).toUpperCase()}
               </div>
@@ -548,21 +545,10 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 <div className="text-xl sm:text-2xl 2xl:text-3xl font-black tracking-wider uppercase truncate text-white drop-shadow">
                   ХОД: {activeTurnName.toUpperCase()}
                 </div>
-                <div className="text-xs 2xl:text-sm text-zinc-300 font-medium truncate mt-0.5">
-                  Управление с мобильного контроллера
+                <div className="text-xs 2xl:text-sm text-zinc-300 font-medium truncate mt-0.5 font-mono">
+                  Ожидание команды с пульта...
                 </div>
               </div>
-            </div>
-
-            {/* Таймер хода */}
-            <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-xs font-mono">
-              <span className="flex items-center gap-1.5 text-zinc-400 uppercase tracking-wider">
-                <Icons.Clock />
-                ТАЙМЕР ХОДА
-              </span>
-              <span className="text-xs 2xl:text-sm font-bold text-zinc-300 bg-black/60 px-2.5 py-0.5 rounded-lg border border-white/10">
-                БЕЗ ЛИМИТА (DEV)
-              </span>
             </div>
           </div>
 
@@ -692,11 +678,11 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
       {/* НИЖНЯЯ СТРОКА: D-PAD ПОДСКАЗКИ ДЛЯ ПУЛЬТА */}
       <div className="flex items-center justify-between px-6 py-2.5 rounded-2xl bg-black/70 border border-white/10 text-xs 2xl:text-sm font-mono text-zinc-400 shrink-0 shadow-lg z-10">
-        <span className="flex items-center gap-2 text-blue-400 font-bold">
-          <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-          ТВ-ПУЛЬТ: [ESC / Меню] Управление паузой • [Стрелки / OK] Выбор действия
+        <span className="flex items-center gap-2 text-zinc-300 font-bold">
+          <span className="h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]" />
+          ТВ-ПУЛЬТ: [ESC] Меню паузы • [Стрелки / OK] Управление
         </span>
-        <span className="text-zinc-500 font-medium hidden sm:inline">AUTONOMOUS WEBSOCKET • SECURE SERVER MASKING ACTIVE</span>
+        <span className="text-zinc-500 font-mono text-[11px] hidden sm:inline">РЕСПУБЛИКА • ТАКТИЧЕСКИЙ ЭФИР</span>
       </div>
 
       {/* МОДАЛЬНОЕ МЕНЮ ПАУЗЫ (SYSTEM PAUSE MODAL С ПОЛНОЙ D-PAD ПОДДЕРЖКОЙ) */}

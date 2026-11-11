@@ -16,7 +16,7 @@ export const GAME_CONFIG = {
   NETWORK: {
     DEFAULT_DEV_PORT: 1999,
     FALLBACK_GATEWAYS: [
-      "detective-game-haxi.onrender.com",
+      "detective-game-server.partykit.dev",
     ],
     RECONNECT: {
       MAX_ATTEMPTS: 3,

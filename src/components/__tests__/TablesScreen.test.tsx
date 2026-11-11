@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { TablesScreen } from "../TablesScreen";
 
 describe("TablesScreen", () => {
@@ -31,6 +31,10 @@ describe("TablesScreen", () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    cleanup();
+  });
+
   it("отображает пустое состояние при отсутствии комнат и вызывает открытие создания стола", () => {
     const { container } = render(<TablesScreen {...defaultProps} />);
     
@@ -43,22 +47,22 @@ describe("TablesScreen", () => {
     expect(mockSetIsCreateRoomOpen).toHaveBeenCalledWith(true);
   });
 
-  it("рендерит список доступных комнат и вызывает handleJoinRoom", () => {
+  it("рендерит список доступных открытых комнат и вызывает свободный вход handleJoinRoom в 1 клик", () => {
     const rooms = [
-      { roomCode: "1234", hostName: "Sheriff", mode: "SKHVATKA", playersCount: 1, maxPlayers: 2 }
+      { roomCode: "room-open-1", hostName: "Sheriff", mode: "SKHVATKA", playersCount: 1, maxPlayers: 2, isPrivate: false }
     ];
     const { container } = render(<TablesScreen {...defaultProps} filteredRooms={rooms} />);
     
     // Проверяем отображение имени хоста
     expect(screen.getByText(/Sheriff/i)).toBeDefined();
     
-    // Находим кнопку входа в комнату
+    // Находим кнопку свободного входа в комнату
     const buttons = Array.from(container.querySelectorAll('button'));
-    const joinBtn = buttons.find(b => b.className.includes('from-red-600'));
+    const joinBtn = buttons.find(b => b.className.includes('from-red-600') && b.textContent?.includes('Войти'));
     
     expect(joinBtn).toBeDefined();
     fireEvent.click(joinBtn!);
-    expect(mockHandleJoinRoom).toHaveBeenCalledWith("1234", "SKHVATKA");
+    expect(mockHandleJoinRoom).toHaveBeenCalledWith("room-open-1", "SKHVATKA");
   });
 
   it("обрабатывает переключение фильтров", () => {
@@ -69,31 +73,33 @@ describe("TablesScreen", () => {
     expect(mockSetRoomFilter).toHaveBeenCalledWith("SKHVATKA");
   });
 
-  it("управляет вводом 4-значного кода и валидацией кнопки входа", () => {
-    const { container, rerender } = render(<TablesScreen {...defaultProps} joinCode="" />);
+  it("разделяет лобби на Открытые и Приватные игры, и открывает телеграфный ключ для ввода пароля к выбранной приватной комнате", () => {
+    const rooms = [
+      { roomCode: "room-open-1", hostName: "Открытый Хост", mode: "SKHVATKA", playersCount: 1, maxPlayers: 2, isPrivate: false },
+      { roomCode: "room-priv-2", hostName: "Секретный Агент", mode: "SKHVATKA", playersCount: 1, maxPlayers: 2, isPrivate: true, morseCode: ".-.-.-." }
+    ];
+    render(<TablesScreen {...defaultProps} filteredRooms={rooms} />);
     
-    const input = container.querySelector('input[type="tel"]') as HTMLInputElement;
-    expect(input).toBeDefined();
+    // По умолчанию открыта вкладка "Открытые игры"
+    expect(screen.getByText(/Открытый Хост/i)).toBeDefined();
+    expect(screen.queryByText(/Секретный Агент/i)).toBeNull();
 
-    // Кнопка применения кода (имеет disabled когда код пуст)
-    const buttons = Array.from(container.querySelectorAll('button'));
-    const applyBtn = buttons.find(b => b.disabled);
-    expect(applyBtn).toBeDefined();
-    expect(applyBtn?.disabled).toBe(true);
+    // Переключаемся на вкладку "Приватные игры"
+    const privateTabBtn = screen.getByRole("button", { name: /Приватные игры/i });
+    fireEvent.click(privateTabBtn);
 
-    // Ввод текста
-    fireEvent.change(input, { target: { value: "123" } });
-    expect(mockSetJoinCode).toHaveBeenCalledWith("123");
+    // Должна отображаться только приватная комната
+    expect(screen.getByText(/Секретный Агент/i)).toBeDefined();
+    expect(screen.getByText(/ЗАКРЫТЫЙ КАНАЛ/i)).toBeDefined();
+    expect(screen.queryByText(/Открытый Хост/i)).toBeNull();
 
-    // Ререндер с валидным кодом
-    rerender(<TablesScreen {...defaultProps} joinCode="1234" />);
-    
-    const updatedButtons = Array.from(container.querySelectorAll('button'));
-    // Кнопка применения кода - предпоследняя кнопка
-    const updatedApplyBtn = updatedButtons[updatedButtons.length - 2];
-    expect(updatedApplyBtn.disabled).toBe(false);
-    
-    fireEvent.click(updatedApplyBtn);
-    expect(mockHandleJoinRoom).toHaveBeenCalledWith("1234");
+    // Кликаем по кнопке ввода шифра к выбранной приватной комнате
+    const enterMorseBtn = screen.getByRole("button", { name: /Ввести шифр/i });
+    fireEvent.click(enterMorseBtn);
+
+    // Открывается телеграфный ключ с привязкой к хосту
+    expect(screen.getByRole("button", { name: "Ключ телеграфа" })).toBeDefined();
+    expect(screen.getByText(/ШИФР ДОСТУПА: Секретный Агент/i)).toBeDefined();
+    expect(screen.getByText(/ПОДТВЕРДИТЬ ШИФР/i)).toBeDefined();
   });
 });

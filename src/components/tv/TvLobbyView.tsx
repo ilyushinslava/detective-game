@@ -84,9 +84,9 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
       origin = `${protocol}//${lanHost}`;
     }
     const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-    // QR-код ведет строго на корень приложения (главное меню) без лишних URL-параметров (TASK-NET-002)
-    return `${origin}${pathname}`;
-  }, [isLocalDev, lanHost]);
+    const cleanRoomCode = encodeURIComponent(roomCode || '');
+    return `${origin}${pathname}?targetRoom=${cleanRoomCode}&role=controller`;
+  }, [isLocalDev, lanHost, roomCode]);
 
   const [selectedMode, setSelectedMode] = useState<GameModeType>('MANIAC_VS_OPERATIVE');
   const [isPassAndPlay, setIsPassAndPlay] = useState<boolean>(false);
@@ -94,8 +94,8 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   const [focusedModeIndex, setFocusedModeIndex] = useState<number>(0);
 
   const displayMorse = useMemo(() => {
-    return morseCode || getDeterministicMorse(roomCode);
-  }, [morseCode, roomCode]);
+    return morseCode || '';
+  }, [morseCode]);
 
   const GAME_MODES: Array<{ id: GameModeType; label: string; badge: string }> = [
     { id: 'MANIAC_VS_OPERATIVE', label: GAME_MODES_META.MANIAC_VS_OPERATIVE.title.ru, badge: '4 ЦЕЛИ' },
@@ -198,14 +198,14 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
       <div className="grid grid-cols-12 gap-6 my-auto flex-1 min-h-0 items-center w-full max-w-6xl mx-auto relative z-10">
         {/* Левая колонка: QR-код и прямой адрес */}
         <div className="col-span-6 flex flex-col items-center justify-center p-6 lg:p-7 rounded-3xl bg-gradient-to-br from-slate-900/40 via-zinc-950/80 to-slate-950/80 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl text-center">
-          <div className="p-4 rounded-2xl bg-white shadow-[0_0_25px_rgba(255,255,255,0.15)] mb-4 border border-white/20">
+          <div className="p-4 rounded-2xl bg-white shadow-[0_0_30px_rgba(255,255,255,0.2)] mb-4 border border-white/30">
             <QRCodeSVG value={joinUrl} size={170} level="M" />
           </div>
-          <div className="text-xs font-mono uppercase tracking-wider text-zinc-200 mb-1.5 font-bold">
-            Наведите камеру смартфона, чтобы открыть игру
+          <div className="text-sm font-mono uppercase tracking-wider text-zinc-100 mb-1 font-bold">
+            1. Наведите камеру смартфона
           </div>
-          <div className="text-xs text-zinc-400 mb-2">
-            Затем выберите <span className="text-zinc-200 font-semibold">«ТВ РЕЖИМ» → «ПУЛЬТ»</span>
+          <div className="text-xs font-mono text-zinc-400 mb-2">
+            2. Введите 7 сигналов Морзе на пульте
           </div>
           <div className="text-[11px] font-mono text-zinc-500 truncate max-w-xs bg-zinc-900/80 px-3 py-1 rounded-full border border-white/5">
             {joinUrl}
@@ -275,43 +275,43 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           )}
         </div>
 
-        {/* Правая колонка: PIN-код и слоты игроков */}
+        {/* Правая колонка: Тактический Морзе-позывной и слоты игроков */}
         <div className="col-span-6 flex flex-col justify-between gap-5">
-          {/* Карточка PIN-кода и Морзе-позывного */}
-          <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900/40 via-zinc-950/80 to-slate-950/80 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl">
-            <div className="text-xs font-bold font-mono uppercase tracking-widest text-zinc-400 mb-2">
-              ЧИСЛОВОЙ ID КОМНАТЫ
-            </div>
-            <div className="text-5xl lg:text-6xl font-black font-mono tracking-widest text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.4)]">
-              {roomCode}
-            </div>
-
-            {/* Визуальный паттерн короткого Морзе-кода */}
-            <div className="mt-4 p-4 rounded-2xl bg-zinc-900/90 border border-white/10 flex flex-col gap-2.5 shadow-inner">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold uppercase text-blue-400 tracking-wider">
-                  ТАКТИЧЕСКИЙ ПОЗЫВНОЙ (МОРЗЕ):
+          {/* Главная Hero-карточка тактического Морзе-позывного */}
+          <div className="p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-slate-900/60 via-zinc-950/90 to-slate-950/80 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs font-bold font-mono uppercase tracking-[0.25em] text-zinc-400">
+                  ШИФР
                 </span>
-                <span className="font-mono text-sm font-black text-blue-300 tracking-widest">
-                  {displayMorse.split('').map((s) => s === '.' ? '•' : '—').join(' ')}
+                <span className="text-[10px] font-mono text-zinc-400 bg-zinc-900/90 px-3 py-1 rounded-full border border-white/10 font-bold">
+                  РАДИОКАНАЛ
                 </span>
               </div>
-              <div className="flex items-center gap-2.5 py-1">
-                {displayMorse.split('').map((sym, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex items-center justify-center transition-all ${
-                      sym === '.'
-                        ? 'w-6 h-6 rounded-full bg-blue-500 shadow-[0_0_14px_rgba(59,130,246,0.9)]'
-                        : 'w-14 h-6 rounded-full bg-blue-500 shadow-[0_0_14px_rgba(59,130,246,0.9)]'
-                    }`}
-                  />
-                ))}
+
+              {/* Визуальные тактические пилюли Морзе (единственный монументальный ряд) */}
+              <div className="flex flex-nowrap items-center gap-2.5 sm:gap-3 py-6 my-2 w-full overflow-hidden">
+                {displayMorse ? (
+                  displayMorse.split('').map((sym, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex items-center justify-center transition-all shrink-0 ${
+                        sym === '.'
+                          ? 'w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.7)]'
+                          : 'w-12 sm:w-16 h-7 sm:h-8 rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.7)]'
+                      }`}
+                    />
+                  ))
+                ) : (
+                  <div className="text-xs font-mono text-zinc-500 animate-pulse">
+                    СИНХРОНИЗАЦИЯ ПОЗЫВНОГО С СЕРВЕРОМ...
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="text-xs text-zinc-400 mt-3 leading-relaxed">
-              В приложении на телефоне выберите <span className="text-zinc-200 font-semibold">«ТВ РЕЖИМ» → «ПУЛЬТ»</span> и укажите числовой ID либо отстучите позывной Морзе.
+            <div className="text-xs text-zinc-400 mt-3 leading-relaxed pt-3 border-t border-white/10 font-mono">
+              Шифр доступа к сессии. Введите 7 сигналов Морзе на экране телефона.
             </div>
           </div>
 
@@ -376,7 +376,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                   Ожидание подключения первого смартфона...
                 </span>
                 <span className="text-[10px] font-mono text-zinc-500">
-                  Отсканируйте QR-код или введите PIN
+                  Отсканируйте QR-код для подключения к штабу
                 </span>
               </div>
             ) : (

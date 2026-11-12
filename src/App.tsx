@@ -425,6 +425,7 @@ export default function App() {
     betAmount: number = 250
   ) => {
     matchResultRecordedRef.current = false;
+    soundManager.play("confirm");
 
     const actualPlayerRole =
       opponent === "ONLINE"

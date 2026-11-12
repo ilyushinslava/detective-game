@@ -599,6 +599,7 @@ export const MainMenu = ({
       try {
         await navigator.share(shareData);
         triggerHaptic("medium");
+        soundManager.play("confirm");
       } catch {
         // Пользователь отменил — ничего не делаем
       }
@@ -606,6 +607,7 @@ export const MainMenu = ({
       try {
         await navigator.clipboard.writeText(shareUrl);
         triggerHaptic("medium");
+        soundManager.play("confirm");
         setShowShareToast(true);
         setTimeout(() => setShowShareToast(false), 2500);
       } catch {
@@ -1136,6 +1138,8 @@ export const MainMenu = ({
               variant="primary-danger"
               fullWidth
               onClick={() => {
+                triggerHaptic("medium");
+                soundManager.play("confirm");
                 if (selectedOpponent === 'ONLINE') {
                   setCreateRoomMode(selectedMode);
                   setIsCreateRoomOpen(true);

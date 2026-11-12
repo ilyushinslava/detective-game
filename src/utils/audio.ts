@@ -10,6 +10,7 @@ type SoundType =
   | 'error'
   | 'deny'
   | 'click'
+  | 'confirm'
   | 'tapMenu'
   | 'impact'
   | 'gameStart'
@@ -37,6 +38,7 @@ const SOUND_LIBRARY: Record<SoundType, string[]> = {
   steal: [getPath('coin-steal.mp3'), getPath('coin-steal2.mp3')],
   deny: [getPath('deny.mp3')],
   click: [getPath('click.mp3')],
+  confirm: [getPath('confirm.mp3')],
   tapMenu: [getPath('tapInMenu.mp3')],
 };
 

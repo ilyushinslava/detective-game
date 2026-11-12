@@ -85,6 +85,7 @@ export function useMultiplayer({
         });
       }
       if (status === "READY_TO_START") {
+        soundManager.play("confirm");
         setIsLobbyOpen(false);
         setHasStartedEver(true);
         setIsIntroPhase(true);
@@ -111,6 +112,7 @@ export function useMultiplayer({
         setIsLobbyOpen(true);
         setHasStartedEver(false);
       } else if (status === "READY_TO_START") {
+        soundManager.play("confirm");
         setIsOpponentConnected(true);
         setOpponentDisconnectedNotice(false);
         setIsLobbyOpen(false);
@@ -136,6 +138,9 @@ export function useMultiplayer({
     partyService.onPresenceChanged = (connected: boolean) => {
       setIsOpponentConnected(connected);
       setOpponentDisconnectedNotice(!connected);
+      if (connected) {
+        soundManager.play("confirm");
+      }
     };
 
     partyService.onAction = (action: any) => {

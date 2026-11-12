@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 
 import type { GameModeType } from '../../types/game';
@@ -119,6 +119,14 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
     };
   }, []);
 
+  const prevPlayerCountRef = useRef(playerList.length);
+  useEffect(() => {
+    if (playerList.length > prevPlayerCountRef.current && playerList.length >= 2) {
+      soundManager.play('confirm');
+    }
+    prevPlayerCountRef.current = playerList.length;
+  }, [playerList.length]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown' || e.keyCode === 40 || e.keyCode === 20) {
@@ -164,7 +172,10 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
       } else if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 13 || e.keyCode === 32 || e.keyCode === 23 || e.keyCode === 66) {
         e.preventDefault();
         if (focusArea === 'START') {
-          if (canStart) onStartGame?.(selectedMode, isPassAndPlay);
+          if (canStart) {
+            soundManager.play('confirm');
+            onStartGame?.(selectedMode, isPassAndPlay);
+          }
         } else if (focusArea === 'EXIT') {
           onExit?.();
         } else if (focusArea === 'FORMAT') {
@@ -442,7 +453,10 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
 
         <Button
           variant="primary-danger"
-          onClick={() => onStartGame?.(selectedMode, isPassAndPlay)}
+          onClick={() => {
+            soundManager.play('confirm');
+            onStartGame?.(selectedMode, isPassAndPlay);
+          }}
           disabled={!canStart}
           className={`px-12 h-14 rounded-2xl font-black uppercase tracking-widest text-sm shadow-[0_0_25px_rgba(239,68,68,0.5)] transition ${
             focusArea === 'START' && canStart ? 'ring-2 ring-white scale-105' : ''

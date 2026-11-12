@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { triggerHaptic } from "../utils/haptics";
 import { Modal } from "./ui/Modal";
 import { Button } from "./ui/Button";
+import { ImageViewerModal } from "./ui/ImageViewerModal";
 import { GAME_MODES_META } from "../constants/gameMeta";
 
 export interface RulesModalProps {
@@ -288,7 +289,25 @@ const MODE_BANNERS: Record<ModeTab, string | null> = {
 export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
   const [activeTab, setActiveTab] = useState<ModeTab>("BASE");
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const touchStartRef = useRef<{ x: number; y: number; startX: number } | null>(null);
+  const tabListRef = useRef<HTMLDivElement | null>(null);
+
+  const tabs: Array<{ id: ModeTab; label: string }> = [
+    { id: "BASE", label: "ОСНОВЫ" },
+    { id: "MANIAC", label: "ПОЧЕРК УБИЙЦЫ" },
+    { id: "THIEF", label: "ОЦЕПЛЕНИЕ" },
+    { id: "SECRET_SERVICE", label: "ДИРЕКТИВА НОЛЬ" },
+    { id: "LINE_UP", label: "ОЧНАЯ СТАВКА" },
+  ];
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const activeBtn = tabListRef.current?.querySelector(`[data-tab-id="${activeTab}"]`);
+    if (activeBtn && typeof (activeBtn as HTMLElement).scrollIntoView === "function") {
+      (activeBtn as HTMLElement).scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
+  }, [activeTab, isOpen]);
 
   if (!isOpen) return null;
 
@@ -299,11 +318,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
 
   const handleTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0];
-    if (touch.clientX <= 32) {
-      touchStartRef.current = { x: touch.clientX, y: touch.clientY };
-    } else {
-      touchStartRef.current = null;
-    }
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY, startX: touch.clientX };
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -311,20 +326,34 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStartRef.current.x;
     const deltaY = touch.clientY - touchStartRef.current.y;
-    if (deltaX > 60 && Math.abs(deltaY) < 40) {
+    const startX = touchStartRef.current.startX;
+
+    // 1. Свайп от самого левого края экрана закрывает окно
+    if (startX <= 32 && deltaX > 60 && Math.abs(deltaY) < 40) {
       triggerHaptic("light");
       onClose();
+      touchStartRef.current = null;
+      return;
     }
+
+    // 2. Горизонтальный свайп по контенту переключает вкладки правил
+    if (Math.abs(deltaX) > 45 && Math.abs(deltaY) < 40) {
+      const currentIndex = tabs.findIndex((t) => t.id === activeTab);
+      if (deltaX < 0) {
+        // Свайп влево -> следующий режим
+        const nextIndex = (currentIndex + 1) % tabs.length;
+        triggerHaptic("light");
+        setActiveTab(tabs[nextIndex].id);
+      } else {
+        // Свайп вправо -> предыдущий режим
+        const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+        triggerHaptic("light");
+        setActiveTab(tabs[prevIndex].id);
+      }
+    }
+
     touchStartRef.current = null;
   };
-
-  const tabs: Array<{ id: ModeTab; label: string }> = [
-    { id: "BASE", label: "ОСНОВЫ" },
-    { id: "MANIAC", label: "ПОЧЕРК УБИЙЦЫ" },
-    { id: "THIEF", label: "ОЦЕПЛЕНИЕ" },
-    { id: "SECRET_SERVICE", label: "ДИРЕКТИВА НОЛЬ" },
-    { id: "LINE_UP", label: "ОЧНАЯ СТАВКА" },
-  ];
 
   return (
     <Modal
@@ -362,7 +391,10 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
         </div>
 
         <div className="relative mb-2 shrink-0">
-          <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scrollbar-none pb-1 pr-6">
+          <div
+            ref={tabListRef}
+            className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scrollbar-none pb-1 pr-6 touch-pan-x overscroll-x-contain"
+          >
             {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
               const tabIsCrime = tab.id === "MANIAC";
@@ -375,6 +407,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
               return (
                 <button
                   key={tab.id}
+                  data-tab-id={tab.id}
                   onClick={() => {
                     triggerHaptic("light");
                     setActiveTab(tab.id);
@@ -415,19 +448,26 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
         </div>
 
         <div
+          onClick={() => {
+            if (bannerSrc) {
+              triggerHaptic("light");
+              setIsViewerOpen(true);
+            }
+          }}
           className={`relative w-full h-[100px] sm:h-[120px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${
             currentMode.borderColor
-          } shadow-lg ${
+          } shadow-lg cursor-pointer group select-none transition-transform active:scale-[0.99] ${
             bannerSrc
               ? "bg-zinc-950"
               : "bg-gradient-to-r from-blue-950/40 via-zinc-900/60 to-zinc-950 border-white/10"
           }`}
+          title="Нажмите для полноэкранного просмотра арта"
         >
           {bannerSrc && (
             <img
               src={bannerSrc}
               alt={currentMode.title}
-              className="absolute inset-0 w-full h-full object-cover object-center opacity-80 pointer-events-none"
+              className="absolute inset-0 w-full h-full object-cover object-center opacity-80 group-hover:opacity-95 transition-opacity duration-300 pointer-events-none"
               onError={(e) => {
                 console.warn(`[RulesModal] Failed to load banner for ${activeTab}:`, bannerSrc, e);
                 setImgErrors((prev) => ({ ...prev, [activeTab]: true }));
@@ -436,6 +476,14 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
           )}
 
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent pointer-events-none" />
+
+          {/* Кнопка-бейдж быстрого просмотра */}
+          {bannerSrc && (
+            <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 border border-white/20 backdrop-blur-md text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-zinc-300 group-hover:bg-black/90 group-hover:text-white group-hover:border-white/40 transition-all shadow-md pointer-events-none">
+              <span className="text-xs">🔍</span>
+              <span>Нажмите для просмотра</span>
+            </div>
+          )}
 
           <div className="absolute bottom-2.5 left-3.5 right-3.5 z-10 flex items-end">
             <h3 className="text-base sm:text-lg font-black uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
@@ -513,6 +561,15 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
           </Button>
         </div>
       </div>
+
+      <ImageViewerModal
+        isOpen={isViewerOpen}
+        onClose={() => setIsViewerOpen(false)}
+        imageSrc={bannerSrc}
+        title={currentMode.title}
+        subtitle={currentMode.desc}
+        badge={currentMode.badge}
+      />
     </Modal>
   );
 };

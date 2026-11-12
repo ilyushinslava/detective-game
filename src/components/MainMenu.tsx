@@ -9,8 +9,16 @@ import { Toast } from "./Toast";
 import { BiometricSlider } from "./BiometricSlider";
 import { Button } from "./ui/Button";
 import { Modal } from "./ui/Modal";
+import { ImageViewerModal } from "./ui/ImageViewerModal";
 import { GAME_MODES_META, getGameModeTitle, getGameModeShortTitle } from "../constants/gameMeta";
 import lobbyBg from "../assets/lobby_background.webp";
+
+const MODE_BANNER_IMAGE: Record<GameModeType, string> = {
+  MANIAC_VS_OPERATIVE: "/assets/modes/maniac-banner.webp",
+  THIEF_HUNT: "/assets/modes/thief-banner.webp",
+  SECRET_SERVICE: "/assets/modes/secret-service-banner.webp",
+  LINE_UP: "/assets/modes/lineup-banner.webp",
+};
 
 import { TablesScreen } from "./TablesScreen";
 import { ProfileScreen } from "./ProfileScreen";
@@ -299,6 +307,12 @@ export const MainMenu = ({
   const [selectedRole, setSelectedRole] = useState<Role>("DETECTIVE");
   const [isTvPartyModalOpen, setIsTvPartyModalOpen] = useState(false);
   const [playerCount, setPlayerCount] = useState<number>(3);
+  const [viewerArtwork, setViewerArtwork] = useState<{
+    src: string;
+    title: string;
+    subtitle?: string;
+    badge?: string;
+  } | null>(null);
 
   const [publicRooms, setPublicRooms] = useState<Array<{
     roomCode: string;
@@ -760,13 +774,23 @@ export const MainMenu = ({
       <div className="flex-1 flex flex-col justify-center gap-2.5 max-w-xl mx-auto w-full px-4 py-2 min-h-0 overflow-y-auto custom-scrollbar">
         {GAME_MODES.map((mode) => {
           const ModeIcon = mode.icon || Icons.Crosshair;
+          const bannerPath = MODE_BANNER_IMAGE[mode.id];
+          const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+          const bannerSrc = bannerPath ? `${base}${bannerPath.startsWith("/") ? bannerPath : "/" + bannerPath}` : null;
+
           return (
             <button
               key={mode.id}
               onClick={() => { setSelectedMode(mode.id); navigateTo('MODE_DETAIL'); }}
-              className="w-full bg-zinc-950/60 hover:bg-zinc-900/80 border border-white/10 hover:border-white/25 rounded-2xl p-3.5 transition-all duration-200 cursor-pointer active:scale-[0.99] group text-left shadow-lg"
+              className="w-full relative overflow-hidden bg-zinc-950/70 hover:bg-zinc-900/90 border border-white/10 hover:border-white/25 rounded-2xl p-3.5 transition-all duration-200 cursor-pointer active:scale-[0.99] group text-left shadow-lg"
             >
-              <div className="flex items-center justify-between">
+              {bannerSrc && (
+                <div className="absolute right-0 top-0 bottom-0 w-1/3 overflow-hidden pointer-events-none opacity-20 group-hover:opacity-35 transition-opacity">
+                  <img src={bannerSrc} alt="" className="w-full h-full object-cover object-center" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/60 to-transparent" />
+                </div>
+              )}
+              <div className="relative z-10 flex items-center justify-between">
                 <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-200 group-hover:text-white group-hover:border-white/30 transition-all shrink-0 shadow-inner">
                   <ModeIcon className="w-5 h-5" />
                 </div>
@@ -775,7 +799,7 @@ export const MainMenu = ({
                 </span>
               </div>
 
-              <div className="mt-2.5">
+              <div className="relative z-10 mt-2.5">
                 <h3 className="text-sm sm:text-base font-bold text-zinc-100 uppercase tracking-wide group-hover:text-white transition-colors">
                   {mode.title}
                 </h3>
@@ -834,6 +858,9 @@ export const MainMenu = ({
   const renderModeDetail = () => {
     const summaryItems = getModeSummaryItems(activeModeData.id);
     const modeMeta = GAME_MODES_META[activeModeData.id];
+    const bannerPath = MODE_BANNER_IMAGE[activeModeData.id];
+    const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+    const modeBannerSrc = bannerPath ? `${base}${bannerPath.startsWith("/") ? bannerPath : "/" + bannerPath}` : null;
 
     return (
       <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden relative w-full h-full">
@@ -847,28 +874,60 @@ export const MainMenu = ({
         <div className="flex-1 overflow-y-auto custom-scrollbar pb-24 sm:pb-28">
           <div className="px-4 sm:px-6 py-3.5 sm:py-4 w-full max-w-xl mx-auto flex flex-col gap-4 sm:gap-4.5">
             {modeMeta?.banner && (
-              <div className={`relative w-full rounded-2xl overflow-hidden border ${modeMeta.banner.borderColor} bg-gradient-to-br ${modeMeta.banner.gradient} p-4 sm:p-5 shadow-xl`}>
-                <div className="flex items-center justify-between mb-2">
+              <div
+                onClick={() => {
+                  if (modeBannerSrc) {
+                    triggerHaptic('light');
+                    setViewerArtwork({
+                      src: modeBannerSrc,
+                      title: activeModeData.title,
+                      subtitle: modeMeta.banner.atmosphereSubtitle,
+                      badge: modeMeta.banner.badge,
+                    });
+                  }
+                }}
+                className={`relative w-full h-[140px] sm:h-[165px] rounded-2xl overflow-hidden border ${modeMeta.banner.borderColor} shadow-xl p-4 sm:p-5 flex flex-col justify-between cursor-pointer group select-none transition-transform active:scale-[0.99]`}
+                title="Нажмите для полноэкранного просмотра арта"
+              >
+                {/* Background Banner Artwork */}
+                {modeBannerSrc && (
+                  <img
+                    src={modeBannerSrc}
+                    alt={activeModeData.title}
+                    className="absolute inset-0 w-full h-full object-cover object-center opacity-75 group-hover:opacity-90 transition-opacity duration-300 pointer-events-none"
+                  />
+                )}
+                {/* Noir Gradients */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/60 to-black/30 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#080a0f]/85 via-transparent to-transparent pointer-events-none" />
+
+                {/* Top bar with Badge, Neo-Noir tag and Expand Hint */}
+                <div className="relative z-10 flex items-center justify-between">
                   <span
-                    className="text-[9px] font-mono font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border shadow-sm"
+                    className="text-[9px] font-mono font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border shadow-sm backdrop-blur-md"
                     style={{
                       borderColor: `${modeMeta.banner.accentColor}60`,
-                      backgroundColor: `${modeMeta.banner.accentColor}20`,
+                      backgroundColor: `${modeMeta.banner.accentColor}30`,
                       color: modeMeta.banner.accentColor,
                     }}
                   >
                     {modeMeta.banner.badge}
                   </span>
-                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
-                    НЕО-НУАР
-                  </span>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 border border-white/20 backdrop-blur-md text-[9px] font-black uppercase tracking-wider text-zinc-300 group-hover:bg-black/90 group-hover:text-white group-hover:border-white/40 transition-all shadow-md">
+                    <span className="text-xs">🔍</span>
+                    <span>Нажмите для просмотра</span>
+                  </div>
                 </div>
-                <div className="text-sm sm:text-base font-black tracking-wide text-zinc-100 uppercase">
-                  {modeMeta.banner.atmosphereTitle}
+
+                {/* Bottom Title & Subtitle */}
+                <div className="relative z-10">
+                  <div className="text-sm sm:text-base font-black tracking-wide text-zinc-100 uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                    {modeMeta.banner.atmosphereTitle}
+                  </div>
+                  <p className="text-xs text-zinc-300 mt-0.5 leading-relaxed drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] line-clamp-2">
+                    {modeMeta.banner.atmosphereSubtitle}
+                  </p>
                 </div>
-                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                  {modeMeta.banner.atmosphereSubtitle}
-                </p>
               </div>
             )}
 
@@ -1565,6 +1624,15 @@ export const MainMenu = ({
             </Button>
           </Modal>
         )}
+
+        <ImageViewerModal
+          isOpen={!!viewerArtwork}
+          onClose={() => setViewerArtwork(null)}
+          imageSrc={viewerArtwork?.src || null}
+          title={viewerArtwork?.title}
+          subtitle={viewerArtwork?.subtitle}
+          badge={viewerArtwork?.badge}
+        />
       </div>
     </div>
   );

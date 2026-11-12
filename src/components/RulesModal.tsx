@@ -289,7 +289,7 @@ const MODE_BANNERS: Record<ModeTab, string | null> = {
 export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
   const [activeTab, setActiveTab] = useState<ModeTab>("BASE");
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
-  const [fullscreenBanner, setFullscreenBanner] = useState<{ url: string; title: string; badge?: string; id: string } | null>(null);
+  const [fullscreenBanner, setFullscreenBanner] = useState<{ url: string; title: string; id: string } | null>(null);
   const touchStartRef = useRef<{ x: number; y: number; startX: number } | null>(null);
   const tabListRef = useRef<HTMLDivElement | null>(null);
 
@@ -356,8 +356,9 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
+    <>
+      <Modal
+        isOpen={isOpen}
       onClose={onClose}
       maxWidth="max-w-lg"
       zIndexClass="z-[70]"
@@ -456,7 +457,6 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
               setFullscreenBanner({
                 url: bannerSrc,
                 title: currentMode.title,
-                badge: currentMode.badge,
                 id: activeTab,
               });
             }
@@ -574,70 +574,66 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
           </Button>
         </div>
       </div>
+    </Modal>
 
-      <AnimatePresence>
-        {fullscreenBanner && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+    <AnimatePresence>
+      {fullscreenBanner && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 select-none cursor-pointer"
+          onClick={() => {
+            triggerHaptic("light");
+            setFullscreenBanner(null);
+          }}
+        >
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 select-none cursor-pointer"
+            onClick={() => {
+              triggerHaptic("light");
+              setFullscreenBanner(null);
+            }}
+            className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
+          >
+            ✕
+          </motion.button>
+          <motion.div
+            layoutId={`rules-mode-card-${fullscreenBanner.id}`}
+            transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
+            className="relative w-full max-w-2xl aspect-[16/9] sm:aspect-[2/1] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-zinc-950"
             onClick={() => {
               triggerHaptic("light");
               setFullscreenBanner(null);
             }}
           >
-            <motion.button
-              type="button"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.2 }}
-              onClick={() => {
-                triggerHaptic("light");
-                setFullscreenBanner(null);
-              }}
-              className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
-            >
-              ✕
-            </motion.button>
-            <motion.div
-              layoutId={`rules-mode-card-${fullscreenBanner.id}`}
+            <motion.img
+              layoutId={`rules-mode-img-${fullscreenBanner.id}`}
               transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
-              className="relative w-full max-w-2xl aspect-[16/9] sm:aspect-[2/1] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-zinc-950"
-              onClick={() => {
-                triggerHaptic("light");
-                setFullscreenBanner(null);
-              }}
+              src={fullscreenBanner.url}
+              alt={fullscreenBanner.title}
+              className="w-full h-full object-cover contrast-110"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.25, delay: 0.1 }}
+              className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-16 flex flex-col items-center text-center pointer-events-none"
             >
-              <motion.img
-                layoutId={`rules-mode-img-${fullscreenBanner.id}`}
-                transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
-                src={fullscreenBanner.url}
-                alt={fullscreenBanner.title}
-                className="w-full h-full object-cover contrast-110"
-              />
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.25, delay: 0.1 }}
-                className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-16 flex flex-col items-center text-center pointer-events-none"
-              >
-                {fullscreenBanner.badge && (
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-1.5 px-2.5 py-0.5 rounded-full border border-white/10 bg-black/40">
-                    {fullscreenBanner.badge}
-                  </span>
-                )}
-                <h2 className="text-2xl sm:text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">
-                  {fullscreenBanner.title}
-                </h2>
-              </motion.div>
+              <h2 className="text-2xl sm:text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">
+                {fullscreenBanner.title}
+              </h2>
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
-    </Modal>
-  );
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </>
+);
 };

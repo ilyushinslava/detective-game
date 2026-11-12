@@ -309,7 +309,6 @@ export const MainMenu = ({
   const [fullscreenBanner, setFullscreenBanner] = useState<{
     url: string;
     title: string;
-    badge?: string;
     id: string;
   } | null>(null);
 
@@ -802,9 +801,6 @@ export const MainMenu = ({
                 <h3 className="text-sm sm:text-base font-bold text-zinc-100 uppercase tracking-wide group-hover:text-white transition-colors">
                   {mode.title}
                 </h3>
-                <p className="text-xs text-zinc-400 leading-snug mt-1 break-words">
-                  {mode.description}
-                </p>
               </div>
             </button>
           );
@@ -872,80 +868,49 @@ export const MainMenu = ({
         
         <div className="flex-1 overflow-y-auto custom-scrollbar pb-24 sm:pb-28">
           <div className="px-4 sm:px-6 py-3.5 sm:py-4 w-full max-w-xl mx-auto flex flex-col gap-4 sm:gap-4.5">
-            {modeMeta?.banner && (
+            {modeBannerSrc && (
               <motion.div
                 layoutId={`menu-mode-card-${activeModeData.id}`}
                 transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
                 onClick={() => {
-                  if (modeBannerSrc) {
-                    triggerHaptic('light');
-                    setFullscreenBanner({
-                      url: modeBannerSrc,
-                      title: activeModeData.title,
-                      badge: modeMeta.banner.badge,
-                      id: activeModeData.id,
-                    });
-                  }
+                  triggerHaptic('light');
+                  setFullscreenBanner({
+                    url: modeBannerSrc,
+                    title: activeModeData.title,
+                    id: activeModeData.id,
+                  });
                 }}
-                className={`relative w-full h-[140px] sm:h-[165px] rounded-3xl overflow-hidden border ${modeMeta.banner.borderColor} shadow-2xl p-4 sm:p-5 flex flex-col justify-between cursor-pointer group select-none transition-transform active:scale-[0.99] shrink-0`}
+                className={`relative w-full h-[100px] sm:h-[120px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${
+                  modeMeta?.banner?.borderColor || "border-zinc-800"
+                } shadow-lg cursor-pointer group select-none transition-transform active:scale-[0.99] bg-zinc-950`}
                 title="Нажмите для просмотра полного фото"
               >
-                {/* Background Banner Artwork */}
-                {modeBannerSrc && (
-                  <motion.img
-                    layoutId={`menu-mode-img-${activeModeData.id}`}
-                    transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
-                    src={modeBannerSrc}
-                    alt={activeModeData.title}
-                    className="absolute inset-0 w-full h-full object-cover object-center opacity-75 group-hover:scale-105 transition-transform duration-500 pointer-events-none"
-                  />
-                )}
-                {/* Noir Gradients */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/60 to-black/30 pointer-events-none" />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#080a0f]/85 via-transparent to-transparent pointer-events-none" />
+                <motion.img
+                  layoutId={`menu-mode-img-${activeModeData.id}`}
+                  transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
+                  src={modeBannerSrc}
+                  alt={activeModeData.title}
+                  className="absolute inset-0 w-full h-full object-cover object-center opacity-80 group-hover:scale-105 transition-transform duration-500 pointer-events-none"
+                />
 
-                {/* Top bar with Badge & RoleRevealModal-style magnifier tag */}
-                <div className="relative z-10 flex items-center justify-between pointer-events-none">
-                  <span
-                    className="text-[9px] font-mono font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border shadow-sm backdrop-blur-md"
-                    style={{
-                      borderColor: `${modeMeta.banner.accentColor}60`,
-                      backgroundColor: `${modeMeta.banner.accentColor}30`,
-                      color: modeMeta.banner.accentColor,
-                    }}
-                  >
-                    {modeMeta.banner.badge}
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent pointer-events-none" />
+
+                <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5 opacity-85 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 text-zinc-300">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+                  </svg>
+                  <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
+                    Нажмите для просмотра полного фото
                   </span>
-                  <div className="flex items-center gap-1.5 opacity-85 group-hover:opacity-100 transition-opacity">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 text-zinc-300">
-                      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
-                    </svg>
-                    <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
-                      Нажмите для просмотра полного фото
-                    </span>
-                  </div>
                 </div>
 
-                {/* Bottom Title & Subtitle */}
-                <div className="relative z-10 pointer-events-none">
-                  <div className="text-sm sm:text-base font-black tracking-wide text-zinc-100 uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-                    {modeMeta.banner.atmosphereTitle}
-                  </div>
-                  <p className="text-xs text-zinc-300 mt-0.5 leading-relaxed drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] line-clamp-2">
-                    {modeMeta.banner.atmosphereSubtitle}
-                  </p>
+                <div className="absolute bottom-2.5 left-3.5 right-3.5 z-10 flex items-end pointer-events-none">
+                  <h3 className="text-base sm:text-lg font-black uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                    {activeModeData.title}
+                  </h3>
                 </div>
               </motion.div>
             )}
-
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider leading-tight">
-                {activeModeData.title}
-              </h1>
-              <p className="text-xs text-zinc-400 leading-snug mt-1">
-                {activeModeData.description}
-              </p>
-            </div>
 
             <div>
               <h3 className="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
@@ -1682,11 +1647,6 @@ export const MainMenu = ({
                   transition={{ duration: 0.25, delay: 0.1 }}
                   className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-16 flex flex-col items-center text-center pointer-events-none"
                 >
-                  {fullscreenBanner.badge && (
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-1.5 px-2.5 py-0.5 rounded-full border border-white/10 bg-black/40">
-                      {fullscreenBanner.badge}
-                    </span>
-                  )}
                   <h2 className="text-2xl sm:text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">
                     {fullscreenBanner.title}
                   </h2>

@@ -19,6 +19,8 @@ const MODE_BANNER_IMAGE: Record<GameModeType, string> = {
   LINE_UP: "/assets/modes/lineup-banner.webp",
 };
 
+const BANNER_SPRING_TRANSITION = { type: "spring", bounce: 0, duration: 0.4 } as const;
+
 import { TablesScreen } from "./TablesScreen";
 import { ProfileScreen } from "./ProfileScreen";
 
@@ -871,7 +873,7 @@ export const MainMenu = ({
             {modeBannerSrc && (
               <motion.div
                 layoutId={`menu-mode-card-${activeModeData.id}`}
-                transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
+                transition={BANNER_SPRING_TRANSITION}
                 onClick={() => {
                   triggerHaptic('light');
                   setFullscreenBanner({
@@ -887,7 +889,7 @@ export const MainMenu = ({
               >
                 <motion.img
                   layoutId={`menu-mode-img-${activeModeData.id}`}
-                  transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
+                  transition={BANNER_SPRING_TRANSITION}
                   src={modeBannerSrc}
                   alt={activeModeData.title}
                   className="absolute inset-0 w-full h-full object-cover object-center opacity-80 group-hover:scale-105 transition-transform duration-500 pointer-events-none"
@@ -895,13 +897,10 @@ export const MainMenu = ({
 
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent pointer-events-none" />
 
-                <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5 opacity-85 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 text-zinc-300">
+                <div className="absolute top-2.5 right-2.5 z-10 flex items-center justify-center p-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 opacity-85 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-zinc-300">
                     <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
                   </svg>
-                  <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
-                    Нажмите для просмотра полного фото
-                  </span>
                 </div>
 
                 <div className="absolute bottom-2.5 left-3.5 right-3.5 z-10 flex items-end pointer-events-none">
@@ -1604,7 +1603,7 @@ export const MainMenu = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 select-none cursor-pointer"
+              className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-md flex flex-col items-center justify-center p-4 select-none cursor-pointer"
               onClick={() => {
                 triggerHaptic("light");
                 setFullscreenBanner(null);
@@ -1626,7 +1625,7 @@ export const MainMenu = ({
               </motion.button>
               <motion.div
                 layoutId={`menu-mode-card-${fullscreenBanner.id}`}
-                transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
+                transition={BANNER_SPRING_TRANSITION}
                 className="relative w-full max-w-2xl aspect-[16/9] sm:aspect-[2/1] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-zinc-950"
                 onClick={() => {
                   triggerHaptic("light");
@@ -1635,7 +1634,7 @@ export const MainMenu = ({
               >
                 <motion.img
                   layoutId={`menu-mode-img-${fullscreenBanner.id}`}
-                  transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
+                  transition={BANNER_SPRING_TRANSITION}
                   src={fullscreenBanner.url}
                   alt={fullscreenBanner.title}
                   className="w-full h-full object-cover contrast-110"

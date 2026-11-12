@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       injectRegister: "auto",
       manifest: {
-        name: "Реквием: Последний выстрел",
-        short_name: "Реквием",
+        name: "Под подозрением (Prime Suspect)",
+        short_name: "Под подозрением",
         description: "Детективная пошаговая киберпанк-стратегия",
         theme_color: "#080a0f",
         background_color: "#080a0f",

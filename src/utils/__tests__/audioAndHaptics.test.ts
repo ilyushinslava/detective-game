@@ -103,6 +103,77 @@ describe("Звуковая система и тактильный отклик (
       expect(() => soundManager.startMorseTone(700)).not.toThrow();
       soundManager.toggleSfx(); // возвращаем в исходное
     });
+
+    it("startTvAmbient и stopTvAmbient управляют процедурным аналоговым нео-нуарным эмбиентом на Web Audio API", () => {
+      (soundManager as any).isAmbientEnabled = true;
+
+      const mockOsc = {
+        type: "sine",
+        frequency: { setValueAtTime: vi.fn(), value: 55 },
+        connect: vi.fn(),
+        start: vi.fn(),
+        stop: vi.fn(),
+        disconnect: vi.fn(),
+      };
+      const mockFilter = {
+        type: "lowpass",
+        frequency: { setValueAtTime: vi.fn(), value: 140 },
+        Q: { setValueAtTime: vi.fn(), value: 2.0 },
+        connect: vi.fn(),
+        disconnect: vi.fn(),
+      };
+      const mockGain = {
+        gain: {
+          value: 0.16,
+          setValueAtTime: vi.fn(),
+          linearRampToValueAtTime: vi.fn(),
+          cancelScheduledValues: vi.fn(),
+        },
+        connect: vi.fn(),
+        disconnect: vi.fn(),
+      };
+      const mockCtx = {
+        state: "suspended",
+        currentTime: 0,
+        resume: vi.fn().mockResolvedValue(undefined),
+        createOscillator: vi.fn().mockReturnValue(mockOsc),
+        createBiquadFilter: vi.fn().mockReturnValue(mockFilter),
+        createGain: vi.fn().mockReturnValue(mockGain),
+        createBuffer: vi.fn().mockReturnValue({}),
+        createBufferSource: vi.fn().mockReturnValue({ connect: vi.fn(), start: vi.fn() }),
+        destination: {},
+      };
+
+      (soundManager as any).ctx = mockCtx;
+
+      // 1. Запуск ТВ-эмбиента
+      soundManager.startTvAmbient(0.16);
+      expect(mockCtx.resume).toHaveBeenCalled();
+      expect(mockCtx.createBiquadFilter).toHaveBeenCalled();
+      expect(mockCtx.createGain).toHaveBeenCalled();
+      expect(mockCtx.createOscillator).toHaveBeenCalled();
+      expect(soundManager.isTvAmbientActive()).toBe(true);
+
+      // 2. Защита от дубликатов: повторный start не создает новые ноды
+      const oscCallsBefore = mockCtx.createOscillator.mock.calls.length;
+      soundManager.startTvAmbient(0.16);
+      expect(mockCtx.createOscillator.mock.calls.length).toBe(oscCallsBefore);
+
+      // 3. Остановка ТВ-эмбиента с плавным затуханием
+      soundManager.stopTvAmbient();
+      expect(soundManager.isTvAmbientActive()).toBe(false);
+      expect(mockGain.gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.0001, 1.2);
+      expect(mockOsc.stop).toHaveBeenCalledWith(1.25);
+
+      // 4. Повторный вызов stopTvAmbient безопасен
+      expect(() => soundManager.stopTvAmbient()).not.toThrow();
+
+      // 5. Не запускается при выключенном эмбиенте
+      (soundManager as any).isAmbientEnabled = false;
+      soundManager.startTvAmbient(0.16);
+      expect(soundManager.isTvAmbientActive()).toBe(false);
+      (soundManager as any).isAmbientEnabled = true;
+    });
   });
 
   describe("triggerHaptic", () => {

@@ -498,46 +498,46 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   const getHudStatus = () => {
     switch (currentModule) {
       case "BASICS":
-        if (step === 1) return <span className="text-amber-400 font-bold">ОСНОВЫ: МАНЕВР 3-ГО РЯДА ВЛЕВО (←)</span>;
-        if (step === 2) return <span className="text-amber-400 font-bold">РАДИУС 3×3: ВЫБЕРИТЕ СОСЕДА</span>;
-        if (step === 3) return <span className="text-emerald-400 font-bold">ANTI-UNDO: ОБРАТНЫЙ ХОД ЗАБЛОКИРОВАН</span>;
+        if (step === 1) return <span className="text-amber-400 font-bold">СДВИНЬТЕ 3-Й РЯД ВЛЕВО (←)</span>;
+        if (step === 2) return <span className="text-amber-400 font-bold">ВЫБЕРИТЕ СОСЕДНЕГО ПЕРСОНАЖА</span>;
+        if (step === 3) return <span className="text-emerald-400 font-bold">ОБРАТНЫЙ СДВИГ ЗАБЛОКИРОВАН (ANTI-UNDO)</span>;
         break;
       case "MANIAC_KILLER":
-        if (step === 1) return <span className="text-amber-400 font-bold">ОХОТА: МАНЕВР 3-Й КОЛОНКИ ВНИЗ (↓)</span>;
-        if (step === 2) return <span className="text-amber-400 font-bold">ЗАХВАТ ЦЕЛИ: ВЫБЕРИТЕ ЕЛЕНУ СОКОЛОВУ</span>;
-        if (step === 3) return <span className="text-amber-400 font-bold">ЛИКВИДАЦИЯ: ПРОИЗВЕДИТЕ ВЫСТРЕЛ</span>;
-        if (step === 4) return <span className="text-amber-400 font-bold">ПОБЕГ: СМЕНИТЕ ЛИЧНОСТЬ</span>;
-        if (step === 5) return <span className="text-emerald-400 font-bold">КОНСПИРАЦИЯ УСПЕШНА</span>;
+        if (step === 1) return <span className="text-amber-400 font-bold">СДВИНЬТЕ 3-Ю КОЛОНКУ ВНИЗ (↓)</span>;
+        if (step === 2) return <span className="text-amber-400 font-bold">ВЫБЕРИТЕ ЕЛЕНУ СОКОЛОВУ</span>;
+        if (step === 3) return <span className="text-amber-400 font-bold">НАЖМИТЕ «ЛИКВИДИРОВАТЬ ЦЕЛЬ»</span>;
+        if (step === 4) return <span className="text-amber-400 font-bold">СМЕНИТЕ МАСКУ ДЛЯ МАСКИРОВКИ</span>;
+        if (step === 5) return <span className="text-emerald-400 font-bold">МАСКИРОВКА УСПЕШНА</span>;
         break;
       case "MANIAC_DETECTIVE":
-        if (step === 1) return <span className="text-amber-400 font-bold">АНАЛИЗ АЛИБИ: ВЫБЕРИТЕ ПОДОЗРЕВАЕМОГО БЕЗ ЩИТА</span>;
-        if (step === 2) return <span className="text-amber-400 font-bold">ЗАДЕРЖАНИЕ: ПОДТВЕРДИТЕ АРЕСТ</span>;
-        if (step === 3) return <span className="text-amber-400 font-bold">ЭВАКУАЦИЯ: ЗАЧИСТИТЕ МОСТОВУЮ ВНИЗ</span>;
-        if (step === 4) return <span className="text-emerald-400 font-bold">ДЕЛО ЗАКРЫТО: СЕКТОР ЗАЧИЩЕН</span>;
+        if (step === 1) return <span className="text-amber-400 font-bold">ВЫБЕРИТЕ ПОДОЗРЕВАЕМОГО БЕЗ АЛИБИ</span>;
+        if (step === 2) return <span className="text-amber-400 font-bold">ПОДТВЕРДИТЕ ЗАДЕРЖАНИЕ</span>;
+        if (step === 3) return <span className="text-amber-400 font-bold">ПРОВЕДИТЕ ЗАЧИСТКУ ПОЛЯ</span>;
+        if (step === 4) return <span className="text-emerald-400 font-bold">ДЕЛО ЗАКРЫТО: МАНЬЯК ПОЙМАН</span>;
         break;
       case "THIEF_ROBBER":
-        if (step === 1) return <span className="text-amber-400 font-bold">ТЕНИ: ВЫБЕРИТЕ СОСЕДА ДЛЯ КРАЖИ</span>;
-        if (step === 2) return <span className="text-amber-400 font-bold">ОГРАБЛЕНИЕ: СРЕЖЬТЕ КОШЕЛЕК БЕЗ ШУМА</span>;
-        if (step === 3) return <span className="text-amber-400 font-bold">МАСКИРОВКА: СМЕНИТЕ ЛИЧНОСТЬ</span>;
-        if (step === 4) return <span className="text-emerald-400 font-bold">СЛЕДЫ ЗАКРЫТЫ: ОПЕРАЦИЯ УСПЕШНА</span>;
+        if (step === 1) return <span className="text-amber-400 font-bold">ВЫБЕРИТЕ СОСЕДНЕГО ЖИТЕЛЯ</span>;
+        if (step === 2) return <span className="text-amber-400 font-bold">НАЖМИТЕ «УКРАСТЬ СОКРОВИЩЕ»</span>;
+        if (step === 3) return <span className="text-amber-400 font-bold">СМЕНИТЕ МАСКУ ИЗ РУКИ</span>;
+        if (step === 4) return <span className="text-emerald-400 font-bold">КРАЖА И ОТХОД УСПЕШНЫ</span>;
         break;
       case "THIEF_POLICE":
-        if (step === 1) return <span className="text-amber-400 font-bold">УЛИКИ: ВЫБЕРИТЕ СОСЕДА ОГРАБЛЕННОГО</span>;
-        if (step === 2) return <span className="text-amber-400 font-bold">КОРДОН: ВЫЗОВИТЕ ПАТРУЛЬНУЮ ГРУППУ</span>;
-        if (step === 3) return <span className="text-emerald-400 font-bold">ПЕРЕХВАТ: АРЕСТУЙТЕ ГРАБИТЕЛЯ</span>;
+        if (step === 1) return <span className="text-amber-400 font-bold">ВЫБЕРИТЕ СОСЕДА ОГРАБЛЕННОГО</span>;
+        if (step === 2) return <span className="text-amber-400 font-bold">ВЫСТАВЬТЕ ПАТРУЛЬ НА КЛЕТКУ</span>;
+        if (step === 3) return <span className="text-emerald-400 font-bold">ЗАДЕРЖИТЕ ВОРА</span>;
         break;
       case "SECRET_SERVICE":
-        if (step === 1) return <span className="text-amber-400 font-bold">ЭФИР: ВЫБЕРИТЕ ОЧЕВИДЦА РЯДОМ</span>;
-        if (step === 2) return <span className="text-amber-400 font-bold">СКАНИРОВАНИЕ: ПРОВЕДИТЕ РАДИООПРОС</span>;
-        if (step === 3) return <span className="text-amber-400 font-bold">КОНТАКТ: ЗАХВАТИТЕ ВРАЖЕСКОГО АГЕНТА</span>;
-        if (step === 4) return <span className="text-emerald-400 font-bold">ТРОФЕЙ: РАЗОБЛАЧИТЕ ШПИОНА</span>;
+        if (step === 1) return <span className="text-amber-400 font-bold">ВЫБЕРИТЕ СОСЕДНЕГО СВИДЕТЕЛЯ</span>;
+        if (step === 2) return <span className="text-amber-400 font-bold">РАДАР: ВРАГ В РАДИУСЕ 3×3</span>;
+        if (step === 3) return <span className="text-amber-400 font-bold">ВЫБЕРИТЕ СОФИЮ РОМАНОВУ</span>;
+        if (step === 4) return <span className="text-emerald-400 font-bold">ШПИОН РАЗОБЛАЧЕН</span>;
         break;
       case "LINE_UP":
-        if (step === 1) return <span className="text-amber-400 font-bold">ДОПРОСНАЯ: УТОЧНИТЕ ПРИМЕТЫ У СВИДЕТЕЛЯ</span>;
+        if (step === 1) return <span className="text-amber-400 font-bold">ЗАДАЙТЕ ВОПРОС СВИДЕТЕЛЮ</span>;
         if (step === 2) return <span className="text-amber-400 font-bold">ОТВЕТ: «ДА, ЕСТЬ ГОЛОВНОЙ УБОР»</span>;
-        if (step === 3) return <span className="text-amber-400 font-bold">ИСКЛЮЧЕНИЕ: ВЫБЕРИТЕ ЕДИНСТВЕННОГО БЕЗ АЛИБИ</span>;
-        if (step === 4) return <span className="text-amber-400 font-bold">ВЕРДИКТ: ВЫНЕСИТЕ РЕШАЮЩЕЕ ОБВИНЕНИЕ</span>;
-        if (step === 5) return <span className="text-emerald-400 font-bold">СУД: ПОДОЗРЕВАЕМЫЙ ИЗОБЛИЧЕН</span>;
+        if (step === 3) return <span className="text-amber-400 font-bold">ВЫБЕРИТЕ РУСЛАНА ГРОМОВА</span>;
+        if (step === 4) return <span className="text-amber-400 font-bold">ОБВИНЕНИЕ ПОДТВЕРЖДЕНО</span>;
+        if (step === 5) return <span className="text-emerald-400 font-bold">КУРС АКАДЕМИИ СДАН</span>;
         break;
     }
     return <span className="text-zinc-500 font-bold">ОЖИДАНИЕ...</span>;
@@ -545,13 +545,13 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   const getModuleTitle = () => {
     switch (currentModule) {
-      case "BASICS": return "ОСНОВЫ THE WICKED CITY";
-      case "MANIAC_KILLER": return "КОНТРАКТ: УБИЙЦА";
-      case "MANIAC_DETECTIVE": return "ЗАЧИСТКА: ДЕТЕКТИВ";
-      case "THIEF_ROBBER": return "ТЕНИ: ВОР";
-      case "THIEF_POLICE": return "КОРДОН: ПОЛИЦИЯ";
-      case "SECRET_SERVICE": return "ПЕРЕХВАТ: АГЕНТ";
-      case "LINE_UP": return "ОЧНАЯ СТАВКА";
+      case "BASICS": return "УРОК 1: ОСНОВЫ ИГРЫ";
+      case "MANIAC_KILLER": return "УРОК 2: ИГРА ЗА МАНЬЯКА";
+      case "MANIAC_DETECTIVE": return "УРОК 3: ИГРА ЗА ОПЕРАТИВНИКА";
+      case "THIEF_ROBBER": return "УРОК 4: ИГРА ЗА ВОРА";
+      case "THIEF_POLICE": return "УРОК 5: ИГРА ЗА ПОЛИЦИЮ";
+      case "SECRET_SERVICE": return "УРОК 6: РАДИООПРОС И РАДАР";
+      case "LINE_UP": return "УРОК 7: ОЧНАЯ СТАВКА";
       default: return "АКАДЕМИЯ";
     }
   };
@@ -573,8 +573,8 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               ✕ В меню
             </button>
             <div className="flex flex-col items-center">
-              <span className="text-[9px] font-mono text-emerald-400 uppercase tracking-widest">Академия</span>
-              <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase">Архив The Wicked City</h2>
+              <span className="text-[9px] font-mono text-emerald-400 uppercase tracking-widest">Обучение</span>
+              <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase">Академия детективов</h2>
             </div>
             <div className="text-right">
               <span className="text-[10px] font-mono text-zinc-400">
@@ -594,12 +594,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Основы The Wicked City</h3>
+                <h3 className="text-base font-black text-white uppercase tracking-wider">1. Основы игры</h3>
                 {completedModules.includes("BASICS") && (
                   <span className="text-[9px] font-mono font-bold text-emerald-400 uppercase bg-emerald-900/20 px-2 py-0.5 rounded border border-emerald-500/30">✓ Сдано</span>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">Первые шаги: тороидальный маневр улиц, работа в радиусе 3×3 и жесткое правило Anti-Undo.</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Как устроен город: маневры рядов и колонок, радиус соседства 3×3 и правило Anti-Undo.</p>
             </div>
 
             {/* 2. MANIAC_KILLER */}
@@ -612,12 +612,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Синдикат (Охота: Убийца)</h3>
+                <h3 className="text-base font-black text-white uppercase tracking-wider">2. Почерк убийцы: Маньяк</h3>
                 {completedModules.includes("MANIAC_KILLER") && (
                   <span className="text-[9px] font-mono font-bold text-emerald-400 uppercase bg-emerald-900/20 px-2 py-0.5 rounded border border-emerald-500/30">✓ Сдано</span>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">Работа по контракту. Подведите жертву, нажмите на курок и растворитесь в толпе с новой личностью.</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Как охотиться за жертвами из списка, делать выстрел и скрываться, меняя маску.</p>
             </div>
 
             {/* 3. MANIAC_DETECTIVE */}
@@ -630,12 +630,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Зачистка (Охота: Детектив)</h3>
+                <h3 className="text-base font-black text-white uppercase tracking-wider">3. Почерк убийцы: Оперативник</h3>
                 {completedModules.includes("MANIAC_DETECTIVE") && (
                   <span className="text-[9px] font-mono font-bold text-emerald-400 uppercase bg-emerald-900/20 px-2 py-0.5 rounded border border-emerald-500/30">✓ Сдано</span>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">Вычисление убийцы по алиби, жесткое задержание и зачистка сетки (мертвые уходят вниз).</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Как вычислять маньяка по алиби свидетелей, проводить задержание и делать зачистку поля.</p>
             </div>
 
             {/* 4. THIEF_ROBBER */}
@@ -648,12 +648,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Тени (Ограбление: Вор)</h3>
+                <h3 className="text-base font-black text-white uppercase tracking-wider">4. Оцепление: Вор</h3>
                 {completedModules.includes("THIEF_ROBBER") && (
                   <span className="text-[9px] font-mono font-bold text-emerald-400 uppercase bg-emerald-900/20 px-2 py-0.5 rounded border border-emerald-500/30">✓ Сдано</span>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">Тихая работа. Изъятие сокровищ у соседей и мгновенная смена маски из резерва.</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Как незаметно воровать сокровища у соседей и сбрасывать подозрения сменой маски из руки.</p>
             </div>
 
             {/* 5. THIEF_POLICE */}
@@ -666,12 +666,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Кордон (Ограбление: Полиция)</h3>
+                <h3 className="text-base font-black text-white uppercase tracking-wider">5. Оцепление: Полиция</h3>
                 {completedModules.includes("THIEF_POLICE") && (
                   <span className="text-[9px] font-mono font-bold text-emerald-400 uppercase bg-emerald-900/20 px-2 py-0.5 rounded border border-emerald-500/30">✓ Сдано</span>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">Поиск подозреваемого рядом с жертвой, блокировка района патрулями и задержание.</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Как находить следы кражи, перекрывать квартал патрулями и ловить вора с поличным.</p>
             </div>
 
             {/* 6. SECRET_SERVICE */}
@@ -684,12 +684,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Перехват (Контрразведка)</h3>
+                <h3 className="text-base font-black text-white uppercase tracking-wider">6. Директива «Ноль»: Контрразведка</h3>
                 {completedModules.includes("SECRET_SERVICE") && (
                   <span className="text-[9px] font-mono font-bold text-emerald-400 uppercase bg-emerald-900/20 px-2 py-0.5 rounded border border-emerald-500/30">✓ Сдано</span>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">Опрос очевидцев в секторе, сканирование радаром и разоблачение вражеского резидента.</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Как опрашивать свидетелей, использовать радар и разоблачать вражеских агентов.</p>
             </div>
 
             {/* 7. LINE_UP */}
@@ -702,12 +702,12 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-black text-white uppercase tracking-wider">Допросная (Очная ставка)</h3>
+                <h3 className="text-base font-black text-white uppercase tracking-wider">7. Очная ставка: Допрос</h3>
                 {completedModules.includes("LINE_UP") && (
                   <span className="text-[9px] font-mono font-bold text-emerald-400 uppercase bg-emerald-900/20 px-2 py-0.5 rounded border border-emerald-500/30">✓ Сдано</span>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">Дедуктивная дуэль на истощение. Выявление улик, отсечение ложных следов и финальный вердикт.</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">Как задавать вопросы по приметам, отсекать невиновных и предъявлять вердикт.</p>
             </div>
           </div>
 
@@ -774,21 +774,21 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {/* 1. BASICS */}
               {currentModule === "BASICS" && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Механика кварталов</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Маневр поля</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Добро пожаловать в The Wicked City. Улицы здесь постоянно меняются.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Игровое поле состоит из 25 персонажей. Каждый ход вы можете сдвинуть любой ряд или колонку на 1 клетку. Поле замкнуто: персонаж, вышедший за край, возвращается с противоположной стороны.</div>
                     <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите стрелку <b className="text-emerald-400">←</b> слева от 3-го ряда.</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Маневр выполнен. Крайний житель вернулся с противоположной стороны.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Ряд сдвинулся влево. Персонаж с левого края перешёл на правый фланг.</div>
                   </div>
                 </div>
               )}
               {currentModule === "BASICS" && step === 2 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Зона контроля 3×3</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Радиус действия 3×3</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> В этом городе доверять можно лишь тем, кто на расстоянии вытянутой руки.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Выберите любого соседа в радиусе 3×3 вокруг вашей карты.</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Цель в прицеле. Взаимодействия за пределами 3×3 невозможны.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Большинство действий в игре (атаки, кражи, проверки) работают только на 8 соседних клеток вокруг вашего персонажа.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите на любого соседа вокруг вашей карты.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Сосед выбран. До персонажей дальше одной клетки дотянуться нельзя.</div>
                   </div>
                 </div>
               )}
@@ -796,9 +796,9 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Правило Anti-Undo</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Улицы не прощают сомнений. Отменить ход оппонента нельзя.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Обратный маневр заблокирован. Завершите первый модуль.</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Базовые законы The Wicked City усвоены.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Соперник не может сразу же отменить ваш ход и вернуть ряд назад. Это правило исключает бесконечные повторы.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Обратный сдвиг заблокирован. Завершите первый урок.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Базовые правила движения поля усвоены.</div>
                   </div>
                 </div>
               )}
@@ -806,51 +806,51 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {/* 2. MANIAC_KILLER */}
               {currentModule === "MANIAC_KILLER" && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Охота: Подвод жертвы</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Подвод жертвы</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Синдикат ждет смерти Елены Соколовой. Она должна войти в ваш сектор 3×3.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Выполните маневр 3-й колонки <b className="text-emerald-400">↓</b> вниз.</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Жертва загнана в ловушку.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Ваша цель — Елена Соколова из закрытого списка жертв. Чтобы совершить нападение, подведите её к себе в радиус 3×3.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Сдвиньте 3-ю колонку вниз стрелкой <b className="text-emerald-400">↓</b>.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Елена Соколова оказалась рядом с вами.</div>
                   </div>
                 </div>
               )}
               {currentModule === "MANIAC_KILLER" && step === 2 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Охота: Захват цели</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Выбор цели</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Не делайте резких движений. Убедитесь, что это она.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите на карточку Елены Соколовой (#03).</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Жертва в прицеле. Выстрел готов.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Жертва в зоне досягаемости. Выберите её карточку на поле.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите на карточку Елены Соколовой.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Цель выбрана. Оружие готово к выстрелу.</div>
                   </div>
                 </div>
               )}
               {currentModule === "MANIAC_KILLER" && step === 3 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Охота: Ликвидация</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Ликвидация жертвы</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Пора отрабатывать гонорар синдиката.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Ликвидировать по заказу».</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Выстрел эхом разнесся по кварталу. Детектив идет по следу.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> При нападении маньяк раскрывает своё примерное местоположение: выстрел слышен на соседних клетках.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Ликвидировать цель».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Жертва устранена. Оперативник начинает поиски стрелка.</div>
                   </div>
                 </div>
               )}
               {currentModule === "MANIAC_KILLER" && step === 4 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Охота: Побег</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Смена маски (Конспирация)</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Полиция The Wicked City уже здесь. Растворитесь в тенях.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Активируйте «Конспирация (Побег)».</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Вы сбрасываете старую маску.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> После выстрела оставаться в прежнем облике опасно. Смените тайную личность на случайного персонажа из колоды.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Сменить маску».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Вы получили новую тайную личность. Оперативник больше не знает, кем вы управляете.</div>
                   </div>
                 </div>
               )}
               {currentModule === "MANIAC_KILLER" && step === 5 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Конспирация успешна</h3>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Маскировка успешна</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Новое лицо, чистая совесть.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Завершите модуль убийцы.</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Навык ликвидации и маскировки отточен.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Теперь вы играете за нового жителя. Следы заметены.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Завершите урок за Маньяка.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Навыки маневра, атаки и конспирации освоены.</div>
                   </div>
                 </div>
               )}
@@ -858,41 +858,41 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {/* 3. MANIAC_DETECTIVE */}
               {currentModule === "MANIAC_DETECTIVE" && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Детектив: Анализ алиби</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Проверка алиби</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Выстрел в центре. Свидетели в зоне 3×3 с алиби отмечены синим щитом.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Найдите подозреваемого без щита (#07).</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Круг сузился. Убийца у вас на крючке.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Маньяк стрелял из клеток вокруг жертвы. Все невиновные свидетели подтвердили алиби (синий щит). Маньяк — единственный сосед без алиби.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Найдите и выберите подозреваемого без щита алиби.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Подозреваемый вычислен. На нём нет алиби.</div>
                   </div>
                 </div>
               )}
               {currentModule === "MANIAC_DETECTIVE" && step === 2 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Детектив: Арест</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Задержание маньяка</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Улики неопровержимы. Пора брать его жестко.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Задержание».</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Преступник в наручниках. Вы спасли чью-то жизнь.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Когда вы уверены в личности убийцы, проведите задержание.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Задержать подозреваемого».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Маньяк арестован. Вы спасли город от опасного преступника.</div>
                   </div>
                 </div>
               )}
               {currentModule === "MANIAC_DETECTIVE" && step === 3 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Детектив: Зачистка сетки</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Зачистка поля</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Улицы завалены трупами. Нужно уплотнить зону.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Выполните действие «Зачистка».</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Ликвидированные ушли на дно (вниз сетки), живые сместились вверх.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Погибшие жители остаются на поле. Действие «Зачистка» сдвигает всех выбывших вниз сетки, а живых поднимает наверх.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Зачистка поля».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Поле уплотнено: живые персонажи сгруппированы сверху, выбывшие — внизу.</div>
                   </div>
                 </div>
               )}
               {currentModule === "MANIAC_DETECTIVE" && step === 4 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Сектор чист</h3>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Дело раскрыто</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Город стал чуточку безопаснее.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Завершите дедуктивный модуль.</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Работа с алиби и зачисткой освоена.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Вы умеете читать алиби свидетелей, задерживать убийцу и зачищать поле.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Завершите урок за Оперативника.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Основы работы детектива успешно пройдены.</div>
                   </div>
                 </div>
               )}
@@ -900,41 +900,41 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {/* 4. THIEF_ROBBER */}
               {currentModule === "THIEF_ROBBER" && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Вор: Выбор цели</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Выбор жертвы кражи</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Ночь в The Wicked City скрывает ваши шаги. Присмотрите жертву.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Выберите любого соседа в радиусе 3×3.</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Идеальная мишень для карманной кражи.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Вор побеждает, если украдёт 8 сокровищ. Красть можно только у соседних жителей в радиусе 3×3.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Выберите любого соседа вокруг себя.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Цель выбрана.</div>
                   </div>
                 </div>
               )}
               {currentModule === "THIEF_ROBBER" && step === 2 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Вор: Кража</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Кража сокровища</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Никаких выстрелов. Срежьте кошелек элегантно и без шума.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Кража сокровища».</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Сокровище ваше. На жертве осталась желтая метка.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Кража происходит тихо, но на ограбленном жителе остаётся желтая метка. Полиция сразу узнает район кражи.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Украсть сокровище».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Сокровище у вас в кармане. На жертве появилась отметка ограбления.</div>
                   </div>
                 </div>
               )}
               {currentModule === "THIEF_ROBBER" && step === 3 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Вор: Сброс хвоста</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Смена маски из руки</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Патрули ищут вас по ориентировке. Используйте резерв в руке.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Активируйте «Конспирация (Маска)» и подтвердите новую личность.</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Новое лицо. Старое возвращается в руку.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Полиция ищет вора среди соседей ограбленного. Чтобы сбить погоню со следа, смените тайную личность картой из руки.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Сменить маску» и подтвердите выбор.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Вы переместились в новое тело. Прежний персонаж вернулся к вам в руку.</div>
                   </div>
                 </div>
               )}
               {currentModule === "THIEF_ROBBER" && step === 4 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Операция успешна</h3>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Следы заметены</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Вы растворились в тенях мегаполиса.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Завершите модуль.</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Кража и смена масок отработаны.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Полиция прочесывает старый район, а вы уже на другом конце города.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Завершите урок за Вора.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Механика краж и смены масок освоена.</div>
                   </div>
                 </div>
               )}
@@ -942,31 +942,31 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {/* 5. THIEF_POLICE */}
               {currentModule === "THIEF_POLICE" && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Полиция: Место преступления</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Поиск по горячим следам</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Ограбление в элитном районе. Жертва (желтая метка) в панике. Грабитель где-то рядом.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Выберите подозрительного соседа жертвы (#03).</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Объект взят в оперативную разработку.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> В городе произошла кража. Ограбленный житель отмечен желтой иконкой. Вор находится строго среди его соседей в радиусе 3×3.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Выберите соседа ограбленной жертвы.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Подозреваемый взят на заметку.</div>
                   </div>
                 </div>
               )}
               {currentModule === "THIEF_POLICE" && step === 2 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Полиция: Кордон</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Выставление патруля</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Нужно перекрыть пути отхода.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Вызов патруля».</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Сектор полностью оцеплен.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Шеф полиции может отправить патрульного на клетку. Патрульный блокирует передвижение и помогает окружить вора.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Выставить патруль».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Клетка заблокирована патрульным. Пути отхода отрезаны.</div>
                   </div>
                 </div>
               )}
               {currentModule === "THIEF_POLICE" && step === 3 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Полиция: Перехват</h3>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Задержание вора</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Мы зажали его в угол.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Задержание».</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Воришка в камере. Ценности возвращены.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Вор прижат к стене и не может уйти.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Задержать вора».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Вор арестован с поличным, похищенные ценности возвращены.</div>
                   </div>
                 </div>
               )}
@@ -974,41 +974,41 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {/* 6. SECRET_SERVICE */}
               {currentModule === "SECRET_SERVICE" && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Агент: Радиоперехват</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Связь со свидетелем</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> В эфире The Wicked City — вражеская частота. Найдите очевидца.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Выберите соседа в радиусе 3×3 для контакта.</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Очевидец готов дать наводку по закрытому каналу.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> В режиме контрразведки каждый игрок тайно управляет шпионом. Чтобы найти врага, опрашивайте свидетелей.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Выберите соседнего персонажа в радиусе 3×3.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Свидетель готов дать показания по рации.</div>
                   </div>
                 </div>
               )}
               {currentModule === "SECRET_SERVICE" && step === 2 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Агент: Радиоопрос</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Опрос свидетеля</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Используйте технику, чтобы проверить окружение очевидца (сектор 3×3).</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Активируйте «Опрос свидетелей».</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Радар горит красным: враг в этой зоне.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Радар проверяет 8 клеток вокруг выбранного свидетеля. Если вражеский шпион рядом, радар покажет «БЛИЗКО» (красный цвет).</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Опрос свидетелей».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Радар загорелся красным: вражеский шпион находится среди соседей этого свидетеля!</div>
                   </div>
                 </div>
               )}
               {currentModule === "SECRET_SERVICE" && step === 3 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Агент: Захват резидента</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Выбор подозреваемого</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Сигнал ведет к Софии Романовой.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Выделите вражеского шпиона.</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Цель в контуре захвата.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Проверка сузила круг поисков до Софии Романовой.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите на карточку Софии Романовой.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Вражеский агент под прицелом.</div>
                   </div>
                 </div>
               )}
               {currentModule === "SECRET_SERVICE" && step === 4 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Агент: Разоблачение</h3>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Разоблачение шпиона</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Сорвите с нее маску.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Разоблачение шпиона».</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Компромат добыт. Модуль радиоперехвата сдан.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Вычислив врага, проведите разоблачение и победите в партии.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Разоблачить шпиона».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Вражеский агент раскрыт. Победа контрразведки!</div>
                   </div>
                 </div>
               )}
@@ -1016,51 +1016,51 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
               {/* 7. LINE_UP */}
               {currentModule === "LINE_UP" && step === 1 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Очная ставка: Каталог</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Вопрос по примете</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> В допросной душно. У вас только обрывки показаний свидетелей.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Проверьте деталь. Нажмите «Задать вопрос: Головной убор?».</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Свидетель подтверждает: «ДА, ОН БЫЛ В ШЛЯПЕ».</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> В режиме «Очная ставка» соперники отгадывают тайного персонажа друг друга, задавая вопросы о внешности.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Спросить: есть ли головной убор?».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Свидетель отвечает: «Да, подозреваемый был в шляпе».</div>
                   </div>
                 </div>
               )}
               {currentModule === "LINE_UP" && step === 2 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Очная ставка: Отсечение</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Исключение неподходящих</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Дедукция — орудие хирургическое.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Исключить непричастных».</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Все лица без шляп получают железное алиби.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Раз у преступника есть шляпа, все персонажи с непокрытой головой невиновны. Их можно исключить из подозреваемых.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Исключить невиновных».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Все персонажи без шляп получили щит алиби и выбыли из числа подозреваемых.</div>
                   </div>
                 </div>
               )}
               {currentModule === "LINE_UP" && step === 3 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Очная ставка: Мишень</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Единственный подозреваемый</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> В списке остался лишь один подозреваемый.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Выберите Руслана Громова (#01).</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Фигурант готов к оглашению вердикта.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> После исключения остался единственный подходящий персонаж — Руслан Громов.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите на карточку Руслана Громова в центре поля.</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Руслан Громов выбран для предъявления обвинения.</div>
                   </div>
                 </div>
               )}
               {currentModule === "LINE_UP" && step === 4 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Очная ставка: Приговор</h3>
+                  <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider mb-0.5">Финальное обвинение</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Прижмите его к стенке.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Вынести обвинение (Арест)».</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Алиби сломано. Вы выиграли дуэль дедукции.</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Все улики сходятся. Предъявите официальное обвинение.</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Предъявить обвинение».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Обвинение подтверждено! Вы выиграли дуэль дедукции.</div>
                   </div>
                 </div>
               )}
               {currentModule === "LINE_UP" && step === 5 && (
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Архив закрыт</h3>
+                  <h3 className="text-sm sm:text-base font-black text-emerald-400 uppercase tracking-wider mb-0.5">Академия пройдена</h3>
                   <div className="text-xs text-zinc-300 font-mono space-y-0.5">
-                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Очередное дело отправлено в архив The Wicked City.</div>
-                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Завершить модуль ➔».</div>
-                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Полный курс Академии блестяще завершен!</div>
+                    <div><b className="text-amber-500">КОНТЕКСТ:</b> Вы изучили все 4 режима и ключевые правила игры «Под подозрением (Prime Suspect)». Теперь вы готовы к реальным матчам против игроков и ИИ!</div>
+                    <div><b className="text-amber-500">ДЕЙСТВИЕ:</b> Нажмите «Завершить обучение».</div>
+                    <div><b className="text-emerald-400">РЕЗУЛЬТАТ:</b> Курс Академии успешно сдан! Награда начислена.</div>
                   </div>
                 </div>
               )}
@@ -1125,7 +1125,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   }}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
                 >
-                  Завершить модуль ➔
+                  Завершить урок ➔
                 </motion.button>
               )}
 
@@ -1135,7 +1135,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   onClick={handleKill}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
                 >
-                  Ликвидировать по заказу
+                  Ликвидировать цель
                 </motion.button>
               )}
               {currentModule === "MANIAC_KILLER" && step === 4 && (
@@ -1143,7 +1143,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   onClick={handleEscape}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
                 >
-                  Конспирация (Побег)
+                  Сменить маску
                 </motion.button>
               )}
               {currentModule === "MANIAC_KILLER" && step === 5 && (
@@ -1154,7 +1154,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   }}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
                 >
-                  Завершить модуль ➔
+                  Завершить урок ➔
                 </motion.button>
               )}
 
@@ -1164,7 +1164,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   onClick={handleArrest}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
                 >
-                  Задержание
+                  Задержать подозреваемого
                 </motion.button>
               )}
               {currentModule === "MANIAC_DETECTIVE" && step === 3 && (
@@ -1172,7 +1172,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   onClick={handleCleanup}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
                 >
-                  Зачистка
+                  Зачистка поля
                 </motion.button>
               )}
               {currentModule === "MANIAC_DETECTIVE" && step === 4 && (
@@ -1183,7 +1183,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   }}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
                 >
-                  Завершить модуль ➔
+                  Завершить урок ➔
                 </motion.button>
               )}
 
@@ -1193,7 +1193,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   onClick={handleRob}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
                 >
-                  Кража
+                  Украсть сокровище
                 </motion.button>
               )}
               {currentModule === "THIEF_ROBBER" && step === 3 && (
@@ -1201,7 +1201,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   onClick={handleFastDisguise}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
                 >
-                  Конспирация
+                  Сменить маску
                 </motion.button>
               )}
               {currentModule === "THIEF_ROBBER" && step === 4 && (
@@ -1212,7 +1212,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   }}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
                 >
-                  Завершить модуль ➔
+                  Завершить урок ➔
                 </motion.button>
               )}
 
@@ -1222,7 +1222,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   onClick={handlePoliceBlock}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
                 >
-                  Вызов патруля
+                  Выставить патруль
                 </motion.button>
               )}
               {currentModule === "THIEF_POLICE" && step === 3 && (
@@ -1230,7 +1230,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   onClick={handlePoliceArrest}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
                 >
-                  Задержание
+                  Задержать вора
                 </motion.button>
               )}
 
@@ -1258,7 +1258,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   onClick={handleAskQuestionDuel}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
                 >
-                  Задать вопрос: Головной убор?
+                  Спросить: есть ли головной убор?
                 </motion.button>
               )}
               {currentModule === "LINE_UP" && step === 2 && (
@@ -1266,7 +1266,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   onClick={handleEliminateDuel}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
                 >
-                  Исключить непричастных ➔
+                  Исключить невиновных ➔
                 </motion.button>
               )}
               {currentModule === "LINE_UP" && step === 4 && (
@@ -1274,7 +1274,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   onClick={handleAccuseDuel}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
                 >
-                  Вынести обвинение (Арест)
+                  Предъявить обвинение
                 </motion.button>
               )}
               {currentModule === "LINE_UP" && step === 5 && (
@@ -1285,7 +1285,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                   }}
                   className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
                 >
-                  Завершить модуль ➔
+                  Завершить обучение ➔
                 </motion.button>
               )}
             </AnimatePresence>
@@ -1297,10 +1297,10 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
           <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none">
             <div className="w-full max-w-sm bg-zinc-950/85 backdrop-blur-xl border border-amber-500/50 rounded-3xl p-6 text-center shadow-[0_0_50px_rgba(245,158,11,0.3)] flex flex-col items-center">
               <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block mb-1">
-                Конспирация успешна
+                Смена маски
               </span>
               <h3 className="text-xl font-black text-zinc-100 mb-2">
-                Ваша новая маска:
+                Ваша новая тайная личность:
               </h3>
               {(() => {
                 const img = characterImages[`../assets/characters/${newDisguiseChar.id}.webp`]?.default;
@@ -1327,7 +1327,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
                 );
               })()}
               <button onClick={handleConfirmDisguise} className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-black uppercase tracking-wider text-xs rounded-xl transition cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.4)] active:scale-95">
-                Принять личность ➔
+                Подтвердить маску ➔
               </button>
             </div>
           </div>

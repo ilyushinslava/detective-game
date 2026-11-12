@@ -54,6 +54,18 @@ class SoundController {
   private morseOsc: OscillatorNode | null = null;
   private morseGain: GainNode | null = null;
 
+  // Процедурный ТВ-эмбиент на Web Audio API (чистый синтез, zero-asset)
+  private tvAmbientNodes: {
+    osc1: OscillatorNode;
+    osc2: OscillatorNode;
+    oscSub: OscillatorNode;
+    filter: BiquadFilterNode;
+    lfo: OscillatorNode;
+    lfoGain: GainNode;
+    gain: GainNode;
+  } | null = null;
+  private tvAmbientTargetVolume = 0.16;
+
   // HTMLAudio fallback pool
   private audioPool: Map<string, HTMLAudioElement[]> = new Map();
   private poolIndex: Map<string, number> = new Map();
@@ -337,10 +349,174 @@ class SoundController {
   }
 
   /**
+   * Запуск кинематографичного аналогового нео-нуарного эмбиента для лобби ТВ
+   * Синтезируется напрямую через Web Audio API без скачивания тяжелых аудиофайлов.
+   * Архитектура:
+   * - Корневой тон (55 Гц / суббас A1) + детюненный обертон (55.4 Гц / треугольник)
+   * - Глубокий суб-бас (27.5 Гц / A0)
+   * - Теплый низкочастотный фильтр (BiquadFilter 140 Гц, Q=2.0)
+   * - Медленная LFO-модуляция частоты среза (0.07 Гц, «дыхание» ~14 сек)
+   * - Мягкая огибающая нарастания (Fade-In 2.0 сек)
+   */
+  public startTvAmbient(volume: number = 0.16): void {
+    this.tvAmbientTargetVolume = volume;
+    if (!this.isAmbientEnabled) return;
+
+    this.unlockAudioContext();
+    if (!this.ctx) return;
+
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+
+    if (this.tvAmbientNodes) {
+      return; // Уже запущен
+    }
+
+    try {
+      const now = this.ctx.currentTime;
+
+      // Низкочастотный фильтр с аналоговым резонансом
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      if (filter.frequency.setValueAtTime) {
+        filter.frequency.setValueAtTime(140, now);
+      } else {
+        filter.frequency.value = 140;
+      }
+      if (filter.Q.setValueAtTime) {
+        filter.Q.setValueAtTime(2.0, now);
+      } else {
+        filter.Q.value = 2.0;
+      }
+
+      // Медленный генератор модуляции (LFO)
+      const lfo = this.ctx.createOscillator();
+      lfo.type = 'sine';
+      if (lfo.frequency.setValueAtTime) {
+        lfo.frequency.setValueAtTime(0.07, now);
+      } else {
+        lfo.frequency.value = 0.07;
+      }
+
+      const lfoGain = this.ctx.createGain();
+      if (lfoGain.gain.setValueAtTime) {
+        lfoGain.gain.setValueAtTime(35, now);
+      } else {
+        lfoGain.gain.value = 35;
+      }
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(filter.frequency);
+
+      // Основной фундаментальный тон
+      const osc1 = this.ctx.createOscillator();
+      osc1.type = 'sine';
+      if (osc1.frequency.setValueAtTime) {
+        osc1.frequency.setValueAtTime(55, now);
+      } else {
+        osc1.frequency.value = 55;
+      }
+
+      // Детюненный обертон (создает фазовое биение)
+      const osc2 = this.ctx.createOscillator();
+      osc2.type = 'triangle';
+      if (osc2.frequency.setValueAtTime) {
+        osc2.frequency.setValueAtTime(55.4, now);
+      } else {
+        osc2.frequency.value = 55.4;
+      }
+
+      // Суб-гармоника для массивности звука в зале
+      const oscSub = this.ctx.createOscillator();
+      oscSub.type = 'sine';
+      if (oscSub.frequency.setValueAtTime) {
+        oscSub.frequency.setValueAtTime(27.5, now);
+      } else {
+        oscSub.frequency.value = 27.5;
+      }
+
+      // Мастер-гейн эмбиента с плавным нарастанием
+      const gain = this.ctx.createGain();
+      const targetVol = Math.max(0, Math.min(1, volume));
+      if (gain.gain.setValueAtTime && gain.gain.linearRampToValueAtTime) {
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(targetVol, now + 2.0);
+      } else {
+        gain.gain.value = targetVol;
+      }
+
+      osc1.connect(filter);
+      osc2.connect(filter);
+      oscSub.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      oscSub.start(now);
+      lfo.start(now);
+
+      this.tvAmbientNodes = { osc1, osc2, oscSub, filter, lfo, lfoGain, gain };
+    } catch (err) {
+      console.warn('[Audio] Ошибка запуска ТВ эмбиента:', err);
+      this.tvAmbientNodes = null;
+    }
+  }
+
+  /**
+   * Остановка кинематографичного эмбиента лобби ТВ с мягким спадом (1.2 сек)
+   */
+  public stopTvAmbient(): void {
+    if (!this.tvAmbientNodes || !this.ctx) {
+      this.tvAmbientNodes = null;
+      return;
+    }
+
+    try {
+      const now = this.ctx.currentTime;
+      const { osc1, osc2, oscSub, lfo, lfoGain, filter, gain } = this.tvAmbientNodes;
+      this.tvAmbientNodes = null;
+
+      const currentGain = typeof gain.gain.value === 'number' ? gain.gain.value : this.tvAmbientTargetVolume;
+      if (gain.gain.cancelScheduledValues && gain.gain.setValueAtTime && gain.gain.linearRampToValueAtTime) {
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(currentGain, now);
+        gain.gain.linearRampToValueAtTime(0.0001, now + 1.2);
+      }
+
+      if (osc1.stop) osc1.stop(now + 1.25);
+      if (osc2.stop) osc2.stop(now + 1.25);
+      if (oscSub.stop) oscSub.stop(now + 1.25);
+      if (lfo.stop) lfo.stop(now + 1.25);
+
+      setTimeout(() => {
+        try {
+          osc1.disconnect();
+          osc2.disconnect();
+          oscSub.disconnect();
+          lfo.disconnect();
+          lfoGain.disconnect();
+          filter.disconnect();
+          gain.disconnect();
+        } catch (_) {}
+      }, 1300);
+    } catch (err) {
+      console.warn('[Audio] Ошибка остановки ТВ эмбиента:', err);
+      this.tvAmbientNodes = null;
+    }
+  }
+
+  public isTvAmbientActive(): boolean {
+    return this.tvAmbientNodes !== null;
+  }
+
+  /**
    * Полная остановка всех звуковых эффектов, фонового эмбиента и тонов Морзе
    */
   public stopAll(): void {
     this.stopMorseTone();
+    this.stopTvAmbient();
     this.stopAmbient();
     if (this.audioPool && (typeof process === 'undefined' || !process.env?.VITEST)) {
       for (const pool of this.audioPool.values()) {
@@ -370,8 +546,11 @@ class SoundController {
       localStorage.setItem('crime_city_ambient', this.isAmbientEnabled ? 'true' : 'false');
     }
     
-    if (!this.isAmbientEnabled && this.ambientAudio) {
-      this.ambientAudio.pause();
+    if (!this.isAmbientEnabled) {
+      if (this.ambientAudio) {
+        this.ambientAudio.pause();
+      }
+      this.stopTvAmbient();
     } else if (this.isAmbientEnabled) {
       this.playAmbient(this.currentAmbientVolume);
     }

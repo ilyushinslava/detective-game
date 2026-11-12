@@ -1,4 +1,4 @@
-# Архитектура проекта: «Реквием: Последний выстрел»
+# Архитектура проекта: «Под подозрением (Prime Suspect)»
 
 > **Статус:** Актуальная техническая спецификация системы  
 > **Стек:** React 18, TypeScript, Tailwind CSS, Framer Motion, PartyKit WebSocket, Vite, IndexedDB

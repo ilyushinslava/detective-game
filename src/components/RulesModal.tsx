@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { triggerHaptic } from "../utils/haptics";
-import maniacBanner from "../assets/modes/maniac_preview.png";
+import maniacBanner from "../assets/modes/maniac_preview.webp";
 import { Modal } from "./ui/Modal";
 import { Button } from "./ui/Button";
 import { GAME_MODES_META } from "../constants/gameMeta";
@@ -45,7 +45,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     title: "Базовые правила",
     badge: "Ядро механик",
     format: "Сетка 5×5 • Все режимы",
-    desc: "Универсальные принципы The Wicked City: модульная сетка 5×5 из 25 персонажей, геометрия окружения 3×3, тактические маневры и расследования по колоде улик.",
+    desc: "Базовые правила игры: модульная сетка 5×5 из 25 персонажей, радиус окружения 3×3, тактические маневры и расследования по колоде улик.",
     bannerGradient: "from-blue-950 via-zinc-950/70 to-transparent",
     borderColor: "border-blue-500/40",
     badgeColor: "text-blue-400",

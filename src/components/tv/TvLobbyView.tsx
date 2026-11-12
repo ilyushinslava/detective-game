@@ -4,6 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import type { GameModeType } from '../../types/game';
 import { GAME_TITLE, GAME_MODES_META } from '../../constants/gameMeta';
 import { Button } from '../ui/Button';
+import { soundManager } from '../../utils/audio';
 
 export interface TvLobbyViewProps {
   roomCode: string;
@@ -109,6 +110,14 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
     : players;
   const playerList = Array.isArray(rawPlayers) ? rawPlayers : Object.values(rawPlayers || {});
   const canStart = isPassAndPlay ? playerList.length >= 1 : playerList.length >= 2;
+
+  // Кинематографичный аудио-эмбиент для лобби ТВ на Web Audio API
+  useEffect(() => {
+    soundManager.startTvAmbient();
+    return () => {
+      soundManager.stopTvAmbient();
+    };
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

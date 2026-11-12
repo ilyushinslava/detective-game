@@ -12,32 +12,32 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
     window.HTMLMediaElement.prototype.load = vi.fn();
   });
 
-  it("Стартовое меню Академии отображает 7 модулей The Wicked City и позволяет войти в каждый сценарий", () => {
+  it("Стартовое меню Академии отображает 7 модулей и позволяет войти в каждый сценарий", () => {
     render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
 
-    expect(screen.getByText(/Основы The Wicked City/i)).toBeDefined();
-    expect(screen.getByText(/Синдикат \(Охота: Убийца\)/i)).toBeDefined();
-    expect(screen.getByText(/Зачистка \(Охота: Детектив\)/i)).toBeDefined();
-    expect(screen.getByText(/Тени \(Ограбление: Вор\)/i)).toBeDefined();
-    expect(screen.getByText(/Кордон \(Ограбление: Полиция\)/i)).toBeDefined();
-    expect(screen.getByText(/Перехват \(Контрразведка\)/i)).toBeDefined();
-    expect(screen.getByText(/Допросная \(Очная ставка\)/i)).toBeDefined();
-    expect(screen.getByText(/Архив The Wicked City/i)).toBeDefined();
+    expect(screen.getByText(/1. Основы игры/i)).toBeDefined();
+    expect(screen.getByText(/2. Почерк убийцы: Маньяк/i)).toBeDefined();
+    expect(screen.getByText(/3. Почерк убийцы: Оперативник/i)).toBeDefined();
+    expect(screen.getByText(/4. Оцепление: Вор/i)).toBeDefined();
+    expect(screen.getByText(/5. Оцепление: Полиция/i)).toBeDefined();
+    expect(screen.getByText(/6. Директива «Ноль»: Контрразведка/i)).toBeDefined();
+    expect(screen.getByText(/7. Очная ставка: Допрос/i)).toBeDefined();
+    expect(screen.getByText(/Академия детективов/i)).toBeDefined();
     expect(screen.getByText(/Пройдено:/i)).toBeDefined();
 
     // Вход в модуль Убийцы и возврат в архив
-    fireEvent.click(screen.getByText(/Синдикат \(Охота: Убийца\)/i));
-    expect(screen.getByText(/КОНТРАКТ: УБИЙЦА/i)).toBeDefined();
+    fireEvent.click(screen.getByText(/2. Почерк убийцы: Маньяк/i));
+    expect(screen.getByText(/УРОК 2: ИГРА ЗА МАНЬЯКА/i)).toBeDefined();
 
     fireEvent.click(screen.getByText(/← В архив/i));
-    expect(screen.getByText(/Архив The Wicked City/i)).toBeDefined();
+    expect(screen.getByText(/Академия детективов/i)).toBeDefined();
   });
 
-  it("Сценарий 'Синдикат' (MANIAC_KILLER): аппаратная блокировка неверных действий, ликвидация и побег со сменой маски", () => {
+  it("Сценарий 'Почерк убийцы' (MANIAC_KILLER): аппаратная блокировка неверных действий, ликвидация и побег со сменой маски", () => {
     render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
 
     // 1. Вход в модуль
-    fireEvent.click(screen.getByText(/Синдикат \(Охота: Убийца\)/i));
+    fireEvent.click(screen.getByText(/2. Почерк убийцы: Маньяк/i));
     expect(screen.getAllByText(/Подвод жертвы/i).length).toBeGreaterThan(0);
 
     // Нецелевое действие: клик по карточке на шаге маневра заблокирован и не меняет шаг
@@ -49,60 +49,60 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
     const colDownBtn = screen.getByTestId("col-down-2");
     fireEvent.click(colDownBtn);
 
-    // Шаг 2: Захват цели (Елена Соколова)
-    expect(screen.getAllByText(/Захват цели/i).length).toBeGreaterThan(0);
+    // Шаг 2: Выбор цели (Елена Соколова)
+    expect(screen.getAllByText(/Выбор цели/i).length).toBeGreaterThan(0);
     const targetCard = screen.getByAltText("Елена Соколова");
     fireEvent.click(targetCard);
 
     // Шаг 3: Ликвидация
-    expect(screen.getAllByText(/Ликвидация/i).length).toBeGreaterThan(0);
-    const killBtn = screen.getByRole("button", { name: /Ликвидировать по заказу/i });
+    expect(screen.getAllByText(/Ликвидация жертвы/i).length).toBeGreaterThan(0);
+    const killBtn = screen.getByRole("button", { name: /Ликвидировать цель/i });
     fireEvent.click(killBtn);
 
     // Шаг 4: Побег
-    expect(screen.getAllByText(/Побег/i).length).toBeGreaterThan(0);
-    const escapeBtn = screen.getByRole("button", { name: /Конспирация \(Побег\)/i });
+    expect(screen.getAllByText(/Смена маски \(Конспирация\)/i).length).toBeGreaterThan(0);
+    const escapeBtn = screen.getByRole("button", { name: /Сменить маску/i });
     fireEvent.click(escapeBtn);
 
-    // Шаг 5: Модальное окно новой маски -> Принять личность
-    expect(screen.getByText(/Ваша новая маска/i)).toBeDefined();
-    const confirmDisguiseBtn = screen.getByRole("button", { name: /Принять личность/i });
+    // Шаг 5: Модальное окно новой маски -> Подтвердить маску
+    expect(screen.getByText(/Ваша новая тайная личность/i)).toBeDefined();
+    const confirmDisguiseBtn = screen.getByRole("button", { name: /Подтвердить маску/i });
     fireEvent.click(confirmDisguiseBtn);
 
     // Завершение модуля и возврат в архив
-    expect(screen.getAllByText(/Конспирация успешна/i).length).toBeGreaterThan(0);
-    const finishBtn = screen.getByRole("button", { name: /Завершить модуль/i });
+    expect(screen.getAllByText(/Маскировка успешна/i).length).toBeGreaterThan(0);
+    const finishBtn = screen.getByRole("button", { name: /Завершить урок/i });
     fireEvent.click(finishBtn);
 
-    expect(screen.getByText(/Архив The Wicked City/i)).toBeDefined();
+    expect(screen.getByText(/Академия детективов/i)).toBeDefined();
     const saved = JSON.parse(localStorage.getItem("crime_city_completed_modules") || "[]");
     expect(saved).toContain("MANIAC_KILLER");
   });
 
-  it("Сценарий 'Зачистка' (MANIAC_DETECTIVE): арест и механика зачистки сетки вниз", () => {
+  it("Сценарий 'Почерк убийцы' (MANIAC_DETECTIVE): арест и механика зачистки поля вниз", () => {
     render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
 
     // Вход в модуль Детектива
-    fireEvent.click(screen.getByText(/Зачистка \(Охота: Детектив\)/i));
-    expect(screen.getAllByText(/Анализ алиби/i).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByText(/3. Почерк убийцы: Оперативник/i));
+    expect(screen.getAllByText(/Проверка алиби/i).length).toBeGreaterThan(0);
 
     // Шаг 1: Подозреваемый без щита в [1][1] (София Романова, #07)
     const suspectCard = screen.getByAltText("София Романова");
     fireEvent.click(suspectCard);
 
     // Шаг 2: Задержание
-    expect(screen.getAllByText(/Арест/i).length).toBeGreaterThan(0);
-    const arrestBtn = screen.getByRole("button", { name: /Задержание/i });
+    expect(screen.getAllByText(/Задержание маньяка/i).length).toBeGreaterThan(0);
+    const arrestBtn = screen.getByRole("button", { name: /Задержать подозреваемого/i });
     fireEvent.click(arrestBtn);
 
-    // Шаг 3: Зачистка сетки (уплотнение мертвых вниз)
-    expect(screen.getAllByText(/Зачистка/i).length).toBeGreaterThan(0);
-    const cleanupBtn = screen.getByRole("button", { name: /Зачистка/i });
+    // Шаг 3: Зачистка поля (уплотнение мертвых вниз)
+    expect(screen.getAllByText(/Зачистка поля/i).length).toBeGreaterThan(0);
+    const cleanupBtn = screen.getByRole("button", { name: /Зачистка поля/i });
     fireEvent.click(cleanupBtn);
 
-    // Шаг 4: Сектор чист -> Завершить модуль
-    expect(screen.getAllByText(/Сектор чист/i).length).toBeGreaterThan(0);
-    const finishBtn = screen.getByRole("button", { name: /Завершить модуль/i });
+    // Шаг 4: Дело раскрыто -> Завершить урок
+    expect(screen.getAllByText(/Дело раскрыто/i).length).toBeGreaterThan(0);
+    const finishBtn = screen.getByRole("button", { name: /Завершить урок/i });
     fireEvent.click(finishBtn);
 
     const saved = JSON.parse(localStorage.getItem("crime_city_completed_modules") || "[]");
@@ -113,35 +113,35 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
     render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
 
     // 1. Вход в модуль Очная ставка
-    const lineUpBtn = screen.getByText(/Допросная \(Очная ставка\)/i);
+    const lineUpBtn = screen.getByText(/7. Очная ставка: Допрос/i);
     fireEvent.click(lineUpBtn);
-    expect(screen.getByText(/Очная ставка: Каталог/i)).toBeDefined();
+    expect(screen.getByText(/Вопрос по примете/i)).toBeDefined();
 
     // 2. Шаг 1: Нажимаем кнопку вопроса свидетелю
-    const askBtn = screen.getByRole("button", { name: /Задать вопрос/i });
+    const askBtn = screen.getByRole("button", { name: /Спросить: есть ли головной убор/i });
     fireEvent.click(askBtn);
 
-    // 3. Шаг 2: Ответ получен (ДА), появляется кнопка исключения непричастных
-    expect(screen.getByText(/Очная ставка: Отсечение/i)).toBeDefined();
-    const eliminateBtn = screen.getByRole("button", { name: /Исключить непричастных/i });
+    // 3. Шаг 2: Ответ получен (ДА), появляется кнопка исключения невиновных
+    expect(screen.getByText(/Исключение неподходящих/i)).toBeDefined();
+    const eliminateBtn = screen.getByRole("button", { name: /Исключить невиновных/i });
     fireEvent.click(eliminateBtn);
 
     // 4. Шаг 3: Круг сужен, выбираем карточку Руслана Громова
-    expect(screen.getByText(/Очная ставка: Мишень/i)).toBeDefined();
+    expect(screen.getByText(/Единственный подозреваемый/i)).toBeDefined();
     const gromovCard = screen.getByAltText("Руслан Громов");
     fireEvent.click(gromovCard);
 
     // 5. Шаг 4: Выносим обвинение
-    expect(screen.getByText(/Очная ставка: Приговор/i)).toBeDefined();
-    const accuseBtn = screen.getByRole("button", { name: /Вынести обвинение/i });
+    expect(screen.getByText(/Финальное обвинение/i)).toBeDefined();
+    const accuseBtn = screen.getByRole("button", { name: /Предъявить обвинение/i });
     fireEvent.click(accuseBtn);
 
     // 6. Шаг 5: Завершение модуля и возврат в архив
-    expect(screen.getByText(/Архив закрыт/i)).toBeDefined();
-    const finishModuleBtn = screen.getByRole("button", { name: /Завершить модуль/i });
+    expect(screen.getByText(/Академия пройдена/i)).toBeDefined();
+    const finishModuleBtn = screen.getByRole("button", { name: /Завершить обучение/i });
     fireEvent.click(finishModuleBtn);
 
-    expect(screen.getByText(/Архив The Wicked City/i)).toBeDefined();
+    expect(screen.getByText(/Академия детективов/i)).toBeDefined();
     const saved = JSON.parse(localStorage.getItem("crime_city_completed_modules") || "[]");
     expect(saved).toContain("LINE_UP");
   });

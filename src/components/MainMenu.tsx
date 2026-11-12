@@ -10,7 +10,7 @@ import { BiometricSlider } from "./BiometricSlider";
 import { Button } from "./ui/Button";
 import { Modal } from "./ui/Modal";
 import { GAME_MODES_META, getGameModeTitle, getGameModeShortTitle } from "../constants/gameMeta";
-import lobbyBg from "../assets/lobby_background.png";
+import lobbyBg from "../assets/lobby_background.webp";
 
 import { TablesScreen } from "./TablesScreen";
 import { ProfileScreen } from "./ProfileScreen";

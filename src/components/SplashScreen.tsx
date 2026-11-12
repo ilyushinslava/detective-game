@@ -49,29 +49,19 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
       }`}
     >
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
-        {/* Deactivated original splash art for possible rollback:
         <picture className="w-full h-full flex items-center justify-center">
           <source media="(min-width: 1024px)" srcSet="./splash-bg-PC.webp" />
+          <source media="(max-width: 1023px)" srcSet="./splash-bg.webp" />
           <img
-            src="./splash-bg.webp"
-            alt="Astoria City Noir"
-            className="w-full h-full max-w-xl md:max-w-2xl lg:max-w-none object-cover object-center opacity-90 shadow-[0_0_80px_rgba(0,0,0,0.9)]"
+            src="./bg-main.webp"
+            alt="Под подозрением"
+            className="w-full h-full object-cover object-center opacity-90 shadow-[0_0_80px_rgba(0,0,0,0.9)]"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              if (!target.src.endsWith('/splash-bg.webp')) target.src = '/splash-bg.webp';
+              if (!target.src.endsWith('/bg-main.webp')) target.src = '/bg-main.webp';
             }}
           />
         </picture>
-        */}
-        <img
-          src="./bg-main.webp"
-          alt="Под подозрением"
-          className="w-full h-full object-cover object-[70%_top] lg:object-[center_30%] opacity-90 shadow-[0_0_80px_rgba(0,0,0,0.9)]"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            if (!target.src.endsWith('/bg-main.webp')) target.src = '/bg-main.webp';
-          }}
-        />
         <div className="absolute inset-0 bg-gradient-to-t from-[#050608] via-transparent to-[#050608]/70" />
       </div>
 

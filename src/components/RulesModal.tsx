@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
 import { triggerHaptic } from "../utils/haptics";
-import maniacBanner from "../assets/modes/maniac_preview.webp";
 import { Modal } from "./ui/Modal";
 import { Button } from "./ui/Button";
 import { GAME_MODES_META } from "../constants/gameMeta";
@@ -49,7 +48,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     bannerGradient: "from-blue-950 via-zinc-950/70 to-transparent",
     borderColor: "border-blue-500/40",
     badgeColor: "text-blue-400",
-    bannerImage: "/banners/mode-base.webp",
+    bannerImage: "/assets/modes/base-banner.webp",
     role1: {
       name: "Криминал",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
@@ -97,7 +96,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     bannerGradient: "from-red-950 via-zinc-950/70 to-transparent",
     borderColor: "border-red-500/40",
     badgeColor: "text-red-400",
-    bannerImage: maniacBanner,
+    bannerImage: "/assets/modes/maniac-banner.webp",
     role1: {
       name: "Маньяк",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
@@ -150,7 +149,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     bannerGradient: "from-blue-950 via-zinc-950/70 to-transparent",
     borderColor: "border-blue-500/40",
     badgeColor: "text-blue-400",
-    bannerImage: "/banners/mode-thief.webp",
+    bannerImage: "/assets/modes/thief-banner.webp",
     role1: {
       name: "Грабитель",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
@@ -193,7 +192,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     bannerGradient: "from-indigo-950 via-zinc-950/70 to-transparent",
     borderColor: "border-indigo-500/40",
     badgeColor: "text-indigo-400",
-    bannerImage: "/banners/mode-secret.webp",
+    bannerImage: "/assets/modes/secret-service-banner.webp",
     role1: {
       name: "Агент Альфа",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
@@ -236,7 +235,7 @@ const MODES_DATA: Record<ModeTab, ModeInfo> = {
     bannerGradient: "from-blue-950 via-zinc-950/70 to-transparent",
     borderColor: "border-blue-500/40",
     badgeColor: "text-blue-400",
-    bannerImage: "/banners/mode-lineup.webp",
+    bannerImage: "/assets/modes/lineup-banner.webp",
     role1: {
       name: "Подозреваемый",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
@@ -279,11 +278,11 @@ const getBannerUrl = (path: string | null) => {
 };
 
 const MODE_BANNERS: Record<ModeTab, string | null> = {
-  BASE: "/assets/modes/base-banner.webp",          // Тестовая Схватка.webp
-  MANIAC: "/assets/modes/maniac-banner.webp",      // Тестовая Маньяк.webp
-  THIEF: null,                                   // Заглушка (подставит пользователь)
-  SECRET_SERVICE: null,                          // Заглушка (подставит пользователь)
-  LINE_UP: null,                                 // Заглушка (подставит пользователь)
+  BASE: "/assets/modes/base-banner.webp",
+  MANIAC: "/assets/modes/maniac-banner.webp",
+  THIEF: "/assets/modes/thief-banner.webp",
+  SECRET_SERVICE: "/assets/modes/secret-service-banner.webp",
+  LINE_UP: "/assets/modes/lineup-banner.webp",
 };
 
 export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {

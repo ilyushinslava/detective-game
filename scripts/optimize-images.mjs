@@ -37,6 +37,9 @@ async function optimizePosters() {
     { file: 'public/bg-main.webp', width: 1920, height: 1080 },
     { file: 'public/assets/modes/base-banner.webp', width: 1200, height: 600 },
     { file: 'public/assets/modes/maniac-banner.webp', width: 1200, height: 600 },
+    { file: 'public/assets/modes/thief-banner.webp', width: 1200, height: 600 },
+    { file: 'public/assets/modes/secret-service-banner.webp', width: 1200, height: 600 },
+    { file: 'public/assets/modes/lineup-banner.webp', width: 1200, height: 600 },
     { file: 'src/assets/lobby_background.webp', width: 1920, height: 1080 },
     { file: 'src/assets/modes/maniac_preview.webp', width: 1200, height: 600 },
   ];

@@ -9,7 +9,6 @@ import { Toast } from "./Toast";
 import { BiometricSlider } from "./BiometricSlider";
 import { Button } from "./ui/Button";
 import { Modal } from "./ui/Modal";
-import { ImageViewerModal } from "./ui/ImageViewerModal";
 import { GAME_MODES_META, getGameModeTitle, getGameModeShortTitle } from "../constants/gameMeta";
 import lobbyBg from "../assets/lobby_background.webp";
 
@@ -307,11 +306,11 @@ export const MainMenu = ({
   const [selectedRole, setSelectedRole] = useState<Role>("DETECTIVE");
   const [isTvPartyModalOpen, setIsTvPartyModalOpen] = useState(false);
   const [playerCount, setPlayerCount] = useState<number>(3);
-  const [viewerArtwork, setViewerArtwork] = useState<{
-    src: string;
+  const [fullscreenBanner, setFullscreenBanner] = useState<{
+    url: string;
     title: string;
-    subtitle?: string;
     badge?: string;
+    id: string;
   } | null>(null);
 
   const [publicRooms, setPublicRooms] = useState<Array<{
@@ -874,35 +873,39 @@ export const MainMenu = ({
         <div className="flex-1 overflow-y-auto custom-scrollbar pb-24 sm:pb-28">
           <div className="px-4 sm:px-6 py-3.5 sm:py-4 w-full max-w-xl mx-auto flex flex-col gap-4 sm:gap-4.5">
             {modeMeta?.banner && (
-              <div
+              <motion.div
+                layoutId={`menu-mode-card-${activeModeData.id}`}
+                transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
                 onClick={() => {
                   if (modeBannerSrc) {
                     triggerHaptic('light');
-                    setViewerArtwork({
-                      src: modeBannerSrc,
+                    setFullscreenBanner({
+                      url: modeBannerSrc,
                       title: activeModeData.title,
-                      subtitle: modeMeta.banner.atmosphereSubtitle,
                       badge: modeMeta.banner.badge,
+                      id: activeModeData.id,
                     });
                   }
                 }}
-                className={`relative w-full h-[140px] sm:h-[165px] rounded-2xl overflow-hidden border ${modeMeta.banner.borderColor} shadow-xl p-4 sm:p-5 flex flex-col justify-between cursor-pointer group select-none transition-transform active:scale-[0.99]`}
-                title="Нажмите для полноэкранного просмотра арта"
+                className={`relative w-full h-[140px] sm:h-[165px] rounded-3xl overflow-hidden border ${modeMeta.banner.borderColor} shadow-2xl p-4 sm:p-5 flex flex-col justify-between cursor-pointer group select-none transition-transform active:scale-[0.99] shrink-0`}
+                title="Нажмите для просмотра полного фото"
               >
                 {/* Background Banner Artwork */}
                 {modeBannerSrc && (
-                  <img
+                  <motion.img
+                    layoutId={`menu-mode-img-${activeModeData.id}`}
+                    transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
                     src={modeBannerSrc}
                     alt={activeModeData.title}
-                    className="absolute inset-0 w-full h-full object-cover object-center opacity-75 group-hover:opacity-90 transition-opacity duration-300 pointer-events-none"
+                    className="absolute inset-0 w-full h-full object-cover object-center opacity-75 group-hover:scale-105 transition-transform duration-500 pointer-events-none"
                   />
                 )}
                 {/* Noir Gradients */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/60 to-black/30 pointer-events-none" />
                 <div className="absolute inset-0 bg-gradient-to-r from-[#080a0f]/85 via-transparent to-transparent pointer-events-none" />
 
-                {/* Top bar with Badge, Neo-Noir tag and Expand Hint */}
-                <div className="relative z-10 flex items-center justify-between">
+                {/* Top bar with Badge & RoleRevealModal-style magnifier tag */}
+                <div className="relative z-10 flex items-center justify-between pointer-events-none">
                   <span
                     className="text-[9px] font-mono font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border shadow-sm backdrop-blur-md"
                     style={{
@@ -913,14 +916,18 @@ export const MainMenu = ({
                   >
                     {modeMeta.banner.badge}
                   </span>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 border border-white/20 backdrop-blur-md text-[9px] font-black uppercase tracking-wider text-zinc-300 group-hover:bg-black/90 group-hover:text-white group-hover:border-white/40 transition-all shadow-md">
-                    <span className="text-xs">🔍</span>
-                    <span>Нажмите для просмотра</span>
+                  <div className="flex items-center gap-1.5 opacity-85 group-hover:opacity-100 transition-opacity">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 text-zinc-300">
+                      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+                    </svg>
+                    <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
+                      Нажмите для просмотра полного фото
+                    </span>
                   </div>
                 </div>
 
                 {/* Bottom Title & Subtitle */}
-                <div className="relative z-10">
+                <div className="relative z-10 pointer-events-none">
                   <div className="text-sm sm:text-base font-black tracking-wide text-zinc-100 uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                     {modeMeta.banner.atmosphereTitle}
                   </div>
@@ -928,7 +935,7 @@ export const MainMenu = ({
                     {modeMeta.banner.atmosphereSubtitle}
                   </p>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             <div>
@@ -1625,14 +1632,69 @@ export const MainMenu = ({
           </Modal>
         )}
 
-        <ImageViewerModal
-          isOpen={!!viewerArtwork}
-          onClose={() => setViewerArtwork(null)}
-          imageSrc={viewerArtwork?.src || null}
-          title={viewerArtwork?.title}
-          subtitle={viewerArtwork?.subtitle}
-          badge={viewerArtwork?.badge}
-        />
+        <AnimatePresence>
+          {fullscreenBanner && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 select-none cursor-pointer"
+              onClick={() => {
+                triggerHaptic("light");
+                setFullscreenBanner(null);
+              }}
+            >
+              <motion.button
+                type="button"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => {
+                  triggerHaptic("light");
+                  setFullscreenBanner(null);
+                }}
+                className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
+              >
+                ✕
+              </motion.button>
+              <motion.div
+                layoutId={`menu-mode-card-${fullscreenBanner.id}`}
+                transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
+                className="relative w-full max-w-2xl aspect-[16/9] sm:aspect-[2/1] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-zinc-950"
+                onClick={() => {
+                  triggerHaptic("light");
+                  setFullscreenBanner(null);
+                }}
+              >
+                <motion.img
+                  layoutId={`menu-mode-img-${fullscreenBanner.id}`}
+                  transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
+                  src={fullscreenBanner.url}
+                  alt={fullscreenBanner.title}
+                  className="w-full h-full object-cover contrast-110"
+                />
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.25, delay: 0.1 }}
+                  className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-16 flex flex-col items-center text-center pointer-events-none"
+                >
+                  {fullscreenBanner.badge && (
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-1.5 px-2.5 py-0.5 rounded-full border border-white/10 bg-black/40">
+                      {fullscreenBanner.badge}
+                    </span>
+                  )}
+                  <h2 className="text-2xl sm:text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">
+                    {fullscreenBanner.title}
+                  </h2>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

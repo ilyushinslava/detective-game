@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { triggerHaptic } from "../utils/haptics";
 import { Modal } from "./ui/Modal";
 import { Button } from "./ui/Button";
-import { ImageViewerModal } from "./ui/ImageViewerModal";
 import { GAME_MODES_META } from "../constants/gameMeta";
 
 export interface RulesModalProps {
@@ -289,7 +289,7 @@ const MODE_BANNERS: Record<ModeTab, string | null> = {
 export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
   const [activeTab, setActiveTab] = useState<ModeTab>("BASE");
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
-  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [fullscreenBanner, setFullscreenBanner] = useState<{ url: string; title: string; badge?: string; id: string } | null>(null);
   const touchStartRef = useRef<{ x: number; y: number; startX: number } | null>(null);
   const tabListRef = useRef<HTMLDivElement | null>(null);
 
@@ -447,11 +447,18 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
           })}
         </div>
 
-        <div
+        <motion.div
+          layoutId={`rules-mode-card-${activeTab}`}
+          transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
           onClick={() => {
             if (bannerSrc) {
               triggerHaptic("light");
-              setIsViewerOpen(true);
+              setFullscreenBanner({
+                url: bannerSrc,
+                title: currentMode.title,
+                badge: currentMode.badge,
+                id: activeTab,
+              });
             }
           }}
           className={`relative w-full h-[100px] sm:h-[120px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${
@@ -461,13 +468,15 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
               ? "bg-zinc-950"
               : "bg-gradient-to-r from-blue-950/40 via-zinc-900/60 to-zinc-950 border-white/10"
           }`}
-          title="Нажмите для полноэкранного просмотра арта"
+          title="Нажмите для просмотра полного фото"
         >
           {bannerSrc && (
-            <img
+            <motion.img
+              layoutId={`rules-mode-img-${activeTab}`}
+              transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
               src={bannerSrc}
               alt={currentMode.title}
-              className="absolute inset-0 w-full h-full object-cover object-center opacity-80 group-hover:opacity-95 transition-opacity duration-300 pointer-events-none"
+              className="absolute inset-0 w-full h-full object-cover object-center opacity-80 group-hover:scale-105 transition-transform duration-500 pointer-events-none"
               onError={(e) => {
                 console.warn(`[RulesModal] Failed to load banner for ${activeTab}:`, bannerSrc, e);
                 setImgErrors((prev) => ({ ...prev, [activeTab]: true }));
@@ -477,20 +486,24 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
 
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent pointer-events-none" />
 
-          {/* Кнопка-бейдж быстрого просмотра */}
+          {/* Метка в точности как в RoleRevealModal */}
           {bannerSrc && (
-            <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 border border-white/20 backdrop-blur-md text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-zinc-300 group-hover:bg-black/90 group-hover:text-white group-hover:border-white/40 transition-all shadow-md pointer-events-none">
-              <span className="text-xs">🔍</span>
-              <span>Нажмите для просмотра</span>
+            <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5 opacity-85 group-hover:opacity-100 transition-opacity pointer-events-none">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 text-zinc-300">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+              </svg>
+              <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
+                Нажмите для просмотра полного фото
+              </span>
             </div>
           )}
 
-          <div className="absolute bottom-2.5 left-3.5 right-3.5 z-10 flex items-end">
+          <div className="absolute bottom-2.5 left-3.5 right-3.5 z-10 flex items-end pointer-events-none">
             <h3 className="text-base sm:text-lg font-black uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
               {currentMode.title}
             </h3>
           </div>
-        </div>
+        </motion.div>
 
         <div className="overflow-y-auto space-y-3 text-left text-xs text-zinc-300 pr-1 pb-2 custom-scrollbar flex-1 min-h-0">
           <p className="text-[11px] text-zinc-400 leading-relaxed font-medium tracking-normal">
@@ -562,14 +575,69 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
         </div>
       </div>
 
-      <ImageViewerModal
-        isOpen={isViewerOpen}
-        onClose={() => setIsViewerOpen(false)}
-        imageSrc={bannerSrc}
-        title={currentMode.title}
-        subtitle={currentMode.desc}
-        badge={currentMode.badge}
-      />
+      <AnimatePresence>
+        {fullscreenBanner && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 select-none cursor-pointer"
+            onClick={() => {
+              triggerHaptic("light");
+              setFullscreenBanner(null);
+            }}
+          >
+            <motion.button
+              type="button"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => {
+                triggerHaptic("light");
+                setFullscreenBanner(null);
+              }}
+              className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
+            >
+              ✕
+            </motion.button>
+            <motion.div
+              layoutId={`rules-mode-card-${fullscreenBanner.id}`}
+              transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
+              className="relative w-full max-w-2xl aspect-[16/9] sm:aspect-[2/1] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-zinc-950"
+              onClick={() => {
+                triggerHaptic("light");
+                setFullscreenBanner(null);
+              }}
+            >
+              <motion.img
+                layoutId={`rules-mode-img-${fullscreenBanner.id}`}
+                transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
+                src={fullscreenBanner.url}
+                alt={fullscreenBanner.title}
+                className="w-full h-full object-cover contrast-110"
+              />
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.25, delay: 0.1 }}
+                className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-16 flex flex-col items-center text-center pointer-events-none"
+              >
+                {fullscreenBanner.badge && (
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-1.5 px-2.5 py-0.5 rounded-full border border-white/10 bg-black/40">
+                    {fullscreenBanner.badge}
+                  </span>
+                )}
+                <h2 className="text-2xl sm:text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">
+                  {fullscreenBanner.title}
+                </h2>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Modal>
   );
 };

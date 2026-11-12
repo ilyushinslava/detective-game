@@ -554,6 +554,17 @@ class PartyService {
     const { httpProtocol, host } = this.resolveEndpoints();
 
     try {
+      const res = await fetch(`${httpProtocol}//${host}/parties/lobby?action=list`, {
+        signal: AbortSignal.timeout(2000),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (_) {
+      // fallback to legacy /parties/main/lobby
+    }
+
+    try {
       const res = await fetch(`${httpProtocol}//${host}/parties/main/lobby?action=list`, {
         signal: AbortSignal.timeout(2000),
       });
@@ -564,6 +575,110 @@ class PartyService {
       // fallback
     }
     return [];
+  }
+
+  private matchmakingSocket: WebSocket | null = null;
+  private matchmakingTicketId: string | null = null;
+
+  startMatchmaking(
+    options: {
+      mode: string;
+      nickname: string;
+      rank?: string;
+      mmr?: number;
+      bet?: number;
+    },
+    onEvent: (event: {
+      type: "QUEUE_TICKET" | "MATCH_FOUND" | "QUEUE_LEFT" | "ERROR";
+      payload?: any;
+    }) => void
+  ): () => void {
+    if (this.matchmakingSocket) {
+      try {
+        this.matchmakingSocket.close();
+      } catch (_) {}
+      this.matchmakingSocket = null;
+    }
+
+    const { wsProtocol, host } = this.resolveEndpoints();
+    const url = `${wsProtocol}//${host}/parties/matchmaker/default`;
+
+    let ws: WebSocket;
+    try {
+      ws = new WebSocket(url);
+    } catch (err) {
+      onEvent({ type: "ERROR", payload: err });
+      return () => {};
+    }
+    this.matchmakingSocket = ws;
+
+    const clientId = this.myClientId || `client_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+    ws.onopen = () => {
+      try {
+        ws.send(
+          JSON.stringify({
+            type: "JOIN_QUEUE",
+            payload: {
+              clientId,
+              nickname: options.nickname || "Агент",
+              rank: options.rank || "СТАЖЁР",
+              mmr: options.mmr,
+              mode: options.mode,
+              bet: options.bet || 250,
+            },
+          })
+        );
+      } catch (_) {}
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(typeof event.data === "string" ? event.data : event.data.toString());
+        if (msg.type === "QUEUE_TICKET") {
+          this.matchmakingTicketId = msg.payload?.ticketId || null;
+          onEvent({ type: "QUEUE_TICKET", payload: msg.payload });
+        } else if (msg.type === "MATCH_FOUND") {
+          this.matchmakingTicketId = null;
+          onEvent({ type: "MATCH_FOUND", payload: msg.payload });
+          try {
+            ws.close();
+          } catch (_) {}
+          this.matchmakingSocket = null;
+        } else if (msg.type === "QUEUE_LEFT") {
+          this.matchmakingTicketId = null;
+          onEvent({ type: "QUEUE_LEFT" });
+        }
+      } catch (e) {
+        console.warn("[PartyService] Matchmaker parse error:", e);
+      }
+    };
+
+    ws.onerror = (err) => {
+      onEvent({ type: "ERROR", payload: err });
+    };
+
+    ws.onclose = () => {
+      if (this.matchmakingSocket === ws) {
+        this.matchmakingSocket = null;
+      }
+    };
+
+    return () => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        try {
+          ws.send(
+            JSON.stringify({
+              type: "LEAVE_QUEUE",
+              payload: { ticketId: this.matchmakingTicketId },
+            })
+          );
+          ws.close();
+        } catch (_) {}
+      }
+      this.matchmakingSocket = null;
+      this.matchmakingTicketId = null;
+    };
   }
 }
 

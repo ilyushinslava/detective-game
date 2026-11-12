@@ -11,6 +11,12 @@ const _load = jiti(__dirname, { interopDefault: true, esmResolve: true });
 const GameRoomServerModule = _load('./src/server/index.ts');
 const GameRoomServer = GameRoomServerModule.default || GameRoomServerModule;
 
+const LobbyServerModule = _load('./src/server/lobby.ts');
+const LobbyServer = LobbyServerModule.default || LobbyServerModule;
+
+const MatchmakerServerModule = _load('./src/server/matchmaker.ts');
+const MatchmakerServer = MatchmakerServerModule.default || MatchmakerServerModule;
+
 const PORT = process.env.PORT || 1999;
 const EMPTY_ROOM_CLEANUP_DELAY_MS = 90000;
 
@@ -26,6 +32,12 @@ class StandaloneRoomContext {
     return this._connectionsMap.values();
   }
 }
+
+const lobbyContext = new StandaloneRoomContext('lobby');
+const lobbyServer = new LobbyServer(lobbyContext);
+
+const matchmakerContext = new StandaloneRoomContext('matchmaker');
+const matchmakerServer = new MatchmakerServer(matchmakerContext);
 
 function getOrCreateRoom(roomId) {
   let entry = rooms.get(roomId);
@@ -63,18 +75,57 @@ const server = http.createServer(async (req, res) => {
   const protocol = req.headers['x-forwarded-proto'] || 'http';
   const reqUrl = new URL(req.url, `${protocol}://${hostHeader}`);
 
+  const standardReq = new Request(reqUrl.toString(), {
+    method: req.method,
+    headers: req.headers,
+  });
+
+  // 1. Маршрутизация к Matchmaker Party
+  if (reqUrl.pathname.startsWith('/parties/matchmaker')) {
+    try {
+      const response = await matchmakerServer.onRequest(standardReq);
+      const body = await response.text();
+      res.writeHead(response.status || 200, {
+        'Content-Type': response.headers.get('Content-Type') || 'application/json',
+      });
+      res.end(body);
+      return;
+    } catch (err) {
+      console.error('[Standalone Server] Matchmaker HTTP Handler Error:', err);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal Matchmaker Error' }));
+      return;
+    }
+  }
+
+  // 2. Маршрутизация к Lobby Party
   if (
     reqUrl.pathname === '/rooms' ||
     reqUrl.pathname.endsWith('/rooms') ||
+    reqUrl.pathname.startsWith('/parties/lobby') ||
     reqUrl.pathname.startsWith('/parties/main/lobby') ||
     reqUrl.searchParams.get('action') === 'list'
   ) {
     try {
-      const defaultRoom = getOrCreateRoom('main').server;
-      const standardReq = new Request(reqUrl.toString(), {
-        method: req.method,
-        headers: req.headers,
+      const response = await lobbyServer.onRequest(standardReq);
+      const body = await response.text();
+      res.writeHead(response.status || 200, {
+        'Content-Type': response.headers.get('Content-Type') || 'application/json',
       });
+      res.end(body);
+      return;
+    } catch (err) {
+      console.error('[Standalone Server] Lobby HTTP Handler Error:', err);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal Lobby Error' }));
+      return;
+    }
+  }
+
+  // 3. Маршрутизация к GameRoom
+  if (reqUrl.pathname.startsWith('/party/') || reqUrl.pathname.startsWith('/parties/main/')) {
+    try {
+      const defaultRoom = getOrCreateRoom('main').server;
       const response = await defaultRoom.onRequest(standardReq);
       const body = await response.text();
       res.writeHead(response.status || 200, {
@@ -101,7 +152,11 @@ server.on('upgrade', (req, socket, head) => {
   const protocol = req.headers['x-forwarded-proto'] || 'http';
   const reqUrl = new URL(req.url, `${protocol}://${hostHeader}`);
 
-  if (!reqUrl.pathname.startsWith('/party/')) {
+  const isPartyPath =
+    reqUrl.pathname.startsWith('/party/') ||
+    reqUrl.pathname.startsWith('/parties/');
+
+  if (!isPartyPath) {
     socket.write('HTTP/1.1 404 Not Found\r\n\r\n');
     socket.destroy();
     return;
@@ -117,19 +172,7 @@ wss.on('connection', (ws, req) => {
   const protocol = req.headers['x-forwarded-proto'] || 'http';
   const reqUrl = new URL(req.url, `${protocol}://${hostHeader}`);
 
-  const match = reqUrl.pathname.match(/^\/party\/([^\/]+)/);
-  const roomId = match ? decodeURIComponent(match[1]) : 'default';
-
-  const entry = getOrCreateRoom(roomId);
-  const { roomCtx, server: roomServer } = entry;
-  if (entry.cleanupTimer) {
-    clearTimeout(entry.cleanupTimer);
-    entry.cleanupTimer = null;
-    entry.cleanupScheduledAt = null;
-    entry.generation++;
-  }
   const connId = `conn_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-
   const connProxy = {
     id: connId,
     send(data) {
@@ -142,12 +185,81 @@ wss.on('connection', (ws, req) => {
     },
   };
 
-  roomCtx._connectionsMap.set(connId, connProxy);
-
   const standardReq = new Request(reqUrl.toString(), {
     method: req.method,
     headers: req.headers,
   });
+
+  // А: Маршрутизация WebSocket к Matchmaker Party
+  if (reqUrl.pathname.startsWith('/parties/matchmaker')) {
+    matchmakerContext._connectionsMap.set(connId, connProxy);
+    try {
+      matchmakerServer.onConnect(connProxy, { request: standardReq });
+    } catch (err) {
+      console.error('[Standalone Server] Matchmaker onConnect error:', err);
+    }
+
+    ws.on('message', (data) => {
+      try {
+        const message = typeof data === 'string' ? data : data.toString('utf-8');
+        matchmakerServer.onMessage(message, connProxy);
+      } catch (err) {
+        console.error('[Standalone Server] Matchmaker onMessage error:', err);
+      }
+    });
+
+    ws.on('close', () => {
+      try {
+        matchmakerContext._connectionsMap.delete(connId);
+        matchmakerServer.onClose(connProxy);
+      } catch (err) {
+        console.error('[Standalone Server] Matchmaker onClose error:', err);
+      }
+    });
+
+    ws.on('error', (err) => {
+      console.warn('[Standalone Server] Matchmaker socket error:', err);
+    });
+
+    return;
+  }
+
+  // Б: Маршрутизация WebSocket к Lobby Party
+  if (reqUrl.pathname.startsWith('/parties/lobby')) {
+    lobbyContext._connectionsMap.set(connId, connProxy);
+    try {
+      lobbyServer.onConnect(connProxy, { request: standardReq });
+    } catch (err) {
+      console.error('[Standalone Server] Lobby onConnect error:', err);
+    }
+
+    ws.on('close', () => {
+      lobbyContext._connectionsMap.delete(connId);
+    });
+
+    return;
+  }
+
+  // В: Маршрутизация WebSocket к GameRoom Party
+  let roomId = 'default';
+  const partyMatch = reqUrl.pathname.match(/^\/party\/([^\/]+)/);
+  const partiesMainMatch = reqUrl.pathname.match(/^\/parties\/main\/([^\/]+)/);
+  if (partyMatch) {
+    roomId = decodeURIComponent(partyMatch[1]);
+  } else if (partiesMainMatch) {
+    roomId = decodeURIComponent(partiesMainMatch[1]);
+  }
+
+  const entry = getOrCreateRoom(roomId);
+  const { roomCtx, server: roomServer } = entry;
+  if (entry.cleanupTimer) {
+    clearTimeout(entry.cleanupTimer);
+    entry.cleanupTimer = null;
+    entry.cleanupScheduledAt = null;
+    entry.generation++;
+  }
+
+  roomCtx._connectionsMap.set(connId, connProxy);
 
   try {
     roomServer.onConnect(connProxy, { request: standardReq });

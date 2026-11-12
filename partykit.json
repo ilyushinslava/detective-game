@@ -1,5 +1,9 @@
 {
   "name": "detective-game-server",
   "main": "src/server/index.ts",
+  "parties": {
+    "lobby": "src/server/lobby.ts",
+    "matchmaker": "src/server/matchmaker.ts"
+  },
   "compatibilityDate": "2024-04-01"
 }

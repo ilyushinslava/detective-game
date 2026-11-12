@@ -429,22 +429,54 @@ export const MainMenu = ({
   };
   
 
+  const [matchmakingCancel, setMatchmakingCancel] = useState<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (matchmakingCancel) {
+        matchmakingCancel();
+      }
+    };
+  }, [matchmakingCancel]);
+
   const handleQuickPlay = async () => {
     triggerHaptic("heavy");
     setIsCreating(true);
-    try {
-      const rooms = await partyService.fetchPublicRooms();
-      const waitingRoom = rooms.find((r) => r.status === "WAITING" && !r.isPrivate);
-      if (waitingRoom && waitingRoom.roomCode) {
-        setIsCreating(false);
-        handleJoinRoom(waitingRoom.roomCode, waitingRoom.mode as GameModeType);
-        return;
+
+    const cancelFn = partyService.startMatchmaking(
+      {
+        mode: "MANIAC_VS_OPERATIVE",
+        nickname: profile.nickname || "Агент",
+        rank: profile.rank || "СТАЖЁР",
+        bet: 250,
+      },
+      (event) => {
+        if (event.type === "MATCH_FOUND") {
+          setIsCreating(false);
+          setMatchmakingCancel(null);
+          const { roomCode, mode, isHost, bet, isAiMatch, role } = event.payload;
+
+          if (isAiMatch) {
+            onStartGame(
+              mode || "MANIAC_VS_OPERATIVE",
+              "AI",
+              role || "KILLER",
+              2,
+              3,
+              16,
+              bet || 250
+            );
+          } else {
+            connectToPartyRoom(roomCode, mode || "MANIAC_VS_OPERATIVE", isHost, bet || 250, false);
+          }
+        } else if (event.type === "ERROR" || event.type === "QUEUE_LEFT") {
+          setIsCreating(false);
+          setMatchmakingCancel(null);
+        }
       }
-    } catch (e) {
-      console.warn("fetchPublicRooms error:", e);
-    }
-    const code = `room_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`;
-    connectToPartyRoom(code, "MANIAC_VS_OPERATIVE", true, 250, false);
+    );
+
+    setMatchmakingCancel(() => cancelFn);
   };
 
   const handleConfirmCreateRoom = () => {

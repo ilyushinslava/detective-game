@@ -27,144 +27,33 @@ export interface ServerRoomState {
   isPrivate?: boolean;
 }
 
-const g = globalThis as any;
-export const publicRoomsRegistry: Map<
-  string,
-  {
-    roomCode: string;
-    morseCode?: string;
-    mode: string;
-    hostName: string;
-    status: string;
-    playersCount: number;
-    maxPlayers: number;
-    bet?: number;
-    isPrivate?: boolean;
-  }
-> = g.__ps_publicRoomsRegistry || (g.__ps_publicRoomsRegistry = new Map());
+export {
+  publicRoomsRegistry,
+  morseToRoomRegistry,
+  morseToRoomsRegistry,
+  roomToMorseRegistry,
+  generateUniqueMorseCode,
+  resolveRoomsByMorse,
+  resolveRoomByMorse,
+  resolveRoomByPin,
+  unregisterRoom,
+} from "./lobby";
 
-export const morseToRoomRegistry: Map<string, string> =
-  g.__ps_morseToRoomRegistry || (g.__ps_morseToRoomRegistry = new Map());
-export const morseToRoomsRegistry: Map<string, Set<string>> =
-  g.__ps_morseToRoomsRegistry || (g.__ps_morseToRoomsRegistry = new Map());
-export const roomToMorseRegistry: Map<string, string> =
-  g.__ps_roomToMorseRegistry || (g.__ps_roomToMorseRegistry = new Map());
-
-export interface MorseCandidate {
-  roomCode: string;
-  hostName: string;
-  mode: string;
-  status: string;
-  playersCount: number;
-  maxPlayers: number;
-  isPrivate?: boolean;
-}
+export type { MorseCandidate, PublicRoomMeta } from "./lobby";
+import {
+  publicRoomsRegistry,
+  roomToMorseRegistry,
+  morseToRoomsRegistry,
+  morseToRoomRegistry,
+  generateUniqueMorseCode,
+  resolveRoomsByMorse,
+  resolveRoomByMorse,
+  resolveRoomByPin,
+  unregisterRoom,
+} from "./lobby";
 
 import { normalizeMorse } from "../utils/morse";
 export { normalizeMorse };
-
-export function generateUniqueMorseCode(existingCodes: Set<string> | Map<string, any> = morseToRoomRegistry): string {
-  const hasCode = (c: string) =>
-    existingCodes instanceof Set ? existingCodes.has(c) : existingCodes.has(c);
-
-  const candidates: string[] = [];
-  // Ровно 128 комбинаций из 7 символов (TASK: 7-значный Морзе как единый стандарт)
-  for (let i = 0; i < 128; i++) {
-    candidates.push(i.toString(2).padStart(7, "0").replace(/0/g, ".").replace(/1/g, "-"));
-  }
-
-  // Перемешивание кандидатов
-  for (let i = candidates.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
-  }
-
-  for (const c of candidates) {
-    if (!hasCode(c)) {
-      return c;
-    }
-  }
-
-  // Расширение до 8 символов при переполнении пула
-  for (let i = 0; i < 256; i++) {
-    const c = i.toString(2).padStart(8, "0").replace(/0/g, ".").replace(/1/g, "-");
-    if (!hasCode(c)) return c;
-  }
-  return ".......-";
-}
-
-export function resolveRoomsByMorse(morse: string): MorseCandidate[] {
-  const norm = normalizeMorse(morse);
-  if (!norm) return [];
-
-  const candidates: MorseCandidate[] = [];
-  const roomSet = morseToRoomsRegistry.get(norm);
-
-  if (roomSet && roomSet.size > 0) {
-    for (const code of roomSet) {
-      const meta = publicRoomsRegistry.get(code);
-      if (meta && meta.status !== "FINISHED") {
-        candidates.push({
-          roomCode: code,
-          hostName: meta.hostName || "Хост",
-          mode: meta.mode || "MANIAC_VS_OPERATIVE",
-          status: meta.status || "WAITING",
-          playersCount: meta.playersCount || 0,
-          maxPlayers: meta.maxPlayers || 2,
-        });
-      }
-    }
-  }
-
-  // Если в morseToRoomsRegistry ничего не найдено, проверяем совместимость с morseToRoomRegistry
-  if (candidates.length === 0) {
-    const legacyCode = morseToRoomRegistry.get(norm);
-    if (legacyCode) {
-      const meta = publicRoomsRegistry.get(legacyCode);
-      candidates.push({
-        roomCode: legacyCode,
-        hostName: meta?.hostName || "Хост",
-        mode: meta?.mode || "MANIAC_VS_OPERATIVE",
-        status: meta?.status || "WAITING",
-        playersCount: meta?.playersCount || 0,
-        maxPlayers: meta?.maxPlayers || 2,
-      });
-    }
-  }
-
-  return candidates;
-}
-
-export function resolveRoomByMorse(morse: string): string | null {
-  const candidates = resolveRoomsByMorse(morse);
-  return candidates.length > 0 ? candidates[0].roomCode : null;
-}
-
-export function resolveRoomByPin(pin: string): string | null {
-  const clean = String(pin || "").trim();
-  if (!clean) return null;
-  if (publicRoomsRegistry.has(clean)) return clean;
-  if (roomToMorseRegistry.has(clean)) return clean;
-  return null;
-}
-
-export function unregisterRoom(roomCode: string): void {
-  const morse = roomToMorseRegistry.get(roomCode);
-  if (morse) {
-    const set = morseToRoomsRegistry.get(morse);
-    if (set) {
-      set.delete(roomCode);
-      if (set.size === 0) {
-        morseToRoomsRegistry.delete(morse);
-      }
-    }
-    if (morseToRoomRegistry.get(morse) === roomCode) {
-      morseToRoomRegistry.delete(morse);
-    }
-    roomToMorseRegistry.delete(roomCode);
-  }
-  publicRoomsRegistry.delete(roomCode);
-}
 
 // Мгновенная диспетчеризация без искусственных задержек (устранение defer(50ms))
 const defer = (fn: () => void) => {

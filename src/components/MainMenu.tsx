@@ -1648,23 +1648,29 @@ export const MainMenu = ({
           </Modal>
         )}
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: bannerViewer.isOpen ? 1 : 0 }}
-          transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
-          className={`fixed inset-0 z-[120] select-none ${
-            bannerViewer.isOpen ? "pointer-events-auto" : "pointer-events-none"
-          }`}
+        <AnimatePresence>
+          {bannerViewer.isOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
+              className="fixed inset-0 z-[110] bg-black/70 backdrop-blur-md cursor-pointer"
+              onClick={handleCloseBanner}
+            />
+          )}
+        </AnimatePresence>
+
+        <div
+          className="fixed inset-0 z-[120] select-none pointer-events-none"
           aria-hidden={!bannerViewer.isOpen}
         >
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-md cursor-pointer"
-            onClick={handleCloseBanner}
-          />
           <button
             type="button"
             onClick={handleCloseBanner}
-            className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-20"
+            className={`absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-20 ${
+              bannerViewer.isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+            }`}
             title="Закрыть"
           >
             ✕
@@ -1676,7 +1682,9 @@ export const MainMenu = ({
             animate={bannerViewer.isOpen ? "open" : "closed"}
             transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
             onClick={handleCloseBanner}
-            className="fixed overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-zinc-950 cursor-pointer"
+            className={`fixed overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-zinc-950 ${
+              bannerViewer.isOpen ? "pointer-events-auto cursor-pointer" : "pointer-events-none"
+            }`}
           >
             {bannerViewer.url && (
               <img
@@ -1695,7 +1703,7 @@ export const MainMenu = ({
               </h2>
             </div>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

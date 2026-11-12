@@ -15,7 +15,7 @@ const Icons = {
       <path d="M15 18l-6-6 6-6" />
     </svg>
   ),
-  Radar: ({ className = "w-7 h-7 text-cyan-400" }: { className?: string }) => (
+  Radar: ({ className = "w-7 h-7 text-zinc-300" }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 3a9 9 0 0 1 9 9" opacity="0.6" />
@@ -24,13 +24,13 @@ const Icons = {
       <circle cx="12" cy="12" r="1.5" fill="currentColor" />
     </svg>
   ),
-  Lock: ({ className = "w-3.5 h-3.5 text-purple-400" }: { className?: string }) => (
+  Lock: ({ className = "w-3.5 h-3.5 text-zinc-400" }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={className}>
       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
     </svg>
   ),
-  Globe: ({ className = "w-3.5 h-3.5 text-cyan-400" }: { className?: string }) => (
+  Globe: ({ className = "w-3.5 h-3.5 text-zinc-400" }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
       <circle cx="12" cy="12" r="10" />
       <line x1="2" y1="12" x2="22" y2="12" />
@@ -76,9 +76,9 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
   const currentRooms = lobbyTab === 'PUBLIC' ? openRooms : privateRooms;
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-[#080a0f] overflow-hidden relative w-full max-w-full">
+    <div className="flex-1 min-h-0 flex flex-col bg-[#07080c] overflow-hidden relative w-full max-w-full">
       {/* Top Header Bar */}
-      <div className="flex items-center justify-between px-4 sm:px-6 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-[#080a0f]">
+      <div className="flex items-center justify-between px-4 sm:px-6 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/[0.07] bg-[#07080c]">
         <div className="flex items-center gap-3 min-w-0">
           {onBack && (
             <Button
@@ -97,14 +97,14 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
             </h1>
           </div>
         </div>
-        <div className="flex items-center gap-2 bg-emerald-950/60 border border-emerald-500/40 px-3 py-1 rounded-full shrink-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[9px] font-mono font-bold text-emerald-300 uppercase tracking-wider">ONLINE</span>
+        <div className="flex items-center gap-2 bg-zinc-900/80 border border-white/10 px-3 py-1 rounded-full shrink-0">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+          <span className="text-[10px] font-mono font-bold text-zinc-300 uppercase tracking-wider">ONLINE</span>
         </div>
       </div>
 
       {/* Два списка: Вкладки "Открытые игры" и "Приватные игры" */}
-      <div className="flex border-b border-white/10 bg-zinc-950/80 px-4 sm:px-6 pt-2 pb-0 gap-3 shrink-0">
+      <div className="flex border-b border-white/[0.07] bg-zinc-950/80 px-4 sm:px-6 pt-2 pb-0 gap-3 shrink-0">
         <button
           type="button"
           onClick={() => {
@@ -113,14 +113,14 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
           }}
           className={`pb-2.5 px-3 text-xs font-black uppercase tracking-wider transition-all relative border-b-2 cursor-pointer select-none ${
             lobbyTab === 'PUBLIC'
-              ? 'border-cyan-400 text-white shadow-[0_4px_12px_rgba(6,182,212,0.3)]'
+              ? 'border-zinc-200 text-white'
               : 'border-transparent text-zinc-400 hover:text-zinc-200'
           }`}
         >
           <span className="flex items-center gap-2">
-            <Icons.Globe className={`w-3.5 h-3.5 ${lobbyTab === 'PUBLIC' ? 'text-cyan-400' : 'text-zinc-500'}`} />
+            <Icons.Globe className={`w-3.5 h-3.5 ${lobbyTab === 'PUBLIC' ? 'text-zinc-200' : 'text-zinc-500'}`} />
             <span>Открытые игры</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/30">
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-zinc-900 text-zinc-300 border border-white/10">
               {openRooms.length}
             </span>
           </span>
@@ -134,14 +134,14 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
           }}
           className={`pb-2.5 px-3 text-xs font-black uppercase tracking-wider transition-all relative border-b-2 cursor-pointer select-none ${
             lobbyTab === 'PRIVATE'
-              ? 'border-purple-400 text-white shadow-[0_4px_12px_rgba(168,85,247,0.3)]'
+              ? 'border-zinc-200 text-white'
               : 'border-transparent text-zinc-400 hover:text-zinc-200'
           }`}
         >
           <span className="flex items-center gap-2">
-            <Icons.Lock className={`w-3.5 h-3.5 ${lobbyTab === 'PRIVATE' ? 'text-purple-400' : 'text-zinc-500'}`} />
+            <Icons.Lock className={`w-3.5 h-3.5 ${lobbyTab === 'PRIVATE' ? 'text-zinc-200' : 'text-zinc-500'}`} />
             <span>Приватные игры</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-500/30">
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-zinc-900 text-zinc-300 border border-white/10">
               {privateRooms.length}
             </span>
           </span>
@@ -162,7 +162,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
               }}
               className={`h-8 px-3 text-xs font-black uppercase tracking-wider rounded-xl transition-colors duration-150 cursor-pointer select-none border focus:outline-none focus-visible:outline-none active:scale-95 ${
                 isActive
-                  ? 'bg-zinc-800/90 text-cyan-300 border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.25)]'
+                  ? 'bg-zinc-800 text-white border-white/20'
                   : 'bg-transparent text-zinc-400 hover:text-zinc-200 hover:bg-white/5 border-transparent'
               }`}
             >
@@ -177,10 +177,10 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
         {currentRooms.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-white/10 rounded-2xl bg-zinc-950/60 backdrop-blur-md shadow-xl my-auto max-w-lg mx-auto w-full">
             <div className="relative mb-5 flex items-center justify-center">
-              <div className="w-24 h-24 rounded-full border border-cyan-500/20 flex items-center justify-center animate-pulse">
-                <div className="w-16 h-16 rounded-full border border-cyan-500/40 flex items-center justify-center bg-cyan-950/30 shadow-[0_0_20px_rgba(6,182,212,0.15)] relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/25 to-transparent rounded-full animate-spin" style={{ animationDuration: '4s' }} />
-                  <Icons.Radar className="w-7 h-7 text-cyan-400 relative z-10" />
+              <div className="w-24 h-24 rounded-full border border-white/10 flex items-center justify-center animate-pulse">
+                <div className="w-16 h-16 rounded-full border border-white/15 flex items-center justify-center bg-zinc-900/60 shadow-[0_0_25px_rgba(0,0,0,0.8)] relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-white/15 to-transparent rounded-full animate-spin" style={{ animationDuration: '4s' }} />
+                  <Icons.Radar className="w-7 h-7 text-zinc-300 relative z-10" />
                 </div>
               </div>
             </div>
@@ -195,7 +195,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
             <Button
               variant="primary-info"
               onClick={() => setIsCreateRoomOpen(true)}
-              className="from-red-600 px-6 h-10 text-xs font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+              className="from-red-600 px-6 h-10 text-xs font-bold uppercase tracking-wider shadow-lg shadow-black/50 border border-white/10"
             >
               + Создать первый стол
             </Button>
@@ -209,28 +209,28 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
             return (
               <div
                 key={room.roomCode}
-                className="bg-zinc-950/60 hover:bg-zinc-950/80 border border-white/10 hover:border-cyan-500/40 rounded-2xl p-4 flex flex-col gap-3.5 backdrop-blur-md transition-all shadow-lg group"
+                className="bg-zinc-950/60 hover:bg-zinc-950/80 border border-white/10 hover:border-white/25 rounded-2xl p-4 flex flex-col gap-3.5 backdrop-blur-md transition-all shadow-lg group"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex flex-col min-w-0 pr-2">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest">
+                      <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
                         Хост: {room.hostName}
                       </span>
                       {isPrivateRoom && (
-                        <span className="text-[9px] font-mono font-bold text-purple-300 bg-purple-950/60 border border-purple-500/40 px-1.5 py-0.5 rounded-full flex items-center gap-1">
-                          <Icons.Lock className="w-2.5 h-2.5 text-purple-400" />
+                        <span className="text-[10px] font-mono font-bold text-zinc-300 bg-zinc-900/80 border border-white/10 px-2 py-0.5 rounded-full flex items-center gap-1.5">
+                          <Icons.Lock className="w-3 h-3 text-zinc-400" />
                           ЗАКРЫТЫЙ КАНАЛ
                         </span>
                       )}
                     </div>
-                    <span className="text-xs sm:text-sm font-black text-zinc-100 uppercase tracking-wider truncate group-hover:text-cyan-300 transition-colors">
+                    <span className="text-xs sm:text-sm font-black text-zinc-100 uppercase tracking-wider truncate group-hover:text-white transition-colors">
                       {modeTitle}
                     </span>
                   </div>
                   <div className="flex flex-col items-end shrink-0">
-                    <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-0.5 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest mb-0.5 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
                       ОЖИДАНИЕ
                     </span>
                     <span className="text-[10px] text-zinc-400 font-mono">
@@ -253,7 +253,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
                         setSelectedPrivateRoom(room);
                         setIsMorseOpen(true);
                       }}
-                      className="px-5 h-10 text-xs font-bold uppercase tracking-wider rounded-xl border border-purple-500/40 text-purple-200 hover:border-cyan-400 hover:text-white bg-zinc-900/80 shadow-[0_0_15px_rgba(168,85,247,0.2)] cursor-pointer"
+                      className="px-5 h-10 text-xs font-bold uppercase tracking-wider rounded-xl border border-white/15 text-zinc-200 hover:border-white/30 hover:text-white bg-zinc-900/90 shadow-md cursor-pointer"
                     >
                       Ввести шифр ➔
                     </Button>
@@ -262,7 +262,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
                     <Button
                       variant="primary-info"
                       onClick={() => handleJoinRoom(room.roomCode, room.mode)}
-                      className="from-red-600 px-5 h-10 text-xs font-bold uppercase tracking-wider rounded-xl shadow-[0_0_15px_rgba(6,182,212,0.3)] cursor-pointer"
+                      className="from-red-600 px-5 h-10 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shadow-black/50 cursor-pointer"
                     >
                       Войти ➔
                     </Button>
@@ -275,13 +275,13 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
       </div>
 
       {/* Нижняя панель действий */}
-      <div className="w-full shrink-0 bg-[#080a0f] border-t border-white/10 p-4 flex flex-col items-center gap-2.5 z-20">
+      <div className="w-full shrink-0 bg-[#07080c] border-t border-white/[0.07] p-4 flex flex-col items-center gap-2.5 z-20">
         <div className="w-full max-w-xl flex gap-2.5">
           <Button
             variant="primary-info"
             fullWidth
             onClick={() => setIsCreateRoomOpen(true)}
-            className="from-red-600 py-3.5 text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[0_4px_20px_rgba(6,182,212,0.25)]"
+            className="from-red-600 py-3.5 text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-black/50"
           >
             + Создать партию
           </Button>
@@ -290,7 +290,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
 
       {/* Оверлей ввода 7-значного шифра Морзе (пароль к выбранной приватной комнате) */}
       {isMorseOpen && (
-        <div className="fixed inset-0 z-50 bg-[#080a0f] flex flex-col">
+        <div className="fixed inset-0 z-50 bg-[#07080c] flex flex-col">
           <ControllerConnectView
             targetRoomCode={selectedPrivateRoom?.roomCode}
             targetHostName={selectedPrivateRoom?.hostName}

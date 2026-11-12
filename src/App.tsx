@@ -31,9 +31,9 @@ const MobileControllerView = lazy(() => import("./components/controller/MobileCo
 const ControllerConnectView = lazy(() => import("./components/controller/ControllerConnectView").then((m) => ({ default: m.ControllerConnectView })));
 
 const ScreenFallback = () => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#080a0f] text-cyan-400 select-none">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#07080c] text-zinc-300 select-none">
     <div className="flex flex-col items-center gap-3">
-      <div className="w-10 h-10 border-2 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin" />
+      <div className="w-10 h-10 border-2 border-white/10 border-t-blue-500 rounded-full animate-spin" />
       <span className="text-xs font-mono tracking-widest text-zinc-400 uppercase">
         Загрузка модуля...
       </span>
@@ -542,7 +542,7 @@ export default function App() {
       : "blue";
 
   return (
-    <div className="fixed inset-0 w-full h-full flex flex-col bg-[#080a0f] overflow-hidden select-none">
+    <div className="fixed inset-0 w-full h-full flex flex-col bg-[#07080c] overflow-hidden select-none">
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
 
       <GameModalsContainer
@@ -838,7 +838,7 @@ export default function App() {
       {tvPartyState === "CONTROLLER" && (() => {
         const isControllerInGame = controllerRoomStatus === "PLAYING";
         return (
-          <div className="fixed inset-0 z-50 bg-[#080a0f]">
+          <div className="fixed inset-0 z-50 bg-[#07080c]">
             <Suspense fallback={<ScreenFallback />}>
               {!tvRoomCode ? (
                 <ControllerConnectView
@@ -866,17 +866,17 @@ export default function App() {
                   }}
                 />
               ) : !isControllerInGame ? (
-                <div className="flex h-screen w-screen flex-col justify-between p-6 text-zinc-100 select-none font-sans bg-[#080a0f]">
+                <div className="flex h-screen w-screen flex-col justify-between p-6 text-zinc-100 select-none font-sans bg-[#07080c]">
                   <div className="flex items-center justify-between border-b border-white/10 pb-3">
                     <div className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
-                      <span className="text-xs font-mono uppercase tracking-widest text-zinc-400">ПОДКЛЮЧЕНО</span>
+                      <span className="h-2 w-2 rounded-full bg-blue-500" />
+                      <span className="text-xs font-mono uppercase tracking-widest text-zinc-300">ПОДКЛЮЧЕНО</span>
                     </div>
                     <div className="text-xs font-mono text-zinc-500">КОМНАТА #{tvRoomCode}</div>
                   </div>
 
                   <div className="flex flex-col items-center text-center max-w-sm mx-auto my-auto space-y-4">
-                    <div className="w-20 h-20 rounded-3xl border border-white/10 bg-zinc-950/60 backdrop-blur-md flex items-center justify-center shadow-2xl text-cyan-400">
+                    <div className="w-20 h-20 rounded-3xl border border-white/10 bg-zinc-950/60 backdrop-blur-md flex items-center justify-center shadow-2xl text-zinc-300">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-10 h-10">
                         <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
                         <line x1="12" y1="18" x2="12.01" y2="18" />
@@ -944,7 +944,7 @@ export default function App() {
 
       {/* РЕЖИМ TV PARTY: Лобби ожидания подключения */}
       {tvPartyState === "TV_LOBBY" && (
-        <div className="fixed inset-0 z-50 bg-[#080a0f]">
+        <div className="fixed inset-0 z-50 bg-[#07080c]">
           <Suspense fallback={<ScreenFallback />}>
             <TvLobbyView
               roomCode={tvRoomCode}
@@ -984,7 +984,7 @@ export default function App() {
 
       {/* РЕЖИМ TV PARTY: Главный экран телевизора */}
       {tvPartyState === "TV_BOARD" && (
-        <div className="fixed inset-0 z-50 bg-[#080a0f]">
+        <div className="fixed inset-0 z-50 bg-[#07080c]">
           <Suspense fallback={<ScreenFallback />}>
             <TvBoardView
               gameState={gameState}

@@ -16,7 +16,7 @@ const Icons = {
       <circle cx="12" cy="7" r="4" />
     </svg>
   ),
-  UserLarge: ({ className = "w-10 h-10 text-cyan-400" }: { className?: string }) => (
+  UserLarge: ({ className = "w-10 h-10 text-zinc-300" }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
@@ -104,10 +104,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   };
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-[#080a0f] text-zinc-100 overflow-y-auto custom-scrollbar p-4 md:p-6 lg:p-8 w-full max-w-full">
+    <div className="flex-1 min-h-0 flex flex-col bg-[#07080c] text-zinc-100 overflow-y-auto custom-scrollbar p-4 md:p-6 lg:p-8 w-full max-w-full">
       <div className="max-w-4xl w-full mx-auto flex flex-col gap-6">
         {/* Header Bar */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="flex items-center justify-between border-b border-white/[0.07] pb-4">
           <div className="flex items-center gap-3 min-w-0">
             {onBack && (
               <Button
@@ -121,7 +121,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
               </Button>
             )}
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-zinc-900/90 border border-white/10 flex items-center justify-center text-cyan-400 shadow-md shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-zinc-900/90 border border-white/10 flex items-center justify-center text-zinc-300 shadow-md shrink-0">
                 <Icons.User />
               </div>
               <div className="flex flex-col min-w-0">
@@ -139,7 +139,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 soundManager.play('tapMenu');
                 onOpenSettings();
               }}
-              className="h-9 px-3 text-xs gap-2 shrink-0 border border-white/10 hover:border-cyan-500/40"
+              className="h-9 px-3 text-xs gap-2 shrink-0 border border-white/10 hover:border-white/20"
             >
               <Icons.Settings />
               <span>{t.menu?.settings || 'Настройки'}</span>
@@ -148,9 +148,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </div>
 
         {/* Dossier Hero Card */}
-        <div className="bg-zinc-950/60 border border-white/10 hover:border-cyan-500/30 rounded-2xl p-5 md:p-6 shadow-xl flex flex-col sm:flex-row items-center gap-6 backdrop-blur-md transition-all">
+        <div className="bg-zinc-950/60 border border-white/10 hover:border-white/20 rounded-2xl p-5 md:p-6 shadow-xl flex flex-col sm:flex-row items-center gap-6 backdrop-blur-md transition-all">
           <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-zinc-900/90 border border-white/10 flex items-center justify-center shadow-inner shrink-0 select-none">
-            <Icons.UserLarge className="w-10 h-10 sm:w-12 sm:h-12 text-cyan-400" />
+            <Icons.UserLarge className="w-10 h-10 sm:w-12 sm:h-12 text-zinc-300" />
           </div>
 
           <div className="flex-1 flex flex-col gap-2.5 text-center sm:text-left min-w-0 w-full">
@@ -161,7 +161,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   maxLength={16}
                   value={nicknameInput}
                   onChange={(e) => setNicknameInput(e.target.value)}
-                  className="bg-zinc-900 border border-cyan-500/50 rounded-xl px-3 py-1.5 text-sm font-black text-white uppercase tracking-wider outline-none focus:ring-2 focus:ring-cyan-400/50"
+                  className="bg-zinc-900 border border-white/20 focus:border-blue-500 rounded-xl px-3 py-1.5 text-sm font-black text-white uppercase tracking-wider outline-none focus:ring-1 focus:ring-blue-500/30"
                   autoFocus
                 />
                 <Button variant="secondary" onClick={handleSaveNickname} className="h-8 px-3 text-xs font-bold uppercase">
@@ -175,7 +175,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 </span>
                 <button
                   onClick={() => { setIsEditing(true); setNicknameInput(profile.nickname); }}
-                  className="text-zinc-500 hover:text-cyan-400 transition-colors p-1"
+                  className="text-zinc-500 hover:text-zinc-200 transition-colors p-1"
                   title="Изменить позывной"
                 >
                   <Icons.Edit />
@@ -184,8 +184,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             )}
 
             <div className="flex items-center gap-3 justify-center sm:justify-start text-xs font-mono text-zinc-400">
-              <span className="flex items-center gap-1.5 text-emerald-400 font-bold tracking-wider">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+              <span className="flex items-center gap-1.5 text-zinc-300 font-bold tracking-wider">
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
                 В СЕТИ
               </span>
               <span>•</span>
@@ -199,7 +199,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         {/* Statistics Grid (6 cards: 2 cols on mobile, 3 cols on desktop) */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {/* Card 1: Партий сыграно */}
-          <div className="bg-zinc-950/60 border border-white/10 rounded-2xl p-4 flex flex-col justify-between backdrop-blur-md hover:border-cyan-500/30 transition-all">
+          <div className="bg-zinc-950/60 border border-white/10 rounded-2xl p-4 flex flex-col justify-between backdrop-blur-md hover:border-white/20 transition-all">
             <div className="flex items-center justify-between text-zinc-400 mb-3">
               <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Партий сыграно</span>
               <Icons.Shield />
@@ -208,7 +208,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
 
           {/* Card 2: Побед */}
-          <div className="bg-zinc-950/60 border border-white/10 rounded-2xl p-4 flex flex-col justify-between backdrop-blur-md hover:border-cyan-500/30 transition-all">
+          <div className="bg-zinc-950/60 border border-white/10 rounded-2xl p-4 flex flex-col justify-between backdrop-blur-md hover:border-white/20 transition-all">
             <div className="flex items-center justify-between text-zinc-400 mb-3">
               <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Побед</span>
               <Icons.Trophy />
@@ -217,7 +217,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
 
           {/* Card 3: Поражений */}
-          <div className="bg-zinc-950/60 border border-white/10 rounded-2xl p-4 flex flex-col justify-between backdrop-blur-md hover:border-cyan-500/30 transition-all">
+          <div className="bg-zinc-950/60 border border-white/10 rounded-2xl p-4 flex flex-col justify-between backdrop-blur-md hover:border-white/20 transition-all">
             <div className="flex items-center justify-between text-zinc-400 mb-3">
               <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Поражений</span>
               <Icons.XCircle />
@@ -226,7 +226,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
 
           {/* Card 4: Винрейт */}
-          <div className="bg-zinc-950/60 border border-white/10 rounded-2xl p-4 flex flex-col justify-between backdrop-blur-md hover:border-cyan-500/30 transition-all">
+          <div className="bg-zinc-950/60 border border-white/10 rounded-2xl p-4 flex flex-col justify-between backdrop-blur-md hover:border-white/20 transition-all">
             <div className="flex items-center justify-between text-zinc-400 mb-3">
               <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Винрейт</span>
               <Icons.Activity />
@@ -244,7 +244,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
 
           {/* Card 6: Текущий ранг */}
-          <div className="bg-zinc-950/60 border border-white/10 rounded-2xl p-4 flex flex-col justify-between backdrop-blur-md hover:border-cyan-500/30 transition-all">
+          <div className="bg-zinc-950/60 border border-white/10 rounded-2xl p-4 flex flex-col justify-between backdrop-blur-md hover:border-white/20 transition-all">
             <div className="flex items-center justify-between text-zinc-400 mb-3">
               <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Текущий ранг</span>
               <Icons.Award />

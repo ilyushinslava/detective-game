@@ -142,7 +142,7 @@ export const DuelScreen = ({
   const isTurnUrgent = state.turnTimeRemaining <= 5;
 
   return (
-    <div className="h-[100dvh] max-h-[100dvh] bg-black text-zinc-100 flex flex-col justify-between p-3 select-none overflow-hidden relative">
+    <div className="h-[100dvh] max-h-[100dvh] bg-[#07080c] text-zinc-100 flex flex-col justify-between p-3 select-none overflow-hidden relative">
       {/* Top Header Bar */}
       <header className="w-full max-w-xl mx-auto flex items-center justify-between gap-2 shrink-0 pb-2 border-b border-zinc-900">
         <button

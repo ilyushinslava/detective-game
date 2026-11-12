@@ -149,7 +149,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
 
   return (
     <>
-      <header className="w-full px-4 sm:px-6 pb-2.5 bg-[#080a0f] border-b border-white/10 shrink-0 relative flex items-center justify-between z-50 pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <header className="w-full px-4 sm:px-6 pb-2.5 bg-[#07080c] border-b border-white/[0.07] shrink-0 relative flex items-center justify-between z-50 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsPauseOpen(true)}
@@ -186,7 +186,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
               <line x1="16" y1="17" x2="8" y2="17"/>
             </svg>
             {unreadLogCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[8px] font-black rounded-full w-4 h-4 flex items-center justify-center animate-pulse">
+              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-black rounded-full w-4 h-4 flex items-center justify-center animate-pulse">
                 {unreadLogCount}
               </span>
             )}
@@ -347,7 +347,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
                 : `Жертва (${gameState.lastInterrogation.targetName}): законник рядом?`}
             </span>
             <span
-              className={`shrink-0 px-2 py-0.5 rounded text-[9px] md:text-xs font-black uppercase border ${gameState.lastInterrogation.isNear ? "bg-red-900 text-red-100 border-red-500 animate-pulse" : "bg-blue-950 text-blue-300 border-blue-700"}`}
+              className={`shrink-0 px-2 py-0.5 rounded text-[10px] md:text-xs font-black uppercase border ${gameState.lastInterrogation.isNear ? "bg-red-900 text-red-100 border-red-500 animate-pulse" : "bg-blue-950 text-blue-300 border-blue-700"}`}
             >
               {gameState.lastInterrogation.isNear ? "Враг рядом" : "Вне зоны"}
             </span>
@@ -369,7 +369,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
                 return (
                   <span
                     key={spy.id}
-                    className={`px-1.5 py-0.5 rounded text-[8.5px] md:text-[10px] font-black uppercase border ${hasContact ? "bg-red-950 text-red-400 border-red-700 animate-pulse" : "bg-zinc-950 text-zinc-500 border-zinc-800"}`}
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase border ${hasContact ? "bg-red-950 text-red-400 border-red-700 animate-pulse" : "bg-zinc-950 text-zinc-500 border-zinc-800"}`}
                   >
                     {spy.name.replace("Агент «", "").replace("»", "")}:{" "}
                     {hasContact ? "РЯДОМ" : "НЕТ"}
@@ -382,15 +382,15 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
           <div className="w-full h-full px-2.5 rounded-lg border border-red-900/60 bg-red-950/40 flex items-center justify-between text-[10px] md:text-sm shadow-sm">
             <div className="flex items-center gap-1.5 min-w-0">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
-              <span className="text-red-400 font-bold uppercase tracking-wider shrink-0 text-[9px] md:text-xs">Цель:</span>
+              <span className="text-red-400 font-bold uppercase tracking-wider shrink-0 text-[10px] md:text-xs">Цель:</span>
               <span className="text-zinc-100 font-black truncate">
                 {allChars.find((c) => c.id === gameState.victimList[0])?.name ?? gameState.victimList[0]}
               </span>
-              <span className="text-[9px] md:text-xs font-semibold tracking-normal text-red-400/90 shrink-0">
+              <span className="text-[10px] md:text-xs font-semibold tracking-normal text-red-400/90 shrink-0">
                 (#{gameState.victimList[0].replace("c", "").padStart(2, "0")})
               </span>
             </div>
-            <div className="shrink-0 font-medium tracking-normal text-[9px] sm:text-[10px] md:text-xs text-zinc-400 ml-2 flex items-center gap-1">
+            <div className="shrink-0 font-medium tracking-normal text-[10px] md:text-xs text-zinc-400 ml-2 flex items-center gap-1">
               <span>В очереди:</span> <b className="font-bold tabular-nums text-red-400">{gameState.victimList.length}</b>
             </div>
           </div>
@@ -566,7 +566,10 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
               <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                 Протокол событий ({gameState.log.length})
               </span>
-              <span className="text-xs">📋</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-zinc-500">
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+              </svg>
             </div>
             <div
               ref={logContainerRef}

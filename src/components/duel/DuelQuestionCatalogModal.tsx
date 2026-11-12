@@ -106,7 +106,7 @@ export const DuelQuestionCatalogModal = ({
             placeholder="Поиск по тексту или тегам..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-900/80 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-500/50 transition shadow-inner"
+            className="w-full bg-zinc-900/80 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition shadow-inner"
           />
           {searchQuery && (
             <button
@@ -168,11 +168,11 @@ export const DuelQuestionCatalogModal = ({
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-zinc-500 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800">
                       {CATEGORY_LABELS[q.category]}
                     </span>
                     {q.tags.map((tag) => (
-                      <span key={tag} className="text-[8px] font-mono text-zinc-600 uppercase">
+                      <span key={tag} className="text-[10px] font-mono text-zinc-500 uppercase">
                         #{tag}
                       </span>
                     ))}
@@ -187,7 +187,7 @@ export const DuelQuestionCatalogModal = ({
         {selectedQuestion && (
           <div className="mt-4 pt-4 border-t border-zinc-800 shrink-0 animate-in slide-in-from-bottom-4 fade-in duration-200">
             <div className="mb-3">
-              <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest block mb-1">
+              <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest block mb-1">
                 Выбранный вопрос:
               </span>
               <span className="text-sm font-bold text-zinc-100">
@@ -196,7 +196,7 @@ export const DuelQuestionCatalogModal = ({
             </div>
             <button
               onClick={handleConfirm}
-              className="w-full py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white text-xs font-black tracking-widest uppercase rounded-xl shadow-[0_10px_25px_rgba(59,130,246,0.5)] hover:brightness-110 active:scale-[0.98] transition cursor-pointer"
+              className="w-full py-3.5 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 text-white text-xs font-black tracking-widest uppercase rounded-xl shadow-lg shadow-blue-950/40 border border-blue-400/30 hover:brightness-110 active:scale-[0.98] transition cursor-pointer"
             >
               Подтвердить вопрос
             </button>

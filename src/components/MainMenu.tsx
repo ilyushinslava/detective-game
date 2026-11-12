@@ -498,13 +498,20 @@ export const MainMenu = ({
               title="Досье агента"
             >
               <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-zinc-950 border border-white/10 flex items-center justify-center text-xs sm:text-sm shrink-0">
-                {profile.avatar || "🕵️"}
+                {profile.avatar ? (
+                  profile.avatar
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-zinc-400">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                )}
               </div>
               <div className="flex flex-col leading-none">
                 <span className="text-[10px] sm:text-xs font-black tracking-wider text-zinc-200 uppercase group-hover:text-white transition truncate max-w-[85px] sm:max-w-[120px]">
                   {profile.nickname}
                 </span>
-                <span className="text-[7px] sm:text-[8px] font-mono text-zinc-400 tracking-widest uppercase mt-0.5">
+                <span className="text-[9px] sm:text-[10px] font-mono text-zinc-400 tracking-widest uppercase mt-0.5">
                   {profile.rank || "Стажёр"}
                 </span>
               </div>
@@ -545,11 +552,11 @@ export const MainMenu = ({
                     <Icons.Play />
                   </div>
                   <div className="flex flex-col text-left">
-                    <span className="text-[9px] font-mono uppercase tracking-widest text-emerald-400 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-300 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                       ДЕЛО ПРИОСТАНОВЛЕНО
                     </span>
-                    <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white group-hover:text-emerald-300 transition">
+                    <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white group-hover:text-blue-300 transition">
                       {t.menu.resume}
                     </span>
                   </div>
@@ -675,10 +682,10 @@ export const MainMenu = ({
                   <Icons.Shield />
                 </div>
                 <div className="flex flex-col items-start leading-tight min-w-0">
-                  <span className="text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-widest text-zinc-200 group-hover:text-white truncate">
+                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-zinc-200 group-hover:text-white truncate">
                     {t.menu.rulebook}
                   </span>
-                  <span className="text-[7px] sm:text-[8px] font-mono text-zinc-500 uppercase tracking-widest truncate">
+                  <span className="text-[9px] sm:text-[10px] font-mono text-zinc-500 uppercase tracking-widest truncate">
                     {t.menu.rulebookDesc}
                   </span>
                 </div>
@@ -693,10 +700,10 @@ export const MainMenu = ({
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 sm:w-5 sm:h-5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                 </div>
                 <div className="flex flex-col items-start leading-tight min-w-0">
-                  <span className="text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-widest text-zinc-200 group-hover:text-white truncate">
+                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-zinc-200 group-hover:text-white truncate">
                     {t.menu.tutorial}
                   </span>
-                  <span className="text-[7px] sm:text-[8px] font-mono text-zinc-500 uppercase tracking-widest truncate">
+                  <span className="text-[9px] sm:text-[10px] font-mono text-zinc-500 uppercase tracking-widest truncate">
                     {t.menu.tutorialDesc}
                   </span>
                 </div>
@@ -1455,7 +1462,7 @@ export const MainMenu = ({
                     const enabled = soundManager.toggleSfx();
                     setIsSfxEnabled(enabled);
                   }}
-                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isSfxEnabled ? 'bg-red-600 shadow-[0_0_12px_rgba(239,68,68,0.4)]' : 'bg-zinc-700'}`}
+                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isSfxEnabled ? 'bg-blue-600' : 'bg-zinc-800 border border-white/10'}`}
                 >
                   <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isSfxEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
                 </button>
@@ -1472,7 +1479,7 @@ export const MainMenu = ({
                     const enabled = soundManager.toggleAmbient();
                     setIsAmbientEnabled(enabled);
                   }}
-                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isAmbientEnabled ? 'bg-red-600 shadow-[0_0_12px_rgba(239,68,68,0.4)]' : 'bg-zinc-700'}`}
+                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isAmbientEnabled ? 'bg-blue-600' : 'bg-zinc-800 border border-white/10'}`}
                 >
                   <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isAmbientEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
                 </button>
@@ -1491,7 +1498,7 @@ export const MainMenu = ({
                     setHapticsEnabled(newVal);
                     if (newVal) triggerHaptic("medium");
                   }}
-                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isHapticsEnabled ? 'bg-red-600 shadow-[0_0_12px_rgba(239,68,68,0.4)]' : 'bg-zinc-700'}`}
+                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isHapticsEnabled ? 'bg-blue-600' : 'bg-zinc-800 border border-white/10'}`}
                 >
                   <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isHapticsEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
                 </button>
@@ -1506,14 +1513,14 @@ export const MainMenu = ({
                   <button 
                     type="button"
                     onClick={() => setLang('ru')}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider ${lang === 'ru' ? 'bg-red-600 text-white shadow-[0_0_12px_rgba(239,68,68,0.4)]' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/10'}`}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider ${lang === 'ru' ? 'bg-zinc-200 text-zinc-950 shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/10'}`}
                   >
                     RU
                   </button>
                   <button 
                     type="button"
                     onClick={() => setLang('en')}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider ${lang === 'en' ? 'bg-red-600 text-white shadow-[0_0_12px_rgba(239,68,68,0.4)]' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/10'}`}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider ${lang === 'en' ? 'bg-zinc-200 text-zinc-950 shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/10'}`}
                   >
                     EN
                   </button>

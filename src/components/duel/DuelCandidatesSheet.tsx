@@ -121,7 +121,7 @@ export const DuelCandidatesSheet = ({
                     <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent pointer-events-none" />
                     
                     <div className="relative z-10 flex flex-col pointer-events-none">
-                      <span className="text-[9px] font-mono text-blue-400/80 mb-0.5">
+                      <span className="text-[10px] font-mono text-blue-400/80 mb-0.5">
                         #{num}
                       </span>
                       <span className="text-[10px] font-black text-zinc-100 uppercase tracking-wider leading-tight line-clamp-2">

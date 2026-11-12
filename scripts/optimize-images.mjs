@@ -30,13 +30,15 @@ async function optimizeIcons() {
 }
 
 async function optimizePosters() {
-  console.log('--- Оптимизация фоновых постеров ---');
+  console.log('--- Оптимизация фоновых постеров (WebP) ---');
   const posters = [
-    { file: 'public/splash-bg-PC.png', width: 1920, height: 1080 },
-    { file: 'public/splash-bg.png', width: 1080, height: 1920 },
-    { file: 'public/bg-main.png', width: 1920, height: 1080 },
-    { file: 'src/assets/lobby_background.png', width: 1920, height: 1080 },
-    { file: 'src/assets/modes/maniac_preview.png', width: 1200, height: 600 },
+    { file: 'public/splash-bg-PC.webp', width: 1920, height: 1080 },
+    { file: 'public/splash-bg.webp', width: 1080, height: 1920 },
+    { file: 'public/bg-main.webp', width: 1920, height: 1080 },
+    { file: 'public/assets/modes/base-banner.webp', width: 1200, height: 600 },
+    { file: 'public/assets/modes/maniac-banner.webp', width: 1200, height: 600 },
+    { file: 'src/assets/lobby_background.webp', width: 1920, height: 1080 },
+    { file: 'src/assets/modes/maniac_preview.webp', width: 1200, height: 600 },
   ];
 
   for (const item of posters) {
@@ -48,7 +50,7 @@ async function optimizePosters() {
 
     const output = await sharp(input)
       .resize(item.width, item.height, { fit: 'inside', withoutEnlargement: true })
-      .png({ compressionLevel: 9, effort: 7, palette: true, quality: 85 })
+      .webp({ quality: 85, effort: 6 })
       .toBuffer();
 
     fs.writeFileSync(fullPath, output);

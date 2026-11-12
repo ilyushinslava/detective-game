@@ -279,8 +279,8 @@ const getBannerUrl = (path: string | null) => {
 };
 
 const MODE_BANNERS: Record<ModeTab, string | null> = {
-  BASE: "/assets/modes/base-banner.png",          // Тестовая Схватка.png
-  MANIAC: "/assets/modes/maniac-banner.png",      // Тестовая Маньяк.png
+  BASE: "/assets/modes/base-banner.webp",          // Тестовая Схватка.webp
+  MANIAC: "/assets/modes/maniac-banner.webp",      // Тестовая Маньяк.webp
   THIEF: null,                                   // Заглушка (подставит пользователь)
   SECRET_SERVICE: null,                          // Заглушка (подставит пользователь)
   LINE_UP: null,                                 // Заглушка (подставит пользователь)

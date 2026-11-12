@@ -872,6 +872,7 @@ export const MainMenu = ({
           <div className="px-4 sm:px-6 py-3.5 sm:py-4 w-full max-w-xl mx-auto flex flex-col gap-4 sm:gap-4.5">
             {modeBannerSrc && (
               <motion.div
+                layout
                 layoutId={`menu-mode-card-${activeModeData.id}`}
                 transition={BANNER_TRANSITION}
                 onClick={() => {
@@ -884,13 +885,13 @@ export const MainMenu = ({
                 }}
                 className={`relative w-full h-[100px] sm:h-[120px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${
                   modeMeta?.banner?.borderColor || "border-zinc-800"
-                } shadow-lg cursor-pointer group select-none transition-transform active:scale-[0.99] bg-zinc-950`}
+                } shadow-lg cursor-pointer group select-none bg-zinc-950`}
                 title="Нажмите для просмотра полного фото"
               >
                 <img
                   src={modeBannerSrc}
                   alt={activeModeData.title}
-                  className="absolute inset-0 w-full h-full object-cover object-center opacity-80 group-hover:scale-105 transition-transform duration-500 pointer-events-none"
+                  className="absolute inset-0 w-full h-full object-cover object-center opacity-80 pointer-events-none"
                 />
 
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent pointer-events-none" />
@@ -1594,7 +1595,7 @@ export const MainMenu = ({
           </Modal>
         )}
 
-        <AnimatePresence>
+        <AnimatePresence mode="popLayout">
           {fullscreenBanner && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -1622,6 +1623,7 @@ export const MainMenu = ({
                 ✕
               </motion.button>
               <motion.div
+                layout
                 layoutId={`menu-mode-card-${fullscreenBanner.id}`}
                 transition={BANNER_TRANSITION}
                 className="relative w-full max-w-2xl aspect-[16/9] sm:aspect-[2/1] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-zinc-950"

@@ -451,6 +451,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
         </div>
 
         <motion.div
+          layout
           layoutId={`rules-mode-card-${activeTab}`}
           transition={BANNER_TRANSITION}
           onClick={() => {
@@ -465,7 +466,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
           }}
           className={`relative w-full h-[100px] sm:h-[120px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${
             currentMode.borderColor
-          } shadow-lg cursor-pointer group select-none transition-transform active:scale-[0.99] ${
+          } shadow-lg cursor-pointer group select-none ${
             bannerSrc
               ? "bg-zinc-950"
               : "bg-gradient-to-r from-blue-950/40 via-zinc-900/60 to-zinc-950 border-white/10"
@@ -476,7 +477,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
             <img
               src={bannerSrc}
               alt={currentMode.title}
-              className="absolute inset-0 w-full h-full object-cover object-center opacity-80 group-hover:scale-105 transition-transform duration-500 pointer-events-none"
+              className="absolute inset-0 w-full h-full object-cover object-center opacity-80 pointer-events-none"
               onError={(e) => {
                 console.warn(`[RulesModal] Failed to load banner for ${activeTab}:`, bannerSrc, e);
                 setImgErrors((prev) => ({ ...prev, [activeTab]: true }));
@@ -572,7 +573,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
       </div>
     </Modal>
 
-    <AnimatePresence>
+    <AnimatePresence mode="popLayout">
       {fullscreenBanner && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -600,6 +601,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
             ✕
           </motion.button>
           <motion.div
+            layout
             layoutId={`rules-mode-card-${fullscreenBanner.id}`}
             transition={BANNER_TRANSITION}
             className="relative w-full max-w-2xl aspect-[16/9] sm:aspect-[2/1] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-zinc-950"

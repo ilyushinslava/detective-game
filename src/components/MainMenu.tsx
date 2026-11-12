@@ -19,7 +19,7 @@ const MODE_BANNER_IMAGE: Record<GameModeType, string> = {
   LINE_UP: "/assets/modes/lineup-banner.webp",
 };
 
-const BANNER_SPRING_TRANSITION = { type: "spring", bounce: 0, duration: 0.4 } as const;
+const BANNER_TRANSITION = { type: "tween", ease: "easeInOut", duration: 0.3 } as const;
 
 import { TablesScreen } from "./TablesScreen";
 import { ProfileScreen } from "./ProfileScreen";
@@ -873,7 +873,7 @@ export const MainMenu = ({
             {modeBannerSrc && (
               <motion.div
                 layoutId={`menu-mode-card-${activeModeData.id}`}
-                transition={BANNER_SPRING_TRANSITION}
+                transition={BANNER_TRANSITION}
                 onClick={() => {
                   triggerHaptic('light');
                   setFullscreenBanner({
@@ -887,9 +887,7 @@ export const MainMenu = ({
                 } shadow-lg cursor-pointer group select-none transition-transform active:scale-[0.99] bg-zinc-950`}
                 title="Нажмите для просмотра полного фото"
               >
-                <motion.img
-                  layoutId={`menu-mode-img-${activeModeData.id}`}
-                  transition={BANNER_SPRING_TRANSITION}
+                <img
                   src={modeBannerSrc}
                   alt={activeModeData.title}
                   className="absolute inset-0 w-full h-full object-cover object-center opacity-80 group-hover:scale-105 transition-transform duration-500 pointer-events-none"
@@ -1602,7 +1600,7 @@ export const MainMenu = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
               className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-md flex flex-col items-center justify-center p-4 select-none cursor-pointer"
               onClick={() => {
                 triggerHaptic("light");
@@ -1614,7 +1612,7 @@ export const MainMenu = ({
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
                 onClick={() => {
                   triggerHaptic("light");
                   setFullscreenBanner(null);
@@ -1625,25 +1623,23 @@ export const MainMenu = ({
               </motion.button>
               <motion.div
                 layoutId={`menu-mode-card-${fullscreenBanner.id}`}
-                transition={BANNER_SPRING_TRANSITION}
+                transition={BANNER_TRANSITION}
                 className="relative w-full max-w-2xl aspect-[16/9] sm:aspect-[2/1] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-zinc-950"
                 onClick={() => {
                   triggerHaptic("light");
                   setFullscreenBanner(null);
                 }}
               >
-                <motion.img
-                  layoutId={`menu-mode-img-${fullscreenBanner.id}`}
-                  transition={BANNER_SPRING_TRANSITION}
+                <img
                   src={fullscreenBanner.url}
                   alt={fullscreenBanner.title}
-                  className="w-full h-full object-cover contrast-110"
+                  className="w-full h-full object-cover contrast-110 pointer-events-none"
                 />
                 <motion.div
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.25, delay: 0.1 }}
+                  transition={{ duration: 0.25, ease: "easeInOut", delay: 0.05 }}
                   className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-16 flex flex-col items-center text-center pointer-events-none"
                 >
                   <h2 className="text-2xl sm:text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">

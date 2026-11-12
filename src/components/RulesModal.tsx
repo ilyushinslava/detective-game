@@ -278,7 +278,7 @@ const getBannerUrl = (path: string | null) => {
   return `${base}${path.startsWith("/") ? path : "/" + path}`;
 };
 
-const BANNER_SPRING_TRANSITION = { type: "spring", bounce: 0, duration: 0.4 } as const;
+const BANNER_TRANSITION = { type: "tween", ease: "easeInOut", duration: 0.3 } as const;
 
 const MODE_BANNERS: Record<ModeTab, string | null> = {
   BASE: "/assets/modes/base-banner.webp",
@@ -452,7 +452,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
 
         <motion.div
           layoutId={`rules-mode-card-${activeTab}`}
-          transition={BANNER_SPRING_TRANSITION}
+          transition={BANNER_TRANSITION}
           onClick={() => {
             if (bannerSrc) {
               triggerHaptic("light");
@@ -473,9 +473,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
           title="Нажмите для просмотра полного фото"
         >
           {bannerSrc && (
-            <motion.img
-              layoutId={`rules-mode-img-${activeTab}`}
-              transition={BANNER_SPRING_TRANSITION}
+            <img
               src={bannerSrc}
               alt={currentMode.title}
               className="absolute inset-0 w-full h-full object-cover object-center opacity-80 group-hover:scale-105 transition-transform duration-500 pointer-events-none"
@@ -580,7 +578,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.25, ease: "easeInOut" }}
           className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-md flex flex-col items-center justify-center p-4 select-none cursor-pointer"
           onClick={() => {
             triggerHaptic("light");
@@ -592,7 +590,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
             onClick={() => {
               triggerHaptic("light");
               setFullscreenBanner(null);
@@ -603,25 +601,23 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
           </motion.button>
           <motion.div
             layoutId={`rules-mode-card-${fullscreenBanner.id}`}
-            transition={BANNER_SPRING_TRANSITION}
+            transition={BANNER_TRANSITION}
             className="relative w-full max-w-2xl aspect-[16/9] sm:aspect-[2/1] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-zinc-950"
             onClick={() => {
               triggerHaptic("light");
               setFullscreenBanner(null);
             }}
           >
-            <motion.img
-              layoutId={`rules-mode-img-${fullscreenBanner.id}`}
-              transition={BANNER_SPRING_TRANSITION}
+            <img
               src={fullscreenBanner.url}
               alt={fullscreenBanner.title}
-              className="w-full h-full object-cover contrast-110"
+              className="w-full h-full object-cover contrast-110 pointer-events-none"
             />
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.25, delay: 0.1 }}
+              transition={{ duration: 0.25, ease: "easeInOut", delay: 0.05 }}
               className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-16 flex flex-col items-center text-center pointer-events-none"
             >
               <h2 className="text-2xl sm:text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">

@@ -19,7 +19,43 @@ const MODE_BANNER_IMAGE: Record<GameModeType, string> = {
   LINE_UP: "/assets/modes/lineup-banner.webp",
 };
 
-const BANNER_TRANSITION = { type: "tween", ease: "easeInOut", duration: 0.3 } as const;
+const getTargetRect = () => {
+  const vw = typeof window !== "undefined" ? window.innerWidth : 800;
+  const vh = typeof window !== "undefined" ? window.innerHeight : 600;
+  const targetW = Math.min(672, Math.max(280, vw - 32));
+  const isWide = vw >= 640;
+  const targetH = isWide ? targetW / 2 : (targetW * 9) / 16;
+  const targetL = Math.max(16, (vw - targetW) / 2);
+  const targetT = Math.max(16, (vh - targetH) / 2);
+  return { targetT, targetL, targetW, targetH };
+};
+
+const bannerCardVariants = {
+  closed: (rect: { top: number; left: number; width: number; height: number } | null) => {
+    const { targetT, targetL, targetW, targetH } = getTargetRect();
+    return {
+      top: rect ? rect.top : targetT,
+      left: rect ? rect.left : targetL,
+      width: rect ? rect.width : targetW,
+      height: rect ? rect.height : targetH,
+      borderRadius: 16,
+      opacity: 0,
+      scale: rect ? 0.98 : 0.9,
+    };
+  },
+  open: () => {
+    const { targetT, targetL, targetW, targetH } = getTargetRect();
+    return {
+      top: targetT,
+      left: targetL,
+      width: targetW,
+      height: targetH,
+      borderRadius: 24,
+      opacity: 1,
+      scale: 1,
+    };
+  },
+};
 
 import { TablesScreen } from "./TablesScreen";
 import { ProfileScreen } from "./ProfileScreen";
@@ -308,11 +344,38 @@ export const MainMenu = ({
   const [selectedRole, setSelectedRole] = useState<Role>("DETECTIVE");
   const [isTvPartyModalOpen, setIsTvPartyModalOpen] = useState(false);
   const [playerCount, setPlayerCount] = useState<number>(3);
-  const [fullscreenBanner, setFullscreenBanner] = useState<{
+  const [bannerViewer, setBannerViewer] = useState<{
+    isOpen: boolean;
     url: string;
     title: string;
-    id: string;
-  } | null>(null);
+    rect: { top: number; left: number; width: number; height: number } | null;
+  }>({
+    isOpen: false,
+    url: "",
+    title: "",
+    rect: null,
+  });
+
+  const handleOpenBanner = (e: React.MouseEvent<HTMLElement>, url: string, title: string) => {
+    triggerHaptic("light");
+    const rect = e.currentTarget.getBoundingClientRect();
+    setBannerViewer({
+      isOpen: true,
+      url,
+      title,
+      rect: {
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+      },
+    });
+  };
+
+  const handleCloseBanner = () => {
+    triggerHaptic("light");
+    setBannerViewer((prev) => ({ ...prev, isOpen: false }));
+  };
 
   const [publicRooms, setPublicRooms] = useState<Array<{
     roomCode: string;
@@ -871,18 +934,8 @@ export const MainMenu = ({
         <div className="flex-1 overflow-y-auto custom-scrollbar pb-24 sm:pb-28">
           <div className="px-4 sm:px-6 py-3.5 sm:py-4 w-full max-w-xl mx-auto flex flex-col gap-4 sm:gap-4.5">
             {modeBannerSrc && (
-              <motion.div
-                layout
-                layoutId={`menu-mode-card-${activeModeData.id}`}
-                transition={BANNER_TRANSITION}
-                onClick={() => {
-                  triggerHaptic('light');
-                  setFullscreenBanner({
-                    url: modeBannerSrc,
-                    title: activeModeData.title,
-                    id: activeModeData.id,
-                  });
-                }}
+              <div
+                onClick={(e) => handleOpenBanner(e, modeBannerSrc, activeModeData.title)}
                 className={`relative w-full h-[100px] sm:h-[120px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${
                   modeMeta?.banner?.borderColor || "border-zinc-800"
                 } shadow-lg cursor-pointer group select-none bg-zinc-950`}
@@ -907,7 +960,7 @@ export const MainMenu = ({
                     {activeModeData.title}
                   </h3>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             <div>
@@ -1595,63 +1648,51 @@ export const MainMenu = ({
           </Modal>
         )}
 
-        <AnimatePresence mode="popLayout">
-          {fullscreenBanner && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-md flex flex-col items-center justify-center p-4 select-none cursor-pointer"
-              onClick={() => {
-                triggerHaptic("light");
-                setFullscreenBanner(null);
-              }}
+        <div
+          className={`fixed inset-0 z-[120] select-none transition-opacity duration-300 ${
+            bannerViewer.isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+          }`}
+          aria-hidden={!bannerViewer.isOpen}
+        >
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-md cursor-pointer"
+            onClick={handleCloseBanner}
+          />
+          <button
+            type="button"
+            onClick={handleCloseBanner}
+            className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-20"
+            title="Закрыть"
+          >
+            ✕
+          </button>
+          <motion.div
+            custom={bannerViewer.rect}
+            variants={bannerCardVariants}
+            initial="closed"
+            animate={bannerViewer.isOpen ? "open" : "closed"}
+            transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
+            onClick={handleCloseBanner}
+            className="fixed overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-zinc-950 cursor-pointer"
+          >
+            {bannerViewer.url && (
+              <img
+                src={bannerViewer.url}
+                alt={bannerViewer.title}
+                className="w-full h-full object-cover contrast-110 pointer-events-none"
+              />
+            )}
+            <div
+              className={`absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-16 flex flex-col items-center text-center pointer-events-none transition-opacity duration-200 ${
+                bannerViewer.isOpen ? "opacity-100 delay-100" : "opacity-0"
+              }`}
             >
-              <motion.button
-                type="button"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                onClick={() => {
-                  triggerHaptic("light");
-                  setFullscreenBanner(null);
-                }}
-                className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
-              >
-                ✕
-              </motion.button>
-              <motion.div
-                layout
-                layoutId={`menu-mode-card-${fullscreenBanner.id}`}
-                transition={BANNER_TRANSITION}
-                className="relative w-full max-w-2xl aspect-[16/9] sm:aspect-[2/1] rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-zinc-950"
-                onClick={() => {
-                  triggerHaptic("light");
-                  setFullscreenBanner(null);
-                }}
-              >
-                <img
-                  src={fullscreenBanner.url}
-                  alt={fullscreenBanner.title}
-                  className="w-full h-full object-cover contrast-110 pointer-events-none"
-                />
-                <motion.div
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.25, ease: "easeInOut", delay: 0.05 }}
-                  className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-16 flex flex-col items-center text-center pointer-events-none"
-                >
-                  <h2 className="text-2xl sm:text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">
-                    {fullscreenBanner.title}
-                  </h2>
-                </motion.div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <h2 className="text-2xl sm:text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">
+                {bannerViewer.title}
+              </h2>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

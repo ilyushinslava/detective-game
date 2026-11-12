@@ -1648,9 +1648,12 @@ export const MainMenu = ({
           </Modal>
         )}
 
-        <div
-          className={`fixed inset-0 z-[120] select-none transition-opacity duration-300 ${
-            bannerViewer.isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: bannerViewer.isOpen ? 1 : 0 }}
+          transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
+          className={`fixed inset-0 z-[120] select-none ${
+            bannerViewer.isOpen ? "pointer-events-auto" : "pointer-events-none"
           }`}
           aria-hidden={!bannerViewer.isOpen}
         >
@@ -1692,7 +1695,7 @@ export const MainMenu = ({
               </h2>
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

@@ -146,11 +146,24 @@ export function useMultiplayer({
         setIsIntroPhase(false);
         return;
       }
-                      if (action.type === "REQUEST_RESTART") {
-          dispatchAction({ ...action, senderId: "remote" });
-        } else if (action.type === "REJECT_RESTART") {
-          dispatchAction({ ...action, senderId: "remote" });
+      if (action.type === "REQUEST_RESTART") {
+        dispatchAction({ ...action, senderId: "remote" });
+      } else if (action.type === "REJECT_RESTART") {
+        dispatchAction({ ...action, senderId: "remote" });
         setToastMessage("Соперник отклонил предложение о реванше");
+      } else if (action.type === "PLAYER_DISCONNECTED") {
+        setOpponentDisconnectedNotice(true);
+      } else if (action.type === "PLAYER_RECONNECTED") {
+        setOpponentDisconnectedNotice(false);
+      } else if (action.type === "MATCH_OVER") {
+        if (action.reason === "OPPONENT_ABANDONED") {
+          setToastMessage(action.message || "Соперник отключился. Техническая победа.");
+          setGameState((prev) => ({
+            ...prev,
+            winner: action.winner,
+            gameEndReason: "OPPONENT_ABANDONED",
+          }));
+        }
       } else if (action.type === "OPPONENT_LEFT") {
         setOpponentDisconnectedNotice(true);
       }

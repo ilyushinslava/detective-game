@@ -13,6 +13,7 @@ import { triggerHaptic } from '../../utils/haptics';
 import { getAvailableActionDescriptors, type ActionDescriptor } from '../../hooks/useGameActions';
 import { useDetectiveNotebook } from '../../hooks/useDetectiveNotebook';
 import { DetectiveNotebookModal } from './DetectiveNotebookModal';
+import { partyService } from '../../utils/partyPeer';
 
 export interface MobileControllerViewProps {
   gameState: GameState;
@@ -21,6 +22,10 @@ export interface MobileControllerViewProps {
   onSelectLinePreview?: (line: any) => void;
   onExit?: () => void;
   isPassAndPlay?: boolean;
+  isLocalDisconnected?: boolean;
+  reconnectAttempt?: number;
+  disconnectedOpponent?: { role?: Role; graceTimeoutSec: number } | null;
+  onForceReconnect?: () => void;
 }
 
 export type ShiftWizardStep =
@@ -98,6 +103,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   onSelectLinePreview,
   onExit,
   isPassAndPlay = false,
+  isLocalDisconnected: propIsLocalDisconnected,
+  reconnectAttempt: propReconnectAttempt,
+  disconnectedOpponent: propDisconnectedOpponent,
+  onForceReconnect,
 }) => {
   const boardSize = gameState?.board?.length || 5;
   const isSecretService = gameState.mode === 'SECRET_SERVICE';
@@ -129,6 +138,70 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   const [selectedDir, setSelectedDir] = useState<'LEFT' | 'RIGHT' | 'UP' | 'DOWN'>('LEFT');
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
   const [isAwaitingTurnEnd, setIsAwaitingTurnEnd] = useState<boolean>(false);
+
+  // Сетевые состояния потери связи и грейс-периода
+  const [internalLocalDisconnected, setInternalLocalDisconnected] = useState(false);
+  const [internalReconnectAttempt, setInternalReconnectAttempt] = useState(0);
+  const [internalDisconnectedOpponent, setInternalDisconnectedOpponent] = useState<{ role?: Role; graceTimeoutSec: number } | null>(null);
+  const [graceSecondsLeft, setGraceSecondsLeft] = useState(60);
+
+  const activeLocalDisconnected = propIsLocalDisconnected ?? internalLocalDisconnected;
+  const activeReconnectAttempt = propReconnectAttempt ?? internalReconnectAttempt;
+  const activeDisconnectedOpponent = propDisconnectedOpponent ?? internalDisconnectedOpponent;
+
+  useEffect(() => {
+    const handleConn = (st: { isConnected: boolean; isReconnecting: boolean; attempt: number }) => {
+      setInternalLocalDisconnected(!st.isConnected && st.isReconnecting);
+      setInternalReconnectAttempt(st.attempt);
+    };
+    const handleDisc = (info: { role?: Role; graceTimeoutSec: number }) => {
+      setInternalDisconnectedOpponent(info);
+      setGraceSecondsLeft(info.graceTimeoutSec || 60);
+    };
+    const handleRec = () => {
+      setInternalDisconnectedOpponent(null);
+    };
+    const handleRestored = () => {
+      setInternalLocalDisconnected(false);
+    };
+
+    const prevConn = partyService.onConnectionStateChange;
+    const prevDisc = partyService.onPlayerDisconnected;
+    const prevRec = partyService.onPlayerReconnected;
+    const prevRestored = partyService.onSessionRestored;
+
+    partyService.onConnectionStateChange = (st) => {
+      handleConn(st);
+      prevConn?.(st);
+    };
+    partyService.onPlayerDisconnected = (info) => {
+      handleDisc(info);
+      prevDisc?.(info);
+    };
+    partyService.onPlayerReconnected = (info) => {
+      handleRec();
+      prevRec?.(info);
+    };
+    partyService.onSessionRestored = (data) => {
+      handleRestored();
+      prevRestored?.(data);
+    };
+
+    return () => {
+      partyService.onConnectionStateChange = prevConn;
+      partyService.onPlayerDisconnected = prevDisc;
+      partyService.onPlayerReconnected = prevRec;
+      partyService.onSessionRestored = prevRestored;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!activeDisconnectedOpponent) return;
+    const interval = setInterval(() => {
+      setGraceSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [activeDisconnectedOpponent]);
 
   const [isCoverOpen, setIsCoverOpen] = useState(false);
   const [isDossierOpen, setIsDossierOpen] = useState(false);
@@ -453,6 +526,112 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   }
 
   // =========================================================================
+  // ОВЕРЛЕИ СЕТЕВОЙ СВЯЗИ И ГРЕЙС-ПЕРИОДА (QUIET NEO-NOIR, Z-INDEX 65/70)
+  // =========================================================================
+  const renderConnectionLossOverlay = () => (
+    <AnimatePresence>
+      {activeLocalDisconnected && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[70] flex flex-col items-center justify-between bg-[#07090e]/95 p-6 backdrop-blur-xl select-none font-sans"
+          data-testid="connection-loss-overlay"
+        >
+          <div className="w-full flex justify-between items-center border-b border-white/10 pb-3">
+            <span className="text-xs font-mono font-bold tracking-widest text-zinc-400">ПОД ПОДОЗРЕНИЕМ</span>
+            <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-rose-950/80 border border-rose-500/40 text-rose-300 font-bold">
+              РАДИОКАНАЛ: ОФФЛАЙН
+            </span>
+          </div>
+
+          <div className="my-auto flex flex-col items-center max-w-sm w-full text-center px-4">
+            <div className="w-24 h-24 rounded-full border border-white/10 bg-zinc-950 flex items-center justify-center text-blue-400 mb-6 shadow-[0_0_30px_rgba(0,0,0,0.8)]">
+              <Icons.Radar />
+            </div>
+
+            <h2 className="text-2xl font-black uppercase tracking-wider text-white mb-2">
+              ПОТЕРЯ РАДИОСВЯЗИ
+            </h2>
+
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-white/10 text-xs font-mono text-zinc-300 mb-4">
+              <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+              <span>
+                {activeReconnectAttempt > 0
+                  ? `ВОССТАНОВЛЕНИЕ СИГНАЛА (${activeReconnectAttempt}/3)...`
+                  : 'ПОИСК РАДИОЧАСТОТЫ...'}
+              </span>
+            </div>
+
+            <p className="text-xs text-zinc-400 leading-relaxed mb-6">
+              Резервный канал удерживается 60 секунд. Ваша позиция на поле и текущий статус маневра сохранены.
+            </p>
+
+            <button
+              onClick={() => {
+                if (onForceReconnect) {
+                  onForceReconnect();
+                } else {
+                  partyService.ensureConnection();
+                }
+              }}
+              className="w-full py-3.5 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 border border-white/20 text-xs font-mono font-bold uppercase tracking-wider text-zinc-200 hover:text-white transition cursor-pointer active:scale-95 shadow-md"
+            >
+              Повторить подключение сейчас
+            </button>
+          </div>
+
+          <div className="text-[11px] font-mono text-zinc-600 uppercase tracking-widest">
+            СЕССИЯ ЗАЩИЩЕНА • AUTH_TOKEN АКТИВЕН
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  const renderOpponentReconnectingBanner = () => (
+    <AnimatePresence>
+      {activeDisconnectedOpponent && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[65] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md select-none font-sans"
+          data-testid="opponent-reconnecting-banner"
+        >
+          <div className="w-full max-w-sm rounded-3xl bg-gradient-to-b from-slate-950/98 via-zinc-950/98 to-black/98 border border-white/15 p-6 text-center shadow-[0_25px_50px_rgba(0,0,0,0.9)] flex flex-col items-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/80 border border-blue-500/40 text-[10px] font-mono uppercase tracking-wider text-blue-300 font-bold mb-4">
+              <span>ВРЕМЕННАЯ ПАУЗА СВЯЗИ • ТАЙМЕР ЗАМОРОЖЕН</span>
+            </div>
+
+            <div className="text-4xl font-mono font-black text-white tracking-widest mb-2">
+              00:{graceSecondsLeft.toString().padStart(2, '0')}
+            </div>
+
+            <h3 className="text-base font-black uppercase tracking-wide text-zinc-100 mb-2">
+              ОЖИДАНИЕ ВОЗВРАЩЕНИЯ СВЯЗНОГО
+            </h3>
+
+            <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden my-3">
+              <div
+                className="h-full bg-blue-500 transition-all duration-1000 ease-linear rounded-full"
+                style={{ width: `${Math.min(100, Math.max(0, (graceSecondsLeft / 60) * 100))}%` }}
+              />
+            </div>
+
+            <p className="text-xs text-zinc-400 leading-relaxed mt-2 mb-1">
+              Связной временно вне зоны эфира. Ход матча приостановлен.
+            </p>
+            <p className="text-[11px] text-zinc-500 leading-relaxed font-mono">
+              При невозврате в течение 60 секунд будет зафиксировано техническое поражение.
+            </p>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  // =========================================================================
   // 1. РЕЖИМ «ОЖИДАНИЕ» (Глухая блокировка при !isTurnActuallyMine или после хода)
   // =========================================================================
   if (!isTurnActuallyMine || isAwaitingTurnEnd) {
@@ -620,12 +799,16 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           onUpdateNote={updateNote}
           onClear={clearNotebook}
         />
+
+        {/* Оверлеи потери связи и ожидания соперника (Z-Index 65/70) */}
+        {renderConnectionLossOverlay()}
+        {renderOpponentReconnectingBanner()}
       </div>
     );
   }
 
   // =========================================================================
-  // 2. КОМПАКТНАЯ ПАНЕЛЬ МАНЕВРА ПОЛЯ (ВАРИАНТ Б ЧЕРЕЗ FLOATING DOCK)
+  // 3. КОМПАКТНАЯ ПАНЕЛЬ МАНЕВРА ПОЛЯ (ВАРИАНТ Б ЧЕРЕЗ FLOATING DOCK)
   // =========================================================================
   const renderCompactShiftPanel = () => {
     if (shiftStep === 'IDLE') return null;
@@ -1180,6 +1363,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         onUpdateNote={updateNote}
         onClear={clearNotebook}
       />
+
+      {/* Оверлеи потери связи и ожидания соперника (Z-Index 65/70) */}
+      {renderConnectionLossOverlay()}
+      {renderOpponentReconnectingBanner()}
     </div>
   );
 };

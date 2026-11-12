@@ -6,6 +6,7 @@ import { ActionIcons } from '../ui/ActionIcons';
 import type { GameState, LastShift } from '../../types/game';
 import { SPY_COLORS } from '../../types/game';
 import { getGameModeTitle } from '../../constants/gameMeta';
+import { partyService } from '../../utils/partyPeer';
 
 export interface TvBoardViewProps {
   gameState: GameState;
@@ -13,6 +14,7 @@ export interface TvBoardViewProps {
   secondsLeft?: number;
   onExit?: () => void;
   onRestart?: () => void;
+  disconnectedPlayer?: { role?: string; graceTimeoutSec: number } | null;
 }
 
 const Icons = {
@@ -111,9 +113,49 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   secondsLeft = 60,
   onExit,
   onRestart,
+  disconnectedPlayer,
 }) => {
   const [focusedControl, setFocusedControl] = React.useState<'NONE' | 'CONTINUE' | 'RESTART' | 'EXIT'>('NONE');
   const [isPauseOpen, setIsPauseOpen] = React.useState<boolean>(false);
+  const [internalDisconnected, setInternalDisconnected] = React.useState<{ role?: string; graceTimeoutSec: number } | null>(null);
+  const [tvGraceLeft, setTvGraceLeft] = React.useState(60);
+
+  const activeDisconnected = disconnectedPlayer ?? internalDisconnected;
+
+  React.useEffect(() => {
+    const handleDisc = (info: { role?: string; graceTimeoutSec: number }) => {
+      setInternalDisconnected(info);
+      setTvGraceLeft(info.graceTimeoutSec || 60);
+    };
+    const handleRec = () => {
+      setInternalDisconnected(null);
+    };
+
+    const prevDisc = partyService.onPlayerDisconnected;
+    const prevRec = partyService.onPlayerReconnected;
+
+    partyService.onPlayerDisconnected = (info: any) => {
+      handleDisc(info);
+      prevDisc?.(info);
+    };
+    partyService.onPlayerReconnected = (info: any) => {
+      handleRec();
+      prevRec?.(info);
+    };
+
+    return () => {
+      partyService.onPlayerDisconnected = prevDisc;
+      partyService.onPlayerReconnected = prevRec;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (!activeDisconnected) return;
+    const interval = setInterval(() => {
+      setTvGraceLeft((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [activeDisconnected]);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -777,6 +819,47 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Оверлей грейс-периода и временной паузы связи (Quiet Neo-Noir) */}
+      <AnimatePresence>
+        {activeDisconnected && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center p-8 bg-black/85 backdrop-blur-xl select-none font-sans"
+            data-testid="tv-player-disconnected-banner"
+          >
+            <div className="w-full max-w-xl rounded-3xl bg-gradient-to-b from-slate-950 via-zinc-950 to-black border border-white/20 p-8 text-center shadow-[0_30px_60px_rgba(0,0,0,0.95)] flex flex-col items-center">
+              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-blue-950/90 border border-blue-500/50 text-xs font-mono uppercase tracking-wider text-blue-300 font-bold mb-6">
+                <span>ВРЕМЕННАЯ ПАУЗА СВЯЗИ • ТАЙМЕР ХОДА ЗАМОРОЖЕН</span>
+              </div>
+
+              <div className="text-6xl font-mono font-black text-white tracking-widest mb-4">
+                00:{tvGraceLeft.toString().padStart(2, '0')}
+              </div>
+
+              <h2 className="text-2xl font-black uppercase tracking-wider text-zinc-100 mb-2">
+                ОЖИДАНИЕ ВОЗВРАЩЕНИЯ СВЯЗНОГО В СЕТЬ
+              </h2>
+
+              <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden my-4 max-w-md">
+                <div
+                  className="h-full bg-blue-500 transition-all duration-1000 ease-linear rounded-full"
+                  style={{ width: `${Math.min(100, Math.max(0, (tvGraceLeft / 60) * 100))}%` }}
+                />
+              </div>
+
+              <p className="text-sm text-zinc-400 max-w-md leading-relaxed mb-2">
+                Один из игроков временно вне зоны эфира. Ход матча приостановлен на время грейс-периода (60 сек).
+              </p>
+              <p className="text-xs text-zinc-500 font-mono">
+                При невозврате по истечении таймера будет зафиксировано техническое поражение.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

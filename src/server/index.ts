@@ -12,6 +12,8 @@ export interface PlayerInfo {
   connectionId: string;
   clientType: ClientDeviceType;
   authToken?: string;
+  isDisconnected?: boolean;
+  isBackground?: boolean;
 }
 
 export interface ServerRoomState {
@@ -310,6 +312,19 @@ export default class GameRoomServer {
       }
       this.broadcastRaw(JSON.stringify({ type: "OPPONENT_LEFT" }));
       if (this.state.status === "PLAYING") {
+        const winnerRole = playerWhoLeft?.role === "KILLER" ? "DETECTIVE" : "KILLER";
+        if (this.state.gameState) {
+          (this.state.gameState as any).winner = winnerRole;
+          (this.state.gameState as any).gameEndReason = "OPPONENT_ABANDONED";
+        }
+        this.broadcastRaw(
+          JSON.stringify({
+            type: "MATCH_OVER",
+            winner: winnerRole,
+            reason: "OPPONENT_ABANDONED",
+            message: "Соперник не вернулся в эфир по истечении 60 секунд. Зафиксировано техническое поражение.",
+          })
+        );
         this.state.status = "FINISHED";
       } else {
         this.state.status = "WAITING";
@@ -660,6 +675,7 @@ export default class GameRoomServer {
 
       this.state.players[clientId].connectionId = conn.id;
       this.state.players[clientId].clientType = clientType;
+      this.state.players[clientId].isDisconnected = false;
 
       if (this.state.status === "PLAYING" && this.state.gameState?.currentTurn === this.state.players[clientId]?.role) {
         this.resumeTurnTimer();
@@ -673,10 +689,27 @@ export default class GameRoomServer {
             clientId,
           })
         );
+        conn.send(
+          JSON.stringify({
+            type: "SESSION_RESTORED",
+            role: existingPlayer.role,
+            status: this.state.status,
+            gameState: this.state.gameState ? this.maskStateForPlayer(this.state.gameState, existingPlayer.role) : null,
+            authToken: expectedToken,
+            clientId,
+          })
+        );
       } catch (_err) {}
 
       defer(() => {
         this.broadcastRaw(JSON.stringify({ type: "PRESENCE_CHANGED", connected: true }));
+        this.broadcastRaw(
+          JSON.stringify({
+            type: "PLAYER_RECONNECTED",
+            role: existingPlayer.role,
+            clientId,
+          })
+        );
         this.broadcastStatus();
         this.broadcastState();
       });
@@ -838,6 +871,9 @@ export default class GameRoomServer {
     this.broadcastRaw(JSON.stringify({ type: "PRESENCE_CHANGED", connected: false }));
 
     const playerWhoLeft = this.state.players[clientId];
+    if (playerWhoLeft) {
+      playerWhoLeft.isDisconnected = true;
+    }
     if (playerWhoLeft?.isHost && this.state.status === "WAITING") {
       unregisterRoom(this.getRoomCode());
     }
@@ -845,6 +881,17 @@ export default class GameRoomServer {
     // Если отключился игрок, чей сейчас ход — замораживаем блиц-таймер
     if (this.state.status === "PLAYING" && this.state.gameState?.currentTurn === playerWhoLeft?.role) {
       this.pauseTurnTimer();
+    }
+
+    if (this.state.status === "PLAYING") {
+      this.broadcastRaw(
+        JSON.stringify({
+          type: "PLAYER_DISCONNECTED",
+          role: playerWhoLeft?.role,
+          clientId,
+          graceTimeoutSec: Math.round(DISCONNECT_GRACE_PERIOD_MS / 1000),
+        })
+      );
     }
 
     const timer = setTimeout(() => {
@@ -883,6 +930,14 @@ export default class GameRoomServer {
         try {
           sender?.send(JSON.stringify({ type: "PONG" }));
         } catch (_) {}
+        return;
+      }
+
+      if (action.type === "CLIENT_BACKGROUNDED") {
+        const senderClientId = action.senderClientId || this.getClientIdByConnId(sender?.id);
+        if (senderClientId && this.state.players[senderClientId]) {
+          this.state.players[senderClientId].isBackground = Boolean(action.payload?.isBackground);
+        }
         return;
       }
 

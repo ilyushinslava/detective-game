@@ -184,6 +184,41 @@ class PartyService {
   onAllPlayersReady: (() => void) | null = null;
   onAction: ((action: any) => void) | null = null;
   onPresenceChanged: ((connected: boolean) => void) | null = null;
+  onPlayerDisconnected: ((info: { role?: Role; clientId: string; graceTimeoutSec: number }) => void) | null = null;
+  onPlayerReconnected: ((info: { role?: Role; clientId: string }) => void) | null = null;
+  onSessionRestored: ((data: any) => void) | null = null;
+  onConnectionStateChange: ((state: { isConnected: boolean; isReconnecting: boolean; attempt: number; maxAttempts: number }) => void) | null = null;
+
+  constructor() {
+    this.setupVisibilityListener();
+  }
+
+  private setupVisibilityListener(): void {
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") {
+          this.notifyBackground(true);
+        } else if (document.visibilityState === "visible") {
+          this.notifyBackground(false);
+          this.ensureConnection();
+        }
+      });
+    }
+  }
+
+  notifyBackground(isBackground: boolean): void {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      try {
+        this.socket.send(
+          JSON.stringify({
+            type: "CLIENT_BACKGROUNDED",
+            senderClientId: this.myClientId,
+            payload: { isBackground },
+          })
+        );
+      } catch (_) {}
+    }
+  }
 
   connect(
     roomCode: string,
@@ -245,6 +280,12 @@ class PartyService {
           this.failedAttempts = 0;
           this.reconnectAttempts = 0;
           this.onPresenceChanged?.(true);
+          this.onConnectionStateChange?.({
+            isConnected: true,
+            isReconnecting: false,
+            attempt: 0,
+            maxAttempts: GAME_CONFIG.NETWORK.RECONNECT.MAX_ATTEMPTS,
+          });
           this.stopHeartbeat();
           this.pingInterval = setInterval(() => {
             if (this.socket && this.socket.readyState === WebSocket.OPEN) {
@@ -276,6 +317,27 @@ class PartyService {
             if (typeof sessionStorage !== "undefined" && this.roomCode) {
               sessionStorage.setItem(`crime_city_auth_${this.roomCode}`, data.authToken);
             }
+            return;
+          }
+
+          if (data.type === "PLAYER_DISCONNECTED") {
+            this.onPlayerDisconnected?.(data);
+            this.onAction?.(data);
+            return;
+          }
+
+          if (data.type === "PLAYER_RECONNECTED") {
+            this.onPlayerReconnected?.(data);
+            this.onAction?.(data);
+            return;
+          }
+
+          if (data.type === "SESSION_RESTORED") {
+            this.onSessionRestored?.(data);
+            if (data.gameState) {
+              this.onSyncState?.(data.gameState, data.role, data.status);
+            }
+            this.onAction?.(data);
             return;
           }
 
@@ -322,6 +384,12 @@ class PartyService {
 
           if (!this.isExplicitDisconnect && this.roomCode && this.reconnectAttempts < GAME_CONFIG.NETWORK.RECONNECT.MAX_ATTEMPTS) {
             this.reconnectAttempts++;
+            this.onConnectionStateChange?.({
+              isConnected: false,
+              isReconnecting: true,
+              attempt: this.reconnectAttempts,
+              maxAttempts: GAME_CONFIG.NETWORK.RECONNECT.MAX_ATTEMPTS,
+            });
             const baseDelay = Math.max(1000, GAME_CONFIG.NETWORK.RECONNECT.INITIAL_DELAY_MS || 1000);
             const delay = Math.min(
               baseDelay * Math.pow(1.5, this.reconnectAttempts - 1),
@@ -332,6 +400,13 @@ class PartyService {
                 this.connect(this.roomCode, this.nick, this.isHost, this.mode, this.myClientId, this.clientType);
               }
             }, delay);
+          } else if (!this.isExplicitDisconnect) {
+            this.onConnectionStateChange?.({
+              isConnected: false,
+              isReconnecting: false,
+              attempt: this.reconnectAttempts,
+              maxAttempts: GAME_CONFIG.NETWORK.RECONNECT.MAX_ATTEMPTS,
+            });
           }
         }
       };
@@ -408,6 +483,12 @@ class PartyService {
     this.clientType = null;
     this.lastSyncedState = null;
     this.onPresenceChanged?.(false);
+    this.onConnectionStateChange?.({
+      isConnected: false,
+      isReconnecting: false,
+      attempt: 0,
+      maxAttempts: GAME_CONFIG.NETWORK.RECONNECT.MAX_ATTEMPTS,
+    });
   }
 
   sendAction(action: GameAction): void {

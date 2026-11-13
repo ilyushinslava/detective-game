@@ -23,7 +23,7 @@ const safeVibrate = (pattern: number | number[]): boolean => {
   return false;
 };
 
-export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | 'error') => {
+export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | 'error' | 'turn') => {
   if (!getHapticsEnabled() || typeof window === 'undefined') return;
 
   // 1. Telegram WebApp Haptic
@@ -32,6 +32,8 @@ export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | '
     try {
       if (type === 'success' || type === 'error') {
         tg.notificationOccurred(type);
+      } else if (type === 'turn') {
+        tg.notificationOccurred('warning');
       } else {
         tg.impactOccurred(type === 'heavy' ? 'heavy' : type === 'medium' ? 'medium' : 'light');
       }
@@ -57,6 +59,7 @@ export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | '
       case 'heavy': triggered = safeVibrate(100); break;
       case 'success': triggered = safeVibrate([20, 40, 20]); break;
       case 'error': triggered = safeVibrate([40, 30, 60]); break;
+      case 'turn': triggered = safeVibrate([100, 50, 100]); break;
     }
     if (triggered) return;
   }

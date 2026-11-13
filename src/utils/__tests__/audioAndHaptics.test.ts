@@ -202,6 +202,9 @@ describe("Звуковая система и тактильный отклик (
 
       triggerHaptic("error");
       expect(vibrateMock).toHaveBeenCalledWith([40, 30, 60]);
+
+      triggerHaptic("turn");
+      expect(vibrateMock).toHaveBeenCalledWith([100, 50, 100]);
     });
 
     it("Не вызывает вибрацию, если тактильный отклик отключен", () => {

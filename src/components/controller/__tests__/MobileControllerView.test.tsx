@@ -257,4 +257,39 @@ describe("MobileControllerView Component", () => {
     fireEvent.click(waitingNotebookBtn);
     expect(screen.getByText(/БЛОКНОТ РАССЛЕДОВАНИЯ/i)).toBeDefined();
   });
+
+  it("triggers haptic vibration pattern when turn transitions to the player", () => {
+    const vibrateSpy = vi.fn();
+    Object.defineProperty(navigator, 'vibrate', {
+      value: vibrateSpy,
+      configurable: true,
+      writable: true,
+    });
+
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "KILLER");
+    state.currentTurn = "DETECTIVE";
+
+    const { rerender } = render(
+      <MobileControllerView
+        gameState={state}
+        playerRole="KILLER"
+        onDispatchAction={vi.fn()}
+      />
+    );
+
+    expect(vibrateSpy).not.toHaveBeenCalled();
+
+    // Turn changes to KILLER
+    const nextState = { ...state, currentTurn: "KILLER" as const };
+    rerender(
+      <MobileControllerView
+        gameState={nextState}
+        playerRole="KILLER"
+        onDispatchAction={vi.fn()}
+      />
+    );
+
+    // Should vibrate with 'turn' pattern [100, 50, 100]
+    expect(vibrateSpy).toHaveBeenCalledWith([100, 50, 100]);
+  });
 });

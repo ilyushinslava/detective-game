@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Character, GameModeType, Role } from '../types/game';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
+import { useSpatialNavigation } from '../hooks/useSpatialNavigation';
 
 export interface GameOverModalProps {
   winner: Role;
@@ -95,9 +96,11 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   onRematchRandom,
   onRematchSame,
 }) => {
+  useSpatialNavigation({ initialFocusSelector: '[data-dpad-primary="true"]' });
   const [selectedPhotoChar, setSelectedPhotoChar] = useState<Character | null>(null);
 
   const isVictory = playerRole ? winner === playerRole : true;
+  const isKillerWinner = winner === 'KILLER';
 
   const killerTitle =
     mode === 'THIEF_HUNT' ? 'Грабитель' :
@@ -109,16 +112,26 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
     mode === 'SECRET_SERVICE' ? 'Призрак' :
     mode === 'LINE_UP' ? 'Следователь' : 'Оперативник';
 
-  const winnerTitle = winner === 'KILLER' ? killerTitle : detectiveTitle;
+  const winnerTitle = isKillerWinner ? killerTitle : detectiveTitle;
+
+  const headlineText = isKillerWinner
+    ? (mode === 'THIEF_HUNT' ? 'ПОБЕДА ГРАБИТЕЛЯ' : mode === 'SECRET_SERVICE' ? 'ПОБЕДА ФАНТОМА' : mode === 'LINE_UP' ? 'ПОБЕДА ПОДОЗРЕВАЕМОГО' : 'ПОБЕДА МАНЬЯКА')
+    : 'ДЕЛО РАСКРЫТО';
 
   const renderRoleCard = (char?: Character, roleName?: string, isKillerSide?: boolean) => {
-    const isCharWinner = isKillerSide ? winner === 'KILLER' : winner === 'DETECTIVE';
+    const isCharWinner = isKillerSide ? isKillerWinner : !isKillerWinner;
     const imgUrl = getCharacterImageUrl(char?.id, characterImages);
     const charNumber = char ? `#${char.id.replace('c', '').padStart(2, '0')}` : '??';
 
     const roleBadgeClass = isKillerSide
       ? 'text-red-400 bg-red-950/30 border border-red-500/30'
       : 'text-blue-400 bg-blue-950/30 border border-blue-500/30';
+
+    const winnerCardClass = isCharWinner
+      ? isKillerSide
+        ? 'border-2 border-rose-500/80 shadow-[0_0_25px_rgba(225,29,72,0.45)] ring-1 ring-rose-400/50 bg-zinc-950'
+        : 'border-2 border-cyan-400/80 shadow-[0_0_25px_rgba(6,182,212,0.45)] ring-1 ring-cyan-400/50 bg-zinc-950'
+      : 'border border-white/5 bg-zinc-950/60 opacity-40 hover:opacity-75';
 
     return (
       <div
@@ -127,11 +140,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             setSelectedPhotoChar(char);
           }
         }}
-        className={`group relative h-44 sm:h-48 overflow-hidden rounded-2xl flex flex-col justify-between p-3 select-none transition-all duration-200 ${
-          isCharWinner
-            ? 'border border-white/40 shadow-[0_0_20px_rgba(255,255,255,0.12)] bg-zinc-950'
-            : 'border border-white/5 bg-zinc-950/60 opacity-40 hover:opacity-75'
-        } ${char && imgUrl ? 'cursor-pointer active:scale-[0.98]' : ''}`}
+        className={`group relative h-44 sm:h-48 overflow-hidden rounded-2xl flex flex-col justify-between p-3 select-none transition-all duration-200 ${winnerCardClass} ${char && imgUrl ? 'cursor-pointer active:scale-[0.98]' : ''}`}
       >
         {imgUrl ? (
           <>
@@ -237,28 +246,53 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 
       <Modal
         isOpen={true}
-        maxWidth="max-w-md"
-        className="items-center p-6 sm:p-8"
+        maxWidth="max-w-md sm:max-w-lg"
+        overlayClassName="bg-black/90 backdrop-blur-3xl"
+        className={`items-center p-6 sm:p-8 rounded-3xl border transition-all duration-500 ${
+          isKillerWinner
+            ? 'border-rose-500/30 bg-gradient-to-b from-red-950/40 via-zinc-950 to-black/95 shadow-[0_0_60px_rgba(225,29,72,0.25)]'
+            : 'border-cyan-500/30 bg-gradient-to-b from-blue-950/40 via-zinc-950 to-black/95 shadow-[0_0_60px_rgba(6,182,212,0.25)]'
+        }`}
       >
-        <div className="text-[10px] font-semibold tracking-wider text-[#a1a1aa] uppercase mb-4">
+        <div className="text-[10px] sm:text-xs font-mono font-bold tracking-widest text-[#a1a1aa] uppercase mb-4">
           Протокол закрытия дела
         </div>
 
+        {/* Драматичное свечение победителю: рубиновое для маньяка, сапфировое/циановое для оперативника */}
         <div
-          className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-5 border shadow-lg ${
-            isVictory
-              ? 'bg-zinc-900/60 border-zinc-400/50 text-zinc-100 shadow-[0_0_30px_rgba(255,255,255,0.1)]'
-              : 'bg-red-950/30 border-red-500/50 text-red-500 shadow-[0_0_30px_rgba(239,68,68,0.3)]'
+          className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-4 border transition-all duration-500 ${
+            isKillerWinner
+              ? 'bg-gradient-to-br from-red-950/90 via-rose-900/50 to-black/90 border-rose-500/80 text-rose-400 shadow-[0_0_50px_rgba(225,29,72,0.6)] ring-2 ring-rose-500/40'
+              : 'bg-gradient-to-br from-blue-950/90 via-cyan-900/50 to-black/90 border-cyan-400/80 text-cyan-300 shadow-[0_0_50px_rgba(6,182,212,0.6)] ring-2 ring-cyan-400/40'
           }`}
         >
-          {isVictory ? <Icons.Trophy /> : <Icons.Crosshair />}
+          {isKillerWinner ? <Icons.Crosshair /> : <Icons.Trophy />}
         </div>
 
-        <h3 className="text-2xl font-black uppercase tracking-widest text-[#f1f5f9] mb-1">
-          {playerRole ? (isVictory ? 'Победа' : 'Поражение') : `Победа: ${winnerTitle}`}
+        {/* Акцидентный шрифт (Oswald/Rajdhani via font-display) размером не менее text-5xl с глубоким glow */}
+        <h3
+          className={`font-display text-4xl sm:text-5xl 2xl:text-6xl font-black uppercase tracking-wider mb-2 leading-tight text-center ${
+            isKillerWinner
+              ? 'text-rose-500 drop-shadow-[0_0_35px_rgba(225,29,72,0.85)]'
+              : 'text-cyan-400 drop-shadow-[0_0_35px_rgba(6,182,212,0.85)]'
+          }`}
+        >
+          {headlineText}
         </h3>
 
-        <p className="text-[10px] font-medium tracking-normal text-[#a1a1aa] uppercase mb-5">
+        {playerRole && (
+          <div
+            className={`text-[10px] sm:text-xs font-mono font-black uppercase tracking-widest px-3 py-1 rounded-full border mb-3 ${
+              isVictory
+                ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+                : 'bg-red-950/80 text-red-300 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]'
+            }`}
+          >
+            {isVictory ? 'ВАША ПОБЕДА' : 'ВАШЕ ПОРАЖЕНИЕ'}
+          </div>
+        )}
+
+        <p className="text-[10px] sm:text-xs font-medium tracking-normal text-[#a1a1aa] uppercase mb-5">
           Время операции: <span className="font-mono font-bold text-zinc-200">{elapsedTime}</span>
         </p>
 
@@ -272,8 +306,10 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             <Button
               variant="primary-danger"
               fullWidth
+              tabIndex={0}
+              data-dpad-primary="true"
               onClick={onRematchSwap}
-              className="from-red-950 text-[10px] sm:text-xs uppercase tracking-wider gap-2 !h-12"
+              className="from-red-950 text-xs sm:text-sm font-bold uppercase tracking-wider gap-2 !h-12 transition-all focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_20px_rgba(255,255,255,0.35)] cursor-pointer"
             >
               <span>⇄</span> РЕВАНШ (СМЕНА РОЛЕЙ)
             </Button>
@@ -281,8 +317,9 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             <Button
               variant="primary-info"
               fullWidth
+              tabIndex={0}
               onClick={onRematchRandom}
-              className="from-blue-950 text-[10px] sm:text-xs uppercase tracking-wider gap-2 !h-12"
+              className="from-blue-950 text-xs sm:text-sm font-bold uppercase tracking-wider gap-2 !h-12 transition-all focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_20px_rgba(255,255,255,0.35)] cursor-pointer"
             >
               <span className="font-mono font-bold text-[10px] text-blue-400">[RND]</span> РЕВАНШ (СЛУЧАЙНЫЕ РОЛИ)
             </Button>
@@ -290,8 +327,9 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             <Button
               variant="secondary"
               fullWidth
+              tabIndex={0}
               onClick={onRematchSame}
-              className="text-[10px] sm:text-xs uppercase tracking-wider gap-2 !h-12"
+              className="text-xs sm:text-sm font-bold uppercase tracking-wider gap-2 !h-12 transition-all focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_20px_rgba(255,255,255,0.35)] cursor-pointer"
             >
               <span>↻</span> РЕВАНШ (ТЕ ЖЕ РОЛИ)
             </Button>
@@ -300,10 +338,13 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
           <Button
             variant="primary-danger"
             fullWidth
+            tabIndex={0}
+            data-dpad-primary="true"
             onClick={onRestart}
-            className="rounded-full !h-12 text-xs sm:text-sm font-black uppercase tracking-wider gap-2 shadow-lg"
+            className="rounded-full !h-14 text-xs sm:text-sm font-black uppercase tracking-wider gap-2 shadow-lg transition-all focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_25px_rgba(255,255,255,0.45)] cursor-pointer"
           >
-            <span>НОВОЕ РАССЛЕДОВАНИЕ</span>
+            <span>НАЧАТЬ ЗАНОВО</span>
+            <span className="text-[10px] opacity-75 font-normal">(Новое расследование)</span>
             <Icons.ArrowRight />
           </Button>
         )}
@@ -311,8 +352,9 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         <Button
           variant="ghost"
           fullWidth
+          tabIndex={0}
           onClick={onExitToMenu}
-          className="text-zinc-400 hover:text-zinc-200 text-xs font-bold uppercase tracking-wider py-3 mt-2.5 transition-colors"
+          className="text-zinc-400 hover:text-zinc-100 text-xs sm:text-sm font-bold uppercase tracking-wider py-3 mt-2.5 transition-all rounded-xl focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:text-white focus:shadow-[0_0_20px_rgba(255,255,255,0.35)] cursor-pointer"
         >
           <span>В главное меню</span>
         </Button>

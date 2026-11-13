@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react';
+import { playHoverSound, playClickSound } from '../utils/tvAudio';
 
 export interface SpatialNavigationOptions {
   containerRef?: React.RefObject<HTMLElement | null>;
@@ -75,6 +76,7 @@ export function useSpatialNavigation({
         const active = document.activeElement as HTMLElement | null;
         if (active && typeof active.click === 'function' && active !== document.body) {
           e.preventDefault();
+          playClickSound();
           active.click();
         }
         return;
@@ -126,6 +128,7 @@ export function useSpatialNavigation({
       if (bestElement) {
         e.preventDefault();
         bestElement.focus();
+        playHoverSound();
       }
     };
 

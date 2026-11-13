@@ -308,7 +308,9 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
   // Перехват аппаратной кнопки Назад на Android TV через Capacitor App API
   useEffect(() => {
-    let handle: any = null;
+    let listenerHandle: any = null;
+    let isMounted = true;
+
     try {
       CapApp.addListener('backButton', () => {
         setIsPauseOpen((prev) => {
@@ -316,8 +318,12 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           setFocusedControl(next ? 'CONTINUE' : 'NONE');
           return next;
         });
-      }).then((h) => {
-        handle = h;
+      }).then((handle) => {
+        if (isMounted) {
+          listenerHandle = handle;
+        } else {
+          handle?.remove?.();
+        }
       }).catch(() => {
         // Окружение без Capacitor App плагина (браузер / тесты)
       });
@@ -325,9 +331,21 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
       // Защитный fallback
     }
 
+    const handleDomBackButton = (e: Event) => {
+      e.preventDefault();
+      setIsPauseOpen((prev) => {
+        const next = !prev;
+        setFocusedControl(next ? 'CONTINUE' : 'NONE');
+        return next;
+      });
+    };
+    document.addEventListener('backbutton', handleDomBackButton);
+
     return () => {
+      isMounted = false;
+      document.removeEventListener('backbutton', handleDomBackButton);
       try {
-        handle?.remove?.();
+        listenerHandle?.remove?.();
       } catch {
         // Защитный fallback
       }
@@ -347,6 +365,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         e.keyCode === 8
       ) {
         e.preventDefault();
+        e.stopPropagation();
         setIsPauseOpen((prev) => {
           const next = !prev;
           setFocusedControl(next ? 'CONTINUE' : 'NONE');
@@ -694,7 +713,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
               ? 'border-t-rose-500/80 bg-gradient-to-br from-red-950/45 via-white/[0.04] to-black/80 shadow-[0_8px_30px_rgba(225,29,72,0.25)]'
               : 'border-t-blue-500/80 bg-gradient-to-br from-blue-950/45 via-white/[0.04] to-black/80 shadow-[0_8px_30px_rgba(37,99,235,0.25)]'
           }`}>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center mb-2">
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-mono font-bold uppercase tracking-widest border shadow-sm ${
                 isKillerTurn
                   ? 'bg-red-950/80 border-red-500/40 text-red-200'
@@ -702,9 +721,6 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
               }`}>
                 <span className={`h-2 w-2 rounded-full ${isKillerTurn ? 'bg-rose-400' : 'bg-blue-400'} animate-pulse`} />
                 ТЕКУЩИЙ ХОД
-              </span>
-              <span className="text-[10px] sm:text-xs font-mono text-zinc-400 font-bold uppercase">
-                {killerRoleName && detectiveRoleName ? `${killerRoleName} vs ${detectiveRoleName}` : 'ПАРТИЯ'}
               </span>
             </div>
 
@@ -779,13 +795,11 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                     </div>
                   </div>
                 </div>
-                <span className={`shrink-0 text-[10px] sm:text-xs font-mono font-bold px-2 py-0.5 rounded border ${
-                  selectedLine
-                    ? 'bg-cyan-600 text-white border-cyan-400 animate-pulse'
-                    : 'bg-black/40 text-zinc-300 border-white/10'
-                }`}>
-                  {selectedLine ? 'В ПРОЦЕССЕ' : 'ДОСТУПНО'}
-                </span>
+                {selectedLine && (
+                  <span className="shrink-0 text-[10px] sm:text-xs font-mono font-bold px-2 py-0.5 rounded border bg-cyan-600 text-white border-cyan-400 animate-pulse">
+                    В ПРОЦЕССЕ
+                  </span>
+                )}
               </div>
 
               {/* Специфические действия роли */}
@@ -809,13 +823,11 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                         <div className="text-[10px] leading-tight text-white/50 truncate">{act.desc}</div>
                       </div>
                     </div>
-                    <span className={`shrink-0 text-[10px] sm:text-xs font-mono font-bold px-2 py-0.5 rounded border ${
-                      act.badge === '1 ПОПЫТКА'
-                        ? 'bg-amber-950/80 text-amber-300 border-amber-500/50 font-black'
-                        : 'bg-black/40 text-zinc-300 border-white/10'
-                    }`}>
-                      {act.badge}
-                    </span>
+                    {act.badge && act.badge !== 'ДОСТУПНО' && (
+                      <span className="shrink-0 text-[10px] sm:text-xs font-mono font-bold px-2 py-0.5 rounded border bg-amber-950/80 text-amber-300 border-amber-500/50 font-black">
+                        {act.badge}
+                      </span>
+                    )}
                   </div>
                 );
               })}

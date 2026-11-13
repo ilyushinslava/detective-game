@@ -638,14 +638,6 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           )}
         </div>
 
-        {/* Название игрового режима */}
-        <div className="hidden md:flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur-md shadow-inner">
-          <span className="h-2 w-2 rounded-full bg-rose-400 shadow-[0_0_6px_rgba(244,63,94,0.7)]" />
-          <span className="text-xs sm:text-sm font-mono uppercase tracking-widest text-zinc-200 font-bold">
-            {getGameModeTitle(gameState?.mode || 'MANIAC_VS_OPERATIVE', 'ru')}
-          </span>
-        </div>
-
         {/* Кнопка вызова меню паузы */}
         <div className="flex items-center gap-3">
           <button
@@ -720,7 +712,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   : 'bg-blue-950/80 border-blue-500/40 text-blue-200'
               }`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${isKillerTurn ? 'bg-rose-400' : 'bg-blue-400'} animate-pulse`} />
-                ТЕКУЩИЙ ХОД
+                {getGameModeTitle(gameState?.mode || 'MANIAC_VS_OPERATIVE', 'ru')}
               </span>
             </div>
 
@@ -739,8 +731,8 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 <div className="text-base sm:text-lg 2xl:text-xl font-black tracking-wider uppercase truncate text-white drop-shadow leading-tight">
                   {activeTurnName.toUpperCase()}
                 </div>
-                <div className="text-[11px] sm:text-xs text-zinc-300 font-medium whitespace-normal font-mono leading-tight">
-                  Ожидание команды с пульта...
+                <div className="text-white/50 text-xs font-mono truncate leading-tight">
+                  {getGameModeTitle(gameState?.mode || 'MANIAC_VS_OPERATIVE', 'ru')}
                 </div>
               </div>
             </div>
@@ -769,12 +761,11 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
             ) : null}
 
             {/* Заголовок блока действий */}
-            <div className="flex items-center justify-between text-[11px] sm:text-xs font-mono font-bold uppercase tracking-widest text-zinc-300 shrink-0">
+            <div className="flex items-center text-[11px] sm:text-xs font-mono font-bold uppercase tracking-widest text-zinc-300 shrink-0">
               <span className="flex items-center gap-1.5">
                 <span className={`h-2 w-2 rounded-full ${isKillerTurn ? 'bg-rose-500' : 'bg-blue-500'}`} />
                 ДЕЙСТВИЯ: {activeTurnName.toUpperCase()}
               </span>
-              <span className="text-[9px] sm:text-[10px] text-zinc-400 font-mono">ОБЗОР</span>
             </div>
 
             {/* Список действий со скроллом */}
@@ -837,12 +828,11 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
           {/* БЛОК 3: ХРОНИКА РАССЛЕДОВАНИЯ (КОМПАКТНЫЙ СНИЗУ) */}
           <div className="p-2.5 sm:p-3 rounded-2xl bg-white/[0.04] border border-white/10 border-t-2 border-t-amber-500/50 backdrop-blur-2xl shadow-xl h-[130px] sm:h-[150px] 2xl:h-[180px] shrink-0 flex flex-col min-h-0 overflow-hidden">
-            <div className="flex items-center justify-between text-[11px] sm:text-xs font-mono uppercase tracking-widest text-zinc-300 mb-1.5 font-bold shrink-0">
+            <div className="flex items-center text-[11px] sm:text-xs font-mono uppercase tracking-widest text-zinc-300 mb-1.5 font-bold shrink-0">
               <span className="flex items-center gap-1.5">
                 <Icons.Terminal />
                 ХРОНИКА РАССЛЕДОВАНИЯ
               </span>
-              <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-amber-400/80">ПРОТОКОЛ</span>
             </div>
 
             <div className="flex-1 space-y-1.5 overflow-y-auto min-h-0 pr-1 text-xs font-sans">

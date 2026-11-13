@@ -555,6 +555,7 @@ export default function App() {
       <div className="fixed inset-0 w-full h-full flex flex-col bg-[#07080c] overflow-hidden select-none">
         {showSplash && (
           <SplashScreen
+            isTv={isAndroidTv}
             autoDismissDelayMs={isAndroidTv ? 2500 : undefined}
             onComplete={() => setShowSplash(false)}
           />

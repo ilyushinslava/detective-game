@@ -5,9 +5,14 @@ import { triggerHaptic } from '../utils/haptics';
 interface SplashScreenProps {
   onComplete: () => void;
   autoDismissDelayMs?: number;
+  isTv?: boolean;
 }
 
-export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, autoDismissDelayMs }) => {
+export const SplashScreen: React.FC<SplashScreenProps> = ({
+  onComplete,
+  autoDismissDelayMs,
+  isTv = false,
+}) => {
   const [isFading, setIsFading] = useState(false);
   const [isTriggered, setIsTriggered] = useState(false);
 
@@ -29,14 +34,15 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, autoDism
     }, 400);
   };
 
-  // Автоматическое закрытие сплеш-скрина для ТВ без необходимости клика
+  // Автоматический кинематографичный переход для ТВ без ожидания действий пользователя
   useEffect(() => {
-    if (!autoDismissDelayMs || autoDismissDelayMs <= 0) return;
+    const delay = autoDismissDelayMs ?? (isTv ? 2500 : 0);
+    if (delay <= 0) return;
     const timer = setTimeout(() => {
       handleStart();
-    }, autoDismissDelayMs);
+    }, delay);
     return () => clearTimeout(timer);
-  }, [autoDismissDelayMs]);
+  }, [autoDismissDelayMs, isTv]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -53,8 +59,10 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, autoDism
 
   return (
     <div
-      onClick={handleStart}
-      className={`fixed inset-0 z-[100] flex items-center justify-center bg-[#080a0f] transition-opacity duration-500 select-none cursor-pointer overflow-hidden ${
+      onClick={!isTv ? handleStart : undefined}
+      className={`fixed inset-0 z-[100] flex items-center justify-center bg-[#080a0f] transition-opacity duration-700 select-none ${
+        isTv ? 'cursor-default' : 'cursor-pointer'
+      } overflow-hidden ${
         isFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
@@ -75,14 +83,17 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, autoDism
         <div className="absolute inset-0 bg-gradient-to-t from-[#050608] via-transparent to-[#050608]/70" />
       </div>
 
-      <div className="relative z-10 w-full h-full flex flex-col justify-end items-center px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] mb-2 pointer-events-none">
-        <div className="pointer-events-auto flex flex-col items-center">
-          <div className="text-[11px] sm:text-xs md:text-sm font-black tracking-widest uppercase text-white/90 border border-white/15 bg-black/60 backdrop-blur-md px-8 py-3.5 rounded-full hover:bg-white/10 hover:border-white/30 transition-all shadow-[0_0_25px_rgba(0,0,0,0.8)] active:scale-95">
-            <span className="block lg:hidden">Коснитесь, чтобы войти</span>
-            <span className="hidden lg:block">Нажмите в любом месте</span>
+      {/* На ТВ надпись "Коснитесь, чтобы войти" полностью скрыта */}
+      {!isTv && (
+        <div className="relative z-10 w-full h-full flex flex-col justify-end items-center px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] mb-2 pointer-events-none">
+          <div className="pointer-events-auto flex flex-col items-center">
+            <div className="text-[11px] sm:text-xs md:text-sm font-black tracking-widest uppercase text-white/90 border border-white/15 bg-black/60 backdrop-blur-md px-8 py-3.5 rounded-full hover:bg-white/10 hover:border-white/30 transition-all shadow-[0_0_25px_rgba(0,0,0,0.8)] active:scale-95">
+              <span className="block lg:hidden">Коснитесь, чтобы войти</span>
+              <span className="hidden lg:block">Нажмите в любом месте</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

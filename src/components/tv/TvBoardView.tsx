@@ -451,7 +451,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 setIsPauseOpen(true);
                 setFocusedControl('CONTINUE');
               }}
-              className="px-6 py-3 rounded-2xl border border-white/15 bg-zinc-900/80 hover:bg-zinc-800 text-sm sm:text-base font-mono uppercase tracking-wider text-zinc-200 transition cursor-pointer flex items-center gap-2.5 shadow-sm active:scale-95 focus:outline-none focus:ring-4 focus:ring-white focus:scale-105"
+              className="px-6 py-3 rounded-2xl border border-white/15 bg-zinc-900/80 hover:bg-zinc-800 text-sm sm:text-base font-display font-bold uppercase tracking-wider text-zinc-200 transition-all cursor-pointer flex items-center gap-2.5 shadow-sm active:scale-95 focus:outline-none focus:ring-[6px] focus:ring-red-600 focus:bg-red-950/40 focus:scale-[1.03]"
             >
               <Icons.Settings />
               <span>МЕНЮ ПАУЗЫ [ESC]</span>
@@ -775,7 +775,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 setIsPauseOpen(false);
                 setFocusedControl('NONE');
               }}
-              className={`w-full p-5 rounded-2xl font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between shadow-lg cursor-pointer transition active:scale-95 focus:outline-none focus:ring-8 focus:ring-red-600 focus:bg-red-900/50 focus:scale-105 ${
+              className={`w-full p-5 rounded-2xl font-display font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between shadow-lg cursor-pointer transition-all active:scale-95 focus:outline-none focus:ring-[6px] focus:ring-red-600 focus:bg-red-950/40 focus:scale-[1.03] ${
                 focusedControl === 'CONTINUE'
                   ? 'bg-blue-500 border border-white ring-2 ring-white text-white'
                   : 'bg-blue-600 hover:bg-blue-500 text-white'
@@ -794,7 +794,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   onRestart();
                 }}
                 data-testid="tv-restart-btn"
-                className={`w-full p-5 rounded-2xl border font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between transition cursor-pointer focus:outline-none focus:ring-8 focus:ring-red-600 focus:bg-red-900/50 focus:scale-105 ${
+                className={`w-full p-5 rounded-2xl border font-display font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer focus:outline-none focus:ring-[6px] focus:ring-red-600 focus:bg-red-950/40 focus:scale-[1.03] ${
                   focusedControl === 'RESTART'
                     ? 'border-white/90 ring-2 ring-white bg-zinc-800 text-white shadow-[0_0_15px_rgba(255,255,255,0.4)]'
                     : 'border-white/10 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300'
@@ -814,7 +814,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   onExit();
                 }}
                 data-testid="tv-exit-btn"
-                className={`w-full p-5 rounded-2xl border font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between transition cursor-pointer focus:outline-none focus:ring-8 focus:ring-red-600 focus:bg-red-900/50 focus:scale-105 ${
+                className={`w-full p-5 rounded-2xl border font-display font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer focus:outline-none focus:ring-[6px] focus:ring-red-600 focus:bg-red-950/40 focus:scale-[1.03] ${
                   focusedControl === 'EXIT'
                     ? 'border-red-500/90 ring-2 ring-red-500 bg-red-950/80 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.4)]'
                     : 'border-red-900/60 bg-red-950/40 hover:bg-red-900/60 text-red-300'

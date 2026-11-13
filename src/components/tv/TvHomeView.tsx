@@ -47,13 +47,13 @@ export const TvHomeView: React.FC<TvHomeViewProps> = ({ onCreateRoom }) => {
       {/* Центральный блок: Монументальный логотип и призыв к действию */}
       <div className="relative z-10 my-auto flex flex-col items-center text-center max-w-4xl mx-auto space-y-10">
         <div className="space-y-4">
-          <div className="inline-block px-4 py-1.5 rounded-full bg-red-950/60 border border-red-500/30 text-red-400 font-bold text-xs lg:text-sm uppercase tracking-[0.3em] mb-2 shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+          <div className="inline-block px-4 py-1.5 rounded-full bg-red-950/80 border border-red-500/40 text-red-400 font-bold text-xs lg:text-sm uppercase tracking-[0.3em] mb-2 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
             КИБЕРПАНК ДЕТЕКТИВ ДЛЯ КОМПАНИИ
           </div>
-          <h1 className="text-6xl lg:text-8xl font-black uppercase tracking-tight text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.9)]">
+          <h1 className="text-6xl lg:text-8xl font-display font-black uppercase tracking-wider text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.9)]">
             {GAME_TITLE.ru}
           </h1>
-          <p className="text-xl lg:text-2xl font-medium text-zinc-300 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xl lg:text-2xl font-sans font-medium text-zinc-300 max-w-2xl mx-auto leading-relaxed">
             Интерактивная битва детективов, шпионов и маньяка на экране вашего телевизора
           </p>
         </div>
@@ -65,16 +65,16 @@ export const TvHomeView: React.FC<TvHomeViewProps> = ({ onCreateRoom }) => {
             data-tv-home-btn="true"
             tabIndex={0}
             onClick={handleCreate}
-            className="w-full py-7 px-10 rounded-3xl bg-gradient-to-r from-red-600 via-red-500 to-rose-600 text-white font-black text-2xl lg:text-3xl uppercase tracking-wider shadow-[0_0_50px_rgba(239,68,68,0.5)] transition-all cursor-pointer transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-8 focus:ring-red-500 focus:bg-red-700 focus:scale-105"
+            className="w-full py-6 px-10 rounded-3xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 border-2 border-red-400/80 text-white font-display font-black text-2xl lg:text-3xl uppercase tracking-wider shadow-[0_0_20px_rgba(239,68,68,0.7)] transition-all cursor-pointer transform hover:scale-[1.02] active:scale-95 focus:outline-none focus:ring-[6px] focus:ring-red-600 focus:bg-red-950/40 focus:scale-[1.03]"
           >
             <div className="flex items-center justify-center gap-4">
               <span>СОЗДАТЬ КОМНАТУ</span>
-              <span className="px-3.5 py-1 rounded-xl bg-black/40 border border-white/20 text-base lg:text-lg font-bold">
+              <span className="px-3.5 py-1 rounded-xl bg-black/50 border border-white/20 text-base lg:text-lg font-sans font-bold">
                 [ENTER]
               </span>
             </div>
           </button>
-          <div className="mt-4 text-sm lg:text-base text-zinc-400 font-medium">
+          <div className="mt-4 text-sm lg:text-base text-zinc-400 font-sans font-medium">
             Нажмите кнопку <strong className="text-white">OK / ENTER</strong> на пульте телевизора для запуска штаба
           </div>
         </div>

@@ -8,6 +8,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+        display: ["Oswald", "Rajdhani", "Inter", "sans-serif"],
       },
     },
   },

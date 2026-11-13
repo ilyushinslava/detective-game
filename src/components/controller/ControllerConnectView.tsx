@@ -4,6 +4,7 @@ import { triggerHaptic } from '../../utils/haptics';
 import { Button } from '../ui/Button';
 import { partyService } from '../../utils/partyPeer';
 import { normalizeMorse } from '../../utils/morse';
+import { QrCameraScanner } from './QrCameraScanner';
 
 export interface ControllerConnectViewProps {
   onConnect: (roomCode: string) => void;
@@ -15,6 +16,8 @@ export interface ControllerConnectViewProps {
   targetExpectedMorse?: string;
 }
 
+export type ConnectTab = 'CAMERA' | 'PIN' | 'MORSE';
+
 export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   onConnect,
   onBackToMenu,
@@ -24,6 +27,12 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   targetHostName,
   targetExpectedMorse,
 }) => {
+  const [activeTab, setActiveTab] = useState<ConnectTab>(() => {
+    if (targetExpectedMorse) return 'MORSE';
+    if (targetRoomCode) return 'PIN';
+    return 'CAMERA';
+  });
+
   const [nickname, setNickname] = useState(() => {
     if (initialNickname) return initialNickname;
     try {
@@ -46,9 +55,40 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
     } catch {}
   };
 
+  // ==========================================
+  // Стейт вкладки ПИН-КОД (5 цифр)
+  // ==========================================
+  const [pinInput, setPinInput] = useState<string>(targetRoomCode || '');
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [isPinConnecting, setIsPinConnecting] = useState<boolean>(false);
+  const pinInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePinChange = (val: string) => {
+    const digitsOnly = val.replace(/\D/g, '').slice(0, 5);
+    setPinInput(digitsOnly);
+    setPinError(null);
+    if (digitsOnly.length > 0) {
+      triggerHaptic('light');
+    }
+  };
+
+  const handlePinConnect = () => {
+    if (pinInput.length !== 5) {
+      setPinError('Введите 5-значный номер комнаты');
+      return;
+    }
+    soundManager.play('impact');
+    triggerHaptic('heavy');
+    setIsPinConnecting(true);
+    onConnect(pinInput);
+  };
+
+  // ==========================================
+  // Стейт вкладки МОРЗЕ (Телеграфный ключ)
+  // ==========================================
   const [morseBuffer, setMorseBuffer] = useState<string>('');
   const [isKeyDown, setIsKeyDown] = useState<boolean>(false);
-  const [holdProgress, setHoldProgress] = useState<number>(0); // 0.0 to 1.0 (250ms threshold)
+  const [holdProgress, setHoldProgress] = useState<number>(0);
   const [isDashReached, setIsDashReached] = useState<boolean>(false);
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -59,12 +99,10 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   const thresholdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const thresholdFiredRef = useRef<boolean>(false);
 
-  // Сброс сообщений об ошибке при смене буфера Морзе
   useEffect(() => {
     setErrorMessage(null);
   }, [morseBuffer]);
 
-  // Строгий cleanup аудио и анимаций при монтировании и размонтировании
   useEffect(() => {
     soundManager.stopAll();
 
@@ -102,7 +140,6 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
       thresholdTimerRef.current = null;
     }
 
-    // Резервный таймер отсечки ровно на 250 мс
     thresholdTimerRef.current = setTimeout(() => {
       if (isKeyDownRef.current && !thresholdFiredRef.current) {
         thresholdFiredRef.current = true;
@@ -112,7 +149,6 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
       }
     }, 250);
 
-    // Плавная 60/120fps анимация шкалы удержания: ровно 100% за 250 мс
     const step = () => {
       if (!isKeyDownRef.current) return;
       const elapsed = performance.now() - pressStartRef.current;
@@ -157,7 +193,6 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
       triggerHaptic(isDash ? 'medium' : 'light');
     }
 
-    // Длина шифра: ровно 7 сигналов
     setMorseBuffer((prev) => (prev.length < 7 ? prev + symbol : prev));
     setHoldProgress(0);
     setIsDashReached(false);
@@ -176,7 +211,6 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
     setMorseBuffer('');
   };
 
-  // Поиск и авторизация лобби на сервере
   const handleResolveAndConnect = async () => {
     const cleanMorse = normalizeMorse(morseBuffer);
     if (!cleanMorse || cleanMorse.length < 7) {
@@ -187,7 +221,6 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
     setIsSearching(true);
     setErrorMessage(null);
 
-    // Режим целевой комнаты: Морзе работает как пароль для входа в выбранную комнату
     if (targetRoomCode) {
       try {
         let isMatch = false;
@@ -221,7 +254,6 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
     try {
       const res = await partyService.resolveRoom({ morse: cleanMorse });
 
-      // Найдена комната
       if (res?.ok && res.roomCode) {
         soundManager.play('impact');
         triggerHaptic('heavy');
@@ -229,7 +261,6 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
         return;
       }
 
-      // Комната не найдена
       const displayPattern = cleanMorse
         .split('')
         .map((s) => (s === '.' ? '•' : '—'))
@@ -245,38 +276,36 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
     }
   };
 
-  const isReady = morseBuffer.length === 7;
-
-  // Параметры SVG кольца-метронома вокруг кнопки
+  const isReadyMorse = morseBuffer.length === 7;
   const RING_RADIUS = 76;
   const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
   const strokeDashoffset = RING_CIRCUMFERENCE * (1 - holdProgress);
 
   return (
-    <div className="flex h-[100dvh] w-screen flex-col justify-between bg-[#080a0f] p-5 pb-8 text-zinc-100 select-none overflow-y-auto font-sans relative">
+    <div className="flex h-[100dvh] w-full max-w-full flex-col justify-between bg-[#080a0f] p-4 sm:p-5 pb-6 sm:pb-8 text-zinc-100 select-none overflow-y-auto overflow-x-hidden font-sans relative">
       {/* Мягкая контровая подсветка нео-нуара */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-transparent to-black/80 pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-transparent to-black/90 pointer-events-none" />
 
-      {/* Шапка */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-3 relative z-10">
+      {/* Верхний статус-бар */}
+      <div className="flex items-center justify-between border-b border-white/10 pb-3 relative z-10 shrink-0">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-          <span className="text-xs font-mono uppercase tracking-widest text-zinc-300 font-bold">
+          <span className="text-xs font-display uppercase tracking-widest text-zinc-200 font-bold">
             {targetHostName ? `ШИФР ДОСТУПА: ${targetHostName}` : 'ПУЛЬТ УПРАВЛЕНИЯ'}
           </span>
         </div>
         <Button
           variant="ghost"
           onClick={onBackToMenu}
-          className="h-8 px-3 text-xs font-mono uppercase text-zinc-400 hover:text-white rounded-xl border border-white/5 hover:border-white/15 bg-zinc-900/40 transition cursor-pointer"
+          className="min-h-[44px] px-3.5 text-xs font-mono uppercase text-zinc-400 hover:text-white rounded-xl border border-white/5 hover:border-white/15 bg-zinc-900/40 transition cursor-pointer flex items-center justify-center"
         >
           В МЕНЮ
         </Button>
       </div>
 
-      <div className="max-w-sm mx-auto w-full my-2 space-y-3 relative z-10">
-        {/* Позывной агента */}
-        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-slate-900/60 via-zinc-950/80 to-slate-950/80 border border-white/10 backdrop-blur-xl shadow-lg space-y-1.5">
+      {/* Позывной агента */}
+      <div className="max-w-sm mx-auto w-full my-2 relative z-10 shrink-0">
+        <div className="p-3 rounded-2xl bg-gradient-to-br from-slate-900/60 via-zinc-950/80 to-slate-950/80 border border-white/10 backdrop-blur-xl shadow-lg space-y-1">
           <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-zinc-400">
             <span>ПОЗЫВНОЙ АГЕНТА</span>
             <span className="text-cyan-400 font-bold">ШИФРОВАННЫЙ КАНАЛ</span>
@@ -287,180 +316,334 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
             value={nickname}
             onChange={(e) => handleNicknameChange(e.target.value)}
             placeholder="Агент"
-            className="w-full px-3.5 py-2 rounded-xl bg-zinc-900/90 border border-white/10 text-zinc-100 text-xs font-mono uppercase font-bold focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/40 tracking-wider shadow-inner"
+            className="w-full min-h-[44px] px-3.5 py-2 rounded-xl bg-zinc-900/90 border border-white/10 text-zinc-100 text-xs font-mono uppercase font-bold focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/40 tracking-wider shadow-inner"
           />
         </div>
       </div>
 
-      {/* Дисплей шифра: только лаконичный заголовок "ШИФР" и чистые неоново-белые пилюли */}
-      <div className="flex flex-col items-center text-center max-w-sm mx-auto w-full space-y-2 mb-2 relative z-10">
-        <div className="flex items-center justify-between w-full px-1">
-          <span className="text-[9px] font-mono uppercase tracking-[0.3em] text-zinc-400 font-bold">
-            ШИФР
-          </span>
-          <span className="text-[10px] font-mono text-cyan-400 font-bold tracking-wider">
-            {morseBuffer.length}/7
-          </span>
-        </div>
+      {/* Премиальная навигация по вкладкам (Tabs) */}
+      <div className="max-w-sm mx-auto w-full mb-3 relative z-10 shrink-0">
+        <div className="grid grid-cols-3 p-1 rounded-2xl bg-zinc-950/90 border border-white/10 backdrop-blur-xl shadow-md">
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setActiveTab('CAMERA');
+            }}
+            className={`min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl text-xs font-display tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+              activeTab === 'CAMERA'
+                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.5)] font-bold'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 font-semibold'
+            }`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 shrink-0">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+            <span>КАМЕРА</span>
+          </button>
 
-        {/* Дисплей введенных сигналов Морзе: 7 слотов, чистый акцентный неоново-белый цвет */}
-        <div className="flex items-center justify-center gap-2 h-14 px-3 rounded-2xl bg-zinc-950/95 border border-white/20 w-full shadow-[0_8px_24px_rgba(0,0,0,0.6)] backdrop-blur-md">
-          {[0, 1, 2, 3, 4, 5, 6].map((idx) => {
-            const sym = morseBuffer[idx];
-            return (
-              <div key={idx} className="flex items-center justify-center">
-                {sym === '.' ? (
-                  /* Идеальный неоново-белый круг (Точка) */
-                  <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.95),0_0_20px_rgba(255,255,255,0.5)] transition-all" />
-                ) : sym === '-' ? (
-                  /* Аккуратная горизонтальная капсула с закругленными краями (Тире) */
-                  <div className="w-8 sm:w-10 h-4 sm:h-5 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.95),0_0_20px_rgba(255,255,255,0.5)] transition-all" />
-                ) : idx === morseBuffer.length ? (
-                  /* Активный курсор ввода */
-                  <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 border-dashed border-white/60 bg-white/10 animate-pulse transition-all" />
-                ) : (
-                  /* Пустой неактивный слот */
-                  <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-white/15 bg-zinc-900/60 transition-all" />
-                )}
-              </div>
-            );
-          })}
-        </div>
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setActiveTab('PIN');
+              setTimeout(() => pinInputRef.current?.focus(), 100);
+            }}
+            className={`min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl text-xs font-display tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+              activeTab === 'PIN'
+                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.5)] font-bold'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 font-semibold'
+            }`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 shrink-0">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
+            <span>ПИН-КОД</span>
+          </button>
 
-        {errorMessage && (
-          <div className="p-2 px-3 rounded-xl bg-red-950/70 border border-red-500/60 text-xs font-mono text-red-200 shadow-[0_0_12px_rgba(239,68,68,0.3)] animate-fadeIn">
-            {errorMessage}
-          </div>
-        )}
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setActiveTab('MORSE');
+            }}
+            className={`min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl text-xs font-display tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+              activeTab === 'MORSE'
+                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.5)] font-bold'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 font-semibold'
+            }`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 shrink-0">
+              <path d="M4.93 19.07a10 10 0 0 1 0-14.14M19.07 4.93a10 10 0 0 1 0 14.14M7.76 16.24a6 6 0 0 1 0-8.48M16.24 7.76a6 6 0 0 1 0 8.48M12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
+            </svg>
+            <span>МОРЗЕ</span>
+          </button>
+        </div>
       </div>
 
-      {/* Основной блок: Абстрактная круговая шкала прогресса и минималистичная кнопка Морзе */}
-      <div className="my-auto flex flex-col items-center justify-center max-w-sm mx-auto w-full relative z-10">
-        <div className="w-full flex flex-col items-center space-y-4">
-          {/* Контейнер кнопки со стильным круговым SVG-кольцом (stroke-dashoffset) */}
-          <div className="relative w-48 h-48 flex items-center justify-center select-none touch-none">
-            <svg
-              className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
-              viewBox="0 0 180 180"
-            >
-              {/* Фоновая шкала */}
-              <circle
-                cx="90"
-                cy="90"
-                r={RING_RADIUS}
-                fill="none"
-                stroke="rgba(255, 255, 255, 0.08)"
-                strokeWidth="4"
-              />
-              {/* Активное кольцо прогресса (плавно 100% за 250 мс) */}
-              <circle
-                cx="90"
-                cy="90"
-                r={RING_RADIUS}
-                fill="none"
-                stroke={isDashReached ? '#22d3ee' : '#38bdf8'}
-                strokeWidth="6"
-                strokeLinecap="round"
-                strokeDasharray={RING_CIRCUMFERENCE}
-                strokeDashoffset={strokeDashoffset}
-                style={{
-                  filter: isKeyDown
-                    ? `drop-shadow(0 0 10px ${isDashReached ? 'rgba(34,211,238,0.9)' : 'rgba(56,189,248,0.7)'})`
-                    : 'none',
-                }}
-              />
-            </svg>
+      {/* ============================================================ */}
+      {/* ВКЛАДКА 1: КАМЕРА (Встроенный QR-сканер)                       */}
+      {/* ============================================================ */}
+      {activeTab === 'CAMERA' && (
+        <div className="flex-1 flex flex-col items-center justify-center max-w-sm mx-auto w-full relative z-10 py-1">
+          <QrCameraScanner
+            onScanSuccess={(scannedCode) => {
+              onConnect(scannedCode);
+            }}
+            onManualSwitch={() => setActiveTab('PIN')}
+            className="w-full aspect-square max-h-[340px] shadow-2xl"
+          />
+        </div>
+      )}
 
-            {/* Минималистичная тактическая кнопка: без рисунков инструментов и лишних текстов */}
-            <button
-              type="button"
-              aria-label="Ключ телеграфа"
-              onPointerDown={handlePointerDown}
-              onPointerUp={handlePointerUp}
-              onPointerLeave={() => {
-                if (isKeyDownRef.current) {
-                  handlePointerUp();
-                } else {
-                  soundManager.stopMorseTone();
-                }
-              }}
-              className={`w-36 h-36 rounded-full border-4 flex flex-col items-center justify-center select-none touch-none cursor-pointer active:scale-95 shadow-2xl relative transition-colors duration-150 ${
-                isKeyDown
-                  ? isDashReached
-                    ? 'bg-cyan-600 border-cyan-200 text-white shadow-[0_0_35px_rgba(6,182,212,0.9)] scale-95'
-                    : 'bg-blue-600 border-blue-200 text-white shadow-[0_0_25px_rgba(37,99,235,0.8)] scale-95'
-                  : 'bg-zinc-900/90 border-white/20 text-zinc-300 hover:border-cyan-400 shadow-[0_0_25px_rgba(0,0,0,0.8)]'
+      {/* ============================================================ */}
+      {/* ВКЛАДКА 2: ПИН-КОД (5 цифр с экрана ТВ)                      */}
+      {/* ============================================================ */}
+      {activeTab === 'PIN' && (
+        <div className="flex-1 flex flex-col justify-between max-w-sm mx-auto w-full relative z-10 py-2 space-y-4">
+          <div className="flex flex-col items-center text-center space-y-3 my-auto">
+            <div className="text-center space-y-1">
+              <h2 className="text-xl sm:text-2xl font-display font-black uppercase tracking-wider text-white">
+                КОД КОМНАТЫ С ТВ
+              </h2>
+              <p className="text-xs font-mono text-zinc-400">
+                Введите 5-значный цифровой код, отображаемый на экране
+              </p>
+            </div>
+
+            {/* Стилизованные 5 слотов для цифр кода */}
+            <div
+              onClick={() => pinInputRef.current?.focus()}
+              className="relative flex items-center justify-center gap-2.5 sm:gap-3 py-4 w-full cursor-pointer"
+            >
+              {[0, 1, 2, 3, 4].map((idx) => {
+                const digit = pinInput[idx];
+                const isCurrent = idx === pinInput.length;
+                return (
+                  <div
+                    key={idx}
+                    className={`w-12 h-14 sm:w-14 sm:h-16 rounded-2xl flex items-center justify-center font-display font-black text-2xl sm:text-3xl transition-all shadow-md ${
+                      digit
+                        ? 'bg-zinc-900 border-2 border-cyan-400/80 text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.3)]'
+                        : isCurrent
+                        ? 'bg-zinc-950 border-2 border-white/60 text-white animate-pulse'
+                        : 'bg-zinc-950/70 border border-white/15 text-zinc-600'
+                    }`}
+                  >
+                    {digit || ''}
+                  </div>
+                );
+              })}
+
+              {/* Невидимый, но строго активный числовой инпут */}
+              <input
+                ref={pinInputRef}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={5}
+                value={pinInput}
+                onChange={(e) => handlePinChange(e.target.value)}
+                autoFocus
+                className="absolute inset-0 opacity-0 cursor-pointer pointer-events-auto"
+                aria-label="Поле ввода 5-значного пин-кода комнаты"
+              />
+            </div>
+
+            {pinError && (
+              <div className="p-2.5 px-4 rounded-xl bg-red-950/70 border border-red-500/60 text-xs font-mono text-red-200 shadow-[0_0_12px_rgba(239,68,68,0.3)]">
+                {pinError}
+              </div>
+            )}
+          </div>
+
+          {/* Нижняя кнопка подключения */}
+          <div className="w-full pt-2">
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={handlePinConnect}
+              disabled={pinInput.length !== 5 || isPinConnecting}
+              className={`min-h-[50px] rounded-2xl text-xs font-display font-bold uppercase tracking-widest transition cursor-pointer ${
+                pinInput.length !== 5 || isPinConnecting
+                  ? 'opacity-40 cursor-not-allowed bg-zinc-900/50 border-white/10 text-zinc-500'
+                  : 'bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 border border-cyan-400/50 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)] active:scale-95'
               }`}
             >
-              {isKeyDown ? (
-                <>
-                  {/* Чистые геометрические SVG-фигуры одинаковой визуальной плотности и толщины */}
-                  <div className="h-7 flex items-center justify-center mb-1">
-                    {isDashReached ? (
-                      /* Тире: горизонтальная линия с закругленными краями (pill/capsule) */
-                      <div className="w-12 h-5 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]" />
-                    ) : (
-                      /* Точка: идеальный круг */
-                      <div className="w-5 h-5 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]" />
-                    )}
-                  </div>
-                  <span className={`text-[11px] font-black uppercase tracking-[0.2em] ${isDashReached ? 'text-cyan-200' : 'text-zinc-200'}`}>
-                    ПЕРЕДАЧА
-                  </span>
-                </>
-              ) : (
-                <span className="text-xs font-black uppercase tracking-[0.25em] text-zinc-200">
-                  ПЕРЕДАЧА
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Минималистичные кнопки управления без мусора */}
-          <div className="flex items-center justify-between w-full px-3">
-            <button
-              type="button"
-              onClick={handleClear}
-              disabled={!morseBuffer}
-              className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-zinc-900/60 text-xs font-mono uppercase text-zinc-400 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed transition cursor-pointer"
-            >
-              Сброс
-            </button>
-
-            <button
-              type="button"
-              onClick={handleBackspace}
-              disabled={!morseBuffer}
-              className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-zinc-900/60 text-xs font-mono uppercase text-red-400 hover:text-red-300 disabled:opacity-25 disabled:cursor-not-allowed transition cursor-pointer"
-            >
-              Удалить (⌫)
-            </button>
+              {isPinConnecting ? 'ПОДКЛЮЧЕНИЕ К ШТАБУ...' : 'ПОДКЛЮЧИТЬСЯ'}
+            </Button>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Нижняя кнопка подключения */}
-      <div className="space-y-2 max-w-sm mx-auto w-full pt-2 relative z-10">
-        <Button
-          variant="secondary"
-          fullWidth
-          onClick={handleResolveAndConnect}
-          disabled={!isReady || isSearching}
-          className={`h-14 rounded-2xl text-xs font-mono font-bold uppercase tracking-widest transition cursor-pointer ${
-            !isReady || isSearching
-              ? 'opacity-40 cursor-not-allowed bg-zinc-900/50 border-white/10 text-zinc-500'
-              : 'bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 border border-cyan-400/50 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)] active:scale-95'
-          }`}
-        >
-          {targetRoomCode
-            ? isSearching
-              ? 'ПРОВЕРКА ШИФРА...'
-              : 'ПОДТВЕРДИТЬ ШИФР'
-            : isSearching
-              ? 'ПОИСК ШТАБА В ЭФИРЕ...'
-              : 'НАЙТИ ШТАБ'}
-        </Button>
-      </div>
+      {/* ============================================================ */}
+      {/* ВКЛАДКА 3: МОРЗЕ (Телеграфный ключ)                          */}
+      {/* ============================================================ */}
+      {activeTab === 'MORSE' && (
+        <div className="flex-1 flex flex-col justify-between max-w-sm mx-auto w-full relative z-10 py-1">
+          {/* Дисплей сигналов Морзе */}
+          <div className="flex flex-col items-center text-center w-full space-y-2 mb-2">
+            <div className="flex items-center justify-between w-full px-1">
+              <span className="text-[10px] font-display uppercase tracking-[0.25em] text-zinc-400 font-bold">
+                ШИФР
+              </span>
+              <span className="text-[10px] font-mono text-cyan-400 font-bold tracking-wider">
+                {morseBuffer.length}/7
+              </span>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 h-14 px-3 rounded-2xl bg-zinc-950/95 border border-white/20 w-full shadow-[0_8px_24px_rgba(0,0,0,0.6)] backdrop-blur-md">
+              {[0, 1, 2, 3, 4, 5, 6].map((idx) => {
+                const sym = morseBuffer[idx];
+                return (
+                  <div key={idx} className="flex items-center justify-center">
+                    {sym === '.' ? (
+                      <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.95),0_0_20px_rgba(255,255,255,0.5)] transition-all" />
+                    ) : sym === '-' ? (
+                      <div className="w-8 sm:w-10 h-4 sm:h-5 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.95),0_0_20px_rgba(255,255,255,0.5)] transition-all" />
+                    ) : idx === morseBuffer.length ? (
+                      <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 border-dashed border-white/60 bg-white/10 animate-pulse transition-all" />
+                    ) : (
+                      <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-white/15 bg-zinc-900/60 transition-all" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {errorMessage && (
+              <div className="p-2 px-3 rounded-xl bg-red-950/70 border border-red-500/60 text-xs font-mono text-red-200 shadow-[0_0_12px_rgba(239,68,68,0.3)]">
+                {errorMessage}
+              </div>
+            )}
+          </div>
+
+          {/* Телеграфный ключ */}
+          <div className="my-auto flex flex-col items-center justify-center w-full">
+            <div className="w-full flex flex-col items-center space-y-3">
+              <div className="relative w-44 h-44 flex items-center justify-center select-none touch-none">
+                <svg
+                  className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
+                  viewBox="0 0 180 180"
+                >
+                  <circle
+                    cx="90"
+                    cy="90"
+                    r={RING_RADIUS}
+                    fill="none"
+                    stroke="rgba(255, 255, 255, 0.08)"
+                    strokeWidth="4"
+                  />
+                  <circle
+                    cx="90"
+                    cy="90"
+                    r={RING_RADIUS}
+                    fill="none"
+                    stroke={isDashReached ? '#22d3ee' : '#38bdf8'}
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeDasharray={RING_CIRCUMFERENCE}
+                    strokeDashoffset={strokeDashoffset}
+                    style={{
+                      filter: isKeyDown
+                        ? `drop-shadow(0 0 10px ${isDashReached ? 'rgba(34,211,238,0.9)' : 'rgba(56,189,248,0.7)'})`
+                        : 'none',
+                    }}
+                  />
+                </svg>
+
+                <button
+                  type="button"
+                  aria-label="Ключ телеграфа"
+                  onPointerDown={handlePointerDown}
+                  onPointerUp={handlePointerUp}
+                  onPointerLeave={() => {
+                    if (isKeyDownRef.current) {
+                      handlePointerUp();
+                    } else {
+                      soundManager.stopMorseTone();
+                    }
+                  }}
+                  className={`w-32 h-32 rounded-full border-4 flex flex-col items-center justify-center select-none touch-none cursor-pointer active:scale-95 shadow-2xl relative transition-colors duration-150 ${
+                    isKeyDown
+                      ? isDashReached
+                        ? 'bg-cyan-600 border-cyan-200 text-white shadow-[0_0_35px_rgba(6,182,212,0.9)] scale-95'
+                        : 'bg-blue-600 border-blue-200 text-white shadow-[0_0_25px_rgba(37,99,235,0.8)] scale-95'
+                      : 'bg-zinc-900/90 border-white/20 text-zinc-300 hover:border-cyan-400 shadow-[0_0_25px_rgba(0,0,0,0.8)]'
+                  }`}
+                >
+                  {isKeyDown ? (
+                    <>
+                      <div className="h-6 flex items-center justify-center mb-1">
+                        {isDashReached ? (
+                          <div className="w-10 h-4 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]" />
+                        ) : (
+                          <div className="w-4 h-4 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]" />
+                        )}
+                      </div>
+                      <span className={`text-[10px] font-black uppercase tracking-[0.2em] font-display ${isDashReached ? 'text-cyan-200' : 'text-zinc-200'}`}>
+                        ПЕРЕДАЧА
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-xs font-black uppercase tracking-[0.2em] text-zinc-200 font-display">
+                      ПЕРЕДАЧА
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Управление буфером */}
+              <div className="flex items-center justify-between w-full px-2">
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  disabled={!morseBuffer}
+                  className="min-h-[44px] px-4 py-2 rounded-xl border border-white/10 bg-zinc-900/60 text-xs font-mono uppercase text-zinc-400 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed transition cursor-pointer flex items-center justify-center"
+                >
+                  Сброс
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleBackspace}
+                  disabled={!morseBuffer}
+                  className="min-h-[44px] px-4 py-2 rounded-xl border border-white/10 bg-zinc-900/60 text-xs font-mono uppercase text-red-400 hover:text-red-300 disabled:opacity-25 disabled:cursor-not-allowed transition cursor-pointer flex items-center justify-center"
+                >
+                  Удалить (⌫)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Нижняя кнопка отправки шифра */}
+          <div className="w-full pt-2">
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={handleResolveAndConnect}
+              disabled={!isReadyMorse || isSearching}
+              className={`min-h-[50px] rounded-2xl text-xs font-display font-bold uppercase tracking-widest transition cursor-pointer ${
+                !isReadyMorse || isSearching
+                  ? 'opacity-40 cursor-not-allowed bg-zinc-900/50 border-white/10 text-zinc-500'
+                  : 'bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 border border-cyan-400/50 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)] active:scale-95'
+              }`}
+            >
+              {targetRoomCode
+                ? isSearching
+                  ? 'ПРОВЕРКА ШИФРА...'
+                  : 'ПОДТВЕРДИТЬ ШИФР'
+                : isSearching
+                  ? 'ПОИСК ШТАБА В ЭФИРЕ...'
+                  : 'НАЙТИ ШТАБ'}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

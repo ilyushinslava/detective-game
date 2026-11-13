@@ -54,17 +54,17 @@ export default defineConfig({
           if (id.includes('node_modules/framer-motion')) {
             return 'motion';
           }
+          if (id.includes('node_modules/html5-qrcode')) {
+            return 'qr-scanner';
+          }
           if (id.includes('src/components/ui/Icons') || id.includes('src/components/ui/ActionIcons')) {
             return 'icons';
           }
           if (id.includes('src/components/CharacterCard') || id.includes('src/constants/characterImages')) {
             return 'game-core';
           }
-          if (id.includes('src/components/tv/TvBoardView') || id.includes('src/components/tv/TvLobbyView')) {
+          if (id.includes('src/components/tv/') || id.includes('src/components/controller/')) {
             return 'tv-party';
-          }
-          if (id.includes('src/components/controller/MobileControllerView') || id.includes('src/components/controller/ControllerConnectView')) {
-            return 'controller';
           }
         },
       },

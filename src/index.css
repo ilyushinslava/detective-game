@@ -96,3 +96,23 @@ img, svg, button {
     font-size: 26px;
   }
 }
+
+/* Анимация лазерного луча в сканере QR-кода */
+@keyframes scanLaser {
+  0% {
+    top: 5%;
+    opacity: 0.2;
+  }
+  50% {
+    top: 90%;
+    opacity: 1;
+  }
+  100% {
+    top: 5%;
+    opacity: 0.2;
+  }
+}
+
+.animate-scanLaser {
+  animation: scanLaser 2.2s ease-in-out infinite;
+}

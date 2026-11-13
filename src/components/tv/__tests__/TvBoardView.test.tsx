@@ -31,7 +31,7 @@ describe("TvBoardView Component", () => {
     expect(screen.getByText(/ВПРАВО/i)).toBeDefined();
   });
 
-  it("TV-01: изолирует вызов паузы по Escape/Back и поддерживает D-Pad навигацию", () => {
+  it("TV-01: изолирует вызов паузы по Escape/Back/Backspace/BrowserBack и поддерживает D-Pad навигацию", () => {
     const state = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "KILLER");
     const onExit = vi.fn();
     const onRestart = vi.fn();
@@ -63,8 +63,13 @@ describe("TvBoardView Component", () => {
     fireEvent.keyDown(window, { key: "Enter", keyCode: 13 });
     expect(onRestart).toHaveBeenCalledTimes(1);
 
-    // 3. Android Back (keyCode 4) открывает меню паузы вместо прямого вылета
-    fireEvent.keyDown(window, { key: "Escape", keyCode: 4 });
+    // 3. Backspace открывает меню паузы
+    fireEvent.keyDown(window, { key: "Backspace", keyCode: 8 });
+    // Повторный Backspace закрывает меню паузы
+    fireEvent.keyDown(window, { key: "Backspace", keyCode: 8 });
+
+    // 4. BrowserBack открывает меню паузы
+    fireEvent.keyDown(window, { key: "BrowserBack" });
 
     // D-Pad Right -> переключение фокуса на Выход
     fireEvent.keyDown(window, { key: "ArrowRight", keyCode: 39 });

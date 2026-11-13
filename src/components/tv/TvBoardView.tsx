@@ -242,7 +242,7 @@ const TvCell: React.FC<TvCellProps> = ({
       <div className="absolute inset-x-0 bottom-0 z-10 pt-5 pb-1 sm:pb-1.5 px-1 bg-gradient-to-t from-black/95 via-black/80 to-transparent flex items-end justify-center pointer-events-none">
         <span
           title={char.name}
-          className="block w-full text-[9px] sm:text-xs 2xl:text-sm font-bold text-zinc-100 uppercase tracking-tight text-center truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] font-sans"
+          className="block w-full font-bold text-zinc-100 uppercase tracking-tight whitespace-normal text-center leading-[1.1] text-[10px] sm:text-[11px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] font-sans"
         >
           {char.name}
         </span>
@@ -337,8 +337,15 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   // Обработчик клавиатуры и ТВ-пульта: изоляция паузы и навигации
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Escape / Back (ESCAPE = 27, KEYCODE_BACK = 4): ТОЛЬКО они открывают / закрывают модалку паузы!
-      if (e.key === 'Escape' || e.keyCode === 27 || e.keyCode === 4) {
+      // Escape / Back (ESCAPE = 27, KEYCODE_BACK = 4, Backspace, BrowserBack)
+      if (
+        e.key === 'Escape' ||
+        e.key === 'Backspace' ||
+        e.key === 'BrowserBack' ||
+        e.keyCode === 27 ||
+        e.keyCode === 4 ||
+        e.keyCode === 8
+      ) {
         e.preventDefault();
         setIsPauseOpen((prev) => {
           const next = !prev;
@@ -716,7 +723,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 <div className="text-xl sm:text-2xl font-black tracking-wider uppercase truncate text-white drop-shadow">
                   {activeTurnName.toUpperCase()}
                 </div>
-                <div className="text-xs sm:text-sm text-zinc-300 font-medium truncate font-mono">
+                <div className="text-xs sm:text-sm text-zinc-300 font-medium whitespace-normal font-mono">
                   Ожидание команды с пульта...
                 </div>
               </div>
@@ -761,18 +768,18 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   ? 'bg-gradient-to-r from-cyan-900/80 via-blue-950/90 to-zinc-950 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.35)]'
                   : 'bg-white/[0.04] border-white/10 hover:border-white/20'
               }`}>
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
                   <span className="w-8 h-8 rounded-lg bg-cyan-600/20 border border-cyan-400/50 flex items-center justify-center text-cyan-300 shrink-0">
                     <ActionIcons.Shift className="w-4 h-4" />
                   </span>
-                  <div>
-                    <div className="text-xs sm:text-sm font-black uppercase text-white tracking-wide">МАНЕВР ПОЛЯ</div>
-                    <div className="text-[10px] sm:text-xs font-mono text-zinc-400">
+                  <div className="flex-1 min-w-0 pr-2">
+                    <div className="text-xs sm:text-sm font-black uppercase text-white tracking-wide truncate">МАНЕВР ПОЛЯ</div>
+                    <div className="text-[10px] leading-tight text-white/50 truncate">
                       {selectedLine ? 'Маневр линии активен' : 'Сдвиг ряда или столбца'}
                     </div>
                   </div>
                 </div>
-                <span className={`text-[10px] sm:text-xs font-mono font-bold px-2 py-0.5 rounded border ${
+                <span className={`shrink-0 text-[10px] sm:text-xs font-mono font-bold px-2 py-0.5 rounded border ${
                   selectedLine
                     ? 'bg-cyan-600 text-white border-cyan-400 animate-pulse'
                     : 'bg-black/40 text-zinc-300 border-white/10'
@@ -793,16 +800,16 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
                 return (
                   <div key={i} className={`p-2 sm:p-2.5 rounded-xl border flex items-center justify-between transition-all ${borderClass}`}>
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
                       <span className="w-8 h-8 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center shrink-0">
                         {act.icon}
                       </span>
-                      <div>
-                        <div className="text-xs sm:text-sm font-black uppercase text-white tracking-wide">{act.name}</div>
-                        <div className="text-[10px] sm:text-xs font-mono text-zinc-400 truncate max-w-[150px] sm:max-w-[200px]">{act.desc}</div>
+                      <div className="flex-1 min-w-0 pr-2">
+                        <div className="text-xs sm:text-sm font-black uppercase text-white tracking-wide truncate">{act.name}</div>
+                        <div className="text-[10px] leading-tight text-white/50 truncate">{act.desc}</div>
                       </div>
                     </div>
-                    <span className={`text-[10px] sm:text-xs font-mono font-bold px-2 py-0.5 rounded border ${
+                    <span className={`shrink-0 text-[10px] sm:text-xs font-mono font-bold px-2 py-0.5 rounded border ${
                       act.badge === '1 ПОПЫТКА'
                         ? 'bg-amber-950/80 text-amber-300 border-amber-500/50 font-black'
                         : 'bg-black/40 text-zinc-300 border-white/10'

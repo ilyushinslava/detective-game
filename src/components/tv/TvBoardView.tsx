@@ -775,10 +775,10 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 setIsPauseOpen(false);
                 setFocusedControl('NONE');
               }}
-              className={`w-full p-5 rounded-2xl font-display font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between shadow-lg cursor-pointer transition-all active:scale-95 focus:outline-none focus:ring-4 focus:ring-white focus:bg-white/20 focus:scale-[1.03] shadow-[0_0_25px_rgba(255,255,255,0.3)] ${
+              className={`w-full p-5 rounded-2xl font-display font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between shadow-lg cursor-pointer transition-all active:scale-95 focus:outline-none focus:scale-105 focus:border-blue-400 focus:shadow-[0_0_40px_rgba(59,130,246,0.65),inset_0_0_20px_rgba(255,255,255,0.25)] ${
                 focusedControl === 'CONTINUE'
-                  ? 'bg-blue-500 border border-white ring-2 ring-white text-white'
-                  : 'bg-blue-600 hover:bg-blue-500 text-white'
+                  ? 'bg-blue-600 border border-white ring-2 ring-white text-white shadow-[0_0_25px_rgba(59,130,246,0.6)]'
+                  : 'bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 border border-blue-400/40 text-white'
               }`}
             >
               <span>ПРОДОЛЖИТЬ МАТЧ</span>
@@ -794,10 +794,10 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   onRestart();
                 }}
                 data-testid="tv-restart-btn"
-                className={`w-full p-5 rounded-2xl border font-display font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer focus:outline-none focus:ring-4 focus:ring-white focus:bg-white/20 focus:scale-[1.03] shadow-[0_0_25px_rgba(255,255,255,0.3)] ${
+                className={`w-full p-5 rounded-2xl border font-display font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_35px_rgba(255,255,255,0.35),inset_0_0_15px_rgba(255,255,255,0.2)] ${
                   focusedControl === 'RESTART'
-                    ? 'border-white/90 ring-2 ring-white bg-zinc-800 text-white shadow-[0_0_15px_rgba(255,255,255,0.4)]'
-                    : 'border-white/10 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300'
+                    ? 'border-white/90 ring-2 ring-white bg-zinc-800 text-white shadow-[0_0_20px_rgba(255,255,255,0.4)]'
+                    : 'border-white/15 bg-white/[0.04] hover:bg-white/[0.08] text-white/80'
                 }`}
               >
                 <span>НАЧАТЬ ЗАНОВО (РЕВАНШ)</span>
@@ -814,10 +814,10 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   onExit();
                 }}
                 data-testid="tv-exit-btn"
-                className={`w-full p-5 rounded-2xl border font-display font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer focus:outline-none focus:ring-4 focus:ring-white focus:bg-white/20 focus:scale-[1.03] shadow-[0_0_25px_rgba(255,255,255,0.3)] ${
+                className={`w-full p-5 rounded-2xl border font-display font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer focus:outline-none focus:scale-105 focus:border-red-400 focus:bg-red-900/60 focus:shadow-[0_0_35px_rgba(239,68,68,0.5),inset_0_0_15px_rgba(255,255,255,0.2)] ${
                   focusedControl === 'EXIT'
-                    ? 'border-red-500/90 ring-2 ring-red-500 bg-red-950/80 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.4)]'
-                    : 'border-red-900/60 bg-red-950/40 hover:bg-red-900/60 text-red-300'
+                    ? 'border-red-500/90 ring-2 ring-red-500 bg-red-950/80 text-red-200 shadow-[0_0_20px_rgba(239,68,68,0.5)]'
+                    : 'border-red-500/30 bg-red-950/40 hover:bg-red-900/50 text-red-200'
                 }`}
               >
                 <span>ВЫЙТИ В ГЛАВНОЕ МЕНЮ</span>

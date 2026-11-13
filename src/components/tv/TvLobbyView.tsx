@@ -34,6 +34,53 @@ export function roomCodeToMorse(code: string): string {
   return res;
 }
 
+const MODE_THEMES: Record<
+  GameModeType,
+  {
+    normal: string;
+    selected: string;
+    badge: string;
+    focus: string;
+  }
+> = {
+  MANIAC_VS_OPERATIVE: {
+    normal:
+      'bg-gradient-to-br from-red-950/30 via-zinc-950/60 to-black/70 border-red-500/25 border-t-2 border-t-red-500/70 hover:border-red-500/50 text-white/80',
+    selected:
+      'bg-gradient-to-br from-red-950/70 via-red-900/35 to-black/80 border-red-400/80 border-t-2 border-t-red-400 shadow-[0_0_30px_rgba(225,29,72,0.35)] text-white ring-1 ring-red-400/40',
+    badge: 'bg-red-950/80 border border-red-500/50 text-red-200',
+    focus:
+      'focus:scale-105 focus:border-red-300 focus:bg-gradient-to-br focus:from-red-900/60 focus:to-red-950/90 focus:shadow-[0_0_40px_rgba(225,29,72,0.65),inset_0_0_20px_rgba(255,255,255,0.2)]',
+  },
+  THIEF_HUNT: {
+    normal:
+      'bg-gradient-to-br from-amber-950/30 via-zinc-950/60 to-black/70 border-amber-500/25 border-t-2 border-t-amber-500/70 hover:border-amber-500/50 text-white/80',
+    selected:
+      'bg-gradient-to-br from-amber-950/70 via-amber-900/35 to-black/80 border-amber-400/80 border-t-2 border-t-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.35)] text-white ring-1 ring-amber-400/40',
+    badge: 'bg-amber-950/80 border border-amber-500/50 text-amber-200',
+    focus:
+      'focus:scale-105 focus:border-amber-300 focus:bg-gradient-to-br focus:from-amber-900/60 focus:to-amber-950/90 focus:shadow-[0_0_40px_rgba(245,158,11,0.65),inset_0_0_20px_rgba(255,255,255,0.2)]',
+  },
+  SECRET_SERVICE: {
+    normal:
+      'bg-gradient-to-br from-cyan-950/30 via-zinc-950/60 to-black/70 border-cyan-500/25 border-t-2 border-t-cyan-500/70 hover:border-cyan-500/50 text-white/80',
+    selected:
+      'bg-gradient-to-br from-cyan-950/70 via-blue-900/35 to-black/80 border-cyan-400/80 border-t-2 border-t-cyan-400 shadow-[0_0_30px_rgba(6,182,212,0.35)] text-white ring-1 ring-cyan-400/40',
+    badge: 'bg-cyan-950/80 border border-cyan-500/50 text-cyan-200',
+    focus:
+      'focus:scale-105 focus:border-cyan-300 focus:bg-gradient-to-br focus:from-cyan-900/60 focus:to-cyan-950/90 focus:shadow-[0_0_40px_rgba(6,182,212,0.65),inset_0_0_20px_rgba(255,255,255,0.2)]',
+  },
+  LINE_UP: {
+    normal:
+      'bg-gradient-to-br from-purple-950/30 via-zinc-950/60 to-black/70 border-purple-500/25 border-t-2 border-t-purple-500/70 hover:border-purple-500/50 text-white/80',
+    selected:
+      'bg-gradient-to-br from-purple-950/70 via-purple-900/35 to-black/80 border-purple-400/80 border-t-2 border-t-purple-400 shadow-[0_0_30px_rgba(168,85,247,0.35)] text-white ring-1 ring-purple-400/40',
+    badge: 'bg-purple-950/80 border border-purple-500/50 text-purple-200',
+    focus:
+      'focus:scale-105 focus:border-purple-300 focus:bg-gradient-to-br focus:from-purple-900/60 focus:to-purple-950/90 focus:shadow-[0_0_40px_rgba(168,85,247,0.65),inset_0_0_20px_rgba(255,255,255,0.2)]',
+  },
+};
+
 export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   roomCode,
   morseCode,
@@ -114,19 +161,21 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   }, [playerList.length]);
 
   return (
-    <div className="flex h-screen w-screen flex-col justify-between bg-[#07080c] text-white select-none p-6 lg:p-10 overflow-hidden font-sans relative">
-      {/* Кинематографичный фон: глубокая контрастная глубина без цветного шума */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/15 via-[#07080c] to-[#040507] pointer-events-none" />
+    <div className="flex h-screen w-screen flex-col justify-between bg-[#08090e] text-white select-none p-6 lg:p-10 overflow-hidden font-sans relative">
+      {/* Глубокий кинематографичный градиент: от темно-бордового к глубокому угольному */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#2d0814_0%,#120c16_45%,#07080d_100%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(225,29,72,0.1),transparent_60%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(6,182,212,0.08),transparent_50%)] pointer-events-none" />
 
       {/* Верхний лаконичный статус-бар */}
       <div className="flex items-center justify-between border-b border-white/10 pb-4 relative z-10 shrink-0">
         <div className="flex items-center gap-3">
-          <span className="h-2.5 w-2.5 rounded-full bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.8)] shrink-0" />
+          <span className="h-2.5 w-2.5 rounded-full bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.9)] animate-pulse shrink-0" />
           <h1 className="text-xl lg:text-2xl font-display font-black uppercase tracking-wider text-white">
             {GAME_TITLE.ru}
           </h1>
         </div>
-        <div className="flex items-center gap-2 text-xs font-display font-bold uppercase tracking-[0.25em] text-white/50">
+        <div className="flex items-center gap-2 text-xs font-display font-bold uppercase tracking-[0.25em] text-white/70 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md">
           <span>ЛОББИ ПАРТИИ</span>
         </div>
       </div>
@@ -136,52 +185,52 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
         {joinUrl}
       </div>
 
-      {/* Основной контент: строго 2 изолированные колонки в стиле AAA-консолей */}
+      {/* Основной контент: строго 2 изолированные колонки с эффектом плотного матового стекла */}
       <div className="grid grid-cols-2 gap-8 lg:gap-12 my-auto flex-1 min-h-0 items-stretch w-full max-w-7xl mx-auto relative z-10 py-4">
         
         {/* ЛЕВАЯ КОЛОНКА: Терминал доступа (Чистый QR + Морзе, без технического мусора) */}
-        <div className="flex flex-col items-center justify-between p-6 lg:p-8 rounded-3xl bg-black/40 border border-white/10 backdrop-blur-md shadow-2xl text-center">
+        <div className="flex flex-col items-center justify-between p-6 lg:p-8 rounded-3xl bg-white/[0.04] border border-white/10 border-t-2 border-t-rose-500/60 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.1)] text-center">
           <div className="w-full flex flex-col items-center">
-            <div className="text-white/40 tracking-[0.35em] font-light text-xs uppercase mb-4">
+            <div className="text-rose-200/60 tracking-[0.35em] font-light text-xs uppercase mb-4">
               ПОДКЛЮЧЕНИЕ СО СМАРТФОНА
             </div>
 
-            {/* Чистый QR-код на премиальной белой подложке */}
-            <div className="p-4 rounded-3xl bg-white shadow-[0_0_35px_rgba(255,255,255,0.2)] mb-4 transition-transform duration-300 hover:scale-102">
+            {/* Чистый QR-код на премиальной белой подложке с мягким свечением */}
+            <div className="p-4 rounded-3xl bg-white shadow-[0_0_40px_rgba(255,255,255,0.25)] mb-4 transition-transform duration-300 hover:scale-102">
               <QRCodeSVG value={joinUrl} size={190} level="M" />
             </div>
 
-            <div className="text-sm font-sans font-light text-white/50 max-w-xs mx-auto">
+            <div className="text-sm font-sans font-light text-white/60 max-w-xs mx-auto">
               Наведите камеру смартфона для быстрого входа
             </div>
           </div>
 
           {/* Блок Морзе: только чистые сигналы, без цифр и без сырых IP */}
           <div className="w-full pt-4 border-t border-white/10 flex flex-col items-center">
-            <div className="text-xs font-display font-bold uppercase tracking-[0.3em] text-white/50 mb-2">
+            <div className="text-xs font-display font-bold uppercase tracking-[0.3em] text-rose-300/70 mb-2">
               ШИФР МОРЗЕ
             </div>
 
-            {/* Визуальные пилюли точек и тире */}
+            {/* Визуальные пилюли точек и тире со свечением */}
             <div className="flex flex-nowrap items-center justify-center gap-3 py-2 w-full">
               {displayMorse.split('').map((sym, idx) => (
                 <div
                   key={idx}
                   className={`flex items-center justify-center transition-all shrink-0 ${
                     sym === '.'
-                      ? 'w-7 h-7 rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)]'
-                      : 'w-16 h-7 rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)]'
+                      ? 'w-7 h-7 rounded-full bg-rose-100 shadow-[0_0_14px_rgba(244,63,94,0.8)]'
+                      : 'w-16 h-7 rounded-full bg-rose-100 shadow-[0_0_14px_rgba(244,63,94,0.8)]'
                   }`}
                 />
               ))}
             </div>
 
             {/* Крупные символы морзе text-5xl lg:text-6xl */}
-            <div className="text-5xl lg:text-6xl font-display font-black tracking-[0.35em] text-white my-1 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">
+            <div className="text-5xl lg:text-6xl font-display font-black tracking-[0.35em] text-white my-1 drop-shadow-[0_0_20px_rgba(244,63,94,0.5)]">
               {displayMorse}
             </div>
 
-            <div className="text-xs font-sans font-light text-white/40">
+            <div className="text-xs font-sans font-light text-white/50">
               Или введите 7 сигналов Морзе на контроллере
             </div>
           </div>
@@ -190,22 +239,22 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
         {/* ПРАВАЯ КОЛОНКА: Панель настроек, Оперативники и Кнопка Старта */}
         <div className="flex flex-col justify-between gap-5 h-full">
           
-          {/* Секция 1: Выбор режима и формата */}
-          <div className="p-5 lg:p-6 rounded-3xl bg-black/40 border border-white/10 backdrop-blur-md shadow-2xl space-y-4 shrink-0">
+          {/* Секция 1: Выбор режима и формата с цветовым кодированием */}
+          <div className="p-5 lg:p-6 rounded-3xl bg-white/[0.04] border border-white/10 border-t-2 border-t-rose-500/60 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.1)] space-y-4 shrink-0">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-display font-bold uppercase tracking-wider text-white/60">
+              <span className="text-xs font-display font-bold uppercase tracking-wider text-white/70">
                 РЕЖИМ СЕССИИ
               </span>
-              <div className="flex gap-2 bg-white/5 p-1 rounded-2xl border border-white/10 text-xs font-display font-bold uppercase">
+              <div className="flex gap-2 bg-black/40 p-1 rounded-2xl border border-white/10 text-xs font-display font-bold uppercase shadow-inner">
                 <button
                   type="button"
                   tabIndex={0}
                   onClick={() => setIsPassAndPlay(false)}
                   className={`px-4 py-1.5 rounded-xl transition-all duration-300 cursor-pointer ${
                     !isPassAndPlay
-                      ? 'bg-white/20 text-white shadow border border-white/20'
+                      ? 'bg-rose-950/70 text-rose-100 border border-rose-500/50 shadow-[0_0_15px_rgba(225,29,72,0.35)]'
                       : 'text-white/40 hover:text-white/70'
-                  } focus:outline-none focus:ring-4 focus:ring-white focus:bg-white/20 focus:scale-[1.03] shadow-[0_0_20px_rgba(255,255,255,0.3)]`}
+                  } focus:outline-none focus:scale-105 focus:border-rose-400 focus:shadow-[0_0_25px_rgba(244,63,94,0.5),inset_0_0_12px_rgba(255,255,255,0.2)]`}
                 >
                   2+ ТЕЛЕФОНА
                 </button>
@@ -215,19 +264,20 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                   onClick={() => setIsPassAndPlay(true)}
                   className={`px-4 py-1.5 rounded-xl transition-all duration-300 cursor-pointer ${
                     isPassAndPlay
-                      ? 'bg-white/20 text-white shadow border border-white/20'
+                      ? 'bg-rose-950/70 text-rose-100 border border-rose-500/50 shadow-[0_0_15px_rgba(225,29,72,0.35)]'
                       : 'text-white/40 hover:text-white/70'
-                  } focus:outline-none focus:ring-4 focus:ring-white focus:bg-white/20 focus:scale-[1.03] shadow-[0_0_20px_rgba(255,255,255,0.3)]`}
+                  } focus:outline-none focus:scale-105 focus:border-rose-400 focus:shadow-[0_0_25px_rgba(244,63,94,0.5),inset_0_0_12px_rgba(255,255,255,0.2)]`}
                 >
                   PASS & PLAY
                 </button>
               </div>
             </div>
 
-            {/* Карточки 4 игровых режимов: дорогой минимализм без толстых цветных рамок */}
+            {/* Карточки 4 игровых режимов с сочным цветовым кодированием и объемным фокусом */}
             <div className="grid grid-cols-2 gap-3 lg:gap-4">
               {GAME_MODES.map((m) => {
                 const isSelected = selectedMode === m.id;
+                const theme = MODE_THEMES[m.id];
                 return (
                   <button
                     key={m.id}
@@ -237,21 +287,19 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                       soundManager.play('click');
                       setSelectedMode(m.id);
                     }}
-                    className={`p-4 rounded-2xl border text-left transition-all duration-300 cursor-pointer flex flex-col justify-between gap-1.5 ${
-                      isSelected
-                        ? 'bg-white/10 border-white/40 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/50'
-                        : 'bg-black/40 border-white/10 hover:border-white/20 text-white/70'
-                    } focus:outline-none focus:ring-4 focus:ring-white focus:bg-white/20 focus:scale-[1.03] shadow-[0_0_25px_rgba(255,255,255,0.3)]`}
+                    className={`p-4 rounded-2xl border text-left transition-all duration-300 cursor-pointer flex flex-col justify-between gap-1.5 backdrop-blur-md ${
+                      isSelected ? theme.selected : theme.normal
+                    } ${theme.focus} focus:outline-none`}
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className="text-base font-display font-black uppercase text-white tracking-wide">
+                      <span className="text-base font-display font-black uppercase text-white tracking-wide drop-shadow-sm">
                         {m.label}
                       </span>
-                      <span className="text-[10px] font-display font-bold px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-white/80 uppercase">
+                      <span className={`text-[10px] font-display font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${theme.badge}`}>
                         {m.badge}
                       </span>
                     </div>
-                    <p className="text-xs font-sans font-light text-white/50 line-clamp-1">
+                    <p className="text-xs font-sans font-light text-white/60 line-clamp-1">
                       {m.desc}
                     </p>
                   </button>
@@ -261,9 +309,9 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           </div>
 
           {/* Секция 2: Зона «ОПЕРАТИВНИКИ» */}
-          <div className="p-5 lg:p-6 rounded-3xl bg-black/40 border border-white/10 backdrop-blur-md shadow-2xl flex-1 flex flex-col justify-between min-h-0">
+          <div className="p-5 lg:p-6 rounded-3xl bg-white/[0.04] border border-white/10 border-t-2 border-t-cyan-500/50 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.1)] flex-1 flex flex-col justify-between min-h-0">
             <div className="flex items-center justify-between mb-3 shrink-0">
-              <span className="text-xs font-display font-bold uppercase tracking-wider text-white/60">
+              <span className="text-xs font-display font-bold uppercase tracking-wider text-cyan-200/80">
                 ОПЕРАТИВНИКИ В СЕТИ ({playerList.length}/6)
               </span>
               <span className="text-xs font-sans font-light text-white/40">
@@ -273,8 +321,8 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
 
             <div className="grid grid-cols-2 gap-3 overflow-y-auto max-h-40 custom-scrollbar pr-1 flex-1">
               {playerList.length === 0 ? (
-                <div className="col-span-2 p-5 rounded-2xl border border-dashed border-white/10 bg-white/5 flex flex-col items-center justify-center text-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-white/40 animate-pulse" />
+                <div className="col-span-2 p-5 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] flex flex-col items-center justify-center text-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
                   <span className="text-xs font-display font-bold uppercase tracking-wider text-white/60">
                     Ожидание подключения оперативников...
                   </span>
@@ -286,12 +334,12 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                     tabIndex={0}
                     className={`p-3.5 rounded-2xl border transition-all duration-300 flex items-center justify-between ${
                       player
-                        ? 'bg-white/10 border-white/20 shadow-md'
-                        : 'bg-white/5 border-dashed border-white/10'
-                    } focus:outline-none focus:ring-4 focus:ring-white focus:bg-white/20 focus:scale-[1.03] shadow-[0_0_20px_rgba(255,255,255,0.3)]`}
+                        ? 'bg-gradient-to-r from-cyan-950/30 via-slate-900/40 to-black/40 border-cyan-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.4)]'
+                        : 'bg-white/[0.02] border-dashed border-white/10'
+                    } focus:outline-none focus:scale-105 focus:border-cyan-400 focus:bg-cyan-950/40 focus:shadow-[0_0_30px_rgba(6,182,212,0.45),inset_0_0_15px_rgba(255,255,255,0.15)]`}
                   >
                     <div className="flex items-center gap-3 truncate">
-                      <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white font-display font-black text-xs shrink-0">
+                      <div className="w-8 h-8 rounded-xl bg-cyan-950/60 border border-cyan-500/40 flex items-center justify-center text-cyan-300 font-display font-black text-xs shrink-0 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
                         #{index + 1}
                       </div>
                       <div className="truncate">
@@ -299,13 +347,13 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                           {player ? player.nickname : 'Ожидание...'}
                         </div>
                         <div className="text-[11px] font-sans font-light text-emerald-400 flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse" />
                           <span>ГОТОВ</span>
                         </div>
                       </div>
                     </div>
                     {player?.isHost && (
-                      <span className="text-[10px] font-display font-bold px-2 py-0.5 rounded-md bg-white/20 border border-white/30 text-white shrink-0">
+                      <span className="text-[10px] font-display font-bold px-2 py-0.5 rounded-md bg-blue-950/80 border border-blue-500/50 text-blue-300 shrink-0 shadow-[0_0_10px_rgba(59,130,246,0.3)]">
                         HOST
                       </span>
                     )}
@@ -322,7 +370,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                 variant="secondary"
                 tabIndex={0}
                 onClick={onExit}
-                className="px-6 h-15 rounded-2xl text-sm font-display font-bold uppercase tracking-wider text-white/70 hover:text-white transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-white focus:bg-white/20 focus:scale-[1.03] shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                className="px-6 h-15 rounded-2xl text-sm font-display font-bold uppercase tracking-wider bg-white/[0.05] hover:bg-white/[0.1] border border-white/15 text-white/80 hover:text-white transition-all duration-300 focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_30px_rgba(255,255,255,0.35),inset_0_0_15px_rgba(255,255,255,0.2)]"
               >
                 В меню
               </Button>
@@ -339,13 +387,13 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
               disabled={!canStart}
               className={`flex-1 h-15 rounded-2xl font-display font-black uppercase tracking-wider text-xl transition-all duration-300 cursor-pointer ${
                 canStart
-                  ? 'bg-red-600 hover:bg-red-500 text-white shadow-[0_0_30px_rgba(239,68,68,0.4)]'
-                  : 'bg-white/5 border border-white/10 text-white/30 cursor-not-allowed'
-              } focus:outline-none focus:ring-4 focus:ring-white focus:scale-[1.03] shadow-[0_0_30px_rgba(255,255,255,0.4)]`}
+                  ? 'bg-gradient-to-r from-red-700 via-rose-700 to-red-800 hover:from-red-600 hover:via-rose-600 hover:to-red-700 border border-rose-400/40 text-white shadow-[0_10px_35px_rgba(225,29,72,0.45),inset_0_1px_2px_rgba(255,255,255,0.4)]'
+                  : 'bg-white/[0.03] border border-white/10 text-white/30 cursor-not-allowed'
+              } focus:outline-none focus:scale-105 focus:border-white focus:shadow-[0_0_55px_rgba(244,63,94,0.7),inset_0_0_20px_rgba(255,255,255,0.35)] active:scale-95`}
             >
               <div className="flex items-center justify-center gap-3">
-                <span>НАЧАТЬ МАТЧ</span>
-                <span className="text-xs font-sans font-medium px-2.5 py-0.5 rounded-lg bg-black/40 border border-white/20 text-white/80">
+                <span className="drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">НАЧАТЬ МАТЧ</span>
+                <span className="text-xs font-sans font-semibold px-2.5 py-0.5 rounded-lg bg-black/40 border border-white/20 text-white/90 shadow-inner">
                   [ENTER]
                 </span>
               </div>

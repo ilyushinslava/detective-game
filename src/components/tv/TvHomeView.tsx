@@ -62,12 +62,7 @@ export const TvHomeView: React.FC<TvHomeViewProps> = ({ onCreateRoom }) => {
             onClick={handleCreate}
             className="w-full py-5 px-8 rounded-2xl bg-gradient-to-r from-red-700 via-rose-700 to-red-800 hover:from-red-600 hover:via-rose-600 hover:to-red-700 border border-rose-400/40 text-white font-display font-black text-xl lg:text-2xl uppercase tracking-wider transition-all duration-300 cursor-pointer shadow-[0_12px_35px_rgba(225,29,72,0.4),inset_0_1px_1px_rgba(255,255,255,0.4)] active:scale-95 focus:outline-none focus:scale-105 focus:border-white focus:bg-gradient-to-r focus:from-red-600 focus:via-rose-500 focus:to-red-600 focus:shadow-[0_0_50px_rgba(244,63,94,0.65),inset_0_0_25px_rgba(255,255,255,0.35)]"
           >
-            <div className="flex items-center justify-center gap-3">
-              <span className="drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">СОЗДАТЬ КОМНАТУ</span>
-              <span className="px-3 py-0.5 rounded-lg bg-black/40 border border-white/20 text-sm font-sans font-semibold text-white/90 shadow-inner">
-                [ENTER]
-              </span>
-            </div>
+            <span className="drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">СОЗДАТЬ КОМНАТУ</span>
           </button>
         </div>
       </div>

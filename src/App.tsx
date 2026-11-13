@@ -248,6 +248,31 @@ export default function App() {
       if (e.code === "Backquote" || e.key === "`") {
         setIsDevPanelOpen((prev) => !prev);
       }
+
+      // Отладочный шорткат для дизайна/тестирования TV_BOARD по нажатию 'B' на клавиатуре
+      if (e.key === "b" || e.key === "B" || e.code === "KeyB") {
+        const target = e.target as HTMLElement | null;
+        if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+          return;
+        }
+        e.preventDefault();
+        const mockTvState = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "KILLER", 5, 5, 25, "Сыщик");
+        mockTvState.currentTurn = "KILLER";
+        mockTvState.killCount = 1;
+        if (mockTvState.board?.[1]?.[1]) {
+          mockTvState.victimList = [mockTvState.board[1][1].id];
+        }
+        if (mockTvState.board?.[2]?.[2]) {
+          mockTvState.uniformedOfficers = [mockTvState.board[2][2].id];
+        }
+        mockTvState.log = [
+          "Партия TV Party инициализирована [DEBUG]",
+          "Служба безопасности патрулирует улицы",
+          "Обнаружен след подозреваемого в секторе B-3",
+        ];
+        setGameState(mockTvState);
+        setTvPartyState("TV_BOARD");
+      }
     };
     const handleUserInteraction = () => {
       soundManager.unlockAudioContext();

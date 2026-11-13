@@ -22,6 +22,8 @@ import { PassAndPlayModal } from "./components/controller/PassAndPlayModal";
 import { Button } from "./components/ui/Button";
 import type { ShiftPayload } from "./types/game";
 import { gameReducer } from "./utils/gameReducer";
+import { BannerViewerProvider } from "./contexts/BannerViewerContext";
+import { useRulesModal } from "./hooks/useRulesModal";
 
 // Асинхронные динамические чанки второстепенных экранов (TASK-ARCH-001)
 const DuelScreen = lazy(() => import("./components/duel/DuelScreen").then((m) => ({ default: m.DuelScreen })));
@@ -268,7 +270,7 @@ export default function App() {
 
   const [isPauseOpen, setIsPauseOpen] = useState(false);
   const [isDevPanelOpen, setIsDevPanelOpen] = useState(false);
-  const [isRulesOpen, setIsRulesOpen] = useState(false);
+  const { isRulesOpen, openRules, closeRules } = useRulesModal();
   const [isHandSheetOpen, setIsHandSheetOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isChoiceSheetMinimized, setIsChoiceSheetMinimized] = useState(false);
@@ -543,8 +545,9 @@ export default function App() {
       : "blue";
 
   return (
-    <div className="fixed inset-0 w-full h-full flex flex-col bg-[#07080c] overflow-hidden select-none">
-      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+    <BannerViewerProvider>
+      <div className="fixed inset-0 w-full h-full flex flex-col bg-[#07080c] overflow-hidden select-none">
+        {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
 
       <GameModalsContainer
         isQuestionCatalogOpen={isQuestionCatalogOpen}
@@ -585,10 +588,10 @@ export default function App() {
         isPauseOpen={isPauseOpen}
         onClosePause={() => setIsPauseOpen(false)}
         onResumeGame={() => setIsPauseOpen(false)}
-        onOpenRules={() => setIsRulesOpen(true)}
+        onOpenRules={() => openRules()}
         onOpenDevPanel={() => setIsDevPanelOpen(true)}
         isRulesOpen={isRulesOpen}
-        onCloseRules={() => setIsRulesOpen(false)}
+        onCloseRules={closeRules}
         isSfxEnabled={isSfxEnabled}
         isAmbientEnabled={isAmbientEnabled}
         isHapticsEnabled={isHapticsEnabled}
@@ -718,7 +721,7 @@ export default function App() {
               onStartGame={handleStartNewGame}
               hasActiveGame={Boolean(!gameState.winner && hasStartedEver && gameState.board?.length >= 5 && gameState.log?.length > 2)}
               onResumeGame={handleResumeGame}
-              onOpenRules={() => setIsRulesOpen(true)}
+              onOpenRules={() => openRules()}
               onOpenDevPanel={() => setIsDevPanelOpen(true)}
             />
           </div>
@@ -1004,5 +1007,6 @@ export default function App() {
         </div>
       )}
     </div>
+  </BannerViewerProvider>
   );
 }

@@ -9,7 +9,9 @@ import { Toast } from "./Toast";
 import { BiometricSlider } from "./BiometricSlider";
 import { Button } from "./ui/Button";
 import { Modal } from "./ui/Modal";
-import { GAME_MODES_META, getGameModeTitle, getGameModeShortTitle } from "../constants/gameMeta";
+import { Icons } from "./ui/Icons";
+import { useBannerViewer } from "../contexts/BannerViewerContext";
+import { GAME_MODES_META, getGameModesList, getGameModeTitle, getGameModeShortTitle } from "../constants/gameMeta";
 import lobbyBg from "../assets/lobby_background.webp";
 
 const MODE_BANNER_IMAGE: Record<GameModeType, string> = {
@@ -17,44 +19,6 @@ const MODE_BANNER_IMAGE: Record<GameModeType, string> = {
   THIEF_HUNT: "/assets/modes/thief-banner.webp",
   SECRET_SERVICE: "/assets/modes/secret-service-banner.webp",
   LINE_UP: "/assets/modes/lineup-banner.webp",
-};
-
-const getTargetRect = () => {
-  const vw = typeof window !== "undefined" ? window.innerWidth : 800;
-  const vh = typeof window !== "undefined" ? window.innerHeight : 600;
-  const targetW = Math.min(672, Math.max(280, vw - 32));
-  const isWide = vw >= 640;
-  const targetH = isWide ? targetW / 2 : (targetW * 9) / 16;
-  const targetL = Math.max(16, (vw - targetW) / 2);
-  const targetT = Math.max(16, (vh - targetH) / 2);
-  return { targetT, targetL, targetW, targetH };
-};
-
-const bannerCardVariants = {
-  closed: (rect: { top: number; left: number; width: number; height: number } | null) => {
-    const { targetT, targetL, targetW, targetH } = getTargetRect();
-    return {
-      top: rect ? rect.top : targetT,
-      left: rect ? rect.left : targetL,
-      width: rect ? rect.width : targetW,
-      height: rect ? rect.height : targetH,
-      borderRadius: 16,
-      opacity: 0,
-      scale: rect ? 0.98 : 0.9,
-    };
-  },
-  open: () => {
-    const { targetT, targetL, targetW, targetH } = getTargetRect();
-    return {
-      top: targetT,
-      left: targetL,
-      width: targetW,
-      height: targetH,
-      borderRadius: 24,
-      opacity: 1,
-      scale: 1,
-    };
-  },
 };
 
 import { TablesScreen } from "./TablesScreen";
@@ -88,208 +52,17 @@ const TutorialFullscreenFallback = () => (
 declare const __BUILD_TIMESTAMP__: string;
 import { useTranslation } from "../i18n/context";
 
-const Icons = {
-  CardsDeck: ({ className = "w-6 h-6 text-zinc-300" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
-      <rect x="5" y="2" width="14" height="18" rx="2" />
-      <line x1="9" y1="2" x2="9" y2="20" opacity="0.3" />
-      <line x1="15" y1="2" x2="15" y2="20" opacity="0.3" />
-      <rect x="3" y="5" width="2" height="12" rx="0.5" opacity="0.5" />
-      <rect x="19" y="5" width="2" height="12" rx="0.5" opacity="0.5" />
-    </svg>
-  ),
-  EvidenceCards: ({ className = "w-6 h-6 text-zinc-400" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-      <line x1="9" y1="7" x2="15" y2="7" />
-      <line x1="9" y1="11" x2="13" y2="11" />
-    </svg>
-  ),
-  TokensGroup: ({ className = "w-6 h-6 text-zinc-400" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-      <circle cx="9" cy="9" r="6" />
-      <circle cx="15" cy="15" r="6" />
-      <path d="M9 7v4M7 9h4" opacity="0.6" />
-    </svg>
-  ),
-  Coin: ({ className = "w-4 h-4 text-amber-400" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={className}>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
-    </svg>
-  ),
-  Play: () => <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M8 5v14l11-7z"/></svg>,
-  Users: ({ className = "w-4 h-4 text-zinc-300" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-      <circle cx="9" cy="7" r="4"></circle>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-    </svg>
-  ),
-  Grid: ({ className = "w-5 h-5 text-zinc-300" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-    </svg>
-  ),
-  Target: ({ className = "w-5 h-5 text-zinc-300" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-      <circle cx="12" cy="12" r="10" />
-      <circle cx="12" cy="12" r="6" />
-      <circle cx="12" cy="12" r="2" />
-    </svg>
-  ),
-  Coins: ({ className = "w-5 h-5 text-amber-400" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-      <circle cx="9" cy="9" r="7" />
-      <path d="M16.5 10.5a7 7 0 1 1-6 9.5" />
-      <path d="M9 7v4M7 9h4" opacity="0.6" />
-    </svg>
-  ),
-  FileText: ({ className = "w-5 h-5 text-zinc-300" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <polyline points="14 2 14 8 20 8" />
-      <line x1="16" y1="13" x2="8" y2="13" />
-      <line x1="16" y1="17" x2="8" y2="17" />
-      <polyline points="10 9 9 9 8 9" />
-    </svg>
-  ),
-  EyeOff: ({ className = "w-5 h-5 text-zinc-300" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-      <line x1="1" y1="1" x2="23" y2="23" />
-    </svg>
-  ),
-  HelpCircle: ({ className = "w-5 h-5 text-zinc-300" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-      <line x1="12" y1="17" x2="12.01" y2="17" />
-    </svg>
-  ),
-  Scale: ({ className = "w-5 h-5 text-zinc-300" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
-      <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
-      <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
-      <path d="M7 21h10" />
-      <path d="M12 3v18" />
-      <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
-    </svg>
-  ),
-  Clock: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
-  Shield: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>,
-  ArrowRight: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>,
-  ChevronRight: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M9 18l6-6-6-6"/></svg>,
-  ChevronLeft: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-6 h-6"><path d="M15 18l-6-6 6-6"/></svg>,
-  Settings: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>,
-  Home: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
-  Cards: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>,
-  User: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
-  Crosshair: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>,
-  Radar: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-16 h-16"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle><line x1="12" y1="2" x2="12" y2="12"></line></svg>,
-  Key: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><circle cx="8" cy="15" r="4"></circle><line x1="10.85" y1="12.15" x2="19" y2="4"></line><line x1="18" y1="5" x2="20" y2="7"></line><line x1="15" y1="8" x2="17" y2="10"></line></svg>,
-  DetectiveHat: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-12 h-12 text-zinc-400"><path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6"></path></svg>,
-  Fingerprint: ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
-      <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" />
-      <path d="M14 13.12c0 2.38 0 6.38-1 8.88" />
-      <path d="M2 12a10 10 0 0 1 18-6" />
-      <path d="M21.8 16c.2-2 .131-5.354 0-6" />
-      <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2" />
-      <path d="M9 6.8a6 6 0 0 1 9 5.2v2" />
-      <circle cx="12" cy="12" r="1" fill="currentColor" />
-    </svg>
-  ),
-  ShieldLock: ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      <rect x="9" y="11" width="6" height="5" rx="1" />
-      <path d="M10 11V9a2 2 0 1 1 4 0v2" />
-    </svg>
-  ),
-  RadioRadar: ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
-      <circle cx="12" cy="12" r="2" />
-      <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
-    </svg>
-  ),
-  Search: ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      <path d="M11 8v6M8 11h6" opacity="0.4" />
-    </svg>
-  ),
-  Share: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-      <circle cx="18" cy="5" r="3" />
-      <circle cx="6" cy="12" r="3" />
-      <circle cx="18" cy="19" r="3" />
-      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-    </svg>
-  ),
+const MODE_ICONS: Record<GameModeType, React.ComponentType<{ className?: string }>> = {
+  MANIAC_VS_OPERATIVE: Icons.Fingerprint,
+  THIEF_HUNT: Icons.ShieldLock,
+  SECRET_SERVICE: Icons.RadioRadar,
+  LINE_UP: Icons.Search,
 };
 
-const GAME_MODES = [
-  {
-    id: "MANIAC_VS_OPERATIVE" as GameModeType,
-    title: GAME_MODES_META.MANIAC_VS_OPERATIVE.title.ru,
-    players: GAME_MODES_META.MANIAC_VS_OPERATIVE.players?.ru || "2 игрока",
-    time: GAME_MODES_META.MANIAC_VS_OPERATIVE.time?.ru || "20 мин",
-    difficulty: GAME_MODES_META.MANIAC_VS_OPERATIVE.difficulty?.ru || "Средняя",
-    description: GAME_MODES_META.MANIAC_VS_OPERATIVE.description?.ru || "Смертельная дуэль сыщика и маньяка. Вычислите логово по радиусу преступлений.",
-    tags: GAME_MODES_META.MANIAC_VS_OPERATIVE.tags?.ru || ["2 ИГРОКА", "АСИММЕТРИЯ", "МАНЬЯК VS СЫЩИК"],
-    icon: Icons.Fingerprint,
-    isAvailable: true,
-    killerRoleName: GAME_MODES_META.MANIAC_VS_OPERATIVE.killerRoleName?.ru || "Маньяк",
-    detectiveRoleName: GAME_MODES_META.MANIAC_VS_OPERATIVE.detectiveRoleName?.ru || "Оперативник",
-  },
-  {
-    id: "THIEF_HUNT" as GameModeType,
-    title: GAME_MODES_META.THIEF_HUNT.title.ru,
-    players: GAME_MODES_META.THIEF_HUNT.players?.ru || "2 игрока",
-    time: GAME_MODES_META.THIEF_HUNT.time?.ru || "25 мин",
-    difficulty: GAME_MODES_META.THIEF_HUNT.difficulty?.ru || "Высокая",
-    description: GAME_MODES_META.THIEF_HUNT.description?.ru || "Ловите дерзкого вора в кварталах города, пока полиция стягивает патрули.",
-    tags: GAME_MODES_META.THIEF_HUNT.tags?.ru || ["2 ИГРОКА", "ПЕРЕХВАТ", "СМЕНА МАСОК"],
-    icon: Icons.ShieldLock,
-    isAvailable: true,
-    killerRoleName: GAME_MODES_META.THIEF_HUNT.killerRoleName?.ru || "Грабитель",
-    detectiveRoleName: GAME_MODES_META.THIEF_HUNT.detectiveRoleName?.ru || "Полиция",
-  },
-  {
-    id: "SECRET_SERVICE" as GameModeType,
-    title: GAME_MODES_META.SECRET_SERVICE.title.ru,
-    players: GAME_MODES_META.SECRET_SERVICE.players?.ru || "2-4 игрока",
-    time: GAME_MODES_META.SECRET_SERVICE.time?.ru || "30 мин",
-    difficulty: GAME_MODES_META.SECRET_SERVICE.difficulty?.ru || "Средняя",
-    description: GAME_MODES_META.SECRET_SERVICE.description?.ru || "Битва спецслужб на улицах мегаполиса. Опрашивайте связных и вскрывайте резидентов.",
-    tags: GAME_MODES_META.SECRET_SERVICE.tags?.ru || ["2–4 ИГРОКА", "КОНТРРАЗВЕДКА", "БЛЕФ"],
-    icon: Icons.RadioRadar,
-    isAvailable: true,
-    killerRoleName: GAME_MODES_META.SECRET_SERVICE.killerRoleName?.ru || "Агент 1",
-    detectiveRoleName: GAME_MODES_META.SECRET_SERVICE.detectiveRoleName?.ru || "Агент 2",
-  },
-  {
-    id: "LINE_UP" as GameModeType,
-    title: GAME_MODES_META.LINE_UP.title.ru,
-    players: GAME_MODES_META.LINE_UP.players?.ru || "2 игрока",
-    time: GAME_MODES_META.LINE_UP.time?.ru || "8 мин",
-    difficulty: GAME_MODES_META.LINE_UP.difficulty?.ru || "Средняя",
-    description: GAME_MODES_META.LINE_UP.description?.ru || "Классическая детективная дуэль. Задавайте вопросы по каталогу и найдите соперника.",
-    tags: GAME_MODES_META.LINE_UP.tags?.ru || ["2 ИГРОКА", "ДЕДУКЦИЯ", "БЕЗ СЛУЧАЙНОСТЕЙ"],
-    icon: Icons.Search,
-    isAvailable: true,
-    killerRoleName: GAME_MODES_META.LINE_UP.killerRoleName?.ru || "Подозреваемый",
-    detectiveRoleName: GAME_MODES_META.LINE_UP.detectiveRoleName?.ru || "Следователь",
-  },
-];
+const GAME_MODES = getGameModesList().map((mode) => ({
+  ...mode,
+  icon: MODE_ICONS[mode.id],
+}));
 
 const ROOM_FILTERS = [
   { id: "ALL", label: "Все" },
@@ -353,38 +126,7 @@ export const MainMenu = ({
   const [selectedRole, setSelectedRole] = useState<Role>("DETECTIVE");
   const [isTvPartyModalOpen, setIsTvPartyModalOpen] = useState(false);
   const [playerCount, setPlayerCount] = useState<number>(3);
-  const [bannerViewer, setBannerViewer] = useState<{
-    isOpen: boolean;
-    url: string;
-    title: string;
-    rect: { top: number; left: number; width: number; height: number } | null;
-  }>({
-    isOpen: false,
-    url: "",
-    title: "",
-    rect: null,
-  });
-
-  const handleOpenBanner = (e: React.MouseEvent<HTMLElement>, url: string, title: string) => {
-    triggerHaptic("light");
-    const rect = e.currentTarget.getBoundingClientRect();
-    setBannerViewer({
-      isOpen: true,
-      url,
-      title,
-      rect: {
-        top: rect.top,
-        left: rect.left,
-        width: rect.width,
-        height: rect.height,
-      },
-    });
-  };
-
-  const handleCloseBanner = () => {
-    triggerHaptic("light");
-    setBannerViewer((prev) => ({ ...prev, isOpen: false }));
-  };
+  const { openBanner: handleOpenBanner } = useBannerViewer();
 
   const [publicRooms, setPublicRooms] = useState<Array<{
     roomCode: string;
@@ -1717,62 +1459,6 @@ export const MainMenu = ({
           </Modal>
         )}
 
-        <AnimatePresence>
-          {bannerViewer.isOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
-              className="fixed inset-0 z-[110] bg-black/70 backdrop-blur-md cursor-pointer"
-              onClick={handleCloseBanner}
-            />
-          )}
-        </AnimatePresence>
-
-        <div
-          className="fixed inset-0 z-[120] select-none pointer-events-none"
-          aria-hidden={!bannerViewer.isOpen}
-        >
-          <button
-            type="button"
-            onClick={handleCloseBanner}
-            className={`absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-20 ${
-              bannerViewer.isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
-            }`}
-            title="Закрыть"
-          >
-            ✕
-          </button>
-          <motion.div
-            custom={bannerViewer.rect}
-            variants={bannerCardVariants}
-            initial="closed"
-            animate={bannerViewer.isOpen ? "open" : "closed"}
-            transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
-            onClick={handleCloseBanner}
-            className={`fixed overflow-hidden border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-zinc-950 ${
-              bannerViewer.isOpen ? "pointer-events-auto cursor-pointer" : "pointer-events-none"
-            }`}
-          >
-            {bannerViewer.url && (
-              <img
-                src={bannerViewer.url}
-                alt={bannerViewer.title}
-                className="w-full h-full object-cover contrast-110 pointer-events-none"
-              />
-            )}
-            <div
-              className={`absolute bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent p-6 pt-16 flex flex-col items-center text-center pointer-events-none transition-opacity duration-200 ${
-                bannerViewer.isOpen ? "opacity-100 delay-100" : "opacity-0"
-              }`}
-            >
-              <h2 className="text-2xl sm:text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">
-                {bannerViewer.title}
-              </h2>
-            </div>
-          </motion.div>
-        </div>
       </div>
     </div>
   );

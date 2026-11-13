@@ -185,3 +185,44 @@ export function getGameModeDescription(mode: GameModeType | string, lang: 'ru' |
   }
   return '';
 }
+
+export interface GameModeCardData {
+  id: GameModeType;
+  title: string;
+  shortTitle: string;
+  players: string;
+  time: string;
+  difficulty: string;
+  description: string;
+  tags: string[];
+  isAvailable: boolean;
+  killerRoleName: string;
+  detectiveRoleName: string;
+  banner?: GameModeMeta['banner'];
+}
+
+export function getGameModesList(lang: 'ru' | 'en' = 'ru'): GameModeCardData[] {
+  const modes: GameModeType[] = [
+    'MANIAC_VS_OPERATIVE',
+    'THIEF_HUNT',
+    'SECRET_SERVICE',
+    'LINE_UP',
+  ];
+  return modes.map((id) => {
+    const meta = GAME_MODES_META[id];
+    return {
+      id,
+      title: meta.title[lang] || meta.title.ru,
+      shortTitle: meta.shortTitle[lang] || meta.shortTitle.ru,
+      players: meta.players?.[lang] || meta.players?.ru || '2 игрока',
+      time: meta.time?.[lang] || meta.time?.ru || '20 мин',
+      difficulty: meta.difficulty?.[lang] || meta.difficulty?.ru || 'Средняя',
+      description: meta.description?.[lang] || meta.description?.ru || '',
+      tags: meta.tags?.[lang] || meta.tags?.ru || [],
+      isAvailable: true,
+      killerRoleName: meta.killerRoleName?.[lang] || meta.killerRoleName?.ru || '',
+      detectiveRoleName: meta.detectiveRoleName?.[lang] || meta.detectiveRoleName?.ru || '',
+      banner: meta.banner,
+    };
+  });
+}

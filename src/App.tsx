@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo, lazy, Suspense } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Capacitor } from "@capacitor/core";
 import { SplashScreen } from './components/SplashScreen';
 import { type GameModeType, type OpponentType, type Role, type GameState } from "./types/game";
@@ -15,6 +16,7 @@ import { useMatchEndHandler } from "./hooks/useMatchEndHandler";
 import { useAiTurn } from "./hooks/useAiTurn";
 import { useGameActions } from "./hooks/useGameActions";
 import { useBoardVisuals } from "./hooks/useBoardVisuals";
+import { useIdleTimer } from "./hooks/useIdleTimer";
 import { createInitialState } from "./utils/gameLogic";
 import { soundManager } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
@@ -26,6 +28,7 @@ import { BannerViewerProvider } from "./contexts/BannerViewerContext";
 import { useRulesModal } from "./hooks/useRulesModal";
 import { characterImages } from "./constants/characterImages";
 import { DEFAULT_BET } from "./constants/gameRules";
+import { TvScreensaver } from "./components/tv/TvScreensaver";
 
 // Асинхронные динамические чанки второстепенных экранов (TASK-ARCH-001)
 const DuelScreen = lazy(() => import("./components/duel/DuelScreen").then((m) => ({ default: m.DuelScreen })));
@@ -118,6 +121,12 @@ export default function App() {
   const [isTvPassAndPlay, setIsTvPassAndPlay] = useState<boolean>(false);
   const [isPassAndPlayOpen, setIsPassAndPlayOpen] = useState(false);
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
+
+  // Защита OLED-экранов от выгорания (таймер простоя 5 минут)
+  const { isIdle: isOledIdle, resetTimer: resetOledTimer } = useIdleTimer({
+    timeoutMs: 300000,
+    enabled: isAndroidTv || tvPartyState !== "NONE",
+  });
 
   useEffect(() => {
         sessionStorage.removeItem("mp_session");
@@ -983,94 +992,118 @@ export default function App() {
         );
       })()}
 
-      {/* РЕЖИМ TV PARTY: Стартовый экран ТВ (TV_HOME) */}
-      {tvPartyState === "TV_HOME" && (
-        <div className="fixed inset-0 z-50 bg-[#07080c]">
-          <Suspense fallback={<ScreenFallback />}>
-            <TvHomeView
-              onCreateRoom={() => {
-                const code = Math.floor(10000 + Math.random() * 90000).toString();
-                setTvRoomCode(code);
-                if (typeof window !== "undefined") {
-                  sessionStorage.setItem("tv_party_room", code);
-                }
-                setTvPartyState("TV_LOBBY");
-              }}
-            />
-          </Suspense>
-        </div>
-      )}
+      {/* РЕЖИМ TV PARTY: Кинематографичный роутинг с переходом через черный (Fade-Through-Black) */}
+      <AnimatePresence mode="wait">
+        {tvPartyState === "TV_HOME" && (
+          <motion.div
+            key="tv-home"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.7, ease: "easeInOut" }}
+            className="fixed inset-0 z-50 bg-[#07080c]"
+          >
+            <Suspense fallback={<ScreenFallback />}>
+              <TvHomeView
+                onCreateRoom={() => {
+                  const code = Math.floor(10000 + Math.random() * 90000).toString();
+                  setTvRoomCode(code);
+                  if (typeof window !== "undefined") {
+                    sessionStorage.setItem("tv_party_room", code);
+                  }
+                  setTvPartyState("TV_LOBBY");
+                }}
+              />
+            </Suspense>
+          </motion.div>
+        )}
 
-      {/* РЕЖИМ TV PARTY: Лобби ожидания подключения */}
-      {tvPartyState === "TV_LOBBY" && (
-        <div className="fixed inset-0 z-50 bg-[#07080c]">
-          <Suspense fallback={<ScreenFallback />}>
-            <TvLobbyView
-              roomCode={tvRoomCode}
-              morseCode={tvMorseCode}
-              players={tvPlayers}
-              connectedPlayers={tvPlayers}
-              hideExit={isAndroidTv}
-              onStartGame={(mode, passAndPlay) => {
-                setIsTvPassAndPlay(passAndPlay);
-                partyService.sendAction({
-                  type: "START_MATCH",
-                  senderId: "TV_HOST",
-                  payload: { mode, isPassAndPlay: passAndPlay },
-                } as any);
+        {tvPartyState === "TV_LOBBY" && (
+          <motion.div
+            key="tv-lobby"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.7, ease: "easeInOut" }}
+            className="fixed inset-0 z-50 bg-[#07080c]"
+          >
+            <Suspense fallback={<ScreenFallback />}>
+              <TvLobbyView
+                roomCode={tvRoomCode}
+                morseCode={tvMorseCode}
+                players={tvPlayers}
+                connectedPlayers={tvPlayers}
+                hideExit={isAndroidTv}
+                onStartGame={(mode, passAndPlay) => {
+                  setIsTvPassAndPlay(passAndPlay);
+                  partyService.sendAction({
+                    type: "START_MATCH",
+                    senderId: "TV_HOST",
+                    payload: { mode, isPassAndPlay: passAndPlay },
+                  } as any);
 
-                const playerKeys = Object.keys(tvPlayers);
-                const p2Name = playerKeys[1] ? tvPlayers[playerKeys[1]].nickname : "Player 2";
-                setGameState(createInitialState(
-                  mode,
-                  "ONLINE",
-                  "KILLER",
-                  Math.max(2, playerKeys.length),
-                  mode === "SECRET_SERVICE" ? 2 : 3,
-                  16,
-                  p2Name
-                ));
-                setTvPartyState("TV_BOARD");
-              }}
-              onExit={() => {
-                partyService.disconnect();
-                if (isAndroidTv) {
-                  setTvPartyState("TV_HOME");
-                  return;
-                }
-                setTvPartyState("NONE");
-                setIsLobbyOpen(true);
-              }}
-            />
-          </Suspense>
-        </div>
-      )}
+                  const playerKeys = Object.keys(tvPlayers);
+                  const p2Name = playerKeys[1] ? tvPlayers[playerKeys[1]].nickname : "Player 2";
+                  setGameState(createInitialState(
+                    mode,
+                    "ONLINE",
+                    "KILLER",
+                    Math.max(2, playerKeys.length),
+                    mode === "SECRET_SERVICE" ? 2 : 3,
+                    16,
+                    p2Name
+                  ));
+                  setTvPartyState("TV_BOARD");
+                }}
+                onExit={() => {
+                  partyService.disconnect();
+                  if (isAndroidTv) {
+                    setTvPartyState("TV_HOME");
+                    return;
+                  }
+                  setTvPartyState("NONE");
+                  setIsLobbyOpen(true);
+                }}
+              />
+            </Suspense>
+          </motion.div>
+        )}
 
-      {/* РЕЖИМ TV PARTY: Главный экран телевизора */}
-      {tvPartyState === "TV_BOARD" && (
-        <div className="fixed inset-0 z-50 bg-[#07080c]">
-          <Suspense fallback={<ScreenFallback />}>
-            <TvBoardView
-              gameState={gameState}
-              secondsLeft={60}
-              selectedLine={tvLinePreview}
-              hideExit={false}
-              onExit={() => {
-                partyService.disconnect();
-                if (isAndroidTv) {
-                  setTvPartyState("TV_HOME");
-                  return;
-                }
-                setTvPartyState("NONE");
-                setIsLobbyOpen(true);
-              }}
-              onRestart={() => {
-                partyService.sendAction({ type: "RESTART_GAME" });
-              }}
-            />
-          </Suspense>
-        </div>
-      )}
+        {tvPartyState === "TV_BOARD" && (
+          <motion.div
+            key="tv-board"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.7, ease: "easeInOut" }}
+            className="fixed inset-0 z-50 bg-[#07080c]"
+          >
+            <Suspense fallback={<ScreenFallback />}>
+              <TvBoardView
+                gameState={gameState}
+                secondsLeft={60}
+                selectedLine={tvLinePreview}
+                hideExit={false}
+                onExit={() => {
+                  partyService.disconnect();
+                  if (isAndroidTv) {
+                    setTvPartyState("TV_HOME");
+                    return;
+                  }
+                  setTvPartyState("NONE");
+                  setIsLobbyOpen(true);
+                }}
+                onRestart={() => {
+                  partyService.sendAction({ type: "RESTART_GAME" });
+                }}
+              />
+            </Suspense>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Защита OLED-экранов от выгорания */}
+      <TvScreensaver isIdle={isOledIdle} onDismiss={resetOledTimer} />
     </div>
   </BannerViewerProvider>
   );

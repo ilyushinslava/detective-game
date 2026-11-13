@@ -3,6 +3,7 @@ import type { GameModeType, OpponentType, Role } from "../types/game";
 import type { UserProfile } from "../types/profile";
 import { partyService } from "../utils/partyPeer";
 import { triggerHaptic } from "../utils/haptics";
+import { DEFAULT_BET } from "../constants/gameRules";
 
 export interface PublicRoomInfo {
   roomCode: string;
@@ -35,7 +36,7 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
   const [roomFilter, setRoomFilter] = useState<string>("ALL");
   const [isCreateRoomOpen, setIsCreateRoomOpen] = useState(false);
   const [createRoomMode, setCreateRoomMode] = useState<GameModeType>("MANIAC_VS_OPERATIVE");
-  const [createRoomBet] = useState<number>(250);
+  const [createRoomBet] = useState<number>(DEFAULT_BET);
   const [createRoomIsPrivate, setCreateRoomIsPrivate] = useState<boolean>(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
@@ -84,7 +85,7 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
     code: string,
     mode: GameModeType,
     isHost: boolean,
-    _bet: number = 250,
+    _bet: number = DEFAULT_BET,
     isPrivate: boolean = false
   ) => {
     const cleanCode = String(code).trim();
@@ -116,7 +117,7 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
         mode: "MANIAC_VS_OPERATIVE",
         nickname: profile.nickname || "Агент",
         rank: profile.rank || "СТАЖЁР",
-        bet: 250,
+        bet: DEFAULT_BET,
       },
       (event) => {
         if (event.type === "MATCH_FOUND") {
@@ -132,10 +133,10 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
               2,
               3,
               16,
-              bet || 250
+              bet || DEFAULT_BET
             );
           } else {
-            connectToPartyRoom(roomCode, mode || "MANIAC_VS_OPERATIVE", isHost, bet || 250, false);
+            connectToPartyRoom(roomCode, mode || "MANIAC_VS_OPERATIVE", isHost, bet || DEFAULT_BET, false);
           }
         } else if (event.type === "ERROR" || event.type === "QUEUE_LEFT") {
           setIsCreating(false);

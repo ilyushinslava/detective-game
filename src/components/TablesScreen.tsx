@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { Button } from './ui/Button';
 import { getGameModeTitle } from '../constants/gameMeta';
-import { ControllerConnectView } from './controller/ControllerConnectView';
+import { DEFAULT_BET } from '../constants/gameRules';
+
+const ControllerConnectView = lazy(() =>
+  import('./controller/ControllerConnectView').then((m) => ({ default: m.ControllerConnectView }))
+);
 
 const Icons = {
   Coin: ({ className = "w-3.5 h-3.5 text-amber-400" }: { className?: string }) => (
@@ -242,7 +246,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
                 <div className="flex items-center justify-between pt-3 border-t border-white/5">
                   <div className="flex items-center gap-1.5 bg-black/50 px-3 py-1 rounded-full border border-white/10 text-amber-400">
                     <Icons.Coin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <span className="text-xs font-mono font-bold text-amber-400">{room.bet || 250}</span>
+                    <span className="text-xs font-mono font-bold text-amber-400">{room.bet || DEFAULT_BET}</span>
                   </div>
 
                   {isPrivateRoom ? (
@@ -291,20 +295,26 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
       {/* Оверлей ввода 7-значного шифра Морзе (пароль к выбранной приватной комнате) */}
       {isMorseOpen && (
         <div className="fixed inset-0 z-50 bg-[#07080c] flex flex-col">
-          <ControllerConnectView
-            targetRoomCode={selectedPrivateRoom?.roomCode}
-            targetHostName={selectedPrivateRoom?.hostName}
-            targetExpectedMorse={selectedPrivateRoom?.morseCode}
-            onConnect={(roomCode) => {
-              setIsMorseOpen(false);
-              setSelectedPrivateRoom(null);
-              handleJoinRoom(roomCode);
-            }}
-            onBackToMenu={() => {
-              setIsMorseOpen(false);
-              setSelectedPrivateRoom(null);
-            }}
-          />
+          <Suspense fallback={
+            <div className="flex-1 flex items-center justify-center text-zinc-500 font-mono text-xs">
+              Загрузка терминала связи...
+            </div>
+          }>
+            <ControllerConnectView
+              targetRoomCode={selectedPrivateRoom?.roomCode}
+              targetHostName={selectedPrivateRoom?.hostName}
+              targetExpectedMorse={selectedPrivateRoom?.morseCode}
+              onConnect={(roomCode) => {
+                setIsMorseOpen(false);
+                setSelectedPrivateRoom(null);
+                handleJoinRoom(roomCode);
+              }}
+              onBackToMenu={() => {
+                setIsMorseOpen(false);
+                setSelectedPrivateRoom(null);
+              }}
+            />
+          </Suspense>
         </div>
       )}
     </div>

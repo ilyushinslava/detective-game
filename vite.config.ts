@@ -47,9 +47,25 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ["react", "react-dom"],
-          motion: ["framer-motion"],
+        manualChunks: (id) => {
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'vendor';
+          }
+          if (id.includes('node_modules/framer-motion')) {
+            return 'motion';
+          }
+          if (id.includes('src/components/ui/Icons') || id.includes('src/components/ui/ActionIcons')) {
+            return 'icons';
+          }
+          if (id.includes('src/components/CharacterCard') || id.includes('src/constants/characterImages')) {
+            return 'game-core';
+          }
+          if (id.includes('src/components/tv/TvBoardView') || id.includes('src/components/tv/TvLobbyView')) {
+            return 'tv-party';
+          }
+          if (id.includes('src/components/controller/MobileControllerView') || id.includes('src/components/controller/ControllerConnectView')) {
+            return 'controller';
+          }
         },
       },
     },

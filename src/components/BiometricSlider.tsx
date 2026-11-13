@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { triggerHaptic } from "../utils/haptics";
+import { DEFAULT_BET } from "../constants/gameRules";
 
 export interface BiometricSliderProps {
   onTrigger: () => void;
@@ -13,7 +14,7 @@ export const BiometricSlider = ({
   onTrigger,
   disabled = false,
   text = "Быстрая игра",
-  price = 250,
+  price = DEFAULT_BET,
 }: BiometricSliderProps) => {
   const [isTriggered, setIsTriggered] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);

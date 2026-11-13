@@ -1,6 +1,7 @@
 import type { Role } from "../types/game";
 import type { GameAction } from "../types/multiplayer";
 import { GAME_CONFIG } from "../config/gameConfig";
+import { DEFAULT_BET } from "../constants/gameRules";
 
 export interface MorseCandidate {
   roomCode: string;
@@ -625,7 +626,7 @@ class PartyService {
               rank: options.rank || "СТАЖЁР",
               mmr: options.mmr,
               mode: options.mode,
-              bet: options.bet || 250,
+              bet: options.bet || DEFAULT_BET,
             },
           })
         );

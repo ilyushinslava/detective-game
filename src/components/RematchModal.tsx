@@ -1,6 +1,7 @@
 import React from "react";
 import { Modal } from "./ui/Modal";
 import { Button } from "./ui/Button";
+import { DEFAULT_BET } from "../constants/gameRules";
 
 export interface RematchModalProps {
   status: "offer" | "waiting" | null;
@@ -14,7 +15,7 @@ export interface RematchModalProps {
 
 export const RematchModal: React.FC<RematchModalProps> = ({
   status,
-  matchBet = 250,
+  matchBet = DEFAULT_BET,
   timer = 0,
   rematchMode = "SWAP",
   onAccept,

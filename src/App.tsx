@@ -18,12 +18,13 @@ import { createInitialState } from "./utils/gameLogic";
 import { soundManager } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
 import type { GameAction } from "./types/multiplayer";
-import { PassAndPlayModal } from "./components/controller/PassAndPlayModal";
 import { Button } from "./components/ui/Button";
 import type { ShiftPayload } from "./types/game";
 import { gameReducer } from "./utils/gameReducer";
 import { BannerViewerProvider } from "./contexts/BannerViewerContext";
 import { useRulesModal } from "./hooks/useRulesModal";
+import { characterImages } from "./constants/characterImages";
+import { DEFAULT_BET } from "./constants/gameRules";
 
 // Асинхронные динамические чанки второстепенных экранов (TASK-ARCH-001)
 const DuelScreen = lazy(() => import("./components/duel/DuelScreen").then((m) => ({ default: m.DuelScreen })));
@@ -44,10 +45,7 @@ const ScreenFallback = () => (
 );
 
 
-const characterImages = import.meta.glob<{ default: string }>(
-  "./assets/characters/*.webp",
-  { eager: true }
-);
+
 
 export default function App() {
   const urlParams = useMemo(() => new URLSearchParams(typeof window !== "undefined" ? window.location.search : ""), []);
@@ -575,7 +573,7 @@ export default function App() {
         onCloseToast={() => setToastMessage(null)}
         restartRequestedBy={gameState.restartRequestedBy}
           pendingRematchMode={gameState.pendingRematchMode}
-        matchBet={gameState.matchBet || 250}
+        matchBet={gameState.matchBet || DEFAULT_BET}
         rematchTimer={rematchTimer}
         onAcceptRestart={acceptRestart}
         onRejectRestart={rejectRestart}

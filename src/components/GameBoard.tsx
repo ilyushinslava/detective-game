@@ -3,6 +3,7 @@ import { motion, LayoutGroup } from "framer-motion";
 import type { Character, LastShift, GameModeType } from "../types/game";
 import { CharacterCard } from "./CharacterCard";
 import { isOppositeShift } from "../utils/gameLogic";
+import { BOARD_GRID_SIZE } from "../constants/gameRules";
 
 export type ShiftDirection = "up" | "down" | "left" | "right";
 
@@ -86,7 +87,7 @@ export const GameBoard = ({
 }: GameBoardProps) => {
   const isLineUp = mode === "LINE_UP";
   const numRows = board.length;
-  const numCols = board[0]?.length || 5;
+  const numCols = board[0]?.length || BOARD_GRID_SIZE;
   const colsArray = Array.from({ length: numCols }, (_, i) => i);
   const rowsArray = Array.from({ length: numRows }, (_, i) => i);
 

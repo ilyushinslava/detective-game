@@ -73,7 +73,7 @@ describe("TablesScreen", () => {
     expect(mockSetRoomFilter).toHaveBeenCalledWith("SKHVATKA");
   });
 
-  it("разделяет лобби на Открытые и Приватные игры, и открывает телеграфный ключ для ввода пароля к выбранной приватной комнате", () => {
+  it("разделяет лобби на Открытые и Приватные игры, и открывает телеграфный ключ для ввода пароля к выбранной приватной комнате", async () => {
     const rooms = [
       { roomCode: "room-open-1", hostName: "Открытый Хост", mode: "SKHVATKA", playersCount: 1, maxPlayers: 2, isPrivate: false },
       { roomCode: "room-priv-2", hostName: "Секретный Агент", mode: "SKHVATKA", playersCount: 1, maxPlayers: 2, isPrivate: true, morseCode: ".-.-.-." }
@@ -97,9 +97,9 @@ describe("TablesScreen", () => {
     const enterMorseBtn = screen.getByRole("button", { name: /Ввести шифр/i });
     fireEvent.click(enterMorseBtn);
 
-    // Открывается телеграфный ключ с привязкой к хосту
-    expect(screen.getByRole("button", { name: "Ключ телеграфа" })).toBeDefined();
-    expect(screen.getByText(/ШИФР ДОСТУПА: Секретный Агент/i)).toBeDefined();
-    expect(screen.getByText(/ПОДТВЕРДИТЬ ШИФР/i)).toBeDefined();
+    // Открывается телеграфный ключ с привязкой к хосту (асинхронно через Suspense)
+    expect(await screen.findByRole("button", { name: "Ключ телеграфа" })).toBeDefined();
+    expect(await screen.findByText(/ШИФР ДОСТУПА: Секретный Агент/i)).toBeDefined();
+    expect(await screen.findByText(/ПОДТВЕРДИТЬ ШИФР/i)).toBeDefined();
   });
 });

@@ -14,6 +14,7 @@ import { getAvailableActionDescriptors, type ActionDescriptor } from '../../hook
 import { useDetectiveNotebook } from '../../hooks/useDetectiveNotebook';
 import { DetectiveNotebookModal } from './DetectiveNotebookModal';
 import { partyService } from '../../utils/partyPeer';
+import { BOARD_GRID_SIZE, TURN_GRACE_PERIOD_SECONDS } from '../../constants/gameRules';
 
 export interface MobileControllerViewProps {
   gameState: GameState;
@@ -108,7 +109,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   disconnectedOpponent: propDisconnectedOpponent,
   onForceReconnect,
 }) => {
-  const boardSize = gameState?.board?.length || 5;
+  const boardSize = gameState?.board?.length || BOARD_GRID_SIZE;
   const isSecretService = gameState.mode === 'SECRET_SERVICE';
   const isKiller = playerRole === 'KILLER';
   const mySpyIndex = playerRole === 'KILLER' ? 0 : 1;
@@ -143,7 +144,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   const [internalLocalDisconnected, setInternalLocalDisconnected] = useState(false);
   const [internalReconnectAttempt, setInternalReconnectAttempt] = useState(0);
   const [internalDisconnectedOpponent, setInternalDisconnectedOpponent] = useState<{ role?: Role; graceTimeoutSec: number } | null>(null);
-  const [graceSecondsLeft, setGraceSecondsLeft] = useState(60);
+  const [graceSecondsLeft, setGraceSecondsLeft] = useState(TURN_GRACE_PERIOD_SECONDS);
 
   const activeLocalDisconnected = propIsLocalDisconnected ?? internalLocalDisconnected;
   const activeReconnectAttempt = propReconnectAttempt ?? internalReconnectAttempt;
@@ -156,7 +157,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     };
     const handleDisc = (info: { role?: Role; graceTimeoutSec: number }) => {
       setInternalDisconnectedOpponent(info);
-      setGraceSecondsLeft(info.graceTimeoutSec || 60);
+      setGraceSecondsLeft(info.graceTimeoutSec || TURN_GRACE_PERIOD_SECONDS);
     };
     const handleRec = () => {
       setInternalDisconnectedOpponent(null);

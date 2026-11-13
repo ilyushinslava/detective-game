@@ -9,6 +9,7 @@ import type {
 } from "../types/game";
 import { ALL_CHARACTERS } from "../constants/characters";
 import { DUEL_CHARACTERS } from "../constants/duelCharacters";
+import { getCanonicalGameModeName } from "../constants/gameMeta";
 
 export const CHARACTERS_DATA = ALL_CHARACTERS;
 
@@ -269,11 +270,7 @@ export function createInitialState(
   ]);
   deck = deck.filter(id => !finalExcluded.has(id));
 
-  let modeTitle = mode as string;
-  if (mode === "SKHVATKA") modeTitle = "Схватка (Городская дуэль)";
-  else if (mode === "MANIAC_VS_OPERATIVE") modeTitle = "Маньяк против оперативника (Спецоперация)";
-  else if (mode === "THIEF_HUNT") modeTitle = "Охота на грабителя (План-перехват)";
-  else if (mode === "SECRET_SERVICE") modeTitle = "Секретная служба";
+  const modeTitle = getCanonicalGameModeName(mode);
 
   let formatDesc = "";
   if (mode === "SECRET_SERVICE") {
@@ -316,7 +313,7 @@ export function createInitialState(
     duelPenalties: mode === "LINE_UP" ? { DETECTIVE: 0, KILLER: 0 } : undefined,
     accusedTargets: mode === "LINE_UP" ? { DETECTIVE: [], KILLER: [] } : undefined,
     log: mode === "LINE_UP"
-      ? ["Операция началась: Очная ставка (Line-Up). Сформировано досье подозреваемых."]
+      ? [`Операция началась: ${modeTitle}. Сформировано досье подозреваемых.`]
       : [
           `Операция началась: ${modeTitle}. Режим: ${formatDesc}.`,
           "Раунд 1: Первый ход.",

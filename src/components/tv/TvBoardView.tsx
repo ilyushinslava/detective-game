@@ -7,7 +7,7 @@ import { renderSilhouette } from '../CharacterCard';
 import { getCharacterPortraitPath } from '../../constants/characterImages';
 import type { GameState, LastShift, GameModeType } from '../../types/game';
 import { SPY_COLORS } from '../../types/game';
-import { getGameModeTitle } from '../../constants/gameMeta';
+import { getGameModeTitle, getCanonicalGameModeName } from '../../constants/gameMeta';
 import { partyService } from '../../utils/partyPeer';
 import { useSpatialNavigation } from '../../hooks/useSpatialNavigation';
 
@@ -478,6 +478,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
   const killerRoleName = gameState?.mode === 'THIEF_HUNT' ? 'Грабитель' : gameState?.mode === 'LINE_UP' ? 'Подозреваемый' : 'Маньяк';
   const detectiveRoleName = gameState?.mode === 'THIEF_HUNT' ? 'Полиция' : gameState?.mode === 'LINE_UP' ? 'Следователь' : 'Оперативник';
+  const canonicalGameModeName = getCanonicalGameModeName(gameState?.mode);
 
   const boardSize = gameState?.board?.length || 5;
   const flatCards = (gameState?.board || []).flat();
@@ -712,7 +713,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   : 'bg-blue-950/80 border-blue-500/40 text-blue-200'
               }`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${isKillerTurn ? 'bg-rose-400' : 'bg-blue-400'} animate-pulse`} />
-                {getGameModeTitle(gameState?.mode || 'MANIAC_VS_OPERATIVE', 'ru')}
+                {canonicalGameModeName}
               </span>
             </div>
 
@@ -732,7 +733,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   {activeTurnName.toUpperCase()}
                 </div>
                 <div className="text-white/50 text-xs font-mono truncate leading-tight">
-                  {getGameModeTitle(gameState?.mode || 'MANIAC_VS_OPERATIVE', 'ru')}
+                  {canonicalGameModeName}
                 </div>
               </div>
             </div>

@@ -31,15 +31,32 @@ export const GAME_SUBTITLE = {
   en: 'The Last Shot',
 } as const;
 
+/**
+ * Единый источник истины (SSOT) для каноничных названий игровых режимов.
+ */
+export const CANONICAL_GAME_MODE_NAMES: Record<GameModeType, string> = {
+  MANIAC_VS_OPERATIVE: 'ПОЧЕРК УБИЙЦЫ',
+  THIEF_HUNT: 'ОЦЕПЛЕНИЕ',
+  SECRET_SERVICE: 'ДИРЕКТИВА «НОЛЬ»',
+  LINE_UP: 'ОЧНАЯ СТАВКА',
+} as const;
+
+export function getCanonicalGameModeName(mode?: GameModeType | string | null): string {
+  if (mode && mode in CANONICAL_GAME_MODE_NAMES) {
+    return CANONICAL_GAME_MODE_NAMES[mode as GameModeType];
+  }
+  return CANONICAL_GAME_MODE_NAMES.MANIAC_VS_OPERATIVE;
+}
+
 export const GAME_MODES_META: Record<GameModeType, GameModeMeta> = {
   MANIAC_VS_OPERATIVE: {
     id: 'MANIAC_VS_OPERATIVE',
     title: {
-      ru: 'Почерк убийцы',
+      ru: 'ПОЧЕРК УБИЙЦЫ',
       en: "Killer's Signature",
     },
     shortTitle: {
-      ru: 'Почерк убийцы',
+      ru: 'ПОЧЕРК УБИЙЦЫ',
       en: 'Signature',
     },
     description: {
@@ -47,7 +64,7 @@ export const GAME_MODES_META: Record<GameModeType, GameModeMeta> = {
       en: 'A deadly duel between detective and killer. Deduce the lair by crime radius.',
     },
     tags: {
-      ru: ['2 ИГРОКА', 'АСИММЕТРИЯ', 'МАНЬЯК VS СЫЩИК'],
+      ru: ['2 ИГРОКА', 'АСИММЕТРИЯ', 'ПОЧЕРК УБИЙЦЫ'],
       en: ['2 PLAYERS', 'ASYMMETRIC', 'KILLER VS DETECTIVE'],
     },
     players: { ru: '2 игрока', en: '2 players' },
@@ -67,11 +84,11 @@ export const GAME_MODES_META: Record<GameModeType, GameModeMeta> = {
   THIEF_HUNT: {
     id: 'THIEF_HUNT',
     title: {
-      ru: 'Оцепление',
+      ru: 'ОЦЕПЛЕНИЕ',
       en: 'Cordon',
     },
     shortTitle: {
-      ru: 'Оцепление',
+      ru: 'ОЦЕПЛЕНИЕ',
       en: 'Cordon',
     },
     description: {
@@ -99,11 +116,11 @@ export const GAME_MODES_META: Record<GameModeType, GameModeMeta> = {
   SECRET_SERVICE: {
     id: 'SECRET_SERVICE',
     title: {
-      ru: 'Директива "Ноль"',
+      ru: 'ДИРЕКТИВА «НОЛЬ»',
       en: 'Directive Zero',
     },
     shortTitle: {
-      ru: 'Директива "Ноль"',
+      ru: 'ДИРЕКТИВА «НОЛЬ»',
       en: 'Directive Zero',
     },
     description: {
@@ -131,11 +148,11 @@ export const GAME_MODES_META: Record<GameModeType, GameModeMeta> = {
   LINE_UP: {
     id: 'LINE_UP',
     title: {
-      ru: 'Очная ставка',
+      ru: 'ОЧНАЯ СТАВКА',
       en: 'Line-Up',
     },
     shortTitle: {
-      ru: 'Очная ставка',
+      ru: 'ОЧНАЯ СТАВКА',
       en: 'Line-Up',
     },
     description: {
@@ -163,19 +180,25 @@ export const GAME_MODES_META: Record<GameModeType, GameModeMeta> = {
 };
 
 export function getGameModeTitle(mode: GameModeType | string, lang: 'ru' | 'en' = 'ru'): string {
+  if (lang === 'ru' && mode && mode in CANONICAL_GAME_MODE_NAMES) {
+    return CANONICAL_GAME_MODE_NAMES[mode as GameModeType];
+  }
   const meta = GAME_MODES_META[mode as GameModeType];
   if (meta) {
     return meta.title[lang] || meta.title.ru;
   }
-  return mode;
+  return CANONICAL_GAME_MODE_NAMES.MANIAC_VS_OPERATIVE;
 }
 
 export function getGameModeShortTitle(mode: GameModeType | string, lang: 'ru' | 'en' = 'ru'): string {
+  if (lang === 'ru' && mode && mode in CANONICAL_GAME_MODE_NAMES) {
+    return CANONICAL_GAME_MODE_NAMES[mode as GameModeType];
+  }
   const meta = GAME_MODES_META[mode as GameModeType];
   if (meta) {
     return meta.shortTitle[lang] || meta.shortTitle.ru;
   }
-  return mode;
+  return CANONICAL_GAME_MODE_NAMES.MANIAC_VS_OPERATIVE;
 }
 
 export function getGameModeDescription(mode: GameModeType | string, lang: 'ru' | 'en' = 'ru'): string {

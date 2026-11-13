@@ -8,7 +8,7 @@ import {
   getAdjacentCharacters,
 } from "../gameLogic";
 
-describe("Режим: Охота на грабителя (THIEF_HUNT)", () => {
+describe("Режим: ОЦЕПЛЕНИЕ (THIEF_HUNT)", () => {
   it("Кража у соседа (robNeighbor): увеличение трофеев, личность НЕ меняется", () => {
     const state = createInitialState("THIEF_HUNT", "PVP", "DETECTIVE");
     const startKiller = state.killerSecretId;

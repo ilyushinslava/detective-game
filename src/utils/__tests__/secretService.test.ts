@@ -6,7 +6,7 @@ import {
   getAdjacentCharacters,
 } from "../gameLogic";
 
-describe("Режим: Секретная служба (SECRET_SERVICE)", () => {
+describe("Режим: ДИРЕКТИВА «НОЛЬ» (SECRET_SERVICE)", () => {
   it("Успешный арест шпиона (spyCatch): начисление трофея, смена прикрытия жертвы", () => {
     const state = createInitialState("SECRET_SERVICE", "PVP", "DETECTIVE", 2, 4);
     const activeSpyIndex = state.activeSpyIndex!;

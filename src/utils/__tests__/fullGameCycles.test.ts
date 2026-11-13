@@ -4,7 +4,7 @@ import { gameReducer } from "../gameReducer";
 import type { GameAction } from "../../types/multiplayer";
 
 describe("Полные циклы правил режимов (fullGameCycles)", () => {
-  describe("1. Режим МАНЬЯК ПРОТИВ ОПЕРАТИВНИКА (MANIAC_VS_OPERATIVE)", () => {
+  describe("1. Режим ПОЧЕРК УБИЙЦЫ (MANIAC_VS_OPERATIVE)", () => {
     it("Устранение 4 целей строго по victimList приносит победу Маньяку", () => {
       let state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
       const deckTargets = state.board
@@ -68,7 +68,7 @@ describe("Полные циклы правил режимов (fullGameCycles)",
     });
   });
 
-  describe("3. Режим ОХОТА НА ГРАБИТЕЛЯ (THIEF_HUNT)", () => {
+  describe("3. Режим ОЦЕПЛЕНИЕ (THIEF_HUNT)", () => {
     it("Кража 5 сокровищ приносит победу Вору", () => {
       let state = createInitialState("THIEF_HUNT", "PVP", "DETECTIVE");
       state.trophiesKiller = 9;
@@ -136,7 +136,7 @@ describe("Полные циклы правил режимов (fullGameCycles)",
     });
   });
 
-  describe("4. Режим СЕКРЕТНАЯ СЛУЖБА (SECRET_SERVICE)", () => {
+  describe("4. Режим ДИРЕКТИВА «НОЛЬ» (SECRET_SERVICE)", () => {
     it("Сбор 4 трофеев приносит победу Агенту", () => {
       let state = createInitialState("SECRET_SERVICE", "PVP", "DETECTIVE", 2, 4);
       state.activeSpyIndex = 0;

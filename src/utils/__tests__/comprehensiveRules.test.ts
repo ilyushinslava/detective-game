@@ -35,7 +35,7 @@ describe("Математическая строгость и инвариант�
   });
 });
 
-describe("Режим: МАНЬЯК ПРОТИВ ОПЕРАТИВНИКА (MANIAC_VS_OPERATIVE)", () => {
+describe("Режим: ПОЧЕРК УБИЙЦЫ (MANIAC_VS_OPERATIVE)", () => {
   it("Атака строго по victimList[0] или Оперативнику, игнор остальных", () => {
     const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
     
@@ -84,7 +84,7 @@ describe("Режим: МАНЬЯК ПРОТИВ ОПЕРАТИВНИКА (MANIAC
   });
 });
 
-describe("Режим: ОХОТА НА ГРАБИТЕЛЯ (THIEF_HUNT)", () => {
+describe("Режим: ОЦЕПЛЕНИЕ (THIEF_HUNT)", () => {
   it("Кража НЕ меняет личность и НЕ списывает карты из колоды", () => {
     const state = createInitialState("THIEF_HUNT", "PVP", "DETECTIVE");
     const startKiller = state.killerSecretId;
@@ -135,7 +135,7 @@ describe("Режим: ОХОТА НА ГРАБИТЕЛЯ (THIEF_HUNT)", () => {
   });
 });
 
-describe("Режим: СЕКРЕТНАЯ СЛУЖБА (SECRET_SERVICE)", () => {
+describe("Режим: ДИРЕКТИВА «НОЛЬ» (SECRET_SERVICE)", () => {
   it("Игра ведется строго до 4 трофеев", () => {
     const state = createInitialState("SECRET_SERVICE", "PVP", "DETECTIVE", 2, 4);
     expect(state.spyTargetTrophies).toBe(4);

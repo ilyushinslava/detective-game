@@ -7,7 +7,7 @@ import {
   getAdjacentCharacters,
 } from "../gameLogic";
 
-describe("Режим: Маньяк против оперативника (MANIAC_VS_OPERATIVE)", () => {
+describe("Режим: ПОЧЕРК УБИЙЦЫ (MANIAC_VS_OPERATIVE)", () => {
   it("Ликвидация цели строго из victimList: открытие следующей жертвы", () => {
     const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
     const targetId = state.victimList[0];

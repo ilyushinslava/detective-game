@@ -136,7 +136,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
     { id: 'MANIAC_VS_OPERATIVE', label: GAME_MODES_META.MANIAC_VS_OPERATIVE.title.ru, badge: '4 ЦЕЛИ', desc: 'Сыщик ловит маньяка на улицах города' },
     { id: 'THIEF_HUNT', label: GAME_MODES_META.THIEF_HUNT.title.ru, badge: '10 КРАЖ', desc: 'Охота за скрывающимся вором' },
     { id: 'SECRET_SERVICE', label: GAME_MODES_META.SECRET_SERVICE.title.ru, badge: 'ШПИОНЫ', desc: 'Тактическая дуэль агентов за кейсы' },
-    { id: 'LINE_UP', label: GAME_MODES_META.LINE_UP.title.ru, badge: 'ОПОЗНАНИЕ', desc: 'Интеллектуальная дуэль по досье' },
+    { id: 'LINE_UP', label: GAME_MODES_META.LINE_UP.title.ru, badge: 'ОЧНАЯ СТАВКА', desc: 'Интеллектуальная дуэль по досье' },
   ];
 
   const rawPlayers = (connectedPlayers && Object.keys(connectedPlayers).length > 0)

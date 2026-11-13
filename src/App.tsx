@@ -1054,7 +1054,7 @@ export default function App() {
               gameState={gameState}
               secondsLeft={60}
               selectedLine={tvLinePreview}
-              hideExit={isAndroidTv}
+              hideExit={false}
               onExit={() => {
                 partyService.disconnect();
                 if (isAndroidTv) {

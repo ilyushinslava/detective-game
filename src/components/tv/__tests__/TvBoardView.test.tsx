@@ -31,7 +31,7 @@ describe("TvBoardView Component", () => {
     expect(screen.getByText(/ВПРАВО/i)).toBeDefined();
   });
 
-  it("TV-01: поддерживает D-Pad навигацию пультом (ArrowLeft, ArrowRight, Enter, Escape, Android Back)", () => {
+  it("TV-01: изолирует вызов паузы по Escape/Back и поддерживает D-Pad навигацию", () => {
     const state = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "KILLER");
     const onExit = vi.fn();
     const onRestart = vi.fn();
@@ -47,7 +47,15 @@ describe("TvBoardView Component", () => {
     const restartBtn = screen.getByTestId("tv-restart-btn");
     const exitBtn = screen.getByTestId("tv-exit-btn");
 
-    // 1. D-Pad Left -> фокус на Сброс
+    // 1. При закрытой паузе стрелки не должны открывать меню или вызывать действия
+    fireEvent.keyDown(window, { key: "ArrowLeft", keyCode: 37 });
+    expect(restartBtn.className).not.toContain("ring-white");
+    expect(onRestart).not.toHaveBeenCalled();
+
+    // 2. Escape открывает меню паузы
+    fireEvent.keyDown(window, { key: "Escape", keyCode: 27 });
+
+    // D-Pad Left -> переключение фокуса на Сброс (НАЧАТЬ ЗАНОВО)
     fireEvent.keyDown(window, { key: "ArrowLeft", keyCode: 37 });
     expect(restartBtn.className).toContain("ring-white");
 
@@ -55,16 +63,15 @@ describe("TvBoardView Component", () => {
     fireEvent.keyDown(window, { key: "Enter", keyCode: 13 });
     expect(onRestart).toHaveBeenCalledTimes(1);
 
-    // 2. D-Pad Right -> фокус на Выход
+    // 3. Android Back (keyCode 4) открывает меню паузы вместо прямого вылета
+    fireEvent.keyDown(window, { key: "Escape", keyCode: 4 });
+
+    // D-Pad Right -> переключение фокуса на Выход
     fireEvent.keyDown(window, { key: "ArrowRight", keyCode: 39 });
     expect(exitBtn.className).toContain("ring-red-500");
 
     // DPAD_CENTER (keyCode 23) вызывает onExit
     fireEvent.keyDown(window, { key: "Enter", keyCode: 23 });
     expect(onExit).toHaveBeenCalledTimes(1);
-
-    // 3. Android Back (keyCode 4) напрямую вызывает onExit
-    fireEvent.keyDown(window, { key: "Escape", keyCode: 4 });
-    expect(onExit).toHaveBeenCalledTimes(2);
   });
 });

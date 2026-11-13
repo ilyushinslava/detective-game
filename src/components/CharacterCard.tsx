@@ -26,7 +26,7 @@ export interface CharacterCardProps {
   onClick: () => void;
 }
 
-const renderSilhouette = (id: string) => {
+export const renderSilhouette = (id: string) => {
   const num = parseInt(id.replace("c", ""), 10) || 0;
   const variant = num % 8;
   const svgClass = "w-full h-full opacity-25 text-zinc-400 fill-current pointer-events-none";

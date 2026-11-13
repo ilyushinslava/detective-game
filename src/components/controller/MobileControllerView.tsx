@@ -170,6 +170,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     const prevDisc = partyService.onPlayerDisconnected;
     const prevRec = partyService.onPlayerReconnected;
     const prevRestored = partyService.onSessionRestored;
+    const prevAction = partyService.onAction;
 
     partyService.onConnectionStateChange = (st) => {
       handleConn(st);
@@ -187,12 +188,21 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       handleRestored();
       prevRestored?.(data);
     };
+    partyService.onAction = (action) => {
+      if (action?.type === 'ACTION_REJECTED' || action?.type === 'ERROR') {
+        setIsAwaitingTurnEnd(false);
+        soundManager.play('error');
+        triggerHaptic('medium');
+      }
+      prevAction?.(action);
+    };
 
     return () => {
       partyService.onConnectionStateChange = prevConn;
       partyService.onPlayerDisconnected = prevDisc;
       partyService.onPlayerReconnected = prevRec;
       partyService.onSessionRestored = prevRestored;
+      partyService.onAction = prevAction;
     };
   }, []);
 
@@ -223,7 +233,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     return isOppositeShift(gameState.lastShift, selectedAxis, selectedIndex, dir);
   }, [gameState.lastShift, selectedAxis, selectedIndex, selectedDir]);
 
-  // Сброс при смене активного хода на сервере
+  // Сброс при смене активного хода на сервере или обновлении лога/маневра
   useEffect(() => {
     setSelectedTargetId(null);
     setPendingAction(null);
@@ -231,7 +241,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     setIsDossierOpen(false);
     setIsPeeking(false);
     setIsAwaitingTurnEnd(false);
-  }, [gameState.currentTurn, gameState.activeSpyIndex]);
+  }, [gameState.currentTurn, gameState.activeSpyIndex, gameState.lastShift, gameState.log?.length]);
 
   // Карточка персонажа текущего игрока
   const myCharacter = useMemo(() => {

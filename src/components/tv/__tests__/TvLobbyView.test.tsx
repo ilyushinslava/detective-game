@@ -12,7 +12,7 @@ describe("TvLobbyView Component (TASK-NET-002)", () => {
     cleanup();
   });
 
-  it("renders QR code containing targetRoom and role=controller in query params", () => {
+  it("renders QR code containing ?room=${cleanRoomCode}&clientType=CONTROLLER", () => {
     const { container } = render(
       <TvLobbyView
         roomCode="tv-test-999"
@@ -26,6 +26,9 @@ describe("TvLobbyView Component (TASK-NET-002)", () => {
     // Verify SVG QRCode element exists
     const qrSvg = container.querySelector("svg");
     expect(qrSvg).toBeDefined();
+
+    // Verify QR joinUrl strictly matches ?room=tv-test-999&clientType=CONTROLLER
+    expect(screen.getByText(/\?room=tv-test-999&clientType=CONTROLLER/i)).toBeDefined();
 
     // Verify room code and tactical Morse callsign are rendered
     expect(screen.getByText(/tv-test-999/i)).toBeDefined();

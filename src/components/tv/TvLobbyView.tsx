@@ -86,7 +86,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
     }
     const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
     const cleanRoomCode = encodeURIComponent(roomCode || '');
-    return `${origin}${pathname}?targetRoom=${cleanRoomCode}&role=controller`;
+    return `${origin}${pathname}?room=${cleanRoomCode}&clientType=CONTROLLER`;
   }, [isLocalDev, lanHost, roomCode]);
 
   const [selectedMode, setSelectedMode] = useState<GameModeType>('MANIAC_VS_OPERATIVE');
@@ -219,13 +219,13 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
         {/* Левая колонка: QR-код и прямой адрес */}
         <div className="col-span-6 flex flex-col items-center justify-center p-6 lg:p-7 rounded-3xl bg-gradient-to-br from-slate-900/40 via-zinc-950/80 to-slate-950/80 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl text-center">
           <div className="p-4 rounded-2xl bg-white shadow-[0_0_30px_rgba(255,255,255,0.2)] mb-4 border border-white/30">
-            <QRCodeSVG value={joinUrl} size={170} level="M" />
+            <QRCodeSVG value={joinUrl} size={220} level="M" />
           </div>
-          <div className="text-sm font-mono uppercase tracking-wider text-zinc-100 mb-1 font-bold">
+          <div className="text-base font-mono uppercase tracking-wider text-zinc-100 mb-1 font-bold">
             1. Наведите камеру смартфона
           </div>
-          <div className="text-xs font-mono text-zinc-400 mb-2">
-            2. Введите 7 сигналов Морзе на пульте
+          <div className="text-sm font-mono text-zinc-400 mb-2">
+            2. Мгновенное подключение к партии
           </div>
           <div className="text-[11px] font-mono text-zinc-500 truncate max-w-xs bg-zinc-900/80 px-3 py-1 rounded-full border border-white/5">
             {joinUrl}

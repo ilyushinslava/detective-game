@@ -92,8 +92,7 @@ export default function App() {
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [isNotebookOpen, setIsNotebookOpen] = useState(false);
   const [tvRoomCode, setTvRoomCode] = useState<string>(() => {
-    if (targetRoomParam) return "";
-    return roomParam || "";
+    return roomParam || targetRoomParam || "";
   });
   const [tvMorseCode, setTvMorseCode] = useState<string>("");
   const [pinInput, setPinInput] = useState<string>("");
@@ -122,10 +121,10 @@ export default function App() {
 
   useEffect(() => {
     if ((clientTypeParam === "CONTROLLER" || tvPartyState === "CONTROLLER") && tvRoomCode) {
-      let controllerClientId = typeof window !== "undefined" ? sessionStorage.getItem("tv_controller_client_id") : null;
+      let controllerClientId = typeof window !== "undefined" ? localStorage.getItem("tv_controller_client_id") : null;
       if (!controllerClientId && typeof window !== "undefined") {
         controllerClientId = `client_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-        sessionStorage.setItem("tv_controller_client_id", controllerClientId);
+        localStorage.setItem("tv_controller_client_id", controllerClientId);
       }
       if (typeof window !== "undefined") {
         sessionStorage.setItem("tv_controller_room", tvRoomCode);
@@ -292,7 +291,7 @@ export default function App() {
     if ((tvPartyState === "TV_LOBBY" || tvPartyState === "TV_BOARD") && action.type !== "START_MATCH") {
       return;
     }
-    if (gameStateRef.current.opponent === "ONLINE") {
+    if (gameStateRef.current.opponent === "ONLINE" || tvPartyState === "CONTROLLER" || clientTypeParam === "CONTROLLER") {
       partyService.sendAction(action);
       return;
     }

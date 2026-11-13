@@ -254,5 +254,77 @@ describe("TV Session Flow E2E Suite", () => {
       expect(server.state.gameState.lastShift).toBeNull();
       server.close();
     });
+
+    it("accepts and broadcasts LINE_PREVIEW and SHIFT_BOARD from authenticated controller", () => {
+      const messagesBroadcasted: string[] = [];
+      const mockTvConn = {
+        id: "conn-tv-1",
+        send: (msg: string) => messagesBroadcasted.push(msg),
+        close: () => {},
+      };
+      const mockControllerConn = {
+        id: "conn-ctrl-1",
+        send: (msg: string) => {},
+        close: () => {},
+      };
+
+      const mockRoom = {
+        id: "tv-room-42",
+        getConnections: () => [mockTvConn, mockControllerConn],
+      };
+
+      const server = new GameRoomServer(mockRoom);
+      server.state.status = "PLAYING";
+      const initialGameState = createInitialState("SECRET_SERVICE", "ONLINE", "KILLER");
+      server.state.gameState = initialGameState;
+
+      server.state.tvDisplays["tv-client-1"] = {
+        clientId: "tv-client-1",
+        connectionId: "conn-tv-1",
+      };
+
+      // Register controller player as active player 0 (Host / Killer)
+      server.state.players["ctrl-p1"] = {
+        clientId: "ctrl-p1",
+        connectionId: "conn-ctrl-1",
+        nickname: "Agent Controller",
+        role: "KILLER",
+        isHost: true,
+        authToken: "auth-ctrl-1",
+      };
+
+      // Controller previews line 2
+      server.onMessage(
+        JSON.stringify({
+          type: "LINE_PREVIEW",
+          payload: { line: { type: "ROW", index: 2, direction: "FORWARD" } },
+          senderClientId: "ctrl-p1",
+        }),
+        mockControllerConn
+      );
+
+      // Verify LINE_PREVIEW is broadcasted
+      const previewMsg = messagesBroadcasted.find((m) => m.includes("LINE_PREVIEW"));
+      expect(previewMsg).toBeDefined();
+
+      // Controller executes SHIFT_BOARD
+      server.onMessage(
+        JSON.stringify({
+          type: "SHIFT_BOARD",
+          payload: { shiftType: "ROW", index: 2, direction: "FORWARD" },
+          senderClientId: "ctrl-p1",
+        }),
+        mockControllerConn
+      );
+
+      // State is updated on server
+      expect(server.state.gameState.lastShift).toEqual({
+        type: "ROW",
+        index: 2,
+        direction: "FORWARD",
+      });
+
+      server.close();
+    });
   });
 });

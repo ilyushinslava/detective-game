@@ -5,6 +5,7 @@ import type { GameModeType } from '../../types/game';
 import { GAME_TITLE, GAME_MODES_META } from '../../constants/gameMeta';
 import { Button } from '../ui/Button';
 import { soundManager } from '../../utils/audio';
+import { useSpatialNavigation } from '../../hooks/useSpatialNavigation';
 
 export interface TvLobbyViewProps {
   roomCode: string;
@@ -13,6 +14,7 @@ export interface TvLobbyViewProps {
   connectedPlayers?: Record<string, { nickname: string; isHost?: boolean }>;
   onStartGame?: (mode: GameModeType, isPassAndPlay: boolean) => void;
   onExit?: () => void;
+  hideExit?: boolean;
 }
 
 export function getDeterministicMorse(roomCode: string): string {
@@ -36,7 +38,10 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   connectedPlayers,
   onStartGame,
   onExit,
+  hideExit = false,
 }) => {
+  useSpatialNavigation({ initialFocusSelector: '[data-tv-start-btn="true"]' });
+
   const isLocalDev = useMemo(() => {
     return typeof window !== 'undefined' &&
       (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -342,15 +347,17 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
               <div className="flex gap-2 bg-zinc-900/90 p-1.5 rounded-xl border border-white/10 text-xs font-black uppercase">
                 <button
                   type="button"
+                  tabIndex={0}
                   onClick={() => setIsPassAndPlay(false)}
-                  className={`px-3.5 py-1.5 rounded-lg transition cursor-pointer font-mono ${!isPassAndPlay ? 'bg-zinc-800 text-zinc-100 shadow border border-white/10' : 'text-zinc-500 hover:text-zinc-300'} ${focusArea === 'FORMAT' && !isPassAndPlay ? 'ring-2 ring-blue-500/80 shadow-[0_0_12px_rgba(59,130,246,0.4)] scale-105' : ''}`}
+                  className={`px-3.5 py-1.5 rounded-lg transition cursor-pointer font-mono focus:outline-none focus:ring-4 focus:ring-white focus:scale-105 ${!isPassAndPlay ? 'bg-zinc-800 text-zinc-100 shadow border border-white/10' : 'text-zinc-500 hover:text-zinc-300'} ${focusArea === 'FORMAT' && !isPassAndPlay ? 'ring-2 ring-blue-500/80 shadow-[0_0_12px_rgba(59,130,246,0.4)] scale-105' : ''}`}
                 >
                   2+ ТЕЛЕФОНА
                 </button>
                 <button
                   type="button"
+                  tabIndex={0}
                   onClick={() => setIsPassAndPlay(true)}
-                  className={`px-3.5 py-1.5 rounded-lg transition cursor-pointer font-mono ${isPassAndPlay ? 'bg-red-600 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'} ${focusArea === 'FORMAT' && isPassAndPlay ? 'ring-2 ring-red-400 shadow-[0_0_12px_rgba(239,68,68,0.4)] scale-105' : ''}`}
+                  className={`px-3.5 py-1.5 rounded-lg transition cursor-pointer font-mono focus:outline-none focus:ring-4 focus:ring-white focus:scale-105 ${isPassAndPlay ? 'bg-red-600 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'} ${focusArea === 'FORMAT' && isPassAndPlay ? 'ring-2 ring-red-400 shadow-[0_0_12px_rgba(239,68,68,0.4)] scale-105' : ''}`}
                 >
                   PASS & PLAY
                 </button>
@@ -365,12 +372,13 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                   <button
                     key={m.id}
                     type="button"
+                    tabIndex={0}
                     onClick={() => {
                       setSelectedMode(m.id);
                       setFocusedModeIndex(idx);
                       setFocusArea('MODES');
                     }}
-                    className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
+                    className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center gap-1.5 focus:outline-none focus:ring-4 focus:ring-white focus:scale-105 ${
                       isFocused
                         ? 'ring-2 ring-blue-500/80 scale-105 shadow-[0_0_15px_rgba(59,130,246,0.5)] z-10'
                         : ''
@@ -403,7 +411,8 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
               playerList.map((player, index) => (
                 <div
                   key={index}
-                  className={`p-4 rounded-2xl border transition-all duration-300 ${
+                  tabIndex={0}
+                  className={`p-4 rounded-2xl border transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-400 focus:scale-[1.02] ${
                     player
                       ? 'bg-zinc-900/85 border-white/10 shadow-lg backdrop-blur-md'
                       : 'bg-zinc-950/30 border-dashed border-white/10'
@@ -440,25 +449,30 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
       </div>
 
       {/* Нижняя панель действий */}
-      <div className="flex items-center justify-between border-t border-white/10 pt-5 relative z-10">
-        <Button
-          variant="secondary"
-          onClick={onExit}
-          className={`px-8 h-14 rounded-2xl text-sm sm:text-base font-mono font-bold uppercase tracking-wider text-zinc-300 hover:text-white transition ${
-            focusArea === 'EXIT' ? 'ring-2 ring-blue-500/80 scale-105 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : ''
-          }`}
-        >
-          В меню
-        </Button>
+      <div className={`flex items-center ${hideExit ? 'justify-end' : 'justify-between'} border-t border-white/10 pt-5 relative z-10`}>
+        {!hideExit && (
+          <Button
+            variant="secondary"
+            onClick={onExit}
+            tabIndex={0}
+            className={`px-8 h-14 rounded-2xl text-sm sm:text-base font-mono font-bold uppercase tracking-wider text-zinc-300 hover:text-white transition focus:outline-none focus:ring-4 focus:ring-white focus:scale-105 ${
+              focusArea === 'EXIT' ? 'ring-2 ring-blue-500/80 scale-105 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : ''
+            }`}
+          >
+            В меню
+          </Button>
+        )}
 
         <Button
           variant="primary-danger"
+          data-tv-start-btn="true"
+          tabIndex={0}
           onClick={() => {
             soundManager.play('confirm');
             onStartGame?.(selectedMode, isPassAndPlay);
           }}
           disabled={!canStart}
-          className={`px-12 h-16 rounded-2xl font-black uppercase tracking-widest text-lg sm:text-xl shadow-[0_0_25px_rgba(239,68,68,0.5)] transition ${
+          className={`px-12 h-16 rounded-2xl font-black uppercase tracking-widest text-lg sm:text-xl shadow-[0_0_25px_rgba(239,68,68,0.5)] transition focus:outline-none focus:ring-4 focus:ring-white focus:scale-105 ${
             focusArea === 'START' && canStart ? 'ring-2 ring-white scale-105' : ''
           }`}
         >

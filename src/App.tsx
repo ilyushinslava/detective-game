@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo, lazy, Suspense } from "react";
+import { Capacitor } from "@capacitor/core";
 import { SplashScreen } from './components/SplashScreen';
 import { type GameModeType, type OpponentType, type Role, type GameState } from "./types/game";
 import { GameLifecycleModals } from "./components/GameLifecycleModals";
@@ -48,6 +49,7 @@ const ScreenFallback = () => (
 
 
 export default function App() {
+  const isAndroidTv = useMemo(() => Capacitor.getPlatform() === "android", []);
   const urlParams = useMemo(() => new URLSearchParams(typeof window !== "undefined" ? window.location.search : ""), []);
   const clientTypeParam = (urlParams.get("clientType") || urlParams.get("role"))?.toUpperCase();
   const targetRoomParam = urlParams.get("targetRoom");
@@ -65,7 +67,7 @@ export default function App() {
 
   const [showSplash, setShowSplash] = useState(true);
   const [, setActiveMode] = useState<GameModeType>("MANIAC_VS_OPERATIVE");
-  const [isLobbyOpen, setIsLobbyOpen] = useState(true);
+  const [isLobbyOpen, setIsLobbyOpen] = useState(() => !isAndroidTv);
   const [hasStartedEver, setHasStartedEver] = useState(false);
   const {
     profile,
@@ -92,11 +94,19 @@ export default function App() {
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [isNotebookOpen, setIsNotebookOpen] = useState(false);
   const [tvRoomCode, setTvRoomCode] = useState<string>(() => {
-    return roomParam || targetRoomParam || "";
+    if (roomParam || targetRoomParam) return roomParam || targetRoomParam || "";
+    if (isAndroidTv) {
+      const saved = typeof window !== "undefined" ? sessionStorage.getItem("tv_party_room") : null;
+      const generated = saved || Math.floor(10000 + Math.random() * 90000).toString();
+      if (typeof window !== "undefined") sessionStorage.setItem("tv_party_room", generated);
+      return generated;
+    }
+    return "";
   });
   const [tvMorseCode, setTvMorseCode] = useState<string>("");
   const [pinInput, setPinInput] = useState<string>("");
   const [tvPartyState, setTvPartyState] = useState<"NONE" | "TV_LOBBY" | "TV_BOARD" | "CONTROLLER">(() => {
+    if (isAndroidTv) return "TV_LOBBY";
     if (clientTypeParam === "CONTROLLER" || targetRoomParam) return "CONTROLLER";
     if (clientTypeParam === "TV_DISPLAY") return "TV_LOBBY";
     return "NONE";
@@ -482,6 +492,11 @@ export default function App() {
     partyService.disconnect();
     sessionStorage.removeItem("mp_session");
     setOpponentDisconnectedNotice(false);
+    if (isAndroidTv) {
+      setTvPartyState("TV_LOBBY");
+      setIsLobbyOpen(false);
+      return;
+    }
     setIsLobbyOpen(true);
     if (gameState.winner) {
       setHasStartedEver(false);
@@ -692,7 +707,7 @@ export default function App() {
       <div 
         className="w-full max-w-7xl mx-auto h-full relative flex flex-col overflow-hidden"
       >
-        {isLobbyOpen ? (
+        {isLobbyOpen && !isAndroidTv ? (
           <div
             key="main-menu"
             className="w-full h-full flex flex-col min-h-0"
@@ -952,6 +967,7 @@ export default function App() {
               morseCode={tvMorseCode}
               players={tvPlayers}
               connectedPlayers={tvPlayers}
+              hideExit={isAndroidTv}
               onStartGame={(mode, passAndPlay) => {
                 setIsTvPassAndPlay(passAndPlay);
                 partyService.sendAction({
@@ -974,6 +990,7 @@ export default function App() {
                 setTvPartyState("TV_BOARD");
               }}
               onExit={() => {
+                if (isAndroidTv) return;
                 partyService.disconnect();
                 setTvPartyState("NONE");
                 setIsLobbyOpen(true);
@@ -991,7 +1008,16 @@ export default function App() {
               gameState={gameState}
               secondsLeft={60}
               selectedLine={tvLinePreview}
+              hideExit={isAndroidTv}
               onExit={() => {
+                if (isAndroidTv) {
+                  partyService.disconnect();
+                  const newCode = Math.floor(10000 + Math.random() * 90000).toString();
+                  setTvRoomCode(newCode);
+                  if (typeof window !== "undefined") sessionStorage.setItem("tv_party_room", newCode);
+                  setTvPartyState("TV_LOBBY");
+                  return;
+                }
                 partyService.disconnect();
                 setTvPartyState("NONE");
                 setIsLobbyOpen(true);

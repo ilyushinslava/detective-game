@@ -7,6 +7,7 @@ import type { GameState, LastShift } from '../../types/game';
 import { SPY_COLORS } from '../../types/game';
 import { getGameModeTitle } from '../../constants/gameMeta';
 import { partyService } from '../../utils/partyPeer';
+import { useSpatialNavigation } from '../../hooks/useSpatialNavigation';
 
 export interface TvBoardViewProps {
   gameState: GameState;
@@ -15,6 +16,7 @@ export interface TvBoardViewProps {
   onExit?: () => void;
   onRestart?: () => void;
   disconnectedPlayer?: { role?: string; graceTimeoutSec: number } | null;
+  hideExit?: boolean;
 }
 
 const Icons = {
@@ -114,7 +116,10 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   onExit,
   onRestart,
   disconnectedPlayer,
+  hideExit = false,
 }) => {
+  useSpatialNavigation({ initialFocusSelector: '[data-tv-focus-primary="true"]' });
+
   const [focusedControl, setFocusedControl] = React.useState<'NONE' | 'CONTINUE' | 'RESTART' | 'EXIT'>('NONE');
   const [isPauseOpen, setIsPauseOpen] = React.useState<boolean>(false);
   const [internalDisconnected, setInternalDisconnected] = React.useState<{ role?: string; graceTimeoutSec: number } | null>(null);
@@ -441,11 +446,12 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         <div className="flex items-center gap-4">
           {(onRestart || onExit) && (
             <button
+              tabIndex={0}
               onClick={() => {
                 setIsPauseOpen(true);
-                setFocusedControl(onRestart ? 'RESTART' : 'EXIT');
+                setFocusedControl('CONTINUE');
               }}
-              className="px-6 py-3 rounded-2xl border border-white/15 bg-zinc-900/80 hover:bg-zinc-800 text-sm sm:text-base font-mono uppercase tracking-wider text-zinc-200 transition cursor-pointer flex items-center gap-2.5 shadow-sm active:scale-95"
+              className="px-6 py-3 rounded-2xl border border-white/15 bg-zinc-900/80 hover:bg-zinc-800 text-sm sm:text-base font-mono uppercase tracking-wider text-zinc-200 transition cursor-pointer flex items-center gap-2.5 shadow-sm active:scale-95 focus:outline-none focus:ring-4 focus:ring-white focus:scale-105"
             >
               <Icons.Settings />
               <span>МЕНЮ ПАУЗЫ [ESC]</span>
@@ -746,11 +752,12 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
               </span>
             </div>
             <button
+              tabIndex={0}
               onClick={() => {
                 setIsPauseOpen(false);
                 setFocusedControl('NONE');
               }}
-              className="text-sm font-mono text-zinc-400 hover:text-white transition cursor-pointer px-3 py-1.5 rounded-lg bg-zinc-800/80 border border-white/10"
+              className="text-sm font-mono text-zinc-400 hover:text-white transition cursor-pointer px-3 py-1.5 rounded-lg bg-zinc-800/80 border border-white/10 focus:outline-none focus:ring-2 focus:ring-white"
             >
               [ESC] ЗАКРЫТЬ
             </button>
@@ -762,11 +769,13 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
           <div className="space-y-4">
             <button
+              data-tv-focus-primary="true"
+              tabIndex={0}
               onClick={() => {
                 setIsPauseOpen(false);
                 setFocusedControl('NONE');
               }}
-              className={`w-full p-5 rounded-2xl font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between shadow-lg cursor-pointer transition active:scale-95 ${
+              className={`w-full p-5 rounded-2xl font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between shadow-lg cursor-pointer transition active:scale-95 focus:outline-none focus:ring-4 focus:ring-white focus:scale-105 ${
                 focusedControl === 'CONTINUE'
                   ? 'bg-blue-500 border border-white ring-2 ring-white text-white'
                   : 'bg-blue-600 hover:bg-blue-500 text-white'
@@ -778,13 +787,14 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
             {onRestart && (
               <button
+                tabIndex={0}
                 onClick={() => {
                   setIsPauseOpen(false);
                   setFocusedControl('NONE');
                   onRestart();
                 }}
                 data-testid="tv-restart-btn"
-                className={`w-full p-5 rounded-2xl border font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between transition cursor-pointer ${
+                className={`w-full p-5 rounded-2xl border font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between transition cursor-pointer focus:outline-none focus:ring-4 focus:ring-white focus:scale-105 ${
                   focusedControl === 'RESTART'
                     ? 'border-white/90 ring-2 ring-white bg-zinc-800 text-white shadow-[0_0_15px_rgba(255,255,255,0.4)]'
                     : 'border-white/10 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300'
@@ -795,15 +805,16 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
               </button>
             )}
 
-            {onExit && (
+            {!hideExit && onExit && (
               <button
+                tabIndex={0}
                 onClick={() => {
                   setIsPauseOpen(false);
                   setFocusedControl('NONE');
                   onExit();
                 }}
                 data-testid="tv-exit-btn"
-                className={`w-full p-5 rounded-2xl border font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between transition cursor-pointer ${
+                className={`w-full p-5 rounded-2xl border font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between transition cursor-pointer focus:outline-none focus:ring-4 focus:ring-white focus:scale-105 ${
                   focusedControl === 'EXIT'
                     ? 'border-red-500/90 ring-2 ring-red-500 bg-red-950/80 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.4)]'
                     : 'border-red-900/60 bg-red-950/40 hover:bg-red-900/60 text-red-300'

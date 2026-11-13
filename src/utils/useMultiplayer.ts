@@ -151,6 +151,11 @@ export function useMultiplayer({
         setIsIntroPhase(false);
         return;
       }
+      if (action.type === "TURN_TIMEOUT") {
+        setToastMessage("Время хода истекло. Ход передан оппоненту.");
+        dispatchAction({ type: "TURN_TIMEOUT", senderId: "remote" });
+        return;
+      }
       if (action.type === "REQUEST_RESTART") {
         dispatchAction({ ...action, senderId: "remote" });
       } else if (action.type === "REJECT_RESTART") {

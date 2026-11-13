@@ -581,6 +581,35 @@ describe("Room Lifecycle & Security Enhancements (Stage 1.1)", () => {
         .map((s) => JSON.parse(s))
         .find((m) => m.type === "TURN_TIMEOUT");
       expect(timeoutMsg).toBeDefined();
+      expect(server.state.gameState.currentTurn).toBe("DETECTIVE");
+    });
+
+    it("TIMER-03: handleTurnTimeout switches active player on server and restarts timer for next turn", () => {
+      const hostConn = createMockConn("conn_host_timer");
+      connections.push(hostConn);
+      server.onConnect(hostConn, {
+        request: new Request("http://localhost:1999/party/lifecycle-test-room?clientId=c_host_timer&isHost=true"),
+      });
+
+      const guestConn = createMockConn("conn_guest_timer");
+      connections.push(guestConn);
+      server.onConnect(guestConn, {
+        request: new Request("http://localhost:1999/party/lifecycle-test-room?clientId=c_guest_timer&isHost=false"),
+      });
+
+      server.onMessage(JSON.stringify({ type: "START_MATCH" }), hostConn);
+      expect(server.state.gameState.currentTurn).toBe("KILLER");
+
+      // Запускаем таймер на 10 сек для KILLER
+      server.startTurnTimer("KILLER", 10000);
+      vi.advanceTimersByTime(10000);
+
+      // Сервер должен переключить стейт на DETECTIVE
+      expect(server.state.gameState.currentTurn).toBe("DETECTIVE");
+
+      // И автоматически перезапустить таймер для следующего игрока (DETECTIVE)
+      vi.advanceTimersByTime(30000);
+      expect(server.state.gameState.currentTurn).toBe("KILLER");
     });
 
     it("TV-01: TV display keeps room and session alive when all mobile controllers disconnect", () => {

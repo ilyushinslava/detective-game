@@ -5,6 +5,7 @@ import {
   createInitialState,
   cleanupDeadCharacters,
   canCleanupBoard,
+  shiftBoard,
 } from "../gameLogic";
 import type { Character, GameState } from "../../types/game";
 
@@ -84,5 +85,66 @@ describe("Ядро правил игры (gameLogic)", () => {
     // Убиваем персонажа в начале поля
     aliveBoard[0][1].isAlive = false;
     expect(canCleanupBoard(aliveBoard)).toBe(true);
+  });
+
+  describe("shiftBoard: строгая валидация и защита от выхода за границы", () => {
+    const createBoard3x3 = (): Character[][] => [
+      [createMockChar("c1", "A"), createMockChar("c2", "B"), createMockChar("c3", "C")],
+      [createMockChar("c4", "D"), createMockChar("c5", "E"), createMockChar("c6", "F")],
+      [createMockChar("c7", "G"), createMockChar("c8", "H"), createMockChar("c9", "I")],
+    ];
+
+    it("безопасно возвращает исходное поле при выходе индекса за границы (index < 0 или index >= size)", () => {
+      const board = createBoard3x3();
+
+      // Отрицательный индекс строки
+      const resNegRow = shiftBoard(board, "ROW", -1, "FORWARD");
+      expect(resNegRow).toBe(board);
+
+      // Индекс строки равен длине (3)
+      const resOverflowRow = shiftBoard(board, "ROW", 3, "FORWARD");
+      expect(resOverflowRow).toBe(board);
+
+      // Отрицательный индекс колонки
+      const resNegCol = shiftBoard(board, "COL", -5, "BACKWARD");
+      expect(resNegCol).toBe(board);
+
+      // Индекс колонки за пределами
+      const resOverflowCol = shiftBoard(board, "COL", 99, "BACKWARD");
+      expect(resOverflowCol).toBe(board);
+    });
+
+    it("безопасно отклоняет невалидные типы индексов (NaN, нецелые числа)", () => {
+      const board = createBoard3x3();
+
+      expect(shiftBoard(board, "ROW", NaN as any, "FORWARD")).toBe(board);
+      expect(shiftBoard(board, "ROW", 1.5 as any, "FORWARD")).toBe(board);
+      expect(shiftBoard(board, "ROW", "0" as any, "FORWARD")).toBe(board);
+      expect(shiftBoard(board, "ROW", undefined as any, "FORWARD")).toBe(board);
+    });
+
+    it("безопасно обрабатывает невалидную структуру поля или невалидные направления", () => {
+      expect(shiftBoard([] as any, "ROW", 0, "FORWARD")).toEqual([]);
+      expect(shiftBoard(null as any, "ROW", 0, "FORWARD")).toBeNull();
+
+      const board = createBoard3x3();
+      expect(shiftBoard(board, "INVALID" as any, 0, "FORWARD")).toBe(board);
+      expect(shiftBoard(board, "ROW", 0, "SIDEWAYS" as any)).toBe(board);
+    });
+
+    it("корректно сдвигает валидные строки и колонки (тороидальный сдвиг)", () => {
+      const board = createBoard3x3();
+
+      // Сдвиг строки 0 FORWARD (вправо): c3 становится на место c1
+      const shiftedRow = shiftBoard(board, "ROW", 0, "FORWARD");
+      expect(shiftedRow[0].map(c => c.id)).toEqual(["c3", "c1", "c2"]);
+      expect(shiftedRow[1].map(c => c.id)).toEqual(["c4", "c5", "c6"]);
+
+      // Сдвиг колонки 1 FORWARD (вниз): c8 становится на место c2
+      const shiftedCol = shiftBoard(board, "COL", 1, "FORWARD");
+      expect(shiftedCol[0][1].id).toBe("c8");
+      expect(shiftedCol[1][1].id).toBe("c2");
+      expect(shiftedCol[2][1].id).toBe("c5");
+    });
   });
 });

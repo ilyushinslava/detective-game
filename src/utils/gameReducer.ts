@@ -39,7 +39,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     "MATCH_STARTED", "RESTART_GAME", "REQUEST_RESTART", 
     "CONFIRM_RESTART", "REJECT_RESTART", "SET_MATCH_POT", "PLAYER_READY", 
     "SET_INSPECTOR_ROLE", "CLEANUP", "CLEAR_DISGUISE_NOTIFICATION", "END_TURN",
-    "TIMEOUT_PASS", "DUEL_TIMEOUT_PASS", "RESTART_DUEL", "RESOLVE_DUEL_TIE_BREAK"
+    "TURN_TIMEOUT", "TIMEOUT_PASS", "DUEL_TIMEOUT_PASS", "RESTART_DUEL", "RESOLVE_DUEL_TIE_BREAK"
   ];
   
   // Авторитетный сервер сам валидирует очередность. На клиентах блокировку не делаем.
@@ -60,6 +60,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       const newBoard = shiftBoard(state.board, shiftType, index, direction);
+      if (newBoard === state.board) {
+        return state;
+      }
       const nextTurn = state.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER";
 
       let nextSpyIndex = state.activeSpyIndex;
@@ -368,17 +371,43 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    case "TURN_TIMEOUT":
     case "TIMEOUT_PASS":
     case "DUEL_TIMEOUT_PASS": {
       if (state.winner) return state;
+      if (state.mode === "SECRET_SERVICE" && state.spies && state.spies.length > 0) {
+        const nextSpyIndex = ((state.activeSpyIndex ?? 0) + 1) % state.spies.length;
+        const nextSpy = state.spies[nextSpyIndex];
+        return {
+          ...state,
+          activeSpyIndex: nextSpyIndex,
+          detectiveSecretId: nextSpy?.secretId || state.detectiveSecretId,
+          blockedShift: null,
+          lastSpyInterrogation: null,
+          log: [
+            ...state.log,
+            `Время хода истекло. Ход переходит к агенту: ${nextSpy?.name || `Агент ${nextSpyIndex + 1}`}.`,
+          ],
+        };
+      }
       const nextTurn: Role = state.currentTurn === "DETECTIVE" ? "KILLER" : "DETECTIVE";
-      const roleName = state.currentTurn === "DETECTIVE" ? "Следователь" : "Подозреваемый";
+      let roleName = "Соперник";
+      if (state.mode === "LINE_UP") {
+        roleName = nextTurn === "DETECTIVE" ? "Следователь" : "Подозреваемый";
+      } else if (state.mode === "MANIAC_VS_OPERATIVE") {
+        roleName = nextTurn === "DETECTIVE" ? "Оперативник" : "Маньяк";
+      } else if (state.mode === "THIEF_HUNT") {
+        roleName = nextTurn === "DETECTIVE" ? "Полиция" : "Грабитель";
+      } else {
+        roleName = nextTurn === "DETECTIVE" ? "Сыщик" : "Преступник";
+      }
       return {
         ...state,
         currentTurn: nextTurn,
+        blockedShift: null,
         log: [
           ...state.log,
-          `Время хода истекло. Ход переходит к роли: ${roleName === "Следователь" ? "Подозреваемый" : "Следователь"}.`,
+          `Время хода истекло. Ход переходит к роли: ${roleName}.`,
         ],
       };
     }

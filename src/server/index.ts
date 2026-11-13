@@ -141,8 +141,27 @@ export default class GameRoomServer {
   private handleTurnTimeout(): void {
     this.turnTimerState.timer = null;
     this.turnTimerState.isPaused = false;
-    // При истечении времени хода смена хода обрабатывается сервером
-    this.broadcastRaw(JSON.stringify({ type: "TURN_TIMEOUT" }));
+
+    if (!this.state.gameState || this.state.status !== "PLAYING" || this.state.gameState.winner) {
+      this.broadcastRaw(JSON.stringify({ type: "TURN_TIMEOUT" }));
+      return;
+    }
+
+    const nextState = gameReducer(this.state.gameState, { type: "TURN_TIMEOUT" });
+    if (nextState !== this.state.gameState) {
+      this.state.gameState = nextState;
+      if (nextState.winner) {
+        this.state.status = "FINISHED";
+        this.broadcastStatus();
+      } else {
+        const nextRole = nextState.currentTurn || "DETECTIVE";
+        this.startTurnTimer(nextRole, this.turnTimerState.totalDurationMs || 30000);
+      }
+      this.broadcastRaw(JSON.stringify({ type: "TURN_TIMEOUT" }));
+      this.broadcastState();
+    } else {
+      this.broadcastRaw(JSON.stringify({ type: "TURN_TIMEOUT" }));
+    }
   }
 
   private handleDualDisconnectTimeout(): void {
@@ -957,6 +976,8 @@ export default class GameRoomServer {
         "CONFIRM_RESTART",
         "CHANGE_SETTINGS",
         "START_MATCH",
+        "TURN_TIMEOUT",
+        "TIMEOUT_PASS",
       ];
       if (!SYSTEM_ACTIONS.includes(action.type)) {
         if (!player && !((typeof process !== "undefined" && (process.env?.VITEST || process.env?.NODE_ENV === "test")) && action.type === "LINE_PREVIEW")) {

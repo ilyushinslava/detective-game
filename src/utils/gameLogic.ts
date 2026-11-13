@@ -354,8 +354,47 @@ export function shiftBoard(
   index: number,
   direction: "FORWARD" | "BACKWARD",
 ): Character[][] {
+  if (
+    !Array.isArray(board) ||
+    board.length === 0 ||
+    !Array.isArray(board[0]) ||
+    board[0].length === 0
+  ) {
+    console.warn("[shiftBoard] Некорректная структура игрового поля: ожидается непустой двумерный массив.");
+    return board;
+  }
+
+  const numRows = board.length;
+  const numCols = board[0].length;
+
+  if (typeof index !== "number" || !Number.isInteger(index) || Number.isNaN(index)) {
+    console.warn(`[shiftBoard] Некорректный индекс "${index}". Индекс обязан быть целым числом.`);
+    return board;
+  }
+
+  if (type !== "ROW" && type !== "COL") {
+    console.warn(`[shiftBoard] Некорректный тип линии "${type}". Допустимы только 'ROW' или 'COL'.`);
+    return board;
+  }
+
+  if (direction !== "FORWARD" && direction !== "BACKWARD") {
+    console.warn(`[shiftBoard] Некорректное направление "${direction}". Допустимы только 'FORWARD' или 'BACKWARD'.`);
+    return board;
+  }
+
+  if (type === "ROW") {
+    if (index < 0 || index >= numRows) {
+      console.warn(`[shiftBoard] Выход за границы: индекс строки ${index} вне диапазона [0, ${numRows - 1}].`);
+      return board;
+    }
+  } else {
+    if (index < 0 || index >= numCols) {
+      console.warn(`[shiftBoard] Выход за границы: индекс колонки ${index} вне диапазона [0, ${numCols - 1}].`);
+      return board;
+    }
+  }
+
   const newBoard = board.map((row) => [...row]);
-  const size = newBoard.length;
 
   if (type === "ROW") {
     const row = [...newBoard[index]];
@@ -369,7 +408,7 @@ export function shiftBoard(
     newBoard[index] = row;
   } else {
     const col: Character[] = [];
-    for (let r = 0; r < size; r++) col.push(newBoard[r][index]);
+    for (let r = 0; r < numRows; r++) col.push(newBoard[r][index]);
     if (direction === "FORWARD") {
       const last = col.pop()!;
       col.unshift(last);
@@ -377,7 +416,7 @@ export function shiftBoard(
       const first = col.shift()!;
       col.push(first);
     }
-    for (let r = 0; r < size; r++) newBoard[r][index] = col[r];
+    for (let r = 0; r < numRows; r++) newBoard[r][index] = col[r];
   }
 
   return newBoard;

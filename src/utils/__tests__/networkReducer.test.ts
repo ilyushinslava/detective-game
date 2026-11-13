@@ -55,4 +55,30 @@ describe("Сетевой редьюсер и синхронизация (gameRed
     const nextState = gameReducer(state, action);
     expect(nextState).toBe(state); // Стейт не изменился
   });
+
+  it("TURN_TIMEOUT: корректно передает ход оппоненту и сбрасывает блокировки", () => {
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "KILLER");
+    state.currentTurn = "KILLER";
+    state.blockedShift = { type: "ROW", index: 1 };
+
+    const nextState = gameReducer(state, { type: "TURN_TIMEOUT" });
+    expect(nextState.currentTurn).toBe("DETECTIVE");
+    expect(nextState.blockedShift).toBeNull();
+    expect(nextState.log[nextState.log.length - 1]).toContain("Время хода истекло");
+
+    // Обратный таймаут: от DETECTIVE к KILLER
+    const backState = gameReducer(nextState, { type: "TURN_TIMEOUT" });
+    expect(backState.currentTurn).toBe("KILLER");
+  });
+
+  it("TURN_TIMEOUT в SECRET_SERVICE: переключает activeSpyIndex и detectiveSecretId на следующего шпиона", () => {
+    const state = createInitialState("SECRET_SERVICE", "ONLINE", "DETECTIVE", 3);
+    state.activeSpyIndex = 0;
+    const nextSpySecretId = state.spies![1].secretId;
+
+    const nextState = gameReducer(state, { type: "TURN_TIMEOUT" });
+    expect(nextState.activeSpyIndex).toBe(1);
+    expect(nextState.detectiveSecretId).toBe(nextSpySecretId);
+    expect(nextState.log[nextState.log.length - 1]).toContain("Время хода истекло");
+  });
 });

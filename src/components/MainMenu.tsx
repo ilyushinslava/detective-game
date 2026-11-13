@@ -2,19 +2,37 @@ import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import type { GameModeType, OpponentType, Role } from "../types/game";
 import type { UserProfile } from "../types/profile";
-import { triggerHaptic, setHapticsEnabled } from "../utils/haptics";
-import { partyService } from "../utils/partyPeer";
+import { triggerHaptic } from "../utils/haptics";
 import { soundManager } from "../utils/audio";
-import { Toast } from "./Toast";
+import { useBannerViewer } from "../contexts/BannerViewerContext";
+import { getGameModesList } from "../constants/gameMeta";
+import { useTranslation } from "../i18n/context";
+import { useLobbyNetwork } from "../hooks/useLobbyNetwork";
+import { Icons } from "./ui/Icons";
+import { TablesScreen } from "./TablesScreen";
+import { ProfileScreen } from "./ProfileScreen";
 import { CreateRoomModal } from "./lobby/CreateRoomModal";
 import { LobbyWaitingModal } from "./lobby/LobbyWaitingModal";
 import { ModeShowcase } from "./lobby/ModeShowcase";
-import { Button } from "./ui/Button";
-import { Modal } from "./ui/Modal";
-import { Icons } from "./ui/Icons";
-import { useBannerViewer } from "../contexts/BannerViewerContext";
-import { GAME_MODES_META, getGameModesList, getGameModeTitle, getGameModeShortTitle } from "../constants/gameMeta";
+import { ModesList } from "./lobby/ModesList";
+import { ModeDetailView } from "./lobby/ModeDetailView";
+import { LobbyHeader } from "./lobby/LobbyHeader";
+import { LobbyBottomNav } from "./lobby/LobbyBottomNav";
+import { TvPartyModal } from "./lobby/TvPartyModal";
+import { SettingsModal } from "./lobby/SettingsModal";
 import lobbyBg from "../assets/lobby_background.webp";
+
+// Асинхронный динамический чанк для тяжелого модуля Академии (TASK-ARCH-001)
+const TutorialScreen = lazy(() => import("./TutorialScreen").then((m) => ({ default: m.TutorialScreen })));
+
+const TutorialFullscreenFallback = () => (
+  <div className="fixed inset-0 z-[100] bg-[#080a0f] flex items-center justify-center select-none">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-9 h-9 border-2 border-emerald-500/20 border-t-emerald-400 rounded-full animate-spin" />
+      <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">Загрузка Академии...</span>
+    </div>
+  </div>
+);
 
 const MODE_BANNER_IMAGE: Record<GameModeType, string> = {
   MANIAC_VS_OPERATIVE: "/assets/modes/maniac-banner.webp",
@@ -23,37 +41,6 @@ const MODE_BANNER_IMAGE: Record<GameModeType, string> = {
   LINE_UP: "/assets/modes/lineup-banner.webp",
 };
 
-import { TablesScreen } from "./TablesScreen";
-import { ProfileScreen } from "./ProfileScreen";
-
-// Асинхронный динамический чанк для тяжелого модуля Академии (TASK-ARCH-001)
-const TutorialScreen = lazy(() => import("./TutorialScreen").then((m) => ({ default: m.TutorialScreen })));
-
-const ScreenFallback = () => (
-  <div className="flex-1 w-full flex items-center justify-center min-h-[300px] text-blue-400 select-none">
-    <div className="flex flex-col items-center gap-3">
-      <div className="w-8 h-8 border-2 border-blue-500/20 border-t-blue-400 rounded-full animate-spin" />
-      <span className="text-[11px] font-mono tracking-widest text-zinc-400 uppercase">
-        Загрузка...
-      </span>
-    </div>
-  </div>
-);
-
-const TutorialFullscreenFallback = () => (
-  <div className="fixed inset-0 z-[100] bg-[#080a0f] flex items-center justify-center select-none">
-    <div className="flex flex-col items-center gap-3">
-      <div className="w-9 h-9 border-2 border-emerald-500/20 border-t-emerald-400 rounded-full animate-spin" />
-      <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">
-        Загрузка Академии...
-      </span>
-    </div>
-  </div>
-);
-
-declare const __BUILD_TIMESTAMP__: string;
-import { useTranslation } from "../i18n/context";
-
 const MODE_ICONS: Record<GameModeType, React.ComponentType<{ className?: string }>> = {
   MANIAC_VS_OPERATIVE: Icons.Fingerprint,
   THIEF_HUNT: Icons.ShieldLock,
@@ -61,1085 +48,338 @@ const MODE_ICONS: Record<GameModeType, React.ComponentType<{ className?: string 
   LINE_UP: Icons.Search,
 };
 
-const GAME_MODES = getGameModesList().map((mode) => ({
-  ...mode,
-  icon: MODE_ICONS[mode.id],
-}));
+const GAME_MODES = getGameModesList().map((mode) => ({ ...mode, icon: MODE_ICONS[mode.id] }));
 
 const ROOM_FILTERS = [
   { id: "ALL", label: "Все" },
-  { id: "MANIAC_VS_OPERATIVE", label: GAME_MODES_META.MANIAC_VS_OPERATIVE.shortTitle.ru },
-  { id: "THIEF_HUNT", label: GAME_MODES_META.THIEF_HUNT.shortTitle.ru },
-  { id: "SECRET_SERVICE", label: GAME_MODES_META.SECRET_SERVICE.shortTitle.ru },
-  { id: "LINE_UP", label: GAME_MODES_META.LINE_UP.shortTitle.ru },
+  { id: "MANIAC_VS_OPERATIVE", label: "Почерк" },
+  { id: "THIEF_HUNT", label: "Оцепление" },
+  { id: "SECRET_SERVICE", label: "Директива" },
+  { id: "LINE_UP", label: "Ставка" },
 ];
 
-type ScreenType = 'HOME' | 'MODES' | 'MODE_DETAIL' | 'PROFILE' | 'TABLES';
+export type ScreenType = "HOME" | "MODES" | "MODE_DETAIL" | "PROFILE" | "TABLES";
 
-interface MainMenuProps {
+export interface MainMenuProps {
   onStartTvParty?: (role?: "TV_DISPLAY" | "CONTROLLER") => void;
   profile: UserProfile;
-  onUpdateProfile?: (updates: Partial<UserProfile>) => void;
-  activeTab: "LOBBY" | "TABLES" | "TOP" | "SHOP";
-  onTabChange: (tab: "LOBBY" | "TABLES" | "TOP" | "SHOP") => void;
+  onUpdateProfile?: (profile: Partial<UserProfile>) => void;
+  activeTab: "LOBBY" | "TABLES" | "TOP";
+  onTabChange: (tab: "LOBBY" | "TABLES" | "TOP") => void;
   onStartGame: (
-    modeId: GameModeType,
+    mode: GameModeType,
     opponent: OpponentType,
-    playerRole: Role,
-    playerCount?: number,
-    targetTrophies?: number,
-    maxTurns?: number,
-    betAmount?: number,
+    playerRole?: Role,
+    playersCount?: number,
+    targetVictims?: number,
+    targetScore?: number,
+    bet?: number,
+    guestNickname?: string
   ) => void;
-  hasActiveGame: boolean;
-  onResumeGame: () => void;
-  onOpenRules: () => void;
+  hasActiveGame?: boolean;
+  onResumeGame?: () => void;
+  onOpenRules?: () => void;
   onOpenDevPanel?: () => void;
 }
 
 export const MainMenu = ({
+  onStartTvParty,
   profile,
   onUpdateProfile,
   activeTab,
   onTabChange,
   onStartGame,
-  onStartTvParty,
-  hasActiveGame,
+  hasActiveGame = false,
   onResumeGame,
   onOpenRules,
   onOpenDevPanel,
 }: MainMenuProps) => {
-  const { t, lang, setLang } = useTranslation();
-  
-  const [screen, setScreen] = useState<ScreenType>('HOME');
-  const [navDirection, setNavDirection] = useState<'forward' | 'backward' | 'none'>('none');
+  const { t } = useTranslation();
+  const { openBanner } = useBannerViewer();
+
+  // Навигационные и UI состояния
+  const [screen, setScreen] = useState<ScreenType>("HOME");
+  const [navDirection, setNavDirection] = useState<"forward" | "backward" | "none">("none");
+  const [selectedMode, setSelectedMode] = useState<GameModeType>("MANIAC_VS_OPERATIVE");
+  const [selectedOpponent, setSelectedOpponent] = useState<OpponentType>("AI");
+  const [selectedRole, setSelectedRole] = useState<Role>("DETECTIVE");
+  const [playerCount, setPlayerCount] = useState<number>(3);
+  const [isTvPartyModalOpen, setIsTvPartyModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+
+  // Свайп-жесты возврата назад
+  const [isEdgeDragging, setIsEdgeDragging] = useState(false);
+  const dragControls = useDragControls();
+  const screenContainerRef = useRef<HTMLDivElement>(null);
+
+  // Сетевой хук лобби (матчмейкинг, создание и поиск комнат)
+  const network = useLobbyNetwork({ profile, screen, onStartGame });
 
   const navigateTo = (nextScreen: ScreenType) => {
-    setNavDirection('forward');
+    soundManager.play("tapMenu");
+    setNavDirection("forward");
     setScreen(nextScreen);
   };
 
   const navigateBack = (prevScreen: ScreenType) => {
-    setNavDirection('backward');
+    soundManager.play("tapMenu");
+    setNavDirection("backward");
     setScreen(prevScreen);
   };
-  const [selectedMode, setSelectedMode] = useState<GameModeType>("MANIAC_VS_OPERATIVE");
-  const [selectedOpponent, setSelectedOpponent] = useState<OpponentType>("AI");
-  const [selectedRole, setSelectedRole] = useState<Role>("DETECTIVE");
-  const [isTvPartyModalOpen, setIsTvPartyModalOpen] = useState(false);
-  const [playerCount, setPlayerCount] = useState<number>(3);
-  const { openBanner: handleOpenBanner } = useBannerViewer();
 
-  const [publicRooms, setPublicRooms] = useState<Array<{
-    roomCode: string;
-    mode: string;
-    hostName: string;
-    status: string;
-    playersCount: number;
-    maxPlayers: number;
-    bet?: number;
-  }>>([]);
-  const [joinCode, setJoinCode] = useState("");
-  const [roomFilter, setRoomFilter] = useState<string>("ALL");
-  const [isCreateRoomOpen, setIsCreateRoomOpen] = useState(false);
-  const [createRoomMode, setCreateRoomMode] = useState<GameModeType>("MANIAC_VS_OPERATIVE");
-  const [createRoomBet] = useState<number>(250);
-  const [createRoomIsPrivate, setCreateRoomIsPrivate] = useState<boolean>(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
-  const [partyRoomCode, setPartyRoomCode] = useState<string>("");
-
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [editNameValue, setEditNameValue] = useState(profile.nickname);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isSfxEnabled, setIsSfxEnabled] = useState(soundManager.getSfxEnabled());
-  const [isAmbientEnabled, setIsAmbientEnabled] = useState(soundManager.getAmbientEnabled());
-  const [isHapticsEnabled, setIsHapticsEnabled] = useState(() => {
-    return localStorage.getItem("crime_city_haptics") !== "false";
-  });
-  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
-  const [, setTutorialStep] = useState(1);
-
+  // Синхронизация внешнего activeTab с внутренним screen
   useEffect(() => {
-    if (activeTab === "LOBBY" && screen !== 'HOME' && screen !== 'MODES' && screen !== 'MODE_DETAIL') {
-      setNavDirection('none');
-      setScreen('HOME');
-    }
-    if (activeTab === "TABLES" && screen !== 'TABLES') {
-      setNavDirection('none');
-      setScreen('TABLES');
-    }
-    if (activeTab === "TOP" && screen !== 'PROFILE') {
-      setNavDirection('none');
-      setScreen('PROFILE');
+    if (activeTab === "LOBBY" && screen !== "HOME" && screen !== "MODES" && screen !== "MODE_DETAIL") {
+      setNavDirection("none"); setScreen("HOME");
+    } else if (activeTab === "TABLES" && screen !== "TABLES") {
+      setNavDirection("none"); setScreen("TABLES");
+    } else if (activeTab === "TOP" && screen !== "PROFILE") {
+      setNavDirection("none"); setScreen("PROFILE");
     }
   }, [activeTab]);
 
+  // Фоновая предзагрузка Академии
   useEffect(() => {
-    // Фоновая предзагрузка тяжелого чанка Академии после инициализации меню
     const prefetchTimer = setTimeout(() => {
       import("./TutorialScreen");
     }, 1200);
     return () => clearTimeout(prefetchTimer);
   }, []);
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    let isSubscribed = true;
-
-    const loadRooms = async () => {
-      if (screen === "TABLES") {
-        try {
-          const rooms = await partyService.fetchPublicRooms();
-          if (isSubscribed) {
-            setPublicRooms(rooms as any);
-          }
-        } catch (e) {
-          console.warn("fetchPublicRooms error:", e);
-        }
-      }
-    };
-
-    if (screen === "TABLES") {
-      loadRooms();
-      timer = setInterval(loadRooms, 3000);
-    }
-
-    return () => {
-      isSubscribed = false;
-      if (timer) clearInterval(timer);
-    };
-  }, [screen]);
-
-  const handleSaveName = () => {
-    setIsEditingName(false);
-    const trimmed = editNameValue.trim();
-    const isValid = /^[a-zA-Zа-яА-Я0-9 _-]+$/.test(trimmed) && trimmed.length >= 2 && trimmed.length <= 14;
-
-    if (isValid && trimmed !== profile.nickname) {
-      if (onUpdateProfile) onUpdateProfile({ nickname: trimmed });
-      localStorage.setItem("crime_city_callsign", trimmed);
-    } else if (!isValid) {
-      const fallback = "Агент";
-      if (onUpdateProfile) onUpdateProfile({ nickname: fallback });
-      localStorage.setItem("crime_city_callsign", fallback);
-      setEditNameValue(fallback);
-    } else {
-      setEditNameValue(profile.nickname);
-    }
-  };
-
-  const connectToPartyRoom = (
-    code: string,
-    mode: GameModeType,
-    isHost: boolean,
-    _bet: number = 250,
-    isPrivate: boolean = false,
-  ) => {
-    const cleanCode = String(code).trim();
-    partyService.roomCode = cleanCode;
-    setPartyRoomCode(cleanCode);
-    setIsCreating(false);
-    setIsCreateRoomOpen(false);
-    setIsWaitingForOpponent(true);
-
-    sessionStorage.setItem(
-      "mp_session",
-      JSON.stringify({
-        roomCode: cleanCode,
-        isHost,
-        mode,
-        nickname: profile.nickname,
-      })
-    );
-
-    partyService.connect(cleanCode, profile.nickname || "Агент", isHost, mode, undefined, undefined, isPrivate);
-  };
-  
-
-  const [matchmakingCancel, setMatchmakingCancel] = useState<(() => void) | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (matchmakingCancel) {
-        matchmakingCancel();
-      }
-    };
-  }, [matchmakingCancel]);
-
-  const handleQuickPlay = async () => {
-    triggerHaptic("heavy");
-    setIsCreating(true);
-
-    const cancelFn = partyService.startMatchmaking(
-      {
-        mode: "MANIAC_VS_OPERATIVE",
-        nickname: profile.nickname || "Агент",
-        rank: profile.rank || "СТАЖЁР",
-        bet: 250,
-      },
-      (event) => {
-        if (event.type === "MATCH_FOUND") {
-          setIsCreating(false);
-          setMatchmakingCancel(null);
-          const { roomCode, mode, isHost, bet, isAiMatch, role } = event.payload;
-
-          if (isAiMatch) {
-            onStartGame(
-              mode || "MANIAC_VS_OPERATIVE",
-              "AI",
-              role || "KILLER",
-              2,
-              3,
-              16,
-              bet || 250
-            );
-          } else {
-            connectToPartyRoom(roomCode, mode || "MANIAC_VS_OPERATIVE", isHost, bet || 250, false);
-          }
-        } else if (event.type === "ERROR" || event.type === "QUEUE_LEFT") {
-          setIsCreating(false);
-          setMatchmakingCancel(null);
-        }
-      }
-    );
-
-    setMatchmakingCancel(() => cancelFn);
-  };
-
-  const handleConfirmCreateRoom = () => {
-    triggerHaptic("medium");
-    setIsCreating(true);
-    setIsCreateRoomOpen(false);
-    const code = `room_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`;
-    connectToPartyRoom(code, createRoomMode, true, createRoomBet, createRoomIsPrivate);
-  };
-
-  const handleJoinRoom = (code: string, mode?: GameModeType) => {
-    const cleanCode = String(code).trim();
-    if (!cleanCode) return;
-    triggerHaptic("light");
-    setIsCreating(true);
-    connectToPartyRoom(cleanCode, mode || "MANIAC_VS_OPERATIVE", false, 0, false);
-  };
-
-  const filteredRooms = publicRooms.filter((r) => roomFilter === "ALL" || r.mode === roomFilter);
-  const activeModeData = GAME_MODES.find(m => m.id === selectedMode) || GAME_MODES[0];
-
-  const renderHome = () => (
-    <div className="relative flex-1 flex flex-col bg-[#080a0f] w-full max-w-full overflow-x-hidden overflow-y-auto custom-scrollbar">
-      {/* Background with vivid city lights and noir vignetting (no blur, 55% opacity) */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden select-none">
-        <img 
-          src={lobbyBg} 
-          alt="Astoria City Noir" 
-          className="w-full h-full object-cover object-center opacity-55 scale-100 transition-opacity duration-700"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/40 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#080a0f]/80 via-transparent to-[#080a0f]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#080a0f_90%)] opacity-85" />
-      </div>
-
-      <div className="relative z-10 flex-1 flex flex-col justify-between pt-[max(0.5rem,env(safe-area-inset-top))] pb-3 px-4 sm:px-6 lg:px-8 max-w-7xl w-full max-w-full mx-auto min-h-0 overflow-x-hidden">
-        {/* Top Header Bar: Left Title, Right Service Info */}
-        <header className="flex items-center justify-between shrink-0 py-2 sm:py-3 lg:py-4 mb-2 lg:mb-4 border-b border-white/5 lg:border-b-0 w-full max-w-full">
-          <div className="flex items-center gap-2.5 sm:gap-3.5 select-none min-w-0 pr-2">
-            <span className="h-3 w-3 sm:h-3.5 sm:w-3.5 rounded-full bg-red-600 animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.85)] shrink-0" />
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-white uppercase leading-none drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)] truncate sm:overflow-visible">
-              {t.menu.title}
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Agent Callsign / Dossier Pill (Hidden on mobile < sm) */}
-            <button
-              onClick={() => { soundManager.play('tapMenu'); setNavDirection('none'); setScreen('PROFILE'); onTabChange('TOP'); }}
-              className="hidden sm:flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 rounded-full bg-zinc-900/80 border border-white/10 hover:border-blue-500/40 hover:bg-zinc-800/80 transition cursor-pointer shadow-lg active:scale-95 group text-left shrink-0"
-              title="Досье агента"
-            >
-              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-zinc-950 border border-white/10 flex items-center justify-center text-xs sm:text-sm shrink-0">
-                {profile.avatar ? (
-                  profile.avatar
-                ) : (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-zinc-400">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                )}
-              </div>
-              <div className="flex flex-col leading-none">
-                <span className="text-[10px] sm:text-xs font-black tracking-wider text-zinc-200 uppercase group-hover:text-white transition truncate max-w-[85px] sm:max-w-[120px]">
-                  {profile.nickname}
-                </span>
-                <span className="text-[9px] sm:text-[10px] font-mono text-zinc-400 tracking-widest uppercase mt-0.5">
-                  {profile.rank || "Стажёр"}
-                </span>
-              </div>
-            </button>
-
-            {/* Dev Panel Cash Pill */}
-            <div
-              onClick={() => { onOpenDevPanel?.(); }}
-              className="rounded-full bg-zinc-900/80 border border-white/10 hover:border-amber-500/40 hover:bg-zinc-800/80 px-3.5 py-1.5 flex items-center gap-1.5 shadow-lg cursor-pointer transition active:scale-95 shrink-0"
-              title="Открыть Dev-панель"
-            >
-              <Icons.Coin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span className="text-zinc-100 font-mono text-xs font-bold">{profile.cash.toLocaleString()}</span>
-            </div>
-
-            {/* Settings Cog Button */}
-            <button 
-              onClick={() => setIsSettingsOpen(true)}
-              className="w-10 h-10 rounded-full bg-zinc-900/80 border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white hover:border-white/20 transition cursor-pointer shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500/50 shrink-0"
-              title="Настройки"
-            >
-              <Icons.Settings />
-            </button>
-          </div>
-        </header>
-
-        <ModeShowcase
-          hasActiveGame={hasActiveGame}
-          onResumeGame={onResumeGame}
-          isCreating={isCreating}
-          onQuickPlay={handleQuickPlay}
-          onSelectSolo={() => { setSelectedOpponent("AI"); navigateTo("MODES"); }}
-          onSelectLocalDuel={() => { setSelectedOpponent("PVP"); navigateTo("MODES"); }}
-          onOpenTvParty={() => setIsTvPartyModalOpen(true)}
-          onOpenOnline={() => { navigateTo("TABLES"); onTabChange("TABLES"); }}
-          onOpenRules={onOpenRules}
-          onOpenTutorial={() => setIsTutorialOpen(true)}
-          t={t}
-        />
-      </div>
-    </div>
-  );
-
-  const renderModes = () => (
-    <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden w-full h-full">
-      <div className="flex items-center px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-[#080a0f] relative">
-        <Button variant="ghost" onClick={() => navigateBack('HOME')} className="h-9 px-2 text-zinc-400 hover:text-white gap-1">
-          <Icons.ChevronLeft />
-          <span className="text-[10px] font-black uppercase tracking-widest">Назад</span>
-        </Button>
-        <h2 className="absolute left-1/2 -translate-x-1/2 text-sm md:text-base font-black tracking-widest text-zinc-100 uppercase">Выбор игры</h2>
-      </div>
-
-      <div className="flex-1 flex flex-col justify-center gap-2.5 max-w-xl mx-auto w-full px-4 py-2 min-h-0 overflow-y-auto custom-scrollbar">
-        {GAME_MODES.map((mode) => {
-          const ModeIcon = mode.icon || Icons.Crosshair;
-          const bannerPath = MODE_BANNER_IMAGE[mode.id];
-          const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
-          const bannerSrc = bannerPath ? `${base}${bannerPath.startsWith("/") ? bannerPath : "/" + bannerPath}` : null;
-
-          return (
-            <button
-              key={mode.id}
-              onClick={() => { setSelectedMode(mode.id); navigateTo('MODE_DETAIL'); }}
-              className="w-full relative overflow-hidden bg-zinc-950/70 hover:bg-zinc-900/90 border border-white/10 hover:border-white/25 rounded-2xl p-3.5 transition-all duration-200 cursor-pointer active:scale-[0.99] group text-left shadow-lg"
-            >
-              {bannerSrc && (
-                <div className="absolute right-0 top-0 bottom-0 w-1/3 overflow-hidden pointer-events-none opacity-20 group-hover:opacity-35 transition-opacity">
-                  <img src={bannerSrc} alt="" className="w-full h-full object-cover object-center" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/60 to-transparent" />
-                </div>
-              )}
-              <div className="relative z-10 flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-200 group-hover:text-white group-hover:border-white/30 transition-all shrink-0 shadow-inner">
-                  <ModeIcon className="w-5 h-5" />
-                </div>
-                <span className="px-3 py-1 rounded-full bg-zinc-900/90 border border-white/10 text-[11px] font-bold text-zinc-300 group-hover:text-white group-hover:border-white/30 transition-all flex items-center gap-1">
-                  ВЫБРАТЬ ➔
-                </span>
-              </div>
-
-              <div className="relative z-10 mt-2.5">
-                <h3 className="text-sm sm:text-base font-bold text-zinc-100 uppercase tracking-wide group-hover:text-white transition-colors">
-                  {mode.title}
-                </h3>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-
-  interface ModeSummaryItem {
-    icon: (props: { className?: string }) => JSX.Element;
-    title: string;
-    subtitle: string;
-  }
-
-  const getModeSummaryItems = (modeId: GameModeType): ModeSummaryItem[] => {
-    switch (modeId) {
-      case 'MANIAC_VS_OPERATIVE':
-        return [
-          { icon: Icons.Grid, title: '25 ЖИТЕЛЕЙ', subtitle: 'ПОДОЗРЕВАЕМЫЕ' },
-          { icon: Icons.Target, title: '4 ЖЕРТВЫ', subtitle: 'ЦЕЛЬ МАНЬЯКА' },
-          { icon: Icons.RadioRadar, title: 'РАДИУС 3×3', subtitle: 'ЗОНА ОХОТЫ' },
-        ];
-      case 'THIEF_HUNT':
-        return [
-          { icon: Icons.Grid, title: '25 КВАРТАЛОВ', subtitle: 'ГОРОДСКАЯ СЕТКА' },
-          { icon: Icons.Coins, title: '8 МОНЕТ', subtitle: 'ЦЕЛЬ ГРАБИТЕЛЯ' },
-          { icon: Icons.ShieldLock, title: 'ОЦЕПЛЕНИЕ', subtitle: 'БЛОК ПАТРУЛЕЙ' },
-        ];
-      case 'SECRET_SERVICE':
-        return [
-          { icon: Icons.Users, title: '2–6 АГЕНТОВ', subtitle: 'СПЕЦСЛУЖБЫ' },
-          { icon: Icons.FileText, title: 'КОМПРОМАТ', subtitle: 'СБОР 4 УЛИК' },
-          { icon: Icons.EyeOff, title: 'ПРИКРЫТИЕ', subtitle: 'ТАЙНЫЕ ЯВКИ' },
-        ];
-      case 'LINE_UP':
-        return [
-          { icon: Icons.Search, title: 'ДОСЬЕ 5×5', subtitle: 'КАРТОТЕКА ЛИЦ' },
-          { icon: Icons.HelpCircle, title: 'ВОПРОСЫ', subtitle: 'КАТАЛОГ УЛИК' },
-          { icon: Icons.Scale, title: 'ИСКЛЮЧЕНИЕ', subtitle: 'ЧИСТЫЙ РАСЧЕТ' },
-        ];
-      default:
-        return [
-          { icon: Icons.Grid, title: '25 КАРТ', subtitle: 'СЕТКА 5×5' },
-          { icon: Icons.Target, title: 'ДУЭЛЬ', subtitle: '1 НА 1' },
-          { icon: Icons.Search, title: 'ПОИСК', subtitle: 'ДЕДУКЦИЯ' },
-        ];
-    }
-  };
-
-  const renderModeDetail = () => {
-    const summaryItems = getModeSummaryItems(activeModeData.id);
-    const modeMeta = GAME_MODES_META[activeModeData.id];
-    const bannerPath = MODE_BANNER_IMAGE[activeModeData.id];
-    const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
-    const modeBannerSrc = bannerPath ? `${base}${bannerPath.startsWith("/") ? bannerPath : "/" + bannerPath}` : null;
-
-    return (
-      <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden relative w-full h-full">
-        <div className="flex items-center px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 z-10 bg-[#080a0f] relative">
-          <Button variant="ghost" onClick={() => navigateBack('MODES')} className="h-9 px-2 text-zinc-400 hover:text-white gap-1">
-            <Icons.ChevronLeft />
-            <span className="text-[10px] font-black uppercase tracking-widest">Назад</span>
-          </Button>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto custom-scrollbar pb-24 sm:pb-28">
-          <div className="px-4 sm:px-6 py-3.5 sm:py-4 w-full max-w-xl mx-auto flex flex-col gap-4 sm:gap-4.5">
-            {modeBannerSrc && (
-              <div
-                onClick={(e) => handleOpenBanner(e, modeBannerSrc, activeModeData.title)}
-                className={`relative w-full h-[100px] sm:h-[120px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${
-                  modeMeta?.banner?.borderColor || "border-zinc-800"
-                } shadow-lg cursor-pointer group select-none bg-zinc-950`}
-                title="Нажмите для просмотра полного фото"
-              >
-                <img
-                  src={modeBannerSrc}
-                  alt={activeModeData.title}
-                  className="absolute inset-0 w-full h-full object-cover object-center opacity-80 pointer-events-none"
-                />
-
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent pointer-events-none" />
-
-                <div className="absolute top-2.5 right-2.5 z-10 flex items-center justify-center p-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 opacity-85 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-zinc-300">
-                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
-                  </svg>
-                </div>
-
-                <div className="absolute bottom-2.5 left-3.5 right-3.5 z-10 flex items-end pointer-events-none">
-                  <h3 className="text-base sm:text-lg font-black uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-                    {activeModeData.title}
-                  </h3>
-                </div>
-              </div>
-            )}
-
-            <div>
-              <h3 className="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
-                СВОДКА РАССЛЕДОВАНИЯ
-              </h3>
-              <div className="grid grid-cols-3 gap-2 sm:gap-2.5 w-full">
-                {summaryItems.map((item, idx) => {
-                  const ItemIcon = item.icon;
-                  return (
-                    <div
-                      key={idx}
-                      className="bg-zinc-950/60 border border-white/10 rounded-2xl p-2.5 sm:p-3 flex flex-col items-center text-center justify-between min-h-[92px] sm:min-h-[96px] shadow-sm"
-                    >
-                      <ItemIcon className="w-5 h-5 text-zinc-300" />
-                      <span className="text-xs sm:text-sm font-black font-mono text-zinc-100 tracking-wider mt-1.5">
-                        {item.title}
-                      </span>
-                      <span className="text-[9px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-tight mt-0.5">
-                        {item.subtitle}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
-                Формат партии
-              </h3>
-              <div className="bg-zinc-900/80 border border-white/10 p-1 rounded-xl flex gap-1 w-full shadow-inner">
-                {(['AI', 'PVP', 'ONLINE'] as OpponentType[]).map(opp => {
-                  const isSelected = selectedOpponent === opp;
-                  return (
-                    <button
-                      key={opp}
-                      onClick={() => { setSelectedOpponent(opp); if (opp === 'PVP') setPlayerCount(2); }}
-                      className={`flex-1 py-2 text-xs font-bold rounded-lg text-center transition-all cursor-pointer ${
-                        isSelected
-                          ? 'text-white bg-zinc-800 border border-white/10 shadow-sm'
-                          : 'text-zinc-400 hover:text-zinc-200'
-                      }`}
-                    >
-                      {opp === 'AI' ? 'Против ИИ' : opp === 'PVP' ? 'Локально' : 'Онлайн'}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {selectedOpponent === 'AI' && activeModeData.id !== 'SECRET_SERVICE' && (
-              <div>
-                <h3 className="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
-                  Ваша роль
-                </h3>
-                <div className="flex gap-2.5">
-                  <button
-                    onClick={() => setSelectedRole('DETECTIVE')}
-                    className={`flex-1 py-2.5 sm:py-3 px-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer text-center ${
-                      selectedRole === 'DETECTIVE'
-                        ? 'bg-blue-950/40 border border-blue-500/50 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.15)]'
-                        : 'bg-zinc-950/40 border border-white/10 text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    {activeModeData.detectiveRoleName}
-                  </button>
-                  <button
-                    onClick={() => setSelectedRole('KILLER')}
-                    className={`flex-1 py-2.5 sm:py-3 px-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer text-center ${
-                      selectedRole === 'KILLER'
-                        ? 'bg-red-950/40 border border-red-500/50 text-red-300 shadow-[0_0_12px_rgba(239,68,68,0.15)]'
-                        : 'bg-zinc-950/40 border border-white/10 text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    {activeModeData.killerRoleName}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {activeModeData.id === 'SECRET_SERVICE' && (
-              <div className="w-full">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest">
-                    Количество агентов
-                  </h3>
-                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
-                    Сетка: {playerCount >= 5 ? "6×6 (36 карт)" : "5×5 (25 карт)"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 mb-2">
-                  {[2, 3, 4, 5, 6].map((num) => {
-                    const isPvpDisabled = selectedOpponent === "PVP" && num > 2;
-                    const isSelected = playerCount === num && !isPvpDisabled;
-                    return (
-                      <button
-                        key={num}
-                        disabled={isPvpDisabled}
-                        onClick={() => !isPvpDisabled && setPlayerCount(num)}
-                        className={`w-10 h-10 rounded-xl border text-xs font-bold uppercase transition flex items-center justify-center ${
-                          isSelected
-                            ? "bg-zinc-800 border-white/20 text-white font-black shadow-sm cursor-pointer"
-                            : isPvpDisabled
-                              ? "bg-zinc-950/40 border-white/[0.04] text-zinc-700 cursor-not-allowed opacity-50"
-                              : "bg-zinc-900/60 border-white/10 text-zinc-400 hover:text-zinc-200 hover:border-white/20 cursor-pointer"
-                        }`}
-                      >
-                        {num}
-                      </button>
-                    );
-                  })}
-                  <div
-                    title="Сетка 7×7 (49 карт) доступна только в ТВ-режиме"
-                    className="w-10 h-10 rounded-xl border border-white/[0.04] bg-zinc-950/40 text-zinc-600 flex flex-col items-center justify-center cursor-not-allowed select-none opacity-50"
-                  >
-                    <span className="text-[10px] font-bold">7×7</span>
-                    <span className="text-[7px] font-black text-red-500/80 uppercase tracking-tighter">ТВ</span>
-                  </div>
-                </div>
-                <div className="text-[10px] font-mono text-zinc-500">
-                  {selectedOpponent === "AI"
-                    ? `Вы против ${playerCount - 1} агентов ИИ. Цель: 4 компромата.`
-                    : `Локальный матч на ${playerCount} человек. Передача устройства по кругу.`}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/95 to-transparent pb-[max(1rem,env(safe-area-inset-bottom))] z-20">
-          <div className="w-full max-w-xl mx-auto">
-            <Button
-              variant="primary-danger"
-              fullWidth
-              onClick={() => {
-                triggerHaptic("medium");
-                soundManager.play("confirm");
-                if (selectedOpponent === 'ONLINE') {
-                  setCreateRoomMode(selectedMode);
-                  setIsCreateRoomOpen(true);
-                } else {
-                  const effectiveCount = (selectedMode === "SECRET_SERVICE" && selectedOpponent === "PVP") ? 2 : playerCount;
-                  const targetTrophies = selectedMode === "SECRET_SERVICE" ? (effectiveCount === 3 ? 4 : 3) : 3;
-                  onStartGame(selectedMode, selectedOpponent, selectedRole, effectiveCount, targetTrophies, 0, 0);
-                }
-              }}
-              className="h-12 shadow-lg shadow-red-950/50 flex items-center justify-center gap-2 text-xs sm:text-sm font-black tracking-widest uppercase"
-            >
-              <span>НАЧАТЬ ИГРУ</span>
-              <span>➔</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderTables = () => (
-    <TablesScreen
-      roomFilter={roomFilter}
-      setRoomFilter={setRoomFilter}
-      filteredRooms={filteredRooms}
-      joinCode={joinCode}
-      setJoinCode={setJoinCode}
-      handleJoinRoom={handleJoinRoom}
-      setIsCreateRoomOpen={setIsCreateRoomOpen}
-      ROOM_FILTERS={ROOM_FILTERS}
-      GAME_MODES={GAME_MODES}
-      soundManager={soundManager}
-      onBack={() => { setNavDirection('none'); setScreen('HOME'); onTabChange('LOBBY'); }}
-    />
-  );
-
-  const renderProfile = () => (
-    <ProfileScreen
-      profile={profile}
-      onUpdateProfile={onUpdateProfile || (() => {})}
-      onOpenSettings={() => setIsSettingsOpen(true)}
-      onBack={() => { setNavDirection('none'); setScreen('HOME'); onTabChange('LOBBY'); }}
-    />
-  );
+  const activeModeData = GAME_MODES.find((m) => m.id === selectedMode) || GAME_MODES[0];
 
   const handleFinishTutorial = () => {
     const completed = localStorage.getItem("crime_city_tutorial");
     if (!completed) {
-      if (onUpdateProfile) onUpdateProfile({ cash: profile.cash + 250 });
       localStorage.setItem("crime_city_tutorial", "true");
-      setToastMessage("+250 за прохождение обучения!");
+      if (onUpdateProfile) {
+        onUpdateProfile({ cash: profile.cash + 500 });
+      }
     }
     setIsTutorialOpen(false);
-    setTutorialStep(1);
   };
 
-  const dragControls = useDragControls();
-  const [isEdgeDragging, setIsEdgeDragging] = useState(false);
-
+  // Анимационные варианты для смены экранов
   const screenVariants = {
-    enter: (direction: 'forward' | 'backward' | 'none') => {
-      if (direction === 'none') {
-        return { x: 0, opacity: 0 };
-      }
-      return {
-        x: direction === 'forward' ? '100%' : '-15%',
-        opacity: direction === 'forward' ? 1 : 0.75,
-      };
+    initial: (direction: "forward" | "backward" | "none") => {
+      if (direction === "none") return { opacity: 1, x: 0 };
+      return { opacity: 0, x: direction === "forward" ? 40 : -40 };
     },
-    center: {
-      x: 0,
-      opacity: 1,
-    },
-    exit: (direction: 'forward' | 'backward' | 'none') => {
-      if (direction === 'none') {
-        return { x: 0, opacity: 0 };
-      }
-      return {
-        x: direction === 'forward' ? '-15%' : '100%',
-        opacity: direction === 'forward' ? 0.75 : 1,
-      };
+    animate: { opacity: 1, x: 0 },
+    exit: (direction: "forward" | "backward" | "none") => {
+      if (direction === "none") return { opacity: 1, x: 0 };
+      return { opacity: 0, x: direction === "forward" ? -40 : 40 };
     },
   };
 
   const handleEdgePointerDown = (e: React.PointerEvent) => {
-    if (e.clientX <= 35) {
+    if (e.clientX <= 28 && (screen === "MODES" || screen === "MODE_DETAIL")) {
       setIsEdgeDragging(true);
       dragControls.start(e);
     }
   };
 
   const handleDragEnd = (_: any, info: any) => {
-    const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 360;
-    if (info.offset.x > screenWidth * 0.35 || info.velocity.x > 500) {
+    const screenWidth = typeof window !== "undefined" ? window.innerWidth : 360;
+    if (info.offset.x > screenWidth * 0.25 || info.velocity.x > 300) {
       triggerHaptic("light");
-      setIsEdgeDragging(false);
-      if (screen === 'MODE_DETAIL') {
-        navigateBack('MODES');
-      } else if (screen === 'MODES') {
-        navigateBack('HOME');
-      }
-    } else {
-      setTimeout(() => setIsEdgeDragging(false), 250);
+      if (screen === "MODE_DETAIL") navigateBack("MODES");
+      else if (screen === "MODES") navigateBack("HOME");
     }
+    setIsEdgeDragging(false);
   };
 
+  // Рендеринг контента активного экрана
   const renderScreenContent = () => {
     switch (screen) {
-      case 'HOME': return renderHome();
-      case 'MODES': return renderModes();
-      case 'MODE_DETAIL': return renderModeDetail();
-      case 'TABLES': return renderTables();
-      case 'PROFILE': return renderProfile();
-      default: return renderHome();
+      case "HOME":
+        return (
+          <div className="relative flex-1 flex flex-col bg-[#080a0f] w-full max-w-full overflow-x-hidden overflow-y-auto custom-scrollbar">
+            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden select-none">
+              <img
+                src={lobbyBg}
+                alt="Astoria City Noir"
+                className="w-full h-full object-cover object-center opacity-55 scale-100 transition-opacity duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-b from-[#080a0f]/80 via-transparent to-[#080a0f]" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#080a0f_90%)] opacity-85" />
+            </div>
+
+            <div className="relative z-10 flex-1 flex flex-col justify-between pt-[max(0.5rem,env(safe-area-inset-top))] pb-3 px-4 sm:px-6 lg:px-8 max-w-7xl w-full max-w-full mx-auto min-h-0 overflow-x-hidden">
+              <LobbyHeader
+                title={t.menu.title}
+                profile={profile}
+                onOpenProfile={() => {
+                  soundManager.play("tapMenu");
+                  setNavDirection("none");
+                  setScreen("PROFILE");
+                  onTabChange("TOP");
+                }}
+                onOpenDevPanel={onOpenDevPanel}
+                onOpenSettings={() => setIsSettingsOpen(true)}
+              />
+
+              <ModeShowcase
+                hasActiveGame={hasActiveGame}
+                onResumeGame={onResumeGame}
+                isCreating={network.isCreating}
+                onQuickPlay={network.handleQuickPlay}
+                onSelectSolo={() => { setSelectedOpponent("AI"); navigateTo("MODES"); }}
+                onSelectLocalDuel={() => { setSelectedOpponent("PVP"); navigateTo("MODES"); }}
+                onOpenTvParty={() => setIsTvPartyModalOpen(true)}
+                onOpenOnline={() => { navigateTo("TABLES"); onTabChange("TABLES"); }}
+                onOpenRules={onOpenRules}
+                onOpenTutorial={() => setIsTutorialOpen(true)}
+                t={t}
+              />
+            </div>
+          </div>
+        );
+
+      case "MODES":
+        return (
+          <ModesList
+            modes={GAME_MODES}
+            modeBanners={MODE_BANNER_IMAGE}
+            onBack={() => navigateBack("HOME")}
+            onSelectMode={(modeId) => { setSelectedMode(modeId); navigateTo("MODE_DETAIL"); }}
+          />
+        );
+
+      case "MODE_DETAIL":
+        return (
+          <ModeDetailView
+            modeData={activeModeData}
+            modeBanners={MODE_BANNER_IMAGE}
+            selectedOpponent={selectedOpponent}
+            setSelectedOpponent={setSelectedOpponent}
+            selectedRole={selectedRole}
+            setSelectedRole={setSelectedRole}
+            playerCount={playerCount}
+            setPlayerCount={setPlayerCount}
+            onBack={() => navigateBack("MODES")}
+            onOpenBanner={openBanner}
+            onStartOnline={() => {
+              network.setCreateRoomMode(selectedMode);
+              network.setIsCreateRoomOpen(true);
+            }}
+            onStartOffline={(effectiveCount, targetTrophies) => {
+              onStartGame(selectedMode, selectedOpponent, selectedRole, effectiveCount, targetTrophies, 0, 0);
+            }}
+          />
+        );
+
+      case "TABLES":
+        return (
+          <TablesScreen
+            roomFilter={network.roomFilter}
+            setRoomFilter={network.setRoomFilter}
+            filteredRooms={network.filteredRooms}
+            joinCode={network.joinCode}
+            setJoinCode={network.setJoinCode}
+            handleJoinRoom={network.handleJoinRoom}
+            setIsCreateRoomOpen={network.setIsCreateRoomOpen}
+            ROOM_FILTERS={ROOM_FILTERS}
+            GAME_MODES={GAME_MODES}
+            soundManager={soundManager}
+            onBack={() => { setNavDirection("none"); setScreen("HOME"); onTabChange("LOBBY"); }}
+          />
+        );
+
+      case "PROFILE":
+        return (
+          <ProfileScreen
+            profile={profile}
+            onUpdateProfile={onUpdateProfile || (() => {})}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onBack={() => { setNavDirection("none"); setScreen("HOME"); onTabChange("LOBBY"); }}
+          />
+        );
+
+      default:
+        return null;
     }
   };
 
-  const renderScreen = () => {
-    const isChildScreen = screen === 'MODES' || screen === 'MODE_DETAIL';
-
-    return (
-      <div className="flex-1 relative overflow-hidden w-full h-full">
-        {/* Underlay layer for interactive back-drag without black void */}
-        {navDirection !== 'none' && isEdgeDragging && screen === 'MODE_DETAIL' && (
-          <div className="absolute inset-0 w-full h-full flex flex-col pointer-events-none opacity-75 -translate-x-[15%] bg-[#080a0f] z-0 will-change-transform transform-gpu">
-            {renderModes()}
-          </div>
-        )}
-        {navDirection !== 'none' && isEdgeDragging && screen === 'MODES' && (
-          <div className="absolute inset-0 w-full h-full flex flex-col pointer-events-none opacity-75 -translate-x-[15%] bg-[#080a0f] z-0 will-change-transform transform-gpu">
-            {renderHome()}
-          </div>
-        )}
-
-        <AnimatePresence initial={false} custom={navDirection}>
-          <motion.div
-            key={screen}
-            custom={navDirection}
-            variants={screenVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={
-              navDirection === 'none'
-                ? { duration: 0.14, ease: "easeOut" }
-                : { duration: 0.22, ease: [0.22, 1, 0.36, 1] }
-            }
-            className={`absolute inset-0 w-full h-full flex flex-col will-change-transform transform-gpu select-none bg-[#080a0f] ${
-              isChildScreen ? 'shadow-[-10px_0_20px_rgba(0,0,0,0.5)] z-10' : 'z-0'
-            }`}
-            {...(isChildScreen
-              ? {
-                  drag: "x" as const,
-                  dragDirectionLock: true,
-                  dragConstraints: { left: 0 },
-                  dragElastic: 0,
-                  dragListener: false,
-                  dragControls: dragControls,
-                  onPointerDown: handleEdgePointerDown,
-                  onDragEnd: handleDragEnd,
-                }
-              : {}
-            )}
-          >
-            {renderScreenContent()}
-          </motion.div>
-        </AnimatePresence>
-      </div>
-    );
-  };
+  const isChildScreen = screen === "MODES" || screen === "MODE_DETAIL";
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#080a0f] flex justify-center w-full max-w-full overflow-hidden font-sans select-none text-zinc-100">
-      <Toast message={toastMessage} type="error" onClose={() => setToastMessage(null)} />
-      
-      <div className="w-full max-w-7xl mx-auto h-full flex flex-col justify-between bg-[#080a0f] xl:border-x xl:border-white/10 xl:shadow-[0_0_100px_rgba(0,0,0,0.95)] relative w-full max-w-full overflow-hidden">
-        {renderScreen()}
+    <div
+      ref={screenContainerRef}
+      onPointerDown={handleEdgePointerDown}
+      className="flex-1 w-full h-full flex flex-col bg-[#080a0f] text-zinc-100 select-none overflow-hidden relative max-w-full"
+    >
+      <div className="w-full max-w-7xl mx-auto h-full flex flex-col justify-between bg-[#080a0f] xl:border-x xl:border-white/10 xl:shadow-[0_0_100px_rgba(0,0,0,0.95)] relative overflow-hidden">
+        <div className="flex-1 w-full h-full relative overflow-hidden flex flex-col min-h-0">
+          <AnimatePresence initial={false} custom={navDirection}>
+            <motion.div
+              key={screen}
+              custom={navDirection}
+              variants={screenVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              drag={isChildScreen && isEdgeDragging ? "x" : false}
+              dragControls={dragControls}
+              dragListener={false}
+              dragConstraints={{ left: 0, right: 300 }}
+              dragElastic={{ left: 0, right: 0.2 }}
+              onDragEnd={handleDragEnd}
+              className="w-full h-full flex-1 flex flex-col min-h-0 overflow-hidden relative"
+            >
+              {renderScreenContent()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
-        {screen !== 'MODE_DETAIL' && (
-          <nav className="w-full shrink-0 bg-zinc-950/90 backdrop-blur-xl border-t border-white/10 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] px-6 flex md:hidden justify-around items-center z-40">
-          <button 
-            onClick={() => {
-              soundManager.play('tapMenu');
+        {screen !== "MODE_DETAIL" && (
+          <LobbyBottomNav
+            currentScreen={screen}
+            onNavigate={(nextScreen, nextTab) => {
               setIsEdgeDragging(false);
-              setNavDirection('none');
-              setScreen('HOME');
-              onTabChange('LOBBY');
-            }} 
-            className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer relative ${screen === 'HOME' || screen === 'MODES' ? 'text-white font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
-          >
-            <Icons.Home />
-            <span className="text-[8px] md:text-[10px] font-mono tracking-widest uppercase">{t.nav.hq}</span>
-            {(screen === 'HOME' || screen === 'MODES') && (
-              <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.9)]" />
-            )}
-          </button>
-          <button 
-            onClick={() => {
-              soundManager.play('tapMenu');
-              setIsEdgeDragging(false);
-              setNavDirection('none');
-              setScreen('TABLES');
-              onTabChange('TABLES');
-            }} 
-            className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer relative ${screen === 'TABLES' ? 'text-white font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
-          >
-            <Icons.Cards />
-            <span className="text-[8px] md:text-[10px] font-mono tracking-widest uppercase">{t.nav.tables}</span>
-            {screen === 'TABLES' && (
-              <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.9)]" />
-            )}
-          </button>
-          <button 
-            onClick={() => {
-              soundManager.play('tapMenu');
-              setIsEdgeDragging(false);
-              setNavDirection('none');
-              setScreen('PROFILE');
-              onTabChange('TOP');
-            }} 
-            className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer relative ${screen === 'PROFILE' ? 'text-white font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
-          >
-            <Icons.User />
-            <span className="text-[8px] md:text-[10px] font-mono tracking-widest uppercase">{t.nav.profile}</span>
-            {screen === 'PROFILE' && (
-              <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.9)]" />
-            )}
-          </button>
-        </nav>
+              setNavDirection("none");
+              setScreen(nextScreen);
+              onTabChange(nextTab);
+            }}
+            labels={t.nav}
+          />
         )}
 
         <CreateRoomModal
-          isOpen={isCreateRoomOpen}
-          onClose={() => setIsCreateRoomOpen(false)}
-          selectedMode={createRoomMode}
-          onSelectMode={setCreateRoomMode}
-          isPrivate={createRoomIsPrivate}
-          onTogglePrivate={setCreateRoomIsPrivate}
-          onConfirm={handleConfirmCreateRoom}
-          isCreating={isCreating}
+          isOpen={network.isCreateRoomOpen}
+          onClose={() => network.setIsCreateRoomOpen(false)}
+          selectedMode={network.createRoomMode}
+          onSelectMode={network.setCreateRoomMode}
+          isPrivate={network.createRoomIsPrivate}
+          onTogglePrivate={network.setCreateRoomIsPrivate}
+          onConfirm={network.handleConfirmCreateRoom}
+          isCreating={network.isCreating}
         />
 
         <LobbyWaitingModal
-          isOpen={isWaitingForOpponent}
-          isPrivate={createRoomIsPrivate}
-          roomCode={partyRoomCode || partyService.roomCode || ""}
-          morseCode={partyService.morseCode || partyService.lastSyncedState?.morseCode}
-          isHost={Boolean(partyService.isHost)}
-          onCancel={() => {
-            partyService.disconnect();
-            setIsWaitingForOpponent(false);
-            setIsCreating(false);
-          }}
+          isOpen={network.isWaitingForOpponent}
+          isPrivate={network.createRoomIsPrivate}
+          roomCode={network.partyRoomCode || ""}
+          isHost={true}
+          onCancel={network.handleCancelWaiting}
         />
 
         {isTutorialOpen && (
           <Suspense fallback={<TutorialFullscreenFallback />}>
-            <TutorialScreen 
-              onExit={() => setIsTutorialOpen(false)} 
-              onFinish={handleFinishTutorial} 
-            />
+            <TutorialScreen onExit={() => setIsTutorialOpen(false)} onFinish={handleFinishTutorial} />
           </Suspense>
         )}
 
-        {isTvPartyModalOpen && (
-          <Modal
-            isOpen={isTvPartyModalOpen}
-            onClose={() => setIsTvPartyModalOpen(false)}
-            maxWidth="max-w-md"
-            className="p-6 text-left"
-          >
-            <div className="flex justify-between items-center mb-5 border-b border-white/10 pb-3">
-              <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                <h3 className="text-xs font-black text-zinc-100 uppercase tracking-widest">
-                  ТВ ВЕЧЕРИНКА • РОЛЬ УСТРОЙСТВА
-                </h3>
-              </div>
-              <Button
-                variant="ghost"
-                onClick={() => setIsTvPartyModalOpen(false)}
-                className="!h-8 !w-8 !p-0 text-zinc-400 hover:text-white"
-                title="Закрыть"
-              >
-                ✕
-              </Button>
-            </div>
+        <TvPartyModal
+          isOpen={isTvPartyModalOpen}
+          onClose={() => setIsTvPartyModalOpen(false)}
+          onStartTvParty={onStartTvParty}
+        />
 
-            <p className="text-[11px] text-zinc-400 mb-4 leading-relaxed">
-              Выберите, как использовать текущее устройство в партии:
-            </p>
-
-            <div className="space-y-3 mb-5">
-              <button
-                onClick={() => {
-                  setIsTvPartyModalOpen(false);
-                  if (onStartTvParty) {
-                    onStartTvParty("TV_DISPLAY");
-                  } else {
-                    const code = Math.floor(10000 + Math.random() * 90000).toString();
-                    window.location.href = `${window.location.pathname}?clientType=TV_DISPLAY&room=${code}`;
-                  }
-                }}
-                className="w-full p-4 rounded-2xl bg-zinc-950/70 border border-white/10 hover:border-red-500/60 hover:bg-zinc-900/90 transition-all text-left flex items-center gap-3.5 group cursor-pointer shadow-lg active:scale-[0.99]"
-              >
-                <div className="w-12 h-12 rounded-xl bg-red-950/40 border border-red-500/30 group-hover:border-red-500/60 flex items-center justify-center text-red-500 shrink-0 shadow-inner group-hover:scale-105 transition-transform">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-black uppercase tracking-wider text-zinc-100 group-hover:text-red-400 transition-colors">
-                    ЭКРАН ТЕЛЕВИЗОРА
-                  </div>
-                  <div className="text-[10px] text-zinc-400 mt-0.5 leading-tight">
-                    Общее игровое поле 5×5 для хоста (TV / Проектор)
-                  </div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => {
-                  setIsTvPartyModalOpen(false);
-                  if (onStartTvParty) {
-                    onStartTvParty("CONTROLLER");
-                  } else {
-                    window.location.href = `${window.location.pathname}?clientType=CONTROLLER`;
-                  }
-                }}
-                className="w-full p-4 rounded-2xl bg-zinc-950/70 border border-white/10 hover:border-blue-500/60 hover:bg-zinc-900/90 transition-all text-left flex items-center gap-3.5 group cursor-pointer shadow-lg active:scale-[0.99]"
-              >
-                <div className="w-12 h-12 rounded-xl bg-blue-950/40 border border-blue-500/30 group-hover:border-blue-500/60 flex items-center justify-center text-blue-400 shrink-0 shadow-inner group-hover:scale-105 transition-transform">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-black uppercase tracking-wider text-zinc-100 group-hover:text-blue-400 transition-colors">
-                    ПОДКЛЮЧИТЬСЯ К ТВ (ПУЛЬТ)
-                  </div>
-                  <div className="text-[10px] text-zinc-400 mt-0.5 leading-tight">
-                    Ввести PIN или передать позывной Морзе для подключения
-                  </div>
-                </div>
-              </button>
-            </div>
-
-            <Button
-              variant="secondary"
-              fullWidth
-              onClick={() => setIsTvPartyModalOpen(false)}
-              className="h-11 text-xs font-bold uppercase tracking-wider text-zinc-300"
-            >
-              Отмена
-            </Button>
-          </Modal>
-        )}
-
-        {isSettingsOpen && (
-          <Modal
-            isOpen={isSettingsOpen}
-            onClose={() => setIsSettingsOpen(false)}
-            title={t.settings.title}
-            maxWidth="max-w-sm"
-            showCloseButton={true}
-            zIndexClass="z-[80]"
-            className="p-6 text-left"
-          >
-            <div className="space-y-3.5 mb-6 mt-1">
-              <div className="flex items-center justify-between p-3 bg-zinc-950/60 rounded-xl border border-white/5">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.sfx}</span>
-                  <span className="text-[9px] text-zinc-500 font-mono mt-0.5">{t.settings.sfxDesc}</span>
-                </div>
-                <button 
-                  type="button"
-                  onClick={() => {
-                    const enabled = soundManager.toggleSfx();
-                    setIsSfxEnabled(enabled);
-                  }}
-                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isSfxEnabled ? 'bg-blue-600' : 'bg-zinc-800 border border-white/10'}`}
-                >
-                  <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isSfxEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-zinc-950/60 rounded-xl border border-white/5">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.ambient}</span>
-                  <span className="text-[9px] text-zinc-500 font-mono mt-0.5">{t.settings.ambientDesc}</span>
-                </div>
-                <button 
-                  type="button"
-                  onClick={() => {
-                    const enabled = soundManager.toggleAmbient();
-                    setIsAmbientEnabled(enabled);
-                  }}
-                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isAmbientEnabled ? 'bg-blue-600' : 'bg-zinc-800 border border-white/10'}`}
-                >
-                  <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isAmbientEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-zinc-950/60 rounded-xl border border-white/5">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.haptics}</span>
-                  <span className="text-[9px] text-zinc-500 font-mono mt-0.5">{t.settings.hapticsDesc}</span>
-                </div>
-                <button 
-                  type="button"
-                  onClick={() => {
-                    const newVal = !isHapticsEnabled;
-                    setIsHapticsEnabled(newVal);
-                    setHapticsEnabled(newVal);
-                    if (newVal) triggerHaptic("medium");
-                  }}
-                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${isHapticsEnabled ? 'bg-blue-600' : 'bg-zinc-800 border border-white/10'}`}
-                >
-                  <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isHapticsEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-zinc-950/60 rounded-xl border border-white/5">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.language}</span>
-                  <span className="text-[9px] text-zinc-500 font-mono mt-0.5">Выберите язык / Select language</span>
-                </div>
-                <div className="flex gap-1.5">
-                  <button 
-                    type="button"
-                    onClick={() => setLang('ru')}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider ${lang === 'ru' ? 'bg-zinc-200 text-zinc-950 shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/10'}`}
-                  >
-                    RU
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => setLang('en')}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider ${lang === 'en' ? 'bg-zinc-200 text-zinc-950 shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/10'}`}
-                  >
-                    EN
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <Button variant="secondary" fullWidth onClick={() => setIsSettingsOpen(false)} className="text-[10px] font-black tracking-widest uppercase">
-              {t.settings.close}
-            </Button>
-          </Modal>
-        )}
-
+        <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
       </div>
     </div>
   );

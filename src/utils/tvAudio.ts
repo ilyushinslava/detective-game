@@ -36,10 +36,13 @@ if (typeof window !== 'undefined') {
     if (audioCtx && audioCtx.state === 'suspended') {
       audioCtx.resume().catch(() => {});
     }
+    window.removeEventListener('keydown', unlockAudio);
+    window.removeEventListener('click', unlockAudio);
+    window.removeEventListener('touchstart', unlockAudio);
   };
-  window.addEventListener('keydown', unlockAudio, { passive: true, once: true });
-  window.addEventListener('click', unlockAudio, { passive: true, once: true });
-  window.addEventListener('touchstart', unlockAudio, { passive: true, once: true });
+  window.addEventListener('keydown', unlockAudio, { passive: true });
+  window.addEventListener('click', unlockAudio, { passive: true });
+  window.addEventListener('touchstart', unlockAudio, { passive: true });
 }
 
 /**
@@ -67,6 +70,14 @@ export function playHoverSound(): void {
 
     osc.connect(gain);
     gain.connect(ctx.destination);
+
+    // Очистка аудиоузлов после завершения для предотвращения накопления в памяти
+    osc.onended = () => {
+      try {
+        osc.disconnect();
+        gain.disconnect();
+      } catch {}
+    };
 
     osc.start(now);
     osc.stop(now + 0.05);
@@ -100,6 +111,14 @@ export function playClickSound(): void {
 
     osc.connect(gain);
     gain.connect(ctx.destination);
+
+    // Очистка узлов графа
+    osc.onended = () => {
+      try {
+        osc.disconnect();
+        gain.disconnect();
+      } catch {}
+    };
 
     osc.start(now);
     osc.stop(now + 0.10);

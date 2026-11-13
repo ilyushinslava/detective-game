@@ -20,6 +20,13 @@ export function useIdleTimer({
 }: UseIdleTimerOptions = {}) {
   const [isIdle, setIsIdle] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onIdleRef = useRef(onIdle);
+  const onActiveRef = useRef(onActive);
+
+  useEffect(() => {
+    onIdleRef.current = onIdle;
+    onActiveRef.current = onActive;
+  }, [onIdle, onActive]);
 
   const resetTimer = useCallback(() => {
     if (!enabled) return;
@@ -30,7 +37,7 @@ export function useIdleTimer({
 
     setIsIdle((prev) => {
       if (prev) {
-        onActive?.();
+        onActiveRef.current?.();
         return false;
       }
       return false;
@@ -38,9 +45,9 @@ export function useIdleTimer({
 
     timerRef.current = setTimeout(() => {
       setIsIdle(true);
-      onIdle?.();
+      onIdleRef.current?.();
     }, timeoutMs);
-  }, [enabled, timeoutMs, onIdle, onActive]);
+  }, [enabled, timeoutMs]);
 
   useEffect(() => {
     if (!enabled) {

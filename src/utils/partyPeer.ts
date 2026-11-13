@@ -415,6 +415,14 @@ class PartyService {
       ws.onerror = (err) => {
         this.failedAttempts++;
         console.warn("[PartyService] WebSocket error:", err);
+        if (this.roomCode && !this.isExplicitDisconnect) {
+          this.onConnectionStateChange?.({
+            isConnected: false,
+            isReconnecting: true,
+            attempt: this.reconnectAttempts + 1,
+            maxAttempts: GAME_CONFIG.NETWORK.RECONNECT.MAX_ATTEMPTS,
+          });
+        }
       };
     } catch (err) {
       console.error("[PartyService] Connection failed:", err);

@@ -29,6 +29,7 @@ import { useRulesModal } from "./hooks/useRulesModal";
 import { characterImages } from "./constants/characterImages";
 import { DEFAULT_BET } from "./constants/gameRules";
 import { TvScreensaver } from "./components/tv/TvScreensaver";
+import { TvNetworkDisconnectModal } from "./components/tv/TvNetworkDisconnectModal";
 
 // Асинхронные динамические чанки второстепенных экранов (TASK-ARCH-001)
 const DuelScreen = lazy(() => import("./components/duel/DuelScreen").then((m) => ({ default: m.DuelScreen })));
@@ -128,6 +129,10 @@ export default function App() {
     enabled: isAndroidTv || tvPartyState !== "NONE",
   });
 
+  // Отслеживание разрыва сетевого соединения (PartyKit)
+  const [isTvDisconnected, setIsTvDisconnected] = useState(false);
+  const [tvReconnectAttempt, setTvReconnectAttempt] = useState(1);
+
   useEffect(() => {
         sessionStorage.removeItem("mp_session");
   }, []);
@@ -207,6 +212,18 @@ export default function App() {
     const prevOnRoomStatus = partyService.onRoomStatus;
     const prevOnSyncState = partyService.onSyncState;
     const prevOnAction = partyService.onAction;
+    const prevOnConnState = partyService.onConnectionStateChange;
+
+    partyService.onConnectionStateChange = (st) => {
+      prevOnConnState?.(st);
+      if (st.isConnected) {
+        setIsTvDisconnected(false);
+        setTvReconnectAttempt(1);
+      } else if (st.isReconnecting) {
+        setIsTvDisconnected(true);
+        setTvReconnectAttempt(st.attempt || 1);
+      }
+    };
 
     partyService.onRoomStatus = (data: any) => {
       prevOnRoomStatus?.(data);
@@ -224,6 +241,8 @@ export default function App() {
 
     partyService.onSyncState = (state: any, role?: Role, status?: string) => {
       prevOnSyncState?.(state, role, status);
+      // При получении синхронизации соединение гарантированно активно
+      setIsTvDisconnected(false);
       if (state) {
         setGameState(state);
         if (status === "PLAYING" || status === "FINISHED" || (state?.board && state.board.length > 0)) {
@@ -249,6 +268,7 @@ export default function App() {
       partyService.onRoomStatus = prevOnRoomStatus;
       partyService.onSyncState = prevOnSyncState;
       partyService.onAction = prevOnAction;
+      partyService.onConnectionStateChange = prevOnConnState;
     };
   }, [tvPartyState, tvRoomCode]);
 
@@ -1104,6 +1124,13 @@ export default function App() {
 
       {/* Защита OLED-экранов от выгорания */}
       <TvScreensaver isIdle={isOledIdle} onDismiss={resetOledTimer} />
+
+      {/* Оверлей разрыва сетевого соединения (PartyKit) */}
+      <TvNetworkDisconnectModal
+        isOpen={isTvDisconnected}
+        attempt={tvReconnectAttempt}
+        maxAttempts={10}
+      />
     </div>
   </BannerViewerProvider>
   );

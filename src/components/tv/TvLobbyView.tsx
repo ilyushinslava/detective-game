@@ -202,13 +202,13 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
       <div className="flex items-center justify-between border-b border-white/10 pb-5 relative z-10">
         <div className="flex items-center gap-3">
           <span className="h-4 w-4 rounded-full bg-red-600 animate-pulse shadow-[0_0_14px_rgba(239,68,68,0.9)] shrink-0" />
-          <h1 className="text-2xl font-black uppercase tracking-widest text-zinc-100">
-            {GAME_TITLE.ru} <span className="text-red-500 font-mono text-xl">Party Host</span>
+          <h1 className="text-3xl font-black uppercase tracking-widest text-zinc-100">
+            {GAME_TITLE.ru} <span className="text-red-500 font-mono text-2xl">Party Host</span>
           </h1>
         </div>
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/10 bg-zinc-900/60 backdrop-blur-md">
-          <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-          <span className="text-xs font-mono uppercase tracking-widest text-zinc-300 font-bold">
+        <div className="flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/10 bg-zinc-900/60 backdrop-blur-md">
+          <span className="h-2.5 w-2.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+          <span className="text-sm font-mono uppercase tracking-widest text-zinc-200 font-bold">
             ПОДКЛЮЧЕНИЕ СМАРТФОНОВ
           </span>
         </div>
@@ -221,23 +221,23 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           <div className="p-4 rounded-2xl bg-white shadow-[0_0_30px_rgba(255,255,255,0.2)] mb-4 border border-white/30">
             <QRCodeSVG value={joinUrl} size={220} level="M" />
           </div>
-          <div className="text-base font-mono uppercase tracking-wider text-zinc-100 mb-1 font-bold">
+          <div className="text-lg font-mono uppercase tracking-wider text-zinc-100 mb-1.5 font-bold">
             1. Наведите камеру смартфона
           </div>
-          <div className="text-sm font-mono text-zinc-400 mb-2">
+          <div className="text-base font-mono text-zinc-300 mb-2 font-medium">
             2. Мгновенное подключение к партии
           </div>
-          <div className="text-[11px] font-mono text-zinc-500 truncate max-w-xs bg-zinc-900/80 px-3 py-1 rounded-full border border-white/5">
+          <div className="text-xs font-mono text-zinc-400 truncate max-w-sm bg-zinc-900/80 px-4 py-1.5 rounded-full border border-white/10">
             {joinUrl}
           </div>
           {isLocalDev && (
-            <div className={`mt-3.5 p-3 rounded-2xl border text-left text-[11px] font-mono max-w-xs w-full transition-colors ${
+            <div className={`mt-3.5 p-3 rounded-2xl border text-left text-xs font-mono max-w-xs w-full transition-colors ${
               !lanHost ? 'bg-amber-950/40 border-amber-500/40 text-amber-200' : 'bg-zinc-900/90 border-white/10 text-zinc-400'
             }`}>
               {isEditingLan ? (
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[9px] uppercase tracking-wider text-amber-300 font-bold">
+                    <span className="text-[10px] uppercase tracking-wider text-amber-300 font-bold">
                       IP ПК в сети Wi-Fi (для телефонов):
                     </span>
                   </div>
@@ -265,12 +265,12 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                       ✕
                     </button>
                   </div>
-                  <span className="text-[9px] text-zinc-500">Порт подставится автоматически</span>
+                  <span className="text-[10px] text-zinc-500">Порт подставится автоматически</span>
                 </div>
               ) : (
                 <div className="flex flex-col gap-1">
                   {!lanHost && (
-                    <div className="text-[10px] text-amber-400 font-sans leading-tight">
+                    <div className="text-xs text-amber-400 font-sans leading-tight">
                       ⚠️ QR-код указывает на localhost. Смартфоны не подключатся без LAN IP.
                     </div>
                   )}
@@ -284,7 +284,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                         setLanInput(lanHost || (typeof window !== 'undefined' ? `${window.location.hostname}:${window.location.port}` : ''));
                         setIsEditingLan(true);
                       }}
-                      className="text-[10px] text-red-400 hover:text-red-300 underline ml-2 shrink-0 cursor-pointer font-bold"
+                      className="text-xs text-red-400 hover:text-red-300 underline ml-2 shrink-0 cursor-pointer font-bold"
                     >
                       {lanHost ? 'Сменить IP' : 'Указать Wi-Fi IP'}
                     </button>
@@ -301,10 +301,10 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           <div className="p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-slate-900/60 via-zinc-950/90 to-slate-950/80 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-bold font-mono uppercase tracking-[0.25em] text-zinc-400">
+                <span className="text-base font-bold font-mono uppercase tracking-[0.25em] text-zinc-300">
                   ШИФР
                 </span>
-                <span className="text-[10px] font-mono text-zinc-400 bg-zinc-900/90 px-3 py-1 rounded-full border border-white/10 font-bold">
+                <span className="text-xs font-mono text-zinc-300 bg-zinc-900/90 px-3.5 py-1.5 rounded-full border border-white/10 font-bold">
                   РАДИОКАНАЛ
                 </span>
               </div>
@@ -323,14 +323,14 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                     />
                   ))
                 ) : (
-                  <div className="text-xs font-mono text-zinc-500 animate-pulse">
+                  <div className="text-sm font-mono text-zinc-400 animate-pulse">
                     СИНХРОНИЗАЦИЯ ПОЗЫВНОГО С СЕРВЕРОМ...
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="text-xs text-zinc-400 mt-3 leading-relaxed pt-3 border-t border-white/10 font-mono">
+            <div className="text-sm text-zinc-300 mt-3 leading-relaxed pt-3 border-t border-white/10 font-mono">
               Шифр доступа к сессии. Введите 7 сигналов Морзе на экране телефона.
             </div>
           </div>
@@ -338,26 +338,26 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           {/* Слоты подключения контроллеров */}
           <div className="p-4 rounded-2xl bg-zinc-950/70 border border-white/10 shadow-lg backdrop-blur-xl space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold font-mono uppercase tracking-widest text-zinc-400">РЕЖИМ ИГРЫ</span>
-              <div className="flex gap-1.5 bg-zinc-900/90 p-1 rounded-xl border border-white/10 text-[10px] font-black uppercase">
+              <span className="text-xs font-bold font-mono uppercase tracking-widest text-zinc-300">РЕЖИМ ИГРЫ</span>
+              <div className="flex gap-2 bg-zinc-900/90 p-1.5 rounded-xl border border-white/10 text-xs font-black uppercase">
                 <button
                   type="button"
                   onClick={() => setIsPassAndPlay(false)}
-                  className={`px-3 py-1 rounded-lg transition cursor-pointer font-mono ${!isPassAndPlay ? 'bg-zinc-800 text-zinc-100 shadow border border-white/10' : 'text-zinc-500 hover:text-zinc-300'} ${focusArea === 'FORMAT' && !isPassAndPlay ? 'ring-2 ring-blue-500/80 shadow-[0_0_12px_rgba(59,130,246,0.4)] scale-105' : ''}`}
+                  className={`px-3.5 py-1.5 rounded-lg transition cursor-pointer font-mono ${!isPassAndPlay ? 'bg-zinc-800 text-zinc-100 shadow border border-white/10' : 'text-zinc-500 hover:text-zinc-300'} ${focusArea === 'FORMAT' && !isPassAndPlay ? 'ring-2 ring-blue-500/80 shadow-[0_0_12px_rgba(59,130,246,0.4)] scale-105' : ''}`}
                 >
                   2+ ТЕЛЕФОНА
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsPassAndPlay(true)}
-                  className={`px-3 py-1 rounded-lg transition cursor-pointer font-mono ${isPassAndPlay ? 'bg-red-600 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'} ${focusArea === 'FORMAT' && isPassAndPlay ? 'ring-2 ring-red-400 shadow-[0_0_12px_rgba(239,68,68,0.4)] scale-105' : ''}`}
+                  className={`px-3.5 py-1.5 rounded-lg transition cursor-pointer font-mono ${isPassAndPlay ? 'bg-red-600 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'} ${focusArea === 'FORMAT' && isPassAndPlay ? 'ring-2 ring-red-400 shadow-[0_0_12px_rgba(239,68,68,0.4)] scale-105' : ''}`}
                 >
                   PASS & PLAY
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-4 gap-2">
               {GAME_MODES.map((m, idx) => {
                 const isSelected = selectedMode === m.id;
                 const isFocused = focusArea === 'MODES' && focusedModeIndex === idx;
@@ -370,7 +370,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                       setFocusedModeIndex(idx);
                       setFocusArea('MODES');
                     }}
-                    className={`py-2 px-1.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
+                    className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
                       isFocused
                         ? 'ring-2 ring-blue-500/80 scale-105 shadow-[0_0_15px_rgba(59,130,246,0.5)] z-10'
                         : ''
@@ -380,8 +380,8 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                         : 'bg-zinc-950/50 border-white/10 text-zinc-400 hover:text-zinc-200 hover:border-white/20'
                     }`}
                   >
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 border border-white/10 text-zinc-300 font-bold uppercase">{m.badge}</span>
-                    <span className="text-[9px] font-black uppercase tracking-tight">{m.label}</span>
+                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-800 border border-white/10 text-zinc-300 font-bold uppercase">{m.badge}</span>
+                    <span className="text-xs sm:text-sm font-black uppercase tracking-tight">{m.label}</span>
                   </button>
                 );
               })}
@@ -391,11 +391,11 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           <div className="grid grid-cols-2 gap-3 max-h-40 lg:max-h-48 overflow-y-auto custom-scrollbar pr-1">
             {playerList.length === 0 ? (
               <div className="col-span-2 p-5 rounded-2xl border border-dashed border-white/15 bg-zinc-950/50 flex flex-col items-center justify-center text-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400">
+                <span className="h-3 w-3 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                <span className="text-base font-mono font-bold uppercase tracking-wider text-zinc-300">
                   Ожидание подключения первого смартфона...
                 </span>
-                <span className="text-[10px] font-mono text-zinc-500">
+                <span className="text-xs font-mono text-zinc-400">
                   Отсканируйте QR-код для подключения к штабу
                 </span>
               </div>
@@ -403,33 +403,33 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
               playerList.map((player, index) => (
                 <div
                   key={index}
-                  className={`p-3.5 rounded-2xl border transition-all duration-300 ${
+                  className={`p-4 rounded-2xl border transition-all duration-300 ${
                     player
                       ? 'bg-zinc-900/85 border-white/10 shadow-lg backdrop-blur-md'
                       : 'bg-zinc-950/30 border-dashed border-white/10'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-sm font-mono font-bold uppercase tracking-wider text-zinc-300">
                       Игрок #{String(index + 1).padStart(2, '0')}
                     </span>
                     {player?.isHost && (
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-blue-950/70 border border-blue-500/40 text-blue-300 font-bold uppercase tracking-wider shadow-[0_0_8px_rgba(37,99,235,0.2)]">
+                      <span className="text-xs font-mono px-2.5 py-0.5 rounded-md bg-blue-950/70 border border-blue-500/40 text-blue-200 font-bold uppercase tracking-wider shadow-[0_0_8px_rgba(37,99,235,0.2)]">
                         HOST
                       </span>
                     )}
                   </div>
-                  <div className="text-sm font-black text-zinc-100 truncate">
+                  <div className="text-lg font-black text-zinc-100 truncate">
                     {player ? player.nickname : 'Ожидание подключения...'}
                   </div>
-                  <div className="text-[11px] mt-1 font-mono">
+                  <div className="text-xs mt-1 font-mono">
                     {player ? (
                       <div className="flex items-center gap-1.5 text-emerald-400 font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
                         <span>КОНТРОЛЛЕР ПОДКЛЮЧЕН</span>
                       </div>
                     ) : (
-                      <span className="text-zinc-600">Свободно</span>
+                      <span className="text-zinc-500">Свободно</span>
                     )}
                   </div>
                 </div>
@@ -444,7 +444,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
         <Button
           variant="secondary"
           onClick={onExit}
-          className={`px-8 h-12 rounded-2xl text-xs font-mono font-bold uppercase tracking-wider text-zinc-300 hover:text-white transition ${
+          className={`px-8 h-14 rounded-2xl text-sm sm:text-base font-mono font-bold uppercase tracking-wider text-zinc-300 hover:text-white transition ${
             focusArea === 'EXIT' ? 'ring-2 ring-blue-500/80 scale-105 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : ''
           }`}
         >
@@ -458,7 +458,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
             onStartGame?.(selectedMode, isPassAndPlay);
           }}
           disabled={!canStart}
-          className={`px-12 h-14 rounded-2xl font-black uppercase tracking-widest text-sm shadow-[0_0_25px_rgba(239,68,68,0.5)] transition ${
+          className={`px-12 h-16 rounded-2xl font-black uppercase tracking-widest text-lg sm:text-xl shadow-[0_0_25px_rgba(239,68,68,0.5)] transition ${
             focusArea === 'START' && canStart ? 'ring-2 ring-white scale-105' : ''
           }`}
         >

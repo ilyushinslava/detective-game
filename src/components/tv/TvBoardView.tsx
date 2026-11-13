@@ -366,7 +366,12 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
     const finalDetectiveChar = flatCards.find((c) => c.id === gameState.detectiveSecretId);
 
     return (
-      <div className="relative h-screen w-screen bg-[#080a0f] overflow-hidden select-none">
+      <div className="relative h-screen w-screen bg-[#08090e] overflow-hidden select-none">
+        {/* Глубокий кинематографичный радиальный градиент: от винного к глубокому графитовому */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#2d0814_0%,#120c16_45%,#07080d_100%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(225,29,72,0.1),transparent_60%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.08),transparent_50%)] pointer-events-none" />
+
         <GameOverModal
           winner={isKillerWinner ? 'KILLER' : 'DETECTIVE'}
           mode={gameState.mode}
@@ -377,7 +382,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           onRestart={onRestart || (() => {})}
           onExitToMenu={onExit || (() => {})}
         />
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 inline-flex items-center gap-3 px-6 py-2.5 rounded-full border border-zinc-800/80 bg-zinc-950/80 shadow-2xl backdrop-blur-md">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 inline-flex items-center gap-3 px-6 py-2.5 rounded-full border border-white/10 border-t-2 border-t-rose-500/50 bg-white/[0.04] shadow-2xl backdrop-blur-2xl">
           <span className="h-2.5 w-2.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.8)]" />
           <span className="text-xs 2xl:text-sm font-mono uppercase tracking-widest text-zinc-300">
             Ожидание выбора реванша на контроллерах
@@ -388,13 +393,14 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   }
 
   return (
-    <div className="tv-root flex h-screen w-screen flex-col bg-[radial-gradient(ellipse_95%_75%_at_40%_45%,#131a28_0%,#090d16_55%,#040508_100%)] text-zinc-100 select-none overflow-hidden p-4 sm:p-5 lg:p-6 gap-3 sm:gap-4 font-sans relative">
-      {/* Атмосферные фоновые световые акценты (Нео-нуар виньетка) */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-blue-600/10 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 right-1/4 w-96 h-96 rounded-full bg-rose-600/10 blur-3xl pointer-events-none" />
+    <div className="tv-root flex h-screen w-screen flex-col bg-[#08090e] text-zinc-100 select-none overflow-hidden p-4 sm:p-5 lg:p-6 gap-3 sm:gap-4 font-sans relative">
+      {/* Глубокий кинематографичный радиальный градиент от темно-винного к глубокому угольному */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#2d0814_0%,#120c16_45%,#07080d_100%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(225,29,72,0.1),transparent_60%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.08),transparent_50%)] pointer-events-none" />
 
-      {/* Верхняя статусная планка (Шапка ТВ) по кинематографичному стандарту TV Party */}
-      <div className="flex items-center justify-between px-8 py-4 rounded-3xl bg-zinc-950/80 border border-white/10 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.8),0_0_20px_rgba(37,99,235,0.08)] shrink-0 z-10">
+      {/* Верхняя статусная планка (Шапка ТВ) в стиле Premium Glassmorphism */}
+      <div className="flex items-center justify-between px-8 py-4 rounded-3xl bg-white/[0.04] border border-white/10 border-t-2 border-t-rose-500/50 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.1)] shrink-0 z-10">
         {/* Левая группа: Статусы и счета участников с яркими маяками */}
         <div className="flex items-center gap-8 lg:gap-10">
           {isSecretService && spies.length > 0 ? (
@@ -435,8 +441,8 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         </div>
 
         {/* Центральный индикатор глобальной фазы матча */}
-        <div className="hidden md:flex items-center gap-3 px-6 py-2 rounded-full border border-white/10 bg-zinc-900/60 backdrop-blur-md shadow-inner">
-          <span className="h-2.5 w-2.5 rounded-full bg-white/50 shadow-[0_0_8px_rgba(255,255,255,0.4)]" />
+        <div className="hidden md:flex items-center gap-3 px-6 py-2 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur-md shadow-inner">
+          <span className="h-2.5 w-2.5 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.7)]" />
           <span className="text-sm sm:text-base 2xl:text-lg font-mono uppercase tracking-widest text-zinc-200 font-bold">
             {getGameModeTitle(gameState?.mode || 'MANIAC_VS_OPERATIVE', 'ru')}
           </span>
@@ -451,7 +457,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 setIsPauseOpen(true);
                 setFocusedControl('CONTINUE');
               }}
-              className="px-6 py-3 rounded-2xl border border-white/15 bg-zinc-900/80 hover:bg-zinc-800 text-sm sm:text-base font-display font-bold uppercase tracking-wider text-zinc-200 transition-all cursor-pointer flex items-center gap-2.5 shadow-sm active:scale-95 focus:outline-none focus:ring-[6px] focus:ring-red-600 focus:bg-red-950/40 focus:scale-[1.03]"
+              className="px-6 py-3 rounded-2xl border border-white/15 bg-white/[0.05] hover:bg-white/[0.1] text-sm sm:text-base font-display font-bold uppercase tracking-wider text-zinc-200 transition-all cursor-pointer flex items-center gap-2.5 shadow-sm active:scale-95 focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_25px_rgba(255,255,255,0.35),inset_0_0_12px_rgba(255,255,255,0.2)]"
             >
               <Icons.Settings />
               <span>МЕНЮ ПАУЗЫ [ESC]</span>
@@ -462,9 +468,9 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
       {/* Основная рабочая зона экрана ТВ: строго 2 зоны (~68% Игровое поле | ~32% Инфо-панель) */}
       <div className="flex-1 flex gap-4 lg:gap-6 min-h-0 overflow-hidden z-10">
-        {/* ЛЕВАЯ ЗОНА (~68%): Primary Stage (Поле 5×5 с монолитной тактической плитой) */}
+        {/* ЛЕВАЯ ЗОНА (~68%): Primary Stage (Поле 5×5 с монолитной тактической плитой и матовым стеклом) */}
         <div className="w-[66%] lg:w-[68%] h-full flex items-center justify-center min-w-0">
-          <div className="relative w-full h-full max-w-[min(100%,calc(100vh-120px))] aspect-square p-3 sm:p-4 2xl:p-5 rounded-3xl bg-[#07090e]/95 border border-white/[0.08] shadow-[0_30px_90px_rgba(0,0,0,0.95),0_0_50px_rgba(37,99,235,0.06)] backdrop-blur-2xl flex items-center justify-center">
+          <div className="relative w-full h-full max-w-[min(100%,calc(100vh-120px))] aspect-square p-3 sm:p-4 2xl:p-5 rounded-3xl bg-white/[0.03] border border-white/10 border-t-2 border-t-rose-500/40 shadow-[0_30px_90px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.1)] backdrop-blur-2xl flex items-center justify-center">
             <div
               className="grid gap-2 sm:gap-2.5 2xl:gap-3 w-full h-full"
               style={{
@@ -485,16 +491,18 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                     layout="position"
                     layoutId={`tv_card_${char.id}`}
                     transition={{ type: 'spring', damping: 28, stiffness: 180, mass: 0.9 }}
-                    className={`relative w-full h-full rounded-2xl overflow-hidden bg-zinc-950/60 backdrop-blur-md border p-1 pb-2 flex flex-col justify-between ${
+                    className={`relative w-full h-full rounded-2xl overflow-hidden backdrop-blur-md border p-1 pb-2 flex flex-col justify-between transition-all duration-300 ${
                       isLineActive
-                        ? 'border-white ring-4 ring-white/90 shadow-[0_0_35px_rgba(255,255,255,0.6)] bg-white/10 scale-[1.02] z-20'
+                        ? 'border-cyan-400 border-t-2 border-t-white bg-gradient-to-b from-cyan-900/60 via-blue-950/80 to-black shadow-[0_0_40px_rgba(6,182,212,0.75),inset_0_0_25px_rgba(255,255,255,0.35)] scale-105 z-30 ring-2 ring-cyan-300/80'
                         : inRadarCenter
-                          ? 'border-red-500 shadow-[0_0_25px_rgba(225,29,72,0.5)] bg-red-950/20 z-10'
+                          ? 'border-rose-500 border-t-2 border-t-rose-300 shadow-[0_0_30px_rgba(244,63,94,0.65),inset_0_0_15px_rgba(225,29,72,0.3)] bg-gradient-to-b from-red-950/60 to-black z-20'
                           : inRadarArea
-                            ? 'border-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.35)] bg-blue-950/15 z-0'
-                            : 'border-white/15 hover:border-zinc-500/40 shadow-[0_6px_20px_rgba(0,0,0,0.7)]'
+                            ? 'border-blue-400/80 border-t-2 border-t-blue-300 shadow-[0_0_25px_rgba(59,130,246,0.45),inset_0_0_12px_rgba(37,99,235,0.2)] bg-gradient-to-b from-blue-950/40 to-black z-10'
+                            : 'bg-gradient-to-b from-white/[0.08] via-zinc-900/70 to-black/80 border-white/15 hover:border-white/30 shadow-[0_8px_25px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.15)]'
                     } ${!char.isAlive ? 'grayscale opacity-35' : ''}`}
                   >
+                    {/* Тонкий стеклянный блик на верхней кромке карточки */}
+                    <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none rounded-t-2xl" />
                     {/* Карточка персонажа */}
                     <CharacterCard
                       mode={gameState?.mode || 'MANIAC_VS_OPERATIVE'}
@@ -559,18 +567,18 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         <div className="w-[34%] lg:w-[32%] h-full flex flex-col gap-3 sm:gap-4 min-w-0 justify-between">
           
           {/* СУПЕР-ДОМИНАНТА: ТЕКУЩИЙ АКТИВНЫЙ ХОД (ВИДНО С ДИВАНА) */}
-          <div className={`p-5 sm:p-6 rounded-3xl border-2 transition-all duration-500 shadow-2xl relative overflow-hidden shrink-0 ${
+          <div className={`p-5 sm:p-6 rounded-3xl border border-white/10 border-t-2 backdrop-blur-2xl transition-all duration-500 shadow-2xl relative overflow-hidden shrink-0 ${
             isKillerTurn
-              ? 'border-red-600/80 bg-gradient-to-br from-red-950/85 via-[#0c0f17] to-zinc-950 shadow-[0_0_40px_rgba(225,29,72,0.3)]'
-              : 'border-blue-600/80 bg-gradient-to-br from-blue-950/85 via-[#0c0f17] to-zinc-950 shadow-[0_0_40px_rgba(37,99,235,0.3)]'
+              ? 'border-t-rose-500/80 bg-gradient-to-br from-red-950/45 via-white/[0.04] to-black/80 shadow-[0_12px_40px_rgba(225,29,72,0.3)]'
+              : 'border-t-blue-500/80 bg-gradient-to-br from-blue-950/45 via-white/[0.04] to-black/80 shadow-[0_12px_40px_rgba(37,99,235,0.3)]'
           }`}>
             <div className="flex items-center justify-between mb-3">
               <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs 2xl:text-sm font-mono font-bold uppercase tracking-widest border shadow-sm ${
                 isKillerTurn
-                  ? 'bg-red-950/80 border-red-500/40 text-red-300'
-                  : 'bg-blue-950/80 border-blue-500/40 text-blue-300'
+                  ? 'bg-red-950/80 border-red-500/40 text-red-200'
+                  : 'bg-blue-950/80 border-blue-500/40 text-blue-200'
               }`}>
-                <span className={`h-2.5 w-2.5 rounded-full ${isKillerTurn ? 'bg-red-400' : 'bg-blue-400'}`} />
+                <span className={`h-2.5 w-2.5 rounded-full ${isKillerTurn ? 'bg-rose-400' : 'bg-blue-400'} animate-pulse`} />
                 ТЕКУЩИЙ ХОД
               </span>
               <span className="text-xs 2xl:text-sm font-mono text-zinc-300 font-bold uppercase">
@@ -582,8 +590,8 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
             <div className="flex items-center gap-4 my-2">
               <div className={`w-16 h-16 2xl:w-20 2xl:h-20 rounded-2xl border-2 flex items-center justify-center font-mono text-3xl 2xl:text-4xl font-black text-white shrink-0 shadow-2xl ${
                 isKillerTurn
-                  ? 'bg-red-600 border-white/30 shadow-[0_0_20px_rgba(225,29,72,0.6)]'
-                  : 'bg-blue-600 border-white/30 shadow-[0_0_20px_rgba(37,99,235,0.6)]'
+                  ? 'bg-gradient-to-br from-red-600 to-rose-700 border-white/30 shadow-[0_0_25px_rgba(225,29,72,0.65)]'
+                  : 'bg-gradient-to-br from-blue-600 to-indigo-700 border-white/30 shadow-[0_0_25px_rgba(37,99,235,0.65)]'
               }`}>
                 {activeTurnName.charAt(0).toUpperCase()}
               </div>
@@ -602,18 +610,18 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           </div>
 
           {/* ВИДЖЕТ 2: БЛОК ДОСТУПНЫХ ДЕЙСТВИЙ ТЕКУЩЕЙ РОЛИ И ВЫБРАННАЯ ЛИНИЯ */}
-          <div className="p-5 sm:p-6 rounded-3xl bg-zinc-950/80 border border-white/10 backdrop-blur-xl shadow-xl flex flex-col gap-4 shrink-0">
+          <div className="p-5 sm:p-6 rounded-3xl bg-white/[0.04] border border-white/10 border-t-2 border-t-cyan-500/50 backdrop-blur-2xl shadow-xl flex flex-col gap-4 shrink-0 shadow-[0_15px_35px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.08)]">
             {/* Блок «Выбранная линия» (живой предпросмотр тактического маневра) */}
             {selectedLine ? (
-              <div className="p-4 rounded-2xl bg-zinc-900/80 border border-blue-400/50 shadow-[0_0_25px_rgba(37,99,235,0.25)] space-y-2">
-                <div className="text-xs 2xl:text-sm font-mono uppercase tracking-widest text-blue-300 flex items-center gap-2 font-bold">
-                  <span className="h-2.5 w-2.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+              <div className="p-4 rounded-2xl bg-cyan-950/40 border border-cyan-400/50 shadow-[0_0_25px_rgba(6,182,212,0.3)] space-y-2">
+                <div className="text-xs 2xl:text-sm font-mono uppercase tracking-widest text-cyan-300 flex items-center gap-2 font-bold">
+                  <span className="h-2.5 w-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
                   ВЫБРАННАЯ ЛИНИЯ (МАНЕВР С ПУЛЬТА)
                 </div>
                 <div className="text-xl sm:text-2xl 2xl:text-3xl font-black text-white tracking-wide flex items-center justify-between">
                   <span>{selectedLineType === 'ROW' ? `РЯД #${selectedLineIdx}` : `СТОЛБЕЦ #${selectedLineIdx}`}</span>
                   {selectedLineDir && (
-                    <span className="text-sm 2xl:text-base font-mono uppercase text-blue-200 font-black px-4 py-1.5 rounded-xl bg-blue-950/90 border border-blue-400/60 shadow-[0_0_12px_rgba(37,99,235,0.4)]">
+                    <span className="text-sm 2xl:text-base font-mono uppercase text-cyan-100 font-black px-4 py-1.5 rounded-xl bg-cyan-950/90 border border-cyan-400/60 shadow-[0_0_12px_rgba(6,182,212,0.4)]">
                       {selectedLineType === 'ROW'
                         ? (selectedLineDir === 'FORWARD' ? 'ВПРАВО →' : '← ВЛЕВО')
                         : (selectedLineDir === 'FORWARD' ? 'ВНИЗ ↓' : '↑ ВВЕРХ')}
@@ -625,22 +633,22 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
             {/* Публичный список действий роли */}
             <div className="space-y-2.5">
-              <div className="flex items-center justify-between text-sm 2xl:text-base font-mono font-bold uppercase tracking-widest text-zinc-400">
+              <div className="flex items-center justify-between text-sm 2xl:text-base font-mono font-bold uppercase tracking-widest text-zinc-300">
                 <span className="flex items-center gap-2">
                   <span className={`h-2.5 w-2.5 rounded-full ${isKillerTurn ? 'bg-rose-500' : 'bg-blue-500'}`} />
                   ДЕЙСТВИЯ РОЛИ: {activeTurnName.toUpperCase()}
                 </span>
-                <span className="text-xs 2xl:text-sm text-zinc-500 font-mono">ОБЩИЙ ОБЗОР</span>
+                <span className="text-xs 2xl:text-sm text-zinc-400 font-mono">ОБЩИЙ ОБЗОР</span>
               </div>
 
               {/* Действие 1: Маневр поля */}
               <div className={`p-3.5 2xl:p-4 rounded-2xl border flex items-center justify-between transition-all ${
                 selectedLine
-                  ? 'bg-gradient-to-r from-blue-900/80 via-blue-950/90 to-zinc-950 border-blue-400 shadow-[0_0_20px_rgba(37,99,235,0.4)]'
-                  : 'bg-gradient-to-r from-blue-950/40 via-zinc-900/60 to-zinc-950 border-blue-500/30'
+                  ? 'bg-gradient-to-r from-cyan-900/80 via-blue-950/90 to-zinc-950 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.4)]'
+                  : 'bg-white/[0.04] border-white/10 hover:border-white/20'
               }`}>
                 <div className="flex items-center gap-3">
-                  <span className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-400/50 flex items-center justify-center text-blue-300">
+                  <span className="w-10 h-10 rounded-xl bg-cyan-600/20 border border-cyan-400/50 flex items-center justify-center text-cyan-300">
                     <ActionIcons.Shift className="w-5 h-5" />
                   </span>
                   <div>
@@ -652,8 +660,8 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 </div>
                 <span className={`text-xs 2xl:text-sm font-mono font-bold px-3 py-1 rounded-lg border ${
                   selectedLine
-                    ? 'bg-blue-600 text-white border-blue-400 animate-pulse shadow-md shadow-blue-500/50'
-                    : 'bg-zinc-900 text-zinc-300 border-white/10'
+                    ? 'bg-cyan-600 text-white border-cyan-400 animate-pulse shadow-md shadow-cyan-500/50'
+                    : 'bg-black/40 text-zinc-300 border-white/10'
                 }`}>
                   {selectedLine ? 'В ПРОЦЕССЕ' : 'ДОСТУПНО'}
                 </span>
@@ -662,12 +670,12 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
               {/* Специфические действия роли */}
               {roleSpecificActions.map((act, i) => {
                 const borderClass = act.tone === 'red'
-                  ? 'border-rose-600/40 bg-gradient-to-r from-red-950/60 via-zinc-900/70 to-zinc-950 shadow-md shadow-red-950/20'
+                  ? 'border-rose-600/35 bg-gradient-to-r from-red-950/50 via-zinc-900/60 to-black/60 shadow-md shadow-red-950/20'
                   : act.tone === 'blue'
-                  ? 'border-blue-500/40 bg-gradient-to-r from-blue-950/60 via-zinc-900/70 to-zinc-950 shadow-md shadow-blue-950/20'
+                  ? 'border-blue-500/35 bg-gradient-to-r from-blue-950/50 via-zinc-900/60 to-black/60 shadow-md shadow-blue-950/20'
                   : act.tone === 'amber'
-                  ? 'border-amber-500/40 bg-gradient-to-r from-amber-950/60 via-zinc-900/70 to-zinc-950 shadow-md shadow-amber-950/20'
-                  : 'border-zinc-700/60 bg-gradient-to-r from-zinc-900/80 via-zinc-900/60 to-zinc-950';
+                  ? 'border-amber-500/35 bg-gradient-to-r from-amber-950/50 via-zinc-900/60 to-black/60 shadow-md shadow-amber-950/20'
+                  : 'border-white/10 bg-white/[0.04]';
 
                 return (
                   <div key={i} className={`p-3.5 2xl:p-4 rounded-2xl border flex items-center justify-between transition-all ${borderClass}`}>
@@ -683,7 +691,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                     <span className={`text-xs 2xl:text-sm font-mono font-bold px-3 py-1 rounded-lg border ${
                       act.badge === '1 ПОПЫТКА'
                         ? 'bg-amber-950/80 text-amber-300 border-amber-500/50 font-black'
-                        : 'bg-zinc-900 text-zinc-300 border-white/10'
+                        : 'bg-black/40 text-zinc-300 border-white/10'
                     }`}>
                       {act.badge}
                     </span>
@@ -694,13 +702,13 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           </div>
 
           {/* ХРОНИКА РАССЛЕДОВАНИЯ (ПОЛНОЦЕННЫЙ ЖУРНАЛ СОБЫТИЙ) */}
-          <div className="p-5 sm:p-6 rounded-3xl bg-zinc-950/80 border border-white/10 backdrop-blur-xl shadow-xl flex-1 flex flex-col min-h-0">
-            <div className="flex items-center justify-between text-sm 2xl:text-base font-mono uppercase tracking-widest text-zinc-400 mb-3 font-bold shrink-0">
+          <div className="p-5 sm:p-6 rounded-3xl bg-white/[0.04] border border-white/10 border-t-2 border-t-amber-500/50 backdrop-blur-2xl shadow-xl flex-1 flex flex-col min-h-0 shadow-[0_15px_35px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.08)]">
+            <div className="flex items-center justify-between text-sm 2xl:text-base font-mono uppercase tracking-widest text-zinc-300 mb-3 font-bold shrink-0">
               <span className="flex items-center gap-2">
                 <Icons.Terminal />
                 ХРОНИКА РАССЛЕДОВАНИЯ
               </span>
-              <span className="text-xs 2xl:text-sm font-mono uppercase tracking-wider text-zinc-500">ПРОТОКОЛ</span>
+              <span className="text-xs 2xl:text-sm font-mono uppercase tracking-wider text-amber-400/80">ПРОТОКОЛ</span>
             </div>
 
             <div className="flex-1 space-y-2.5 overflow-y-auto min-h-0 pr-1 text-sm md:text-base font-sans">
@@ -708,9 +716,9 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 gameState.log.slice(-8).map((entry, idx) => (
                   <div
                     key={idx}
-                    className="p-3 rounded-xl bg-zinc-900/60 border border-white/5 text-zinc-200 flex items-start gap-3 shadow-xs backdrop-blur-xs font-sans leading-relaxed"
+                    className="p-3 rounded-xl bg-white/[0.03] border border-white/5 text-zinc-200 flex items-start gap-3 shadow-xs backdrop-blur-sm font-sans leading-relaxed"
                   >
-                    <span className="text-blue-400 font-mono font-bold shrink-0">›</span>
+                    <span className="text-amber-400 font-mono font-bold shrink-0">›</span>
                     <span className="flex-1 text-sm 2xl:text-base">{entry}</span>
                   </div>
                 ))
@@ -726,28 +734,28 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
       </div>
 
       {/* НИЖНЯЯ СТРОКА: D-PAD ПОДСКАЗКИ ДЛЯ ПУЛЬТА */}
-      <div className="flex items-center justify-between px-8 py-3 rounded-2xl bg-black/70 border border-white/10 text-sm 2xl:text-base font-mono text-zinc-400 shrink-0 shadow-lg z-10">
-        <span className="flex items-center gap-2.5 text-zinc-300 font-bold">
-          <span className="h-2.5 w-2.5 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]" />
+      <div className="flex items-center justify-between px-8 py-3 rounded-2xl bg-white/[0.03] border border-white/10 border-t-2 border-t-white/15 backdrop-blur-xl text-sm 2xl:text-base font-mono text-zinc-400 shrink-0 shadow-lg z-10">
+        <span className="flex items-center gap-2.5 text-zinc-200 font-bold">
+          <span className="h-2.5 w-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)] animate-pulse" />
           ТВ-ПУЛЬТ: [ESC] Меню паузы • [Стрелки / OK] Управление
         </span>
-        <span className="text-zinc-500 font-mono text-xs 2xl:text-sm hidden sm:inline">РЕСПУБЛИКА • ТАКТИЧЕСКИЙ ЭФИР</span>
+        <span className="text-zinc-400 font-mono text-xs 2xl:text-sm hidden sm:inline">РЕСПУБЛИКА • ТАКТИЧЕСКИЙ ЭФИР</span>
       </div>
 
       {/* МОДАЛЬНОЕ МЕНЮ ПАУЗЫ (SYSTEM PAUSE MODAL С ПОЛНОЙ D-PAD ПОДДЕРЖКОЙ) */}
       <div
         aria-hidden={!isPauseOpen && focusedControl === 'NONE'}
-        className={`fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-6 select-none transition-all duration-300 ${
+        className={`fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-2xl p-6 select-none transition-all duration-300 ${
           isPauseOpen || focusedControl !== 'NONE' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       >
-        <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-zinc-950 border-2 border-white/20 shadow-2xl space-y-6 text-center">
-          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-zinc-950/90 border border-white/15 border-t-2 border-t-rose-500/60 backdrop-blur-2xl shadow-[0_30px_90px_rgba(0,0,0,0.95),inset_0_1px_1px_rgba(255,255,255,0.15)] space-y-6 text-center">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-3">
-              <span className="text-zinc-300 text-xl">
+              <span className="text-rose-400 text-xl">
                 <Icons.Settings />
               </span>
-              <span className="text-xl sm:text-2xl font-black uppercase text-white tracking-wider">
+              <span className="text-xl sm:text-2xl font-display font-black uppercase text-white tracking-wider">
                 МЕНЮ ПАУЗЫ МАТЧА
               </span>
             </div>
@@ -757,7 +765,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 setIsPauseOpen(false);
                 setFocusedControl('NONE');
               }}
-              className="text-sm font-mono text-zinc-400 hover:text-white transition cursor-pointer px-3 py-1.5 rounded-lg bg-zinc-800/80 border border-white/10 focus:outline-none focus:ring-2 focus:ring-white"
+              className="text-sm font-mono text-zinc-400 hover:text-white transition cursor-pointer px-3 py-1.5 rounded-lg bg-white/[0.05] border border-white/10 focus:outline-none focus:scale-105"
             >
               [ESC] ЗАКРЫТЬ
             </button>
@@ -775,14 +783,16 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 setIsPauseOpen(false);
                 setFocusedControl('NONE');
               }}
-              className={`w-full p-5 rounded-2xl font-display font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between shadow-lg cursor-pointer transition-all active:scale-95 focus:outline-none focus:scale-105 focus:border-blue-400 focus:shadow-[0_0_40px_rgba(59,130,246,0.65),inset_0_0_20px_rgba(255,255,255,0.25)] ${
+              className={`w-full p-5 rounded-2xl font-display font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between cursor-pointer transition-all active:scale-95 focus:outline-none focus:scale-105 focus:border-white focus:shadow-[0_0_50px_rgba(59,130,246,0.7),inset_0_0_20px_rgba(255,255,255,0.35)] shadow-[0_10px_30px_rgba(37,99,235,0.35),inset_0_1px_2px_rgba(255,255,255,0.35)] ${
                 focusedControl === 'CONTINUE'
-                  ? 'bg-blue-600 border border-white ring-2 ring-white text-white shadow-[0_0_25px_rgba(59,130,246,0.6)]'
-                  : 'bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 border border-blue-400/40 text-white'
+                  ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 border-2 border-white text-white scale-105 shadow-[0_0_40px_rgba(59,130,246,0.65),inset_0_0_15px_rgba(255,255,255,0.3)]'
+                  : 'bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 border border-blue-400/50 text-white'
               }`}
             >
-              <span>ПРОДОЛЖИТЬ МАТЧ</span>
-              <span className="font-mono text-sm">OK / ENTER ➔</span>
+              <span className="drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">ПРОДОЛЖИТЬ МАТЧ</span>
+              <span className="font-mono text-sm px-3 py-1 rounded-lg bg-black/40 border border-white/20 text-white/90 shadow-inner">
+                OK / ENTER ➔
+              </span>
             </button>
 
             {onRestart && (
@@ -796,12 +806,14 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 data-testid="tv-restart-btn"
                 className={`w-full p-5 rounded-2xl border font-display font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_35px_rgba(255,255,255,0.35),inset_0_0_15px_rgba(255,255,255,0.2)] ${
                   focusedControl === 'RESTART'
-                    ? 'border-white/90 ring-2 ring-white bg-zinc-800 text-white shadow-[0_0_20px_rgba(255,255,255,0.4)]'
+                    ? 'border-2 border-white ring-2 ring-white bg-white/20 text-white scale-105 shadow-[0_0_30px_rgba(255,255,255,0.45)]'
                     : 'border-white/15 bg-white/[0.04] hover:bg-white/[0.08] text-white/80'
                 }`}
               >
                 <span>НАЧАТЬ ЗАНОВО (РЕВАНШ)</span>
-                <span className="text-xs font-mono text-zinc-400">ТРЕБУЕТ СОГЛАСИЯ</span>
+                <span className="text-xs font-mono text-zinc-400 px-2.5 py-1 rounded-md bg-black/40 border border-white/10">
+                  ТРЕБУЕТ СОГЛАСИЯ
+                </span>
               </button>
             )}
 
@@ -814,14 +826,16 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   onExit();
                 }}
                 data-testid="tv-exit-btn"
-                className={`w-full p-5 rounded-2xl border font-display font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer focus:outline-none focus:scale-105 focus:border-red-400 focus:bg-red-900/60 focus:shadow-[0_0_35px_rgba(239,68,68,0.5),inset_0_0_15px_rgba(255,255,255,0.2)] ${
+                className={`w-full p-5 rounded-2xl border font-display font-black text-base sm:text-lg uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer focus:outline-none focus:scale-105 focus:border-rose-300 focus:shadow-[0_0_50px_rgba(244,63,94,0.7),inset_0_0_20px_rgba(255,255,255,0.35)] shadow-[0_10px_30px_rgba(225,29,72,0.35),inset_0_1px_2px_rgba(255,255,255,0.35)] ${
                   focusedControl === 'EXIT'
-                    ? 'border-red-500/90 ring-2 ring-red-500 bg-red-950/80 text-red-200 shadow-[0_0_20px_rgba(239,68,68,0.5)]'
-                    : 'border-red-500/30 bg-red-950/40 hover:bg-red-900/50 text-red-200'
+                    ? 'bg-gradient-to-r from-red-600 via-rose-600 to-red-700 border-2 border-white ring-2 ring-red-500 text-white scale-105 shadow-[0_0_40px_rgba(244,63,94,0.7),inset_0_0_15px_rgba(255,255,255,0.3)]'
+                    : 'bg-gradient-to-r from-red-800 via-rose-800 to-red-900 border border-rose-500/50 hover:from-red-700 hover:to-rose-700 text-white'
                 }`}
               >
-                <span>ВЫЙТИ В ГЛАВНОЕ МЕНЮ</span>
-                <span className="text-xs font-mono text-red-400">ЗАВЕРШИТЬ СЕССИЮ</span>
+                <span className="drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">ВЫЙТИ В ГЛАВНОЕ МЕНЮ</span>
+                <span className="text-xs font-mono text-rose-200 px-2.5 py-1 rounded-md bg-black/40 border border-white/20">
+                  ЗАВЕРШИТЬ СЕССИЮ
+                </span>
               </button>
             )}
           </div>
@@ -839,10 +853,10 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] flex items-center justify-center p-8 bg-black/85 backdrop-blur-xl select-none font-sans"
+            className="fixed inset-0 z-[70] flex items-center justify-center p-8 bg-black/85 backdrop-blur-2xl select-none font-sans"
             data-testid="tv-player-disconnected-banner"
           >
-            <div className="w-full max-w-2xl rounded-3xl bg-gradient-to-b from-slate-950 via-zinc-950 to-black border border-white/20 p-10 text-center shadow-[0_30px_60px_rgba(0,0,0,0.95)] flex flex-col items-center">
+            <div className="w-full max-w-2xl rounded-3xl bg-zinc-950/90 border border-white/15 border-t-2 border-t-blue-500/60 backdrop-blur-2xl p-10 text-center shadow-[0_30px_90px_rgba(0,0,0,0.95),inset_0_1px_1px_rgba(255,255,255,0.15)] flex flex-col items-center">
               <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-blue-950/90 border border-blue-500/50 text-sm font-mono uppercase tracking-wider text-blue-300 font-bold mb-6">
                 <span>ВРЕМЕННАЯ ПАУЗА СВЯЗИ • ТАЙМЕР ХОДА ЗАМОРОЖЕН</span>
               </div>

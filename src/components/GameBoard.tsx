@@ -212,13 +212,16 @@ export const GameBoard = ({
     touchStartRef.current = null;
   };
 
+  const onSelectCharacterRef = useRef(onSelectCharacter);
+  onSelectCharacterRef.current = onSelectCharacter;
+
   const handleCardClick = (id: string) => {
     if (isModalOpen) return;
     if (hasSwipedRef.current) {
       hasSwipedRef.current = false;
       return;
     }
-    onSelectCharacter(id);
+    onSelectCharacterRef.current(id);
   };
 
   return (

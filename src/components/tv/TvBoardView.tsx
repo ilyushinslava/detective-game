@@ -100,7 +100,35 @@ interface TvCellProps {
   col: number;
 }
 
-const TvCell: React.FC<TvCellProps> = ({
+const areTvCellPropsEqual = (prev: TvCellProps, next: TvCellProps): boolean => {
+  if (prev.index !== next.index) return false;
+  if (prev.row !== next.row) return false;
+  if (prev.col !== next.col) return false;
+  if (prev.boardSize !== next.boardSize) return false;
+  if (prev.isLineActive !== next.isLineActive) return false;
+  if (prev.inRadarCenter !== next.inRadarCenter) return false;
+  if (prev.inRadarArea !== next.inRadarArea) return false;
+  if (prev.isTargetVictim !== next.isTargetVictim) return false;
+  if (prev.isUniformedOfficer !== next.isUniformedOfficer) return false;
+  if (prev.mode !== next.mode) return false;
+  if (prev.selectedLineDir !== next.selectedLineDir) return false;
+  if (prev.selectedLineType !== next.selectedLineType) return false;
+
+  const prevChar = prev.char;
+  const nextChar = next.char;
+
+  if (prevChar.id !== nextChar.id) return false;
+  if (prevChar.name !== nextChar.name) return false;
+  if (prevChar.isAlive !== nextChar.isAlive) return false;
+  if (prevChar.isExonerated !== nextChar.isExonerated) return false;
+  if (prevChar.isRobbed !== nextChar.isRobbed) return false;
+  if (prevChar.unmaskedSpyIndex !== nextChar.unmaskedSpyIndex) return false;
+  if ((prevChar as any).isArrested !== (nextChar as any).isArrested) return false;
+
+  return true;
+};
+
+const TvCell: React.FC<TvCellProps> = React.memo(({
   char,
   index,
   isLineActive,
@@ -249,7 +277,7 @@ const TvCell: React.FC<TvCellProps> = ({
       </div>
     </motion.div>
   );
-};
+}, areTvCellPropsEqual);
 
 export const TvBoardView: React.FC<TvBoardViewProps> = ({
   gameState,

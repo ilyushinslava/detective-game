@@ -99,14 +99,30 @@ export default function App() {
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [isNotebookOpen, setIsNotebookOpen] = useState(false);
   const [tvRoomCode, setTvRoomCode] = useState<string>(() => {
-    return roomParam || targetRoomParam || "";
+    if (roomParam || targetRoomParam) return roomParam || targetRoomParam || "";
+    if (typeof window !== "undefined") {
+      try {
+        const savedRoom = localStorage.getItem("tv_session_room_code");
+        if (savedRoom) return savedRoom;
+      } catch {}
+    }
+    return "";
   });
   const [tvMorseCode, setTvMorseCode] = useState<string>("");
   const [pinInput, setPinInput] = useState<string>("");
   const [tvPartyState, setTvPartyState] = useState<"NONE" | "TV_HOME" | "TV_LOBBY" | "TV_BOARD" | "CONTROLLER">(() => {
-    if (isAndroidTv) return "TV_HOME";
     if (clientTypeParam === "CONTROLLER" || targetRoomParam) return "CONTROLLER";
     if (clientTypeParam === "TV_DISPLAY") return "TV_LOBBY";
+    if (typeof window !== "undefined") {
+      try {
+        const savedState = localStorage.getItem("tv_session_party_state") as any;
+        const savedRoom = localStorage.getItem("tv_session_room_code") || roomParam || targetRoomParam;
+        if (savedState && savedRoom && ["TV_LOBBY", "TV_BOARD", "CONTROLLER"].includes(savedState)) {
+          return savedState;
+        }
+      } catch {}
+    }
+    if (isAndroidTv) return "TV_HOME";
     return "NONE";
   });
   const [tvLinePreview, setTvLinePreview] = useState<ShiftPayload | null>(null);
@@ -122,6 +138,22 @@ export default function App() {
   const [isTvPassAndPlay, setIsTvPassAndPlay] = useState<boolean>(false);
   const [isPassAndPlayOpen, setIsPassAndPlayOpen] = useState(false);
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
+
+  // Авто-восстановление сессии (Auto-Recovery): синхронизация tvRoomCode и tvPartyState с localStorage
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (tvPartyState === "NONE") {
+        localStorage.removeItem("tv_session_party_state");
+        localStorage.removeItem("tv_session_room_code");
+      } else {
+        localStorage.setItem("tv_session_party_state", tvPartyState);
+        if (tvRoomCode) {
+          localStorage.setItem("tv_session_room_code", tvRoomCode);
+        }
+      }
+    } catch {}
+  }, [tvPartyState, tvRoomCode]);
 
   // Защита OLED-экранов от выгорания (таймер простоя 5 минут)
   const { isIdle: isOledIdle, resetTimer: resetOledTimer } = useIdleTimer({
@@ -928,9 +960,14 @@ export default function App() {
                     } catch (_) {}
                   }}
                   onBackToMenu={() => {
+                    try {
+                      localStorage.removeItem("tv_session_party_state");
+                      localStorage.removeItem("tv_session_room_code");
+                    } catch {}
                     sessionStorage.removeItem("tv_controller_client_id");
                     sessionStorage.removeItem("tv_controller_role");
                     window.location.search = "";
+                    setTvRoomCode("");
                     setTvPartyState("NONE");
                     setIsLobbyOpen(true);
                   }}
@@ -972,10 +1009,15 @@ export default function App() {
                     variant="secondary"
                     fullWidth
                     onClick={() => {
+                      try {
+                        localStorage.removeItem("tv_session_party_state");
+                        localStorage.removeItem("tv_session_room_code");
+                      } catch {}
                       sessionStorage.removeItem("tv_controller_client_id");
                       sessionStorage.removeItem("tv_controller_role");
                       partyService.disconnect();
                       window.location.search = "";
+                      setTvRoomCode("");
                       setTvPartyState("NONE");
                       setIsLobbyOpen(true);
                     }}
@@ -998,10 +1040,15 @@ export default function App() {
                   onDispatchAction={dispatchAction}
                   onSelectLinePreview={setTvLinePreview}
                   onExit={() => {
+                    try {
+                      localStorage.removeItem("tv_session_party_state");
+                      localStorage.removeItem("tv_session_room_code");
+                    } catch {}
                     sessionStorage.removeItem("tv_controller_client_id");
                     sessionStorage.removeItem("tv_controller_role");
                     partyService.disconnect();
                     window.location.search = "";
+                    setTvRoomCode("");
                     setTvPartyState("NONE");
                     setIsLobbyOpen(true);
                   }}
@@ -1077,6 +1124,11 @@ export default function App() {
                 }}
                 onExit={() => {
                   partyService.disconnect();
+                  try {
+                    localStorage.removeItem("tv_session_party_state");
+                    localStorage.removeItem("tv_session_room_code");
+                  } catch {}
+                  setTvRoomCode("");
                   if (isAndroidTv) {
                     setTvPartyState("TV_HOME");
                     return;
@@ -1106,6 +1158,11 @@ export default function App() {
                 hideExit={false}
                 onExit={() => {
                   partyService.disconnect();
+                  try {
+                    localStorage.removeItem("tv_session_party_state");
+                    localStorage.removeItem("tv_session_room_code");
+                  } catch {}
+                  setTvRoomCode("");
                   if (isAndroidTv) {
                     setTvPartyState("TV_HOME");
                     return;

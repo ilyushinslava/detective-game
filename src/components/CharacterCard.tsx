@@ -121,24 +121,57 @@ export const formatCompactName = (fullName: string): string => {
   return fullName || "";
 };
 
-export const CharacterCard = memo(
-  ({
-    mode,
-    character,
-    isSelected,
-    neighborRole,
-    neighborHighlightColor,
-    isUniformedOfficer,
-    isTargetVictim,
-    radarRingColor,
-    onClick,
-    isRadarCenter,
-    isError = false,
-    isMyCharacter = false,
-    isPVP = false,
-    myRoleColor,
-    isLastRobbed = false,
-  }: CharacterCardProps) => {
+export const areCharacterCardPropsEqual = (
+  prev: CharacterCardProps,
+  next: CharacterCardProps
+): boolean => {
+  if (prev.mode !== next.mode) return false;
+  if (prev.isSelected !== next.isSelected) return false;
+  if (prev.neighborRole !== next.neighborRole) return false;
+  if (prev.neighborHighlightColor !== next.neighborHighlightColor) return false;
+  if (prev.isUniformedOfficer !== next.isUniformedOfficer) return false;
+  if (prev.isTargetVictim !== next.isTargetVictim) return false;
+  if (prev.radarRingColor !== next.radarRingColor) return false;
+  if (prev.isRadarCenter !== next.isRadarCenter) return false;
+  if (prev.isError !== next.isError) return false;
+  if (prev.isMyCharacter !== next.isMyCharacter) return false;
+  if (prev.isOverlapZone !== next.isOverlapZone) return false;
+  if (prev.isPVP !== next.isPVP) return false;
+  if (prev.myRoleColor !== next.myRoleColor) return false;
+  if (prev.isLastRobbed !== next.isLastRobbed) return false;
+
+  const prevChar = prev.character;
+  const nextChar = next.character;
+
+  if (prevChar.id !== nextChar.id) return false;
+  if (prevChar.name !== nextChar.name) return false;
+  if (prevChar.isAlive !== nextChar.isAlive) return false;
+  if (prevChar.isExonerated !== nextChar.isExonerated) return false;
+  if (prevChar.isRobbed !== nextChar.isRobbed) return false;
+  if (prevChar.unmaskedSpyIndex !== nextChar.unmaskedSpyIndex) return false;
+  if ((prevChar as any).isArrested !== (nextChar as any).isArrested) return false;
+  if ((prevChar as any).role !== (nextChar as any).role) return false;
+
+  return true;
+};
+
+const CharacterCardComponent = ({
+  mode,
+  character,
+  isSelected,
+  neighborRole,
+  neighborHighlightColor,
+  isUniformedOfficer,
+  isTargetVictim,
+  radarRingColor,
+  onClick,
+  isRadarCenter,
+  isError = false,
+  isMyCharacter = false,
+  isPVP = false,
+  myRoleColor,
+  isLastRobbed = false,
+}: CharacterCardProps) => {
     const [imgError, setImgError] = useState(false);
     const isDead = !character.isAlive;
     const isExonerated = character.isExonerated && !isDead;
@@ -354,5 +387,6 @@ export const CharacterCard = memo(
         </div>
       </motion.div>
     );
-  },
-);
+};
+
+export const CharacterCard = memo(CharacterCardComponent, areCharacterCardPropsEqual);

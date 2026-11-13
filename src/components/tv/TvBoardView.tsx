@@ -520,38 +520,38 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
     if (gameState?.mode === 'THIEF_HUNT') {
       if (isKillerTurn) {
         return [
-          { name: 'КРАЖА', desc: 'Кража трофея у соседа в радиусе 3×3', badge: 'ДОСТУПНО', icon: <ActionIcons.Rob className="w-4 h-4 text-amber-400" />, tone: 'amber' as const },
-          { name: 'КОНСПИРАЦИЯ', desc: 'Смена маскировки на новую', badge: 'ДОСТУПНО', icon: <ActionIcons.Disguise className="w-4 h-4 text-zinc-300" />, tone: 'neutral' as const },
+          { name: 'КРАЖА', desc: 'Кража трофея у соседа в радиусе 3×3', badge: 'ДОСТУПНО', icon: <ActionIcons.Rob className="w-3.5 h-3.5 text-amber-400" />, tone: 'amber' as const },
+          { name: 'КОНСПИРАЦИЯ', desc: 'Смена маскировки на новую', badge: 'ДОСТУПНО', icon: <ActionIcons.Disguise className="w-3.5 h-3.5 text-zinc-300" />, tone: 'neutral' as const },
         ];
       }
       return [
-        { name: 'ВЫЗОВ ПАТРУЛЯ', desc: 'Оцепление сектора и допрос жителей', badge: 'ДОСТУПНО', icon: <ActionIcons.Patrol className="w-4 h-4 text-blue-400" />, tone: 'blue' as const },
-        { name: 'ЗАДЕРЖАНИЕ', desc: 'Поимка грабителя с поличным', badge: '1 ПОПЫТКА', icon: <ActionIcons.Arrest className="w-4 h-4 text-blue-400" />, tone: 'blue' as const },
+        { name: 'ВЫЗОВ ПАТРУЛЯ', desc: 'Оцепление сектора и допрос жителей', badge: 'ДОСТУПНО', icon: <ActionIcons.Patrol className="w-3.5 h-3.5 text-blue-400" />, tone: 'blue' as const },
+        { name: 'ЗАДЕРЖАНИЕ', desc: 'Поимка грабителя с поличным', badge: '1 ПОПЫТКА', icon: <ActionIcons.Arrest className="w-3.5 h-3.5 text-blue-400" />, tone: 'blue' as const },
       ];
     }
     if (gameState?.mode === 'SECRET_SERVICE') {
       return [
-        { name: 'РАЗОБЛАЧЕНИЕ', desc: 'Проверка принадлежности к спецслужбам', badge: 'ДОСТУПНО', icon: <ActionIcons.Kill className="w-4 h-4 text-rose-400" />, tone: 'red' as const },
-        { name: 'ОПРОС СВИДЕТЕЛЕЙ', desc: 'Сбор агентурных данных в секторе', badge: 'ДОСТУПНО', icon: <ActionIcons.Interrogate className="w-4 h-4 text-blue-400" />, tone: 'blue' as const },
-        { name: 'ЗАЧИСТКА', desc: 'Устранение раскрытого агента', badge: 'ДОСТУПНО', icon: <ActionIcons.Cleanup className="w-4 h-4 text-zinc-300" />, tone: 'neutral' as const },
+        { name: 'РАЗОБЛАЧЕНИЕ', desc: 'Проверка принадлежности к спецслужбам', badge: 'ДОСТУПНО', icon: <ActionIcons.Kill className="w-3.5 h-3.5 text-rose-400" />, tone: 'red' as const },
+        { name: 'ОПРОС СВИДЕТЕЛЕЙ', desc: 'Сбор агентурных данных в секторе', badge: 'ДОСТУПНО', icon: <ActionIcons.Interrogate className="w-3.5 h-3.5 text-blue-400" />, tone: 'blue' as const },
+        { name: 'ЗАЧИСТКА', desc: 'Устранение раскрытого агента', badge: 'ДОСТУПНО', icon: <ActionIcons.Cleanup className="w-3.5 h-3.5 text-zinc-300" />, tone: 'neutral' as const },
       ];
     }
     if (gameState?.mode === 'LINE_UP') {
       return [
-        { name: 'ВОПРОС', desc: 'Выяснение примет подозреваемого', badge: 'ДОСТУПНО', icon: <ActionIcons.Interrogate className="w-4 h-4 text-blue-400" />, tone: 'blue' as const },
-        { name: 'ОБВИНЕНИЕ', desc: 'Окончательное задержание на очной ставке', badge: '1 ПОПЫТКА', icon: <ActionIcons.Arrest className="w-4 h-4 text-blue-400" />, tone: 'blue' as const },
+        { name: 'ВОПРОС', desc: 'Выяснение примет подозреваемого', badge: 'ДОСТУПНО', icon: <ActionIcons.Interrogate className="w-3.5 h-3.5 text-blue-400" />, tone: 'blue' as const },
+        { name: 'ОБВИНЕНИЕ', desc: 'Окончательное задержание на очной ставке', badge: '1 ПОПЫТКА', icon: <ActionIcons.Arrest className="w-3.5 h-3.5 text-blue-400" />, tone: 'blue' as const },
       ];
     }
     if (isKillerTurn) {
       return [
-        { name: 'ЛИКВИДАЦИЯ', desc: 'Устранение цели в радиусе 3×3', badge: 'ДОСТУПНО', icon: <ActionIcons.Kill className="w-4 h-4 text-rose-400" />, tone: 'red' as const },
-        { name: 'ЗАЧИСТКА', desc: 'Уничтожение улик на месте преступления', badge: 'ДОСТУПНО', icon: <ActionIcons.Cleanup className="w-4 h-4 text-zinc-300" />, tone: 'neutral' as const },
-        { name: 'КОНСПИРАЦИЯ', desc: 'Экстренная смена маскировки и уход от слежки', badge: 'ДОСТУПНО', icon: <ActionIcons.Disguise className="w-4 h-4 text-zinc-300" />, tone: 'neutral' as const },
+        { name: 'ЛИКВИДАЦИЯ', desc: 'Устранение цели в радиусе 3×3', badge: 'ДОСТУПНО', icon: <ActionIcons.Kill className="w-3.5 h-3.5 text-rose-400" />, tone: 'red' as const },
+        { name: 'ЗАЧИСТКА', desc: 'Уничтожение улик на месте преступления', badge: 'ДОСТУПНО', icon: <ActionIcons.Cleanup className="w-3.5 h-3.5 text-zinc-300" />, tone: 'neutral' as const },
+        { name: 'КОНСПИРАЦИЯ', desc: 'Экстренная смена маскировки и уход от слежки', badge: 'ДОСТУПНО', icon: <ActionIcons.Disguise className="w-3.5 h-3.5 text-zinc-300" />, tone: 'neutral' as const },
       ];
     }
     return [
-      { name: 'ПРОВЕРКА АЛИБИ', desc: 'Опрос свидетеля в радиусе 3×3', badge: 'ДОСТУПНО', icon: <ActionIcons.Exonerate className="w-4 h-4 text-blue-400" />, tone: 'blue' as const },
-      { name: 'ЗАДЕРЖАНИЕ', desc: 'Задержание подозреваемого маньяка', badge: '1 ПОПЫТКА', icon: <ActionIcons.Arrest className="w-4 h-4 text-blue-400" />, tone: 'blue' as const },
+      { name: 'ПРОВЕРКА АЛИБИ', desc: 'Опрос свидетеля в радиусе 3×3', badge: 'ДОСТУПНО', icon: <ActionIcons.Exonerate className="w-3.5 h-3.5 text-blue-400" />, tone: 'blue' as const },
+      { name: 'ЗАДЕРЖАНИЕ', desc: 'Задержание подозреваемого маньяка', badge: '1 ПОПЫТКА', icon: <ActionIcons.Arrest className="w-3.5 h-3.5 text-blue-400" />, tone: 'blue' as const },
     ];
   }, [gameState?.mode, isKillerTurn]);
 
@@ -705,60 +705,60 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         </div>
 
         {/* ПРАВАЯ ЗОНА (~32%): Терминал хода и хроники расследования */}
-        <div className="w-[34%] lg:w-[32%] h-full flex flex-col gap-2.5 sm:gap-3 min-w-0 min-h-0 overflow-hidden justify-between">
+        <div className="w-[34%] lg:w-[32%] h-full flex flex-col gap-2 sm:gap-2.5 min-w-0 min-h-0 overflow-hidden">
           
-          {/* БЛОК 1: ТЕКУЩИЙ АКТИВНЫЙ ХОД */}
-          <div className={`p-3.5 sm:p-4 rounded-2xl border border-white/10 border-t-2 backdrop-blur-2xl transition-all duration-500 shadow-xl relative overflow-hidden shrink-0 ${
+          {/* БЛОК 1: ТЕКУЩИЙ АКТИВНЫЙ ХОД (МАКСИМАЛЬНО КОМПАКТНЫЙ) */}
+          <div className={`p-2.5 sm:p-3 rounded-2xl border border-white/10 border-t-2 backdrop-blur-2xl transition-all duration-500 shadow-xl relative overflow-hidden shrink-0 ${
             isKillerTurn
               ? 'border-t-rose-500/80 bg-gradient-to-br from-red-950/45 via-white/[0.04] to-black/80 shadow-[0_8px_30px_rgba(225,29,72,0.25)]'
               : 'border-t-blue-500/80 bg-gradient-to-br from-blue-950/45 via-white/[0.04] to-black/80 shadow-[0_8px_30px_rgba(37,99,235,0.25)]'
           }`}>
-            <div className="flex items-center mb-2">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-mono font-bold uppercase tracking-widest border shadow-sm ${
+            <div className="flex items-center mb-1">
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-widest border shadow-xs ${
                 isKillerTurn
                   ? 'bg-red-950/80 border-red-500/40 text-red-200'
                   : 'bg-blue-950/80 border-blue-500/40 text-blue-200'
               }`}>
-                <span className={`h-2 w-2 rounded-full ${isKillerTurn ? 'bg-rose-400' : 'bg-blue-400'} animate-pulse`} />
+                <span className={`h-1.5 w-1.5 rounded-full ${isKillerTurn ? 'bg-rose-400' : 'bg-blue-400'} animate-pulse`} />
                 ТЕКУЩИЙ ХОД
               </span>
             </div>
 
-            <div className="flex items-center gap-3 my-1">
-              <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl border-2 flex items-center justify-center font-mono text-2xl sm:text-3xl font-black text-white shrink-0 shadow-lg ${
+            <div className="flex items-center gap-2.5">
+              <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl border flex items-center justify-center font-mono text-xl sm:text-2xl font-black text-white shrink-0 shadow-md ${
                 isKillerTurn
-                  ? 'bg-gradient-to-br from-red-600 to-rose-700 border-white/30 shadow-[0_0_20px_rgba(225,29,72,0.5)]'
-                  : 'bg-gradient-to-br from-blue-600 to-indigo-700 border-white/30 shadow-[0_0_20px_rgba(37,99,235,0.5)]'
+                  ? 'bg-gradient-to-br from-red-600 to-rose-700 border-white/30 shadow-[0_0_15px_rgba(225,29,72,0.5)]'
+                  : 'bg-gradient-to-br from-blue-600 to-indigo-700 border-white/30 shadow-[0_0_15px_rgba(37,99,235,0.5)]'
               }`}>
                 {activeTurnName.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
+                <div className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold leading-none mb-0.5">
                   АКТИВНЫЙ ИГРОК
                 </div>
-                <div className="text-xl sm:text-2xl font-black tracking-wider uppercase truncate text-white drop-shadow">
+                <div className="text-base sm:text-lg 2xl:text-xl font-black tracking-wider uppercase truncate text-white drop-shadow leading-tight">
                   {activeTurnName.toUpperCase()}
                 </div>
-                <div className="text-xs sm:text-sm text-zinc-300 font-medium whitespace-normal font-mono">
+                <div className="text-[11px] sm:text-xs text-zinc-300 font-medium whitespace-normal font-mono leading-tight">
                   Ожидание команды с пульта...
                 </div>
               </div>
             </div>
           </div>
 
-          {/* БЛОК 2: ДОСТУПНЫЕ ДЕЙСТВИЯ ТЕКУЩЕЙ РОЛИ И ВЫБРАННАЯ ЛИНИЯ */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.04] border border-white/10 border-t-2 border-t-cyan-500/50 backdrop-blur-2xl shadow-xl flex flex-col gap-2.5 shrink-0">
+          {/* БЛОК 2: ДОСТУПНЫЕ ДЕЙСТВИЯ ТЕКУЩЕЙ РОЛИ (FLEX-1 СО СКРОЛЛОМ) */}
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-white/[0.04] border border-white/10 border-t-2 border-t-cyan-500/50 backdrop-blur-2xl shadow-xl flex-1 min-h-0 flex flex-col gap-2 overflow-hidden">
             {/* Блок «Выбранная линия» */}
             {selectedLine ? (
-              <div className="p-2.5 sm:p-3 rounded-xl bg-cyan-950/40 border border-cyan-400/50 shadow-[0_0_20px_rgba(6,182,212,0.25)] space-y-1">
-                <div className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-cyan-300 flex items-center gap-1.5 font-bold">
-                  <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_rgba(6,182,212,0.8)]" />
+              <div className="p-2 rounded-xl bg-cyan-950/40 border border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.25)] space-y-0.5 shrink-0">
+                <div className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-cyan-300 flex items-center gap-1 font-bold">
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_4px_rgba(6,182,212,0.8)]" />
                   ВЫБРАННАЯ ЛИНИЯ
                 </div>
-                <div className="text-base sm:text-lg font-black text-white tracking-wide flex items-center justify-between">
+                <div className="text-sm sm:text-base font-black text-white tracking-wide flex items-center justify-between">
                   <span>{selectedLineType === 'ROW' ? `РЯД #${selectedLineIdx}` : `СТОЛБЕЦ #${selectedLineIdx}`}</span>
                   {selectedLineDir && (
-                    <span className="text-xs font-mono uppercase text-cyan-100 font-black px-2.5 py-1 rounded-lg bg-cyan-950/90 border border-cyan-400/60 shadow-[0_0_10px_rgba(6,182,212,0.4)]">
+                    <span className="text-[10px] sm:text-xs font-mono uppercase text-cyan-100 font-black px-2 py-0.5 rounded-md bg-cyan-950/90 border border-cyan-400/60 shadow-xs">
                       {selectedLineType === 'ROW'
                         ? (selectedLineDir === 'FORWARD' ? 'ВПРАВО →' : '← ВЛЕВО')
                         : (selectedLineDir === 'FORWARD' ? 'ВНИЗ ↓' : '↑ ВВЕРХ')}
@@ -768,25 +768,26 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
               </div>
             ) : null}
 
-            {/* Публичный список действий роли */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs sm:text-sm font-mono font-bold uppercase tracking-widest text-zinc-300">
-                <span className="flex items-center gap-1.5">
-                  <span className={`h-2 w-2 rounded-full ${isKillerTurn ? 'bg-rose-500' : 'bg-blue-500'}`} />
-                  ДЕЙСТВИЯ: {activeTurnName.toUpperCase()}
-                </span>
-                <span className="text-[10px] sm:text-xs text-zinc-400 font-mono">ОБЗОР</span>
-              </div>
+            {/* Заголовок блока действий */}
+            <div className="flex items-center justify-between text-[11px] sm:text-xs font-mono font-bold uppercase tracking-widest text-zinc-300 shrink-0">
+              <span className="flex items-center gap-1.5">
+                <span className={`h-2 w-2 rounded-full ${isKillerTurn ? 'bg-rose-500' : 'bg-blue-500'}`} />
+                ДЕЙСТВИЯ: {activeTurnName.toUpperCase()}
+              </span>
+              <span className="text-[9px] sm:text-[10px] text-zinc-400 font-mono">ОБЗОР</span>
+            </div>
 
+            {/* Список действий со скроллом */}
+            <div className="flex-1 overflow-y-auto min-h-0 space-y-1.5 pr-1">
               {/* Маневр поля */}
-              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center justify-between transition-all ${
+              <div className={`p-1.5 sm:py-2 sm:px-2.5 rounded-xl border flex items-center justify-between transition-all ${
                 selectedLine
                   ? 'bg-gradient-to-r from-cyan-900/80 via-blue-950/90 to-zinc-950 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.35)]'
                   : 'bg-white/[0.04] border-white/10 hover:border-white/20'
               }`}>
-                <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
-                  <span className="w-8 h-8 rounded-lg bg-cyan-600/20 border border-cyan-400/50 flex items-center justify-center text-cyan-300 shrink-0">
-                    <ActionIcons.Shift className="w-4 h-4" />
+                <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
+                  <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-cyan-600/20 border border-cyan-400/50 flex items-center justify-center text-cyan-300 shrink-0">
+                    <ActionIcons.Shift className="w-3.5 h-3.5" />
                   </span>
                   <div className="flex-1 min-w-0 pr-2">
                     <div className="text-xs sm:text-sm font-black uppercase text-white tracking-wide truncate">МАНЕВР ПОЛЯ</div>
@@ -796,7 +797,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   </div>
                 </div>
                 {selectedLine && (
-                  <span className="shrink-0 text-[10px] sm:text-xs font-mono font-bold px-2 py-0.5 rounded border bg-cyan-600 text-white border-cyan-400 animate-pulse">
+                  <span className="shrink-0 text-[9px] sm:text-[10px] font-mono font-bold px-2 py-0.5 rounded border bg-cyan-600 text-white border-cyan-400 animate-pulse">
                     В ПРОЦЕССЕ
                   </span>
                 )}
@@ -813,9 +814,9 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   : 'border-white/10 bg-white/[0.04]';
 
                 return (
-                  <div key={i} className={`p-2 sm:p-2.5 rounded-xl border flex items-center justify-between transition-all ${borderClass}`}>
-                    <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
-                      <span className="w-8 h-8 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center shrink-0">
+                  <div key={i} className={`p-1.5 sm:py-2 sm:px-2.5 rounded-xl border flex items-center justify-between transition-all ${borderClass}`}>
+                    <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
+                      <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center shrink-0">
                         {act.icon}
                       </span>
                       <div className="flex-1 min-w-0 pr-2">
@@ -824,7 +825,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                       </div>
                     </div>
                     {act.badge && act.badge !== 'ДОСТУПНО' && (
-                      <span className="shrink-0 text-[10px] sm:text-xs font-mono font-bold px-2 py-0.5 rounded border bg-amber-950/80 text-amber-300 border-amber-500/50 font-black">
+                      <span className="shrink-0 text-[9px] sm:text-[10px] font-mono font-bold px-2 py-0.5 rounded border bg-amber-950/80 text-amber-300 border-amber-500/50 font-black">
                         {act.badge}
                       </span>
                     )}
@@ -834,29 +835,29 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
             </div>
           </div>
 
-          {/* БЛОК 3: ХРОНИКА РАССЛЕДОВАНИЯ (ЖУРНАЛ СОБЫТИЙ) */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.04] border border-white/10 border-t-2 border-t-amber-500/50 backdrop-blur-2xl shadow-xl flex-1 flex flex-col min-h-0 overflow-hidden">
-            <div className="flex items-center justify-between text-xs sm:text-sm font-mono uppercase tracking-widest text-zinc-300 mb-2 font-bold shrink-0">
+          {/* БЛОК 3: ХРОНИКА РАССЛЕДОВАНИЯ (КОМПАКТНЫЙ СНИЗУ) */}
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-white/[0.04] border border-white/10 border-t-2 border-t-amber-500/50 backdrop-blur-2xl shadow-xl h-[130px] sm:h-[150px] 2xl:h-[180px] shrink-0 flex flex-col min-h-0 overflow-hidden">
+            <div className="flex items-center justify-between text-[11px] sm:text-xs font-mono uppercase tracking-widest text-zinc-300 mb-1.5 font-bold shrink-0">
               <span className="flex items-center gap-1.5">
                 <Icons.Terminal />
                 ХРОНИКА РАССЛЕДОВАНИЯ
               </span>
-              <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-amber-400/80">ПРОТОКОЛ</span>
+              <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-amber-400/80">ПРОТОКОЛ</span>
             </div>
 
-            <div className="flex-1 space-y-2 overflow-y-auto min-h-0 pr-1 text-xs sm:text-sm font-sans">
+            <div className="flex-1 space-y-1.5 overflow-y-auto min-h-0 pr-1 text-xs font-sans">
               {gameState?.log && gameState.log.length > 0 ? (
                 gameState.log.slice(-8).map((entry, idx) => (
                   <div
                     key={idx}
-                    className="p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/5 text-zinc-200 flex items-start gap-2 shadow-xs backdrop-blur-sm font-sans leading-relaxed"
+                    className="p-1.5 sm:p-2 rounded-lg bg-white/[0.03] border border-white/5 text-zinc-200 flex items-start gap-1.5 shadow-xs backdrop-blur-sm font-sans leading-relaxed"
                   >
                     <span className="text-amber-400 font-mono font-bold shrink-0">›</span>
-                    <span className="flex-1 text-xs sm:text-sm">{entry}</span>
+                    <span className="flex-1 text-xs">{entry}</span>
                   </div>
                 ))
               ) : (
-                <div className="text-zinc-500 italic text-center my-auto font-sans text-xs sm:text-sm">
+                <div className="text-zinc-500 italic text-center my-auto font-sans text-xs">
                   Ожидание тактических действий...
                 </div>
               )}

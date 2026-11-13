@@ -22,7 +22,13 @@ export function useSpatialNavigation({
     const elements = Array.from(root.querySelectorAll<HTMLElement>(selector));
     return elements.filter((el) => {
       const style = window.getComputedStyle(el);
-      return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
+      return (
+        style.display !== 'none' &&
+        style.visibility !== 'hidden' &&
+        style.opacity !== '0' &&
+        el.offsetParent !== null &&
+        !el.hasAttribute('disabled')
+      );
     });
   }, [containerRef]);
 
@@ -52,7 +58,6 @@ export function useSpatialNavigation({
     if (!enabled) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Игнорируем ввод текста внутри input элементов для стрелок влево/вправо
       const target = e.target as HTMLElement | null;
       const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA');
 
@@ -60,7 +65,7 @@ export function useSpatialNavigation({
       const isDown = e.key === 'ArrowDown' || e.keyCode === 40 || e.keyCode === 20;
       const isLeft = e.key === 'ArrowLeft' || e.keyCode === 37 || e.keyCode === 21;
       const isRight = e.key === 'ArrowRight' || e.keyCode === 39 || e.keyCode === 22;
-      const isEnter = e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66;
+      const isEnter = e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66 || e.key === ' ';
 
       if (!isUp && !isDown && !isLeft && !isRight && !isEnter) {
         return;
@@ -84,6 +89,8 @@ export function useSpatialNavigation({
 
       const currentActive = (document.activeElement as HTMLElement) || focusables[0];
       const currentRect = currentActive.getBoundingClientRect();
+      const currentCenterX = currentRect.left + currentRect.width / 2;
+      const currentCenterY = currentRect.top + currentRect.height / 2;
 
       let bestElement: HTMLElement | null = null;
       let minDistance = Infinity;
@@ -91,20 +98,23 @@ export function useSpatialNavigation({
       for (const el of focusables) {
         if (el === currentActive) continue;
         const rect = el.getBoundingClientRect();
+        const targetCenterX = rect.left + rect.width / 2;
+        const targetCenterY = rect.top + rect.height / 2;
 
-        const dx = (rect.left + rect.width / 2) - (currentRect.left + currentRect.width / 2);
-        const dy = (rect.top + rect.height / 2) - (currentRect.top + currentRect.height / 2);
+        const dx = targetCenterX - currentCenterX;
+        const dy = targetCenterY - currentCenterY;
 
         let isInDirection = false;
-        if (isRight && dx > 8) isInDirection = true;
-        if (isLeft && dx < -8) isInDirection = true;
-        if (isDown && dy > 8) isInDirection = true;
-        if (isUp && dy < -8) isInDirection = true;
+        if (isRight && dx > 15) isInDirection = true;
+        if (isLeft && dx < -15) isInDirection = true;
+        if (isDown && dy > 15) isInDirection = true;
+        if (isUp && dy < -15) isInDirection = true;
 
         if (isInDirection) {
           const primaryDist = isLeft || isRight ? Math.abs(dx) : Math.abs(dy);
           const secondaryDist = isLeft || isRight ? Math.abs(dy) : Math.abs(dx);
-          const distance = primaryDist + secondaryDist * 2.2;
+          // Штрафуем отклонение от прямой траектории
+          const distance = primaryDist + secondaryDist * 2.5;
 
           if (distance < minDistance) {
             minDistance = distance;

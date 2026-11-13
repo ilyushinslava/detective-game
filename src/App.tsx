@@ -29,6 +29,7 @@ import { DEFAULT_BET } from "./constants/gameRules";
 
 // Асинхронные динамические чанки второстепенных экранов (TASK-ARCH-001)
 const DuelScreen = lazy(() => import("./components/duel/DuelScreen").then((m) => ({ default: m.DuelScreen })));
+const TvHomeView = lazy(() => import("./components/tv/TvHomeView").then((m) => ({ default: m.TvHomeView })));
 const TvBoardView = lazy(() => import("./components/tv/TvBoardView").then((m) => ({ default: m.TvBoardView })));
 const TvLobbyView = lazy(() => import("./components/tv/TvLobbyView").then((m) => ({ default: m.TvLobbyView })));
 const MobileControllerView = lazy(() => import("./components/controller/MobileControllerView").then((m) => ({ default: m.MobileControllerView })));
@@ -94,19 +95,12 @@ export default function App() {
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [isNotebookOpen, setIsNotebookOpen] = useState(false);
   const [tvRoomCode, setTvRoomCode] = useState<string>(() => {
-    if (roomParam || targetRoomParam) return roomParam || targetRoomParam || "";
-    if (isAndroidTv) {
-      const saved = typeof window !== "undefined" ? sessionStorage.getItem("tv_party_room") : null;
-      const generated = saved || Math.floor(10000 + Math.random() * 90000).toString();
-      if (typeof window !== "undefined") sessionStorage.setItem("tv_party_room", generated);
-      return generated;
-    }
-    return "";
+    return roomParam || targetRoomParam || "";
   });
   const [tvMorseCode, setTvMorseCode] = useState<string>("");
   const [pinInput, setPinInput] = useState<string>("");
-  const [tvPartyState, setTvPartyState] = useState<"NONE" | "TV_LOBBY" | "TV_BOARD" | "CONTROLLER">(() => {
-    if (isAndroidTv) return "TV_LOBBY";
+  const [tvPartyState, setTvPartyState] = useState<"NONE" | "TV_HOME" | "TV_LOBBY" | "TV_BOARD" | "CONTROLLER">(() => {
+    if (isAndroidTv) return "TV_HOME";
     if (clientTypeParam === "CONTROLLER" || targetRoomParam) return "CONTROLLER";
     if (clientTypeParam === "TV_DISPLAY") return "TV_LOBBY";
     return "NONE";
@@ -493,7 +487,7 @@ export default function App() {
     sessionStorage.removeItem("mp_session");
     setOpponentDisconnectedNotice(false);
     if (isAndroidTv) {
-      setTvPartyState("TV_LOBBY");
+      setTvPartyState("TV_HOME");
       setIsLobbyOpen(false);
       return;
     }
@@ -559,7 +553,12 @@ export default function App() {
   return (
     <BannerViewerProvider>
       <div className="fixed inset-0 w-full h-full flex flex-col bg-[#07080c] overflow-hidden select-none">
-        {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+        {showSplash && (
+          <SplashScreen
+            autoDismissDelayMs={isAndroidTv ? 2500 : undefined}
+            onComplete={() => setShowSplash(false)}
+          />
+        )}
 
       <GameModalsContainer
         isQuestionCatalogOpen={isQuestionCatalogOpen}
@@ -958,6 +957,24 @@ export default function App() {
         );
       })()}
 
+      {/* РЕЖИМ TV PARTY: Стартовый экран ТВ (TV_HOME) */}
+      {tvPartyState === "TV_HOME" && (
+        <div className="fixed inset-0 z-50 bg-[#07080c]">
+          <Suspense fallback={<ScreenFallback />}>
+            <TvHomeView
+              onCreateRoom={() => {
+                const code = Math.floor(10000 + Math.random() * 90000).toString();
+                setTvRoomCode(code);
+                if (typeof window !== "undefined") {
+                  sessionStorage.setItem("tv_party_room", code);
+                }
+                setTvPartyState("TV_LOBBY");
+              }}
+            />
+          </Suspense>
+        </div>
+      )}
+
       {/* РЕЖИМ TV PARTY: Лобби ожидания подключения */}
       {tvPartyState === "TV_LOBBY" && (
         <div className="fixed inset-0 z-50 bg-[#07080c]">
@@ -990,8 +1007,11 @@ export default function App() {
                 setTvPartyState("TV_BOARD");
               }}
               onExit={() => {
-                if (isAndroidTv) return;
                 partyService.disconnect();
+                if (isAndroidTv) {
+                  setTvPartyState("TV_HOME");
+                  return;
+                }
                 setTvPartyState("NONE");
                 setIsLobbyOpen(true);
               }}
@@ -1010,15 +1030,11 @@ export default function App() {
               selectedLine={tvLinePreview}
               hideExit={isAndroidTv}
               onExit={() => {
+                partyService.disconnect();
                 if (isAndroidTv) {
-                  partyService.disconnect();
-                  const newCode = Math.floor(10000 + Math.random() * 90000).toString();
-                  setTvRoomCode(newCode);
-                  if (typeof window !== "undefined") sessionStorage.setItem("tv_party_room", newCode);
-                  setTvPartyState("TV_LOBBY");
+                  setTvPartyState("TV_HOME");
                   return;
                 }
-                partyService.disconnect();
                 setTvPartyState("NONE");
                 setIsLobbyOpen(true);
               }}

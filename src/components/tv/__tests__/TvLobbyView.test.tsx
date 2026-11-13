@@ -31,7 +31,7 @@ describe("TvLobbyView Component (TASK-NET-002)", () => {
     expect(screen.getByText(/\?room=tv-test-999&clientType=CONTROLLER/i)).toBeDefined();
 
     // Verify room code and tactical Morse callsign are rendered
-    expect(screen.getByText(/tv-test-999/i)).toBeDefined();
+    expect(screen.getAllByText(/tv-test-999/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/ШИФР/i).length).toBeGreaterThanOrEqual(1);
   });
 

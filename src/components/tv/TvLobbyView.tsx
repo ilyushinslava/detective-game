@@ -55,23 +55,16 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
         localStorage.setItem('dev_tv_lan_host', clean);
         return clean;
       }
-      return (
-        localStorage.getItem('dev_tv_lan_host') ||
-        (import.meta.env.VITE_DEV_LAN_HOST as string) ||
-        ''
-      );
+      return localStorage.getItem('dev_tv_lan_host') || '';
     }
     return '';
   });
 
   const [isEditingLan, setIsEditingLan] = useState(false);
-  const [lanInput, setLanInput] = useState(lanHost);
+  const [lanInput, setLanInput] = useState('');
 
   const handleSaveLan = () => {
-    let trimmed = lanInput.trim();
-    if (trimmed && !trimmed.includes(':') && typeof window !== 'undefined' && window.location.port) {
-      trimmed = `${trimmed}:${window.location.port}`;
-    }
+    const trimmed = lanInput.trim();
     setLanHost(trimmed);
     if (typeof window !== 'undefined') {
       if (trimmed) {
@@ -96,21 +89,23 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
 
   const [selectedMode, setSelectedMode] = useState<GameModeType>('MANIAC_VS_OPERATIVE');
   const [isPassAndPlay, setIsPassAndPlay] = useState<boolean>(false);
-  const [focusArea, setFocusArea] = useState<'FORMAT' | 'MODES' | 'START' | 'EXIT'>('MODES');
-  const [focusedModeIndex, setFocusedModeIndex] = useState<number>(0);
 
+  // Мгновенный детерминированный расчет Морзе без зависания на ответе сервера
   const displayMorse = useMemo(() => {
-    return morseCode || '';
-  }, [morseCode]);
+    if (morseCode && morseCode.trim().length > 0) {
+      return morseCode.trim();
+    }
+    return getDeterministicMorse(roomCode || '00000');
+  }, [morseCode, roomCode]);
 
-  const GAME_MODES: Array<{ id: GameModeType; label: string; badge: string }> = [
-    { id: 'MANIAC_VS_OPERATIVE', label: GAME_MODES_META.MANIAC_VS_OPERATIVE.title.ru, badge: '4 ЦЕЛИ' },
-    { id: 'THIEF_HUNT', label: GAME_MODES_META.THIEF_HUNT.title.ru, badge: '10 КРАЖ' },
-    { id: 'SECRET_SERVICE', label: GAME_MODES_META.SECRET_SERVICE.title.ru, badge: 'ШПИОНЫ' },
-    { id: 'LINE_UP', label: GAME_MODES_META.LINE_UP.title.ru, badge: 'ДОСЬЕ' },
+  const GAME_MODES: Array<{ id: GameModeType; label: string; badge: string; desc: string }> = [
+    { id: 'MANIAC_VS_OPERATIVE', label: GAME_MODES_META.MANIAC_VS_OPERATIVE.title.ru, badge: '4 ЦЕЛИ', desc: 'Сыщик ловит маньяка до 4 убийств' },
+    { id: 'THIEF_HUNT', label: GAME_MODES_META.THIEF_HUNT.title.ru, badge: '10 КРАЖ', desc: 'Охота на неуловимого грабителя' },
+    { id: 'SECRET_SERVICE', label: GAME_MODES_META.SECRET_SERVICE.title.ru, badge: 'ШПИОНЫ', desc: 'Битва разведслужб за портфели' },
+    { id: 'LINE_UP', label: GAME_MODES_META.LINE_UP.title.ru, badge: 'ДУЭЛЬ', desc: 'Тактическое вычисление досье врага' },
   ];
 
-      const rawPlayers = (connectedPlayers && Object.keys(connectedPlayers).length > 0)
+  const rawPlayers = (connectedPlayers && Object.keys(connectedPlayers).length > 0)
     ? connectedPlayers
     : players;
   const playerList = Array.isArray(rawPlayers) ? rawPlayers : Object.values(rawPlayers || {});
@@ -132,224 +127,124 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
     prevPlayerCountRef.current = playerList.length;
   }, [playerList.length]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowDown' || e.keyCode === 40 || e.keyCode === 20) {
-        e.preventDefault();
-        setFocusArea((prev) => {
-          if (prev === 'FORMAT') return 'MODES';
-          if (prev === 'MODES') return 'START';
-          return prev;
-        });
-      } else if (e.key === 'ArrowUp' || e.keyCode === 38 || e.keyCode === 19) {
-        e.preventDefault();
-        setFocusArea((prev) => {
-          if (prev === 'START' || prev === 'EXIT') return 'MODES';
-          if (prev === 'MODES') return 'FORMAT';
-          return prev;
-        });
-      } else if (e.key === 'ArrowLeft' || e.keyCode === 37 || e.keyCode === 21) {
-        e.preventDefault();
-        if (focusArea === 'FORMAT') {
-          setIsPassAndPlay(false);
-        } else if (focusArea === 'MODES') {
-          setFocusedModeIndex((idx) => {
-            const nextIdx = Math.max(0, idx - 1);
-            setSelectedMode(GAME_MODES[nextIdx].id);
-            return nextIdx;
-          });
-        } else if (focusArea === 'START') {
-          setFocusArea('EXIT');
-        }
-      } else if (e.key === 'ArrowRight' || e.keyCode === 39 || e.keyCode === 22) {
-        e.preventDefault();
-        if (focusArea === 'FORMAT') {
-          setIsPassAndPlay(true);
-        } else if (focusArea === 'MODES') {
-          setFocusedModeIndex((idx) => {
-            const nextIdx = Math.min(GAME_MODES.length - 1, idx + 1);
-            setSelectedMode(GAME_MODES[nextIdx].id);
-            return nextIdx;
-          });
-        } else if (focusArea === 'EXIT') {
-          setFocusArea('START');
-        }
-      } else if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 13 || e.keyCode === 32 || e.keyCode === 23 || e.keyCode === 66) {
-        e.preventDefault();
-        if (focusArea === 'START') {
-          if (canStart) {
-            soundManager.play('confirm');
-            onStartGame?.(selectedMode, isPassAndPlay);
-          }
-        } else if (focusArea === 'EXIT') {
-          onExit?.();
-        } else if (focusArea === 'FORMAT') {
-          setIsPassAndPlay((prev) => !prev);
-        } else if (focusArea === 'MODES') {
-          setSelectedMode(GAME_MODES[focusedModeIndex].id);
-        }
-      } else if (e.key === 'Escape' || e.keyCode === 27 || e.keyCode === 4) {
-        e.preventDefault();
-        onExit?.();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [focusArea, focusedModeIndex, selectedMode, isPassAndPlay, canStart, onStartGame, onExit]);
-
   return (
-    <div className="flex h-screen w-screen flex-col justify-between bg-[#080a0f] text-zinc-100 select-none p-6 lg:p-8 overflow-hidden font-sans relative">
+    <div className="flex h-screen w-screen flex-col justify-between bg-[#07080c] text-white select-none p-6 lg:p-10 overflow-hidden font-sans relative">
       {/* Мягкая контровая подсветка нео-нуара */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/15 via-transparent to-black/80 pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-950/20 via-blue-950/10 to-[#050608] pointer-events-none" />
 
-      {/* Шапка */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-5 relative z-10">
+      {/* Верхняя статусная шапка */}
+      <div className="flex items-center justify-between border-b border-white/10 pb-4 relative z-10 shrink-0">
         <div className="flex items-center gap-3">
-          <span className="h-4 w-4 rounded-full bg-red-600 animate-pulse shadow-[0_0_14px_rgba(239,68,68,0.9)] shrink-0" />
-          <h1 className="text-3xl font-black uppercase tracking-widest text-zinc-100">
-            {GAME_TITLE.ru} <span className="text-red-500 font-mono text-2xl">Party Host</span>
+          <span className="h-4 w-4 rounded-full bg-red-600 animate-pulse shadow-[0_0_16px_rgba(239,68,68,0.9)] shrink-0" />
+          <h1 className="text-2xl lg:text-3xl font-black uppercase tracking-wider text-white">
+            {GAME_TITLE.ru} <span className="text-red-500 font-bold text-xl lg:text-2xl">TV HOST</span>
           </h1>
         </div>
-        <div className="flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/10 bg-zinc-900/60 backdrop-blur-md">
-          <span className="h-2.5 w-2.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-          <span className="text-sm font-mono uppercase tracking-widest text-zinc-200 font-bold">
-            ПОДКЛЮЧЕНИЕ СМАРТФОНОВ
+        <div className="flex items-center gap-3 px-4 py-2 rounded-full border border-white/10 bg-zinc-900/70 backdrop-blur-md">
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+          <span className="text-xs lg:text-sm font-bold uppercase tracking-wider text-zinc-200">
+            ШТАБ ПРИЕМА ОПЕРАТИВНИКОВ
           </span>
         </div>
       </div>
 
-      {/* Основной контент лобби */}
-      <div className="grid grid-cols-12 gap-6 my-auto flex-1 min-h-0 items-center w-full max-w-6xl mx-auto relative z-10">
-        {/* Левая колонка: QR-код и прямой адрес */}
-        <div className="col-span-6 flex flex-col items-center justify-center p-6 lg:p-7 rounded-3xl bg-gradient-to-br from-slate-900/40 via-zinc-950/80 to-slate-950/80 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl text-center">
-          <div className="p-4 rounded-2xl bg-white shadow-[0_0_30px_rgba(255,255,255,0.2)] mb-4 border border-white/30">
-            <QRCodeSVG value={joinUrl} size={220} level="M" />
-          </div>
-          <div className="text-lg font-mono uppercase tracking-wider text-zinc-100 mb-1.5 font-bold">
-            1. Наведите камеру смартфона
-          </div>
-          <div className="text-base font-mono text-zinc-300 mb-2 font-medium">
-            2. Мгновенное подключение к партии
-          </div>
-          <div className="text-xs font-mono text-zinc-400 truncate max-w-sm bg-zinc-900/80 px-4 py-1.5 rounded-full border border-white/10">
-            {joinUrl}
-          </div>
-          {isLocalDev && (
-            <div className={`mt-3.5 p-3 rounded-2xl border text-left text-xs font-mono max-w-xs w-full transition-colors ${
-              !lanHost ? 'bg-amber-950/40 border-amber-500/40 text-amber-200' : 'bg-zinc-900/90 border-white/10 text-zinc-400'
-            }`}>
-              {isEditingLan ? (
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase tracking-wider text-amber-300 font-bold">
-                      IP ПК в сети Wi-Fi (для телефонов):
-                    </span>
-                  </div>
-                  <div className="flex gap-1">
-                    <input
-                      type="text"
-                      value={lanInput}
-                      onChange={(e) => setLanInput(e.target.value)}
-                      placeholder={typeof window !== 'undefined' ? `192.168.1.X:${window.location.port || '5173'}` : '192.168.1.50:5173'}
-                      className="px-2 py-1 bg-zinc-950 border border-white/20 rounded-lg text-xs text-white flex-1 font-mono focus:outline-none focus:border-blue-500"
-                      autoFocus
-                    />
-                    <button
-                      type="button"
-                      onClick={handleSaveLan}
-                      className="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-bold cursor-pointer"
-                    >
-                      OK
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingLan(false)}
-                      className="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-xs cursor-pointer"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <span className="text-[10px] text-zinc-500">Порт подставится автоматически</span>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-1">
-                  {!lanHost && (
-                    <div className="text-xs text-amber-400 font-sans leading-tight">
-                      ⚠️ QR-код указывает на localhost. Смартфоны не подключатся без LAN IP.
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <span className="truncate">
-                      LAN IP: <span className={lanHost ? 'text-emerald-400 font-bold' : 'text-zinc-200 font-bold'}>{lanHost || 'localhost'}</span>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLanInput(lanHost || (typeof window !== 'undefined' ? `${window.location.hostname}:${window.location.port}` : ''));
-                        setIsEditingLan(true);
-                      }}
-                      className="text-xs text-red-400 hover:text-red-300 underline ml-2 shrink-0 cursor-pointer font-bold"
-                    >
-                      {lanHost ? 'Сменить IP' : 'Указать Wi-Fi IP'}
-                    </button>
-                  </div>
-                </div>
-              )}
+      {/* Основной контент лобби: строго 2 изолированные колонки (grid-cols-2) */}
+      <div className="grid grid-cols-2 gap-8 lg:gap-12 my-auto flex-1 min-h-0 items-stretch w-full max-w-7xl mx-auto relative z-10 py-4">
+        
+        {/* ЛЕВАЯ КОЛОНКА: Терминал доступа (QR + Морзе) */}
+        <div className="flex flex-col items-center justify-between p-6 lg:p-8 rounded-3xl bg-gradient-to-b from-slate-900/50 via-zinc-950/90 to-black/90 border border-white/15 shadow-[0_25px_60px_rgba(0,0,0,0.9)] backdrop-blur-2xl text-center overflow-hidden">
+          <div className="w-full">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-950/60 border border-blue-500/30 text-blue-300 font-bold text-xs uppercase tracking-widest mb-4">
+              <span>СКАНИРУЙТЕ ДЛЯ ПОДКЛЮЧЕНИЯ</span>
             </div>
-          )}
+
+            {/* Подложка QR-кода */}
+            <div className="mx-auto w-fit p-4 rounded-3xl bg-white shadow-[0_0_40px_rgba(255,255,255,0.25)] border-2 border-white/40 mb-4 transition-transform hover:scale-102">
+              <QRCodeSVG value={joinUrl} size={220} level="M" />
+            </div>
+
+            <div className="text-2xl font-black uppercase tracking-wide text-white mb-1">
+              КОМНАТА #{roomCode || '-----'}
+            </div>
+            <div className="text-sm font-medium text-zinc-400 max-w-xs mx-auto mb-2">
+              Наведите камеру смартфона. Подключение без установки приложения.
+            </div>
+            <div className="text-xs font-mono text-zinc-400 truncate max-w-sm bg-zinc-900/80 px-4 py-1 rounded-full border border-white/10 mx-auto mb-3">
+              {joinUrl}
+            </div>
+          </div>
+
+          {/* Блок Морзе-шифра */}
+          <div className="w-full pt-4 border-t border-white/10 flex flex-col items-center">
+            <div className="text-xs font-bold uppercase tracking-[0.25em] text-zinc-400 mb-2">
+              ШИФР МОРЗЕ
+            </div>
+
+            {/* Визуальные пилюли Морзе */}
+            <div className="flex flex-nowrap items-center justify-center gap-3 py-2 w-full">
+              {displayMorse.split('').map((sym, idx) => (
+                <div
+                  key={idx}
+                  className={`flex items-center justify-center transition-all shrink-0 ${
+                    sym === '.'
+                      ? 'w-7 h-7 lg:w-8 lg:h-8 rounded-full bg-white shadow-[0_0_18px_rgba(255,255,255,0.9)]'
+                      : 'w-14 lg:w-18 h-7 lg:h-8 rounded-full bg-white shadow-[0_0_18px_rgba(255,255,255,0.9)]'
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Крупные символы морзе text-5xl */}
+            <div className="text-5xl lg:text-6xl font-black tracking-[0.3em] text-white my-2 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]">
+              {displayMorse}
+            </div>
+
+            <div className="text-xs text-zinc-400 font-medium">
+              Введите {displayMorse.length} сигналов на экране смартфона
+            </div>
+
+            {isLocalDev && (
+              <div className="mt-3 text-xs text-zinc-400">
+                LAN IP: <span className="text-emerald-400 font-bold">{lanHost || 'localhost'}</span>
+                <button
+                  type="button"
+                  tabIndex={0}
+                  onClick={() => {
+                    const input = prompt('Укажите IP вашего ПК в Wi-Fi сети (например 192.168.1.50:5173):', lanHost);
+                    if (input !== null) {
+                      setLanInput(input);
+                      setLanHost(input.trim());
+                      localStorage.setItem('dev_tv_lan_host', input.trim());
+                    }
+                  }}
+                  className="ml-2 text-red-400 underline cursor-pointer focus:outline-none focus:ring-2 focus:ring-white"
+                >
+                  [Сменить IP]
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Правая колонка: Тактический Морзе-позывной и слоты игроков */}
-        <div className="col-span-6 flex flex-col justify-between gap-5">
-          {/* Главная Hero-карточка тактического Морзе-позывного */}
-          <div className="p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-slate-900/60 via-zinc-950/90 to-slate-950/80 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-base font-bold font-mono uppercase tracking-[0.25em] text-zinc-300">
-                  ШИФР
-                </span>
-                <span className="text-xs font-mono text-zinc-300 bg-zinc-900/90 px-3.5 py-1.5 rounded-full border border-white/10 font-bold">
-                  РАДИОКАНАЛ
-                </span>
-              </div>
-
-              {/* Визуальные тактические пилюли Морзе (единственный монументальный ряд) */}
-              <div className="flex flex-nowrap items-center gap-2.5 sm:gap-3 py-6 my-2 w-full overflow-hidden">
-                {displayMorse ? (
-                  displayMorse.split('').map((sym, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex items-center justify-center transition-all shrink-0 ${
-                        sym === '.'
-                          ? 'w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.7)]'
-                          : 'w-12 sm:w-16 h-7 sm:h-8 rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.7)]'
-                      }`}
-                    />
-                  ))
-                ) : (
-                  <div className="text-sm font-mono text-zinc-400 animate-pulse">
-                    СИНХРОНИЗАЦИЯ ПОЗЫВНОГО С СЕРВЕРОМ...
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="text-sm text-zinc-300 mt-3 leading-relaxed pt-3 border-t border-white/10 font-mono">
-              Шифр доступа к сессии. Введите 7 сигналов Морзе на экране телефона.
-            </div>
-          </div>
-
-          {/* Слоты подключения контроллеров */}
-          <div className="p-4 rounded-2xl bg-zinc-950/70 border border-white/10 shadow-lg backdrop-blur-xl space-y-3">
+        {/* ПРАВАЯ КОЛОНКА: Панель настроек, Оперативники и Кнопка Старта */}
+        <div className="flex flex-col justify-between gap-5 h-full overflow-hidden">
+          
+          {/* Секция 1: Выбор режима и формата */}
+          <div className="p-5 lg:p-6 rounded-3xl bg-zinc-950/80 border border-white/10 shadow-xl backdrop-blur-xl space-y-4 shrink-0">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold font-mono uppercase tracking-widest text-zinc-300">РЕЖИМ ИГРЫ</span>
-              <div className="flex gap-2 bg-zinc-900/90 p-1.5 rounded-xl border border-white/10 text-xs font-black uppercase">
+              <span className="text-xs lg:text-sm font-bold uppercase tracking-wider text-zinc-300">
+                ФОРМАТ СЕССИИ
+              </span>
+              <div className="flex gap-2 bg-zinc-900/90 p-1.5 rounded-2xl border border-white/10 text-xs font-black uppercase">
                 <button
                   type="button"
                   tabIndex={0}
                   onClick={() => setIsPassAndPlay(false)}
-                  className={`px-3.5 py-1.5 rounded-lg transition cursor-pointer font-mono focus:outline-none focus:ring-4 focus:ring-white focus:scale-105 ${!isPassAndPlay ? 'bg-zinc-800 text-zinc-100 shadow border border-white/10' : 'text-zinc-500 hover:text-zinc-300'} ${focusArea === 'FORMAT' && !isPassAndPlay ? 'ring-2 ring-blue-500/80 shadow-[0_0_12px_rgba(59,130,246,0.4)] scale-105' : ''}`}
+                  className={`px-4 py-2 rounded-xl transition-all cursor-pointer font-bold focus:outline-none focus:ring-8 focus:ring-red-600 focus:bg-red-900/50 focus:scale-105 active:scale-95 ${
+                    !isPassAndPlay
+                      ? 'bg-zinc-800 text-white shadow border border-white/20'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
                 >
                   2+ ТЕЛЕФОНА
                 </button>
@@ -357,129 +252,147 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                   type="button"
                   tabIndex={0}
                   onClick={() => setIsPassAndPlay(true)}
-                  className={`px-3.5 py-1.5 rounded-lg transition cursor-pointer font-mono focus:outline-none focus:ring-4 focus:ring-white focus:scale-105 ${isPassAndPlay ? 'bg-red-600 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'} ${focusArea === 'FORMAT' && isPassAndPlay ? 'ring-2 ring-red-400 shadow-[0_0_12px_rgba(239,68,68,0.4)] scale-105' : ''}`}
+                  className={`px-4 py-2 rounded-xl transition-all cursor-pointer font-bold focus:outline-none focus:ring-8 focus:ring-red-600 focus:bg-red-900/50 focus:scale-105 active:scale-95 ${
+                    isPassAndPlay
+                      ? 'bg-red-600 text-white shadow'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
                 >
                   PASS & PLAY
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-2">
-              {GAME_MODES.map((m, idx) => {
+            {/* Карточки 4 игровых режимов */}
+            <div className="grid grid-cols-2 gap-3 lg:gap-4">
+              {GAME_MODES.map((m) => {
                 const isSelected = selectedMode === m.id;
-                const isFocused = focusArea === 'MODES' && focusedModeIndex === idx;
                 return (
                   <button
                     key={m.id}
                     type="button"
                     tabIndex={0}
                     onClick={() => {
+                      soundManager.play('click');
                       setSelectedMode(m.id);
-                      setFocusedModeIndex(idx);
-                      setFocusArea('MODES');
                     }}
-                    className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center gap-1.5 focus:outline-none focus:ring-4 focus:ring-white focus:scale-105 ${
-                      isFocused
-                        ? 'ring-2 ring-blue-500/80 scale-105 shadow-[0_0_15px_rgba(59,130,246,0.5)] z-10'
-                        : ''
-                    } ${
+                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-1.5 focus:outline-none focus:ring-8 focus:ring-red-600 focus:bg-red-900/50 focus:scale-105 active:scale-95 ${
                       isSelected
-                        ? 'bg-zinc-900 border-red-500/80 text-zinc-100 shadow-[0_0_12px_rgba(239,68,68,0.3)]'
-                        : 'bg-zinc-950/50 border-white/10 text-zinc-400 hover:text-zinc-200 hover:border-white/20'
+                        ? 'bg-gradient-to-br from-red-950/80 to-zinc-900 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)] ring-2 ring-red-500/80'
+                        : 'bg-zinc-900/60 border-white/10 hover:border-white/30 text-zinc-300'
                     }`}
                   >
-                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-800 border border-white/10 text-zinc-300 font-bold uppercase">{m.badge}</span>
-                    <span className="text-xs sm:text-sm font-black uppercase tracking-tight">{m.label}</span>
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-sm lg:text-base font-black uppercase text-white tracking-wide">
+                        {m.label}
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-black/50 border border-white/10 text-red-400 uppercase">
+                        {m.badge}
+                      </span>
+                    </div>
+                    <p className="text-xs text-zinc-400 font-medium line-clamp-1">
+                      {m.desc}
+                    </p>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 max-h-40 lg:max-h-48 overflow-y-auto custom-scrollbar pr-1">
-            {playerList.length === 0 ? (
-              <div className="col-span-2 p-5 rounded-2xl border border-dashed border-white/15 bg-zinc-950/50 flex flex-col items-center justify-center text-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                <span className="text-base font-mono font-bold uppercase tracking-wider text-zinc-300">
-                  Ожидание подключения первого смартфона...
-                </span>
-                <span className="text-xs font-mono text-zinc-400">
-                  Отсканируйте QR-код для подключения к штабу
-                </span>
-              </div>
-            ) : (
-              playerList.map((player, index) => (
-                <div
-                  key={index}
-                  tabIndex={0}
-                  className={`p-4 rounded-2xl border transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-400 focus:scale-[1.02] ${
-                    player
-                      ? 'bg-zinc-900/85 border-white/10 shadow-lg backdrop-blur-md'
-                      : 'bg-zinc-950/30 border-dashed border-white/10'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm font-mono font-bold uppercase tracking-wider text-zinc-300">
-                      Игрок #{String(index + 1).padStart(2, '0')}
-                    </span>
+          {/* Секция 2: Выделенная зона «ОПЕРАТИВНИКИ» */}
+          <div className="p-5 lg:p-6 rounded-3xl bg-zinc-950/80 border border-white/10 shadow-xl backdrop-blur-xl flex-1 flex flex-col justify-between min-h-0">
+            <div className="flex items-center justify-between mb-3 shrink-0">
+              <span className="text-xs lg:text-sm font-bold uppercase tracking-wider text-zinc-300">
+                ОПЕРАТИВНИКИ В СЕТИ ({playerList.length}/6)
+              </span>
+              <span className="text-xs font-medium text-zinc-400">
+                {isPassAndPlay ? 'Требуется минимум 1 игрок' : 'Требуется минимум 2 игрока'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 overflow-y-auto max-h-44 custom-scrollbar pr-1 flex-1">
+              {playerList.length === 0 ? (
+                <div className="col-span-2 p-5 rounded-2xl border border-dashed border-white/15 bg-zinc-900/30 flex flex-col items-center justify-center text-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                  <span className="text-sm font-bold uppercase tracking-wider text-zinc-300">
+                    Ожидание подключения первого смартфона...
+                  </span>
+                  <span className="text-xs text-zinc-500">
+                    Отсканируйте QR-код в левой колонке
+                  </span>
+                </div>
+              ) : (
+                playerList.map((player, index) => (
+                  <div
+                    key={index}
+                    tabIndex={0}
+                    className={`p-3.5 rounded-2xl border transition-all duration-300 flex items-center justify-between focus:outline-none focus:ring-8 focus:ring-red-600 focus:bg-red-900/50 focus:scale-105 ${
+                      player
+                        ? 'bg-zinc-900/90 border-white/15 shadow-lg'
+                        : 'bg-zinc-950/30 border-dashed border-white/10'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 truncate">
+                      <div className="w-10 h-10 rounded-xl bg-red-950/60 border border-red-500/40 flex items-center justify-center text-red-400 font-black text-sm shrink-0">
+                        #{index + 1}
+                      </div>
+                      <div className="truncate">
+                        <div className="text-base font-black text-white truncate">
+                          {player ? player.nickname : 'Ожидание...'}
+                        </div>
+                        <div className="text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                          <span>ПОДКЛЮЧЕН</span>
+                        </div>
+                      </div>
+                    </div>
                     {player?.isHost && (
-                      <span className="text-xs font-mono px-2.5 py-0.5 rounded-md bg-blue-950/70 border border-blue-500/40 text-blue-200 font-bold uppercase tracking-wider shadow-[0_0_8px_rgba(37,99,235,0.2)]">
+                      <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-blue-950 border border-blue-500/50 text-blue-300 shrink-0">
                         HOST
                       </span>
                     )}
                   </div>
-                  <div className="text-lg font-black text-zinc-100 truncate">
-                    {player ? player.nickname : 'Ожидание подключения...'}
-                  </div>
-                  <div className="text-xs mt-1 font-mono">
-                    {player ? (
-                      <div className="flex items-center gap-1.5 text-emerald-400 font-semibold">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
-                        <span>КОНТРОЛЛЕР ПОДКЛЮЧЕН</span>
-                      </div>
-                    ) : (
-                      <span className="text-zinc-500">Свободно</span>
-                    )}
-                  </div>
-                </div>
-              ))
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Секция 3: Изолированная нижняя панель действий (без наложений!) */}
+          <div className="flex items-center justify-between gap-4 pt-2 shrink-0">
+            {!hideExit && (
+              <Button
+                variant="secondary"
+                tabIndex={0}
+                onClick={onExit}
+                className="px-8 h-16 rounded-2xl text-base font-bold uppercase tracking-wider text-zinc-300 hover:text-white transition focus:outline-none focus:ring-8 focus:ring-red-600 focus:bg-red-900/50 focus:scale-105 active:scale-95"
+              >
+                В меню
+              </Button>
             )}
+
+            <Button
+              variant="primary-danger"
+              data-tv-start-btn="true"
+              tabIndex={0}
+              onClick={() => {
+                soundManager.play('confirm');
+                onStartGame?.(selectedMode, isPassAndPlay);
+              }}
+              disabled={!canStart}
+              className={`flex-1 h-16 rounded-2xl font-black uppercase tracking-wider text-xl lg:text-2xl shadow-[0_0_35px_rgba(239,68,68,0.5)] transition-all cursor-pointer focus:outline-none focus:ring-8 focus:ring-red-600 focus:bg-red-900/50 focus:scale-105 active:scale-95 ${
+                canStart ? 'bg-red-600 hover:bg-red-500 text-white' : 'opacity-40 cursor-not-allowed'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-3">
+                <span>НАЧАТЬ МАТЧ</span>
+                <span className="text-sm font-bold px-3 py-1 rounded-lg bg-black/40 border border-white/20">
+                  [ENTER]
+                </span>
+              </div>
+            </Button>
           </div>
         </div>
-      </div>
-
-      {/* Нижняя панель действий */}
-      <div className={`flex items-center ${hideExit ? 'justify-end' : 'justify-between'} border-t border-white/10 pt-5 relative z-10`}>
-        {!hideExit && (
-          <Button
-            variant="secondary"
-            onClick={onExit}
-            tabIndex={0}
-            className={`px-8 h-14 rounded-2xl text-sm sm:text-base font-mono font-bold uppercase tracking-wider text-zinc-300 hover:text-white transition focus:outline-none focus:ring-4 focus:ring-white focus:scale-105 ${
-              focusArea === 'EXIT' ? 'ring-2 ring-blue-500/80 scale-105 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : ''
-            }`}
-          >
-            В меню
-          </Button>
-        )}
-
-        <Button
-          variant="primary-danger"
-          data-tv-start-btn="true"
-          tabIndex={0}
-          onClick={() => {
-            soundManager.play('confirm');
-            onStartGame?.(selectedMode, isPassAndPlay);
-          }}
-          disabled={!canStart}
-          className={`px-12 h-16 rounded-2xl font-black uppercase tracking-widest text-lg sm:text-xl shadow-[0_0_25px_rgba(239,68,68,0.5)] transition focus:outline-none focus:ring-4 focus:ring-white focus:scale-105 ${
-            focusArea === 'START' && canStart ? 'ring-2 ring-white scale-105' : ''
-          }`}
-        >
-          НАЧАТЬ МАТЧ
-        </Button>
       </div>
     </div>
   );
 };
-

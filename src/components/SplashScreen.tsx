@@ -4,9 +4,10 @@ import { triggerHaptic } from '../utils/haptics';
 
 interface SplashScreenProps {
   onComplete: () => void;
+  autoDismissDelayMs?: number;
 }
 
-export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
+export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, autoDismissDelayMs }) => {
   const [isFading, setIsFading] = useState(false);
   const [isTriggered, setIsTriggered] = useState(false);
 
@@ -27,6 +28,15 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
       onComplete();
     }, 400);
   };
+
+  // Автоматическое закрытие сплеш-скрина для ТВ без необходимости клика
+  useEffect(() => {
+    if (!autoDismissDelayMs || autoDismissDelayMs <= 0) return;
+    const timer = setTimeout(() => {
+      handleStart();
+    }, autoDismissDelayMs);
+    return () => clearTimeout(timer);
+  }, [autoDismissDelayMs]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

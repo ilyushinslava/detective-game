@@ -176,7 +176,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
             : inRadarArea
               ? 'border-blue-400/80 border-t-2 border-t-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.45)] bg-gradient-to-b from-blue-950/50 to-black z-10'
               : 'border-white/15 bg-gradient-to-b from-white/[0.08] via-zinc-900/80 to-black/90 hover:border-white/30 shadow-[0_4px_16px_rgba(0,0,0,0.6)]'
-      } ${hasCoin && !isDead ? 'border-b-[6px] border-yellow-400 shadow-[0_4px_20px_rgba(250,204,21,0.6)]' : ''}`}
+      }`}
     >
       {/* 1. Фоновое изображение персонажа или силуэт (bg-cover bg-center) */}
       <div className="absolute inset-0 pointer-events-none z-0">
@@ -200,7 +200,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
       {/* 2. Тонкий стеклянный блик на верхней кромке карточки */}
       <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-white/[0.1] to-transparent pointer-events-none rounded-t-xl z-[1]" />
 
-      {/* 3. Верхняя сервисная строчка (Номер ячейки и статусы монеты/офицера/прицела) */}
+      {/* 3. Верхняя сервисная строчка (Номер ячейки и статусы офицера/прицела/радара) */}
       <div className="flex items-center justify-between p-1 sm:p-1.5 z-10 w-full pointer-events-none">
         <span
           className={`text-[9px] sm:text-[11px] 2xl:text-xs font-mono font-bold px-1.5 py-0.5 rounded-md backdrop-blur-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] ${
@@ -215,14 +215,6 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
         </span>
 
         <div className="flex items-center gap-1">
-          {hasCoin && !isDead && (
-            <span className="p-0.5 sm:p-1 rounded bg-black/70 backdrop-blur-xs border border-yellow-500/60 text-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]" title="Золотая монета">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
-              </svg>
-            </span>
-          )}
           {isTargetVictim && !isDead && (
             <span className="p-0.5 sm:p-1 rounded bg-red-950/90 border border-red-500/70 text-rose-400 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.7)]">
               <Icons.Crosshair />
@@ -244,60 +236,63 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
       {/* 4. Центральные статус-штампы (УБИТ, РАСКРЫТ, АЛИБИ, АРЕСТОВАН) через AnimatePresence */}
       <AnimatePresence>
         {isDead && (
-          <motion.div
-            key={`tv_dead_${char.id}`}
-            initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
-            animate={{ opacity: 1, scale: 1, rotate: -12 }}
-            exit={{ opacity: 0, scale: 0.6 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1"
-          >
-            <div className={`transform border whitespace-nowrap font-display font-black uppercase tracking-wider text-[9px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_15px_rgba(220,38,38,0.7)] backdrop-blur-sm text-center ${
-              spyMeta
-                ? `border-${spyMeta.border} bg-zinc-950/95 text-${spyMeta.text}`
-                : isSecretService || char.unmaskedSpyIndex !== undefined
-                  ? 'border-red-600 bg-red-950/95 text-red-300'
+          <div className="absolute top-1/2 inset-x-0 -translate-y-1/2 flex items-center justify-center z-20 pointer-events-none px-1">
+            <motion.div
+              key={`tv_dead_${char.id}`}
+              initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
+              animate={{ opacity: 1, scale: 1, rotate: -12 }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+            >
+              <div className={`border whitespace-nowrap font-display font-black uppercase tracking-wider text-[9px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_15px_rgba(220,38,38,0.7)] backdrop-blur-sm text-center ${
+                spyMeta
+                  ? `border-${spyMeta.border} bg-zinc-950/95 text-${spyMeta.text}`
+                  : isSecretService || char.unmaskedSpyIndex !== undefined
+                    ? 'border-red-600 bg-red-950/95 text-red-300'
+                    : char.isArrested
+                      ? 'border-blue-500/80 bg-blue-950/95 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.5)]'
+                      : 'border-red-600 bg-red-950/95 text-red-300'
+              }`}>
+                {isSecretService || char.unmaskedSpyIndex !== undefined
+                  ? (spyMeta ? `РАСКРЫТ: ${spyMeta.name.toUpperCase()}` : 'РАСКРЫТ')
                   : char.isArrested
-                    ? 'border-blue-500/80 bg-blue-950/95 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.5)]'
-                    : 'border-red-600 bg-red-950/95 text-red-300'
-            }`}>
-              {isSecretService || char.unmaskedSpyIndex !== undefined
-                ? (spyMeta ? `РАСКРЫТ: ${spyMeta.name.toUpperCase()}` : 'РАСКРЫТ')
-                : char.isArrested
-                  ? 'АРЕСТОВАН'
-                  : 'УБИТ'}
-            </div>
-          </motion.div>
+                    ? 'АРЕСТОВАН'
+                    : 'УБИТ'}
+              </div>
+            </motion.div>
+          </div>
         )}
 
         {isExonerated && !isDead && !char.isArrested && (
-          <motion.div
-            key={`tv_alibi_${char.id}`}
-            initial={{ opacity: 0, scale: 0.6, rotate: 18 }}
-            animate={{ opacity: 1, scale: 1, rotate: 6 }}
-            exit={{ opacity: 0, scale: 0.6 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1"
-          >
-            <div className="border border-blue-500/80 bg-zinc-950/95 text-blue-400 whitespace-nowrap font-display font-black uppercase tracking-wider text-[9px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_12px_rgba(59,130,246,0.4)] backdrop-blur-sm text-center">
-              АЛИБИ
-            </div>
-          </motion.div>
+          <div className="absolute top-1/2 inset-x-0 -translate-y-1/2 flex items-center justify-center z-20 pointer-events-none px-1">
+            <motion.div
+              key={`tv_alibi_${char.id}`}
+              initial={{ opacity: 0, scale: 0.6, rotate: 18 }}
+              animate={{ opacity: 1, scale: 1, rotate: 6 }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+            >
+              <div className="border border-blue-500/80 bg-zinc-950/95 text-blue-400 whitespace-nowrap font-display font-black uppercase tracking-wider text-[9px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_12px_rgba(59,130,246,0.4)] backdrop-blur-sm text-center">
+                АЛИБИ
+              </div>
+            </motion.div>
+          </div>
         )}
 
         {char.isArrested && !isDead && (
-          <motion.div
-            key={`tv_arrest_${char.id}`}
-            initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
-            animate={{ opacity: 1, scale: 1, rotate: -12 }}
-            exit={{ opacity: 0, scale: 0.6 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1"
-          >
-            <div className="border border-blue-500/80 bg-blue-950/95 text-blue-300 whitespace-nowrap font-display font-black uppercase tracking-wider text-[9px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_12px_rgba(59,130,246,0.5)] backdrop-blur-sm text-center">
-              АРЕСТОВАН
-            </div>
-          </motion.div>
+          <div className="absolute top-1/2 inset-x-0 -translate-y-1/2 flex items-center justify-center z-20 pointer-events-none px-1">
+            <motion.div
+              key={`tv_arrest_${char.id}`}
+              initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
+              animate={{ opacity: 1, scale: 1, rotate: -12 }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+            >
+              <div className="border border-blue-500/80 bg-blue-950/95 text-blue-300 whitespace-nowrap font-display font-black uppercase tracking-wider text-[9px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_12px_rgba(59,130,246,0.5)] backdrop-blur-sm text-center">
+                АРЕСТОВАН
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
@@ -327,11 +322,31 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
       <div className="absolute inset-x-0 bottom-0 z-10 pt-5 pb-1 sm:pb-1.5 px-1 bg-gradient-to-t from-black/95 via-black/80 to-transparent flex items-end justify-center pointer-events-none">
         <span
           title={char.name}
-          className="block w-full font-bold text-zinc-100 uppercase tracking-tight whitespace-normal text-center leading-[1.1] text-[10px] sm:text-[11px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] font-sans"
+          className={`block w-full font-bold text-zinc-100 uppercase tracking-tight whitespace-normal text-center leading-[1.1] text-[10px] sm:text-[11px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] font-sans ${
+            hasCoin && !isDead ? 'pr-4 sm:pr-5' : ''
+          }`}
         >
           {char.name}
         </span>
       </div>
+
+      {/* 7. Элегантный минималистичный индикатор монеты */}
+      {hasCoin && !isDead && (
+        <div
+          data-testid="tv-coin-indicator"
+          title="Золотая монета"
+          className="absolute bottom-1.5 right-1.5 z-20 pointer-events-none flex items-center justify-center"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="w-4 h-4 sm:w-5 sm:h-5 drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)] filter"
+            fill="none"
+          >
+            <circle cx="12" cy="12" r="9" fill="#EAB308" stroke="#FEF08A" strokeWidth="1.5" />
+            <path d="M12 7v10M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" stroke="#713F12" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      )}
     </div>
   );
 }, areTvCellPropsEqual);

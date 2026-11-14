@@ -80,12 +80,15 @@ describe("TvBoardView Component", () => {
     expect(onExit).toHaveBeenCalledTimes(1);
   });
 
-  it("отображает золотую окантовку монет в режиме THIEF_HUNT", () => {
+  it("отображает элегантный индикатор монет в режиме THIEF_HUNT без толстой окантовки", () => {
     const state = createInitialState("THIEF_HUNT", "ONLINE", "KILLER");
     const { container } = render(<TvBoardView gameState={state} />);
 
-    // В режиме THIEF_HUNT живые неограбленные персонажи имеют монеты
-    const cellsWithCoins = container.querySelectorAll(".border-yellow-400");
-    expect(cellsWithCoins.length).toBeGreaterThan(0);
+    // В режиме THIEF_HUNT живые неограбленные персонажи имеют индикаторы монет
+    const coinIndicators = container.querySelectorAll('[data-testid="tv-coin-indicator"]');
+    expect(coinIndicators.length).toBeGreaterThan(0);
+    // Не должно быть толстой окантовки border-yellow-400
+    const borderYellow = container.querySelectorAll(".border-yellow-400");
+    expect(borderYellow.length).toBe(0);
   });
 });

@@ -105,7 +105,7 @@ describe("CharacterCard: React.memo и areCharacterCardPropsEqual (Профил�
   });
 
   describe("Рендер и изоляция React.memo", () => {
-    it("рендерит золотую окантовку монеты border-yellow-400 при hasCoin === true", () => {
+    it("рендерит элегантный индикатор монеты при hasCoin === true без искажения box-model", () => {
       const { container } = render(
         <CharacterCard
           {...createProps({
@@ -115,7 +115,22 @@ describe("CharacterCard: React.memo и areCharacterCardPropsEqual (Профил�
         />
       );
       const card = container.firstElementChild as HTMLElement;
-      expect(card.className).toContain("border-yellow-400");
+      expect(card.className).not.toContain("border-yellow-400");
+      expect(card.className).not.toContain("border-b-[6px]");
+      const coinIcon = container.querySelector('[title="Золотая монета"]');
+      expect(coinIcon).toBeDefined();
+    });
+
+    it("статусный бейдж УБИТ отцентрирован через inset-x-0 и justify-center", () => {
+      const { container } = render(
+        <CharacterCard
+          {...createProps({
+            character: { ...baseCharacter, isAlive: false },
+          })}
+        />
+      );
+      const stampWrapper = container.querySelector('.inset-x-0.justify-center');
+      expect(stampWrapper).toBeDefined();
     });
     it("не перерисовывает карточку при пересоздании функций родителя без изменения состояния карточки", () => {
       let renderCount = 0;

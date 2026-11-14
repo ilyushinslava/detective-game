@@ -204,7 +204,7 @@ const CharacterCardComponent = ({
                   : isExonerated
                     ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-zinc-800 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
                     : "bg-gradient-to-b from-white/[0.08] via-zinc-900/90 to-black/95 border-[rgba(255,255,255,0.15)] hover:border-[rgba(255,255,255,0.3)] backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.6)]"
-        } ${hasCoin && !isDead ? "border-b-[4px] sm:border-b-[6px] border-yellow-400 shadow-[0_4px_16px_rgba(250,204,21,0.5)]" : ""} ${
+        } ${
           neighborHighlightColor ? `${neighborHighlightColor} z-10` : ""
         } ${
           isSelected
@@ -276,14 +276,6 @@ const CharacterCardComponent = ({
           </div>
 
           <div className="flex items-center gap-1 leading-none shrink-0">
-            {hasCoin && !isDead && (
-              <span className="p-0.5 rounded bg-black/70 backdrop-blur-xs border border-yellow-500/60 text-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]" title="Золотая монета">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
-                </svg>
-              </span>
-            )}
             {isTargetVictim && !isDead && (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-red-500 animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
             )}
@@ -298,60 +290,63 @@ const CharacterCardComponent = ({
 
         <AnimatePresence>
           {isDead && (
-            <motion.div
-              key={`dead_stamp_${character.id}`}
-              initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
-              animate={{ opacity: 1, scale: 1, rotate: -12 }}
-              exit={{ opacity: 0, scale: 0.6 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1"
-            >
-              <div className={`transform border whitespace-nowrap font-display font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none backdrop-blur-sm text-center ${
-                spyMeta
-                  ? `border-${spyMeta.border} bg-zinc-950/95 text-${spyMeta.text} shadow-[0_0_15px_rgba(239,68,68,0.5)]`
-                  : isSecretService || character.unmaskedSpyIndex !== undefined
-                    ? "border-red-600 bg-red-950/90 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+            <div className="absolute top-[34%] inset-x-0 -translate-y-1/2 flex items-center justify-center z-20 pointer-events-none px-1">
+              <motion.div
+                key={`dead_stamp_${character.id}`}
+                initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
+                animate={{ opacity: 1, scale: 1, rotate: -12 }}
+                exit={{ opacity: 0, scale: 0.6 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                <div className={`border whitespace-nowrap font-display font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none backdrop-blur-sm text-center ${
+                  spyMeta
+                    ? `border-${spyMeta.border} bg-zinc-950/95 text-${spyMeta.text} shadow-[0_0_15px_rgba(239,68,68,0.5)]`
+                    : isSecretService || character.unmaskedSpyIndex !== undefined
+                      ? "border-red-600 bg-red-950/90 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                      : (character as any).isArrested
+                        ? "border border-blue-500/80 bg-blue-950/95 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.4)]"
+                        : "border-red-600 bg-red-950/90 text-red-500 shadow-[0_0_15px_rgba(220,38,38,0.4)]"
+                }`}>
+                  {isSecretService || character.unmaskedSpyIndex !== undefined
+                    ? (spyMeta ? `РАСКРЫТ: ${spyMeta.name.toUpperCase()}` : "РАСКРЫТ")
                     : (character as any).isArrested
-                      ? "border border-blue-500/80 bg-blue-950/95 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.4)]"
-                      : "border-red-600 bg-red-950/90 text-red-500 shadow-[0_0_15px_rgba(220,38,38,0.4)]"
-              }`}>
-                {isSecretService || character.unmaskedSpyIndex !== undefined
-                  ? (spyMeta ? `РАСКРЫТ: ${spyMeta.name.toUpperCase()}` : "РАСКРЫТ")
-                  : (character as any).isArrested
-                    ? "АРЕСТОВАН"
-                    : "УБИТ"}
-              </div>
-            </motion.div>
+                      ? "АРЕСТОВАН"
+                      : "УБИТ"}
+                </div>
+              </motion.div>
+            </div>
           )}
 
           {isExonerated && !isDead && !(character as any).isArrested && (
-            <motion.div
-              key={`alibi_stamp_${character.id}`}
-              initial={{ opacity: 0, scale: 0.6, rotate: 18 }}
-              animate={{ opacity: 1, scale: 1, rotate: 6 }}
-              exit={{ opacity: 0, scale: 0.6 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1"
-            >
-              <div className="border border-blue-500/80 bg-zinc-900/95 text-blue-400 whitespace-nowrap font-display font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.3)] backdrop-blur-sm text-center">
-                АЛИБИ
-              </div>
-            </motion.div>
+            <div className="absolute top-[34%] inset-x-0 -translate-y-1/2 flex items-center justify-center z-20 pointer-events-none px-1">
+              <motion.div
+                key={`alibi_stamp_${character.id}`}
+                initial={{ opacity: 0, scale: 0.6, rotate: 18 }}
+                animate={{ opacity: 1, scale: 1, rotate: 6 }}
+                exit={{ opacity: 0, scale: 0.6 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                <div className="border border-blue-500/80 bg-zinc-900/95 text-blue-400 whitespace-nowrap font-display font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.3)] backdrop-blur-sm text-center">
+                  АЛИБИ
+                </div>
+              </motion.div>
+            </div>
           )}
 
           {(character as any).isArrested && !isDead && (
-            <motion.div
-              key={`arrest_stamp_${character.id}`}
-              initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
-              animate={{ opacity: 1, scale: 1, rotate: -12 }}
-              exit={{ opacity: 0, scale: 0.6 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1"
-            >
-              <div className="border border-blue-500/80 bg-blue-950/95 text-blue-300 whitespace-nowrap font-display font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.4)] backdrop-blur-sm text-center">
-                АРЕСТОВАН
-              </div>
-            </motion.div>
+            <div className="absolute top-[34%] inset-x-0 -translate-y-1/2 flex items-center justify-center z-20 pointer-events-none px-1">
+              <motion.div
+                key={`arrest_stamp_${character.id}`}
+                initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
+                animate={{ opacity: 1, scale: 1, rotate: -12 }}
+                exit={{ opacity: 0, scale: 0.6 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                <div className="border border-blue-500/80 bg-blue-950/95 text-blue-300 whitespace-nowrap font-display font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.4)] backdrop-blur-sm text-center">
+                  АРЕСТОВАН
+                </div>
+              </motion.div>
+            </div>
           )}
         </AnimatePresence>
 
@@ -393,10 +388,29 @@ const CharacterCardComponent = ({
           </div>
         )}
 
+        {hasCoin && !isDead && (
+          <div
+            data-testid="coin-indicator"
+            title="Золотая монета"
+            className="absolute bottom-1 right-1 z-20 pointer-events-none flex items-center justify-center"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="w-3.5 h-3.5 sm:w-4 sm:h-4 drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)] filter"
+              fill="none"
+            >
+              <circle cx="12" cy="12" r="9" fill="#EAB308" stroke="#FEF08A" strokeWidth="1.5" />
+              <path d="M12 7v10M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" stroke="#713F12" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+        )}
+
         <div className="absolute bottom-0.5 inset-x-0.5 z-10 flex items-end justify-center pointer-events-none transform-none">
           <span
             title={character.name}
             className={`block w-full text-[7.5px] sm:text-[8.5px] md:text-[11px] font-bold text-zinc-200 leading-[1.05] md:leading-tight tracking-tight uppercase text-center px-1 py-0.5 rounded-sm bg-black/60 backdrop-blur-[1px] transform-none break-normal whitespace-pre-line hyphens-none ${
+              hasCoin && !isDead ? "pr-4 sm:pr-5" : ""
+            } ${
               isDead
                 ? isSecretService
                   ? "text-red-400 line-through"

@@ -128,9 +128,14 @@
    - `TURN_TIMER_PAUSED`, `TURN_TIMER_RESUMED`, `TURN_TIMEOUT` — синхронизация и срабатывание блиц-таймера.
    - `ACTION_REJECTED` — персональный отказ в выполнении действия с указанием конкретной причины (`NOT_YOUR_TURN`, `NOT_HOST`, `INVALID_PHASE`, `MATCH_NOT_FINISHED`, `NOT_AUTHORIZED_RESTART`).
    - `ERROR` — сетевые ошибки (`MAX_TV_REACHED`, `ROOM_FULL`, `ROOM_NOT_FOUND`).
-   - `PRESENCE_CHANGED`, `OPPONENT_LEFT`, `MATCH_ANNULLED` — управление дисконнектами и тайм-аутом ожидания переподключения.
+   - `PRESENCE_CHANGED`, `OPPONENT_LEFT`, `TV_DISCONNECTED`, `MATCH_ANNULLED` — управление дисконнектами и тайм-аутом ожидания переподключения.
 
 ---
+
+### 3.1. Сессии мобильного контроллера и аварийный выход (Teardown & Emergency Exit)
+- **Управление сессией:** При подключении к ТВ данные сессии сохраняются в `localStorage` (`tv_session_party_state`, `tv_session_room_code`, `tv_controller_client_id`). Сессия сохраняется только при наличии активного кода комнаты (`tvRoomCode`).
+- **Защита от застревания в лобби (Dead Room Protection):** При получении `TV_DISCONNECTED`, `OPPONENT_LEFT`, статуса комнаты с `hasTvDisplay: false` или ошибки `ROOM_NOT_FOUND` контроллер разрывает соединение, полностью очищает ключи сессии из `localStorage` / `sessionStorage` и возвращает игрока на экран подключения с баннером «ТВ-хост отключился».
+- **Ручной аварийный выход:** На экране ожидания лобби предусмотрена эргономичная кнопка «ПОКИНУТЬ ЛОББИ» (touch target $\ge 48\text{px}$), принудительно вызывающая `partyService.disconnect()`, сбрасывающая URL-параметры и очищающая локальную сессию.
 
 ## 4. Безопасность и античит (State Masking)
 

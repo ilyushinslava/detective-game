@@ -181,6 +181,7 @@ class PartyService {
   }
 
   onSyncState: ((state: any, role?: Role, status?: string) => void) | null = null;
+  onStateUpdate: ((state: any, role?: Role, status?: string) => void) | null = null;
   onRoomStatus: ((status: any) => void) | null = null;
   onAllPlayersReady: (() => void) | null = null;
   onAction: ((action: any) => void) | null = null;
@@ -342,12 +343,15 @@ class PartyService {
             return;
           }
 
-          if (data.type === "SYNC_STATE") {
-            this.lastSyncedState = data.state;
+          if (data.type === "STATE_UPDATE" || data.type === "STATE_SNAPSHOT" || data.type === "SYNC_STATE") {
+            const nextState = data.state || data.gameState;
+            this.lastSyncedState = nextState;
             if (data.morseCode) {
               this.morseCode = data.morseCode;
             }
-            this.onSyncState?.(data.state, data.role, data.status);
+            this.onSyncState?.(nextState, data.role, data.status);
+            this.onStateUpdate?.(nextState, data.role, data.status);
+            this.onAction?.(data);
             return;
           }
 
@@ -504,6 +508,8 @@ class PartyService {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       try {
         const payload = {
+          type: "DISPATCH_ACTION",
+          action,
           ...action,
           senderClientId: this.myClientId,
         };

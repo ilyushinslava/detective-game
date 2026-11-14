@@ -210,7 +210,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       prevRestored?.(data);
     };
     partyService.onAction = (action) => {
-      if (action?.type === 'ACTION_REJECTED' || action?.type === 'ERROR') {
+      if (action?.type === 'ACTION_REJECTED' || action?.type === 'ERROR' || action?.type === 'SYNC_ERROR') {
         setIsAwaitingTurnEnd(false);
         soundManager.play('error');
         triggerHaptic('medium');

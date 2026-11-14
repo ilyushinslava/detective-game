@@ -1,4 +1,4 @@
-import { createInitialState } from "../utils/gameLogic";
+import { createInitialState, isOppositeShift } from "../utils/gameLogic";
 import { gameReducer } from "../utils/gameReducer";
 import type { GameState, Role, GameModeType } from "../types/game";
 
@@ -492,6 +492,16 @@ export default class GameRoomServer {
         this.state.status = "WAITING";
         this.state.mode = mode;
       }
+      if (!this.state.gameState) {
+        this.state.gameState = createInitialState(
+          this.state.mode,
+          "ONLINE",
+          "KILLER",
+          2,
+          this.state.mode === "SECRET_SERVICE" ? 2 : 3,
+          16
+        );
+      }
 
       publicRoomsRegistry.set(roomCode, {
         roomCode,
@@ -508,6 +518,18 @@ export default class GameRoomServer {
       defer(() => {
         this.broadcastStatus();
         if (this.state.gameState) {
+          try {
+            const tvMasked = this.maskStateForTv(this.state.gameState);
+            conn.send(
+              JSON.stringify({
+                type: "STATE_SNAPSHOT",
+                role: "SPECTATOR",
+                status: this.state.status,
+                gameState: tvMasked,
+                state: tvMasked,
+              })
+            );
+          } catch (_) {}
           this.broadcastState();
         }
       });
@@ -590,6 +612,7 @@ export default class GameRoomServer {
       }
 
       try {
+        const maskedSnapshot = this.state.gameState ? this.maskStateForPlayer(this.state.gameState, existingPlayer.role) : null;
         conn.send(
           JSON.stringify({
             type: "AUTH_TOKEN",
@@ -602,7 +625,19 @@ export default class GameRoomServer {
             type: "SESSION_RESTORED",
             role: existingPlayer.role,
             status: this.state.status,
-            gameState: this.state.gameState ? this.maskStateForPlayer(this.state.gameState, existingPlayer.role) : null,
+            gameState: maskedSnapshot,
+            state: maskedSnapshot,
+            authToken: expectedToken,
+            clientId,
+          })
+        );
+        conn.send(
+          JSON.stringify({
+            type: "STATE_SNAPSHOT",
+            role: existingPlayer.role,
+            status: this.state.status,
+            gameState: maskedSnapshot,
+            state: maskedSnapshot,
             authToken: expectedToken,
             clientId,
           })
@@ -831,9 +866,121 @@ export default class GameRoomServer {
     }
   }
 
+  validateActionLogic(
+    action: any,
+    player: PlayerInfo | null,
+    isTvSender: boolean = false
+  ): { valid: boolean; reason?: string } {
+    if (!this.state.gameState) {
+      return { valid: false, reason: "GAME_NOT_FOUND" };
+    }
+    if (this.state.gameState.winner) {
+      return { valid: false, reason: "GAME_ALREADY_FINISHED" };
+    }
+
+    const isSoloTvPassAndPlay =
+      this.state.isPassAndPlay === true ||
+      (Object.keys(this.state.players).length === 1 && Object.keys(this.state.tvDisplays).length > 0);
+
+    // 1. Проверка очередности хода
+    if (!isSoloTvPassAndPlay && player) {
+      if (this.state.mode === "SECRET_SERVICE") {
+        const activeSpyIndex = this.state.gameState.activeSpyIndex ?? 0;
+        const playerIndex = Object.keys(this.state.players).indexOf(player.clientId);
+        const isTurnValid = playerIndex !== -1
+          ? activeSpyIndex === playerIndex
+          : (player.isHost ? activeSpyIndex === 0 : activeSpyIndex === 1);
+        if (!isTurnValid) {
+          console.warn(
+            `Move rejected: wrong turn in SECRET_SERVICE. Player isHost: ${player.isHost}, activeSpyIndex: ${activeSpyIndex}`
+          );
+          return { valid: false, reason: "NOT_YOUR_TURN" };
+        }
+      } else {
+        const currentTurn = this.state.gameState.currentTurn;
+        if (player.role !== currentTurn) {
+          console.warn(
+            `Move rejected: wrong turn. Player role: ${player.role}, currentTurn: ${currentTurn}`
+          );
+          return { valid: false, reason: "NOT_YOUR_TURN" };
+        }
+      }
+    }
+
+    // 2. Валидация маневра SHIFT_BOARD
+    if (action.type === "SHIFT_BOARD") {
+      const payload = action.payload || {};
+      const { shiftType, index, direction } = payload;
+      if (shiftType !== "ROW" && shiftType !== "COL") {
+        return { valid: false, reason: "INVALID_SHIFT_TYPE" };
+      }
+      const boardSize = this.state.gameState.board?.length || 5;
+      if (typeof index !== "number" || index < 0 || index >= boardSize) {
+        return { valid: false, reason: "INDEX_OUT_OF_BOUNDS" };
+      }
+      if (direction !== "FORWARD" && direction !== "BACKWARD") {
+        return { valid: false, reason: "INVALID_DIRECTION" };
+      }
+      if (this.state.gameState.lastShift && isOppositeShift(this.state.gameState.lastShift, shiftType, index, direction)) {
+        return { valid: false, reason: "OPPOSITE_SHIFT_BLOCKED" };
+      }
+      return { valid: true };
+    }
+
+    // 3. Валидация целевых действий
+    const targetId = action.payload?.targetId || action.payload?.targetCardId;
+    if (targetId && typeof targetId === "string") {
+      const allChars = this.state.gameState.board?.flat() || [];
+      const targetChar = allChars.find((c) => c.id === targetId);
+      if (!targetChar) {
+        return { valid: false, reason: "TARGET_NOT_FOUND" };
+      }
+
+      if (
+        action.type === "KILL_CHARACTER" ||
+        action.type === "TARGET_KILL" ||
+        action.type === "EXONERATE" ||
+        action.type === "ARREST" ||
+        action.type === "STEAL" ||
+        action.type === "ROB_NEIGHBOR" ||
+        action.type === "ROB"
+      ) {
+        if (!targetChar.isAlive) {
+          return { valid: false, reason: "TARGET_ALREADY_DEAD" };
+        }
+      }
+
+      if (
+        action.type === "STEAL" ||
+        action.type === "ROB_NEIGHBOR" ||
+        action.type === "ROB"
+      ) {
+        if (targetChar.isRobbed) {
+          return { valid: false, reason: "TARGET_ALREADY_ROBBED" };
+        }
+      }
+    }
+
+    return { valid: true };
+  }
+
   onMessage(message: string, sender: any): void {
     try {
-      const action = JSON.parse(message);
+      let action = JSON.parse(message);
+      if (action.type === "DISPATCH_ACTION") {
+        if (action.action && typeof action.action === "object") {
+          action = {
+            ...action.action,
+            senderClientId: action.senderClientId || action.action.senderClientId,
+          };
+        } else if (action.payload && action.actionType) {
+          action = {
+            type: action.actionType,
+            payload: action.payload,
+            senderClientId: action.senderClientId,
+          };
+        }
+      }
       if (action.type === "PING") {
         try {
           sender?.send(JSON.stringify({ type: "PONG" }));
@@ -969,6 +1116,9 @@ export default class GameRoomServer {
 
       const SYSTEM_ACTIONS = [
         "PING",
+        "INIT",
+        "INIT_ROOM",
+        "CREATE_ROOM",
         "PLAYER_LEFT_EXPLICIT",
         "PLAYER_READY",
         "REQUEST_RESTART",
@@ -983,6 +1133,38 @@ export default class GameRoomServer {
         if (!player && !((typeof process !== "undefined" && (process.env?.VITEST || process.env?.NODE_ENV === "test")) && action.type === "LINE_PREVIEW")) {
           return;
         }
+      }
+
+      if (action.type === "INIT" || action.type === "CREATE_ROOM" || action.type === "INIT_ROOM") {
+        const mode = action.payload?.mode || this.state.mode || "MANIAC_VS_OPERATIVE";
+        this.state.mode = mode;
+        if (!this.state.gameState) {
+          this.state.gameState = createInitialState(
+            mode,
+            "ONLINE",
+            "KILLER",
+            2,
+            mode === "SECRET_SERVICE" ? 2 : 3,
+            16
+          );
+        }
+        this.broadcastStatus();
+        this.broadcastState();
+        try {
+          const masked = isTvSender
+            ? this.maskStateForTv(this.state.gameState)
+            : this.maskStateForPlayer(this.state.gameState, player?.role);
+          sender?.send(
+            JSON.stringify({
+              type: "STATE_SNAPSHOT",
+              state: masked,
+              gameState: masked,
+              role: isTvSender ? "SPECTATOR" : player?.role,
+              status: this.state.status,
+            })
+          );
+        } catch (_) {}
+        return;
       }
 
       if (action.type === "PLAYER_LEFT_EXPLICIT") {
@@ -1207,34 +1389,25 @@ export default class GameRoomServer {
         this.state.isPassAndPlay === true ||
         (Object.keys(this.state.players).length === 1 && Object.keys(this.state.tvDisplays).length > 0);
 
-      if (!isSoloTvPassAndPlay && player) {
-        if (this.state.mode === "SECRET_SERVICE") {
-          const activeSpyIndex = this.state.gameState.activeSpyIndex ?? 0;
-          const playerIndex = Object.keys(this.state.players).indexOf(senderClientId);
-          const isTurnValid = playerIndex !== -1
-            ? activeSpyIndex === playerIndex
-            : (player.isHost ? activeSpyIndex === 0 : activeSpyIndex === 1);
-          if (!isTurnValid) {
-            console.warn(
-              `Move rejected: wrong turn in SECRET_SERVICE. Player isHost: ${player.isHost}, activeSpyIndex: ${activeSpyIndex}`
-            );
-            try {
-              sender.send(JSON.stringify({ type: "ACTION_REJECTED", reason: "NOT_YOUR_TURN" }));
-            } catch (_err) {}
-            return;
-          }
-        } else {
-          const currentTurn = this.state.gameState.currentTurn;
-          if (player.role !== currentTurn) {
-            console.warn(
-              `Move rejected: wrong turn. Player role: ${player.role}, currentTurn: ${currentTurn}`
-            );
-            try {
-              sender.send(JSON.stringify({ type: "ACTION_REJECTED", reason: "NOT_YOUR_TURN" }));
-            } catch (_err) {}
-            return;
-          }
-        }
+      const validation = this.validateActionLogic(action, player, isTvSender);
+      if (!validation.valid) {
+        console.warn(`[GameRoomServer] Action ${action.type} rejected: ${validation.reason}`);
+        try {
+          sender.send(
+            JSON.stringify({
+              type: "SYNC_ERROR",
+              reason: validation.reason,
+              actionType: action.type,
+            })
+          );
+          sender.send(
+            JSON.stringify({
+              type: "ACTION_REJECTED",
+              reason: validation.reason,
+            })
+          );
+        } catch (_err) {}
+        return;
       }
 
       if (action.type === "LINE_PREVIEW" || action.type === "PREVIEW_SHIFT") {
@@ -1342,8 +1515,19 @@ export default class GameRoomServer {
         try {
           conn.send(
             JSON.stringify({
+              type: "STATE_UPDATE",
+              state: tvMaskedState,
+              gameState: tvMaskedState,
+              role: "SPECTATOR",
+              status: this.state.status,
+              isPassAndPlay: Boolean(this.state.isPassAndPlay),
+            })
+          );
+          conn.send(
+            JSON.stringify({
               type: "SYNC_STATE",
               state: tvMaskedState,
+              gameState: tvMaskedState,
               role: "SPECTATOR",
               status: this.state.status,
               isPassAndPlay: Boolean(this.state.isPassAndPlay),
@@ -1367,8 +1551,19 @@ export default class GameRoomServer {
       try {
         conn.send(
           JSON.stringify({
+            type: "STATE_UPDATE",
+            state: maskedState,
+            gameState: maskedState,
+            role: player?.role,
+            status: this.state.status,
+            isPassAndPlay: Boolean(this.state.isPassAndPlay),
+          })
+        );
+        conn.send(
+          JSON.stringify({
             type: "SYNC_STATE",
             state: maskedState,
+            gameState: maskedState,
             role: player?.role,
             status: this.state.status,
             isPassAndPlay: Boolean(this.state.isPassAndPlay),

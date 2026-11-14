@@ -1,6 +1,8 @@
 import React from "react";
 import type { Role } from "../../types/game";
 import { Button } from "../ui/Button";
+import { triggerHaptic } from "../../utils/haptics";
+import { playClickSound } from "../../utils/tvAudio";
 
 export interface PassAndPlayModalProps {
   isOpen: boolean;
@@ -20,7 +22,7 @@ export const PassAndPlayModal: React.FC<PassAndPlayModalProps> = ({
   if (!isOpen) return null;
 
   const defaultRoleName = nextRole === "KILLER" ? "Бандит" : "Инспектор";
-  const defaultRoleColor = nextRole === "KILLER" ? "text-red-500" : "text-blue-400";
+  const defaultRoleColor = nextRole === "KILLER" ? "text-red-400" : "text-blue-400";
   const defaultRoleBorder = nextRole === "KILLER" ? "border-red-500/50" : "border-blue-500/50";
 
   const displayName = nextPlayerName || defaultRoleName;
@@ -29,12 +31,31 @@ export const PassAndPlayModal: React.FC<PassAndPlayModalProps> = ({
     ? (nextPlayerColor.includes("red") ? "border-red-500/50" : "border-blue-500/50")
     : defaultRoleBorder;
 
+  const handleConfirm = () => {
+    try {
+      triggerHaptic("medium");
+    } catch {}
+    try {
+      playClickSound();
+    } catch {}
+    onConfirmTakeDevice();
+  };
+
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-between bg-[#080a0f] p-6 text-zinc-100 select-none animate-fadeIn font-sans">
+    <div
+      role="dialog"
+      aria-label="Смена игрока"
+      onClick={handleConfirm}
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-between bg-black text-zinc-100 p-6 select-none cursor-pointer animate-fadeIn font-sans"
+      style={{ touchAction: "manipulation" }}
+    >
       {/* Верхний статус безопасности */}
-      <div className="w-full border-b border-zinc-800 pb-3 text-center">
+      <div className="w-full flex items-center justify-between border-b border-zinc-900 pb-3 text-center">
         <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500">
           Смена игрока • Передача устройства
+        </span>
+        <span className="text-[10px] font-mono text-zinc-600">
+          PASS & PLAY
         </span>
       </div>
 
@@ -47,8 +68,8 @@ export const PassAndPlayModal: React.FC<PassAndPlayModalProps> = ({
           </svg>
         </div>
 
-        <h2 className="text-xl font-black uppercase tracking-widest text-zinc-100 mb-4">
-          ПЕРЕДАЙТЕ УСТРОЙСТВО
+        <h2 className="text-xl font-black uppercase tracking-widest text-zinc-100 mb-2">
+          ПЕРЕДАЙТЕ УСТРОЙСТВО [{displayName}]...
         </h2>
 
         <div className="text-xs font-mono uppercase tracking-widest text-zinc-500 mb-1">
@@ -62,7 +83,14 @@ export const PassAndPlayModal: React.FC<PassAndPlayModalProps> = ({
           Секретные данные предыдущего хода скрыты. Передайте телефон следующему игроку.
         </p>
 
-        <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 text-[11px] font-mono text-zinc-500">
+        {/* Пульсирующая подсказка тапа */}
+        <div className="mt-6 py-2.5 px-4 rounded-xl border border-zinc-800 bg-zinc-950/80 animate-pulse flex items-center gap-2">
+          <span className="text-xs font-mono font-bold tracking-wider text-zinc-400 uppercase">
+            НАЖМИТЕ НА ЭКРАН ДЛЯ ПРОДОЛЖЕНИЯ
+          </span>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 text-[11px] font-mono text-zinc-500">
           <span className="text-zinc-400 font-bold mr-1.5">[!]</span> Убедитесь, что соперник не смотрит в экран
         </div>
       </div>
@@ -72,7 +100,10 @@ export const PassAndPlayModal: React.FC<PassAndPlayModalProps> = ({
         <Button
           variant="secondary"
           fullWidth
-          onClick={onConfirmTakeDevice}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleConfirm();
+          }}
           className={`py-4 rounded-xl border ${displayBorder} bg-zinc-900 text-base font-black uppercase tracking-wider text-zinc-100 shadow-xl`}
         >
           Я взял телефон

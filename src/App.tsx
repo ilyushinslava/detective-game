@@ -30,6 +30,14 @@ import { characterImages } from "./constants/characterImages";
 import { DEFAULT_BET } from "./constants/gameRules";
 import { TvScreensaver } from "./components/tv/TvScreensaver";
 import { TvNetworkDisconnectModal } from "./components/tv/TvNetworkDisconnectModal";
+import { BlindfoldCurtain } from "./components/ui/BlindfoldCurtain";
+import { resolveNextPlayerInfo } from "./hooks/useLocalGame";
+import {
+  playShiftSound,
+  playEliminateSound,
+  playRadarPing,
+  playClickSound,
+} from "./utils/tvAudio";
 
 // Асинхронные динамические чанки второстепенных экранов (TASK-ARCH-001)
 const DuelScreen = lazy(() => import("./components/duel/DuelScreen").then((m) => ({ default: m.DuelScreen })));
@@ -441,8 +449,48 @@ export default function App() {
       partyService.sendAction(action);
       return;
     }
+
+    // Процедурные звуки Web Audio API для оффлайн режима
+    try {
+      switch (action.type) {
+        case "SHIFT_BOARD":
+          playShiftSound();
+          break;
+        case "KILL_CHARACTER":
+        case "TARGET_KILL":
+        case "CAPTURE_SPY":
+        case "ARREST":
+          playEliminateSound();
+          break;
+        case "INTERROGATE":
+        case "INTERROGATE_SPY":
+        case "CHECK_ALIBI":
+        case "ASK_QUESTION":
+        case "DUEL_ASK_QUESTION":
+          playRadarPing();
+          break;
+        case "END_TURN":
+          playClickSound();
+          break;
+      }
+    } catch {}
+
     setGameState((prev) => {
       const nextState = gameReducer(prev, action);
+
+      // Автоматическое переключение на шторку передачи устройства в Pass & Play (PVP)
+      if (prev.opponent === "PVP" && !nextState.winner) {
+        const turnChanged = nextState.currentTurn !== prev.currentTurn;
+        const spyChanged =
+          nextState.mode === "SECRET_SERVICE" &&
+          nextState.activeSpyIndex !== prev.activeSpyIndex;
+        if (turnChanged || spyChanged) {
+          setIsPassAndPlayOpen(true);
+        }
+      } else if (nextState.winner) {
+        setIsPassAndPlayOpen(false);
+      }
+
       return nextState;
     });
   };
@@ -509,6 +557,10 @@ export default function App() {
     const secs = totalSeconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
+
+  const passAndPlayNextPlayer = useMemo(() => {
+    return resolveNextPlayerInfo(gameState);
+  }, [gameState]);
 
   const {
     allChars,
@@ -614,6 +666,7 @@ export default function App() {
     setIsPauseOpen(false);
     setHasStartedEver(true);
     setIsIntroPhase(true);
+    setIsPassAndPlayOpen(false);
     setIsLobbyOpen(false);
     setSecondsElapsed(0);
   };
@@ -625,6 +678,7 @@ export default function App() {
 
   const handleExitToMenu = () => {
     setIsPauseOpen(false);
+    setIsPassAndPlayOpen(false);
     partyService.disconnect();
     sessionStorage.removeItem("mp_session");
     setOpponentDisconnectedNotice(false);
@@ -988,6 +1042,19 @@ export default function App() {
             handleSelectInspectorRole={handleSelectInspectorRole}
             requestRematch={requestRematch}
             setFullscreenImage={setFullscreenImage}
+          />
+        )}
+
+        {/* Шторка передачи устройства в оффлайн Pass & Play (PVP) */}
+        {tvPartyState === "NONE" && gameState.opponent === "PVP" && (
+          <BlindfoldCurtain
+            isOpen={isPassAndPlayOpen && !gameState.winner && !isIntroPhase}
+            nextRole={passAndPlayNextPlayer.nextRole}
+            nextPlayerName={passAndPlayNextPlayer.nextPlayerName}
+            nextPlayerColor={passAndPlayNextPlayer.nextPlayerColor}
+            onDismiss={() => {
+              setIsPassAndPlayOpen(false);
+            }}
           />
         )}
       </div>

@@ -292,4 +292,28 @@ describe("MobileControllerView Component", () => {
     // Should vibrate with 'turn' pattern [100, 50, 100]
     expect(vibrateSpy).toHaveBeenCalledWith([100, 50, 100]);
   });
+
+  it("renders lobby waiting screen with 'ПОКИНУТЬ ЛОББИ' emergency exit button when room is in LOBBY or WAITING status", () => {
+    const state = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "KILLER");
+    (state as any).status = "LOBBY";
+    const onLeaveLobbySpy = vi.fn();
+
+    render(
+      <MobileControllerView
+        gameState={state}
+        playerRole="KILLER"
+        onDispatchAction={vi.fn()}
+        onLeaveLobby={onLeaveLobbySpy}
+      />
+    );
+
+    expect(screen.getByText("ВЫ В ЛОББИ")).toBeDefined();
+    expect(screen.getByText(/Ожидайте запуска игры на телевизоре/i)).toBeDefined();
+
+    const exitBtn = screen.getByRole("button", { name: /ПОКИНУТЬ ЛОББИ/i });
+    expect(exitBtn).toBeDefined();
+
+    fireEvent.click(exitBtn);
+    expect(onLeaveLobbySpy).toHaveBeenCalledTimes(1);
+  });
 });

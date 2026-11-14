@@ -59,8 +59,11 @@ export function useMultiplayer({
   }, [gameState.opponent]);
 
   useEffect(() => {
-    const isTvMode = typeof window !== "undefined" && window.location.search.includes("clientType");
-    if (isTvMode) {
+    const isTvMode =
+      typeof window !== "undefined" &&
+      (window.location.search.includes("clientType") ||
+        Boolean(localStorage.getItem("tv_session_party_state")));
+    if (isTvMode || gameState.opponent !== "ONLINE") {
       return;
     }
 

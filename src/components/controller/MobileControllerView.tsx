@@ -38,6 +38,8 @@ export interface MobileControllerViewProps {
   reconnectAttempt?: number;
   disconnectedOpponent?: { role?: Role; graceTimeoutSec: number } | null;
   onForceReconnect?: () => void;
+  roomStatus?: string;
+  onLeaveLobby?: () => void;
 }
 
 export type ShiftWizardStep =
@@ -119,6 +121,8 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   reconnectAttempt: propReconnectAttempt,
   disconnectedOpponent: propDisconnectedOpponent,
   onForceReconnect,
+  roomStatus,
+  onLeaveLobby,
 }) => {
   const boardSize = gameState?.board?.length || BOARD_GRID_SIZE;
   const isSecretService = gameState.mode === 'SECRET_SERVICE';
@@ -661,6 +665,62 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       )}
     </AnimatePresence>
   );
+
+  // =========================================================================
+  // 0. ЭКРАН ОЖИДАНИЯ ЛОББИ (LOBBY / WAITING)
+  // =========================================================================
+  if (
+    (gameState as any)?.status === 'LOBBY' ||
+    (gameState as any)?.status === 'WAITING' ||
+    (gameState as any)?.status === 'EMPTY' ||
+    roomStatus === 'LOBBY' ||
+    roomStatus === 'WAITING'
+  ) {
+    return (
+      <div
+        className="flex h-[100dvh] w-full max-w-full flex-col items-center justify-between bg-[#07090e] p-5 pb-8 text-center text-zinc-100 select-none font-sans overflow-y-auto overflow-x-hidden relative"
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-transparent to-black/90 pointer-events-none" />
+
+        <div className="w-full flex justify-between items-center border-b border-white/10 pb-3 relative z-10">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+            <span className="text-xs font-mono uppercase tracking-widest text-zinc-300 font-bold">ПОДКЛЮЧЕНО К ЭФИРУ</span>
+          </div>
+        </div>
+
+        <div className="my-auto flex flex-col items-center max-w-sm w-full space-y-5 relative z-10">
+          <div className="relative w-24 h-24 rounded-3xl border border-white/10 bg-zinc-950/70 flex items-center justify-center shadow-2xl text-blue-400">
+            <Icons.Radar />
+          </div>
+          <div>
+            <h2 className="font-display text-2xl sm:text-3xl font-black uppercase tracking-wider text-white">
+              ВЫ В ЛОББИ
+            </h2>
+            <p className="text-xs sm:text-sm text-zinc-400 mt-2 leading-relaxed">
+              Ожидайте запуска игры на телевизоре.
+            </p>
+          </div>
+        </div>
+
+        <div className="w-full max-w-sm relative z-10 space-y-2">
+          <button
+            onClick={() => {
+              triggerHaptic('medium');
+              if (onLeaveLobby) {
+                onLeaveLobby();
+              } else if (onExit) {
+                onExit();
+              }
+            }}
+            className="w-full min-h-[48px] rounded-2xl border border-rose-500/40 bg-rose-950/40 hover:bg-rose-900/60 hover:border-rose-500/80 text-rose-200 active:scale-95 transition font-display text-xs font-bold uppercase tracking-wider flex items-center justify-center shadow-lg cursor-pointer"
+          >
+            ПОКИНУТЬ ЛОББИ
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // =========================================================================
   // 1. РЕЖИМ «ОЖИДАНИЕ» (Глухая блокировка при !isTurnActuallyMine или после хода)

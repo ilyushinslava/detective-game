@@ -14,6 +14,8 @@ export interface ControllerConnectViewProps {
   targetRoomCode?: string;
   targetHostName?: string;
   targetExpectedMorse?: string;
+  noticeMessage?: string | null;
+  onClearNotice?: () => void;
 }
 
 export type ConnectTab = 'CAMERA' | 'PIN' | 'MORSE';
@@ -26,6 +28,8 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   targetRoomCode,
   targetHostName,
   targetExpectedMorse,
+  noticeMessage,
+  onClearNotice,
 }) => {
   const [activeTab, setActiveTab] = useState<ConnectTab>(() => {
     if (targetExpectedMorse) return 'MORSE';
@@ -302,6 +306,29 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
           В МЕНЮ
         </Button>
       </div>
+
+      {/* Баннер системного уведомления (например, отключение ТВ-хоста) */}
+      {noticeMessage && (
+        <div className="max-w-sm mx-auto w-full mt-2 relative z-10 shrink-0">
+          <div className="flex items-center justify-between rounded-xl border border-rose-500/40 bg-rose-950/70 p-3 backdrop-blur-md shadow-lg">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-rose-400 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.8)]" />
+              <span className="font-display text-xs font-bold uppercase tracking-wider text-rose-200">
+                {noticeMessage}
+              </span>
+            </div>
+            {onClearNotice && (
+              <button
+                onClick={onClearNotice}
+                className="text-xs text-rose-300 hover:text-white px-1.5 py-0.5 rounded cursor-pointer transition"
+                aria-label="Закрыть"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Позывной агента */}
       <div className="max-w-sm mx-auto w-full my-2 relative z-10 shrink-0">

@@ -798,6 +798,8 @@ export default class GameRoomServer {
     for (const [tvId, tv] of Object.entries(this.state.tvDisplays)) {
       if (tv.connectionId === conn.id) {
         delete this.state.tvDisplays[tvId];
+        this.broadcastStatus();
+        this.broadcastRaw(JSON.stringify({ type: "TV_DISCONNECTED" }));
         return;
       }
     }

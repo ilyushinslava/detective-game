@@ -138,19 +138,52 @@ export default function App() {
   const [isTvPassAndPlay, setIsTvPassAndPlay] = useState<boolean>(false);
   const [isPassAndPlayOpen, setIsPassAndPlayOpen] = useState(false);
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
+  const [controllerConnectNotice, setControllerConnectNotice] = useState<string | null>(null);
+
+  const handleLeaveControllerLobby = (notice?: string) => {
+    try {
+      localStorage.removeItem("tv_session_party_state");
+      localStorage.removeItem("tv_session_room_code");
+      localStorage.removeItem("tv_controller_client_id");
+    } catch {}
+    try {
+      sessionStorage.removeItem("tv_controller_client_id");
+      sessionStorage.removeItem("tv_controller_role");
+      sessionStorage.removeItem("tv_controller_room");
+      if (tvRoomCode) {
+        sessionStorage.removeItem(`crime_city_auth_${tvRoomCode}`);
+      }
+    } catch {}
+    try {
+      partyService.disconnect();
+    } catch {}
+    try {
+      if (typeof window !== "undefined") {
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("room");
+        cleanUrl.searchParams.delete("targetRoom");
+        cleanUrl.searchParams.delete("clientType");
+        window.history.replaceState({}, "", cleanUrl.pathname + cleanUrl.hash);
+      }
+    } catch {}
+    setTvRoomCode("");
+    setTvPartyState("CONTROLLER");
+    setControllerRoomStatus("WAITING");
+    if (notice) {
+      setControllerConnectNotice(notice);
+    }
+  };
 
   // Авто-восстановление сессии (Auto-Recovery): синхронизация tvRoomCode и tvPartyState с localStorage
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      if (tvPartyState === "NONE") {
+      if (tvPartyState === "NONE" || !tvRoomCode) {
         localStorage.removeItem("tv_session_party_state");
         localStorage.removeItem("tv_session_room_code");
       } else {
         localStorage.setItem("tv_session_party_state", tvPartyState);
-        if (tvRoomCode) {
-          localStorage.setItem("tv_session_room_code", tvRoomCode);
-        }
+        localStorage.setItem("tv_session_room_code", tvRoomCode);
       }
     } catch {}
   }, [tvPartyState, tvRoomCode]);
@@ -183,16 +216,38 @@ export default function App() {
 
       const prevOnRoomStatus = partyService.onRoomStatus;
       const prevOnSyncState = partyService.onSyncState;
+      const prevOnAction = partyService.onAction;
 
-              partyService.onRoomStatus = (data: any) => {
-          prevOnRoomStatus?.(data);
-          if (data?.status) {
-            setControllerRoomStatus(data.status);
-            if (data.status === "PLAYING") {
-              setIsIntroPhase(true);
-            }
+      partyService.onRoomStatus = (data: any) => {
+        prevOnRoomStatus?.(data);
+        if (data?.status) {
+          setControllerRoomStatus(data.status);
+          if (data.status === "PLAYING") {
+            setIsIntroPhase(true);
           }
-        };
+        }
+        // Защита от мертвых комнат: если хост (ТВ) отключился или отсутствует в лобби
+        if (data && data.hasTvDisplay === false && controllerRoomStatus !== "PLAYING") {
+          console.warn("[Controller] TV host is not present in room, kicking to connect screen");
+          handleLeaveControllerLobby("ТВ-хост отключился");
+        }
+      };
+
+      partyService.onAction = (action: any) => {
+        prevOnAction?.(action);
+        if (action?.type === "TV_DISCONNECTED" || action?.type === "OPPONENT_LEFT") {
+          if (controllerRoomStatus !== "PLAYING") {
+            console.warn("[Controller] TV host disconnected event received");
+            handleLeaveControllerLobby("ТВ-хост отключился");
+          }
+        } else if (
+          action?.type === "ERROR" &&
+          (action?.message === "ROOM_NOT_FOUND" || action?.error === "ROOM_NOT_FOUND")
+        ) {
+          console.warn("[Controller] Room not found, clearing stale session");
+          handleLeaveControllerLobby("ТВ-хост отключился");
+        }
+      };
 
       partyService.onSyncState = (state: any, role?: Role, status?: string) => {
         prevOnSyncState?.(state, role, status);
@@ -219,23 +274,24 @@ export default function App() {
             }
           }
         }
-                  if (status) {
-            setControllerRoomStatus(status);
-            if (status === "PLAYING") {
-              setIsIntroPhase(true);
-            }
+        if (status) {
+          setControllerRoomStatus(status);
+          if (status === "PLAYING") {
+            setIsIntroPhase(true);
           }
-        };
+        }
+      };
 
       return () => {
         partyService.onRoomStatus = prevOnRoomStatus;
         partyService.onSyncState = prevOnSyncState;
+        partyService.onAction = prevOnAction;
       };
     }
-  }, [clientTypeParam, tvRoomCode]);
+  }, [clientTypeParam, tvRoomCode, controllerRoomStatus]);
 
   useEffect(() => {
-    if (tvPartyState !== "TV_LOBBY" && tvPartyState !== "TV_BOARD" && tvPartyState !== "CONTROLLER") return;
+    if (tvPartyState !== "TV_LOBBY" && tvPartyState !== "TV_BOARD") return;
 
     if (tvPartyState === "TV_LOBBY" || tvPartyState === "TV_BOARD") {
       partyService.connect(tvRoomCode, 'TV_HOST', true, 'MANIAC_VS_OPERATIVE', undefined, 'TV_DISPLAY');
@@ -948,7 +1004,10 @@ export default function App() {
                   onUpdateNickname={(name) => updateProfile({ nickname: name })}
                   targetRoomCode={targetRoomParam || undefined}
                   targetHostName={targetRoomParam ? "ТВ-Экран" : undefined}
+                  noticeMessage={controllerConnectNotice}
+                  onClearNotice={() => setControllerConnectNotice(null)}
                   onConnect={(code) => {
+                    setControllerConnectNotice(null);
                     setTvRoomCode(code);
                     setTvPartyState("CONTROLLER");
                     try {
@@ -960,71 +1019,68 @@ export default function App() {
                     } catch (_) {}
                   }}
                   onBackToMenu={() => {
-                    try {
-                      localStorage.removeItem("tv_session_party_state");
-                      localStorage.removeItem("tv_session_room_code");
-                    } catch {}
-                    sessionStorage.removeItem("tv_controller_client_id");
-                    sessionStorage.removeItem("tv_controller_role");
-                    window.location.search = "";
-                    setTvRoomCode("");
+                    handleLeaveControllerLobby();
                     setTvPartyState("NONE");
                     setIsLobbyOpen(true);
                   }}
                 />
               ) : !isControllerInGame ? (
-                <div className="flex h-screen w-screen flex-col justify-between p-6 text-zinc-100 select-none font-sans bg-[#07080c]">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <div className="flex h-screen w-screen flex-col justify-between p-6 text-zinc-100 select-none font-sans bg-[#07080c] relative">
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-transparent to-black/90 pointer-events-none" />
+
+                  <div className="flex items-center justify-between border-b border-white/10 pb-3 relative z-10">
                     <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-blue-500" />
-                      <span className="text-xs font-mono uppercase tracking-widest text-zinc-300">ПОДКЛЮЧЕНО</span>
+                      <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                      <span className="text-xs font-display uppercase tracking-widest text-zinc-300 font-bold">ПОДКЛЮЧЕНО К ЭФИРУ</span>
                     </div>
-                    <div className="text-xs font-mono text-zinc-500">КОМНАТА #{tvRoomCode}</div>
+                    <div className="text-xs font-mono text-zinc-400 font-bold">КОМНАТА #{tvRoomCode}</div>
                   </div>
 
-                  <div className="flex flex-col items-center text-center max-w-sm mx-auto my-auto space-y-4">
-                    <div className="w-20 h-20 rounded-3xl border border-white/10 bg-zinc-950/60 backdrop-blur-md flex items-center justify-center shadow-2xl text-zinc-300">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-10 h-10">
-                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-                        <line x1="12" y1="18" x2="12.01" y2="18" />
+                  <div className="flex flex-col items-center text-center max-w-sm mx-auto my-auto space-y-5 relative z-10 w-full px-2">
+                    <div className="w-24 h-24 rounded-3xl border border-white/10 bg-zinc-950/70 backdrop-blur-md flex items-center justify-center shadow-2xl text-blue-400">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-12 h-12">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
                       </svg>
                     </div>
                     <div>
-                      <h2 className="text-xl font-black uppercase tracking-wider text-zinc-100">
+                      <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-wider text-zinc-100 font-display">
                         ВЫ В ЛОББИ
                       </h2>
-                      <p className="text-sm text-zinc-400 mt-2 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-zinc-400 mt-2 leading-relaxed">
                         Ожидайте запуска игры на телевизоре.
                       </p>
                     </div>
-                    <div className="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 backdrop-blur-md shadow-lg w-full text-left">
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">ИГРОК</div>
+                    <div className="p-4 rounded-2xl bg-zinc-950/70 border border-white/10 backdrop-blur-md shadow-lg w-full text-left">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1 font-mono">ВАШ ПОЗЫВНОЙ</div>
                       <div className="text-base font-black text-zinc-100 truncate">
                         {profile.nickname || 'Агент'}
                       </div>
                     </div>
                   </div>
 
-                  <Button
-                    variant="secondary"
-                    fullWidth
-                    onClick={() => {
-                      try {
-                        localStorage.removeItem("tv_session_party_state");
-                        localStorage.removeItem("tv_session_room_code");
-                      } catch {}
-                      sessionStorage.removeItem("tv_controller_client_id");
-                      sessionStorage.removeItem("tv_controller_role");
-                      partyService.disconnect();
-                      window.location.search = "";
-                      setTvRoomCode("");
-                      setTvPartyState("NONE");
-                      setIsLobbyOpen(true);
-                    }}
-                    className="h-12 rounded-xl text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-white"
-                  >
-                    Выйти в меню
-                  </Button>
+                  <div className="w-full max-w-sm mx-auto space-y-2 relative z-10">
+                    <button
+                      onClick={() => {
+                        triggerHaptic('medium');
+                        handleLeaveControllerLobby();
+                      }}
+                      className="w-full min-h-[48px] rounded-2xl border border-rose-500/40 bg-rose-950/40 hover:bg-rose-900/60 hover:border-rose-500/80 text-rose-200 active:scale-95 transition font-display text-xs font-bold uppercase tracking-wider flex items-center justify-center shadow-lg cursor-pointer"
+                    >
+                      ПОКИНУТЬ ЛОББИ
+                    </button>
+                    <button
+                      onClick={() => {
+                        triggerHaptic('light');
+                        handleLeaveControllerLobby();
+                        setTvPartyState("NONE");
+                        setIsLobbyOpen(true);
+                      }}
+                      className="w-full py-2.5 text-xs font-mono uppercase tracking-wider text-zinc-500 hover:text-zinc-300 transition text-center cursor-pointer"
+                    >
+                      Главное меню
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <MobileControllerView
@@ -1037,18 +1093,12 @@ export default function App() {
                       : controllerRole
                   }
                   isPassAndPlay={isTvPassAndPlay}
+                  roomStatus={controllerRoomStatus}
+                  onLeaveLobby={() => handleLeaveControllerLobby()}
                   onDispatchAction={dispatchAction}
                   onSelectLinePreview={setTvLinePreview}
                   onExit={() => {
-                    try {
-                      localStorage.removeItem("tv_session_party_state");
-                      localStorage.removeItem("tv_session_room_code");
-                    } catch {}
-                    sessionStorage.removeItem("tv_controller_client_id");
-                    sessionStorage.removeItem("tv_controller_role");
-                    partyService.disconnect();
-                    window.location.search = "";
-                    setTvRoomCode("");
+                    handleLeaveControllerLobby();
                     setTvPartyState("NONE");
                     setIsLobbyOpen(true);
                   }}

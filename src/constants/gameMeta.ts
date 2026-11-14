@@ -1,4 +1,33 @@
-import type { GameModeType } from '../types/game';
+import type { GameModeType, Character, Role } from '../types/game';
+
+export const GAME_MODES = {
+  MANIAC_VS_OPERATIVE: 'MANIAC_VS_OPERATIVE',
+  THIEF_HUNT: 'THIEF_HUNT',
+  SECRET_SERVICE: 'SECRET_SERVICE',
+  LINE_UP: 'LINE_UP',
+} as const;
+
+export function isThiefHuntMode(mode?: GameModeType | string | null): boolean {
+  return mode === GAME_MODES.THIEF_HUNT;
+}
+
+export function isSecretServiceMode(mode?: GameModeType | string | null): boolean {
+  return mode === GAME_MODES.SECRET_SERVICE;
+}
+
+export function isManiacMode(mode?: GameModeType | string | null): boolean {
+  return mode === GAME_MODES.MANIAC_VS_OPERATIVE;
+}
+
+export function isLineUpMode(mode?: GameModeType | string | null): boolean {
+  return mode === GAME_MODES.LINE_UP;
+}
+
+export function characterHasCoin(char?: Character | null, mode?: GameModeType | string | null): boolean {
+  if (!char) return false;
+  if (char.hasCoin !== undefined) return char.hasCoin;
+  return isThiefHuntMode(mode) && char.isAlive && !char.isRobbed;
+}
 
 export interface GameModeMeta {
   id: GameModeType;
@@ -134,8 +163,8 @@ export const GAME_MODES_META: Record<GameModeType, GameModeMeta> = {
     players: { ru: '2-4 игрока', en: '2-4 players' },
     time: { ru: '30 мин', en: '30 min' },
     difficulty: { ru: 'Средняя', en: 'Medium' },
-    killerRoleName: { ru: 'Агент 1', en: 'Agent 1' },
-    detectiveRoleName: { ru: 'Агент 2', en: 'Agent 2' },
+    killerRoleName: { ru: 'Фантом', en: 'Phantom' },
+    detectiveRoleName: { ru: 'Призрак', en: 'Ghost' },
     banner: {
       gradient: 'from-emerald-950/50 via-zinc-950 to-zinc-950',
       borderColor: 'border-emerald-900/40',
@@ -248,4 +277,18 @@ export function getGameModesList(lang: 'ru' | 'en' = 'ru'): GameModeCardData[] {
       banner: meta.banner,
     };
   });
+}
+
+export function getKillerRoleName(mode?: GameModeType | string | null, lang: 'ru' | 'en' = 'ru'): string {
+  if (!mode || !(mode in GAME_MODES_META)) return 'Маньяк';
+  return GAME_MODES_META[mode as GameModeType].killerRoleName?.[lang] || 'Маньяк';
+}
+
+export function getDetectiveRoleName(mode?: GameModeType | string | null, lang: 'ru' | 'en' = 'ru'): string {
+  if (!mode || !(mode in GAME_MODES_META)) return 'Оперативник';
+  return GAME_MODES_META[mode as GameModeType].detectiveRoleName?.[lang] || 'Оперативник';
+}
+
+export function getRoleName(mode: GameModeType | string | undefined | null, role: Role, lang: 'ru' | 'en' = 'ru'): string {
+  return role === 'KILLER' ? getKillerRoleName(mode, lang) : getDetectiveRoleName(mode, lang);
 }

@@ -90,9 +90,33 @@ describe("CharacterCard: React.memo и areCharacterCardPropsEqual (Профил�
       });
       expect(areCharacterCardPropsEqual(props1, props2)).toBe(false);
     });
+
+    it("возвращает false при смене наличия монеты hasCoin в режиме THIEF_HUNT", () => {
+      const props1 = createProps({
+        mode: "THIEF_HUNT",
+        character: { ...baseCharacter, isRobbed: false },
+      });
+      const props2 = createProps({
+        mode: "THIEF_HUNT",
+        character: { ...baseCharacter, isRobbed: true },
+      });
+      expect(areCharacterCardPropsEqual(props1, props2)).toBe(false);
+    });
   });
 
   describe("Рендер и изоляция React.memo", () => {
+    it("рендерит золотую окантовку монеты border-yellow-400 при hasCoin === true", () => {
+      const { container } = render(
+        <CharacterCard
+          {...createProps({
+            mode: "THIEF_HUNT",
+            character: { ...baseCharacter, isRobbed: false },
+          })}
+        />
+      );
+      const card = container.firstElementChild as HTMLElement;
+      expect(card.className).toContain("border-yellow-400");
+    });
     it("не перерисовывает карточку при пересоздании функций родителя без изменения состояния карточки", () => {
       let renderCount = 0;
       const MonitoredCard = React.memo((props: CharacterCardProps) => {

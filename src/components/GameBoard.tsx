@@ -403,9 +403,8 @@ export const GameBoard = ({
                     opacity: character.isAlive ? 1 : 0.65,
                   }}
                   transition={{
-                    type: "spring",
-                    stiffness: 180,
-                    damping: 24,
+                    duration: 0.5,
+                    ease: "anticipate",
                   }}
                   className={`w-full h-full aspect-square relative touch-none select-none overflow-visible ${
                     character.isAlive ? "z-10" : "z-0"

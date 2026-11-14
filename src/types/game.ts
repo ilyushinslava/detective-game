@@ -14,6 +14,7 @@ export interface Character {
   isAlive: boolean;
   isExonerated: boolean;
   isRobbed?: boolean;
+  hasCoin?: boolean;
   unmaskedSpyIndex?: number;
 }
 

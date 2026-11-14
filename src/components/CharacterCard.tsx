@@ -1,6 +1,7 @@
 import { memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { type Character, type GameModeType } from "../types/game";
+import { type Character, type GameModeType, SPY_COLORS } from "../types/game";
+import { characterHasCoin, isSecretServiceMode, isThiefHuntMode, GAME_MODES } from "../constants/gameMeta";
 
 const characterImages = import.meta.glob<{ default: string }>(
   "../assets/characters/*.webp",
@@ -148,6 +149,7 @@ export const areCharacterCardPropsEqual = (
   if (prevChar.isAlive !== nextChar.isAlive) return false;
   if (prevChar.isExonerated !== nextChar.isExonerated) return false;
   if (prevChar.isRobbed !== nextChar.isRobbed) return false;
+  if (characterHasCoin(prevChar, prev.mode) !== characterHasCoin(nextChar, next.mode)) return false;
   if (prevChar.unmaskedSpyIndex !== nextChar.unmaskedSpyIndex) return false;
   if ((prevChar as any).isArrested !== (nextChar as any).isArrested) return false;
   if ((prevChar as any).role !== (nextChar as any).role) return false;
@@ -175,7 +177,9 @@ const CharacterCardComponent = ({
     const [imgError, setImgError] = useState(false);
     const isDead = !character.isAlive;
     const isExonerated = character.isExonerated && !isDead;
-    const isSecretService = mode === "SECRET_SERVICE";
+    const isSecretService = isSecretServiceMode(mode);
+    const hasCoin = characterHasCoin(character, mode);
+    const spyMeta = character.unmaskedSpyIndex !== undefined ? SPY_COLORS[character.unmaskedSpyIndex] : null;
 
     return (
       <motion.div
@@ -186,26 +190,31 @@ const CharacterCardComponent = ({
             : {}
         }
         transition={{ duration: 0.4 }}
-        className={`relative w-full aspect-square rounded-md sm:rounded-xl p-0.5 sm:p-1.5 flex flex-col justify-between border select-none transition-colors duration-150 cursor-pointer overflow-hidden ${
+        className={`relative w-full aspect-square rounded-md sm:rounded-xl p-0.5 sm:p-1.5 flex flex-col justify-between border select-none transition-all duration-200 cursor-pointer overflow-hidden ${
           isError
             ? "bg-zinc-800/90 border-zinc-500 ring-2 ring-zinc-500/50 shadow-[0_0_12px_rgba(113,113,122,0.4)] z-30"
             : isDead
               ? isSecretService
                 ? "bg-zinc-950/95 border-red-900/40 opacity-70 shadow-inner"
                 : "bg-zinc-950/95 border-zinc-900 opacity-50 shadow-inner"
-                              : isTargetVictim
-                ? "bg-red-950/30 border-red-600 shadow-[0_0_12px_rgba(220,38,38,0.35)]"
+              : isTargetVictim
+                ? "bg-red-950/40 border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.4)]"
                 : (character as any).isArrested
                   ? "bg-blue-950/80 border-blue-600 shadow-[0_0_15px_rgba(59,130,246,0.5)] z-20"
                   : isExonerated
                     ? "bg-gradient-to-b from-blue-950/50 to-zinc-900 border-zinc-800 shadow-[0_0_10px_rgba(59,130,246,0.25)]"
-                    : "bg-zinc-900/95 border-zinc-800 hover:border-zinc-700 shadow-sm"
-        } ${neighborHighlightColor ? `${neighborHighlightColor} z-10` : ""} ${
+                    : "bg-gradient-to-b from-white/[0.08] via-zinc-900/90 to-black/95 border-[rgba(255,255,255,0.15)] hover:border-[rgba(255,255,255,0.3)] backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.6)]"
+        } ${hasCoin && !isDead ? "border-b-[4px] sm:border-b-[6px] border-yellow-400 shadow-[0_4px_16px_rgba(250,204,21,0.5)]" : ""} ${
+          neighborHighlightColor ? `${neighborHighlightColor} z-10` : ""
+        } ${
           isSelected
             ? `${neighborHighlightColor ? "" : "border-white "}ring-2 ring-white z-30 scale-[0.96]`
             : ""
         }`}
       >
+        {/* Тонкий стеклянный блик на верхней кромке карточки (Glassmorphism Neo-Noir) */}
+        <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-white/[0.1] to-transparent pointer-events-none rounded-t-md sm:rounded-t-xl z-[1]" />
+
         {neighborRole && (
           <div
             className={`absolute inset-0 rounded-md sm:rounded-xl pointer-events-none z-10 border-2 ${
@@ -267,6 +276,14 @@ const CharacterCardComponent = ({
           </div>
 
           <div className="flex items-center gap-1 leading-none shrink-0">
+            {hasCoin && !isDead && (
+              <span className="p-0.5 rounded bg-black/70 backdrop-blur-xs border border-yellow-500/60 text-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]" title="Золотая монета">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
+                </svg>
+              </span>
+            )}
             {isTargetVictim && !isDead && (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-red-500 animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
             )}
@@ -276,61 +293,70 @@ const CharacterCardComponent = ({
             {isRadarCenter && !isDead && (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-blue-400 animate-pulse drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]"><path d="M12 20v-8"/><path d="M8 12a4 4 0 0 1 8 0"/><path d="M4 12a8 8 0 0 1 16 0"/></svg>
             )}
-            {/* THIEF_HUNT coin moved to bottom slot */ false && (
-              <span className="flex items-center justify-center p-1.5 rounded-md bg-black/60 backdrop-blur-sm border border-amber-500/30 shadow-sm" title="Ограблен">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-amber-400">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
-                </svg>
-              </span>
-            )}
-            {/* Robbed token moved to bottom slot */ false && (
-              <span className="flex items-center justify-center p-1.5 rounded-md bg-black/60 backdrop-blur-sm border border-zinc-600/40 shadow-sm" title="Ограблен">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-2.5 h-2.5 text-zinc-400">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
-                </svg>
-              </span>
-            )}
           </div>
         </div>
 
-        {isDead && (
-          <div className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1">
-            <div className={`transform -rotate-12 border whitespace-nowrap font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none backdrop-blur-sm text-center ${
-              isSecretService || character.unmaskedSpyIndex !== undefined
-                ? "border-red-600 bg-red-950/90 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
-                : (character as any).isArrested
-                  ? "border border-blue-500/80 bg-blue-950/95 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.4)]"
-                  : "border-red-600 bg-red-950/90 text-red-500 shadow-[0_0_15px_rgba(220,38,38,0.4)]"
-            }`}>
-              {isSecretService || character.unmaskedSpyIndex !== undefined
-                ? "РАСКРЫТ"
-                : (character as any).isArrested
-                  ? "АРЕСТОВАН"
-                  : "УБИТ"}
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {isDead && (
+            <motion.div
+              key={`dead_stamp_${character.id}`}
+              initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
+              animate={{ opacity: 1, scale: 1, rotate: -12 }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1"
+            >
+              <div className={`transform border whitespace-nowrap font-display font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none backdrop-blur-sm text-center ${
+                spyMeta
+                  ? `border-${spyMeta.border} bg-zinc-950/95 text-${spyMeta.text} shadow-[0_0_15px_rgba(239,68,68,0.5)]`
+                  : isSecretService || character.unmaskedSpyIndex !== undefined
+                    ? "border-red-600 bg-red-950/90 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                    : (character as any).isArrested
+                      ? "border border-blue-500/80 bg-blue-950/95 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.4)]"
+                      : "border-red-600 bg-red-950/90 text-red-500 shadow-[0_0_15px_rgba(220,38,38,0.4)]"
+              }`}>
+                {isSecretService || character.unmaskedSpyIndex !== undefined
+                  ? (spyMeta ? `РАСКРЫТ: ${spyMeta.name.toUpperCase()}` : "РАСКРЫТ")
+                  : (character as any).isArrested
+                    ? "АРЕСТОВАН"
+                    : "УБИТ"}
+              </div>
+            </motion.div>
+          )}
 
-        {isExonerated && !isDead && !(character as any).isArrested && (
-          <div className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1">
-            <div className="transform rotate-6 border border-blue-500/80 bg-zinc-900/95 text-blue-400 whitespace-nowrap font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.3)] backdrop-blur-sm text-center">
-              АЛИБИ
-            </div>
-          </div>
-        )}
+          {isExonerated && !isDead && !(character as any).isArrested && (
+            <motion.div
+              key={`alibi_stamp_${character.id}`}
+              initial={{ opacity: 0, scale: 0.6, rotate: 18 }}
+              animate={{ opacity: 1, scale: 1, rotate: 6 }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1"
+            >
+              <div className="border border-blue-500/80 bg-zinc-900/95 text-blue-400 whitespace-nowrap font-display font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.3)] backdrop-blur-sm text-center">
+                АЛИБИ
+              </div>
+            </motion.div>
+          )}
 
-        {(character as any).isArrested && !isDead && (
-          <div className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1">
-            <div className="transform -rotate-12 border border-blue-500/80 bg-blue-950/95 text-blue-300 whitespace-nowrap font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.4)] backdrop-blur-sm text-center">
-              АРЕСТОВАН
-            </div>
-          </div>
-        )}
+          {(character as any).isArrested && !isDead && (
+            <motion.div
+              key={`arrest_stamp_${character.id}`}
+              initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
+              animate={{ opacity: 1, scale: 1, rotate: -12 }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1"
+            >
+              <div className="border border-blue-500/80 bg-blue-950/95 text-blue-300 whitespace-nowrap font-display font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.4)] backdrop-blur-sm text-center">
+                АРЕСТОВАН
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <AnimatePresence>
-          {mode === "THIEF_HUNT" && character.isAlive && !character.isRobbed && (
+          {isThiefHuntMode(mode) && character.isAlive && !character.isRobbed && (
             <motion.div
               key="active-coin-edge"
               initial={{ scale: 0, opacity: 0 }}

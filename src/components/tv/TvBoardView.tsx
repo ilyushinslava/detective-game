@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { App as CapApp } from '@capacitor/app';
 import { GameOverModal } from '../GameOverModal';
@@ -7,9 +7,22 @@ import { renderSilhouette } from '../CharacterCard';
 import { getCharacterPortraitPath } from '../../constants/characterImages';
 import type { GameState, LastShift, GameModeType } from '../../types/game';
 import { SPY_COLORS } from '../../types/game';
-import { getGameModeTitle, getCanonicalGameModeName } from '../../constants/gameMeta';
+import {
+  getGameModeTitle,
+  getCanonicalGameModeName,
+  characterHasCoin,
+  isThiefHuntMode,
+  isSecretServiceMode,
+  isManiacMode,
+  isLineUpMode,
+  getKillerRoleName,
+  getDetectiveRoleName,
+  getRoleName,
+  GAME_MODES,
+} from '../../constants/gameMeta';
 import { partyService } from '../../utils/partyPeer';
 import { useSpatialNavigation } from '../../hooks/useSpatialNavigation';
+import { playShiftSound, playEliminateSound, playRadarPing } from '../../utils/tvAudio';
 
 export interface TvBoardViewProps {
   gameState: GameState;
@@ -122,6 +135,8 @@ const areTvCellPropsEqual = (prev: TvCellProps, next: TvCellProps): boolean => {
   if (prevChar.isAlive !== nextChar.isAlive) return false;
   if (prevChar.isExonerated !== nextChar.isExonerated) return false;
   if (prevChar.isRobbed !== nextChar.isRobbed) return false;
+  if (characterHasCoin(prevChar, prev.mode) !== characterHasCoin(nextChar, next.mode)) return false;
+  if (prevChar.hasCoin !== nextChar.hasCoin) return false;
   if (prevChar.unmaskedSpyIndex !== nextChar.unmaskedSpyIndex) return false;
   if ((prevChar as any).isArrested !== (nextChar as any).isArrested) return false;
 
@@ -146,14 +161,13 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
   const [imgError, setImgError] = useState(false);
   const isDead = !char.isAlive;
   const isExonerated = char.isExonerated && !isDead;
-  const isSecretService = mode === 'SECRET_SERVICE';
+  const isSecretService = isSecretServiceMode(mode);
+  const hasCoin = characterHasCoin(char, mode);
+  const spyMeta = char.unmaskedSpyIndex !== undefined ? SPY_COLORS[char.unmaskedSpyIndex] : null;
   const portraitUrl = getCharacterPortraitPath(char.id);
 
   return (
-    <motion.div
-      layout="position"
-      layoutId={`tv_card_${char.id}`}
-      transition={{ type: 'spring', damping: 28, stiffness: 180, mass: 0.9 }}
+    <div
       className={`relative w-full aspect-square rounded-xl sm:rounded-2xl overflow-hidden backdrop-blur-md border transition-all duration-300 flex flex-col justify-between select-none shadow-md ${
         isLineActive
           ? 'border-cyan-400 border-t-2 border-t-white bg-gradient-to-b from-cyan-950/70 via-blue-950/90 to-black shadow-[0_0_35px_rgba(6,182,212,0.7)] scale-[1.03] z-30 ring-2 ring-cyan-300/80'
@@ -162,7 +176,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
             : inRadarArea
               ? 'border-blue-400/80 border-t-2 border-t-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.45)] bg-gradient-to-b from-blue-950/50 to-black z-10'
               : 'border-white/15 bg-gradient-to-b from-white/[0.08] via-zinc-900/80 to-black/90 hover:border-white/30 shadow-[0_4px_16px_rgba(0,0,0,0.6)]'
-      }`}
+      } ${hasCoin && !isDead ? 'border-b-[6px] border-yellow-400 shadow-[0_4px_20px_rgba(250,204,21,0.6)]' : ''}`}
     >
       {/* 1. Фоновое изображение персонажа или силуэт (bg-cover bg-center) */}
       <div className="absolute inset-0 pointer-events-none z-0">
@@ -186,7 +200,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
       {/* 2. Тонкий стеклянный блик на верхней кромке карточки */}
       <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-white/[0.1] to-transparent pointer-events-none rounded-t-xl z-[1]" />
 
-      {/* 3. Верхняя сервисная строчка (Номер ячейки и статусы офицера/прицела) */}
+      {/* 3. Верхняя сервисная строчка (Номер ячейки и статусы монеты/офицера/прицела) */}
       <div className="flex items-center justify-between p-1 sm:p-1.5 z-10 w-full pointer-events-none">
         <span
           className={`text-[9px] sm:text-[11px] 2xl:text-xs font-mono font-bold px-1.5 py-0.5 rounded-md backdrop-blur-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] ${
@@ -201,6 +215,14 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
         </span>
 
         <div className="flex items-center gap-1">
+          {hasCoin && !isDead && (
+            <span className="p-0.5 sm:p-1 rounded bg-black/70 backdrop-blur-xs border border-yellow-500/60 text-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]" title="Золотая монета">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
+              </svg>
+            </span>
+          )}
           {isTargetVictim && !isDead && (
             <span className="p-0.5 sm:p-1 rounded bg-red-950/90 border border-red-500/70 text-rose-400 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.7)]">
               <Icons.Crosshair />
@@ -219,30 +241,65 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
         </div>
       </div>
 
-      {/* 4. Центральные статус-штампы (УБИТ, РАСКРЫТ, АЛИБИ, АРЕСТОВАН) */}
-      {isDead && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1">
-          <div className="transform -rotate-12 border border-red-600 bg-red-950/95 text-red-300 whitespace-nowrap font-black uppercase tracking-wider text-[9px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_15px_rgba(220,38,38,0.7)] backdrop-blur-sm text-center">
-            {isSecretService || char.unmaskedSpyIndex !== undefined ? 'РАСКРЫТ' : char.isArrested ? 'АРЕСТОВАН' : 'УБИТ'}
-          </div>
-        </div>
-      )}
+      {/* 4. Центральные статус-штампы (УБИТ, РАСКРЫТ, АЛИБИ, АРЕСТОВАН) через AnimatePresence */}
+      <AnimatePresence>
+        {isDead && (
+          <motion.div
+            key={`tv_dead_${char.id}`}
+            initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
+            animate={{ opacity: 1, scale: 1, rotate: -12 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1"
+          >
+            <div className={`transform border whitespace-nowrap font-display font-black uppercase tracking-wider text-[9px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_15px_rgba(220,38,38,0.7)] backdrop-blur-sm text-center ${
+              spyMeta
+                ? `border-${spyMeta.border} bg-zinc-950/95 text-${spyMeta.text}`
+                : isSecretService || char.unmaskedSpyIndex !== undefined
+                  ? 'border-red-600 bg-red-950/95 text-red-300'
+                  : char.isArrested
+                    ? 'border-blue-500/80 bg-blue-950/95 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.5)]'
+                    : 'border-red-600 bg-red-950/95 text-red-300'
+            }`}>
+              {isSecretService || char.unmaskedSpyIndex !== undefined
+                ? (spyMeta ? `РАСКРЫТ: ${spyMeta.name.toUpperCase()}` : 'РАСКРЫТ')
+                : char.isArrested
+                  ? 'АРЕСТОВАН'
+                  : 'УБИТ'}
+            </div>
+          </motion.div>
+        )}
 
-      {isExonerated && !isDead && !char.isArrested && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1">
-          <div className="transform rotate-6 border border-blue-500/80 bg-zinc-950/95 text-blue-400 whitespace-nowrap font-black uppercase tracking-wider text-[9px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_12px_rgba(59,130,246,0.4)] backdrop-blur-sm text-center">
-            АЛИБИ
-          </div>
-        </div>
-      )}
+        {isExonerated && !isDead && !char.isArrested && (
+          <motion.div
+            key={`tv_alibi_${char.id}`}
+            initial={{ opacity: 0, scale: 0.6, rotate: 18 }}
+            animate={{ opacity: 1, scale: 1, rotate: 6 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1"
+          >
+            <div className="border border-blue-500/80 bg-zinc-950/95 text-blue-400 whitespace-nowrap font-display font-black uppercase tracking-wider text-[9px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_12px_rgba(59,130,246,0.4)] backdrop-blur-sm text-center">
+              АЛИБИ
+            </div>
+          </motion.div>
+        )}
 
-      {char.isArrested && !isDead && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1">
-          <div className="transform -rotate-12 border border-blue-500/80 bg-blue-950/95 text-blue-300 whitespace-nowrap font-black uppercase tracking-wider text-[9px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_12px_rgba(59,130,246,0.5)] backdrop-blur-sm text-center">
-            АРЕСТОВАН
-          </div>
-        </div>
-      )}
+        {char.isArrested && !isDead && (
+          <motion.div
+            key={`tv_arrest_${char.id}`}
+            initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
+            animate={{ opacity: 1, scale: 1, rotate: -12 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none px-1"
+          >
+            <div className="border border-blue-500/80 bg-blue-950/95 text-blue-300 whitespace-nowrap font-display font-black uppercase tracking-wider text-[9px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_12px_rgba(59,130,246,0.5)] backdrop-blur-sm text-center">
+              АРЕСТОВАН
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 5. Стрелки направления маневра на крайних карточках выбранной линии */}
       <AnimatePresence>
@@ -275,7 +332,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
           {char.name}
         </span>
       </div>
-    </motion.div>
+    </div>
   );
 }, areTvCellPropsEqual);
 
@@ -296,6 +353,84 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   const [tvGraceLeft, setTvGraceLeft] = useState(60);
 
   const activeDisconnected = disconnectedPlayer ?? internalDisconnected;
+
+  // Синхронизация процедурного геймплейного звука при обновлении логов или действий
+  const prevLogsCountRef = useRef<number>(gameState?.log?.length || (gameState as any)?.logs?.length || 0);
+  const prevLastShiftRef = useRef<any>(gameState?.lastShift);
+
+  useEffect(() => {
+    const logs = gameState?.log || (gameState as any)?.logs || [];
+    if (logs.length > prevLogsCountRef.current) {
+      const newEntries = logs.slice(prevLogsCountRef.current);
+      for (const entry of newEntries) {
+        const text = (typeof entry === 'string' ? entry : '').toLowerCase();
+        if (
+          text.includes('ликвид') ||
+          text.includes('убит') ||
+          text.includes('устран') ||
+          text.includes('арест') ||
+          text.includes('раскрыт') ||
+          text.includes('погиб')
+        ) {
+          playEliminateSound();
+        } else if (
+          text.includes('маневр') ||
+          text.includes('сдвиг') ||
+          text.includes('ряд') ||
+          text.includes('столбец')
+        ) {
+          playShiftSound();
+        } else if (
+          text.includes('допрос') ||
+          text.includes('радар') ||
+          text.includes('опрос') ||
+          text.includes('вопрос') ||
+          text.includes('импульс') ||
+          text.includes('сканир') ||
+          text.includes('радиоперехват')
+        ) {
+          playRadarPing();
+        }
+      }
+      prevLogsCountRef.current = logs.length;
+    }
+  }, [gameState?.log, (gameState as any)?.logs]);
+
+  // Звуковой отклик на сдвиг поля
+  useEffect(() => {
+    if (gameState?.lastShift && gameState.lastShift !== prevLastShiftRef.current) {
+      playShiftSound();
+      prevLastShiftRef.current = gameState.lastShift;
+    }
+  }, [gameState?.lastShift]);
+
+  // Звуковой отклик на входящие действия с мобильного пульта через partyService
+  useEffect(() => {
+    const prevActionHandler = partyService.onAction;
+    partyService.onAction = (action: any) => {
+      if (action?.type === 'SHIFT_BOARD') {
+        playShiftSound();
+      } else if (
+        action?.type === 'KILL_CHARACTER' ||
+        action?.type === 'DUEL_ACCUSE' ||
+        action?.type === 'ACCUSE_CHARACTER' ||
+        action?.type === 'SPY_CATCH'
+      ) {
+        playEliminateSound();
+      } else if (
+        action?.type === 'DUEL_ASK_QUESTION' ||
+        action?.type === 'INTERROGATE_SPY' ||
+        action?.type === 'RADAR_SCAN'
+      ) {
+        playRadarPing();
+      }
+      prevActionHandler?.(action);
+    };
+
+    return () => {
+      partyService.onAction = prevActionHandler;
+    };
+  }, []);
 
   // Слушатель событий дисконнекта игроков
   useEffect(() => {
@@ -498,14 +633,11 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
   const activeTurnName = useMemo(() => {
     if (isSecretService) return activeSpy?.name || 'Агент';
-    if (gameState?.mode === 'THIEF_HUNT') return isKillerTurn ? 'Грабитель' : 'Полиция';
-    if (gameState?.mode === 'MANIAC_VS_OPERATIVE') return isKillerTurn ? 'Маньяк' : 'Оперативник';
-    if (gameState?.mode === 'LINE_UP') return isKillerTurn ? 'Подозреваемый' : 'Следователь';
-    return isKillerTurn ? 'Преступник' : 'Закон';
+    return isKillerTurn ? getKillerRoleName(gameState?.mode) : getDetectiveRoleName(gameState?.mode);
   }, [isSecretService, activeSpy, gameState?.mode, isKillerTurn]);
 
-  const killerRoleName = gameState?.mode === 'THIEF_HUNT' ? 'Грабитель' : gameState?.mode === 'LINE_UP' ? 'Подозреваемый' : 'Маньяк';
-  const detectiveRoleName = gameState?.mode === 'THIEF_HUNT' ? 'Полиция' : gameState?.mode === 'LINE_UP' ? 'Следователь' : 'Оперативник';
+  const killerRoleName = getKillerRoleName(gameState?.mode);
+  const detectiveRoleName = getDetectiveRoleName(gameState?.mode);
   const canonicalGameModeName = getCanonicalGameModeName(gameState?.mode);
 
   const boardSize = gameState?.board?.length || 5;
@@ -703,22 +835,28 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 const inRadarCenter = isRadarCenter(row, col);
 
                 return (
-                  <TvCell
+                  <motion.div
                     key={char.id || `cell_${index}`}
-                    char={char}
-                    index={index}
-                    isLineActive={isLineActive}
-                    inRadarCenter={inRadarCenter}
-                    inRadarArea={inRadarArea}
-                    isTargetVictim={Boolean(gameState?.mode === 'MANIAC_VS_OPERATIVE' && gameState?.victimList?.[0] === char.id)}
-                    isUniformedOfficer={Boolean(gameState?.uniformedOfficers?.includes(char.id))}
-                    mode={gameState?.mode || 'MANIAC_VS_OPERATIVE'}
-                    selectedLineDir={selectedLineDir}
-                    selectedLineType={selectedLineType}
-                    boardSize={boardSize}
-                    row={row}
-                    col={col}
-                  />
+                    layout
+                    transition={{ duration: 0.5, ease: "anticipate" }}
+                    className="w-full h-full relative"
+                  >
+                    <TvCell
+                      char={char}
+                      index={index}
+                      isLineActive={isLineActive}
+                      inRadarCenter={inRadarCenter}
+                      inRadarArea={inRadarArea}
+                      isTargetVictim={Boolean(isManiacMode(gameState?.mode) && gameState?.victimList?.[0] === char.id)}
+                      isUniformedOfficer={Boolean(gameState?.uniformedOfficers?.includes(char.id))}
+                      mode={gameState?.mode || GAME_MODES.MANIAC_VS_OPERATIVE}
+                      selectedLineDir={selectedLineDir}
+                      selectedLineType={selectedLineType}
+                      boardSize={boardSize}
+                      row={row}
+                      col={col}
+                    />
+                  </motion.div>
                 );
               })}
             </div>

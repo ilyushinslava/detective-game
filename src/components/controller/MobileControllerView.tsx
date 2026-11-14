@@ -16,6 +16,16 @@ import { useDetectiveNotebook } from '../../hooks/useDetectiveNotebook';
 import { DetectiveNotebookModal } from './DetectiveNotebookModal';
 import { partyService } from '../../utils/partyPeer';
 import { BOARD_GRID_SIZE, TURN_GRACE_PERIOD_SECONDS } from '../../constants/gameRules';
+import {
+  getKillerRoleName,
+  getDetectiveRoleName,
+  getRoleName,
+  isThiefHuntMode,
+  isSecretServiceMode,
+  isManiacMode,
+  characterHasCoin,
+  GAME_MODES,
+} from '../../constants/gameMeta';
 
 export interface MobileControllerViewProps {
   gameState: GameState;
@@ -129,9 +139,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
   const roleName = isSecretService
     ? (mySpy?.name || 'Агент')
-    : isKiller
-      ? (gameState.mode === 'THIEF_HUNT' ? 'Грабитель' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Маньяк' : 'Бандит')
-      : (gameState.mode === 'THIEF_HUNT' ? 'Полиция' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Оперативник' : 'Инспектор');
+    : getRoleName(gameState.mode, playerRole);
 
   // Удержание экрана активным на мобильном устройстве (Wake Lock API)
   useWakeLock({ enabled: true });
@@ -370,9 +378,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     }
 
     const nextRole: Role = gameState.currentTurn === 'KILLER' ? 'DETECTIVE' : 'KILLER';
-    const name = nextRole === 'KILLER'
-      ? (gameState.mode === 'THIEF_HUNT' ? 'Грабитель' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Маньяк' : 'Бандит')
-      : (gameState.mode === 'THIEF_HUNT' ? 'Полиция' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Оперативник' : 'Инспектор');
+    const name = getRoleName(gameState.mode, nextRole);
     const color = nextRole === 'KILLER' ? 'text-red-500' : 'text-blue-400';
 
     return {
@@ -660,9 +666,9 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   // 1. РЕЖИМ «ОЖИДАНИЕ» (Глухая блокировка при !isTurnActuallyMine или после хода)
   // =========================================================================
   if (!isTurnActuallyMine || isAwaitingTurnEnd) {
-    const activePlayerTitle = nextPlayerInfo.nextRole === 'KILLER'
-      ? (gameState.mode === 'THIEF_HUNT' ? 'Полиция' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Оперативник' : 'Инспектор')
-      : (gameState.mode === 'THIEF_HUNT' ? 'Грабитель' : gameState.mode === 'MANIAC_VS_OPERATIVE' ? 'Маньяк' : 'Бандит');
+    const activePlayerTitle = nextPlayerInfo.nextRole
+      ? getRoleName(gameState.mode, nextPlayerInfo.nextRole)
+      : 'Соперник';
 
     return (
       <div
@@ -1191,7 +1197,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                 onClick={(e) => {
                   e.stopPropagation();
                   triggerHaptic('light');
-                  if (gameState.mode === 'THIEF_HUNT' && isKiller) {
+                  if (isThiefHuntMode(gameState.mode) && isKiller) {
                     setPendingAction({
                       id: 'FAST_DISGUISE',
                       label: 'Конспирация',

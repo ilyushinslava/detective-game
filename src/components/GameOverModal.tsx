@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Character, GameModeType, Role } from '../types/game';
+import { getKillerRoleName, getDetectiveRoleName } from '../constants/gameMeta';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import { useSpatialNavigation } from '../hooks/useSpatialNavigation';
@@ -102,20 +103,12 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   const isVictory = playerRole ? winner === playerRole : true;
   const isKillerWinner = winner === 'KILLER';
 
-  const killerTitle =
-    mode === 'THIEF_HUNT' ? 'Грабитель' :
-    mode === 'SECRET_SERVICE' ? 'Фантом' :
-    mode === 'LINE_UP' ? 'Подозреваемый' : 'Маньяк';
-
-  const detectiveTitle =
-    mode === 'THIEF_HUNT' ? 'Полиция' :
-    mode === 'SECRET_SERVICE' ? 'Призрак' :
-    mode === 'LINE_UP' ? 'Следователь' : 'Оперативник';
-
+  const killerTitle = getKillerRoleName(mode);
+  const detectiveTitle = getDetectiveRoleName(mode);
   const winnerTitle = isKillerWinner ? killerTitle : detectiveTitle;
 
   const headlineText = isKillerWinner
-    ? (mode === 'THIEF_HUNT' ? 'ПОБЕДА ГРАБИТЕЛЯ' : mode === 'SECRET_SERVICE' ? 'ПОБЕДА ФАНТОМА' : mode === 'LINE_UP' ? 'ПОБЕДА ПОДОЗРЕВАЕМОГО' : 'ПОБЕДА МАНЬЯКА')
+    ? `ПОБЕДА: ${killerTitle.toUpperCase()}`
     : 'ДЕЛО РАСКРЫТО';
 
   const renderRoleCard = (char?: Character, roleName?: string, isKillerSide?: boolean) => {

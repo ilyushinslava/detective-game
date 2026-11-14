@@ -79,4 +79,13 @@ describe("TvBoardView Component", () => {
     fireEvent.keyDown(window, { key: "Enter", keyCode: 23 });
     expect(onExit).toHaveBeenCalledTimes(1);
   });
+
+  it("отображает золотую окантовку монет в режиме THIEF_HUNT", () => {
+    const state = createInitialState("THIEF_HUNT", "ONLINE", "KILLER");
+    const { container } = render(<TvBoardView gameState={state} />);
+
+    // В режиме THIEF_HUNT живые неограбленные персонажи имеют монеты
+    const cellsWithCoins = container.querySelectorAll(".border-yellow-400");
+    expect(cellsWithCoins.length).toBeGreaterThan(0);
+  });
 });

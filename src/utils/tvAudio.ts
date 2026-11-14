@@ -128,6 +128,120 @@ export function playClickSound(): void {
 }
 
 /**
+ * Гул циклического сдвига игрового поля (низкочастотный механический рокот).
+ * Осциллятор: triangle, частота 140Hz -> 50Hz, затухание за 0.35с.
+ */
+export function playShiftSound(): void {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    const now = ctx.currentTime;
+
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.exponentialRampToValueAtTime(50, now + 0.30);
+
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.onended = () => {
+      try {
+        osc.disconnect();
+        gain.disconnect();
+      } catch {}
+    };
+
+    osc.start(now);
+    osc.stop(now + 0.35);
+  } catch {
+    // Graceful fallback
+  }
+}
+
+/**
+ * Резкий звук выстрела / ликвидации / раскрытия с дисторшн-гармониками.
+ * Осциллятор: sawtooth, резкий частотный спад 520Hz -> 60Hz за 0.28с.
+ */
+export function playEliminateSound(): void {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sawtooth';
+    const now = ctx.currentTime;
+
+    osc.frequency.setValueAtTime(520, now);
+    osc.frequency.exponentialRampToValueAtTime(60, now + 0.25);
+
+    gain.gain.setValueAtTime(0.14, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.onended = () => {
+      try {
+        osc.disconnect();
+        gain.disconnect();
+      } catch {}
+    };
+
+    osc.start(now);
+    osc.stop(now + 0.28);
+  } catch {
+    // Graceful fallback
+  }
+}
+
+/**
+ * Эхо-импульс сонара / радара / допроса.
+ * Осциллятор: sine, чистый высокий импульс 1600Hz -> 850Hz за 0.40с.
+ */
+export function playRadarPing(): void {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    const now = ctx.currentTime;
+
+    osc.frequency.setValueAtTime(1600, now);
+    osc.frequency.exponentialRampToValueAtTime(850, now + 0.35);
+
+    gain.gain.setValueAtTime(0.09, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.40);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.onended = () => {
+      try {
+        osc.disconnect();
+        gain.disconnect();
+      } catch {}
+    };
+
+    osc.start(now);
+    osc.stop(now + 0.40);
+  } catch {
+    // Graceful fallback
+  }
+}
+
+/**
  * Для изоляции юнит-тестов
  */
 export function _resetAudioContextForTesting(): void {

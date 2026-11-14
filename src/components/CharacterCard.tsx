@@ -184,6 +184,7 @@ const CharacterCardComponent = ({
     return (
       <motion.div
         onClick={onClick}
+        style={{ willChange: 'transform', transform: 'translateZ(0)' }}
         animate={
           isError
             ? { x: [-3, 3, -3, 3, -1, 1, 0], scale: [1, 1.02, 0.98, 1] }
@@ -293,6 +294,7 @@ const CharacterCardComponent = ({
             <div className="absolute top-[34%] inset-x-0 -translate-y-1/2 flex items-center justify-center z-20 pointer-events-none px-1">
               <motion.div
                 key={`dead_stamp_${character.id}`}
+                style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
                 initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
                 animate={{ opacity: 1, scale: 1, rotate: -12 }}
                 exit={{ opacity: 0, scale: 0.6 }}
@@ -321,6 +323,7 @@ const CharacterCardComponent = ({
             <div className="absolute top-[34%] inset-x-0 -translate-y-1/2 flex items-center justify-center z-20 pointer-events-none px-1">
               <motion.div
                 key={`alibi_stamp_${character.id}`}
+                style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
                 initial={{ opacity: 0, scale: 0.6, rotate: 18 }}
                 animate={{ opacity: 1, scale: 1, rotate: 6 }}
                 exit={{ opacity: 0, scale: 0.6 }}
@@ -337,6 +340,7 @@ const CharacterCardComponent = ({
             <div className="absolute top-[34%] inset-x-0 -translate-y-1/2 flex items-center justify-center z-20 pointer-events-none px-1">
               <motion.div
                 key={`arrest_stamp_${character.id}`}
+                style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
                 initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
                 animate={{ opacity: 1, scale: 1, rotate: -12 }}
                 exit={{ opacity: 0, scale: 0.6 }}
@@ -354,17 +358,13 @@ const CharacterCardComponent = ({
           {isThiefHuntMode(mode) && character.isAlive && !character.isRobbed && (
             <motion.div
               key="active-coin-edge"
+              style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{
-                scale: [1, 1.4, 0],
-                opacity: [1, 1, 0],
-                boxShadow: [
-                  "0 0 8px rgba(245,158,11,0.7)",
-                  "0 0 10px rgba(245,158,11,0.9)",
-                  "0 0 0px rgba(245,158,11,0)",
-                ],
-                transition: { duration: 0.35, ease: "easeInOut" },
+                scale: [1, 1.3, 0],
+                opacity: [1, 0.8, 0],
+                transition: { duration: 0.25, ease: "easeOut" },
               }}
               className="absolute bottom-0 inset-x-0 h-[2px] z-20 pointer-events-none bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_8px_rgba(245,158,11,0.7)]"
             />

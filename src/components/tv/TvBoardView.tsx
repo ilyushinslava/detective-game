@@ -239,6 +239,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
           <div className="absolute top-1/2 inset-x-0 -translate-y-1/2 flex items-center justify-center z-20 pointer-events-none px-1">
             <motion.div
               key={`tv_dead_${char.id}`}
+              style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
               initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
               animate={{ opacity: 1, scale: 1, rotate: -12 }}
               exit={{ opacity: 0, scale: 0.6 }}
@@ -267,6 +268,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
           <div className="absolute top-1/2 inset-x-0 -translate-y-1/2 flex items-center justify-center z-20 pointer-events-none px-1">
             <motion.div
               key={`tv_alibi_${char.id}`}
+              style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
               initial={{ opacity: 0, scale: 0.6, rotate: 18 }}
               animate={{ opacity: 1, scale: 1, rotate: 6 }}
               exit={{ opacity: 0, scale: 0.6 }}
@@ -283,6 +285,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
           <div className="absolute top-1/2 inset-x-0 -translate-y-1/2 flex items-center justify-center z-20 pointer-events-none px-1">
             <motion.div
               key={`tv_arrest_${char.id}`}
+              style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
               initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
               animate={{ opacity: 1, scale: 1, rotate: -12 }}
               exit={{ opacity: 0, scale: 0.6 }}
@@ -306,6 +309,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.85 }}
               transition={{ duration: 0.2 }}
+              style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
               className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none bg-black/60 backdrop-blur-xs rounded-xl"
             >
               <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.9)] animate-pulse">
@@ -848,13 +852,32 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 const isLineActive = isLineSelected(row, col);
                 const inRadarArea = isRadarCell(row, col);
                 const inRadarCenter = isRadarCenter(row, col);
+                const isWrappingCell = Boolean(
+                  gameState?.lastShift &&
+                    ((gameState.lastShift.type === "ROW" &&
+                      gameState.lastShift.index === row &&
+                      (gameState.lastShift.direction === "FORWARD" ? col === 0 : col === boardSize - 1)) ||
+                     (gameState.lastShift.type === "COL" &&
+                      gameState.lastShift.index === col &&
+                      (gameState.lastShift.direction === "FORWARD" ? row === 0 : row === boardSize - 1)))
+                );
+                const cellZIndex = isWrappingCell
+                  ? "z-0"
+                  : isLineActive
+                    ? "z-30"
+                    : inRadarCenter
+                      ? "z-25"
+                      : inRadarArea
+                        ? "z-20"
+                        : "z-10";
 
                 return (
                   <motion.div
                     key={char.id || `cell_${index}`}
                     layout
-                    transition={{ duration: 0.5, ease: "anticipate" }}
-                    className="w-full h-full relative"
+                    style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                    className={`w-full h-full relative ${cellZIndex}`}
                   >
                     <TvCell
                       char={char}

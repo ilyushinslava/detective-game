@@ -29,8 +29,8 @@ describe("Pass & Play Flow & Blindfold Curtain Integration", () => {
     }
 
     // Выбираем карточку дуэли на одном экране (PVP)
-    const duelBtn = await screen.findByText(/На одном экране/i);
-    fireEvent.click(duelBtn);
+    const duelBtns = await screen.findAllByText(/На одном экране/i);
+    fireEvent.click(duelBtns[0]);
 
     // Выбираем режим ПОЧЕРК УБИЙЦЫ (MANIAC_VS_OPERATIVE)
     const modeBtn = await screen.findByText(/ПОЧЕРК УБИЙЦЫ/i);

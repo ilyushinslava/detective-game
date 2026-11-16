@@ -18,16 +18,22 @@ export const LobbyHeader: React.FC<LobbyHeaderProps> = ({
   onOpenSettings,
 }) => {
   return (
-    <header className="flex items-center justify-between lg:justify-end shrink-0 py-2 sm:py-3 mb-2 border-b border-white/5 w-full max-w-full gap-2">
-      {/* Название игры (скрыто на десктопе в сплит-экране, отображается на мобильных) */}
-      <div className="flex lg:hidden items-center gap-2 sm:gap-3.5 select-none min-w-0 flex-1 overflow-hidden pr-1 sm:pr-2">
+    <header className="flex items-center justify-between shrink-0 py-2.5 sm:py-3.5 lg:py-5 px-3 sm:px-6 lg:px-10 border-b border-white/10 w-full max-w-full gap-2 bg-zinc-950/40 backdrop-blur-md z-30">
+      {/* Логотип и название игры слева */}
+      <div className="flex items-center gap-2 sm:gap-3.5 select-none min-w-0 flex-1 overflow-hidden pr-1 sm:pr-2">
         <span className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 rounded-full bg-red-600 animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.85)] shrink-0" />
-        <h1 className="text-base sm:text-2xl md:text-3xl font-black tracking-tight text-white uppercase leading-none drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)] truncate">
-          {title}
-        </h1>
+        <div className="flex flex-col min-w-0">
+          <h1 className="text-base sm:text-2xl md:text-3xl font-display font-black tracking-wider text-white uppercase leading-none drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)] truncate">
+            {title}
+          </h1>
+          <span className="hidden lg:block text-[9px] font-mono tracking-[0.25em] text-zinc-400 font-bold uppercase mt-0.5">
+            PRIME SUSPECT • CYBERPUNK STRATEGY
+          </span>
+        </div>
       </div>
 
-      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 ml-auto lg:ml-0">
+      {/* Правая группа: Профиль, баланс, настройки */}
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Agent Callsign / Dossier Pill (Hidden on mobile < sm) */}
         <button
           onClick={onOpenProfile}

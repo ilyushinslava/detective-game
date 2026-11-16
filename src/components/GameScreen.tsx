@@ -4,6 +4,7 @@ import { SPY_COLORS } from "../types/game";
 import { GameBoard } from "./GameBoard";
 import { RoleCards } from "./RoleCards";
 import { GameSheets } from "./GameSheets";
+import { BlindfoldCurtain } from "./ui/BlindfoldCurtain";
 import { soundManager } from "../utils/audio";
 import { getGameModeTitle } from "../constants/gameMeta";
 
@@ -77,6 +78,7 @@ export interface GameScreenProps {
   isOpponentConnected: boolean;
   opponentDisconnectedNotice: boolean;
   isInspectorPending?: boolean;
+  onConfirmTurnReady?: () => void;
 }
 
 export const GameScreen: React.FC<GameScreenProps> = memo(({
@@ -139,6 +141,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
   isOpponentConnected,
   opponentDisconnectedNotice,
   isInspectorPending,
+  onConfirmTurnReady,
 }) => {
   const hideFooter = isInspectorPending ?? Boolean(
     gameState.mode === "SKHVATKA" &&
@@ -618,6 +621,19 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
         handleExonerateFromHand={handleExonerateFromHand}
         handleFastDisguise={handleFastDisguise}
       />
+
+      {/* Шторка тайны личности в локальном PVP (SSOT: gameState.isPrivacyScreenActive) */}
+      {gameState.opponent === "PVP" && (
+        <BlindfoldCurtain
+          isOpen={Boolean(gameState.isPrivacyScreenActive ?? gameState.isHotseatCoverOpen) && !gameState.winner}
+          gameState={gameState}
+          onDismiss={() => {
+            if (onConfirmTurnReady) {
+              onConfirmTurnReady();
+            }
+          }}
+        />
+      )}
     </>
   );
 });

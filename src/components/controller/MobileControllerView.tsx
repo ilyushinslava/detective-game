@@ -612,7 +612,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] flex flex-col items-center justify-between bg-[#07090e]/95 p-6 backdrop-blur-xl select-none font-sans"
+          className="fixed inset-0 z-[10000] flex flex-col items-center justify-between bg-[#07090e]/95 p-6 backdrop-blur-xl select-none font-sans"
           data-testid="connection-loss-overlay"
         >
           <div className="w-full flex justify-between items-center border-b border-white/10 pb-3">

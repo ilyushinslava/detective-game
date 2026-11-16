@@ -1,113 +1,168 @@
-import React from "react";
-import type { Role } from "../../types/game";
+import React, { useEffect, useCallback } from "react";
+import type { GameState, Role } from "../../types/game";
 import { triggerHaptic } from "../../utils/haptics";
 import { playClickSound } from "../../utils/tvAudio";
+import { resolveNextPlayerInfo } from "../../utils/gameLogic";
 
 export interface BlindfoldCurtainProps {
   isOpen: boolean;
   nextRole?: Role;
   nextPlayerName?: string;
   nextPlayerColor?: string;
-  onDismiss: () => void;
+  onDismiss?: () => void;
+  onConfirmTakeDevice?: () => void;
+  gameState?: GameState;
+  zIndexClass?: string;
 }
 
+/**
+ * Шторка тайны личности (Privacy Screen / Pass & Play Curtain).
+ * Гарантирует сокрытие тактической информации при передаче устройства между игроками
+ * в оффлайн PVP режиме в строгом стиле Neo-Noir.
+ */
 export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
   isOpen,
-  nextRole = "DETECTIVE",
+  nextRole,
   nextPlayerName,
   nextPlayerColor,
   onDismiss,
+  onConfirmTakeDevice,
+  gameState,
+  zIndexClass = "z-[9999]",
 }) => {
-  if (!isOpen) return null;
-
-  const defaultRoleName = nextRole === "KILLER" ? "Бандит" : "Инспектор";
-  const defaultRoleColor = nextRole === "KILLER" ? "text-red-400" : "text-blue-400";
-  const defaultBorderColor = nextRole === "KILLER" ? "border-red-500/40" : "border-blue-500/40";
-  const defaultBgGlow = nextRole === "KILLER" ? "bg-red-950/30 shadow-[0_0_50px_rgba(239,68,68,0.2)]" : "bg-blue-950/30 shadow-[0_0_50px_rgba(59,130,246,0.2)]";
-
-  const displayName = nextPlayerName || defaultRoleName;
-  const displayColor = nextPlayerColor || defaultRoleColor;
-
-  const handleDismiss = () => {
+  const handleDismiss = useCallback(() => {
     try {
       triggerHaptic("medium");
     } catch {}
     try {
       playClickSound();
     } catch {}
-    onDismiss();
-  };
+
+    if (onDismiss) {
+      onDismiss();
+    } else if (onConfirmTakeDevice) {
+      onConfirmTakeDevice();
+    }
+  }, [onDismiss, onConfirmTakeDevice]);
+
+  // Поддержка горячих клавиш Space / Enter для быстрого принятия хода
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " " || e.code === "Space") {
+        e.preventDefault();
+        handleDismiss();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, handleDismiss]);
+
+  if (!isOpen) return null;
+
+  // Определение параметров следующего игрока
+  const fallbackInfo = gameState ? resolveNextPlayerInfo(gameState) : null;
+  const effectiveRole = nextRole ?? fallbackInfo?.nextRole ?? "DETECTIVE";
+  const defaultRoleName = effectiveRole === "KILLER" ? "Бандит" : "Инспектор";
+  const defaultRoleColor = effectiveRole === "KILLER" ? "text-rose-400" : "text-cyan-400";
+  const defaultBorderColor = effectiveRole === "KILLER" ? "border-rose-500/40" : "border-cyan-500/40";
+  const defaultBgGlow = effectiveRole === "KILLER"
+    ? "bg-rose-950/20 shadow-[0_0_40px_rgba(244,63,94,0.15)]"
+    : "bg-cyan-950/20 shadow-[0_0_40px_rgba(6,182,212,0.15)]";
+
+  const displayName = nextPlayerName || fallbackInfo?.nextPlayerName || defaultRoleName;
+  const displayColor = nextPlayerColor || fallbackInfo?.nextPlayerColor || defaultRoleColor;
 
   return (
     <div
       role="dialog"
       aria-label="Смена игрока"
       onClick={handleDismiss}
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-between bg-black text-white p-6 select-none cursor-pointer font-sans animate-fadeIn"
+      className={`fixed inset-0 ${zIndexClass} flex flex-col items-center justify-between bg-black/90 bg-black backdrop-blur-2xl text-white p-6 select-none cursor-pointer font-mono animate-fadeIn`}
       style={{ touchAction: "manipulation" }}
+      data-testid="blindfold-curtain"
     >
       {/* Верхний гриф конфиденциальности */}
-      <div className="w-full flex items-center justify-between border-b border-zinc-900 pb-4 pt-2">
+      <div className="w-full flex items-center justify-between border-b border-white/10 pb-4 pt-2">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-          <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-500">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+          <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400">
             ОФФЛАЙН РЕЖИМ • PASS & PLAY
           </span>
         </div>
-        <span className="text-[10px] sm:text-xs font-mono text-zinc-600">
+        <span className="text-[10px] sm:text-xs font-mono text-zinc-500">
           СЕКРЕТНОСТЬ ДАННЫХ
         </span>
       </div>
 
-      {/* Центральный кинематографичный блок передачи устройства */}
-      <div className="flex flex-col items-center text-center max-w-sm my-auto px-4">
-        {/* Анимированная пиктограмма передачи телефона */}
-        <div className={`mb-6 flex h-24 w-24 items-center justify-center rounded-3xl border ${defaultBorderColor} ${defaultBgGlow} text-zinc-300 transition-all duration-300`}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-12 h-12">
-            <rect x="5" y="2" width="14" height="20" rx="3" ry="3" />
-            <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5" strokeLinecap="round" />
+      {/* Центральный терминальный блок передачи хода */}
+      <div className="flex flex-col items-center text-center max-w-md my-auto px-4">
+        {/* Технический видоискатель / иконка передачи */}
+        <div className={`mb-6 flex h-20 w-20 items-center justify-center border ${defaultBorderColor} ${defaultBgGlow} text-zinc-300 transition-all duration-300`}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-10 h-10">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+            <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2" strokeLinecap="round" />
             <path d="M9 7h6" strokeLinecap="round" opacity="0.6" />
           </svg>
         </div>
 
-        {/* Главный заголовок требования передачи устройства */}
-        <div className="font-display text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
+        {/* Индикатор протокола */}
+        <div className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
           ПРОТОКОЛ СМЕНЫ ХОДА
         </div>
 
-        <h2 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-white mb-3">
+        {/* Главный заголовок передачи хода */}
+        <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wider text-zinc-200 mb-1">
           ПЕРЕДАЙТЕ УСТРОЙСТВО [{displayName}]...
         </h2>
 
-        <div className="mt-1 text-xs font-mono uppercase tracking-widest text-zinc-400">
-          Следующий ход:
+        <div className="text-[11px] font-mono uppercase tracking-widest text-zinc-400 mt-2 mb-1">
+          ПЕРЕДАЧА ХОДА:
         </div>
 
-        <div className={`mt-1 text-2xl sm:text-3xl font-black uppercase tracking-wider ${displayColor} drop-shadow-md`}>
+        {/* Имя следующего игрока с акцентным цветом */}
+        <div className={`text-2xl sm:text-3xl font-black uppercase tracking-wider ${displayColor} drop-shadow-md mb-2`}>
           {displayName}
         </div>
 
-        <p className="mt-5 text-xs sm:text-sm text-zinc-500 leading-relaxed max-w-xs">
-          Секретные данные предыдущего хода скрыты шторкой. Убедитесь, что соперник не видит экран, и передайте телефон.
+        <div className="text-xs text-zinc-400 mb-4">
+          Передайте телефон следующему игроку
+        </div>
+
+        {/* Текст секретности */}
+        <p className="text-xs text-zinc-400 leading-relaxed max-w-sm mb-6 border-t border-b border-white/5 py-3">
+          Секретные данные предыдущего хода скрыты шторкой. Убедитесь, что экран скрыт от глаз оппонента, прежде чем принять управление.
         </p>
 
-        {/* Пульсирующая подсказка тапа */}
-        <div className="mt-8 py-3 px-6 rounded-2xl border border-zinc-800 bg-zinc-950/80 animate-pulse flex items-center gap-2 shadow-inner">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-zinc-400">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 8v8" />
-            <path d="M8 12h8" />
-          </svg>
-          <span className="text-xs sm:text-sm font-mono font-bold tracking-widest text-zinc-300 uppercase">
-            НАЖМИТЕ НА ЭКРАН ДЛЯ ПРОДОЛЖЕНИЯ
-          </span>
-        </div>
+        {/* Терминальная кнопка готовности в стиле Neo-Noir */}
+        <button
+          type="button"
+          role="button"
+          aria-label="Я взял телефон"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDismiss();
+          }}
+          className="w-full max-w-xs py-3 px-6 border border-white/20 hover:border-cyan-400/80 bg-white/5 hover:bg-cyan-950/20 text-white font-mono uppercase tracking-widest text-xs font-bold transition-all active:scale-[0.98] cursor-pointer shadow-lg hover:shadow-cyan-950/40"
+        >
+          [ Я ГОТОВ • ПРИНЯТЬ ХОД ]
+        </button>
+
+        {/* Подсказка клавиш и тапа */}
+        <span className="text-[10px] font-mono text-zinc-500 tracking-wider uppercase mt-4">
+          НАЖМИТЕ НА ЭКРАН ДЛЯ ПРОДОЛЖЕНИЯ ИЛИ [ПРОБЕЛ] / [ENTER]
+        </span>
       </div>
 
-      {/* Нижняя информационная плашка */}
-      <div className="w-full text-center pb-2">
-        <span className="text-[10px] font-mono text-zinc-700 tracking-wider">
-          КОСНИТЕСЬ В ЛЮБОМ МЕСТЕ ЭКРАНА
+      {/* Нижняя сервисная строка */}
+      <div className="w-full flex justify-between items-center border-t border-white/5 pt-3">
+        <span className="text-[10px] font-mono text-zinc-600 tracking-wider">
+          ТАЙНА ЛИЧНОСТИ: АКТИВНА
+        </span>
+        <span className="text-[10px] font-mono text-zinc-600 tracking-wider">
+          КОСНИТЕСЬ В ЛЮБОМ МЕСТЕ
         </span>
       </div>
     </div>

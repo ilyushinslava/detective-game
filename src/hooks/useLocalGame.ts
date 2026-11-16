@@ -26,62 +26,8 @@ export interface UseLocalGameOptions {
   isPassAndPlay?: boolean;
 }
 
-export interface NextPlayerInfo {
-  nextRole: Role;
-  nextPlayerName: string;
-  nextPlayerColor: string;
-}
-
-export function resolveNextPlayerInfo(
-  state: GameState,
-  targetTurn?: Role,
-  targetSpyIndex?: number
-): NextPlayerInfo {
-  const currentRole = targetTurn ?? state.currentTurn;
-
-  if (state.mode === "SECRET_SERVICE" && state.spies && state.spies.length > 0) {
-    const spyIdx = targetSpyIndex ?? state.activeSpyIndex ?? 0;
-    const safeIdx = ((spyIdx % state.spies.length) + state.spies.length) % state.spies.length;
-    const spy = state.spies[safeIdx];
-    const color = SPY_COLORS[safeIdx % SPY_COLORS.length]?.text || "text-blue-400";
-
-    return {
-      nextRole: safeIdx === 0 ? "KILLER" : "DETECTIVE",
-      nextPlayerName: spy?.name || `Агент ${safeIdx + 1}`,
-      nextPlayerColor: color,
-    };
-  }
-
-  if (state.mode === "MANIAC_VS_OPERATIVE") {
-    return {
-      nextRole: currentRole,
-      nextPlayerName: currentRole === "KILLER" ? "Маньяк" : "Оперативник",
-      nextPlayerColor: currentRole === "KILLER" ? "text-red-400" : "text-blue-400",
-    };
-  }
-
-  if (state.mode === "THIEF_HUNT") {
-    return {
-      nextRole: currentRole,
-      nextPlayerName: currentRole === "KILLER" ? "Грабитель" : "Полиция",
-      nextPlayerColor: currentRole === "KILLER" ? "text-red-400" : "text-blue-400",
-    };
-  }
-
-  if (state.mode === "LINE_UP") {
-    return {
-      nextRole: currentRole,
-      nextPlayerName: currentRole === "KILLER" ? "Подозреваемый" : "Следователь",
-      nextPlayerColor: currentRole === "KILLER" ? "text-red-400" : "text-blue-400",
-    };
-  }
-
-  return {
-    nextRole: currentRole,
-    nextPlayerName: currentRole === "KILLER" ? "Бандит" : "Инспектор",
-    nextPlayerColor: currentRole === "KILLER" ? "text-red-400" : "text-blue-400",
-  };
-}
+import { resolveNextPlayerInfo, type NextPlayerInfo } from "../utils/gameLogic";
+export { resolveNextPlayerInfo, type NextPlayerInfo };
 
 export function useLocalGame({
   initialMode = "MANIAC_VS_OPERATIVE",

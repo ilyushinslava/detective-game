@@ -17,7 +17,7 @@ import { useAiTurn } from "./hooks/useAiTurn";
 import { useGameActions } from "./hooks/useGameActions";
 import { useBoardVisuals } from "./hooks/useBoardVisuals";
 import { useIdleTimer } from "./hooks/useIdleTimer";
-import { createInitialState, isRoleChangeTrigger } from "./utils/gameLogic";
+import { createInitialState } from "./utils/gameLogic";
 import { soundManager } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
 import type { GameAction } from "./types/multiplayer";
@@ -30,8 +30,6 @@ import { characterImages } from "./constants/characterImages";
 import { DEFAULT_BET } from "./constants/gameRules";
 import { TvScreensaver } from "./components/tv/TvScreensaver";
 import { TvNetworkDisconnectModal } from "./components/tv/TvNetworkDisconnectModal";
-import { BlindfoldCurtain } from "./components/ui/BlindfoldCurtain";
-import { resolveNextPlayerInfo } from "./hooks/useLocalGame";
 import {
   playShiftSound,
   playEliminateSound,
@@ -150,7 +148,6 @@ export default function App() {
     return "KILLER";
   });
   const [isTvPassAndPlay, setIsTvPassAndPlay] = useState<boolean>(false);
-  const [isPassAndPlayOpen, setIsPassAndPlayOpen] = useState(false);
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
   const [controllerConnectNotice, setControllerConnectNotice] = useState<string | null>(null);
 
@@ -454,26 +451,7 @@ export default function App() {
       }
     } catch {}
 
-    setGameState((prev) => {
-      const nextState = gameReducer(prev, action);
-
-      // Автоматическое переключение на шторку передачи устройства в Pass & Play (PVP)
-      // Срабатывает ИСКЛЮЧИТЕЛЬНО при триггерах смены роли (убийство, арест, конспирация)
-      if (prev.opponent === "PVP" && !nextState.winner) {
-        const turnChanged = nextState.currentTurn !== prev.currentTurn;
-        const spyChanged =
-          nextState.mode === "SECRET_SERVICE" &&
-          nextState.activeSpyIndex !== prev.activeSpyIndex;
-        const isRoleChange = isRoleChangeTrigger(prev, nextState, action as any);
-        if ((turnChanged || spyChanged) && isRoleChange) {
-          setIsPassAndPlayOpen(true);
-        }
-      } else if (nextState.winner) {
-        setIsPassAndPlayOpen(false);
-      }
-
-      return nextState;
-    });
+    setGameState((prev) => gameReducer(prev, action));
   };
 
   const { secondsElapsed, setSecondsElapsed } = useGameTimer({
@@ -538,10 +516,6 @@ export default function App() {
     const secs = totalSeconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
-
-  const passAndPlayNextPlayer = useMemo(() => {
-    return resolveNextPlayerInfo(gameState);
-  }, [gameState]);
 
   const {
     allChars,
@@ -647,7 +621,6 @@ export default function App() {
     setIsPauseOpen(false);
     setHasStartedEver(true);
     setIsIntroPhase(true);
-    setIsPassAndPlayOpen(false);
     setIsLobbyOpen(false);
     setSecondsElapsed(0);
   };
@@ -659,7 +632,6 @@ export default function App() {
 
   const handleExitToMenu = () => {
     setIsPauseOpen(false);
-    setIsPassAndPlayOpen(false);
     partyService.disconnect();
     sessionStorage.removeItem("mp_session");
     setOpponentDisconnectedNotice(false);
@@ -1069,6 +1041,7 @@ export default function App() {
                   isOpponentConnected={isOpponentConnected}
                   opponentDisconnectedNotice={opponentDisconnectedNotice}
                   isInspectorPending={isInspectorPending}
+                  onConfirmTurnReady={() => dispatchAction({ type: "CONFIRM_TURN_READY" })}
                 />
               )}
             </div>
@@ -1102,19 +1075,6 @@ export default function App() {
             handleSelectInspectorRole={handleSelectInspectorRole}
             requestRematch={requestRematch}
             setFullscreenImage={setFullscreenImage}
-          />
-        )}
-
-        {/* Шторка передачи устройства в оффлайн Pass & Play (PVP) */}
-        {tvPartyState === "NONE" && gameState.opponent === "PVP" && (
-          <BlindfoldCurtain
-            isOpen={isPassAndPlayOpen && !gameState.winner && !isIntroPhase}
-            nextRole={passAndPlayNextPlayer.nextRole}
-            nextPlayerName={passAndPlayNextPlayer.nextPlayerName}
-            nextPlayerColor={passAndPlayNextPlayer.nextPlayerColor}
-            onDismiss={() => {
-              setIsPassAndPlayOpen(false);
-            }}
           />
         )}
       </div>

@@ -27,7 +27,7 @@ export const ConnectionLossOverlay: React.FC<ConnectionLossOverlayProps> = ({
   subtitle = "Резервный канал удерживается 60 секунд. Ваша позиция на поле и текущий статус маневра сохранены.",
   onForceReconnect,
   onCancel,
-  zIndexClass = "z-[70]",
+  zIndexClass = "z-[10000]",
 }) => {
   const handleEmergencyCancel = () => {
     partyService.disconnect();

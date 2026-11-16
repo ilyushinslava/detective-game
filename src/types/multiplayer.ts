@@ -37,4 +37,6 @@ export type GameAction = BaseGameAction & (
   | { type: "PREVIEW_SHIFT"; payload: { type: "ROW" | "COL"; index: number } | null }
   | { type: "REVEAL_CELL"; payload: { cellId: string; row?: number; col?: number }; role?: Role }
   | { type: "START_GAME"; payload?: any }
+  | { type: "END_TURN" }
+  | { type: "CONFIRM_TURN_READY" }
 );

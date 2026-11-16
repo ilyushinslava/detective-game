@@ -19,6 +19,7 @@ import {
   swearInOfficer,
   setInspectorRole,
   generateBoard5x5,
+  isRoleChangeTrigger,
 } from "./gameLogic";
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
@@ -615,12 +616,45 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return state;
     }
 
+    case "CONFIRM_TURN_READY":
+      return {
+        ...state,
+        isPrivacyScreenActive: false,
+        isHotseatCoverOpen: false,
+      };
+
     default:
         return state;
     }
   };
 
   const nextState = computeNextState();
+
+  // Управление шторкой тайны личности (Privacy Screen / Pass & Play)
+  // СТРОГО для локального PVP режима. В PVE (против ИИ) или при победе шторка ВСЕГДА блокируется (false).
+  if (action.type === "CONFIRM_TURN_READY") {
+    nextState.isPrivacyScreenActive = false;
+    nextState.isHotseatCoverOpen = false;
+  } else if (state.opponent === "PVP" && !nextState.winner) {
+    const turnChanged = nextState.currentTurn !== state.currentTurn;
+    const spyChanged =
+      nextState.mode === "SECRET_SERVICE" &&
+      nextState.activeSpyIndex !== state.activeSpyIndex;
+    const isRoleChange =
+      action.type === "END_TURN" ||
+      isRoleChangeTrigger(state, nextState, action as any);
+
+    if ((turnChanged || spyChanged) && isRoleChange) {
+      nextState.isPrivacyScreenActive = true;
+      nextState.isHotseatCoverOpen = true;
+    } else {
+      nextState.isPrivacyScreenActive = state.isPrivacyScreenActive ?? false;
+      nextState.isHotseatCoverOpen = state.isHotseatCoverOpen ?? false;
+    }
+  } else {
+    nextState.isPrivacyScreenActive = false;
+    nextState.isHotseatCoverOpen = false;
+  }
   if (isRemote) {
     if (action.type === "MATCH_STARTED" || action.type === "RESTART_GAME") {
       return nextState;

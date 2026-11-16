@@ -89,6 +89,7 @@ export interface GameState {
   justCaughtSpyId?: string;
   interrogationRadar?: { targetId: string; interrogatorIndex: number } | null;
   isHotseatCoverOpen?: boolean;
+  isPrivacyScreenActive?: boolean;
   matchBet?: number;
   matchPot?: number;
   restartRequestedBy?: "HOST" | "GUEST" | null;

@@ -295,6 +295,33 @@
 - **Последствия:** Тестовая база расширена до 68 сьютов / 445 тестов (+15 тестов в `board5x5Generation.test.tsx`), сборка чистая (5.06s), визуальный рендер и обработка кликов подтверждены браузерным агентом.
 - **Статус:** `IMPLEMENTED`.
 
+---
+
+## ADR-19: Унификация шторки тайны личности (Privacy Screen / BlindfoldCurtain) в SSOT и ликвидация дублирования
+
+- **Контекст:** В ходе Этапа 2 требовалась интеграция «Шторки тайны личности» (Privacy Screen / Pass & Play Curtain) для локального PVP режима. В проекте было обнаружено дублирование компонентов (`BlindfoldCurtain.tsx` и `PassAndPlayModal.tsx`), а состояние шторки управлялось через локальный `useState(isPassAndPlayOpen)` в `App.tsx`, что нарушало принцип Single Source of Truth (SSOT). Также требовалось гарантировать, что в PVE-режиме (одиночная игра против ИИ) шторка жестко заблокирована, а Z-index шторки не блокирует критический оверлей потери связи `ConnectionLossOverlay`.
+- **Принятое решение:**
+  1. **Ликвидация дублирования компонентов (`PassAndPlayModal.tsx` -> `BlindfoldCurtain.tsx`):**
+     - Компонент `BlindfoldCurtain.tsx` редизайнен в эталонную дизайн-систему Neo-Noir (`backdrop-blur-2xl bg-black/90`, моноширинный системный шрифт `font-mono`, строгий заголовок «ПЕРЕДАЧА ХОДА: [РОЛЬ]», техническая пиктограмма и терминальная outline-кнопка готовности «[ Я ГОТОВ • ПРИНЯТЬ ХОД ]»).
+     - Добавлена поддержка горячих клавиш `Space` и `Enter` для быстрого принятия хода.
+     - `PassAndPlayModal.tsx` превращен в чистый реэкспорт `BlindfoldCurtain`, сохранив полную обратную совместимость для `MobileControllerView` и существующих тестов.
+  2. **Интеграция шторки в SSOT (`src/utils/gameReducer.ts` & `src/types/game.ts`):**
+     - В `GameState` зафиксирован флаг `isPrivacyScreenActive?: boolean;`.
+     - В объединение `GameAction` добавлен экшен `{ type: "CONFIRM_TURN_READY" }`.
+     - В `gameReducer`:
+       - При экшене `END_TURN` или триггерах смены роли (`KILL_CHARACTER`, `ACCUSE`, `FAST_DISGUISE`, `ESCAPE_MANIAC`) шторка переводится в `isPrivacyScreenActive: true` **СТРОГО при `state.opponent === "PVP"`**.
+       - В PVE-режиме (`state.opponent === "AI"`) или при наличии победителя (`winner !== null`) шторка **ЖЕСТКО БЛОКИРУЕТСЯ** (`isPrivacyScreenActive: false`).
+       - Экшен `CONFIRM_TURN_READY` сбрасывает `isPrivacyScreenActive: false` и `isHotseatCoverOpen: false`.
+  3. **Очистка `App.tsx` и монтирование в `GameScreen.tsx`:**
+     - Удален локальный `useState(isPassAndPlayOpen)` и ручные эффекты в `App.tsx`.
+     - В `GameScreen.tsx` шторка монтируется декларативно по `gameState.isPrivacyScreenActive`, вызывая `CONFIRM_TURN_READY` при подтверждении.
+  4. **Иерархия Z-Index и безопасность сетевого оверлея:**
+     - `ConnectionLossOverlay` переведен на приоритетный слой `z-[10000]`, гарантируя, что при аварийном разрыве связи кнопка экстренного выхода в меню («ОТМЕНА / ВЕРНУТЬСЯ В ШТАБ») всегда доступна поверх шторки передачи хода (`z-[9999]`).
+- **Причина:** Запрос владельца проекта на реализацию Этапа 2, исключение локальных UI-стейтов, унификация дубликатов и защита UX одиночной игры.
+- **Последствия:** Тестовая база расширена до 69 сьютов / 452 тестов (100% успех, включая новый `privacyScreenSSOT.test.tsx`), сборка чистая (tsc + vite build 8.00s), Android Capacitor sync обновлен.
+- **Статус:** `IMPLEMENTED`.
+
+
 
 
 

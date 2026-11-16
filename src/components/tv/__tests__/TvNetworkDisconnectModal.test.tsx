@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { TvNetworkDisconnectModal } from '../TvNetworkDisconnectModal';
 
 describe('TvNetworkDisconnectModal (Network Resilience)', () => {
@@ -46,5 +46,19 @@ describe('TvNetworkDisconnectModal (Network Resilience)', () => {
     expect(removeEventListenerSpy).toHaveBeenCalledWith('keyup', expect.any(Function), true);
     expect(removeEventListenerSpy).toHaveBeenCalledWith('pointerdown', expect.any(Function), true);
     expect(removeEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function), true);
+  });
+
+  it('renders cancel button and triggers onCancel when clicked or when Escape is pressed', () => {
+    const onCancelMock = vi.fn();
+    render(<TvNetworkDisconnectModal isOpen={true} onCancel={onCancelMock} />);
+
+    const cancelBtn = screen.getByTestId('connection-loss-cancel-btn');
+    expect(cancelBtn).toBeDefined();
+
+    fireEvent.click(cancelBtn);
+    expect(onCancelMock).toHaveBeenCalledTimes(1);
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(onCancelMock).toHaveBeenCalledTimes(2);
   });
 });

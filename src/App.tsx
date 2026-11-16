@@ -671,6 +671,23 @@ export default function App() {
     exitToMenuMultiplayer();
   };
 
+  const handleEmergencyDisconnectCancel = () => {
+    setIsTvDisconnected(false);
+    partyService.disconnect();
+    sessionStorage.removeItem("mp_session");
+    sessionStorage.removeItem("tv_party_room");
+    localStorage.removeItem("tv_session_party_state");
+    setOpponentDisconnectedNotice(false);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.search = "";
+      window.history.replaceState({}, "", url.pathname);
+    }
+    setTvPartyState("NONE");
+    setIsLobbyOpen(true);
+    exitToMenuMultiplayer();
+  };
+
   const selectedCharacter = useMemo(() => {
     if (!selectedId) return null;
     return gameState.board.flat().find((c) => c.id === selectedId) ?? null;
@@ -1284,6 +1301,7 @@ export default function App() {
         isOpen={isTvDisconnected}
         attempt={tvReconnectAttempt}
         maxAttempts={10}
+        onCancel={handleEmergencyDisconnectCancel}
       />
     </div>
   </BannerViewerProvider>

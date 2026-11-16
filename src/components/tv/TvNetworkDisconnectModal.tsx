@@ -5,23 +5,37 @@ export interface TvNetworkDisconnectModalProps {
   isOpen: boolean;
   attempt?: number;
   maxAttempts?: number;
+  onCancel?: () => void;
 }
 
 /**
  * Кинематографичный оверлей разрыва сетевого соединения для ТВ-экранов.
- * Полностью блокирует ввод с пульта во время дисконнекта и автоматически скрывается
- * при восстановлении связи без потери локального состояния партии.
+ * Полностью блокирует игровой ввод с пульта во время дисконнекта, но предоставляет
+ * гарантированную кнопку аварийного выхода в главное меню.
  */
 export const TvNetworkDisconnectModal: React.FC<TvNetworkDisconnectModalProps> = ({
   isOpen,
   attempt = 1,
   maxAttempts = 10,
+  onCancel,
 }) => {
-  // Принудительная блокировка любого ввода с пульта (D-Pad, клавиатура, указатели)
+  // Блокировка игрового ввода с пульта (D-Pad, клавиатура, указатели), кроме кнопки аварийного выхода
   useEffect(() => {
     if (!isOpen) return;
 
     const blockAllInput = (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (target && typeof target.closest === 'function' && target.closest('[data-emergency-exit="true"]')) {
+        return; // Разрешаем клик и фокус по кнопке аварийного выхода
+      }
+
+      if (e.type === 'keydown' && (e as KeyboardEvent).key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onCancel?.();
+        return;
+      }
+
       e.preventDefault();
       e.stopPropagation();
       if (typeof (e as any).stopImmediatePropagation === 'function') {
@@ -40,7 +54,7 @@ export const TvNetworkDisconnectModal: React.FC<TvNetworkDisconnectModalProps> =
       window.removeEventListener('pointerdown', blockAllInput, true);
       window.removeEventListener('click', blockAllInput, true);
     };
-  }, [isOpen]);
+  }, [isOpen, onCancel]);
 
   return (
     <AnimatePresence>
@@ -71,9 +85,25 @@ export const TvNetworkDisconnectModal: React.FC<TvNetworkDisconnectModalProps> =
             Восстановление канала PartyKit • Попытка {attempt} из {maxAttempts}
           </p>
 
-          <p className="font-mono text-[11px] text-zinc-500 uppercase tracking-widest text-center">
+          <p className="font-mono text-[11px] text-zinc-500 uppercase tracking-widest text-center mb-6">
             Управление пультом временно заблокировано до восстановления связи
           </p>
+
+          {/* Аварийный выход: разрыв переподключения и возврат в главное меню */}
+          <button
+            type="button"
+            data-emergency-exit="true"
+            data-testid="connection-loss-cancel-btn"
+            onClick={() => {
+              if (onCancel) {
+                onCancel();
+              }
+            }}
+            className="px-6 py-3.5 rounded-2xl border border-rose-500/40 hover:border-rose-500/80 bg-rose-950/40 hover:bg-rose-900/60 text-rose-200 hover:text-white font-display text-xs sm:text-sm font-bold uppercase tracking-widest transition-all duration-200 cursor-pointer shadow-[0_0_20px_rgba(244,63,94,0.3)] hover:shadow-[0_0_30px_rgba(244,63,94,0.5)] active:scale-95 flex items-center gap-2"
+          >
+            <span>✕</span>
+            <span>ВЕРНУТЬСЯ В ШТАБ (ОТМЕНА)</span>
+          </button>
         </motion.div>
       )}
     </AnimatePresence>

@@ -657,10 +657,34 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             >
               Повторить подключение сейчас
             </button>
+
+            {/* Аварийный выход при недоступности сервера PartyKit */}
+            <button
+              type="button"
+              data-testid="connection-loss-cancel-btn"
+              onClick={() => {
+                triggerHaptic('medium');
+                partyService.disconnect();
+                if (typeof window !== 'undefined') {
+                  const url = new URL(window.location.href);
+                  url.search = '';
+                  window.history.replaceState({}, '', url.pathname);
+                }
+                if (onExit) {
+                  onExit();
+                } else if (onLeaveLobby) {
+                  onLeaveLobby();
+                }
+              }}
+              className="w-full min-h-[44px] mt-2.5 py-3 rounded-2xl border border-rose-500/40 hover:border-rose-500/80 bg-rose-950/20 hover:bg-rose-950/40 text-rose-300 hover:text-rose-100 text-xs font-mono font-bold uppercase tracking-wider transition cursor-pointer active:scale-95 shadow-sm font-display flex items-center justify-center gap-2"
+            >
+              <span>✕</span>
+              <span>ВЕРНУТЬСЯ В ШТАБ (ОТМЕНА)</span>
+            </button>
           </div>
 
           <div className="text-[11px] font-mono text-zinc-600 uppercase tracking-widest">
-            СЕССИЯ ЗАЩИЩЕНА • AUTH_TOKEN АКТИВЕН
+            СЕССИЯ ЗАЩИЩЕНА • ПРИНУДИТЕЛЬНЫЙ РАЗРЫВ ДОСТУПЕН
           </div>
         </motion.div>
       )}

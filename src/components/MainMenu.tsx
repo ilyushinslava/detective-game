@@ -199,7 +199,7 @@ export const MainMenu = ({
             <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden select-none">
               <img
                 src={lobbyBg}
-                alt="Astoria City Noir"
+                alt="Wicked City Noir"
                 className="w-full h-full object-cover object-center opacity-55 scale-100 transition-opacity duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/40 to-transparent" />

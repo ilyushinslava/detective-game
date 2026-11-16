@@ -325,37 +325,122 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
       {/* 2. МОБИЛКА (до lg) - BOTTOM-HEAVY ЭРГОНОМИКА С CINEMATIC HERO ZONE       */}
       {/* ========================================================================= */}
       <main className="lg:hidden flex-1 flex flex-col justify-between px-3.5 sm:px-5 pt-2 pb-4 overflow-y-auto w-full select-none min-h-0 gap-3">
-        {/* [ВЕРХНЯЯ ПОЛОВИНА]: Cinematic Hero Zone */}
-        <div className="flex-1 flex flex-col justify-center items-center py-4 px-2 text-center relative overflow-hidden select-none min-h-[120px] sm:min-h-[160px]">
-          {/* Фоновые неоновые эффекты и виньетка */}
-          <div className="absolute w-48 h-48 rounded-full bg-blue-600/15 blur-3xl pointer-events-none" />
-          <div className="absolute w-40 h-40 rounded-full bg-red-600/10 blur-3xl pointer-events-none translate-x-10 -translate-y-6" />
-
-          {/* Стилизованный полупрозрачный кибер-радар / эмблема */}
-          <div className="relative mb-3 flex items-center justify-center">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-white/10 bg-zinc-950/60 backdrop-blur-md flex items-center justify-center relative shadow-[0_0_25px_rgba(0,0,0,0.8)]">
-              <div className="absolute inset-1 rounded-full border border-blue-500/25" />
-              <div className="absolute inset-3 rounded-full border border-dashed border-white/15 animate-[spin_12s_linear_infinite]" />
-              <Icons.RadioRadar className="w-7 h-7 sm:w-8 sm:h-8 text-blue-400 drop-shadow-[0_0_12px_rgba(37,99,235,0.7)]" />
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-            </div>
+        {/* [ВЕРХНЯЯ ПОЛОВИНА]: Cinematic Hero Zone — Wicked City Neon Noir Cityscape */}
+        <div className="flex-1 flex flex-col justify-center items-center py-2 px-3 text-center relative overflow-hidden select-none min-h-[140px] sm:min-h-[175px]">
+          {/* Фоновый атмосферный туман и объемное свечение */}
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+            <div className="w-56 h-32 rounded-full bg-blue-900/15 blur-3xl" />
+            <div className="w-40 h-28 rounded-full bg-red-950/20 blur-2xl translate-x-12 -translate-y-4" />
           </div>
 
-          {/* Микро-бейджик и нео-нуар слоган */}
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="h-px w-6 sm:w-10 bg-gradient-to-r from-transparent to-blue-500/50" />
-            <span className="text-[9px] sm:text-[10px] font-mono font-bold tracking-[0.25em] text-blue-400 uppercase">
-              ASTORIA CYBER NOIR
+          {/* Мрачный 3D/Изометрический Нуар-Город (Wicked City Skyline) */}
+          <div className="relative w-full max-w-[280px] sm:max-w-[320px] h-20 sm:h-24 mb-2 flex items-end justify-center overflow-hidden">
+            {/* Перспективная кибер-сетка у основания */}
+            <div className="absolute inset-x-0 bottom-0 h-10 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:16px_8px] [transform:perspective(150px)_rotateX(60deg)] opacity-60 pointer-events-none" />
+
+            {/* Векторный силуэт мегаполиса с изометрическими гранями и неоновыми огнями */}
+            <svg
+              viewBox="0 0 320 100"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-full h-full object-contain relative z-10"
+            >
+              <defs>
+                <linearGradient id="bgBuildingGrad" x1="0" y1="0" x2="0" y2="100" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#1e293b" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#090d16" stopOpacity="0.9" />
+                </linearGradient>
+                <linearGradient id="midBuildingGrad" x1="0" y1="0" x2="0" y2="100" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#0f172a" />
+                  <stop offset="100%" stopColor="#020617" />
+                </linearGradient>
+                <linearGradient id="facetBuildingGrad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#1e293b" stopOpacity="0.6" />
+                  <stop offset="100%" stopColor="#020617" stopOpacity="0.95" />
+                </linearGradient>
+                <linearGradient id="skylineGlow" x1="160" y1="0" x2="160" y2="100" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.12" />
+                  <stop offset="100%" stopColor="#080a0f" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+
+              {/* Фоновые башни (Дальний план) */}
+              <rect x="25" y="32" width="28" height="68" fill="url(#bgBuildingGrad)" />
+              <rect x="65" y="18" width="36" height="82" fill="url(#bgBuildingGrad)" />
+              <rect x="145" y="10" width="42" height="90" fill="url(#bgBuildingGrad)" />
+              <rect x="220" y="24" width="32" height="76" fill="url(#bgBuildingGrad)" />
+              <rect x="268" y="38" width="26" height="62" fill="url(#bgBuildingGrad)" />
+
+              {/* Лучи прожекторов в небе */}
+              <polygon points="75,0 95,0 120,100 60,100" fill="url(#skylineGlow)" opacity="0.6" />
+              <polygon points="230,0 245,0 270,100 210,100" fill="url(#skylineGlow)" opacity="0.4" />
+
+              {/* Башня 1 (Слева) */}
+              <rect x="10" y="46" width="32" height="54" fill="url(#midBuildingGrad)" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+              <polygon points="10,46 22,38 42,38 42,46" fill="url(#facetBuildingGrad)" />
+              <line x1="16" y1="52" x2="16" y2="85" stroke="#38bdf8" strokeWidth="1" strokeDasharray="2 6" opacity="0.4" />
+              <line x1="24" y1="56" x2="24" y2="80" stroke="#f43f5e" strokeWidth="1" strokeDasharray="1 8" opacity="0.6" />
+
+              {/* Башня 2 (Левый центр) */}
+              <rect x="52" y="30" width="44" height="70" fill="url(#midBuildingGrad)" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
+              <polygon points="52,30 68,20 96,20 96,30" fill="url(#facetBuildingGrad)" />
+              <line x1="74" y1="8" x2="74" y2="20" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+              <circle cx="74" cy="8" r="2" fill="#ef4444" className="animate-pulse" />
+              <rect x="58" y="38" width="3" height="4" fill="#38bdf8" opacity="0.7" />
+              <rect x="64" y="48" width="3" height="4" fill="#fbbf24" opacity="0.5" />
+              <rect x="76" y="38" width="3" height="4" fill="#38bdf8" opacity="0.6" />
+              <rect x="82" y="60" width="3" height="4" fill="#ef4444" opacity="0.8" />
+              <rect x="58" y="72" width="3" height="4" fill="#38bdf8" opacity="0.5" />
+
+              {/* Главная цитадель / Монолит Wicked City (Центр) */}
+              <rect x="112" y="16" width="60" height="84" fill="#020617" stroke="rgba(255,255,255,0.12)" strokeWidth="0.75" />
+              <polygon points="112,16 142,4 172,16" fill="url(#facetBuildingGrad)" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
+              <line x1="142" y1="0" x2="142" y2="4" stroke="#ffffff" strokeWidth="1" />
+              <circle cx="142" cy="0" r="2" fill="#ef4444" className="animate-ping" />
+              <circle cx="142" cy="0" r="2" fill="#ef4444" />
+              <line x1="142" y1="18" x2="142" y2="90" stroke="rgba(56,189,248,0.25)" strokeWidth="1" />
+              <rect x="122" y="26" width="4" height="2" fill="#38bdf8" opacity="0.8" />
+              <rect x="130" y="34" width="4" height="2" fill="#ef4444" opacity="0.7" />
+              <rect x="150" y="26" width="4" height="2" fill="#38bdf8" opacity="0.8" />
+              <rect x="158" y="44" width="4" height="2" fill="#fbbf24" opacity="0.6" />
+              <rect x="122" y="52" width="4" height="2" fill="#38bdf8" opacity="0.5" />
+              <rect x="150" y="60" width="4" height="2" fill="#ef4444" opacity="0.8" />
+
+              {/* Башня 4 (Правый центр) */}
+              <rect x="188" y="28" width="46" height="72" fill="url(#midBuildingGrad)" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
+              <polygon points="188,28 210,18 234,28" fill="url(#facetBuildingGrad)" />
+              <line x1="210" y1="10" x2="210" y2="18" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+              <circle cx="210" cy="10" r="1.5" fill="#ef4444" className="animate-pulse" />
+              <line x1="196" y1="36" x2="196" y2="82" stroke="#38bdf8" strokeWidth="1" strokeDasharray="3 7" opacity="0.5" />
+              <line x1="218" y1="40" x2="218" y2="76" stroke="#fbbf24" strokeWidth="1" strokeDasharray="2 9" opacity="0.4" />
+
+              {/* Башня 5 (Справа) */}
+              <rect x="250" y="44" width="36" height="56" fill="url(#midBuildingGrad)" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+              <polygon points="250,44 268,36 286,44" fill="url(#facetBuildingGrad)" />
+              <circle cx="268" cy="34" r="1.5" fill="#ef4444" />
+              <rect x="260" y="52" width="3" height="4" fill="#38bdf8" opacity="0.6" />
+              <rect x="272" y="62" width="3" height="4" fill="#ef4444" opacity="0.7" />
+            </svg>
+
+            {/* Приземный нуар-туман, скрывающий основание зданий */}
+            <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/80 to-transparent z-20 pointer-events-none" />
+          </div>
+
+          {/* Строгий микро-бейдж мегаполиса */}
+          <div className="flex items-center gap-2 mb-1.5 z-10">
+            <span className="h-px w-5 sm:w-8 bg-gradient-to-r from-transparent via-zinc-600 to-zinc-500" />
+            <span className="text-[9px] font-mono font-semibold tracking-[0.25em] text-zinc-400 uppercase">
+              WICKED CITY • СЕКТОР 01
             </span>
-            <span className="h-px w-6 sm:w-10 bg-gradient-to-l from-transparent to-blue-500/50" />
+            <span className="h-px w-5 sm:w-8 bg-gradient-to-l from-transparent via-zinc-600 to-zinc-500" />
           </div>
 
-          <h2 className="text-xl sm:text-2xl font-display font-black tracking-wider text-white uppercase drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)] max-w-xs leading-tight">
+          {/* Строгая, выверенная типографика */}
+          <h2 className="text-sm sm:text-base font-display font-bold tracking-[0.22em] sm:tracking-[0.28em] text-zinc-200 uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] max-w-xs leading-snug z-10">
             ТАКТИЧЕСКАЯ СТРАТЕГИЯ РАЗУМА
           </h2>
 
-          <p className="text-[10px] sm:text-[11px] font-mono text-zinc-400 tracking-wide mt-1.5 max-w-[260px] sm:max-w-xs">
+          <p className="text-[10px] sm:text-[11px] font-mono text-zinc-500 tracking-wide mt-1 max-w-[260px] sm:max-w-xs z-10">
             Разоблачите цель или станьте призраком мегаполиса
           </p>
         </div>

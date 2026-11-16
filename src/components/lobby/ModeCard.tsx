@@ -59,10 +59,10 @@ export const ModeCard: React.FC<ModeCardProps> = ({
     return (
       <button
         onClick={onClick}
-        className={`col-span-2 rounded-2xl xl:rounded-3xl border border-white/10 ${styles.borderHover} bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl p-4 xl:p-5 flex flex-col justify-between hover:scale-[1.01] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative ${styles.shadowHover} focus:outline-none focus:ring-2 ${styles.focusRing} ${className}`}
+        className={`col-span-2 rounded-2xl xl:rounded-3xl border border-white/20 ${styles.borderHover} bg-transparent hover:bg-zinc-900/60 backdrop-blur-xl p-4 xl:p-5 flex flex-col justify-between hover:scale-[1.01] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative ${styles.shadowHover} focus:outline-none focus:ring-2 ${styles.focusRing} ${className}`}
       >
         <div className="flex items-center gap-3.5 min-w-0 w-full">
-          <div className={`w-10 h-10 xl:w-12 xl:h-12 rounded-xl xl:rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center ${styles.iconColor} transition-all shrink-0 shadow-md`}>
+          <div className={`w-10 h-10 xl:w-12 xl:h-12 rounded-xl xl:rounded-2xl bg-zinc-900/80 border border-white/10 flex items-center justify-center ${styles.iconColor} transition-all shrink-0 shadow-md`}>
             {icon}
           </div>
           <div className="flex flex-col min-w-0 flex-1">
@@ -86,9 +86,9 @@ export const ModeCard: React.FC<ModeCardProps> = ({
   return (
     <button
       onClick={onClick}
-      className={`rounded-2xl xl:rounded-3xl border border-white/10 ${styles.borderHover} bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl p-4 xl:p-5 flex flex-col hover:scale-[1.015] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative ${styles.shadowHover} focus:outline-none focus:ring-2 ${styles.focusRing} ${className}`}
+      className={`rounded-2xl xl:rounded-3xl border border-white/20 ${styles.borderHover} bg-transparent hover:bg-zinc-900/60 backdrop-blur-xl p-4 xl:p-5 flex flex-col hover:scale-[1.015] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative ${styles.shadowHover} focus:outline-none focus:ring-2 ${styles.focusRing} ${className}`}
     >
-      <div className={`w-10 h-10 xl:w-12 xl:h-12 rounded-xl xl:rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center ${styles.iconColor} transition-all shrink-0 shadow-md`}>
+      <div className={`w-10 h-10 xl:w-12 xl:h-12 rounded-xl xl:rounded-2xl bg-zinc-900/80 border border-white/10 flex items-center justify-center ${styles.iconColor} transition-all shrink-0 shadow-md`}>
         {icon}
       </div>
 

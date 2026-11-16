@@ -35,7 +35,7 @@ export const NetworkSidebar: React.FC<NetworkSidebarProps> = ({
       {/* Верхний терминальный заголовок пульта */}
       <div className="relative z-10 flex items-center justify-between pb-3.5 border-b border-white/10 mb-3.5 shrink-0">
         <div className="flex items-center gap-2 font-mono text-[11px] font-bold tracking-widest text-zinc-300 uppercase">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)] animate-pulse" />
           <span>СЕТЕВОЙ ТЕРМИНАЛ // DECK</span>
         </div>
         <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">
@@ -73,7 +73,7 @@ export const NetworkSidebar: React.FC<NetworkSidebarProps> = ({
       <div className="relative z-10 flex flex-col shrink-0">
         <div className="flex items-center mb-1.5">
           <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded-md bg-zinc-900/80 border border-white/15 text-[10px] font-mono font-bold tracking-wider text-zinc-300 uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0 shadow-[0_0_6px_rgba(59,130,246,0.8)]" />
             <span>МГНОВЕННЫЙ ПОДБОР</span>
           </div>
         </div>

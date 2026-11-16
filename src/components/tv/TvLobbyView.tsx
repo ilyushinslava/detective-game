@@ -63,12 +63,12 @@ const MODE_THEMES: Record<
   },
   SECRET_SERVICE: {
     normal:
-      'bg-gradient-to-br from-cyan-950/30 via-zinc-950/60 to-black/70 border-cyan-500/25 border-t-2 border-t-cyan-500/70 hover:border-cyan-500/50 text-white/80',
+      'bg-gradient-to-br from-blue-950/30 via-zinc-950/60 to-black/70 border-blue-500/25 border-t-2 border-t-blue-500/70 hover:border-blue-500/50 text-white/80',
     selected:
-      'bg-gradient-to-br from-cyan-950/70 via-blue-900/35 to-black/80 border-cyan-400/80 border-t-2 border-t-cyan-400 shadow-[0_0_30px_rgba(6,182,212,0.35)] text-white ring-1 ring-cyan-400/40',
-    badge: 'bg-cyan-950/80 border border-cyan-500/50 text-cyan-200',
+      'bg-gradient-to-br from-blue-950/70 via-blue-900/35 to-black/80 border-blue-400/80 border-t-2 border-t-blue-400 shadow-[0_0_30px_rgba(37,99,235,0.35)] text-white ring-1 ring-blue-400/40',
+    badge: 'bg-blue-950/80 border border-blue-500/50 text-blue-200',
     focus:
-      'focus:scale-105 focus:border-cyan-300 focus:bg-gradient-to-br focus:from-cyan-900/60 focus:to-cyan-950/90 focus:shadow-[0_0_40px_rgba(6,182,212,0.65),inset_0_0_20px_rgba(255,255,255,0.2)]',
+      'focus:scale-105 focus:border-blue-300 focus:bg-gradient-to-br focus:from-blue-900/60 focus:to-blue-950/90 focus:shadow-[0_0_40px_rgba(37,99,235,0.65),inset_0_0_20px_rgba(255,255,255,0.2)]',
   },
   LINE_UP: {
     normal:
@@ -165,7 +165,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
       {/* Глубокий кинематографичный градиент: от темно-бордового к глубокому угольному */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#2d0814_0%,#120c16_45%,#07080d_100%)] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(225,29,72,0.1),transparent_60%)] pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(6,182,212,0.08),transparent_50%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.08),transparent_50%)] pointer-events-none" />
 
       {/* Верхний лаконичный статус-бар */}
       <div className="flex items-center justify-between border-b border-white/10 pb-3 relative z-10 shrink-0">
@@ -309,9 +309,9 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           </div>
 
           {/* Секция 2: Зона «ОПЕРАТИВНИКИ» */}
-          <div className="p-4 lg:p-5 rounded-3xl bg-white/[0.04] border border-white/10 border-t-2 border-t-cyan-500/50 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.1)] flex-1 flex flex-col justify-between min-h-0">
+          <div className="p-4 lg:p-5 rounded-3xl bg-white/[0.04] border border-white/10 border-t-2 border-t-blue-500/50 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.1)] flex-1 flex flex-col justify-between min-h-0">
             <div className="flex items-center justify-between mb-2 shrink-0">
-              <span className="text-xs font-display font-bold uppercase tracking-wider text-cyan-200/80">
+              <span className="text-xs font-mono font-bold uppercase tracking-widest text-zinc-300">
                 ОПЕРАТИВНИКИ В СЕТИ ({playerList.length}/6)
               </span>
               <span className="text-xs font-sans font-light text-white/40">
@@ -322,7 +322,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
             <div className="grid grid-cols-2 gap-2.5 overflow-y-auto max-h-36 custom-scrollbar pr-1 flex-1">
               {playerList.length === 0 ? (
                 <div className="col-span-2 p-4 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] flex flex-col items-center justify-center text-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+                  <span className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
                   <span className="text-xs font-display font-bold uppercase tracking-wider text-white/60">
                     Ожидание подключения оперативников...
                   </span>
@@ -334,12 +334,12 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                     tabIndex={0}
                     className={`p-3 rounded-2xl border transition-all duration-300 flex items-center justify-between ${
                       player
-                        ? 'bg-gradient-to-r from-cyan-950/30 via-slate-900/40 to-black/40 border-cyan-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.4)]'
+                        ? 'bg-gradient-to-r from-blue-950/30 via-slate-900/40 to-black/40 border-blue-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.4)]'
                         : 'bg-white/[0.02] border-dashed border-white/10'
-                    } focus:outline-none focus:scale-105 focus:border-cyan-400 focus:bg-cyan-950/40 focus:shadow-[0_0_30px_rgba(6,182,212,0.45),inset_0_0_15px_rgba(255,255,255,0.15)]`}
+                    } focus:outline-none focus:scale-105 focus:border-blue-400 focus:bg-blue-950/40 focus:shadow-[0_0_30px_rgba(37,99,235,0.45),inset_0_0_15px_rgba(255,255,255,0.15)]`}
                   >
                     <div className="flex items-center gap-3 truncate">
-                      <div className="w-7 h-7 rounded-xl bg-cyan-950/60 border border-cyan-500/40 flex items-center justify-center text-cyan-300 font-display font-black text-xs shrink-0 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
+                      <div className="w-7 h-7 rounded-xl bg-blue-950/60 border border-blue-500/40 flex items-center justify-center text-blue-300 font-display font-black text-xs shrink-0 shadow-[0_0_10px_rgba(37,99,235,0.3)]">
                         #{index + 1}
                       </div>
                       <div className="truncate">

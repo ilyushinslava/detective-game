@@ -178,7 +178,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
         isError
           ? 'border-rose-500 border-t-2 border-t-rose-400 bg-gradient-to-b from-red-950/90 via-red-900/40 to-black shadow-[0_0_30px_rgba(244,63,94,0.8)] z-30 ring-2 ring-rose-500/80'
           : isLineActive
-            ? 'border-cyan-400 border-t-2 border-t-white bg-gradient-to-b from-cyan-950/70 via-blue-950/90 to-black shadow-[0_0_35px_rgba(6,182,212,0.7)] scale-[1.03] z-30 ring-2 ring-cyan-300/80'
+            ? 'border-blue-400 border-t-2 border-t-white bg-gradient-to-b from-blue-950/70 via-blue-900/90 to-black shadow-[0_0_35px_rgba(37,99,235,0.7)] scale-[1.03] z-30 ring-2 ring-blue-300/80'
             : inRadarCenter
               ? 'border-rose-500 border-t-2 border-t-rose-300 shadow-[0_0_25px_rgba(244,63,94,0.65)] bg-gradient-to-b from-red-950/70 to-black z-20'
               : inRadarArea
@@ -987,18 +987,18 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           </div>
 
           {/* БЛОК 2: ДОСТУПНЫЕ ДЕЙСТВИЯ ТЕКУЩЕЙ РОЛИ (FLEX-1 СО СКРОЛЛОМ) */}
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-white/[0.04] border border-white/10 border-t-2 border-t-cyan-500/50 backdrop-blur-2xl shadow-xl flex-1 min-h-0 flex flex-col gap-2 overflow-hidden">
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-white/[0.04] border border-white/10 border-t-2 border-t-blue-500/50 backdrop-blur-2xl shadow-xl flex-1 min-h-0 flex flex-col gap-2 overflow-hidden">
             {/* Блок «Выбранная линия» */}
             {selectedLine ? (
-              <div className="p-2 rounded-xl bg-cyan-950/40 border border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.25)] space-y-0.5 shrink-0">
-                <div className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-cyan-300 flex items-center gap-1 font-bold">
-                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_4px_rgba(6,182,212,0.8)]" />
+              <div className="p-2 rounded-xl bg-blue-950/40 border border-blue-400/50 shadow-[0_0_15px_rgba(37,99,235,0.25)] space-y-0.5 shrink-0">
+                <div className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-blue-300 flex items-center gap-1 font-bold">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_4px_rgba(37,99,235,0.8)]" />
                   ВЫБРАННАЯ ЛИНИЯ
                 </div>
                 <div className="text-sm sm:text-base font-black text-white tracking-wide flex items-center justify-between">
                   <span>{selectedLineType === 'ROW' ? `РЯД #${selectedLineIdx}` : `СТОЛБЕЦ #${selectedLineIdx}`}</span>
                   {selectedLineDir && (
-                    <span className="text-[10px] sm:text-xs font-mono uppercase text-cyan-100 font-black px-2 py-0.5 rounded-md bg-cyan-950/90 border border-cyan-400/60 shadow-xs">
+                    <span className="text-[10px] sm:text-xs font-mono uppercase text-blue-100 font-black px-2 py-0.5 rounded-md bg-blue-950/90 border border-blue-400/60 shadow-xs">
                       {selectedLineType === 'ROW'
                         ? (selectedLineDir === 'FORWARD' ? 'ВПРАВО →' : '← ВЛЕВО')
                         : (selectedLineDir === 'FORWARD' ? 'ВНИЗ ↓' : '↑ ВВЕРХ')}
@@ -1021,11 +1021,11 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
               {/* Маневр поля */}
               <div className={`p-1.5 sm:py-2 sm:px-2.5 rounded-xl border flex items-center justify-between transition-all ${
                 selectedLine
-                  ? 'bg-gradient-to-r from-cyan-900/80 via-blue-950/90 to-zinc-950 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.35)]'
+                  ? 'bg-gradient-to-r from-blue-900/80 via-blue-950/90 to-zinc-950 border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.35)]'
                   : 'bg-white/[0.04] border-white/10 hover:border-white/20'
               }`}>
                 <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
-                  <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-cyan-600/20 border border-cyan-400/50 flex items-center justify-center text-cyan-300 shrink-0">
+                  <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-blue-600/20 border border-blue-400/50 flex items-center justify-center text-blue-300 shrink-0">
                     <ActionIcons.Shift className="w-3.5 h-3.5" />
                   </span>
                   <div className="flex-1 min-w-0 pr-2">
@@ -1036,7 +1036,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                   </div>
                 </div>
                 {selectedLine && (
-                  <span className="shrink-0 text-[9px] sm:text-[10px] font-mono font-bold px-2 py-0.5 rounded border bg-cyan-600 text-white border-cyan-400 animate-pulse">
+                  <span className="shrink-0 text-[9px] sm:text-[10px] font-mono font-bold px-2 py-0.5 rounded border bg-blue-600 text-white border-blue-400 animate-pulse">
                     В ПРОЦЕССЕ
                   </span>
                 )}

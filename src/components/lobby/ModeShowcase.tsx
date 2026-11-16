@@ -87,12 +87,12 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
           </div>
 
           {/* Заголовок с деликатным нео-нуар свечением */}
-          <h2 className="text-xl sm:text-2xl font-display font-black tracking-[0.24em] sm:tracking-[0.3em] text-white uppercase leading-tight drop-shadow-[0_0_25px_rgba(56,189,248,0.3)] max-w-xs sm:max-w-sm">
+          <h2 className="text-xl sm:text-2xl font-display font-black tracking-[0.24em] sm:tracking-[0.3em] text-white uppercase leading-tight drop-shadow-[0_0_25px_rgba(37,99,235,0.3)] max-w-xs sm:max-w-sm">
             ТАКТИЧЕСКИЙ ДЕТЕКТИВ
           </h2>
 
           {/* Элегантный тонкий разделитель с градиентом к акцентному цвету */}
-          <div className="w-24 sm:w-32 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent my-3 sm:my-3.5" />
+          <div className="w-24 sm:w-32 h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent my-3 sm:my-3.5" />
 
           {/* Подзаголовок по лору игры */}
           <p className="text-xs sm:text-sm font-sans text-zinc-300 tracking-wide max-w-[280px] sm:max-w-sm leading-relaxed">
@@ -148,9 +148,9 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
             {/* Режим 1 (1 колонка): Одиночная (PVE) */}
             <button
               onClick={onSelectSolo}
-              className="min-h-[92px] sm:min-h-[105px] border border-white/10 hover:border-white/25 bg-zinc-950/70 hover:bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/30"
+              className="min-h-[92px] sm:min-h-[105px] border border-white/20 hover:border-blue-500/50 bg-transparent hover:bg-zinc-900/60 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500/30 hover:shadow-[0_0_20px_rgba(37,99,235,0.15)]"
             >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-900/90 text-zinc-300 border border-white/10 flex items-center justify-center group-hover:text-white group-hover:border-white/25 transition-all shrink-0 shadow-inner">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-900/90 text-zinc-300 border border-white/10 flex items-center justify-center group-hover:text-blue-300 group-hover:border-blue-500/40 transition-all shrink-0 shadow-inner">
                 <Icons.Cards className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="flex flex-col mt-1.5 min-w-0 flex-1 justify-center">
@@ -163,9 +163,9 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
             {/* Режим 2 (1 колонка): На одном экране (Pass & Play PVP) */}
             <button
               onClick={onSelectLocalDuel}
-              className="min-h-[92px] sm:min-h-[105px] border border-white/10 hover:border-white/25 bg-zinc-950/70 hover:bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/30"
+              className="min-h-[92px] sm:min-h-[105px] border border-white/20 hover:border-blue-500/50 bg-transparent hover:bg-zinc-900/60 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500/30 hover:shadow-[0_0_20px_rgba(37,99,235,0.15)]"
             >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-900/90 text-zinc-300 border border-white/10 flex items-center justify-center group-hover:text-white group-hover:border-white/25 transition-all shrink-0 shadow-inner">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-900/90 text-zinc-300 border border-white/10 flex items-center justify-center group-hover:text-blue-300 group-hover:border-blue-500/40 transition-all shrink-0 shadow-inner">
                 <Icons.Users className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="flex flex-col mt-1.5 min-w-0 flex-1 justify-center">
@@ -178,7 +178,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
             {/* Режим 3 (2 колонки - широкий ТВ-режим): ТВ Режим (TV PARTY) */}
             <button
               onClick={onOpenTvParty}
-              className="col-span-2 min-h-[85px] sm:min-h-[95px] border border-white/10 hover:border-red-500/40 bg-zinc-950/70 hover:bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex items-center justify-between hover:scale-[1.01] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-red-500/40"
+              className="col-span-2 min-h-[85px] sm:min-h-[95px] border border-white/20 hover:border-red-500/50 bg-transparent hover:bg-zinc-900/60 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex items-center justify-between hover:scale-[1.01] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-red-500/40 hover:shadow-[0_0_20px_rgba(239,68,68,0.15)]"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-red-950/40 text-red-400 border border-red-500/30 flex items-center justify-center group-hover:text-red-300 group-hover:border-red-500/50 transition-all shrink-0 shadow-[0_0_15px_rgba(239,68,68,0.15)]">

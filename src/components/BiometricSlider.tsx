@@ -20,8 +20,8 @@ export const BiometricSlider = ({
   const trackRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
-  // Текст плавно растворяется сразу при начале движения бегунка, чтобы не создавать нахлёста
-  const textOpacity = useTransform(x, [0, 60], [1, 0]);
+  // Текст плавно растворяется сразу при начале движения бегунка
+  const textOpacity = useTransform(x, [0, 50], [1, 0]);
 
   const handleDragEnd = () => {
     if (disabled || isTriggered) return;
@@ -43,21 +43,21 @@ export const BiometricSlider = ({
   return (
     <div
       ref={trackRef}
-      className={`relative w-full h-12 sm:h-13 md:h-14 rounded-full border transition-all duration-500 backdrop-blur-md flex items-center p-1 select-none overflow-hidden ${
+      className={`relative w-full h-11 sm:h-12 md:h-13 rounded-full border transition-all duration-500 backdrop-blur-md flex items-center p-1 select-none overflow-hidden ${
         isTriggered
           ? "bg-red-600 border-red-400/80 shadow-[0_0_25px_rgba(220,38,38,0.7)]"
           : "bg-gradient-to-r from-red-950/90 via-red-900/40 to-black/70 border-red-500/30 shadow-[0_4px_20px_rgba(0,0,0,0.5)]"
       } ${disabled ? "opacity-50 pointer-events-none" : ""}`}
     >
-      {/* Слой текста (строго под бегунком: z-10, с запасом под левый бегунок и правый ценник) */}
+      {/* Слой текста: жесткий отступ слева pl-[68px] sm:pl-[72px] исключает физическое пересечение с бегунком */}
       {!isTriggered ? (
         <motion.div
           style={{ opacity: textOpacity }}
-          className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 font-black text-xs md:text-sm uppercase tracking-widest text-zinc-300 select-none pl-14 sm:pl-16 md:pl-18 pr-20 sm:pr-22 md:pr-24"
+          className="absolute inset-0 flex items-center pointer-events-none z-10 font-black text-xs md:text-sm uppercase tracking-widest text-zinc-300 select-none pl-[68px] sm:pl-[72px] pr-20"
         >
           <span className="truncate">{text}</span>
           {price !== undefined && (
-            <span className="absolute right-3 sm:right-4 text-[10px] md:text-xs font-mono text-amber-400 flex items-center gap-1 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 shrink-0 shadow-sm">
+            <span className="absolute right-3 sm:right-3.5 text-[10px] md:text-xs font-mono text-amber-400 flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 shrink-0 shadow-sm">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3 h-3 text-amber-400 fill-amber-400/20 shrink-0">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
@@ -76,7 +76,7 @@ export const BiometricSlider = ({
         </div>
       )}
 
-      {/* Бегунок с отпечатком (z-20 relative, строго в своей стартовой позиции слева) */}
+      {/* Бегунок с отпечатком: z-20 relative, строго в своей стартовой позиции слева (ширина до 44px) */}
       <motion.div
         ref={handleRef}
         drag={disabled || isTriggered ? false : "x"}
@@ -86,7 +86,7 @@ export const BiometricSlider = ({
         style={{ x }}
         onDragEnd={handleDragEnd}
         whileTap={!isTriggered ? { scale: 0.96 } : undefined}
-        className={`w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full border-2 border-red-500 bg-zinc-950 flex items-center justify-center text-red-500 z-20 relative shrink-0 transition-shadow duration-300 ${
+        className={`w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-full border-2 border-red-500 bg-zinc-950 flex items-center justify-center text-red-500 z-20 relative shrink-0 transition-shadow duration-300 ${
           isTriggered
             ? "shadow-[0_0_20px_rgba(255,255,255,0.9)] text-white border-white cursor-default"
             : "shadow-[0_0_15px_rgba(239,68,68,0.8)] cursor-grab active:cursor-grabbing"
@@ -100,7 +100,7 @@ export const BiometricSlider = ({
           strokeWidth="1.8"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="w-5 h-5 sm:w-6 sm:h-6 pointer-events-none drop-shadow-[0_0_6px_rgba(239,68,68,0.8)]"
+          className="w-4 h-4 sm:w-5 sm:h-5 pointer-events-none drop-shadow-[0_0_6px_rgba(239,68,68,0.8)]"
         >
           <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" />
           <path d="M14 13.12c0 2.38 0 6.38-1 8.88" />

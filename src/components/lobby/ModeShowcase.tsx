@@ -55,11 +55,12 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
       {/* 1. ДЕСКТОП (lg и выше) - СХЕМА «КЛАССИЧЕСКИЙ ХАБ»                         */}
       {/* ========================================================================= */}
       <main className="hidden lg:flex flex-row gap-x-12 xl:gap-x-16 px-10 py-6 w-full max-w-[1700px] mx-auto select-none flex-1">
-        {/* Левая колонка: 4 главные карточки (PVE, PVP, TV PARTY, АКАДЕМИЯ) */}
+        {/* Левая колонка: Ссылка на обучение/справочник + 4 главные карточки (PVE, PVP, TV PARTY, ONLINE) */}
         <LobbyGrid
           onSelectSolo={onSelectSolo}
           onSelectLocalDuel={onSelectLocalDuel}
           onOpenTvParty={onOpenTvParty}
+          onOpenOnline={onOpenOnline}
           onOpenTutorial={onOpenTutorial}
           onOpenRules={onOpenRules}
           t={t}

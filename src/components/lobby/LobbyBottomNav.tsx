@@ -48,7 +48,7 @@ export const LobbyBottomNav: React.FC<LobbyBottomNavProps> = ({
           isTablesActive ? "text-white font-bold" : "text-zinc-500 hover:text-zinc-300"
         }`}
       >
-        <Icons.Cards />
+        <Icons.Radar />
         <span className="text-[8px] md:text-[10px] font-mono tracking-widest uppercase">{labels.tables}</span>
         {isTablesActive && (
           <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.9)]" />

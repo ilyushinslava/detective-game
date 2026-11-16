@@ -1,12 +1,12 @@
 import React from "react";
 import { ModeCard } from "./ModeCard";
+import { ActiveContractCard } from "./ActiveContractCard";
 import { Icons } from "../ui/Icons";
 
 export interface LobbyGridProps {
   onSelectSolo: () => void;
   onSelectLocalDuel: () => void;
   onOpenTvParty: () => void;
-  onOpenOnline: () => void;
   onOpenTutorial: () => void;
   onOpenRules?: () => void;
   t: {
@@ -14,7 +14,6 @@ export interface LobbyGridProps {
       soloCases?: string;
       localDuel?: string;
       tvMode?: string;
-      onlineOps?: string;
       tutorial?: string;
       rulebook?: string;
     };
@@ -25,7 +24,6 @@ export const LobbyGrid: React.FC<LobbyGridProps> = ({
   onSelectSolo,
   onSelectLocalDuel,
   onOpenTvParty,
-  onOpenOnline,
   onOpenTutorial,
   onOpenRules,
   t,
@@ -59,7 +57,7 @@ export const LobbyGrid: React.FC<LobbyGridProps> = ({
         )}
       </div>
 
-      {/* Компактная сетка 4-х главных игровых режимов (2x2) */}
+      {/* Компактная сетка: 3 главных локальных режима + 4-й слот Активный контракт */}
       <div className="grid grid-cols-2 gap-4 xl:gap-5">
         {/* Карточка 1: Одиночные дела (PVE) */}
         <ModeCard
@@ -99,16 +97,8 @@ export const LobbyGrid: React.FC<LobbyGridProps> = ({
           onClick={onOpenTvParty}
         />
 
-        {/* Карточка 4: Сетевые операции (ONLINE) */}
-        <ModeCard
-          variant="online"
-          title={t.menu.onlineOps || "Сетевые операции"}
-          badge="ДЕЛО №4 • ONLINE"
-          description="Оперативные столы по шифрам комнат и глобальный подбор соперников в реальном времени."
-          actionText="К СЕТЕВЫМ СТОЛАМ"
-          icon={<Icons.Radar className="w-5 h-5 xl:w-6 xl:h-6" />}
-          onClick={onOpenOnline}
-        />
+        {/* Слот 4: Активный контракт (Ежедневная мета-директива) */}
+        <ActiveContractCard />
       </div>
     </div>
   );

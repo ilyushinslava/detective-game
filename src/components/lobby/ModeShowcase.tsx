@@ -1,6 +1,7 @@
 import React from "react";
 import { LobbyGrid } from "./LobbyGrid";
 import { NetworkSidebar } from "./NetworkSidebar";
+import { ActiveContractCard } from "./ActiveContractCard";
 import { BiometricSlider } from "../BiometricSlider";
 import { Icons } from "../ui/Icons";
 
@@ -12,10 +13,8 @@ export interface ModeShowcaseProps {
   onSelectSolo: () => void;
   onSelectLocalDuel: () => void;
   onOpenTvParty: () => void;
-  onOpenOnline: () => void;
   onOpenRules?: () => void;
   onOpenTutorial: () => void;
-  onlineRoomsCount?: number;
   t: {
     menu: {
       resume?: string;
@@ -41,37 +40,32 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
   onSelectSolo,
   onSelectLocalDuel,
   onOpenTvParty,
-  onOpenOnline,
   onOpenRules,
   onOpenTutorial,
-  onlineRoomsCount = 0,
   t,
 }) => {
   return (
     <>
       {/* ========================================================================= */}
-      {/* 1. ДЕСКТОП (lg и выше) - СХЕМА «КЛАССИЧЕСКИЙ ХАБ С ТЕРМИНАЛЬНЫМ ПУЛЬТОМ»   */}
+      {/* 1. ДЕСКТОП (lg и выше) - СХЕМА «ШТАБ: ЛОКАЛЬНЫЙ ХАБ И БЫСТРЫЕ ДЕЙСТВИЯ»    */}
       {/* ========================================================================= */}
       <main className="hidden lg:flex flex-row gap-x-10 xl:gap-x-14 px-8 xl:px-10 py-5 w-full max-w-[1700px] mx-auto select-none flex-1">
-        {/* Левая колонка: Ссылка на обучение/справочник + Сетка 2×2 (PVE, PVP, TV, ONLINE) */}
+        {/* Левая колонка: Обучение/Справочник + Сетка 2×2 (PVE, PVP, TV, АКТИВНЫЙ КОНТРАКТ) */}
         <LobbyGrid
           onSelectSolo={onSelectSolo}
           onSelectLocalDuel={onSelectLocalDuel}
           onOpenTvParty={onOpenTvParty}
-          onOpenOnline={onOpenOnline}
           onOpenTutorial={onOpenTutorial}
           onOpenRules={onOpenRules}
           t={t}
         />
 
-        {/* Правая колонка: Монолитный утопленный пульт (Inset Terminal Deck) */}
+        {/* Правая колонка: Терминал быстрого доступа (Быстрая игра + сканер) */}
         <NetworkSidebar
           hasActiveGame={hasActiveGame}
           onResumeGame={onResumeGame}
           isCreating={isCreating}
           onQuickPlay={onQuickPlay}
-          onOpenOnline={onOpenOnline}
-          onlineRoomsCount={onlineRoomsCount}
           t={t}
         />
       </main>
@@ -144,7 +138,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
             </button>
           </div>
 
-          {/* [НАД НИМ] Сетка 4-х режимов (2x2) */}
+          {/* [НАД НИМ] Сетка 2x2: 3 режима + Активный контракт */}
           <div className="grid grid-cols-2 gap-2 sm:gap-2.5 w-full">
             {/* Режим 1: Одиночная (PVE) */}
             <button
@@ -209,25 +203,8 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
               </div>
             </button>
 
-            {/* Режим 4: Сетевые операции (ONLINE) */}
-            <button
-              onClick={onOpenOnline}
-              className="min-h-[92px] sm:min-h-[105px] border border-white/10 hover:border-blue-500/40 bg-zinc-950/70 hover:bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-            >
-              <div className="flex items-center justify-between w-full">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-950/40 text-blue-400 border border-blue-500/30 flex items-center justify-center group-hover:text-blue-300 group-hover:border-blue-500/50 transition-all shrink-0 shadow-[0_0_15px_rgba(37,99,235,0.15)]">
-                  <Icons.Radar className="w-4 h-4 sm:w-5 sm:h-5" />
-                </div>
-                <span className="bg-blue-950/80 text-blue-400 border border-blue-500/40 text-[9px] sm:text-[10px] font-mono px-2 py-0.5 rounded-lg uppercase font-bold tracking-wider shrink-0 shadow-[0_0_8px_rgba(37,99,235,0.25)]">
-                  ONLINE
-                </span>
-              </div>
-              <div className="flex flex-col mt-1.5 min-w-0 flex-1 justify-center">
-                <span className="font-bold text-xs sm:text-sm whitespace-normal leading-tight text-zinc-100 uppercase tracking-wider group-hover:text-white transition">
-                  {t.menu.onlineOps || "Сетевые операции"}
-                </span>
-              </div>
-            </button>
+            {/* Слот 4: Активный контракт вместо удаленного онлайна */}
+            <ActiveContractCard />
           </div>
 
           {/* [САМЫЙ НИЗ] Блок «Быстрая игра» (100% ширины, максимальный приоритет под большим пальцем) */}

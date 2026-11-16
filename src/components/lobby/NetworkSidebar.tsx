@@ -7,8 +7,6 @@ export interface NetworkSidebarProps {
   onResumeGame?: () => void;
   isCreating: boolean;
   onQuickPlay: () => void;
-  onOpenOnline: () => void;
-  onlineRoomsCount?: number;
   t: {
     menu: {
       resume?: string;
@@ -23,8 +21,6 @@ export const NetworkSidebar: React.FC<NetworkSidebarProps> = ({
   onResumeGame,
   isCreating,
   onQuickPlay,
-  onOpenOnline,
-  onlineRoomsCount = 0,
   t,
 }) => {
   return (
@@ -36,10 +32,10 @@ export const NetworkSidebar: React.FC<NetworkSidebarProps> = ({
       <div className="relative z-10 flex items-center justify-between pb-3.5 border-b border-white/10 mb-4 shrink-0">
         <div className="flex items-center gap-2 font-mono text-[11px] font-bold tracking-widest text-zinc-300 uppercase">
           <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] animate-pulse" />
-          <span>СЕТЕВОЙ ТЕРМИНАЛ // DECK</span>
+          <span>БЫСТРЫЙ ДОСТУП // DECK</span>
         </div>
         <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">
-          ONLINE OPS
+          STANDALONE
         </span>
       </div>
 
@@ -83,7 +79,7 @@ export const NetworkSidebar: React.FC<NetworkSidebarProps> = ({
           {t.menu.quickPlay || "Быстрая игра"}
         </h2>
 
-        <p className="text-[11px] xl:text-xs text-zinc-400 leading-relaxed mb-3.5 whitespace-normal">
+        <p className="text-[11px] xl:text-xs text-zinc-400 leading-relaxed mb-4 whitespace-normal">
           Автоматический подбор соперника в открытую дуэль. Городская сетка генерируется мгновенно по биометрии.
         </p>
 
@@ -100,47 +96,15 @@ export const NetworkSidebar: React.FC<NetworkSidebarProps> = ({
       {/* Тонкий терминальный разделитель */}
       <div className="relative z-10 w-full h-px bg-white/10 my-4" />
 
-      {/* Секция: Сетевые столы (встроенный статус и переход) */}
+      {/* Секция: Информационный статус терминала Штаба */}
       <div className="relative z-10 flex flex-col">
-        <div className="flex items-center justify-between pb-2.5 mb-2">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-950/80 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.2)] shrink-0">
-              <Icons.Radar className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="text-xs xl:text-sm font-display font-bold uppercase tracking-wider text-white block">
-                Сетевые столы
-              </span>
-              <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                LIVE ЭФИР
-              </span>
-            </div>
-          </div>
-          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-blue-950/60 border border-blue-500/30 text-blue-300">
-            {onlineRoomsCount} комнат
-          </span>
-        </div>
-
-        <p className="text-[11px] text-zinc-400 leading-relaxed whitespace-normal mb-3">
-          Открытые оперативные столы по шифрам комнат и приватные сессии.
-        </p>
-
-        <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between mb-3">
+        <div className="p-3 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-            <span className="text-[10px] font-mono text-zinc-300">PartyKit WebSocket SSOT</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span className="text-[10px] font-mono text-zinc-300">Шлюз расследований готов</span>
           </div>
-          <span className="text-[9px] font-mono uppercase text-zinc-500 tracking-wider">ONLINE</span>
+          <span className="text-[9px] font-mono uppercase text-zinc-500 tracking-wider">SECURE</span>
         </div>
-
-        <button
-          onClick={onOpenOnline}
-          className="w-full py-2.5 xl:py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 border border-blue-400/40 text-white font-display font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(37,99,235,0.25)] hover:scale-[1.01] active:scale-[0.98] cursor-pointer"
-        >
-          <span>ОТКРЫТЬ СЕТЕВЫЕ СТОЛЫ</span>
-          <Icons.ArrowRight className="w-3.5 h-3.5" />
-        </button>
       </div>
     </div>
   );

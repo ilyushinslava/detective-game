@@ -3,8 +3,8 @@ import type { TranslationSchema } from './types';
 export const en: TranslationSchema = {
   nav: {
     hq: "HQ",
-    tables: "Tables",
-    profile: "Profile",
+    tables: "Network",
+    profile: "Dossier",
   },
   menu: {
     title: "PRIME SUSPECT",

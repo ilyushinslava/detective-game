@@ -97,10 +97,10 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
           )}
           <div className="flex flex-col select-none min-w-0">
             <h1 className="text-base sm:text-xl font-display font-black tracking-widest uppercase bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-400 bg-clip-text text-transparent drop-shadow-[0_2px_15px_rgba(255,255,255,0.15)] truncate">
-              Оперативные столы
+              Сеть // Радар операций
             </h1>
             <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase -mt-0.5 hidden xs:inline">
-              Сетевой шлюз матчей
+              Сетевой шлюз открытых и приватных комнат
             </span>
           </div>
         </div>

@@ -18,6 +18,7 @@ export interface DevPanelProps {
   onTriggerDisguiseModal?: () => void;
   onTriggerCaughtSpyModal?: () => void;
   onTriggerGameOver?: () => void;
+  onTriggerCluesWin?: () => void;
   onClearSession?: () => void;
 }
 
@@ -38,6 +39,7 @@ export const DevPanel = ({
   onTriggerDisguiseModal,
   onTriggerCaughtSpyModal,
   onTriggerGameOver,
+  onTriggerCluesWin,
   onClearSession,
 }: DevPanelProps) => {
   if (!isOpen) return null;
@@ -131,6 +133,14 @@ export const DevPanel = ({
               >
                 👤 Служба: Призрак (Запад)
               </button>
+              {onTriggerCluesWin && (
+                <button
+                  onClick={() => { onTriggerCluesWin(); onClose(); }}
+                  className="py-2 px-2.5 col-span-2 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-600/50 rounded-xl text-amber-200 font-bold text-left transition cursor-pointer"
+                >
+                  🏆 4 Улики: Победа Сыщика (Сетка 5×5)
+                </button>
+              )}
             </div>
           )}
         </div>

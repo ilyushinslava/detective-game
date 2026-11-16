@@ -22,6 +22,39 @@ import {
   isRoleChangeTrigger,
 } from "./gameLogic";
 
+/**
+ * [STAGE 3 DEAD CODE AUDIT]
+ * Реестр устаревших сущностей, подлежащих удалению после окончательного
+ * перехода всех режимов на процедурную сетку 5x5:
+ */
+export const PROCEDURAL_GRID_DEAD_CODE_CANDIDATES = {
+  legacyActions: [
+    "SHIFT_BOARD",        // Тороидальный сдвиг строк/столбцов сетки
+    "PATROL_LINE",        // Блокировка линии патрулем констебля
+    "ROB_NEIGHBOR",       // Кража сокровищ у соседнего персонажа
+    "SWEAR_IN_OFFICER",   // Назначение констебля из соседних персонажей
+    "DISGUISE",           // Смена маски маньяка на классическом поле
+    "DUEL_ACCUSE"         // Устаревшее дуэльное обвинение
+  ],
+  legacyGameLogicFunctions: [
+    "shiftBoard",
+    "patrolLine",
+    "robNeighbor",
+    "swearInOfficer",
+    "disguiseKiller",
+    "fastDisguise",
+    "areAdjacent"
+  ],
+  legacyStateFields: [
+    "blockedShift",
+    "uniformedOfficers",
+    "lastRobbedId",
+    "killerDisguisesRemaining",
+    "interrogationRadar",
+    "duelPenalties"
+  ]
+} as const;
+
 export function gameReducer(state: GameState, action: GameAction): GameState {
   const RESTART_CONTROL_ACTIONS = [
     "RESTART_GAME",
@@ -69,6 +102,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case "REVEAL_CELL": {
+      if (state.winner) {
+        return state;
+      }
+
       const { cellId, row, col } = (action as any).payload || {};
       const actionRole = (action as any).role || (action as any).senderRole || action.senderId;
 
@@ -131,14 +168,47 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ? "Пустой сектор"
           : "Подозреваемый";
 
+      // 5. Обработка сбора улик и условий победы
+      const isClue = targetCell.cellType === "CLUE";
+      const newTrophiesDetective = isClue
+        ? (state.trophiesDetective ?? 0) + 1
+        : (state.trophiesDetective ?? 0);
+
+      const newEvidenceDeck =
+        isClue && targetCell.id && !state.evidenceDeck.includes(targetCell.id)
+          ? [...state.evidenceDeck, targetCell.id]
+          : state.evidenceDeck;
+
+      // Порог улик для победы Сыщика (по умолчанию 4, либо spyTargetTrophies)
+      const targetClues = state.spyTargetTrophies ?? 4;
+      const isDetectiveWin = isClue && newTrophiesDetective >= targetClues;
+      const nextWinner: Role | null = isDetectiveWin ? "DETECTIVE" : state.winner;
+
+      const newLogs = [
+        ...state.log,
+        `[Сектор [${targetR + 1}, ${targetC + 1}]] Разведка завершена: ${typeLabel} (${cellName}). Осталось ОД: ${nextAP}.`,
+      ];
+
+      if (isClue) {
+        newLogs.push(
+          `🔍 Найдена ключевая улика: ${cellName}! Собрано: ${newTrophiesDetective}/${targetClues}.`
+        );
+      }
+
+      if (isDetectiveWin) {
+        newLogs.push(
+          `🏆 Сыщик собрал все ключевые улики (${newTrophiesDetective}/${targetClues}) и раскрыл дело! Победа Закона!`
+        );
+      }
+
       return {
         ...state,
         board: newBoard,
         actionPoints: nextAP,
-        log: [
-          ...state.log,
-          `[Сектор [${targetR + 1}, ${targetC + 1}]] Разведка завершена: ${typeLabel} (${cellName}). Осталось ОД: ${nextAP}.`,
-        ],
+        trophiesDetective: newTrophiesDetective,
+        evidenceDeck: newEvidenceDeck,
+        winner: nextWinner,
+        log: newLogs,
       };
     }
 

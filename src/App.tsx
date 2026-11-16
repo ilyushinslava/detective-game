@@ -840,6 +840,36 @@ export default function App() {
           }));
         }}
         cash={profile.cash}
+        onTriggerCluesWin={() => {
+          setIsIntroPhase(false);
+          setIsPauseOpen(false);
+          setIsChoiceSheetMinimized(false);
+          setGameState((prev) => {
+            const b5 = generateBoard5x5({ proceduralDistribution: true, clueCount: 5 });
+            let cluesFound = 0;
+            const revealedBoard = b5.map((row) =>
+              row.map((cell) => {
+                if (cell.cellType === "CLUE" && cluesFound < 4) {
+                  cluesFound++;
+                  return { ...cell, status: "REVEALED" as const };
+                }
+                return cell;
+              })
+            );
+
+            return {
+              ...prev,
+              board: revealedBoard,
+              trophiesDetective: 4,
+              winner: "DETECTIVE",
+              log: [
+                ...prev.log,
+                "🔍 Найдена 4-я ключевая улика!",
+                "🏆 Сыщик собрал все ключевые улики (4/4) и раскрыл дело! Победа Закона!",
+              ],
+            };
+          });
+        }}
         onForceWin={(winner, forcedMode) => {
           setIsIntroPhase(false);
           setIsPauseOpen(false);

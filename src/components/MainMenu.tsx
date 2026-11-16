@@ -20,6 +20,7 @@ import { LobbyHeader } from "./lobby/LobbyHeader";
 import { LobbyBottomNav } from "./lobby/LobbyBottomNav";
 import { TvPartyModal } from "./lobby/TvPartyModal";
 import { SettingsModal } from "./lobby/SettingsModal";
+import { DesktopPromoDashboard } from "./lobby/DesktopPromoDashboard";
 import lobbyBg from "../assets/lobby_background.webp";
 
 // Асинхронный динамический чанк для тяжелого модуля Академии (TASK-ARCH-001)
@@ -309,77 +310,85 @@ export const MainMenu = ({
     <div
       ref={screenContainerRef}
       onPointerDown={handleEdgePointerDown}
-      className="flex-1 w-full h-full flex flex-col bg-[#080a0f] text-zinc-100 select-none overflow-hidden relative max-w-full"
+      className="flex-1 w-full h-screen flex flex-col lg:flex-row bg-[#080a0f] text-zinc-100 select-none overflow-hidden relative max-w-full"
     >
-      <div className="w-full max-w-7xl mx-auto h-full flex flex-col justify-between bg-[#080a0f] xl:border-x xl:border-white/10 xl:shadow-[0_0_100px_rgba(0,0,0,0.95)] relative overflow-hidden">
-        <div className="flex-1 w-full h-full relative overflow-hidden flex flex-col min-h-0">
-          <AnimatePresence initial={false} custom={navDirection} mode="wait">
-            <motion.div
-              key={screen}
-              custom={navDirection}
-              variants={screenVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: process.env.NODE_ENV === "test" ? 0 : 0.18, ease: "easeOut" }}
-              drag={isChildScreen && isEdgeDragging ? "x" : false}
-              dragControls={dragControls}
-              dragListener={false}
-              dragConstraints={{ left: 0, right: 300 }}
-              dragElastic={{ left: 0, right: 0.2 }}
-              onDragEnd={handleDragEnd}
-              className="w-full h-full flex-1 flex flex-col min-h-0 overflow-hidden relative"
-            >
-              {renderScreenContent()}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+      {/* Левая колонка: Презентационный Promo-блок (только Desktop: 54-60% ширины) */}
+      <div className="hidden lg:flex lg:w-[54%] xl:w-[58%] 2xl:w-[60%] h-full relative overflow-hidden flex-col bg-[#05070a] border-r border-white/10 select-none">
+        <DesktopPromoDashboard onOpenRules={onOpenRules} />
+      </div>
 
-        {screen !== "MODE_DETAIL" && (
-          <LobbyBottomNav
-            currentScreen={screen}
-            onNavigate={(nextScreen, nextTab) => {
-              setIsEdgeDragging(false);
-              setNavDirection("none");
-              setScreen(nextScreen);
-              onTabChange(nextTab);
-            }}
-            labels={t.nav}
+      {/* Правая колонка: Интерактивный виджет Лобби (40-46% ширины, центрирован, max-w-lg/xl) */}
+      <div className="w-full lg:w-[46%] xl:w-[42%] 2xl:w-[40%] h-full flex flex-col items-center justify-center relative overflow-hidden bg-[#080a0f] lg:shadow-[-25px_0_60px_rgba(0,0,0,0.85)]">
+        <div className="w-full max-w-lg xl:max-w-xl h-full flex flex-col justify-between bg-[#080a0f] relative overflow-hidden">
+          <div className="flex-1 w-full h-full relative overflow-hidden flex flex-col min-h-0">
+            <AnimatePresence initial={false} custom={navDirection} mode="wait">
+              <motion.div
+                key={screen}
+                custom={navDirection}
+                variants={screenVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: process.env.NODE_ENV === "test" ? 0 : 0.18, ease: "easeOut" }}
+                drag={isChildScreen && isEdgeDragging ? "x" : false}
+                dragControls={dragControls}
+                dragListener={false}
+                dragConstraints={{ left: 0, right: 300 }}
+                dragElastic={{ left: 0, right: 0.2 }}
+                onDragEnd={handleDragEnd}
+                className="w-full h-full flex-1 flex flex-col min-h-0 overflow-hidden relative"
+              >
+                {renderScreenContent()}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {screen !== "MODE_DETAIL" && (
+            <LobbyBottomNav
+              currentScreen={screen}
+              onNavigate={(nextScreen, nextTab) => {
+                setIsEdgeDragging(false);
+                setNavDirection("none");
+                setScreen(nextScreen);
+                onTabChange(nextTab);
+              }}
+              labels={t.nav}
+            />
+          )}
+
+          <CreateRoomModal
+            isOpen={network.isCreateRoomOpen}
+            onClose={() => network.setIsCreateRoomOpen(false)}
+            selectedMode={network.createRoomMode}
+            onSelectMode={network.setCreateRoomMode}
+            isPrivate={network.createRoomIsPrivate}
+            onTogglePrivate={network.setCreateRoomIsPrivate}
+            onConfirm={network.handleConfirmCreateRoom}
+            isCreating={network.isCreating}
           />
-        )}
 
-        <CreateRoomModal
-          isOpen={network.isCreateRoomOpen}
-          onClose={() => network.setIsCreateRoomOpen(false)}
-          selectedMode={network.createRoomMode}
-          onSelectMode={network.setCreateRoomMode}
-          isPrivate={network.createRoomIsPrivate}
-          onTogglePrivate={network.setCreateRoomIsPrivate}
-          onConfirm={network.handleConfirmCreateRoom}
-          isCreating={network.isCreating}
-        />
+          <LobbyWaitingModal
+            isOpen={network.isWaitingForOpponent}
+            isPrivate={network.createRoomIsPrivate}
+            roomCode={network.partyRoomCode || ""}
+            isHost={true}
+            onCancel={network.handleCancelWaiting}
+          />
 
-        <LobbyWaitingModal
-          isOpen={network.isWaitingForOpponent}
-          isPrivate={network.createRoomIsPrivate}
-          roomCode={network.partyRoomCode || ""}
-          isHost={true}
-          onCancel={network.handleCancelWaiting}
-        />
+          {isTutorialOpen && (
+            <Suspense fallback={<TutorialFullscreenFallback />}>
+              <TutorialScreen onExit={() => setIsTutorialOpen(false)} onFinish={handleFinishTutorial} />
+            </Suspense>
+          )}
 
-        {isTutorialOpen && (
-          <Suspense fallback={<TutorialFullscreenFallback />}>
-            <TutorialScreen onExit={() => setIsTutorialOpen(false)} onFinish={handleFinishTutorial} />
-          </Suspense>
-        )}
+          <TvPartyModal
+            isOpen={isTvPartyModalOpen}
+            onClose={() => setIsTvPartyModalOpen(false)}
+            onStartTvParty={onStartTvParty}
+          />
 
-        <TvPartyModal
-          isOpen={isTvPartyModalOpen}
-          onClose={() => setIsTvPartyModalOpen(false)}
-          onStartTvParty={onStartTvParty}
-        />
-
-        <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+          <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+        </div>
       </div>
     </div>
   );

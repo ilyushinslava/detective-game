@@ -878,7 +878,7 @@ export default function App() {
       />
 
       <div 
-        className="w-full max-w-7xl mx-auto h-full relative flex flex-col overflow-hidden"
+        className={`w-full ${isLobbyOpen ? "max-w-full" : "max-w-7xl"} mx-auto h-full relative flex flex-col overflow-hidden`}
       >
         {isLobbyOpen && !isAndroidTv ? (
           <div

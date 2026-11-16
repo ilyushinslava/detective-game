@@ -69,7 +69,7 @@ export default function App() {
   const roomParam = urlParams.get("room");
 
   if (clientTypeParam === "TV_DISPLAY" && !roomParam && typeof window !== "undefined" && typeof window.location?.replace === "function") {
-    const code = sessionStorage.getItem("tv_party_room") || Math.floor(10000 + Math.random() * 90000).toString();
+    const code = Math.floor(10000 + Math.random() * 90000).toString();
     sessionStorage.setItem("tv_party_room", code);
     const newUrl = new URL(window.location.href);
     newUrl.searchParams.set("room", code);
@@ -111,7 +111,10 @@ export default function App() {
     if (typeof window !== "undefined") {
       try {
         const savedRoom = localStorage.getItem("tv_session_room_code");
-        if (savedRoom) return savedRoom;
+        const savedState = localStorage.getItem("tv_session_party_state");
+        if (savedRoom && (isAndroidTv || savedState === "CONTROLLER" || clientTypeParam === "TV_DISPLAY")) {
+          return savedRoom;
+        }
       } catch {}
     }
     return "";
@@ -120,17 +123,20 @@ export default function App() {
   const [pinInput, setPinInput] = useState<string>("");
   const [tvPartyState, setTvPartyState] = useState<"NONE" | "TV_HOME" | "TV_LOBBY" | "TV_BOARD" | "CONTROLLER">(() => {
     if (clientTypeParam === "CONTROLLER" || targetRoomParam) return "CONTROLLER";
-    if (clientTypeParam === "TV_DISPLAY" || isAndroidTv) return "TV_LOBBY";
+    if (clientTypeParam === "TV_DISPLAY") return "TV_LOBBY";
     if (typeof window !== "undefined") {
       try {
         const savedState = localStorage.getItem("tv_session_party_state") as any;
         const savedRoom = localStorage.getItem("tv_session_room_code") || roomParam || targetRoomParam;
         if (savedState && savedRoom) {
           if (savedState === "CONTROLLER") return "CONTROLLER";
-          if (["TV_LOBBY", "TV_BOARD"].includes(savedState)) return "TV_LOBBY";
+          if (["TV_LOBBY", "TV_BOARD"].includes(savedState) && (isAndroidTv || clientTypeParam === "TV_DISPLAY")) {
+            return "TV_LOBBY";
+          }
         }
       } catch {}
     }
+    if (isAndroidTv) return "TV_LOBBY";
     return "NONE";
   });
   const [tvLinePreview, setTvLinePreview] = useState<ShiftPayload | null>(null);
@@ -299,11 +305,9 @@ export default function App() {
   }, [clientTypeParam, tvRoomCode, controllerRoomStatus]);
 
   useEffect(() => {
-    if (tvPartyState !== "TV_LOBBY" && tvPartyState !== "TV_BOARD") return;
+    if ((tvPartyState !== "TV_LOBBY" && tvPartyState !== "TV_BOARD") || !tvRoomCode) return;
 
-    if (tvPartyState === "TV_LOBBY" || tvPartyState === "TV_BOARD") {
-      partyService.connect(tvRoomCode, 'TV_HOST', true, 'MANIAC_VS_OPERATIVE', undefined, 'TV_DISPLAY');
-    }
+    partyService.connect(tvRoomCode, 'TV_HOST', true, 'MANIAC_VS_OPERATIVE', undefined, 'TV_DISPLAY');
 
     const prevOnRoomStatus = partyService.onRoomStatus;
     const prevOnSyncState = partyService.onSyncState;
@@ -341,9 +345,9 @@ export default function App() {
       setIsTvDisconnected(false);
       if (state) {
         setGameState(state);
-        if (status === "PLAYING" || status === "FINISHED" || (state?.board && state.board.length > 0)) {
+        if (status === "PLAYING" || status === "FINISHED") {
           setTvPartyState((prev) => (prev === "TV_LOBBY" ? "TV_BOARD" : prev));
-          setControllerRoomStatus("PLAYING");
+          setControllerRoomStatus(status);
         }
       }
       if (role && (role as any) !== "SPECTATOR") {
@@ -659,11 +663,12 @@ export default function App() {
     partyService.disconnect();
     sessionStorage.removeItem("mp_session");
     setOpponentDisconnectedNotice(false);
-    if (clientTypeParam === "TV_DISPLAY" || tvPartyState.includes("TV") || isAndroidTv) {
+    if (isAndroidTv) {
       setTvPartyState("TV_LOBBY");
       setIsLobbyOpen(false);
       return;
     }
+    setTvPartyState("NONE");
     setIsLobbyOpen(true);
     if (gameState.winner) {
       setHasStartedEver(false);
@@ -671,17 +676,63 @@ export default function App() {
     exitToMenuMultiplayer();
   };
 
+  const handleExitTvParty = () => {
+    partyService.disconnect();
+    try {
+      sessionStorage.removeItem("tv_party_room");
+      localStorage.removeItem("tv_session_party_state");
+      localStorage.removeItem("tv_session_room_code");
+    } catch {}
+    setTvRoomCode("");
+    setTvMorseCode("");
+    setTvPlayers({});
+    if (typeof window !== "undefined") {
+      try {
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("room");
+        cleanUrl.searchParams.delete("targetRoom");
+        cleanUrl.searchParams.delete("clientType");
+        cleanUrl.searchParams.delete("role");
+        window.history.replaceState({}, "", cleanUrl.pathname || "/");
+      } catch {}
+    }
+    if (isAndroidTv) {
+      setTvPartyState("TV_HOME");
+      setIsLobbyOpen(false);
+      return;
+    }
+    setTvPartyState("NONE");
+    setIsLobbyOpen(true);
+  };
+
   const handleEmergencyDisconnectCancel = () => {
     setIsTvDisconnected(false);
     partyService.disconnect();
-    sessionStorage.removeItem("mp_session");
-    sessionStorage.removeItem("tv_party_room");
-    localStorage.removeItem("tv_session_party_state");
+    try {
+      sessionStorage.removeItem("mp_session");
+      sessionStorage.removeItem("tv_party_room");
+      sessionStorage.removeItem("tv_controller_room");
+      sessionStorage.removeItem("tv_controller_role");
+      sessionStorage.removeItem("tv_controller_client_id");
+      localStorage.removeItem("tv_session_party_state");
+      localStorage.removeItem("tv_session_room_code");
+      localStorage.removeItem("tv_controller_client_id");
+    } catch {}
     setOpponentDisconnectedNotice(false);
+    setTvRoomCode("");
+    setTvMorseCode("");
+    setTvPlayers({});
     if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      url.search = "";
-      window.history.replaceState({}, "", url.pathname);
+      try {
+        const url = new URL(window.location.href);
+        url.search = "";
+        window.history.replaceState({}, "", url.pathname || "/");
+      } catch {}
+    }
+    if (isAndroidTv) {
+      setTvPartyState("TV_HOME");
+      setIsLobbyOpen(false);
+      return;
     }
     setTvPartyState("NONE");
     setIsLobbyOpen(true);
@@ -909,12 +960,26 @@ export default function App() {
                   setIsLobbyOpen(false);
                   return;
                 }
-                const code = sessionStorage.getItem("tv_party_room") || Math.floor(10000 + Math.random() * 90000).toString();
-                sessionStorage.setItem("tv_party_room", code);
-                const newUrl = new URL(window.location.href);
-                newUrl.searchParams.set("room", code);
-                newUrl.searchParams.set("clientType", "TV_DISPLAY");
-                window.location.replace(newUrl.toString());
+                const code = Math.floor(10000 + Math.random() * 90000).toString();
+                try {
+                  sessionStorage.setItem("tv_party_room", code);
+                  localStorage.setItem("tv_session_room_code", code);
+                  localStorage.setItem("tv_session_party_state", "TV_LOBBY");
+                } catch {}
+                partyService.disconnect();
+                setTvRoomCode(code);
+                setTvMorseCode("");
+                setTvPlayers({});
+                setTvPartyState("TV_LOBBY");
+                setIsLobbyOpen(false);
+                if (typeof window !== "undefined") {
+                  try {
+                    const newUrl = new URL(window.location.href);
+                    newUrl.searchParams.set("room", code);
+                    newUrl.searchParams.set("clientType", "TV_DISPLAY");
+                    window.history.replaceState({}, "", newUrl.toString());
+                  } catch {}
+                }
               }}
               profile={profile}
               onUpdateProfile={updateProfile}
@@ -1187,9 +1252,16 @@ export default function App() {
               <TvHomeView
                 onCreateRoom={() => {
                   const code = Math.floor(10000 + Math.random() * 90000).toString();
+                  partyService.disconnect();
                   setTvRoomCode(code);
+                  setTvMorseCode("");
+                  setTvPlayers({});
                   if (typeof window !== "undefined") {
-                    sessionStorage.setItem("tv_party_room", code);
+                    try {
+                      sessionStorage.setItem("tv_party_room", code);
+                      localStorage.setItem("tv_session_room_code", code);
+                      localStorage.setItem("tv_session_party_state", "TV_LOBBY");
+                    } catch {}
                   }
                   setTvPartyState("TV_LOBBY");
                 }}
@@ -1235,20 +1307,7 @@ export default function App() {
                   ));
                   setTvPartyState("TV_BOARD");
                 }}
-                onExit={() => {
-                  partyService.disconnect();
-                  try {
-                    localStorage.removeItem("tv_session_party_state");
-                    localStorage.removeItem("tv_session_room_code");
-                  } catch {}
-                  setTvRoomCode("");
-                  if (clientTypeParam === "TV_DISPLAY" || tvPartyState.includes("TV") || isAndroidTv) {
-                    setTvPartyState("TV_LOBBY");
-                    return;
-                  }
-                  setTvPartyState("NONE");
-                  setIsLobbyOpen(true);
-                }}
+                onExit={handleExitTvParty}
               />
             </Suspense>
           </motion.div>
@@ -1270,20 +1329,7 @@ export default function App() {
                 selectedLine={tvLinePreview}
                 hideExit={false}
                 isAIThinking={isAIThinking}
-                onExit={() => {
-                  partyService.disconnect();
-                  try {
-                    localStorage.removeItem("tv_session_party_state");
-                    localStorage.removeItem("tv_session_room_code");
-                  } catch {}
-                  setTvRoomCode("");
-                  if (clientTypeParam === "TV_DISPLAY" || tvPartyState.includes("TV") || isAndroidTv) {
-                    setTvPartyState("TV_LOBBY");
-                    return;
-                  }
-                  setTvPartyState("NONE");
-                  setIsLobbyOpen(true);
-                }}
+                onExit={handleExitTvParty}
                 onRestart={() => {
                   partyService.sendAction({ type: "RESTART_GAME" });
                 }}

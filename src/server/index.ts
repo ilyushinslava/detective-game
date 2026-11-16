@@ -798,8 +798,17 @@ export default class GameRoomServer {
     for (const [tvId, tv] of Object.entries(this.state.tvDisplays)) {
       if (tv.connectionId === conn.id) {
         delete this.state.tvDisplays[tvId];
-        this.broadcastStatus();
-        this.broadcastRaw(JSON.stringify({ type: "TV_DISCONNECTED" }));
+        const remainingTvCount = Object.keys(this.state.tvDisplays).length;
+        const remainingPlayersCount = Object.keys(this.state.players).length;
+        if (remainingTvCount === 0 && remainingPlayersCount === 0) {
+          this.state.status = "EMPTY";
+          this.state.gameState = null;
+          unregisterRoom(this.getRoomCode());
+          this.state.readyClients.clear();
+        } else {
+          this.broadcastStatus();
+          this.broadcastRaw(JSON.stringify({ type: "TV_DISCONNECTED" }));
+        }
         return;
       }
     }

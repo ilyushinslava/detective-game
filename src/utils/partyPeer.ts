@@ -231,6 +231,11 @@ class PartyService {
     clientType?: string,
     isPrivate?: boolean
   ): void {
+    if (!roomCode || !roomCode.trim()) {
+      console.warn("[PartyService] Attempted to connect with empty roomCode, aborting.");
+      return;
+    }
+
     if (this.socket && this.socket.readyState === WebSocket.CONNECTING && this.roomCode === roomCode) {
       return;
     }

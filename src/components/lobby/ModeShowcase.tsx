@@ -204,85 +204,85 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
             {/* Режим 1: Одиночные дела (PVE) */}
             <button
               onClick={onSelectSolo}
-              className="h-16 xl:h-18 rounded-2xl border border-white/10 hover:border-blue-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl px-4 flex items-center justify-between hover:scale-[1.03] transition-all duration-300 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden hover:shadow-[0_0_25px_rgba(37,99,235,0.2)]"
+              className="h-16 xl:h-18 rounded-2xl border border-white/10 hover:border-blue-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl px-3 xl:px-4 flex items-center justify-between hover:scale-[1.03] transition-all duration-300 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden hover:shadow-[0_0_25px_rgba(37,99,235,0.2)]"
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-300 group-hover:text-blue-400 group-hover:border-blue-500/40 transition-all shrink-0">
-                  <Icons.Cards className="w-5 h-5" />
+              <div className="flex items-center gap-2.5 xl:gap-3 min-w-0">
+                <div className="w-9 h-9 xl:w-10 xl:h-10 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-300 group-hover:text-blue-400 group-hover:border-blue-500/40 transition-all shrink-0">
+                  <Icons.Cards className="w-4 h-4 xl:w-5 xl:h-5" />
                 </div>
                 <div className="flex flex-col min-w-0 leading-tight">
-                  <span className="text-[10px] font-mono text-zinc-400 uppercase font-bold tracking-wider">
+                  <span className="text-[9px] xl:text-[10px] font-mono text-zinc-400 uppercase font-bold tracking-wider">
                     ДЕЛО №1 • PVE
                   </span>
-                  <span className="font-display font-bold text-xs xl:text-sm text-white uppercase tracking-wider group-hover:text-blue-300 transition truncate">
+                  <span className="font-display font-bold text-[11px] xl:text-xs 2xl:text-sm text-white uppercase tracking-wider group-hover:text-blue-300 transition whitespace-normal leading-tight">
                     {t.menu.soloCases || "Одиночные дела"}
                   </span>
                 </div>
               </div>
-              <Icons.ArrowRight className="w-4 h-4 text-zinc-600 group-hover:text-blue-400 group-hover:translate-x-1 transition-all shrink-0" />
+              <Icons.ArrowRight className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-zinc-600 group-hover:text-blue-400 group-hover:translate-x-1 transition-all shrink-0 ml-1" />
             </button>
 
             {/* Режим 2: На одном экране (PVP) */}
             <button
               onClick={onSelectLocalDuel}
-              className="h-16 xl:h-18 rounded-2xl border border-white/10 hover:border-purple-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl px-4 flex items-center justify-between hover:scale-[1.03] transition-all duration-300 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden hover:shadow-[0_0_25px_rgba(168,85,247,0.2)]"
+              className="h-16 xl:h-18 rounded-2xl border border-white/10 hover:border-purple-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl px-3 xl:px-4 flex items-center justify-between hover:scale-[1.03] transition-all duration-300 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden hover:shadow-[0_0_25px_rgba(168,85,247,0.2)]"
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-300 group-hover:text-purple-400 group-hover:border-purple-500/40 transition-all shrink-0">
-                  <Icons.Users className="w-5 h-5" />
+              <div className="flex items-center gap-2.5 xl:gap-3 min-w-0">
+                <div className="w-9 h-9 xl:w-10 xl:h-10 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-300 group-hover:text-purple-400 group-hover:border-purple-500/40 transition-all shrink-0">
+                  <Icons.Users className="w-4 h-4 xl:w-5 xl:h-5" />
                 </div>
                 <div className="flex flex-col min-w-0 leading-tight">
-                  <span className="text-[10px] font-mono text-zinc-400 uppercase font-bold tracking-wider">
+                  <span className="text-[9px] xl:text-[10px] font-mono text-zinc-400 uppercase font-bold tracking-wider">
                     ДЕЛО №2 • PVP
                   </span>
-                  <span className="font-display font-bold text-xs xl:text-sm text-white uppercase tracking-wider group-hover:text-purple-300 transition truncate">
+                  <span className="font-display font-bold text-[11px] xl:text-xs 2xl:text-sm text-white uppercase tracking-wider group-hover:text-purple-300 transition whitespace-normal leading-tight">
                     {t.menu.localDuel || "На одном экране"}
                   </span>
                 </div>
               </div>
-              <Icons.ArrowRight className="w-4 h-4 text-zinc-600 group-hover:text-purple-400 group-hover:translate-x-1 transition-all shrink-0" />
+              <Icons.ArrowRight className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-zinc-600 group-hover:text-purple-400 group-hover:translate-x-1 transition-all shrink-0 ml-1" />
             </button>
 
             {/* Режим 3: ТВ Режим (TV PARTY) */}
             <button
               onClick={onOpenTvParty}
-              className="h-16 xl:h-18 rounded-2xl border border-white/10 hover:border-red-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl px-4 flex items-center justify-between hover:scale-[1.03] transition-all duration-300 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden hover:shadow-[0_0_25px_rgba(239,68,68,0.2)]"
+              className="h-16 xl:h-18 rounded-2xl border border-white/10 hover:border-red-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl px-3 xl:px-4 flex items-center justify-between hover:scale-[1.03] transition-all duration-300 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden hover:shadow-[0_0_25px_rgba(239,68,68,0.2)]"
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-red-950/40 border border-red-500/30 flex items-center justify-center text-red-400 group-hover:text-red-300 group-hover:border-red-500/50 transition-all shrink-0 shadow-[0_0_12px_rgba(239,68,68,0.2)]">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+              <div className="flex items-center gap-2.5 xl:gap-3 min-w-0">
+                <div className="w-9 h-9 xl:w-10 xl:h-10 rounded-xl bg-red-950/40 border border-red-500/30 flex items-center justify-center text-red-400 group-hover:text-red-300 group-hover:border-red-500/50 transition-all shrink-0 shadow-[0_0_12px_rgba(239,68,68,0.2)]">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 xl:w-5 xl:h-5"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
                 </div>
                 <div className="flex flex-col min-w-0 leading-tight">
-                  <span className="text-[10px] font-mono text-red-400 uppercase font-bold tracking-wider">
+                  <span className="text-[9px] xl:text-[10px] font-mono text-red-400 uppercase font-bold tracking-wider">
                     ДЕЛО №3 • TV PARTY
                   </span>
-                  <span className="font-display font-bold text-xs xl:text-sm text-white uppercase tracking-wider group-hover:text-red-300 transition truncate">
+                  <span className="font-display font-bold text-[11px] xl:text-xs 2xl:text-sm text-white uppercase tracking-wider group-hover:text-red-300 transition whitespace-normal leading-tight">
                     {t.menu.tvMode || "ТВ РЕЖИМ"}
                   </span>
                 </div>
               </div>
-              <Icons.ArrowRight className="w-4 h-4 text-zinc-600 group-hover:text-red-400 group-hover:translate-x-1 transition-all shrink-0" />
+              <Icons.ArrowRight className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-zinc-600 group-hover:text-red-400 group-hover:translate-x-1 transition-all shrink-0 ml-1" />
             </button>
 
             {/* Режим 4: Сетевые операции (ONLINE) */}
             <button
               onClick={onOpenOnline}
-              className="h-16 xl:h-18 rounded-2xl border border-white/10 hover:border-emerald-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl px-4 flex items-center justify-between hover:scale-[1.03] transition-all duration-300 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden hover:shadow-[0_0_25px_rgba(16,185,129,0.2)]"
+              className="h-16 xl:h-18 rounded-2xl border border-white/10 hover:border-emerald-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl px-3 xl:px-4 flex items-center justify-between hover:scale-[1.03] transition-all duration-300 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden hover:shadow-[0_0_25px_rgba(16,185,129,0.2)]"
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:text-emerald-300 group-hover:border-emerald-500/50 transition-all shrink-0 shadow-[0_0_12px_rgba(16,185,129,0.2)]">
-                  <Icons.Radar className="w-5 h-5" />
+              <div className="flex items-center gap-2.5 xl:gap-3 min-w-0">
+                <div className="w-9 h-9 xl:w-10 xl:h-10 rounded-xl bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:text-emerald-300 group-hover:border-emerald-500/50 transition-all shrink-0 shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+                  <Icons.Radar className="w-4 h-4 xl:w-5 xl:h-5" />
                 </div>
                 <div className="flex flex-col min-w-0 leading-tight">
-                  <span className="text-[10px] font-mono text-emerald-400 uppercase font-bold tracking-wider">
+                  <span className="text-[9px] xl:text-[10px] font-mono text-emerald-400 uppercase font-bold tracking-wider">
                     ДЕЛО №4 • ONLINE
                   </span>
-                  <span className="font-display font-bold text-xs xl:text-sm text-white uppercase tracking-wider group-hover:text-emerald-300 transition truncate">
+                  <span className="font-display font-bold text-[11px] xl:text-xs 2xl:text-sm text-white uppercase tracking-wider group-hover:text-emerald-300 transition whitespace-normal leading-tight">
                     {t.menu.onlineOps || "Сетевые операции"}
                   </span>
                 </div>
               </div>
-              <Icons.ArrowRight className="w-4 h-4 text-zinc-600 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all shrink-0" />
+              <Icons.ArrowRight className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-zinc-600 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all shrink-0 ml-1" />
             </button>
           </div>
         </div>
@@ -291,7 +291,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
       {/* ========================================================================= */}
       {/* 2. МОБИЛЬНЫЙ ИНТЕРФЕЙС ЛОББИ (MOBILE VIEW, < lg)                          */}
       {/* ========================================================================= */}
-      <div className="lg:hidden w-full flex-1 flex flex-col justify-between py-1 sm:py-2 gap-3 min-h-0 overflow-y-auto custom-scrollbar my-auto">
+      <div className="lg:hidden w-full flex flex-col justify-start gap-3 sm:gap-4 py-1">
         {/* Сетка 4-х режимов (2x2) */}
         <div className="w-full">
           <div className="grid grid-cols-2 gap-2 sm:gap-3">

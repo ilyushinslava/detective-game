@@ -49,17 +49,16 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
     <>
       {/* ========================================================================= */}
       {/* 1. ДЕСКТОП (lg и выше) - СХЕМА «КЛАССИЧЕСКИЙ ХАБ»                         */}
-      {/* flex flex-row gap-8 px-10 py-6 h-full                                     */}
       {/* ========================================================================= */}
-      <main className="hidden lg:flex flex-row gap-x-12 xl:gap-x-16 px-10 py-6 h-full w-full max-w-[1700px] mx-auto select-none min-h-0 flex-1">
+      <main className="hidden lg:flex flex-row gap-x-12 xl:gap-x-16 px-10 py-6 w-full max-w-[1700px] mx-auto select-none flex-1">
         {/* Левая колонка (60-65% ширины): Сетка главных игровых режимов */}
-        <div className="w-[62%] xl:w-[65%] flex flex-col justify-between h-full min-h-0">
+        <div className="w-[62%] xl:w-[65%] flex flex-col">
           {/* Сетка главных игровых режимов (2x2) */}
-          <div className="grid grid-cols-2 gap-6 flex-1 min-h-0">
+          <div className="grid grid-cols-2 gap-6">
             {/* Карточка 1: Одиночные дела (PVE) */}
             <button
               onClick={onSelectSolo}
-              className="rounded-3xl border border-white/10 hover:border-blue-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl p-5 xl:p-7 flex flex-col justify-between hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-xl active:scale-[0.99] group text-left relative hover:shadow-[0_0_35px_rgba(37,99,235,0.25)] focus:outline-none focus:ring-2 focus:ring-blue-500/40 min-h-[220px] xl:min-h-[250px]"
+              className="rounded-3xl border border-white/10 hover:border-blue-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl p-5 xl:p-6 flex flex-col hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-xl active:scale-[0.99] group text-left relative hover:shadow-[0_0_35px_rgba(37,99,235,0.25)] focus:outline-none focus:ring-2 focus:ring-blue-500/40 min-h-[220px] xl:min-h-[250px]"
             >
               <div className="flex items-center justify-between w-full">
                 <div className="w-12 h-12 xl:w-14 xl:h-14 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-300 group-hover:text-blue-400 group-hover:border-blue-500/40 transition-all shrink-0 shadow-lg">
@@ -79,7 +78,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
                 </p>
               </div>
 
-              <div className="pt-3 xl:pt-4 border-t border-white/10 mt-3 xl:mt-4 flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 group-hover:text-blue-300 transition shrink-0">
+              <div className="pt-3 xl:pt-4 border-t border-white/10 mt-auto flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 group-hover:text-blue-300 transition shrink-0">
                 <span>НАЧАТЬ РАССЛЕДОВАНИЕ</span>
                 <Icons.ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
               </div>
@@ -88,7 +87,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
             {/* Карточка 2: На одном экране (PVP) */}
             <button
               onClick={onSelectLocalDuel}
-              className="rounded-3xl border border-white/10 hover:border-purple-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl p-5 xl:p-7 flex flex-col justify-between hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-xl active:scale-[0.99] group text-left relative hover:shadow-[0_0_35px_rgba(168,85,247,0.25)] focus:outline-none focus:ring-2 focus:ring-purple-500/40 min-h-[220px] xl:min-h-[250px]"
+              className="rounded-3xl border border-white/10 hover:border-purple-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl p-5 xl:p-6 flex flex-col hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-xl active:scale-[0.99] group text-left relative hover:shadow-[0_0_35px_rgba(168,85,247,0.25)] focus:outline-none focus:ring-2 focus:ring-purple-500/40 min-h-[220px] xl:min-h-[250px]"
             >
               <div className="flex items-center justify-between w-full">
                 <div className="w-12 h-12 xl:w-14 xl:h-14 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-300 group-hover:text-purple-400 group-hover:border-purple-500/40 transition-all shrink-0 shadow-lg">
@@ -108,7 +107,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
                 </p>
               </div>
 
-              <div className="pt-3 xl:pt-4 border-t border-white/10 mt-3 xl:mt-4 flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 group-hover:text-purple-300 transition shrink-0">
+              <div className="pt-3 xl:pt-4 border-t border-white/10 mt-auto flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 group-hover:text-purple-300 transition shrink-0">
                 <span>ОТКРЫТЬ ДУЭЛЬ</span>
                 <Icons.ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
               </div>
@@ -117,7 +116,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
             {/* Карточка 3: ТВ Режим (TV PARTY) */}
             <button
               onClick={onOpenTvParty}
-              className="rounded-3xl border border-white/10 hover:border-red-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl p-5 xl:p-7 flex flex-col justify-between hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-xl active:scale-[0.99] group text-left relative hover:shadow-[0_0_35px_rgba(239,68,68,0.25)] focus:outline-none focus:ring-2 focus:ring-red-500/40 min-h-[220px] xl:min-h-[250px]"
+              className="rounded-3xl border border-white/10 hover:border-red-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl p-5 xl:p-6 flex flex-col hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-xl active:scale-[0.99] group text-left relative hover:shadow-[0_0_35px_rgba(239,68,68,0.25)] focus:outline-none focus:ring-2 focus:ring-red-500/40 min-h-[220px] xl:min-h-[250px]"
             >
               <div className="flex items-center justify-between w-full">
                 <div className="w-12 h-12 xl:w-14 xl:h-14 rounded-2xl bg-red-950/40 border border-red-500/30 flex items-center justify-center text-red-400 group-hover:text-red-300 group-hover:border-red-500/50 transition-all shrink-0 shadow-[0_0_15px_rgba(239,68,68,0.25)]">
@@ -137,7 +136,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
                 </p>
               </div>
 
-              <div className="pt-3 xl:pt-4 border-t border-white/10 mt-3 xl:mt-4 flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 group-hover:text-red-300 transition shrink-0">
+              <div className="pt-3 xl:pt-4 border-t border-white/10 mt-auto flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 group-hover:text-red-300 transition shrink-0">
                 <span>ПОДКЛЮЧИТЬ ТВ ПАРТИЮ</span>
                 <Icons.ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
               </div>
@@ -146,7 +145,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
             {/* Карточка 4: Сетевые операции (ONLINE) */}
             <button
               onClick={onOpenOnline}
-              className="rounded-3xl border border-white/10 hover:border-emerald-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl p-5 xl:p-7 flex flex-col justify-between hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-xl active:scale-[0.99] group text-left relative hover:shadow-[0_0_35px_rgba(16,185,129,0.25)] focus:outline-none focus:ring-2 focus:ring-emerald-500/40 min-h-[220px] xl:min-h-[250px]"
+              className="rounded-3xl border border-white/10 hover:border-emerald-500/50 bg-zinc-950/75 hover:bg-zinc-900/90 backdrop-blur-xl p-5 xl:p-6 flex flex-col hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-xl active:scale-[0.99] group text-left relative hover:shadow-[0_0_35px_rgba(16,185,129,0.25)] focus:outline-none focus:ring-2 focus:ring-emerald-500/40 min-h-[220px] xl:min-h-[250px]"
             >
               <div className="flex items-center justify-between w-full">
                 <div className="w-12 h-12 xl:w-14 xl:h-14 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:text-emerald-300 group-hover:border-emerald-500/50 transition-all shrink-0 shadow-[0_0_15px_rgba(16,185,129,0.25)]">
@@ -166,15 +165,15 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
                 </p>
               </div>
 
-              <div className="pt-3 xl:pt-4 border-t border-white/10 mt-3 xl:mt-4 flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 group-hover:text-emerald-300 transition shrink-0">
+              <div className="pt-3 xl:pt-4 border-t border-white/10 mt-auto flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 group-hover:text-emerald-300 transition shrink-0">
                 <span>ВОЙТИ В ОНЛАЙН СЕТЬ</span>
                 <Icons.ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
               </div>
             </button>
           </div>
 
-          {/* Футер: Кнопки "Справочник" и "Обучение" аккуратно прижаты к левому нижнему углу */}
-          <div className="flex items-center gap-4 mt-5 shrink-0">
+          {/* Футер: Кнопки "Справочник" и "Обучение" строго под сеткой в нормальном потоке документа */}
+          <div className="flex items-center gap-4 mt-8 shrink-0">
             <button
               onClick={onOpenRules}
               className="h-12 px-5 rounded-2xl bg-zinc-950/80 hover:bg-zinc-900/90 border border-white/10 hover:border-white/25 transition-all flex items-center gap-3 text-zinc-300 hover:text-white cursor-pointer active:scale-[0.98] shadow-lg group backdrop-blur-xl hover:scale-[1.02]"
@@ -214,14 +213,8 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
           </div>
         </div>
 
-        {/* Правая колонка: Парящий контент с разделением воздухом и градиентной маской */}
-        <div
-          className="w-[38%] xl:w-[35%] flex flex-col gap-6 h-[calc(100vh-120px)] min-h-0 overflow-y-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(to_bottom,black_85%,transparent_100%)] pb-12"
-          style={{
-            WebkitMaskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)',
-            maskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)',
-          }}
-        >
+        {/* Правая колонка: Парящий контент с разделением воздухом */}
+        <div className="w-[38%] xl:w-[35%] flex flex-col gap-6">
           {/* Блок «Быстрая игра» */}
           <div className="flex flex-col gap-3">
             {hasActiveGame && onResumeGame && (
@@ -251,8 +244,8 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
               <div className="absolute -top-24 -right-24 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-500/20 transition-all duration-500" />
 
               <div className="relative z-10">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-transparent border border-white/20 text-[10px] xl:text-xs font-mono font-bold tracking-wider text-zinc-300 uppercase mb-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-transparent border border-white/20 text-xs font-mono font-bold tracking-wider text-zinc-300 uppercase mb-3">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
                   <span>МГНОВЕННЫЙ ОПЕРАТИВНЫЙ ПОДБОР</span>
                 </div>
 

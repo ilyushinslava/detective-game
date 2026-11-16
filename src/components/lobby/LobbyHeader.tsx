@@ -18,15 +18,16 @@ export const LobbyHeader: React.FC<LobbyHeaderProps> = ({
   onOpenSettings,
 }) => {
   return (
-    <header className="flex items-center justify-between shrink-0 py-2 sm:py-3 lg:py-4 mb-2 lg:mb-4 border-b border-white/5 lg:border-b-0 w-full max-w-full gap-2">
-      <div className="flex items-center gap-2 sm:gap-3.5 select-none min-w-0 flex-1 overflow-hidden pr-1 sm:pr-2">
+    <header className="flex items-center justify-between lg:justify-end shrink-0 py-2 sm:py-3 mb-2 border-b border-white/5 w-full max-w-full gap-2">
+      {/* Название игры (скрыто на десктопе в сплит-экране, отображается на мобильных) */}
+      <div className="flex lg:hidden items-center gap-2 sm:gap-3.5 select-none min-w-0 flex-1 overflow-hidden pr-1 sm:pr-2">
         <span className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 rounded-full bg-red-600 animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.85)] shrink-0" />
-        <h1 className="text-base sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-white uppercase leading-none drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)] truncate">
+        <h1 className="text-base sm:text-2xl md:text-3xl font-black tracking-tight text-white uppercase leading-none drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)] truncate">
           {title}
         </h1>
       </div>
 
-      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 ml-auto lg:ml-0">
         {/* Agent Callsign / Dossier Pill (Hidden on mobile < sm) */}
         <button
           onClick={onOpenProfile}

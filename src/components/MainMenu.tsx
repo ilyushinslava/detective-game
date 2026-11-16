@@ -208,7 +208,7 @@ export const MainMenu = ({
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#080a0f_90%)] opacity-85" />
             </div>
 
-            <div className="relative z-10 flex-1 flex flex-col justify-between pt-[max(0.5rem,env(safe-area-inset-top))] pb-3 px-4 sm:px-6 lg:px-8 max-w-7xl w-full max-w-full mx-auto min-h-0 overflow-x-hidden">
+            <div className="relative z-10 flex-1 flex flex-col justify-between pt-[max(0.5rem,env(safe-area-inset-top))] pb-3 px-3 sm:px-5 lg:px-5 w-full max-w-full mx-auto min-h-0 overflow-x-hidden overflow-y-auto custom-scrollbar">
               <LobbyHeader
                 title={t.menu.title}
                 profile={profile}

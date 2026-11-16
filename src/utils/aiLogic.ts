@@ -540,3 +540,25 @@ export function getDuelAIMove(state: GameState): GameState {
     ],
   };
 }
+
+/**
+ * Единая точка входа для вычисления следующего хода AI-бота во всех 4-х режимах игры.
+ * Автоматически маршрутизирует ход в зависимости от текущего режима и активной роли.
+ */
+export function calculateNextAIMove(state: GameState): GameState {
+  if (state.winner) return state;
+
+  if (state.mode === "LINE_UP") {
+    return getDuelAIMove(state);
+  }
+  if (state.mode === "SECRET_SERVICE") {
+    return getSecretServiceAIMove(state);
+  }
+  if (state.mode === "THIEF_HUNT") {
+    return state.currentTurn === "KILLER" ? getThiefAIMove(state) : getPoliceAIMove(state);
+  }
+  if (state.currentTurn === "KILLER") {
+    return getKillerAIMove(state);
+  }
+  return getDetectiveAIMove(state);
+}

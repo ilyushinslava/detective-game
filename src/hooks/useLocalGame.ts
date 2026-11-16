@@ -4,6 +4,7 @@ import { SPY_COLORS } from "../types/game";
 import type { GameAction } from "../utils/gameReducer";
 import { createInitialState } from "../utils/gameLogic";
 import { gameReducer } from "../utils/gameReducer";
+import { calculateNextAIMove } from "../utils/aiLogic";
 import {
   playShiftSound,
   playEliminateSound,
@@ -105,10 +106,83 @@ export function useLocalGame({
   );
 
   const [localPhase, setLocalPhase] = useState<LocalGamePhase>("ACTION");
+  const [isAIThinking, setIsAIThinking] = useState<boolean>(false);
+  const aiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const gameStateRef = useRef(gameState);
   useEffect(() => {
     gameStateRef.current = gameState;
   }, [gameState]);
+
+  const isAITurn = useMemo(() => {
+    if (gameState.opponent !== "AI" || gameState.winner) return false;
+    if (gameState.mode === "SECRET_SERVICE") {
+      const activeSpy = gameState.spies?.[gameState.activeSpyIndex ?? 0];
+      return activeSpy?.isAI === true;
+    }
+    return gameState.currentTurn !== gameState.playerRole;
+  }, [
+    gameState.opponent,
+    gameState.winner,
+    gameState.mode,
+    gameState.spies,
+    gameState.activeSpyIndex,
+    gameState.currentTurn,
+    gameState.playerRole,
+  ]);
+
+  // Слушатель хода искусственного интеллекта (Solo AI Mode)
+  useEffect(() => {
+    if (!isAITurn) {
+      setIsAIThinking(false);
+      if (aiTimerRef.current) {
+        clearTimeout(aiTimerRef.current);
+        aiTimerRef.current = null;
+      }
+      return;
+    }
+
+    setIsAIThinking(true);
+    // Имитация раздумий бота (1.5 - 2.5 сек)
+    const thinkingDelay = 1500 + Math.floor(Math.random() * 800);
+    aiTimerRef.current = setTimeout(() => {
+      setGameState((prev) => {
+        if (prev.winner) return prev;
+        const nextState = calculateNextAIMove(prev);
+
+        // Процедурные звуковые эффекты для хода бота
+        try {
+          if (nextState.killCount > prev.killCount) {
+            playEliminateSound();
+          } else if ((nextState.trophiesKiller ?? 0) > (prev.trophiesKiller ?? 0)) {
+            playEliminateSound();
+          } else if (
+            nextState.interrogationRadar !== prev.interrogationRadar ||
+            nextState.lastSpyInterrogation !== prev.lastSpyInterrogation
+          ) {
+            playRadarPing();
+          } else if (nextState.lastShift !== prev.lastShift && nextState.lastShift !== null) {
+            playShiftSound();
+          }
+        } catch {}
+
+        return nextState;
+      });
+      setIsAIThinking(false);
+    }, thinkingDelay);
+
+    return () => {
+      if (aiTimerRef.current) {
+        clearTimeout(aiTimerRef.current);
+        aiTimerRef.current = null;
+      }
+    };
+  }, [
+    isAITurn,
+    gameState.currentTurn,
+    gameState.activeSpyIndex,
+    gameState.winner,
+  ]);
 
   const nextPlayerInfo = useMemo<NextPlayerInfo>(() => {
     return resolveNextPlayerInfo(gameState);
@@ -116,6 +190,9 @@ export function useLocalGame({
 
   const dispatchLocalAction = useCallback(
     (action: GameAction) => {
+      // Блокировка действий живого игрока во время раздумий бота
+      if (isAIThinking) return;
+
       // 1. Процедурное аудио из tvAudio.ts для оффлайн режима
       try {
         switch (action.type) {
@@ -145,8 +222,8 @@ export function useLocalGame({
       setGameState((prev) => {
         const nextState = gameReducer(prev, action);
 
-        // 3. Проверка передачи хода для фазы INTERSTITIAL (только при Pass & Play без победы)
-        const isPassMode = isPassAndPlay || prev.opponent === "PVP";
+        // 3. Проверка передачи хода для фазы INTERSTITIAL (только при локальном Pass & Play без победы)
+        const isPassMode = isPassAndPlay && prev.opponent === "PVP";
         const turnChanged = nextState.currentTurn !== prev.currentTurn;
         const spyChanged =
           nextState.mode === "SECRET_SERVICE" &&
@@ -161,7 +238,7 @@ export function useLocalGame({
         return nextState;
       });
     },
-    [isPassAndPlay]
+    [isPassAndPlay, isAIThinking]
   );
 
   const dismissInterstitial = useCallback(() => {
@@ -202,6 +279,7 @@ export function useLocalGame({
     localPhase,
     setLocalPhase,
     isBlindfoldOpen: localPhase === "INTERSTITIAL",
+    isAIThinking,
     nextPlayerInfo,
     dispatchLocalAction,
     dismissInterstitial,

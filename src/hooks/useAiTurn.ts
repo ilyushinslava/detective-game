@@ -3,6 +3,7 @@ import type { GameState } from "../types/game";
 import { partyService } from "../utils/partyPeer";
 import { soundManager } from "../utils/audio";
 import {
+  calculateNextAIMove,
   getKillerAIMove,
   getDetectiveAIMove,
   getSecretServiceAIMove,
@@ -55,18 +56,7 @@ export function useAiTurn({
       const timer = setTimeout(() => {
         setGameState((prev) => {
           if (prev.winner) return prev;
-          let nextState = prev;
-          if (prev.mode === "LINE_UP") {
-            nextState = getDuelAIMove(prev);
-          } else if (prev.mode === "SECRET_SERVICE") {
-            nextState = getSecretServiceAIMove(prev);
-          } else if (prev.mode === "THIEF_HUNT") {
-            nextState = prev.currentTurn === "KILLER" ? getThiefAIMove(prev) : getPoliceAIMove(prev);
-          } else if (prev.currentTurn === "KILLER") {
-            nextState = getKillerAIMove(prev);
-          } else {
-            nextState = getDetectiveAIMove(prev);
-          }
+          const nextState = calculateNextAIMove(prev);
 
           if (nextState.killCount > prev.killCount) {
             soundManager.play('kill');

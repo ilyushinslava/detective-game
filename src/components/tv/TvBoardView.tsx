@@ -24,6 +24,7 @@ import { partyService } from '../../utils/partyPeer';
 import { useSpatialNavigation } from '../../hooks/useSpatialNavigation';
 import { playShiftSound, playEliminateSound, playRadarPing } from '../../utils/tvAudio';
 import { soundManager } from '../../utils/audio';
+import { ThinkingBanner } from '../ui/ThinkingBanner';
 
 export interface TvBoardViewProps {
   gameState: GameState;
@@ -33,6 +34,7 @@ export interface TvBoardViewProps {
   onRestart?: () => void;
   disconnectedPlayer?: { role?: string; graceTimeoutSec: number } | null;
   hideExit?: boolean;
+  isAIThinking?: boolean;
 }
 
 const Icons = {
@@ -369,6 +371,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   onRestart,
   disconnectedPlayer,
   hideExit = false,
+  isAIThinking,
 }) => {
   useSpatialNavigation({ initialFocusSelector: '[data-tv-focus-primary="true"]' });
 
@@ -379,6 +382,14 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   const [tvGraceLeft, setTvGraceLeft] = useState(60);
 
   const activeDisconnected = disconnectedPlayer ?? internalDisconnected;
+
+  const isAITurn =
+    gameState.opponent === 'AI' &&
+    !gameState.winner &&
+    (isSecretServiceMode(gameState.mode)
+      ? gameState.spies?.[gameState.activeSpyIndex ?? 0]?.isAI === true
+      : gameState.currentTurn !== gameState.playerRole);
+  const activeAIThinking = Boolean(isAIThinking ?? isAITurn);
 
   // Синхронизация процедурного геймплейного звука при обновлении логов или действий
   const prevLogsCountRef = useRef<number>(gameState?.log?.length || (gameState as any)?.logs?.length || 0);
@@ -931,6 +942,11 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         {/* ПРАВАЯ ЗОНА (~32%): Терминал хода и хроники расследования */}
         <div className="w-[34%] lg:w-[32%] h-full flex flex-col gap-2 sm:gap-2.5 min-w-0 min-h-0 overflow-hidden">
           
+          {/* Индикатор раздумий AI-бота */}
+          {activeAIThinking && (
+            <ThinkingBanner label="СИСТЕМА АНАЛИЗИРУЕТ" className="shrink-0" />
+          )}
+
           {/* БЛОК 1: ТЕКУЩИЙ АКТИВНЫЙ ХОД (МАКСИМАЛЬНО КОМПАКТНЫЙ) */}
           <div className={`p-2.5 sm:p-3 rounded-2xl border border-white/10 border-t-2 backdrop-blur-2xl transition-all duration-500 shadow-xl relative overflow-hidden shrink-0 ${
             isKillerTurn

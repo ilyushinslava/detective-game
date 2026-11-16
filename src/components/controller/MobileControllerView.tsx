@@ -7,6 +7,7 @@ import { CharacterCard } from '../CharacterCard';
 import { PassAndPlayModal } from './PassAndPlayModal';
 import { InspectorChoiceModal } from '../InspectorChoiceModal';
 import { ActionButtonsBar } from '../ui/ActionButtonsBar';
+import { ThinkingBanner } from '../ui/ThinkingBanner';
 import { GameSheets } from '../GameSheets';
 import { soundManager } from '../../utils/audio';
 import { triggerHaptic } from '../../utils/haptics';
@@ -40,6 +41,7 @@ export interface MobileControllerViewProps {
   onForceReconnect?: () => void;
   roomStatus?: string;
   onLeaveLobby?: () => void;
+  isAIThinking?: boolean;
 }
 
 export type ShiftWizardStep =
@@ -123,6 +125,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   onForceReconnect,
   roomStatus,
   onLeaveLobby,
+  isAIThinking: propIsAIThinking,
 }) => {
   const boardSize = gameState?.board?.length || BOARD_GRID_SIZE;
   const isSecretService = gameState.mode === 'SECRET_SERVICE';
@@ -133,6 +136,14 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   const isTurnActuallyMine = isSecretService
     ? gameState.activeSpyIndex === mySpyIndex
     : gameState.currentTurn === playerRole;
+
+  const isAITurn =
+    gameState.opponent === 'AI' &&
+    !gameState.winner &&
+    (isSecretService
+      ? gameState.spies?.[gameState.activeSpyIndex ?? 0]?.isAI === true
+      : gameState.currentTurn !== playerRole);
+  const activeAIThinking = Boolean(propIsAIThinking ?? isAITurn);
 
   const mySpy = gameState.spies?.[mySpyIndex];
   const mySecretId = isSecretService
@@ -475,6 +486,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   };
 
   const handleExecuteAction = (act: ActionDef) => {
+    if (activeAIThinking) return;
     if (act.id === 'SHIFT') {
       setSelectedAxis('ROW');
       setShiftStep('SELECT_LINE');
@@ -505,7 +517,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   };
 
   const handleConfirmAction = () => {
-    if (!pendingAction) return;
+    if (activeAIThinking || !pendingAction) return;
     const targetId = selectedTargetId || neighbors[0]?.id || '';
 
     if (pendingAction.id === 'KILL_CHARACTER') {
@@ -809,19 +821,27 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           </div>
 
           <h2 className="font-display text-2xl sm:text-3xl font-black uppercase tracking-wider text-white mb-1.5">
-            ОЖИДАНИЕ
+            {activeAIThinking ? 'ХОД ПРОТИВНИКА' : 'ОЖИДАНИЕ'}
           </h2>
 
-          {/* Индикатор текущего активного игрока */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900/90 border border-white/10 shadow-sm mb-3">
-            <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${isKiller ? 'bg-rose-400' : 'bg-blue-400'}`} />
-            <span className="font-display text-xs font-bold text-zinc-300 uppercase tracking-wider">
-              СЕЙЧАС ХОД СОПЕРНИКА
-            </span>
-          </div>
+          {/* Индикатор текущего активного игрока или раздумий бота */}
+          {activeAIThinking ? (
+            <div className="w-full my-3">
+              <ThinkingBanner label="СИСТЕМА АНАЛИЗИРУЕТ" />
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900/90 border border-white/10 shadow-sm mb-3">
+              <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${isKiller ? 'bg-rose-400' : 'bg-blue-400'}`} />
+              <span className="font-display text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                СЕЙЧАС ХОД СОПЕРНИКА
+              </span>
+            </div>
+          )}
 
           <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed max-w-xs mb-6">
-            Сейчас ход другого игрока. Следите за происходящим на телевизоре.
+            {activeAIThinking
+              ? 'Искусственный интеллект рассчитывает оптимальные векторы маневра и цели.'
+              : 'Сейчас ход другого игрока. Следите за происходящим на телевизоре.'}
           </p>
 
           {/* Карточка досье игрока с защитой приватности (Удерживайте) */}
@@ -1356,6 +1376,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                       isError={char.id === errorTargetId}
                       isPVP={true}
                       onClick={() => {
+                        if (activeAIThinking) return;
                         if (!char.isAlive) {
                           soundManager.play('deny');
                           triggerHaptic('error');
@@ -1385,9 +1406,17 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
       {/* Доступные действия (SSOT ActionButtonsBar) */}
       <div className="space-y-2 mb-2 relative z-10">
-        <div className="font-display text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
-          ДОСТУПНЫЕ ДЕЙСТВИЯ
+        <div className="font-display text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1 flex items-center justify-between">
+          <span>ДОСТУПНЫЕ ДЕЙСТВИЯ</span>
+          {activeAIThinking && (
+            <span className="text-[10px] font-mono text-cyan-400 font-bold animate-pulse">
+              [ХОД БОТА...]
+            </span>
+          )}
         </div>
+        {activeAIThinking && (
+          <ThinkingBanner label="ХОД ПРОТИВНИКА" className="mb-2" />
+        )}
         <ActionButtonsBar
           actions={[
             ...(gameState.mode === 'LINE_UP' ? [] : [{ id: 'SHIFT', label: 'Маневр', isRed: false, requiresTarget: false }]),
@@ -1397,6 +1426,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             label: act.label,
             isRed: act.isRed,
             disabled:
+              activeAIThinking ||
               (act.requiresTarget && neighbors.length === 0) ||
               (act.id === 'SWEAR_IN_OFFICER' &&
                 (!gameState.uniformedOfficers ||

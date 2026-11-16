@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { createInitialState } from '../gameLogic';
-import { getKillerAIMove, getDetectiveAIMove, getThiefAIMove, getPoliceAIMove } from '../aiLogic';
+import {
+  getKillerAIMove,
+  getDetectiveAIMove,
+  getThiefAIMove,
+  getPoliceAIMove,
+  calculateNextAIMove,
+} from '../aiLogic';
 
 describe('Интеллект игрового бота (aiLogic)', () => {
   it('Бот-убийца обязан сменить ход на Сыщика после своего действия', () => {
@@ -45,5 +51,47 @@ describe('Интеллект игрового бота (aiLogic)', () => {
 
     const policeMove = getPoliceAIMove(thiefMove);
     expect(policeMove.currentTurn).toBe('KILLER');
+  });
+
+  describe('Единая точка входа calculateNextAIMove', () => {
+    it('1. Корректно совершает ход в MANIAC_VS_OPERATIVE (Маньяк)', () => {
+      const state = createInitialState('MANIAC_VS_OPERATIVE', 'AI', 'DETECTIVE');
+      state.currentTurn = 'KILLER';
+
+      const next = calculateNextAIMove(state);
+      expect(next.currentTurn).toBe('DETECTIVE');
+      expect(next.log.length).toBeGreaterThan(state.log.length);
+    });
+
+    it('2. Корректно совершает ход в THIEF_HUNT (Грабитель)', () => {
+      const state = createInitialState('THIEF_HUNT', 'AI', 'DETECTIVE');
+      state.currentTurn = 'KILLER';
+
+      const next = calculateNextAIMove(state);
+      expect(next.currentTurn).toBe('DETECTIVE');
+      expect(next.log.length).toBeGreaterThan(state.log.length);
+    });
+
+    it('3. Корректно совершает ход в SECRET_SERVICE (Шпион-бот)', () => {
+      const state = createInitialState('SECRET_SERVICE', 'AI', 'KILLER');
+      state.activeSpyIndex = 1; // Бот
+      if (state.spies?.[1]) {
+        state.spies[1].isAI = true;
+      }
+
+      const next = calculateNextAIMove(state);
+      expect(next.activeSpyIndex).not.toBe(1);
+      expect(next.log.length).toBeGreaterThan(state.log.length);
+    });
+
+    it('4. Корректно совершает ход в LINE_UP (Следователь / Подозреваемый)', () => {
+      const state = createInitialState('LINE_UP', 'AI', 'KILLER');
+      // В LINE_UP первым ходит Следователь (DETECTIVE)
+      state.currentTurn = 'DETECTIVE';
+
+      const next = calculateNextAIMove(state);
+      expect(next.currentTurn).toBe('KILLER');
+      expect(next.log.length).toBeGreaterThan(state.log.length);
+    });
   });
 });

@@ -134,4 +134,63 @@ describe("useLocalGame Hook & Local Engine Integration", () => {
     expect(secretInfo.nextPlayerName).toBeTruthy();
     expect(secretInfo.nextPlayerColor).toContain("text-");
   });
+
+  describe("Solo Mode (AI Bot) & Раздумья бота", () => {
+    it("активирует isAIThinking и совершает ход через calculateNextAIMove при ходе бота", () => {
+      vi.useFakeTimers();
+
+      // Игрок - Сыщик (DETECTIVE), первый ход у Маньяка (KILLER, Бот)
+      const { result } = renderHook(() =>
+        useLocalGame({
+          initialMode: "MANIAC_VS_OPERATIVE",
+          initialOpponent: "AI",
+          initialRole: "DETECTIVE",
+        })
+      );
+
+      // В самом начале наступает ход Маньяка-бота
+      expect(result.current.gameState.currentTurn).toBe("KILLER");
+      expect(result.current.isAIThinking).toBe(true);
+      // Фаза INTERSTITIAL не должна активироваться в Solo AI режиме
+      expect(result.current.isBlindfoldOpen).toBe(false);
+
+      // Прокручиваем таймер раздумий бота (макс 2500 мс)
+      act(() => {
+        vi.advanceTimersByTime(2500);
+      });
+
+      // Бот совершил ход и передал ход человеку (Сыщику)
+      expect(result.current.isAIThinking).toBe(false);
+      expect(result.current.gameState.currentTurn).toBe("DETECTIVE");
+
+      vi.useRealTimers();
+    });
+
+    it("блокирует dispatchLocalAction, пока бот думает (isAIThinking === true)", () => {
+      vi.useFakeTimers();
+
+      const { result } = renderHook(() =>
+        useLocalGame({
+          initialMode: "MANIAC_VS_OPERATIVE",
+          initialOpponent: "AI",
+          initialRole: "DETECTIVE",
+        })
+      );
+
+      expect(result.current.isAIThinking).toBe(true);
+
+      // Игрок пытается сделать сдвиг во время хода бота
+      act(() => {
+        result.current.dispatchLocalAction({
+          type: "SHIFT_BOARD",
+          payload: { shiftType: "ROW", index: 0, direction: "FORWARD" },
+        });
+      });
+
+      // Действие должно быть проигнорировано
+      expect(tvAudio.playShiftSound).not.toHaveBeenCalled();
+
+      vi.useRealTimers();
+    });
+  });
 });

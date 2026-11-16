@@ -1162,6 +1162,7 @@ export default function App() {
                   }
                   isPassAndPlay={isTvPassAndPlay}
                   roomStatus={controllerRoomStatus}
+                  isAIThinking={isAIThinking}
                   onLeaveLobby={() => handleLeaveControllerLobby()}
                   onDispatchAction={dispatchAction}
                   onSelectLinePreview={setTvLinePreview}
@@ -1274,6 +1275,7 @@ export default function App() {
                 secondsLeft={60}
                 selectedLine={tvLinePreview}
                 hideExit={false}
+                isAIThinking={isAIThinking}
                 onExit={() => {
                   partyService.disconnect();
                   try {

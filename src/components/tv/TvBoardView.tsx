@@ -23,6 +23,7 @@ import {
 import { partyService } from '../../utils/partyPeer';
 import { useSpatialNavigation } from '../../hooks/useSpatialNavigation';
 import { playShiftSound, playEliminateSound, playRadarPing } from '../../utils/tvAudio';
+import { soundManager } from '../../utils/audio';
 
 export interface TvBoardViewProps {
   gameState: GameState;
@@ -111,6 +112,7 @@ interface TvCellProps {
   boardSize: number;
   row: number;
   col: number;
+  isError?: boolean;
 }
 
 const areTvCellPropsEqual = (prev: TvCellProps, next: TvCellProps): boolean => {
@@ -126,6 +128,7 @@ const areTvCellPropsEqual = (prev: TvCellProps, next: TvCellProps): boolean => {
   if (prev.mode !== next.mode) return false;
   if (prev.selectedLineDir !== next.selectedLineDir) return false;
   if (prev.selectedLineType !== next.selectedLineType) return false;
+  if (prev.isError !== next.isError) return false;
 
   const prevChar = prev.char;
   const nextChar = next.char;
@@ -157,6 +160,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
   boardSize,
   row,
   col,
+  isError = false,
 }) => {
   const [imgError, setImgError] = useState(false);
   const isDead = !char.isAlive;
@@ -169,13 +173,15 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
   return (
     <div
       className={`relative w-full aspect-square rounded-xl sm:rounded-2xl overflow-hidden backdrop-blur-md border transition-all duration-300 flex flex-col justify-between select-none shadow-md ${
-        isLineActive
-          ? 'border-cyan-400 border-t-2 border-t-white bg-gradient-to-b from-cyan-950/70 via-blue-950/90 to-black shadow-[0_0_35px_rgba(6,182,212,0.7)] scale-[1.03] z-30 ring-2 ring-cyan-300/80'
-          : inRadarCenter
-            ? 'border-rose-500 border-t-2 border-t-rose-300 shadow-[0_0_25px_rgba(244,63,94,0.65)] bg-gradient-to-b from-red-950/70 to-black z-20'
-            : inRadarArea
-              ? 'border-blue-400/80 border-t-2 border-t-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.45)] bg-gradient-to-b from-blue-950/50 to-black z-10'
-              : 'border-white/15 bg-gradient-to-b from-white/[0.08] via-zinc-900/80 to-black/90 hover:border-white/30 shadow-[0_4px_16px_rgba(0,0,0,0.6)]'
+        isError
+          ? 'border-rose-500 border-t-2 border-t-rose-400 bg-gradient-to-b from-red-950/90 via-red-900/40 to-black shadow-[0_0_30px_rgba(244,63,94,0.8)] z-30 ring-2 ring-rose-500/80'
+          : isLineActive
+            ? 'border-cyan-400 border-t-2 border-t-white bg-gradient-to-b from-cyan-950/70 via-blue-950/90 to-black shadow-[0_0_35px_rgba(6,182,212,0.7)] scale-[1.03] z-30 ring-2 ring-cyan-300/80'
+            : inRadarCenter
+              ? 'border-rose-500 border-t-2 border-t-rose-300 shadow-[0_0_25px_rgba(244,63,94,0.65)] bg-gradient-to-b from-red-950/70 to-black z-20'
+              : inRadarArea
+                ? 'border-blue-400/80 border-t-2 border-t-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.45)] bg-gradient-to-b from-blue-950/50 to-black z-10'
+                : 'border-white/15 bg-gradient-to-b from-white/[0.08] via-zinc-900/80 to-black/90 hover:border-white/30 shadow-[0_4px_16px_rgba(0,0,0,0.6)]'
       }`}
     >
       {/* 1. Фоновое изображение персонажа или силуэт (bg-cover bg-center) */}
@@ -368,6 +374,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
   const [focusedControl, setFocusedControl] = useState<'NONE' | 'CONTINUE' | 'RESTART' | 'EXIT'>('NONE');
   const [isPauseOpen, setIsPauseOpen] = useState<boolean>(false);
+  const [errorCardId, setErrorCardId] = useState<string | null>(null);
   const [internalDisconnected, setInternalDisconnected] = useState<{ role?: string; graceTimeoutSec: number } | null>(null);
   const [tvGraceLeft, setTvGraceLeft] = useState(60);
 
@@ -442,6 +449,24 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         action?.type === 'RADAR_SCAN'
       ) {
         playRadarPing();
+      } else if (
+        action?.type === 'ACTION_REJECTED' ||
+        action?.type === 'SYNC_ERROR' ||
+        action?.type === 'ERROR'
+      ) {
+        soundManager.play('deny');
+        const errId = action.payload?.errorCardId || action.payload?.targetId || action.errorCardId;
+        if (errId) {
+          setErrorCardId(errId);
+          setTimeout(() => setErrorCardId(null), 500);
+        }
+      } else if (action?.type === 'ACCUSE' && action.payload?.isMiss) {
+        soundManager.play('deny');
+        const errId = action.payload?.errorCardId || action.payload?.targetId;
+        if (errId) {
+          setErrorCardId(errId);
+          setTimeout(() => setErrorCardId(null), 500);
+        }
       }
       prevActionHandler?.(action);
     };
@@ -876,7 +901,8 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                     key={char.id || `cell_${index}`}
                     layout
                     style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                    animate={char.id === errorCardId ? { x: [-8, 8, -5, 5, 0] } : undefined}
+                    transition={char.id === errorCardId ? { duration: 0.4 } : { type: "spring", bounce: 0.2, duration: 0.5 }}
                     className={`w-full h-full relative ${cellZIndex}`}
                   >
                     <TvCell
@@ -893,6 +919,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                       boardSize={boardSize}
                       row={row}
                       col={col}
+                      isError={char.id === errorCardId}
                     />
                   </motion.div>
                 );

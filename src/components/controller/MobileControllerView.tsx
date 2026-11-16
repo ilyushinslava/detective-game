@@ -163,6 +163,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [selectedDir, setSelectedDir] = useState<'LEFT' | 'RIGHT' | 'UP' | 'DOWN'>('LEFT');
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
+  const [errorTargetId, setErrorTargetId] = useState<string | null>(null);
   const [isAwaitingTurnEnd, setIsAwaitingTurnEnd] = useState<boolean>(false);
 
   // Сетевые состояния потери связи и грейс-периода
@@ -216,8 +217,13 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     partyService.onAction = (action) => {
       if (action?.type === 'ACTION_REJECTED' || action?.type === 'ERROR' || action?.type === 'SYNC_ERROR') {
         setIsAwaitingTurnEnd(false);
-        soundManager.play('error');
-        triggerHaptic('medium');
+        soundManager.play('deny');
+        triggerHaptic('error');
+        const errId = action.payload?.errorCardId || action.payload?.targetId || selectedTargetId;
+        if (errId) {
+          setErrorTargetId(errId);
+          setTimeout(() => setErrorTargetId(null), 500);
+        }
       }
       prevAction?.(action);
     };
@@ -517,6 +523,15 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       onDispatchAction({
         type: 'DUEL_ACCUSE',
         payload: { targetId },
+      });
+    } else if (pendingAction.id === 'SWEAR_IN_OFFICER') {
+      const targetOfficerId =
+        selectedTargetId && gameState.uniformedOfficers?.includes(selectedTargetId)
+          ? selectedTargetId
+          : gameState.uniformedOfficers?.[0] || '';
+      onDispatchAction({
+        type: 'SWEAR_IN_OFFICER',
+        payload: { targetId: targetOfficerId },
       });
     } else {
       onDispatchAction({
@@ -1280,6 +1295,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                     mode={gameState.mode}
                     character={char}
                     isSelected={selectedTargetId === char.id}
+                    isError={char.id === errorTargetId}
                     isPVP={true}
                   />
                 </div>
@@ -1337,8 +1353,16 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                       mode={gameState?.mode || 'MANIAC_VS_OPERATIVE'}
                       character={char}
                       isSelected={isSelected}
+                      isError={char.id === errorTargetId}
                       isPVP={true}
                       onClick={() => {
+                        if (!char.isAlive) {
+                          soundManager.play('deny');
+                          triggerHaptic('error');
+                          setErrorTargetId(char.id);
+                          setTimeout(() => setErrorTargetId(null), 500);
+                          return;
+                        }
                         triggerHaptic('light');
                         setSelectedTargetId(char.id);
                       }}
@@ -1372,7 +1396,12 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             id: act.id,
             label: act.label,
             isRed: act.isRed,
-            disabled: act.requiresTarget && neighbors.length === 0,
+            disabled:
+              (act.requiresTarget && neighbors.length === 0) ||
+              (act.id === 'SWEAR_IN_OFFICER' &&
+                (!gameState.uniformedOfficers ||
+                  gameState.uniformedOfficers.length === 0 ||
+                  gameState.evidenceDeck?.length === 0)),
             onClick: () => handleExecuteAction(act),
           }))}
         />
@@ -1433,6 +1462,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                     mode={gameState?.mode || 'MANIAC_VS_OPERATIVE'}
                     character={pendingTargetCharacter}
                     isSelected={false}
+                    isError={pendingTargetCharacter.id === errorTargetId}
                     isPVP={true}
                   />
                 </div>

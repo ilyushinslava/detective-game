@@ -145,4 +145,71 @@ describe("useGameActions Hook", () => {
       expect(hasCleanup).toBe(false);
     });
   });
+
+  describe("THIEF_HUNT: Действие 'Вызов патруля' (SWEAR_IN_OFFICER)", () => {
+    it("Кнопка 'Вызов патруля' разблокирована в ход Полиции при наличии карт в колоде и офицеров на поле даже без selectedId", () => {
+      const state = createInitialState("THIEF_HUNT", "AI", "DETECTIVE");
+      state.currentTurn = "DETECTIVE";
+      expect(state.uniformedOfficers?.length).toBeGreaterThan(0);
+      expect(state.evidenceDeck.length).toBeGreaterThan(0);
+
+      mockParams.gameState = state;
+      mockParams.isHumanTurn = true;
+      mockParams.isKillerTurn = false;
+      mockParams.isKillerView = false;
+      mockParams.selectedId = null;
+
+      const { result } = renderHook(() => useGameActions(mockParams));
+
+      const patrolAction = result.current.availableActions.find((a) => a.id === "patrol_call");
+      expect(patrolAction).toBeDefined();
+      expect(patrolAction?.disabled).toBe(false);
+    });
+
+    it("handleSwearInOfficer берет первого офицера по умолчанию, если конкретный офицер не выбран", () => {
+      const state = createInitialState("THIEF_HUNT", "AI", "DETECTIVE");
+      state.currentTurn = "DETECTIVE";
+      const expectedOfficerId = state.uniformedOfficers![0];
+
+      mockParams.gameState = state;
+      mockParams.isHumanTurn = true;
+      mockParams.selectedId = null;
+
+      const { result } = renderHook(() => useGameActions(mockParams));
+
+      act(() => {
+        result.current.handleSwearInOfficer();
+      });
+
+      expect(mockParams.dispatchAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: "SWEAR_IN_OFFICER",
+          payload: { targetId: expectedOfficerId },
+        })
+      );
+    });
+
+    it("handleSwearInOfficer заменяет выбранного офицера, если selectedId есть в uniformedOfficers", () => {
+      const state = createInitialState("THIEF_HUNT", "AI", "DETECTIVE");
+      state.currentTurn = "DETECTIVE";
+      const chosenOfficerId = state.uniformedOfficers![1];
+
+      mockParams.gameState = state;
+      mockParams.isHumanTurn = true;
+      mockParams.selectedId = chosenOfficerId;
+
+      const { result } = renderHook(() => useGameActions(mockParams));
+
+      act(() => {
+        result.current.handleSwearInOfficer();
+      });
+
+      expect(mockParams.dispatchAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: "SWEAR_IN_OFFICER",
+          payload: { targetId: chosenOfficerId },
+        })
+      );
+    });
+  });
 });

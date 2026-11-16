@@ -42,6 +42,7 @@ export interface GameScreenProps {
   effectiveRadarCellIds: string[];
   effectiveRadarColorClass: string | null;
   errorCardId: string | null;
+  setErrorCardId?: (id: string | null) => void;
   targetActions: Array<{
     id: string;
     label: string;
@@ -112,6 +113,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
   effectiveRadarCellIds,
   effectiveRadarColorClass,
   errorCardId,
+  setErrorCardId,
   targetActions,
   cleanupAction,
   isCleanupAvailable,
@@ -438,6 +440,16 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
               isModalOpen={isHandSheetOpen || isLogOpen || !isHumanTurn}
               onShift={handleShift}
               onSelectCharacter={(id) => {
+                const clickedChar = gameState.board?.flat().find((c) => c.id === id);
+                if (clickedChar && !clickedChar.isAlive && gameState.mode !== "LINE_UP") {
+                  soundManager.play('deny');
+                  triggerHaptic('error');
+                  if (setErrorCardId) {
+                    setErrorCardId(id);
+                    setTimeout(() => setErrorCardId(null), 500);
+                  }
+                  return;
+                }
                 soundManager.play('click');
                 setSelectedId((prev) => (prev === id ? null : id));
               }}

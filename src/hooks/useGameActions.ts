@@ -71,7 +71,7 @@ export function getAvailableActionDescriptors(
       );
     } else if (gameState.mode === "THIEF_HUNT") {
       list.push(
-        { id: "SWEAR_IN_OFFICER", label: "Вызов патруля", icon: "[PATROL]", requiresTarget: true },
+        { id: "SWEAR_IN_OFFICER", label: "Вызов патруля", icon: "[PATROL]", requiresTarget: false },
         { id: "ACCUSE", label: "Задержание", icon: "[TARGET]", isRed: true, requiresTarget: true }
       );
     }
@@ -346,13 +346,19 @@ export function useGameActions({
   };
 
   const handleSwearInOfficer = () => {
-    if (!selectedId || gameState.currentTurn !== "DETECTIVE" || !isHumanTurn)
+    if (gameState.currentTurn !== "DETECTIVE" || !isHumanTurn)
       return;
+    const targetOfficerId =
+      selectedId && gameState.uniformedOfficers?.includes(selectedId)
+        ? selectedId
+        : gameState.uniformedOfficers?.[0];
+    if (!targetOfficerId) return;
+
     soundManager.play("patrol");
     triggerHaptic("medium");
     dispatchAction({
       type: "SWEAR_IN_OFFICER",
-      payload: { targetId: selectedId },
+      payload: { targetId: targetOfficerId },
       senderId: "local",
       timestamp: Date.now(),
     } as any);
@@ -645,10 +651,10 @@ export function useGameActions({
             onClick: handleSwearInOfficer,
             disabled:
               !isHumanTurn ||
-              !selectedId ||
-              !gameState.uniformedOfficers?.includes(selectedId) ||
               isGameOver ||
-              gameState.evidenceDeck.length === 0,
+              gameState.evidenceDeck.length === 0 ||
+              !gameState.uniformedOfficers ||
+              gameState.uniformedOfficers.length === 0,
             className:
               "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 hover:from-blue-900 hover:via-blue-800 hover:to-blue-900 text-white shadow-[0_8px_20px_rgba(37,99,235,0.35)] border border-blue-500/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
           });

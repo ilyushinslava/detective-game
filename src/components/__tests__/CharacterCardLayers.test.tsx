@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, cleanup } from "@testing-library/react";
-import { CharacterCard } from "../CharacterCard";
+import { CharacterCard, areCharacterCardPropsEqual } from "../CharacterCard";
 import type { Character } from "../../types/game";
 
 const mockCharacter: Character = {
@@ -78,5 +78,34 @@ describe("CharacterCard: Визуальные слои границы и эле�
     expect(getByText("#01")).toBeDefined();
     expect(getByText("ВЫ")).toBeDefined();
     expect(getByTitle("Ограблен")).toBeDefined();
+  });
+
+  it("4. При isError=true карточка окрашивается в нео-нуарный красный бордер и ring-rose-500", () => {
+    const { container } = render(
+      <CharacterCard
+        mode="SKHVATKA"
+        character={mockCharacter}
+        isSelected={false}
+        isError={true}
+        onClick={vi.fn()}
+      />
+    );
+
+    const cardRoot = container.firstElementChild as HTMLElement;
+    expect(cardRoot.className).toContain("border-rose-500");
+    expect(cardRoot.className).toContain("ring-rose-500/70");
+  });
+
+  it("5. areCharacterCardPropsEqual возвращает false при изменении флага isError", () => {
+    const baseProps = {
+      mode: "SKHVATKA" as const,
+      character: mockCharacter,
+      isSelected: false,
+      onClick: vi.fn(),
+      isError: false,
+    };
+
+    expect(areCharacterCardPropsEqual(baseProps, { ...baseProps, isError: true })).toBe(false);
+    expect(areCharacterCardPropsEqual(baseProps, { ...baseProps, isError: false })).toBe(true);
   });
 });

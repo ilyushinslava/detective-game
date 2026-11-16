@@ -187,13 +187,13 @@ const CharacterCardComponent = ({
         style={{ willChange: 'transform', transform: 'translateZ(0)' }}
         animate={
           isError
-            ? { x: [-3, 3, -3, 3, -1, 1, 0], scale: [1, 1.02, 0.98, 1] }
+            ? { x: [-8, 8, -5, 5, 0] }
             : {}
         }
         transition={{ duration: 0.4 }}
         className={`relative w-full aspect-square rounded-md sm:rounded-xl p-0.5 sm:p-1.5 flex flex-col justify-between border select-none transition-all duration-200 cursor-pointer overflow-hidden ${
           isError
-            ? "bg-zinc-800/90 border-zinc-500 ring-2 ring-zinc-500/50 shadow-[0_0_12px_rgba(113,113,122,0.4)] z-30"
+            ? "bg-rose-950/40 border-rose-500 ring-2 ring-rose-500/70 shadow-[0_0_20px_rgba(244,63,94,0.6)] z-30"
             : isDead
               ? isSecretService
                 ? "bg-zinc-950/95 border-red-900/40 opacity-70 shadow-inner"

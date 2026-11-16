@@ -984,6 +984,7 @@ export default function App() {
                   effectiveRadarCellIds={effectiveRadarCellIds}
                   effectiveRadarColorClass={effectiveRadarColorClass}
                   errorCardId={errorCardId}
+                  setErrorCardId={setErrorCardId}
                   targetActions={targetActions}
                   cleanupAction={cleanupAction}
                   isCleanupAvailable={isCleanupAvailable}

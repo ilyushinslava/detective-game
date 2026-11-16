@@ -325,19 +325,24 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
       {/* 2. МОБИЛКА (до lg) - BOTTOM-HEAVY ЭРГОНОМИКА С CINEMATIC HERO ZONE       */}
       {/* ========================================================================= */}
       <main className="lg:hidden flex-1 flex flex-col justify-between px-3.5 sm:px-5 pt-2 pb-4 overflow-y-auto w-full select-none min-h-0 gap-3">
-        {/* [ВЕРХНЯЯ ПОЛОВИНА]: Премиальная кинематографичная типографика (Cinematic Typography) */}
-        <div className="flex-1 flex flex-col justify-center items-center py-4 px-4 text-center select-none min-h-[130px] sm:min-h-[160px]">
+        {/* [ВЕРХНЯЯ ПОЛОВИНА]: Премиальная кинематографичная типографика (Cinematic Typography 2.0) */}
+        <div className="flex-1 flex flex-col justify-center items-center py-6 sm:py-8 px-4 text-center select-none min-h-[160px] sm:min-h-[200px] border-y border-white/5 my-1">
+          {/* Терминальный надзаголовок (kicker) досье */}
+          <div className="text-[10px] sm:text-[11px] font-mono text-zinc-500 tracking-[0.25em] uppercase mb-3 sm:mb-4">
+            [ Уровень допуска: Секретно ]
+          </div>
+
           {/* Заголовок с деликатным нео-нуар свечением */}
-          <h2 className="text-base sm:text-lg font-display font-black tracking-[0.24em] sm:tracking-[0.3em] text-white uppercase leading-tight drop-shadow-[0_0_25px_rgba(56,189,248,0.3)] max-w-xs sm:max-w-sm">
-            ТАКТИЧЕСКАЯ СТРАТЕГИЯ РАЗУМА
+          <h2 className="text-xl sm:text-2xl font-display font-black tracking-[0.24em] sm:tracking-[0.3em] text-white uppercase leading-tight drop-shadow-[0_0_25px_rgba(56,189,248,0.3)] max-w-xs sm:max-w-sm">
+            ТАКТИЧЕСКИЙ ДЕТЕКТИВ
           </h2>
 
           {/* Элегантный тонкий разделитель с градиентом к акцентному цвету */}
-          <div className="w-24 sm:w-32 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent my-2.5 sm:my-3" />
+          <div className="w-24 sm:w-32 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent my-3 sm:my-3.5" />
 
-          {/* Подзаголовок */}
-          <p className="text-[11px] sm:text-xs font-mono text-zinc-400 tracking-wider max-w-[260px] sm:max-w-xs leading-relaxed">
-            Разоблачите цель или станьте призраком мегаполиса
+          {/* Подзаголовок по лору игры */}
+          <p className="text-[11px] sm:text-xs font-mono text-zinc-400 tracking-wider max-w-[280px] sm:max-w-sm leading-relaxed">
+            Манипулируй улицами. Вычисли цель среди толпы. Не выдай себя.
           </p>
         </div>
 

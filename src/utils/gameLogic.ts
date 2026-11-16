@@ -6,6 +6,8 @@ import type {
   Role,
   LastShift,
   SpyPlayer,
+  CellType,
+  CellStatus,
 } from "../types/game";
 import { ALL_CHARACTERS } from "../constants/characters";
 import { DUEL_CHARACTERS } from "../constants/duelCharacters";
@@ -107,6 +109,109 @@ export function getAdjacentCharacters(
   return adjacent;
 }
 
+export interface GenerateBoardOptions {
+  mode?: GameModeType;
+  boardSize?: number;
+  suspectCount?: number;
+  clueCount?: number;
+  emptyCount?: number;
+  defaultStatus?: CellStatus;
+  proceduralDistribution?: boolean;
+}
+
+export const NOIR_CLUES = [
+  { title: "Окурок сигареты", description: "Следы дорогого табака с золотым ободком." },
+  { title: "Стреляная гильза", description: "Калибр .38 Special, пороховой нагар свежий." },
+  { title: "Шифрованная записка", description: "Координаты набережной и время полуночи." },
+  { title: "Капли крови", description: "Группа крови III+, след ведет к западному выходу." },
+  { title: "Сломанная запонка", description: "Фамильный герб синдиката 'Черный лебедь'." },
+  { title: "Чек из бара", description: "Оплата за два двойных бурбона 20 минут назад." },
+  { title: "Разбитый медальон", description: "Внутри фото неизвестной девушки с вуалью." },
+  { title: "Следы протектора", description: "Шины тяжелого седана Packard." },
+];
+
+/**
+ * Процедурная генерация сетки игрового поля (SSOT 5x5).
+ * Генерирует массив из size * size клеток с процедурным распределением типов (SUSPECT, CLUE, EMPTY).
+ */
+export function generateBoard5x5(options?: GenerateBoardOptions): Character[][] {
+  const size = options?.boardSize || 5;
+  const totalCells = size * size;
+  const mode = options?.mode || "MANIAC_VS_OPERATIVE";
+  const sourcePool = mode === "LINE_UP" ? DUEL_CHARACTERS : ALL_CHARACTERS;
+  const shuffledCharacters = shuffle(sourcePool);
+
+  const isProcedural = options?.proceduralDistribution ?? false;
+  const defaultStatus: CellStatus = options?.defaultStatus ?? (isProcedural ? "HIDDEN" : "REVEALED");
+
+  const clueCount = isProcedural ? (options?.clueCount ?? 5) : 0;
+  const emptyCount = isProcedural ? (options?.emptyCount ?? 5) : 0;
+  const suspectCount = totalCells - clueCount - emptyCount;
+
+  const typePool: CellType[] = [
+    ...Array(Math.max(0, suspectCount)).fill("SUSPECT" as CellType),
+    ...Array(Math.max(0, clueCount)).fill("CLUE" as CellType),
+    ...Array(Math.max(0, emptyCount)).fill("EMPTY" as CellType),
+  ];
+  const shuffledTypes = shuffle(typePool);
+  const shuffledClues = shuffle(NOIR_CLUES);
+
+  let charIdx = 0;
+  let clueIdx = 0;
+  const boardCells: Character[] = [];
+
+  for (let i = 0; i < totalCells; i++) {
+    const row = Math.floor(i / size);
+    const col = i % size;
+    const cellType = isProcedural ? shuffledTypes[i] : "SUSPECT";
+
+    if (cellType === "SUSPECT") {
+      const char = shuffledCharacters[charIdx % shuffledCharacters.length];
+      charIdx++;
+      boardCells.push({
+        ...char,
+        isAlive: true,
+        isExonerated: false,
+        isRobbed: false,
+        cellType: "SUSPECT",
+        status: defaultStatus,
+      });
+    } else if (cellType === "CLUE") {
+      const clue = shuffledClues[clueIdx % shuffledClues.length];
+      clueIdx++;
+      const clueId = `clue_${row}_${col}_${Math.random().toString(36).substring(2, 6)}`;
+      boardCells.push({
+        id: clueId,
+        name: clue.title,
+        isAlive: true,
+        isExonerated: true,
+        isRobbed: false,
+        cellType: "CLUE",
+        status: defaultStatus,
+        clueData: clue,
+      });
+    } else {
+      // EMPTY
+      const emptyId = `empty_${row}_${col}_${Math.random().toString(36).substring(2, 6)}`;
+      boardCells.push({
+        id: emptyId,
+        name: "Пустой сектор",
+        isAlive: false,
+        isExonerated: true,
+        isRobbed: false,
+        cellType: "EMPTY",
+        status: defaultStatus,
+      });
+    }
+  }
+
+  const board: Character[][] = [];
+  for (let r = 0; r < size; r++) {
+    board.push(boardCells.slice(r * size, r * size + size));
+  }
+  return board;
+}
+
 /**
  * Инициализирует первичное состояние матча согласно регламенту выбранного режима.
  * Гарантирует инвариант колоды: все карты колоды присутствуют на сгенерированном поле.
@@ -140,21 +245,13 @@ export function createInitialState(
     }
   }
 
-  const totalCells = boardSize * boardSize;
-  const sourcePool = mode === "LINE_UP" ? DUEL_CHARACTERS : ALL_CHARACTERS;
-  const shuffledCharacters = shuffle(sourcePool);
-
-  const boardCharacters = shuffledCharacters.slice(0, totalCells).map((c) => ({
-    ...c,
-    isAlive: true,
-    isExonerated: false,
-    isRobbed: false,
-  }));
-
-  const board: Character[][] = [];
-  for (let i = 0; i < boardSize; i++) {
-    board.push(boardCharacters.slice(i * boardSize, i * boardSize + boardSize));
-  }
+  const board = generateBoard5x5({
+    mode,
+    boardSize,
+    proceduralDistribution: false,
+    defaultStatus: "REVEALED",
+  });
+  const boardCharacters = board.flat();
 
   let deck = shuffle(boardCharacters.map((c) => c.id));
 
@@ -248,8 +345,8 @@ export function createInitialState(
     detectiveSecretId = spies[0].secretId;
     killerSecretId = spies[1].secretId;
   } else if (mode === "LINE_UP") {
-    killerSecretId = shuffledCharacters[0].id;
-    detectiveSecretId = shuffledCharacters[1].id;
+    killerSecretId = boardCharacters[0].id;
+    detectiveSecretId = boardCharacters[1].id;
   } else {
     const chosenDet =
       validDetectiveCandidates[
@@ -300,6 +397,8 @@ export function createInitialState(
     lastShift: null,
     lastRobbedId: null,
     winner: null,
+    actionPoints: 3,
+    maxActionPoints: 3,
     mode,
     opponent,
     playerRole,

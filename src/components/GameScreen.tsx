@@ -439,6 +439,12 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
               myRoleColor={myRoleColor}
               isModalOpen={isHandSheetOpen || isLogOpen || !isHumanTurn}
               onShift={handleShift}
+              onRevealCell={(cellId, r, c) => {
+                dispatchAction({
+                  type: "REVEAL_CELL",
+                  payload: { cellId, row: r, col: c },
+                });
+              }}
               onSelectCharacter={(id) => {
                 const clickedChar = gameState.board?.flat().find((c) => c.id === id);
                 if (clickedChar && !clickedChar.isAlive && gameState.mode !== "LINE_UP") {

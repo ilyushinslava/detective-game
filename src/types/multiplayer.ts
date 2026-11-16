@@ -35,4 +35,6 @@ export type GameAction = BaseGameAction & (
   | { type: "DUEL_ASK_QUESTION"; payload: { questionId: string }; senderId?: string }
   | { type: "DUEL_ACCUSE"; payload: { targetId: string }; senderId?: string }
   | { type: "PREVIEW_SHIFT"; payload: { type: "ROW" | "COL"; index: number } | null }
+  | { type: "REVEAL_CELL"; payload: { cellId: string; row?: number; col?: number }; role?: Role }
+  | { type: "START_GAME"; payload?: any }
 );

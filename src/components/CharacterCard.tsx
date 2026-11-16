@@ -181,6 +181,62 @@ const CharacterCardComponent = ({
     const hasCoin = characterHasCoin(character, mode);
     const spyMeta = character.unmaskedSpyIndex !== undefined ? SPY_COLORS[character.unmaskedSpyIndex] : null;
 
+    if (character.status === "HIDDEN") {
+      return (
+        <motion.div
+          onClick={onClick}
+          className="relative w-full aspect-square rounded-md sm:rounded-xl p-1 flex flex-col justify-between items-center text-center border border-white/15 bg-black/60 hover:border-cyan-400/50 hover:bg-zinc-900/80 transition-all select-none cursor-pointer group shadow-inner"
+        >
+          <span className="text-[8px] font-mono text-zinc-600 self-start group-hover:text-cyan-400 transition-colors">
+            #{character.id.replace("c", "")}
+          </span>
+          <div className="w-6 h-6 rounded-md bg-zinc-900/60 border border-white/10 flex items-center justify-center text-zinc-500 group-hover:text-cyan-400 transition-colors">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="2" x2="12" y2="6" />
+              <line x1="12" y1="18" x2="12" y2="22" />
+              <line x1="2" y1="12" x2="6" y2="12" />
+              <line x1="18" y1="12" x2="22" y2="12" />
+            </svg>
+          </div>
+          <span className="text-[7.5px] font-mono tracking-widest text-zinc-500 group-hover:text-zinc-200 uppercase">
+            РАЗВЕДКА
+          </span>
+        </motion.div>
+      );
+    }
+
+    if (character.cellType === "CLUE") {
+      return (
+        <motion.div
+          onClick={onClick}
+          className="relative w-full aspect-square rounded-md sm:rounded-xl p-1 flex flex-col justify-between border border-amber-500/40 bg-zinc-950/90 text-amber-300 select-none shadow-[0_0_10px_rgba(245,158,11,0.15)] cursor-pointer"
+        >
+          <div className="flex justify-between items-center text-[7.5px] font-mono text-amber-500/80">
+            <span>#{character.id.replace("clue_", "")}</span>
+            <span className="bg-amber-950/60 border border-amber-500/40 px-1 rounded uppercase font-black">УЛИКА</span>
+          </div>
+          <div className="my-auto text-[9px] font-bold text-zinc-100 line-clamp-2 leading-tight">
+            {character.name}
+          </div>
+          <div className="h-0.5 w-full bg-amber-500/30 rounded-full" />
+        </motion.div>
+      );
+    }
+
+    if (character.cellType === "EMPTY") {
+      return (
+        <motion.div
+          onClick={onClick}
+          className="relative w-full aspect-square rounded-md sm:rounded-xl p-1 flex flex-col justify-between items-center text-center border border-zinc-800 bg-zinc-950/40 text-zinc-600 select-none opacity-60"
+        >
+          <span className="text-[7.5px] font-mono text-zinc-600 self-start">ПУСТО</span>
+          <div className="text-zinc-700 font-mono text-xs">✕</div>
+          <span className="text-[7px] font-mono text-zinc-600 uppercase">СЕКТОР</span>
+        </motion.div>
+      );
+    }
+
     return (
       <motion.div
         onClick={onClick}

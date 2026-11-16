@@ -8,6 +8,9 @@ export type GameModeType =
 export type Role = "KILLER" | "DETECTIVE";
 export type OpponentType = "PVP" | "AI" | "ONLINE";
 
+export type CellType = "EMPTY" | "CLUE" | "SUSPECT";
+export type CellStatus = "HIDDEN" | "REVEALED" | "BLOCKED";
+
 export interface Character {
   id: string;
   name: string;
@@ -16,6 +19,13 @@ export interface Character {
   isRobbed?: boolean;
   hasCoin?: boolean;
   unmaskedSpyIndex?: number;
+  // SSOT-расширение для процедурной сетки 5x5
+  cellType?: CellType;
+  status?: CellStatus;
+  clueData?: {
+    title: string;
+    description: string;
+  };
 }
 
 export interface LastShift {
@@ -58,6 +68,8 @@ export interface GameState {
   blockedShift?: { type: "ROW" | "COL"; index: number } | null;
   winner: Role | "DRAW" | null;
   winReason?: "ACCUSATION" | "ACCUSATIONS_EXHAUSTED" | "TIE_BREAK_PENALTIES" | "TIE_BREAK_CANDIDATES" | "TIE_BREAK_DRAW";
+  actionPoints?: number;
+  maxActionPoints?: number;
   log: string[];
   lastShift: LastShift | null;
   lastInterrogation: InterrogationResult | null;

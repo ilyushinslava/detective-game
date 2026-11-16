@@ -341,8 +341,8 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
           <div className="w-24 sm:w-32 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent my-3 sm:my-3.5" />
 
           {/* Подзаголовок по лору игры */}
-          <p className="text-[11px] sm:text-xs font-mono text-zinc-400 tracking-wider max-w-[280px] sm:max-w-sm leading-relaxed">
-            Манипулируй улицами. Вычисли цель среди толпы. Не выдай себя.
+          <p className="text-xs sm:text-sm font-sans text-zinc-300 tracking-wide max-w-[280px] sm:max-w-sm leading-relaxed">
+            Манипулируй. Вычисляй. Не выдавай себя.
           </p>
         </div>
 

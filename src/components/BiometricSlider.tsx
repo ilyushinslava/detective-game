@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { motion, useMotionValue, useTransform } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { triggerHaptic } from "../utils/haptics";
 import { DEFAULT_BET } from "../constants/gameRules";
 
@@ -18,23 +18,24 @@ export const BiometricSlider = ({
 }: BiometricSliderProps) => {
   const [isTriggered, setIsTriggered] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
+  const handleRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const textOpacity = useTransform(x, [0, 160], [1, 0]);
 
   const handleDragEnd = () => {
     if (disabled || isTriggered) return;
     const trackWidth = trackRef.current?.offsetWidth || 0;
-    const handleWidth = 48;
+    const handleWidth = handleRef.current?.offsetWidth || 40;
     const maxDrag = Math.max(1, trackWidth - handleWidth - 8);
     const currentX = x.get();
 
     if (currentX >= maxDrag * 0.85) {
-      x.set(maxDrag);
+      animate(x, maxDrag, { type: "spring", stiffness: 500, damping: 35 });
       setIsTriggered(true);
       triggerHaptic("heavy");
       onTrigger();
     } else {
-      x.set(0);
+      animate(x, 0, { type: "spring", stiffness: 400, damping: 28 });
     }
   };
 
@@ -74,6 +75,7 @@ export const BiometricSlider = ({
       )}
 
       <motion.div
+        ref={handleRef}
         drag={disabled || isTriggered ? false : "x"}
         dragConstraints={trackRef}
         dragElastic={0.05}

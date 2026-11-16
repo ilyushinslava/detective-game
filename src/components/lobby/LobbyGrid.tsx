@@ -1,6 +1,5 @@
 import React from "react";
 import { ModeCard } from "./ModeCard";
-import { ActiveContractCard } from "./ActiveContractCard";
 import { Icons } from "../ui/Icons";
 
 export interface LobbyGridProps {
@@ -57,9 +56,9 @@ export const LobbyGrid: React.FC<LobbyGridProps> = ({
         )}
       </div>
 
-      {/* Компактная сетка: 3 главных локальных режима + 4-й слот Активный контракт */}
+      {/* Сетка 3-х локальных режимов: 2 одиночных слота сверху + 1 широкий ТВ-режим снизу */}
       <div className="grid grid-cols-2 gap-4 xl:gap-5">
-        {/* Карточка 1: Одиночные дела (PVE) */}
+        {/* Карточка 1 (1 колонка): Одиночные дела (PVE) */}
         <ModeCard
           variant="pve"
           title={t.menu.soloCases || "Одиночные дела"}
@@ -70,7 +69,7 @@ export const LobbyGrid: React.FC<LobbyGridProps> = ({
           onClick={onSelectSolo}
         />
 
-        {/* Карточка 2: На одном экране (PVP) */}
+        {/* Карточка 2 (1 колонка): На одном экране (PVP) */}
         <ModeCard
           variant="pvp"
           title={t.menu.localDuel || "На одном экране"}
@@ -81,12 +80,13 @@ export const LobbyGrid: React.FC<LobbyGridProps> = ({
           onClick={onSelectLocalDuel}
         />
 
-        {/* Карточка 3: ТВ Режим (TV PARTY) */}
+        {/* Карточка 3 (2 колонки - широкий формат): ТВ Режим (TV PARTY) */}
         <ModeCard
+          wide
           variant="tv"
           title={t.menu.tvMode || "ТВ РЕЖИМ"}
           badge="ДЕЛО №3 • TV PARTY"
-          description="Большой дисплей ТВ как общее поле расследования и персональные пульты в смартфонах для компании."
+          description="Большой дисплей телевизора как общее игровое поле расследования и персональные мобильные контроллеры игроков для компании."
           actionText="ПОДКЛЮЧИТЬ ТВ ПАРТИЮ"
           icon={
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5 xl:w-6 xl:h-6">
@@ -96,9 +96,6 @@ export const LobbyGrid: React.FC<LobbyGridProps> = ({
           }
           onClick={onOpenTvParty}
         />
-
-        {/* Слот 4: Активный контракт (Ежедневная мета-директива) */}
-        <ActiveContractCard />
       </div>
     </div>
   );

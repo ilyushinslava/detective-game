@@ -1,7 +1,6 @@
 import React from "react";
 import { LobbyGrid } from "./LobbyGrid";
 import { NetworkSidebar } from "./NetworkSidebar";
-import { ActiveContractCard } from "./ActiveContractCard";
 import { BiometricSlider } from "../BiometricSlider";
 import { Icons } from "../ui/Icons";
 
@@ -50,7 +49,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
       {/* 1. ДЕСКТОП (lg и выше) - СХЕМА «ШТАБ: ЛОКАЛЬНЫЙ ХАБ И БЫСТРЫЕ ДЕЙСТВИЯ»    */}
       {/* ========================================================================= */}
       <main className="hidden lg:flex flex-row gap-x-10 xl:gap-x-14 px-8 xl:px-10 py-5 w-full max-w-[1700px] mx-auto select-none flex-1">
-        {/* Левая колонка: Обучение/Справочник + Сетка 2×2 (PVE, PVP, TV, АКТИВНЫЙ КОНТРАКТ) */}
+        {/* Левая колонка: Обучение/Справочник + Сетка 3-х режимов (PVE, PVP, TV широкий) */}
         <LobbyGrid
           onSelectSolo={onSelectSolo}
           onSelectLocalDuel={onSelectLocalDuel}
@@ -97,7 +96,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
 
         {/* [НИЖНЯЯ ЧАСТЬ / THUMB-ZONE]: Интерактивный стек (снизу вверх: Быстрая игра, Сетка режимов, Справочник/Обучение) */}
         <div className="w-full flex flex-col gap-3 shrink-0">
-          {/* [ЕЩЕ ВЫШЕ] Горизонтальный ряд «Справочник» и «Обучение» (наименее приоритетные кнопки) */}
+          {/* [ЕЩЕ ВЫШЕ] Горизонтальный ряд «Справочник» и «Обучение» */}
           <div className="w-full grid grid-cols-2 gap-2 sm:gap-2.5">
             <button
               onClick={onOpenRules}
@@ -138,9 +137,9 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
             </button>
           </div>
 
-          {/* [НАД НИМ] Сетка 2x2: 3 режима + Активный контракт */}
+          {/* [НАД НИМ] Сетка 3-х режимов: 2 карточки сверху + 1 широкая карточка ТВ снизу */}
           <div className="grid grid-cols-2 gap-2 sm:gap-2.5 w-full">
-            {/* Режим 1: Одиночная (PVE) */}
+            {/* Режим 1 (1 колонка): Одиночная (PVE) */}
             <button
               onClick={onSelectSolo}
               className="min-h-[92px] sm:min-h-[105px] border border-white/10 hover:border-white/25 bg-zinc-950/70 hover:bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/30"
@@ -160,7 +159,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
               </div>
             </button>
 
-            {/* Режим 2: На одном экране (Pass & Play PVP) */}
+            {/* Режим 2 (1 колонка): На одном экране (Pass & Play PVP) */}
             <button
               onClick={onSelectLocalDuel}
               className="min-h-[92px] sm:min-h-[105px] border border-white/10 hover:border-white/25 bg-zinc-950/70 hover:bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/30"
@@ -180,31 +179,31 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
               </div>
             </button>
 
-            {/* Режим 3: ТВ Режим (TV PARTY) */}
+            {/* Режим 3 (2 колонки - широкий ТВ-режим): ТВ Режим (TV PARTY) */}
             <button
               onClick={onOpenTvParty}
-              className="min-h-[92px] sm:min-h-[105px] border border-white/10 hover:border-red-500/40 bg-zinc-950/70 hover:bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-red-500/40"
+              className="col-span-2 min-h-[85px] sm:min-h-[95px] border border-white/10 hover:border-red-500/40 bg-zinc-950/70 hover:bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex items-center justify-between hover:scale-[1.01] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-red-500/40"
             >
-              <div className="flex items-center justify-between w-full">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-red-950/40 text-red-400 border border-red-500/30 flex items-center justify-center group-hover:text-red-300 group-hover:border-red-500/50 transition-all shrink-0 shadow-[0_0_15px_rgba(239,68,68,0.15)]">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-red-950/40 text-red-400 border border-red-500/30 flex items-center justify-center group-hover:text-red-300 group-hover:border-red-500/50 transition-all shrink-0 shadow-[0_0_15px_rgba(239,68,68,0.15)]">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 sm:w-5 sm:h-5">
                     <rect x="2" y="7" width="20" height="15" rx="2" ry="2" />
                     <polyline points="17 2 12 7 7 2" />
                   </svg>
                 </div>
-                <span className="bg-red-950/80 text-red-400 border border-red-500/40 text-[9px] sm:text-[10px] font-mono px-2 py-0.5 rounded-lg uppercase font-black tracking-wider shrink-0 shadow-[0_0_8px_rgba(239,68,68,0.25)]">
-                  TV PARTY
-                </span>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-bold text-xs sm:text-sm whitespace-normal leading-tight text-zinc-100 uppercase tracking-wider group-hover:text-white transition">
+                    {t.menu.tvMode || "ТВ РЕЖИМ"}
+                  </span>
+                  <span className="text-[10px] text-zinc-400 mt-0.5 truncate">
+                    Большой ТВ-экран и пульты в смартфонах
+                  </span>
+                </div>
               </div>
-              <div className="flex flex-col mt-1.5 min-w-0 flex-1 justify-center">
-                <span className="font-bold text-xs sm:text-sm whitespace-normal leading-tight text-zinc-100 uppercase tracking-wider group-hover:text-white transition">
-                  {t.menu.tvMode || "ТВ РЕЖИМ"}
-                </span>
-              </div>
+              <span className="bg-red-950/80 text-red-400 border border-red-500/40 text-[9px] sm:text-[10px] font-mono px-2 py-0.5 rounded-lg uppercase font-black tracking-wider shrink-0 shadow-[0_0_8px_rgba(239,68,68,0.25)] ml-2">
+                TV PARTY
+              </span>
             </button>
-
-            {/* Слот 4: Активный контракт вместо удаленного онлайна */}
-            <ActiveContractCard />
           </div>
 
           {/* [САМЫЙ НИЗ] Блок «Быстрая игра» (100% ширины, максимальный приоритет под большим пальцем) */}

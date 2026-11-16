@@ -120,17 +120,17 @@ export default function App() {
   const [pinInput, setPinInput] = useState<string>("");
   const [tvPartyState, setTvPartyState] = useState<"NONE" | "TV_HOME" | "TV_LOBBY" | "TV_BOARD" | "CONTROLLER">(() => {
     if (clientTypeParam === "CONTROLLER" || targetRoomParam) return "CONTROLLER";
-    if (clientTypeParam === "TV_DISPLAY") return "TV_LOBBY";
+    if (clientTypeParam === "TV_DISPLAY" || isAndroidTv) return "TV_LOBBY";
     if (typeof window !== "undefined") {
       try {
         const savedState = localStorage.getItem("tv_session_party_state") as any;
         const savedRoom = localStorage.getItem("tv_session_room_code") || roomParam || targetRoomParam;
-        if (savedState && savedRoom && ["TV_LOBBY", "TV_BOARD", "CONTROLLER"].includes(savedState)) {
-          return savedState;
+        if (savedState && savedRoom) {
+          if (savedState === "CONTROLLER") return "CONTROLLER";
+          if (["TV_LOBBY", "TV_BOARD"].includes(savedState)) return "TV_LOBBY";
         }
       } catch {}
     }
-    if (isAndroidTv) return "TV_HOME";
     return "NONE";
   });
   const [tvLinePreview, setTvLinePreview] = useState<ShiftPayload | null>(null);
@@ -372,31 +372,6 @@ export default function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "Backquote" || e.key === "`") {
         setIsDevPanelOpen((prev) => !prev);
-      }
-
-      // Отладочный шорткат для дизайна/тестирования TV_BOARD по нажатию 'B' на клавиатуре
-      if (e.key === "b" || e.key === "B" || e.code === "KeyB") {
-        const target = e.target as HTMLElement | null;
-        if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
-          return;
-        }
-        e.preventDefault();
-        const mockTvState = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "KILLER", 5, 5, 25, "Сыщик");
-        mockTvState.currentTurn = "KILLER";
-        mockTvState.killCount = 1;
-        if (mockTvState.board?.[1]?.[1]) {
-          mockTvState.victimList = [mockTvState.board[1][1].id];
-        }
-        if (mockTvState.board?.[2]?.[2]) {
-          mockTvState.uniformedOfficers = [mockTvState.board[2][2].id];
-        }
-        mockTvState.log = [
-          "Партия TV Party инициализирована [DEBUG]",
-          "Служба безопасности патрулирует улицы",
-          "Обнаружен след подозреваемого в секторе B-3",
-        ];
-        setGameState(mockTvState);
-        setTvPartyState("TV_BOARD");
       }
     };
     const handleUserInteraction = () => {
@@ -684,8 +659,8 @@ export default function App() {
     partyService.disconnect();
     sessionStorage.removeItem("mp_session");
     setOpponentDisconnectedNotice(false);
-    if (isAndroidTv) {
-      setTvPartyState("TV_HOME");
+    if (clientTypeParam === "TV_DISPLAY" || tvPartyState.includes("TV") || isAndroidTv) {
+      setTvPartyState("TV_LOBBY");
       setIsLobbyOpen(false);
       return;
     }
@@ -1250,8 +1225,8 @@ export default function App() {
                     localStorage.removeItem("tv_session_room_code");
                   } catch {}
                   setTvRoomCode("");
-                  if (isAndroidTv) {
-                    setTvPartyState("TV_HOME");
+                  if (clientTypeParam === "TV_DISPLAY" || tvPartyState.includes("TV") || isAndroidTv) {
+                    setTvPartyState("TV_LOBBY");
                     return;
                   }
                   setTvPartyState("NONE");
@@ -1285,8 +1260,8 @@ export default function App() {
                     localStorage.removeItem("tv_session_room_code");
                   } catch {}
                   setTvRoomCode("");
-                  if (isAndroidTv) {
-                    setTvPartyState("TV_HOME");
+                  if (clientTypeParam === "TV_DISPLAY" || tvPartyState.includes("TV") || isAndroidTv) {
+                    setTvPartyState("TV_LOBBY");
                     return;
                   }
                   setTvPartyState("NONE");

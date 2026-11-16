@@ -313,7 +313,7 @@ export const MainMenu = ({
     >
       <div className="w-full max-w-7xl mx-auto h-full flex flex-col justify-between bg-[#080a0f] xl:border-x xl:border-white/10 xl:shadow-[0_0_100px_rgba(0,0,0,0.95)] relative overflow-hidden">
         <div className="flex-1 w-full h-full relative overflow-hidden flex flex-col min-h-0">
-          <AnimatePresence initial={false} custom={navDirection}>
+          <AnimatePresence initial={false} custom={navDirection} mode="wait">
             <motion.div
               key={screen}
               custom={navDirection}
@@ -321,7 +321,7 @@ export const MainMenu = ({
               initial="initial"
               animate="animate"
               exit="exit"
-              transition={{ duration: 0.18, ease: "easeOut" }}
+              transition={{ duration: process.env.NODE_ENV === "test" ? 0 : 0.18, ease: "easeOut" }}
               drag={isChildScreen && isEdgeDragging ? "x" : false}
               dragControls={dragControls}
               dragListener={false}

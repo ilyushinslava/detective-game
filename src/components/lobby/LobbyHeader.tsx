@@ -18,15 +18,15 @@ export const LobbyHeader: React.FC<LobbyHeaderProps> = ({
   onOpenSettings,
 }) => {
   return (
-    <header className="flex items-center justify-between shrink-0 py-2 sm:py-3 lg:py-4 mb-2 lg:mb-4 border-b border-white/5 lg:border-b-0 w-full max-w-full">
-      <div className="flex items-center gap-2.5 sm:gap-3.5 select-none min-w-0 pr-2">
-        <span className="h-3 w-3 sm:h-3.5 sm:w-3.5 rounded-full bg-red-600 animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.85)] shrink-0" />
-        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-white uppercase leading-none drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)] truncate sm:overflow-visible">
+    <header className="flex items-center justify-between shrink-0 py-2 sm:py-3 lg:py-4 mb-2 lg:mb-4 border-b border-white/5 lg:border-b-0 w-full max-w-full gap-2">
+      <div className="flex items-center gap-2 sm:gap-3.5 select-none min-w-0 flex-1 overflow-hidden pr-1 sm:pr-2">
+        <span className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 rounded-full bg-red-600 animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.85)] shrink-0" />
+        <h1 className="text-base sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-white uppercase leading-none drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)] truncate">
           {title}
         </h1>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Agent Callsign / Dossier Pill (Hidden on mobile < sm) */}
         <button
           onClick={onOpenProfile}
@@ -56,11 +56,11 @@ export const LobbyHeader: React.FC<LobbyHeaderProps> = ({
         {/* Dev Panel Cash Pill */}
         <div
           onClick={onOpenDevPanel}
-          className="rounded-full bg-zinc-900/80 border border-white/10 hover:border-amber-500/40 hover:bg-zinc-800/80 px-3.5 py-1.5 flex items-center gap-1.5 shadow-lg cursor-pointer transition active:scale-95 shrink-0"
+          className="rounded-full bg-zinc-900/80 border border-white/10 hover:border-amber-500/40 hover:bg-zinc-800/80 px-2.5 sm:px-3.5 py-1 sm:py-1.5 flex items-center gap-1 sm:gap-1.5 shadow-lg cursor-pointer transition active:scale-95 shrink-0"
           title="Открыть Dev-панель"
         >
-          <Icons.Coin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span className="text-zinc-100 font-mono text-xs font-bold">{profile.cash.toLocaleString()}</span>
+          <Icons.Coin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400 shrink-0" />
+          <span className="text-zinc-100 font-mono text-[11px] sm:text-xs font-bold">{profile.cash.toLocaleString()}</span>
         </div>
 
         {/* Settings Cog Button */}
@@ -69,7 +69,7 @@ export const LobbyHeader: React.FC<LobbyHeaderProps> = ({
           className="w-10 h-10 rounded-full bg-zinc-900/80 border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white hover:border-white/20 transition cursor-pointer shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500/50 shrink-0"
           title="Настройки"
         >
-          <Icons.Settings />
+          <Icons.Settings className="w-5 h-5" />
         </button>
       </div>
     </header>

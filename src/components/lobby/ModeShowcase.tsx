@@ -45,8 +45,8 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
 }) => {
   return (
     <div className="w-full max-w-xl lg:max-w-none mx-auto flex-1 flex flex-col justify-center py-2 sm:py-6 sm:min-h-[calc(100vh-80px)] lg:min-h-0 lg:py-4 lg:grid lg:grid-cols-12 lg:gap-8 items-center my-auto min-h-0">
-      {/* Hero Block: Quick Play (5 cols on lg+, full width on mobile/tablet) */}
-      <div className="w-full lg:col-span-5 flex flex-col gap-3 mb-4 lg:mb-0">
+      {/* Hero Block: Quick Play (order-2 on mobile for thumb-zone, order-1 / col-5 on lg+) */}
+      <div className="order-2 lg:order-1 w-full lg:col-span-5 flex flex-col gap-3 mt-4 lg:mt-0 mb-2 lg:mb-0">
         {hasActiveGame && onResumeGame && (
           <button
             onClick={onResumeGame}
@@ -93,8 +93,8 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
         </div>
       </div>
 
-      {/* Right Column: 2x2 Showcase Grid + Aux Buttons (7 cols on lg+) */}
-      <div className="w-full lg:col-span-7 flex flex-col">
+      {/* Right Column: 2x2 Showcase Grid + Aux Buttons (order-1 on mobile, order-2 / col-7 on lg+) */}
+      <div className="order-1 lg:order-2 w-full lg:col-span-7 flex flex-col">
         <div className="grid grid-cols-2 gap-3.5 sm:gap-4">
           {/* Card 1: Solo Game (PVE) */}
           <button

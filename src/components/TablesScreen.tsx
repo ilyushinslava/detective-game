@@ -81,29 +81,32 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
 
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-[#07080c] overflow-hidden relative w-full max-w-full">
-      {/* Top Header Bar */}
-      <div className="flex items-center justify-between px-4 sm:px-6 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/[0.07] bg-[#07080c]">
+      {/* Top Header Bar (Neo-Noir Glassmorphic Header) */}
+      <div className="flex items-center justify-between px-4 sm:px-6 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3.5 shrink-0 border-b border-white/[0.08] bg-gradient-to-r from-zinc-950/95 via-[#090d16]/95 to-zinc-950/95 backdrop-blur-xl shadow-[0_4px_25px_rgba(0,0,0,0.7)] z-10">
         <div className="flex items-center gap-3 min-w-0">
           {onBack && (
             <Button
               variant="ghost"
               onClick={onBack}
-              className="h-9 px-2.5 text-zinc-400 hover:text-white gap-1.5 text-[10px] font-black uppercase tracking-widest shrink-0"
+              className="h-9 px-2.5 bg-zinc-900/80 border border-white/10 text-zinc-400 hover:text-white hover:bg-zinc-800/80 gap-1.5 text-[10px] font-black uppercase tracking-widest shrink-0 transition shadow-md"
               title="Назад в главное меню"
             >
               <Icons.ChevronLeft />
-              <span className="hidden sm:inline">Назад в штаб</span>
+              <span className="hidden sm:inline">Штаб</span>
             </Button>
           )}
           <div className="flex flex-col select-none min-w-0">
-            <h1 className="text-base sm:text-lg md:text-xl font-black tracking-tight text-white uppercase drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)] truncate">
+            <h1 className="text-base sm:text-xl font-display font-black tracking-widest uppercase bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-400 bg-clip-text text-transparent drop-shadow-[0_2px_15px_rgba(255,255,255,0.15)] truncate">
               Оперативные столы
             </h1>
+            <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase -mt-0.5 hidden xs:inline">
+              Сетевой шлюз матчей
+            </span>
           </div>
         </div>
-        <div className="flex items-center gap-2 bg-zinc-900/80 border border-white/10 px-3 py-1 rounded-full shrink-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-          <span className="text-[10px] font-mono font-bold text-zinc-300 uppercase tracking-wider">ONLINE</span>
+        <div className="flex items-center gap-2 bg-cyan-950/40 border border-cyan-500/30 px-3 py-1 rounded-full shadow-[0_0_12px_rgba(6,182,212,0.25)] shrink-0">
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_rgba(6,182,212,0.8)]" />
+          <span className="text-[10px] font-mono font-bold text-cyan-300 uppercase tracking-widest">ONLINE</span>
         </div>
       </div>
 
@@ -153,7 +156,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
       </div>
 
       {/* Filter Tabs (Игровые режимы) */}
-      <div className="flex flex-wrap gap-1.5 px-4 sm:px-6 py-2.5 shrink-0 border-b border-white/5 bg-zinc-950/40 w-full items-center">
+      <div className="flex flex-wrap gap-1.5 px-4 sm:px-6 py-2.5 shrink-0 border-b border-white/5 bg-zinc-950/40 w-full items-center justify-center">
         {ROOM_FILTERS.map((filter) => {
           const isActive = roomFilter === filter.id;
           return (

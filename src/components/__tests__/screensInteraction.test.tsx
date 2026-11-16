@@ -53,7 +53,7 @@ describe("Интерактивное взаимодействие с экран�
       expect(onOpenDevPanel).toHaveBeenCalledTimes(1);
     });
 
-    it("Выбор режима открывает экран описания с составом игры и кнопкой НАЧАТЬ ИГРУ", () => {
+    it("Выбор режима открывает экран описания с составом игры и кнопкой НАЧАТЬ ИГРУ", async () => {
       render(
         <I18nProvider>
           <MainMenu
@@ -75,9 +75,9 @@ describe("Интерактивное взаимодействие с экран�
       }
 
       // Клик по карточке первого режима
-      const modeCard = screen.getAllByText(/Почерк убийцы/i)[0];
+      const modeCard = (await screen.findAllByText(/Почерк убийцы/i))[0];
       fireEvent.click(modeCard);
-      expect(screen.getByText(/СВОДКА РАССЛЕДОВАНИЯ/i)).toBeDefined();
+      expect(await screen.findByText(/СВОДКА РАССЛЕДОВАНИЯ/i)).toBeDefined();
                   /*
 
       // Проверка компонентов состава игры по Макету 1
@@ -95,7 +95,7 @@ describe("Интерактивное взаимодействие с экран�
       fireEvent.click(backBtn!);
 
       // Убеждаемся, что вернулись в список режимов
-      expect(screen.getAllByText(/Почерк убийцы/i)[0]).toBeDefined();
+      expect((await screen.findAllByText(/Почерк убийцы/i))[0]).toBeDefined();
     });
 
     it("Кнопка «ТВ РЕЖИМ» открывает модалку с выбором роли, а отдельная кнопка «Подключиться к ТВ» отсутствует в меню", () => {

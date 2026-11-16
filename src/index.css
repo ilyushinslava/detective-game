@@ -20,6 +20,15 @@ img, svg, button {
   -webkit-user-drag: none;
 }
 
+/* Fix sticky hover on touch devices (iOS/Safari/Android) */
+@media (hover: none) and (pointer: coarse) {
+  a:hover, button:hover, [role="button"]:hover {
+    color: inherit;
+    background-color: inherit;
+    border-color: inherit;
+  }
+}
+
 @layer base {
   body {
     @apply antialiased;

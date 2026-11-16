@@ -266,8 +266,24 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   const [isPeeking, setIsPeeking] = useState(false);
 
   // Личный блокнот расследования (IndexedDB / 0 WebSocket / 0 GameState)
-  const { notes, marks, setMark, updateNote, clearNotebook } = useDetectiveNotebook(gameState, playerRole);
-  const flatBoardCards = useMemo(() => (gameState?.board ? gameState.board.flat() : []), [gameState.board]);
+  const { notes, marks, cycleMark, setMark, setNotesText, clearNotebook } = useDetectiveNotebook(gameState, playerRole);
+  const currentMatchCharacters = useMemo<Character[]>(() => {
+    if (gameState?.board && Array.isArray(gameState.board) && gameState.board.length > 0) {
+      const flat = gameState.board.flat().filter(Boolean);
+      if (flat.length > 0) return flat;
+    }
+    if (Array.isArray((gameState as any)?.players) && (gameState as any).players.length > 0) {
+      const fromPlayers = (gameState as any).players
+        .map((p: any) => p.character || (p.id && p.name ? p : null))
+        .filter(Boolean);
+      if (fromPlayers.length > 0) return fromPlayers;
+    }
+    if (Array.isArray((gameState as any)?.allCharacters) && (gameState as any).allCharacters.length > 0) {
+      return (gameState as any).allCharacters;
+    }
+    return [];
+  }, [gameState?.board, (gameState as any)?.players, (gameState as any)?.allCharacters]);
+  const flatBoardCards = currentMatchCharacters;
 
   // Проверка Anti-Undo для маневра
   const isUndoMove = useMemo(() => {
@@ -929,11 +945,14 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         <DetectiveNotebookModal
           isOpen={isNotebookOpen}
           onClose={() => setIsNotebookOpen(false)}
-          characters={flatBoardCards}
+          characters={currentMatchCharacters}
           marks={marks}
           notes={notes}
+          onCycleMark={cycleMark}
           onSetMark={setMark}
-          onUpdateNote={updateNote}
+          onSetNotesText={setNotesText}
+          onUpdateNote={setNotesText}
+          onClearNotebook={clearNotebook}
           onClear={clearNotebook}
         />
 
@@ -1542,11 +1561,14 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       <DetectiveNotebookModal
         isOpen={isNotebookOpen}
         onClose={() => setIsNotebookOpen(false)}
-        characters={flatBoardCards}
+        characters={currentMatchCharacters}
         marks={marks}
         notes={notes}
+        onCycleMark={cycleMark}
         onSetMark={setMark}
-        onUpdateNote={updateNote}
+        onSetNotesText={setNotesText}
+        onUpdateNote={setNotesText}
+        onClearNotebook={clearNotebook}
         onClear={clearNotebook}
       />
 

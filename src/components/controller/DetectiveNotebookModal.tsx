@@ -1,18 +1,24 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import type { Character } from '../../types/game';
-import type { CharacterNoteStatus } from '../../hooks/useDetectiveNotebook';
+import { useDetectiveNotebook, type CharacterNoteStatus } from '../../hooks/useDetectiveNotebook';
 import { Button } from '../ui/Button';
+import { triggerHaptic } from '../../utils/haptics';
+
+export type NotebookFilter = 'ALL' | 'SUSPECT' | 'CLEARED';
 
 export interface DetectiveNotebookModalProps {
   isOpen: boolean;
   onClose: () => void;
   characters: Character[];
-  marks: Record<string, CharacterNoteStatus>;
-  notes: string;
-  onCycleMark: (characterId: string) => void;
-  onSetMark: (characterId: string, status: CharacterNoteStatus) => void;
-  onSetNotesText: (notes: string) => void;
-  onClearNotebook: () => void;
+  marks?: Record<string, CharacterNoteStatus>;
+  notes?: string;
+  onCycleMark?: (characterId: string) => void;
+  onSetMark?: (characterId: string, status: CharacterNoteStatus) => void;
+  onSetNotesText?: (notes: string) => void;
+  onUpdateNote?: (notes: string) => void;
+  onClearNotebook?: () => void;
+  onClear?: () => void;
+  characterImages?: Record<string, { default: string }>;
 }
 
 const Icons = {
@@ -49,16 +55,75 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
   notes,
   onCycleMark,
   onSetNotesText,
+  onUpdateNote,
   onClearNotebook,
+  onClear,
+  characterImages,
 }) => {
+  const [filter, setFilter] = useState<NotebookFilter>('ALL');
+
+  // Локальный фоллбэк на SSOT-хук, если пропсы отметок не переданы снаружи
+  const fallbackSessionKey = useMemo(() => {
+    return characters.length > 0
+      ? `chars_${characters.map((c) => c.id).slice(0, 3).join('_')}`
+      : 'default';
+  }, [characters]);
+
+  const internalNotebook = useDetectiveNotebook(fallbackSessionKey);
+
   if (!isOpen) return null;
 
-  const clearedCount = Object.values(marks).filter((m) => m === 'CLEARED').length;
-  const suspectCount = Object.values(marks).filter((m) => m === 'SUSPECT').length;
+  const activeMarks = marks ?? internalNotebook.marks;
+  const activeNotes = notes ?? internalNotebook.notes;
+
+  const handleCycleMark = (characterId: string) => {
+    triggerHaptic('light');
+    if (onCycleMark) {
+      onCycleMark(characterId);
+    } else {
+      internalNotebook.cycleMark(characterId);
+    }
+  };
+
+  const handleSetNotesText = (text: string) => {
+    if (onSetNotesText) {
+      onSetNotesText(text);
+    } else if (onUpdateNote) {
+      onUpdateNote(text);
+    } else {
+      internalNotebook.setNotesText(text);
+    }
+  };
+
+  const handleClear = () => {
+    triggerHaptic('medium');
+    if (onClearNotebook) {
+      onClearNotebook();
+    } else if (onClear) {
+      onClear();
+    } else {
+      internalNotebook.clearNotebook();
+    }
+  };
+
+  const clearedCount = Object.values(activeMarks).filter((m) => m === 'CLEARED').length;
+  const suspectCount = Object.values(activeMarks).filter((m) => m === 'SUSPECT').length;
+
+  const filteredCharacters = characters.filter((char) => {
+    if (filter === 'SUSPECT') return activeMarks[char.id] === 'SUSPECT';
+    if (filter === 'CLEARED') return activeMarks[char.id] === 'CLEARED';
+    return true;
+  });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md select-none font-sans animate-fadeIn">
-      <div className="w-full max-w-lg max-h-[92dvh] rounded-t-3xl sm:rounded-3xl bg-zinc-950/95 backdrop-blur-xl border border-white/10 flex flex-col shadow-2xl overflow-hidden">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md select-none font-sans animate-fadeIn"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg max-h-[92dvh] rounded-t-3xl sm:rounded-3xl bg-zinc-950/95 backdrop-blur-xl border border-white/10 flex flex-col shadow-2xl overflow-hidden"
+      >
         {/* Шапка блокнота */}
         <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-zinc-900/40">
           <div className="flex items-center gap-2.5">
@@ -82,20 +147,101 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
           </button>
         </div>
 
-        {/* Сводка счётчиков отметок */}
+        {/* Сводка счётчиков отметок (интерактивные фильтры) */}
         <div className="grid grid-cols-3 gap-2 p-3 bg-zinc-900/30 border-b border-zinc-800/60 text-xs text-center font-sans">
-          <div className="p-2 rounded-xl bg-zinc-900/80 border border-white/5">
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setFilter('ALL');
+            }}
+            className={`p-2 rounded-xl transition cursor-pointer active:scale-95 text-center ${
+              filter === 'ALL'
+                ? 'bg-zinc-800/90 border border-white/30 ring-1 ring-white/20'
+                : 'bg-zinc-900/80 border border-white/5 hover:border-white/20'
+            }`}
+          >
             <span className="text-[10px] text-zinc-400 uppercase block font-semibold">Всего в деле</span>
             <span className="text-xs font-black text-white">{characters.length}</span>
-          </div>
-          <div className="p-2 rounded-xl bg-blue-950/40 border border-blue-900/40">
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setFilter('CLEARED');
+            }}
+            className={`p-2 rounded-xl transition cursor-pointer active:scale-95 text-center ${
+              filter === 'CLEARED'
+                ? 'bg-blue-900/70 border border-blue-400 ring-1 ring-blue-400/50'
+                : 'bg-blue-950/40 border border-blue-900/40 hover:border-blue-700/60'
+            }`}
+          >
             <span className="text-[10px] text-blue-300 uppercase block font-semibold">Невиновны</span>
             <span className="text-xs font-black text-blue-400">{clearedCount}</span>
-          </div>
-          <div className="p-2 rounded-xl bg-rose-950/40 border border-rose-900/40">
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setFilter('SUSPECT');
+            }}
+            className={`p-2 rounded-xl transition cursor-pointer active:scale-95 text-center ${
+              filter === 'SUSPECT'
+                ? 'bg-rose-900/70 border border-rose-400 ring-1 ring-rose-400/50'
+                : 'bg-rose-950/40 border border-rose-900/40 hover:border-rose-700/60'
+            }`}
+          >
             <span className="text-[10px] text-rose-300 uppercase block font-semibold">Подозреваемые</span>
             <span className="text-xs font-black text-rose-400">{suspectCount}</span>
-          </div>
+          </button>
+        </div>
+
+        {/* Панель фильтров категорий */}
+        <div className="px-4 pt-3 flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setFilter('ALL');
+            }}
+            className={`flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition ${
+              filter === 'ALL'
+                ? 'bg-zinc-800 text-white border border-white/15 shadow-sm'
+                : 'bg-zinc-900/60 text-zinc-400 hover:text-zinc-200 border border-transparent'
+            }`}
+          >
+            Все ({characters.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setFilter('SUSPECT');
+            }}
+            className={`flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition ${
+              filter === 'SUSPECT'
+                ? 'bg-rose-950/90 text-rose-300 border border-rose-500/60 shadow-sm'
+                : 'bg-zinc-900/60 text-zinc-400 hover:text-rose-300 border border-transparent'
+            }`}
+          >
+            Подозрения ({suspectCount})
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setFilter('CLEARED');
+            }}
+            className={`flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition ${
+              filter === 'CLEARED'
+                ? 'bg-blue-950/90 text-blue-300 border border-blue-500/60 shadow-sm'
+                : 'bg-zinc-900/60 text-zinc-400 hover:text-blue-300 border border-transparent'
+            }`}
+          >
+            Невиновные ({clearedCount})
+          </button>
         </div>
 
         {/* Скроллируемая область: список персонажей и текстовое поле */}
@@ -106,58 +252,88 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
               <span className="text-[10px] text-zinc-500 font-normal">Тап: [?] ➔ [✕] ➔ [!]</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {characters.map((char) => {
-                const mark = marks[char.id] || 'NEUTRAL';
-                const isCleared = mark === 'CLEARED';
-                const isSuspect = mark === 'SUSPECT';
+            {filteredCharacters.length === 0 ? (
+              <div className="py-8 text-center text-zinc-500 text-xs font-mono">
+                {filter === 'SUSPECT' && 'Нет персонажей с отметкой подозрения'}
+                {filter === 'CLEARED' && 'Нет персонажей с отметкой невиновности'}
+                {filter === 'ALL' && 'Список персонажей пуст'}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {filteredCharacters.map((char) => {
+                  const mark = activeMarks[char.id] || 'NEUTRAL';
+                  const isCleared = mark === 'CLEARED';
+                  const isSuspect = mark === 'SUSPECT';
 
-                return (
-                  <button
-                    key={char.id}
-                    onClick={() => onCycleMark(char.id)}
-                    className={`w-full p-2.5 rounded-2xl border text-left flex items-center justify-between transition cursor-pointer active:scale-[0.98] ${
-                      isCleared
-                        ? 'bg-blue-950/40 border-blue-600/70 shadow-[0_0_12px_rgba(37,99,235,0.25)]'
-                        : isSuspect
-                          ? 'bg-rose-950/40 border-rose-600/70 shadow-[0_0_12px_rgba(225,29,72,0.25)]'
-                          : 'bg-zinc-900/70 border-white/5 hover:border-white/20'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                      <span className="font-mono text-xs font-bold text-zinc-400 shrink-0">
-                        #{char.id.replace('c', '').padStart(2, '0')}
-                      </span>
-                      <span className={`text-xs font-bold truncate ${
-                        isCleared ? 'text-blue-200 line-through' : isSuspect ? 'text-rose-200' : 'text-zinc-200'
-                      }`}>
-                        {char.name}
-                      </span>
-                    </div>
+                  const imgAsset =
+                    characterImages?.[`./assets/characters/${char.id}.webp`]?.default ||
+                    characterImages?.[`../assets/characters/${char.id}.webp`]?.default;
 
-                    <div className="shrink-0 ml-2">
-                      {isCleared && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-900/60 border border-blue-500/50 text-[10px] font-bold text-blue-200">
-                          <Icons.Check />
-                          Невиновен
+                  return (
+                    <button
+                      key={char.id}
+                      onClick={() => handleCycleMark(char.id)}
+                      className={`w-full p-2.5 rounded-2xl border text-left flex items-center justify-between transition cursor-pointer active:scale-[0.98] ${
+                        isCleared
+                          ? 'bg-blue-950/40 border-blue-600/70 shadow-[0_0_12px_rgba(37,99,235,0.25)]'
+                          : isSuspect
+                            ? 'bg-rose-950/40 border-rose-600/70 shadow-[0_0_12px_rgba(225,29,72,0.25)]'
+                            : 'bg-zinc-900/70 border-white/5 hover:border-white/20'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        {imgAsset ? (
+                          <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10 relative">
+                            <img
+                              src={imgAsset}
+                              alt={char.name}
+                              className={`w-full h-full object-cover ${
+                                isCleared ? 'grayscale opacity-60' : ''
+                              }`}
+                            />
+                          </div>
+                        ) : (
+                          <span className="font-mono text-xs font-bold text-zinc-400 shrink-0">
+                            #{char.id.replace('c', '').padStart(2, '0')}
+                          </span>
+                        )}
+                        <span
+                          className={`text-xs font-bold truncate ${
+                            isCleared
+                              ? 'text-blue-200 line-through'
+                              : isSuspect
+                                ? 'text-rose-200'
+                                : 'text-zinc-200'
+                          }`}
+                        >
+                          {char.name}
                         </span>
-                      )}
-                      {isSuspect && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-900/60 border border-rose-500/50 text-[10px] font-bold text-rose-200">
-                          <Icons.Alert />
-                          Подозрение
-                        </span>
-                      )}
-                      {!isCleared && !isSuspect && (
-                        <span className="px-2 py-0.5 rounded-lg bg-zinc-800 text-[10px] font-medium text-zinc-400 border border-white/5">
-                          Без метки
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                      </div>
+
+                      <div className="shrink-0 ml-2">
+                        {isCleared && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-900/60 border border-blue-500/50 text-[10px] font-bold text-blue-200">
+                            <Icons.Check />
+                            Невиновен
+                          </span>
+                        )}
+                        {isSuspect && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-900/60 border border-rose-500/50 text-[10px] font-bold text-rose-200">
+                            <Icons.Alert />
+                            Подозрение
+                          </span>
+                        )}
+                        {!isCleared && !isSuspect && (
+                          <span className="px-2 py-0.5 rounded-lg bg-zinc-800 text-[10px] font-medium text-zinc-400 border border-white/5">
+                            Без метки
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Личные текстовые заметки */}
@@ -166,8 +342,8 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
               Личные заметки и версии
             </label>
             <textarea
-              value={notes}
-              onChange={(e) => onSetNotesText(e.target.value)}
+              value={activeNotes}
+              onChange={(e) => handleSetNotesText(e.target.value)}
               placeholder="Записывайте подозрения, исключенные ряды, алиби или версии..."
               rows={3}
               className="w-full p-3 rounded-2xl bg-zinc-900/90 border border-white/10 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition resize-none font-sans"
@@ -179,7 +355,7 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
         <div className="p-3 sm:p-4 border-t border-white/10 bg-zinc-900/40 flex items-center justify-between">
           <Button
             variant="ghost"
-            onClick={onClearNotebook}
+            onClick={handleClear}
             className="!h-9 px-3 text-xs text-zinc-400 hover:text-zinc-200 transition font-medium"
           >
             Сбросить все метки
@@ -196,4 +372,3 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
     </div>
   );
 };
-

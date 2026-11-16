@@ -17,8 +17,24 @@ const DEFAULT_NOTEBOOK: DetectiveNotebookData = {
  * useDetectiveNotebook — строго локальный клиентский блокнот игрока.
  * Данные не передаются через WebSocket, не попадают в GameState и не отображаются на ТВ.
  */
-export function useDetectiveNotebook(sessionKey: string) {
-  const storageKey = useMemo(() => `requiem_notebook_${sessionKey}`, [sessionKey]);
+export function useDetectiveNotebook(
+  sessionKeyOrState: string | { sessionId?: string; roomId?: string; gameMode?: string; board?: any[][] } = 'default',
+  role?: string
+) {
+  const storageKey = useMemo(() => {
+    let key = 'default';
+    if (typeof sessionKeyOrState === 'string') {
+      key = sessionKeyOrState;
+    } else if (sessionKeyOrState && typeof sessionKeyOrState === 'object') {
+      const state = sessionKeyOrState;
+      const baseKey =
+        state.roomId ||
+        state.sessionId ||
+        `${state.gameMode || 'game'}_${state.board?.[0]?.[0]?.id || 'session'}`;
+      key = role ? `${baseKey}_${role}` : baseKey;
+    }
+    return `requiem_notebook_${key}`;
+  }, [sessionKeyOrState, role]);
 
   const [notebook, setNotebook] = useState<DetectiveNotebookData>(() => {
     return storage.getSyncItem<DetectiveNotebookData>(storageKey, DEFAULT_NOTEBOOK);
@@ -83,6 +99,7 @@ export function useDetectiveNotebook(sessionKey: string) {
     cycleMark,
     setMark,
     setNotesText,
+    updateNote: setNotesText,
     clearNotebook,
   };
 }

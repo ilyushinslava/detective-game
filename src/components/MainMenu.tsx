@@ -317,9 +317,9 @@ export const MainMenu = ({
         <DesktopPromoDashboard onOpenRules={onOpenRules} />
       </div>
 
-      {/* Правая колонка: Интерактивный виджет Лобби (40-46% ширины, центрирован, max-w-lg/xl) */}
+      {/* Правая колонка: Интерактивный виджет Лобби (40-46% ширины, Desktop-first без искусственного сжатия) */}
       <div className="w-full lg:w-[46%] xl:w-[42%] 2xl:w-[40%] h-full flex flex-col items-center justify-center relative overflow-hidden bg-[#080a0f] lg:shadow-[-25px_0_60px_rgba(0,0,0,0.85)]">
-        <div className="w-full max-w-lg xl:max-w-xl h-full flex flex-col justify-between bg-[#080a0f] relative overflow-hidden">
+        <div className="w-full max-w-xl lg:max-w-none h-full flex flex-col justify-between bg-[#080a0f] relative overflow-hidden px-2 sm:px-4 lg:px-6 xl:px-8">
           <div className="flex-1 w-full h-full relative overflow-hidden flex flex-col min-h-0">
             <AnimatePresence initial={false} custom={navDirection} mode="wait">
               <motion.div

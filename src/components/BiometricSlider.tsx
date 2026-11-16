@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { triggerHaptic } from "../utils/haptics";
 import { DEFAULT_BET } from "../constants/gameRules";
@@ -17,17 +17,28 @@ export const BiometricSlider = ({
   price = DEFAULT_BET,
 }: BiometricSliderProps) => {
   const [isTriggered, setIsTriggered] = useState(false);
+  const [maxDrag, setMaxDrag] = useState(300);
   const trackRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   // Текст плавно растворяется сразу при начале движения бегунка
   const textOpacity = useTransform(x, [0, 50], [1, 0]);
 
+  useEffect(() => {
+    const updateMaxDrag = () => {
+      if (trackRef.current && handleRef.current) {
+        const trackWidth = trackRef.current.offsetWidth || 0;
+        const handleWidth = handleRef.current.offsetWidth || 44;
+        setMaxDrag(Math.max(1, trackWidth - handleWidth - 8));
+      }
+    };
+    updateMaxDrag();
+    window.addEventListener("resize", updateMaxDrag);
+    return () => window.removeEventListener("resize", updateMaxDrag);
+  }, []);
+
   const handleDragEnd = () => {
     if (disabled || isTriggered) return;
-    const trackWidth = trackRef.current?.offsetWidth || 0;
-    const handleWidth = handleRef.current?.offsetWidth || 44;
-    const maxDrag = Math.max(1, trackWidth - handleWidth - 8);
     const currentX = x.get();
 
     if (currentX >= maxDrag * 0.85) {
@@ -43,17 +54,17 @@ export const BiometricSlider = ({
   return (
     <div
       ref={trackRef}
-      className={`relative w-full h-11 sm:h-12 md:h-13 rounded-full border transition-all duration-500 backdrop-blur-md flex items-center p-1 select-none overflow-hidden ${
+      className={`relative w-full h-11 sm:h-12 md:h-13 rounded-full border transition-all duration-500 backdrop-blur-md flex items-center justify-start p-1 select-none overflow-hidden ${
         isTriggered
           ? "bg-red-600 border-red-400/80 shadow-[0_0_25px_rgba(220,38,38,0.7)]"
           : "bg-gradient-to-r from-red-950/90 via-red-900/40 to-black/70 border-red-500/30 shadow-[0_4px_20px_rgba(0,0,0,0.5)]"
       } ${disabled ? "opacity-50 pointer-events-none" : ""}`}
     >
-      {/* Слой текста: жесткий отступ слева pl-[68px] sm:pl-[72px] исключает физическое пересечение с бегунком */}
+      {/* Слой текста: жесткий отступ слева pl-[72px] исключает физическое пересечение с бегунком в стартовой позиции */}
       {!isTriggered ? (
         <motion.div
           style={{ opacity: textOpacity }}
-          className="absolute inset-0 flex items-center pointer-events-none z-10 font-black text-xs md:text-sm uppercase tracking-widest text-zinc-300 select-none pl-[68px] sm:pl-[72px] pr-20"
+          className="absolute inset-0 flex items-center justify-start pointer-events-none z-10 font-black text-xs md:text-sm uppercase tracking-widest text-zinc-300 select-none pl-[72px] pr-20"
         >
           <span className="truncate">{text}</span>
           {price !== undefined && (
@@ -76,11 +87,11 @@ export const BiometricSlider = ({
         </div>
       )}
 
-      {/* Бегунок с отпечатком: z-20 relative, строго в своей стартовой позиции слева (ширина до 44px) */}
+      {/* Бегунок с отпечатком: строго в стартовой позиции слева (x=0) */}
       <motion.div
         ref={handleRef}
         drag={disabled || isTriggered ? false : "x"}
-        dragConstraints={trackRef}
+        dragConstraints={{ left: 0, right: maxDrag }}
         dragElastic={0.05}
         dragSnapToOrigin={!isTriggered}
         style={{ x }}

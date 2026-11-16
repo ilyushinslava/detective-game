@@ -229,6 +229,8 @@ export const MainMenu = ({
                 onSelectSolo={() => { setSelectedOpponent("AI"); navigateTo("MODES"); }}
                 onSelectLocalDuel={() => { setSelectedOpponent("PVP"); navigateTo("MODES"); }}
                 onOpenTvParty={() => setIsTvPartyModalOpen(true)}
+                onOpenOnline={() => { navigateTo("TABLES"); onTabChange("TABLES"); }}
+                onlineRoomsCount={network.filteredRooms.length}
                 onOpenRules={onOpenRules}
                 onOpenTutorial={() => setIsTutorialOpen(true)}
                 t={t}

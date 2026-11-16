@@ -12,6 +12,8 @@ export interface ModeShowcaseProps {
   onSelectSolo: () => void;
   onSelectLocalDuel: () => void;
   onOpenTvParty: () => void;
+  onOpenOnline?: () => void;
+  onlineRoomsCount?: number;
   onOpenRules?: () => void;
   onOpenTutorial: () => void;
   t: {
@@ -39,6 +41,8 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
   onSelectSolo,
   onSelectLocalDuel,
   onOpenTvParty,
+  onOpenOnline,
+  onlineRoomsCount = 0,
   onOpenRules,
   onOpenTutorial,
   t,
@@ -59,12 +63,14 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
           t={t}
         />
 
-        {/* Правая колонка: Терминал быстрого доступа (Быстрая игра + сканер) */}
+        {/* Правая колонка: Терминал быстрого доступа (Быстрая игра + сетевые столы) */}
         <NetworkSidebar
           hasActiveGame={hasActiveGame}
           onResumeGame={onResumeGame}
           isCreating={isCreating}
           onQuickPlay={onQuickPlay}
+          onOpenOnline={onOpenOnline || (() => {})}
+          onlineRoomsCount={onlineRoomsCount}
           t={t}
         />
       </main>

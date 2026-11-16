@@ -62,18 +62,16 @@ export const LobbyGrid: React.FC<LobbyGridProps> = ({
         <ModeCard
           variant="pve"
           title={t.menu.soloCases || "Одиночные дела"}
-          badge="ДЕЛО №1 • PVE"
           description="Смертельное противостояние один на один против расчетливого ИИ-соперника в неоновом нуаре."
           actionText="НАЧАТЬ РАССЛЕДОВАНИЕ"
           icon={<Icons.Cards className="w-5 h-5 xl:w-6 xl:h-6" />}
           onClick={onSelectSolo}
         />
 
-        {/* Карточка 2 (1 колонка): На одном экране (PVP) */}
+        {/* Карточка 2 (1 колонка): На одном экране (PVP) - в синем стиле PVE */}
         <ModeCard
           variant="pvp"
           title={t.menu.localDuel || "На одном экране"}
-          badge="ДЕЛО №2 • PVP"
           description="Локальная дуэль двух игроков на одном мониторе с закрытием шторки тайны личности."
           actionText="ОТКРЫТЬ ДУЭЛЬ"
           icon={<Icons.Users className="w-5 h-5 xl:w-6 xl:h-6" />}
@@ -85,7 +83,6 @@ export const LobbyGrid: React.FC<LobbyGridProps> = ({
           wide
           variant="tv"
           title={t.menu.tvMode || "ТВ РЕЖИМ"}
-          badge="ДЕЛО №3 • TV PARTY"
           description="Большой дисплей телевизора как общее игровое поле расследования и персональные мобильные контроллеры игроков для компании."
           actionText="ПОДКЛЮЧИТЬ ТВ ПАРТИЮ"
           icon={

@@ -13,6 +13,8 @@ interface DuelAccuseModalProps {
   isOpen: boolean;
   targetCharacter: DuelCharacter | null;
   alreadyAccused: boolean;
+  remainingAttempts?: number;
+  maxAccusations?: number;
   onClose: () => void;
   onConfirmAccusation: () => void;
 }
@@ -36,6 +38,8 @@ export const DuelAccuseModal = ({
   isOpen,
   targetCharacter,
   alreadyAccused,
+  remainingAttempts = 3,
+  maxAccusations = 3,
   onClose,
   onConfirmAccusation,
 }: DuelAccuseModalProps) => {
@@ -108,12 +112,21 @@ export const DuelAccuseModal = ({
           <div className="text-red-500 shrink-0 mt-0.5">
             <Icons.Alert />
           </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">
-              Внимание: Штраф за ошибку
-            </span>
+          <div className="flex flex-col flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-1 gap-2">
+              <span className="text-[10px] font-black text-red-400 uppercase tracking-widest">
+                Лимит обвинений
+              </span>
+              <span className="text-[10px] font-mono font-bold text-red-300 shrink-0">
+                Осталось: {remainingAttempts} из {maxAccusations}
+              </span>
+            </div>
             <span className="text-[10px] text-zinc-400 font-medium tracking-normal leading-relaxed">
-              Если это не разыскиваемая цель, вы получите <b className="text-red-400">+1 штрафное очко</b>, потеряете ход, а игра продолжится.
+              {remainingAttempts <= 1 ? (
+                <b className="text-red-400">Внимание: это ваша последняя попытка! При ошибке оппонент немедленно одержит победу.</b>
+              ) : (
+                <>Если фигурант невиновен, вы получите <b className="text-red-400">+1 штрафное очко</b> и потеряете 1 попытку.</>
+              )}
             </span>
           </div>
         </div>

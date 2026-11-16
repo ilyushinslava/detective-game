@@ -169,6 +169,44 @@ describe("Режим: Очная ставка (LINE_UP) - Новая логик�
       expect(state.turnTimeRemaining).toBe(25);
       expect(state.matchTimeRemaining).toBe(480);
       expect(state.winner).toBeNull();
+      expect(state.accusationHistory).toEqual([]);
+    });
+
+    it("Лимит обвинений (3 попытки): при 3-х ошибках немедленно побеждает соперник (ACCUSATIONS_EXHAUSTED)", () => {
+      let state = createInitialDuelState();
+      const wrongTargets = state.board.filter(c => c.id !== state.killerSecretId).map(c => c.id);
+
+      // 1-я ошибка
+      state = accuseDuelTarget(state, wrongTargets[0]);
+      expect(state.winner).toBeNull();
+      expect(state.penalties.DETECTIVE).toBe(1);
+      expect(state.accusedTargets.DETECTIVE.length).toBe(1);
+      expect(state.accusationHistory.length).toBe(1);
+      expect(state.accusationHistory[0].isHit).toBe(false);
+
+      // Возвращаем ход детективу
+      state.currentTurn = "DETECTIVE";
+      // 2-я ошибка
+      state = accuseDuelTarget(state, wrongTargets[1]);
+      expect(state.winner).toBeNull();
+      expect(state.penalties.DETECTIVE).toBe(2);
+      expect(state.accusedTargets.DETECTIVE.length).toBe(2);
+      expect(state.accusationHistory.length).toBe(2);
+
+      // Возвращаем ход детективу
+      state.currentTurn = "DETECTIVE";
+      // 3-я ошибка: лимит исчерпан
+      state = accuseDuelTarget(state, wrongTargets[2]);
+      expect(state.winner).toBe("KILLER");
+      expect(state.winReason).toBe("ACCUSATIONS_EXHAUSTED");
+      expect(state.penalties.DETECTIVE).toBe(3);
+      expect(state.accusedTargets.DETECTIVE.length).toBe(3);
+      expect(state.accusationHistory.length).toBe(3);
+
+      // Дальнейшие попытки обвинения блокируются
+      state.currentTurn = "DETECTIVE";
+      const blockedState = accuseDuelTarget(state, wrongTargets[3]);
+      expect(blockedState.accusedTargets.DETECTIVE.length).toBe(3);
     });
   });
 });

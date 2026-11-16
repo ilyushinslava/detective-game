@@ -37,6 +37,15 @@ export interface DuelHistoryEntry {
   timestamp: number;
 }
 
+export interface DuelAccusationRecord {
+  id: string;
+  accuserRole: Role;
+  targetId: string;
+  targetName: string;
+  isHit: boolean;
+  timestamp: number;
+}
+
 export type DuelAction =
   | { type: "ASK_QUESTION"; payload: { questionId: string } }
   | { type: "ACCUSE"; payload: { targetId: string } }

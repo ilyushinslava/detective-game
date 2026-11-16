@@ -17,7 +17,7 @@ import { useAiTurn } from "./hooks/useAiTurn";
 import { useGameActions } from "./hooks/useGameActions";
 import { useBoardVisuals } from "./hooks/useBoardVisuals";
 import { useIdleTimer } from "./hooks/useIdleTimer";
-import { createInitialState } from "./utils/gameLogic";
+import { createInitialState, isRoleChangeTrigger } from "./utils/gameLogic";
 import { soundManager } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
 import type { GameAction } from "./types/multiplayer";
@@ -479,12 +479,14 @@ export default function App() {
       const nextState = gameReducer(prev, action);
 
       // Автоматическое переключение на шторку передачи устройства в Pass & Play (PVP)
+      // Срабатывает ИСКЛЮЧИТЕЛЬНО при триггерах смены роли (убийство, арест, конспирация)
       if (prev.opponent === "PVP" && !nextState.winner) {
         const turnChanged = nextState.currentTurn !== prev.currentTurn;
         const spyChanged =
           nextState.mode === "SECRET_SERVICE" &&
           nextState.activeSpyIndex !== prev.activeSpyIndex;
-        if (turnChanged || spyChanged) {
+        const isRoleChange = isRoleChangeTrigger(prev, nextState, action as any);
+        if ((turnChanged || spyChanged) && isRoleChange) {
           setIsPassAndPlayOpen(true);
         }
       } else if (nextState.winner) {

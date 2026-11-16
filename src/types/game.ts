@@ -57,7 +57,7 @@ export interface GameState {
   trophiesDetective?: number;
   blockedShift?: { type: "ROW" | "COL"; index: number } | null;
   winner: Role | "DRAW" | null;
-  winReason?: "ACCUSATION" | "TIE_BREAK_PENALTIES" | "TIE_BREAK_CANDIDATES" | "TIE_BREAK_DRAW";
+  winReason?: "ACCUSATION" | "ACCUSATIONS_EXHAUSTED" | "TIE_BREAK_PENALTIES" | "TIE_BREAK_CANDIDATES" | "TIE_BREAK_DRAW";
   log: string[];
   lastShift: LastShift | null;
   lastInterrogation: InterrogationResult | null;
@@ -92,6 +92,15 @@ export interface GameState {
   }>;
   duelPenalties?: Record<Role, number>;
   accusedTargets?: Record<Role, string[]>;
+  duelAccusations?: Array<{
+    id: string;
+    accuserRole: Role;
+    targetId: string;
+    targetName: string;
+    isHit: boolean;
+    timestamp: number;
+  }>;
+  maxAccusations?: number;
   inspectorTargetId?: string | null;
 }
 export const SPY_COLORS = [

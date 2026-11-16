@@ -1,6 +1,7 @@
 import { DUEL_CHARACTERS } from "../constants/duelCharacters";
 import { DUEL_QUESTIONS } from "../constants/duelQuestions";
-import type { DuelCharacter, DuelHistoryEntry, DuelAction } from "../types/duel";
+import { GAME_RULES } from "../constants/gameRules";
+import type { DuelCharacter, DuelHistoryEntry, DuelAccusationRecord, DuelAction } from "../types/duel";
 import type { Role } from "../types/game";
 
 export interface DuelState {
@@ -12,9 +13,11 @@ export interface DuelState {
   matchTimeRemaining: number; // 480 сек (8 минут)
   penalties: Record<Role, number>;
   accusedTargets: Record<Role, string[]>;
+  accusationHistory: DuelAccusationRecord[];
+  maxAccusations: number;
   history: DuelHistoryEntry[];
   winner: Role | "DRAW" | null;
-  winReason?: "ACCUSATION" | "TIE_BREAK_PENALTIES" | "TIE_BREAK_CANDIDATES" | "TIE_BREAK_DRAW";
+  winReason?: "ACCUSATION" | "ACCUSATIONS_EXHAUSTED" | "TIE_BREAK_PENALTIES" | "TIE_BREAK_CANDIDATES" | "TIE_BREAK_DRAW";
 }
 
 function shuffleArray<T>(array: T[]): T[] {
@@ -44,6 +47,8 @@ export function createInitialDuelState(): DuelState {
     matchTimeRemaining: 480,
     penalties: { DETECTIVE: 0, KILLER: 0 },
     accusedTargets: { DETECTIVE: [], KILLER: [] },
+    accusationHistory: [],
+    maxAccusations: GAME_RULES.LINE_UP.MAX_ACCUSATIONS,
     history: [],
     winner: null,
   };
@@ -100,33 +105,75 @@ export function askDuelQuestion(state: DuelState, questionId: string): DuelState
 export function accuseDuelTarget(state: DuelState, targetId: string): DuelState {
   if (state.winner) return state;
   const currentRole = state.currentTurn;
-  const alreadyAccused = state.accusedTargets[currentRole].includes(targetId);
-  if (alreadyAccused) return state; // Повторное обвинение запрещено
+  const maxAcc = state.maxAccusations ?? GAME_RULES.LINE_UP.MAX_ACCUSATIONS;
+  const currentAccused = state.accusedTargets[currentRole] || [];
 
+  if (currentAccused.includes(targetId)) return state; // Повторное обвинение запрещено
+  if (currentAccused.length >= maxAcc) return state; // Лимит попыток исчерпан
+
+  const targetChar = state.board.find((c) => c.id === targetId);
+  const targetName = targetChar ? targetChar.name : targetId;
   const targetSecretId = currentRole === "DETECTIVE" ? state.killerSecretId : state.detectiveSecretId;
+  const isHit = targetId === targetSecretId;
 
-  if (targetId === targetSecretId) {
+  const record: DuelAccusationRecord = {
+    id: `accuse_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    accuserRole: currentRole,
+    targetId,
+    targetName,
+    isHit,
+    timestamp: Date.now(),
+  };
+
+  const nextAccused = [...currentAccused, targetId];
+  const nextAccusationHistory = [...(state.accusationHistory || []), record];
+
+  if (isHit) {
     // Точное обвинение немедленно завершает партию победой
     return {
       ...state,
+      accusedTargets: {
+        ...state.accusedTargets,
+        [currentRole]: nextAccused,
+      },
+      accusationHistory: nextAccusationHistory,
       winner: currentRole,
       winReason: "ACCUSATION",
     };
   }
 
-  // Ошибочное обвинение: +1 штраф, фиксация цели, переход хода
-  const nextTurn: Role = currentRole === "DETECTIVE" ? "KILLER" : "DETECTIVE";
+  // Ошибочное обвинение: +1 штраф, фиксация цели
+  const nextPenalties = {
+    ...state.penalties,
+    [currentRole]: state.penalties[currentRole] + 1,
+  };
+  const opponentRole: Role = currentRole === "DETECTIVE" ? "KILLER" : "DETECTIVE";
+
+  // Если лимит исчерпан и цель не найдена -> немедленная победа оппонента (подозреваемого)
+  if (nextAccused.length >= maxAcc) {
+    return {
+      ...state,
+      penalties: nextPenalties,
+      accusedTargets: {
+        ...state.accusedTargets,
+        [currentRole]: nextAccused,
+      },
+      accusationHistory: nextAccusationHistory,
+      winner: opponentRole,
+      winReason: "ACCUSATIONS_EXHAUSTED",
+    };
+  }
+
+  // Переход хода
   return {
     ...state,
-    penalties: {
-      ...state.penalties,
-      [currentRole]: state.penalties[currentRole] + 1,
-    },
+    penalties: nextPenalties,
     accusedTargets: {
       ...state.accusedTargets,
-      [currentRole]: [...state.accusedTargets[currentRole], targetId],
+      [currentRole]: nextAccused,
     },
-    currentTurn: nextTurn,
+    accusationHistory: nextAccusationHistory,
+    currentTurn: opponentRole,
     turnTimeRemaining: 25,
   };
 }

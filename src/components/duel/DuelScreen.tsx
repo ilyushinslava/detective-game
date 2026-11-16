@@ -82,6 +82,8 @@ export const DuelScreen = ({
           matchTimeRemaining: localState.matchTimeRemaining,
           penalties: gameState.duelPenalties || { DETECTIVE: 0, KILLER: 0 },
           accusedTargets: gameState.accusedTargets || { DETECTIVE: [], KILLER: [] },
+          accusationHistory: (gameState.duelAccusations as any) || [],
+          maxAccusations: gameState.maxAccusations || 3,
           history: (gameState.duelHistory as any) || [],
           winner: gameState.winner,
           winReason: gameState.winReason,
@@ -140,6 +142,12 @@ export const DuelScreen = ({
   }, [state.board, state.accusedTargets, state.currentTurn]);
 
   const isTurnUrgent = state.turnTimeRemaining <= 5;
+  const maxAcc = state.maxAccusations || 3;
+  const currentAccusedCount = state.accusedTargets?.[state.currentTurn]?.length || 0;
+  const remainingAttempts = Math.max(0, maxAcc - currentAccusedCount);
+  const lastAccusation = (state.accusationHistory && state.accusationHistory.length > 0)
+    ? state.accusationHistory[state.accusationHistory.length - 1]
+    : null;
 
   return (
     <div className="h-[100dvh] max-h-[100dvh] bg-[#07080c] text-zinc-100 flex flex-col justify-between p-3 select-none overflow-hidden relative">
@@ -190,6 +198,100 @@ export const DuelScreen = ({
           </div>
         </div>
       </header>
+
+      {/* Transparent Accusation Tracking & Attempt Limit HUD */}
+      <section className="w-full max-w-xl mx-auto my-1 p-2 rounded-xl bg-zinc-950/70 border border-zinc-800/80 backdrop-blur-md flex flex-col gap-1.5 shrink-0">
+        {/* Top Row: Attempts for both sides */}
+        <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider">
+          {/* Detective Attempts */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-blue-400 font-bold">Следователь:</span>
+            <div className="flex items-center gap-1" title="Попытки обвинения Следователя">
+              {Array.from({ length: maxAcc }).map((_, idx) => {
+                const used = idx < (state.accusedTargets?.DETECTIVE?.length || 0);
+                return (
+                  <span
+                    key={`det_acc_${idx}`}
+                    className={`w-2 h-2 rounded-full border ${
+                      used
+                        ? "bg-red-500 border-red-400 shadow-[0_0_6px_rgba(239,68,68,0.6)]"
+                        : "bg-blue-950 border-blue-600/70"
+                    }`}
+                  />
+                );
+              })}
+            </div>
+            <span className="text-zinc-500 text-[9px]">
+              ({maxAcc - (state.accusedTargets?.DETECTIVE?.length || 0)} ост.)
+            </span>
+          </div>
+
+          {/* Suspect / Killer Attempts */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-red-400 font-bold">Подозреваемый:</span>
+            <div className="flex items-center gap-1" title="Попытки обвинения Подозреваемого">
+              {Array.from({ length: maxAcc }).map((_, idx) => {
+                const used = idx < (state.accusedTargets?.KILLER?.length || 0);
+                return (
+                  <span
+                    key={`kil_acc_${idx}`}
+                    className={`w-2 h-2 rounded-full border ${
+                      used
+                        ? "bg-red-500 border-red-400 shadow-[0_0_6px_rgba(239,68,68,0.6)]"
+                        : "bg-red-950 border-red-600/70"
+                    }`}
+                  />
+                );
+              })}
+            </div>
+            <span className="text-zinc-500 text-[9px]">
+              ({maxAcc - (state.accusedTargets?.KILLER?.length || 0)} ост.)
+            </span>
+          </div>
+        </div>
+
+        {/* Bottom Row: Clear Chain of Accusation: [Кто] -> [Кого] -> [Результат] */}
+        <div className="pt-1 border-t border-zinc-900/90 flex items-center justify-between text-[10px]">
+          {lastAccusation ? (
+            <div className="w-full flex items-center justify-between gap-1 overflow-hidden font-mono">
+              <div className="flex items-center gap-1 shrink-0">
+                <span className="text-zinc-500 text-[9px]">ОБВИНЕНИЕ:</span>
+                <span
+                  className={`font-black uppercase px-1.5 py-0.5 rounded ${
+                    lastAccusation.accuserRole === "DETECTIVE"
+                      ? "bg-blue-950/80 text-blue-300 border border-blue-800/60"
+                      : "bg-red-950/80 text-red-300 border border-red-800/60"
+                  }`}
+                >
+                  {lastAccusation.accuserRole === "DETECTIVE" ? "Следователь" : "Подозреваемый"}
+                </span>
+              </div>
+
+              <span className="text-zinc-600">➔</span>
+
+              <div className="truncate max-w-[130px] sm:max-w-[180px] font-bold text-zinc-200">
+                {lastAccusation.targetName}
+              </div>
+
+              <span className="text-zinc-600">➔</span>
+
+              <span
+                className={`shrink-0 font-black px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider ${
+                  lastAccusation.isHit
+                    ? "bg-emerald-950/90 text-emerald-400 border border-emerald-500/80 shadow-[0_0_8px_rgba(16,185,129,0.4)]"
+                    : "bg-rose-950/90 text-rose-400 border border-rose-800/70"
+                }`}
+              >
+                {lastAccusation.isHit ? "УБИЙЦА / РАЗОБЛАЧЕН" : "АЛИБИ / ОШИБКА"}
+              </span>
+            </div>
+          ) : (
+            <div className="w-full text-center text-zinc-500 font-mono text-[9px] uppercase tracking-wider">
+              Обвинений не выдвигалось • Доступно {maxAcc} попытки разоблачения
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* 5x5 Character Board */}
       <main className="flex-1 min-h-0 flex items-center justify-center my-1 sm:my-2 overflow-hidden">
@@ -270,6 +372,8 @@ export const DuelScreen = ({
             <p className="text-xs text-zinc-400 font-medium mb-6 leading-relaxed">
               {state.winReason === "ACCUSATION"
                 ? "Точное разоблачение личности"
+                : state.winReason === "ACCUSATIONS_EXHAUSTED"
+                ? "Лимит обвинений исчерпан: оппонент допустил 3 ошибки"
                 : state.winReason === "TIE_BREAK_PENALTIES"
                 ? "Победа по наименьшему числу штрафов"
                 : state.winReason === "TIE_BREAK_CANDIDATES"
@@ -320,6 +424,8 @@ export const DuelScreen = ({
         isOpen={Boolean(accuseTarget)}
         targetCharacter={accuseTarget}
         alreadyAccused={isAlreadyAccused}
+        remainingAttempts={remainingAttempts}
+        maxAccusations={maxAcc}
         onClose={() => setAccuseTarget(null)}
         onConfirmAccusation={() => {
           if (accuseTarget) {

@@ -75,13 +75,21 @@ describe("useLocalGame Hook & Local Engine Integration", () => {
     expect(result.current.nextPlayerInfo.nextPlayerName).toBe("Оперативник");
   });
 
-  it("снимает шторку INTERSTITIAL при вызове dismissInterstitial с клик-аудио", () => {
+  it("снимает шторку INTERSTITIAL при вызове dismissInterstitial с клик-аудио", async () => {
     const { result } = renderHook(() =>
       useLocalGame({ initialMode: "MANIAC_VS_OPERATIVE", initialOpponent: "PVP" })
     );
 
+    const { killerSecretId, board } = result.current.gameState;
+    const { getAdjacentCharacters } = await import("../../utils/gameLogic");
+    const adjacent = getAdjacentCharacters(board, killerSecretId);
+    const targetVictim = adjacent[0];
+
     act(() => {
-      result.current.dispatchLocalAction({ type: "END_TURN" });
+      result.current.dispatchLocalAction({
+        type: "KILL_CHARACTER",
+        payload: { targetId: targetVictim.id },
+      });
     });
 
     expect(result.current.localPhase).toBe("INTERSTITIAL");

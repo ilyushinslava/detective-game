@@ -147,7 +147,7 @@ describe("useGameActions Hook", () => {
   });
 
   describe("THIEF_HUNT: Действие 'Вызов патруля' (SWEAR_IN_OFFICER)", () => {
-    it("Кнопка 'Вызов патруля' разблокирована в ход Полиции при наличии карт в колоде и офицеров на поле даже без selectedId", () => {
+    it("Кнопка 'Вызов патруля' заблокирована (disabled: true), если игрок не выделил офицера", () => {
       const state = createInitialState("THIEF_HUNT", "AI", "DETECTIVE");
       state.currentTurn = "DETECTIVE";
       expect(state.uniformedOfficers?.length).toBeGreaterThan(0);
@@ -163,42 +163,48 @@ describe("useGameActions Hook", () => {
 
       const patrolAction = result.current.availableActions.find((a) => a.id === "patrol_call");
       expect(patrolAction).toBeDefined();
-      expect(patrolAction?.disabled).toBe(false);
+      expect(patrolAction?.disabled).toBe(true);
     });
 
-    it("handleSwearInOfficer берет первого офицера по умолчанию, если конкретный офицер не выбран", () => {
+    it("Кнопка 'Вызов патруля' заблокирована (disabled: true), если выбран персонаж не из uniformedOfficers", () => {
       const state = createInitialState("THIEF_HUNT", "AI", "DETECTIVE");
       state.currentTurn = "DETECTIVE";
-      const expectedOfficerId = state.uniformedOfficers![0];
+      const nonOfficerId = "c99_unknown";
 
       mockParams.gameState = state;
       mockParams.isHumanTurn = true;
-      mockParams.selectedId = null;
+      mockParams.isKillerTurn = false;
+      mockParams.isKillerView = false;
+      mockParams.selectedId = nonOfficerId;
 
       const { result } = renderHook(() => useGameActions(mockParams));
+
+      const patrolAction = result.current.availableActions.find((a) => a.id === "patrol_call");
+      expect(patrolAction).toBeDefined();
+      expect(patrolAction?.disabled).toBe(true);
 
       act(() => {
         result.current.handleSwearInOfficer();
       });
-
-      expect(mockParams.dispatchAction).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: "SWEAR_IN_OFFICER",
-          payload: { targetId: expectedOfficerId },
-        })
-      );
+      expect(mockParams.dispatchAction).not.toHaveBeenCalled();
     });
 
-    it("handleSwearInOfficer заменяет выбранного офицера, если selectedId есть в uniformedOfficers", () => {
+    it("Кнопка 'Вызов патруля' активна ТОЛЬКО при выделении карточки офицера из uniformedOfficers", () => {
       const state = createInitialState("THIEF_HUNT", "AI", "DETECTIVE");
       state.currentTurn = "DETECTIVE";
-      const chosenOfficerId = state.uniformedOfficers![1];
+      const chosenOfficerId = state.uniformedOfficers![0];
 
       mockParams.gameState = state;
       mockParams.isHumanTurn = true;
+      mockParams.isKillerTurn = false;
+      mockParams.isKillerView = false;
       mockParams.selectedId = chosenOfficerId;
 
       const { result } = renderHook(() => useGameActions(mockParams));
+
+      const patrolAction = result.current.availableActions.find((a) => a.id === "patrol_call");
+      expect(patrolAction).toBeDefined();
+      expect(patrolAction?.disabled).toBe(false);
 
       act(() => {
         result.current.handleSwearInOfficer();

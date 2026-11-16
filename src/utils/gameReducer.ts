@@ -329,44 +329,86 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case "DUEL_ACCUSE": {
+      if (state.winner) return state;
       const { targetId } = action.payload;
       const currentRole = state.currentTurn;
       const currentAccused = state.accusedTargets || { DETECTIVE: [], KILLER: [] };
-      if (currentAccused[currentRole]?.includes(targetId)) {
+      const roleAccused = currentAccused[currentRole] || [];
+      const maxAcc = state.maxAccusations ?? 3;
+
+      if (roleAccused.includes(targetId) || roleAccused.length >= maxAcc) {
         return state;
       }
+
       const targetSecretId = currentRole === "DETECTIVE" ? state.killerSecretId : state.detectiveSecretId;
       const roleName = currentRole === "DETECTIVE" ? "Следователь" : "Подозреваемый";
+      const targetChar = (state.board ? state.board.flat() : DUEL_CHARACTERS).find((c) => c.id === targetId);
+      const targetName = targetChar ? targetChar.name : targetId;
+      const isHit = targetId === targetSecretId;
 
-      if (targetId === targetSecretId) {
+      const record = {
+        id: `accuse_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        accuserRole: currentRole,
+        targetId,
+        targetName,
+        isHit,
+        timestamp: Date.now(),
+      };
+
+      const nextAccusedList = [...roleAccused, targetId];
+      const nextAccusedTargets = {
+        ...currentAccused,
+        [currentRole]: nextAccusedList,
+      };
+      const nextAccusations = [...(state.duelAccusations || []), record];
+
+      if (isHit) {
         return {
           ...state,
+          accusedTargets: nextAccusedTargets,
+          duelAccusations: nextAccusations,
           winner: currentRole,
           winReason: "ACCUSATION",
           log: [
             ...state.log,
-            `Точное обвинение! ${roleName} вычислил личность оппонента! Победа!`,
+            `Точное обвинение! ${roleName} вычислил личность оппонента (${targetName})! Победа!`,
           ],
         };
       }
 
-      const nextTurn = currentRole === "DETECTIVE" ? "KILLER" : "DETECTIVE";
+      const opponentRole: Role = currentRole === "DETECTIVE" ? "KILLER" : "DETECTIVE";
+      const opponentName = opponentRole === "DETECTIVE" ? "Следователь" : "Подозреваемый";
       const currentPenalties = state.duelPenalties || { DETECTIVE: 0, KILLER: 0 };
+      const nextPenalties = {
+        ...currentPenalties,
+        [currentRole]: currentPenalties[currentRole] + 1,
+      };
+
+      // Проверка исчерпания лимита обвинений
+      if (nextAccusedList.length >= maxAcc) {
+        return {
+          ...state,
+          duelPenalties: nextPenalties,
+          accusedTargets: nextAccusedTargets,
+          duelAccusations: nextAccusations,
+          winner: opponentRole,
+          winReason: "ACCUSATIONS_EXHAUSTED",
+          log: [
+            ...state.log,
+            `Ложное обвинение! ${roleName} ошибся с фигурантом ${targetName}. Лимит обвинений (${maxAcc}/${maxAcc}) исчерпан! Победа: ${opponentName}!`,
+          ],
+        };
+      }
 
       return {
         ...state,
-        duelPenalties: {
-          ...currentPenalties,
-          [currentRole]: currentPenalties[currentRole] + 1,
-        },
-        accusedTargets: {
-          ...currentAccused,
-          [currentRole]: [...(currentAccused[currentRole] || []), targetId],
-        },
-        currentTurn: nextTurn,
+        duelPenalties: nextPenalties,
+        accusedTargets: nextAccusedTargets,
+        duelAccusations: nextAccusations,
+        currentTurn: opponentRole,
         log: [
           ...state.log,
-          `Ложное обвинение! ${roleName} получает +1 штраф. Ход переходит оппоненту.`,
+          `Ложное обвинение! ${roleName} ошибся с фигурантом ${targetName} (+1 штраф). Попытка ${nextAccusedList.length}/${maxAcc}. Ход переходит оппоненту.`,
         ],
       };
     }
@@ -423,6 +465,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           duelHistory: [],
           duelPenalties: { DETECTIVE: 0, KILLER: 0 },
           accusedTargets: { DETECTIVE: [], KILLER: [] },
+          duelAccusations: [],
           log: [...state.log, "Матч перезапущен."],
         };
       }

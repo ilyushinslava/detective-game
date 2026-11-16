@@ -312,6 +312,8 @@ export function createInitialState(
     duelHistory: mode === "LINE_UP" ? [] : undefined,
     duelPenalties: mode === "LINE_UP" ? { DETECTIVE: 0, KILLER: 0 } : undefined,
     accusedTargets: mode === "LINE_UP" ? { DETECTIVE: [], KILLER: [] } : undefined,
+    duelAccusations: mode === "LINE_UP" ? [] : undefined,
+    maxAccusations: mode === "LINE_UP" ? 3 : undefined,
     log: mode === "LINE_UP"
       ? [`Операция началась: ${modeTitle}. Сформировано досье подозреваемых.`]
       : [
@@ -1175,4 +1177,71 @@ export function swearInOfficer(
       `Полиция призвала к присяге нового офицера. Пользуясь суматохой, Грабитель украл сокровище! Добыча: ${newTrophies}/8.`,
     ],
   };
+}
+
+/**
+ * Предикат для проверки триггеров смены роли в оффлайн-режиме Pass & Play.
+ * Модалка подтверждения передачи устройства активируется ИСКЛЮЧИТЕЛЬНО
+ * при убийстве, аресте или конспирации (смене личности).
+ * Базовые маневры (сдвиг) и промахи НЕ должны вызывать лишний клик.
+ */
+export function isRoleChangeTrigger(
+  prev: GameState,
+  next: GameState,
+  action: { type: string; payload?: any }
+): boolean {
+  // 1. Убийство / ликвидация
+  if (
+    action.type === "KILL_CHARACTER" ||
+    action.type === "TARGET_KILL"
+  ) {
+    return true;
+  }
+  if ((next.killCount ?? 0) > (prev.killCount ?? 0)) {
+    return true;
+  }
+  if ((next.victimList?.length ?? 0) > (prev.victimList?.length ?? 0)) {
+    return true;
+  }
+
+  // 2. Арест / задержание
+  if (action.type === "ARREST") {
+    return true;
+  }
+  if (action.type === "CAPTURE_SPY") {
+    const trophyIncreased = (next.spies ?? []).some(
+      (s, idx) => s.trophies > (prev.spies?.[idx]?.trophies ?? 0)
+    );
+    if (trophyIncreased || next.justCaughtSpyId) {
+      return true;
+    }
+  }
+
+  // 3. Конспирация / смена личности
+  if (
+    action.type === "ESCAPE_MANIAC" ||
+    action.type === "DISGUISE" ||
+    action.type === "CHANGE_IDENTITY"
+  ) {
+    return true;
+  }
+  if (next.disguisedNotification != null) {
+    return true;
+  }
+  if (
+    prev.killerSecretId &&
+    next.killerSecretId &&
+    prev.killerSecretId !== next.killerSecretId
+  ) {
+    return true;
+  }
+  if (
+    prev.detectiveSecretId &&
+    next.detectiveSecretId &&
+    prev.detectiveSecretId !== next.detectiveSecretId
+  ) {
+    return true;
+  }
+
+  return false;
 }

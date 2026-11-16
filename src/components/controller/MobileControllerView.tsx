@@ -537,13 +537,12 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         payload: { targetId },
       });
     } else if (pendingAction.id === 'SWEAR_IN_OFFICER') {
-      const targetOfficerId =
-        selectedTargetId && gameState.uniformedOfficers?.includes(selectedTargetId)
-          ? selectedTargetId
-          : gameState.uniformedOfficers?.[0] || '';
+      if (!selectedTargetId || !gameState.uniformedOfficers?.includes(selectedTargetId)) {
+        return;
+      }
       onDispatchAction({
         type: 'SWEAR_IN_OFFICER',
-        payload: { targetId: targetOfficerId },
+        payload: { targetId: selectedTargetId },
       });
     } else {
       onDispatchAction({
@@ -553,7 +552,8 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     }
     setPendingAction(null);
     setIsAwaitingTurnEnd(true);
-    if (isPassAndPlay) {
+    const isRoleChange = ['KILL_CHARACTER', 'TARGET_KILL', 'ARREST', 'ESCAPE_MANIAC', 'DISGUISE', 'CHANGE_IDENTITY'].includes(pendingAction.id);
+    if (isPassAndPlay && isRoleChange) {
       setIsCoverOpen(true);
     }
   };
@@ -1429,8 +1429,8 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
               activeAIThinking ||
               (act.requiresTarget && neighbors.length === 0) ||
               (act.id === 'SWEAR_IN_OFFICER' &&
-                (!gameState.uniformedOfficers ||
-                  gameState.uniformedOfficers.length === 0 ||
+                (!selectedTargetId ||
+                  !gameState.uniformedOfficers?.includes(selectedTargetId) ||
                   gameState.evidenceDeck?.length === 0)),
             onClick: () => handleExecuteAction(act),
           }))}

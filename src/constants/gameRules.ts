@@ -33,9 +33,12 @@ export const WIN_CONDITIONS = {
   LINE_UP: {
     ACCUSATIONS_TO_WIN: 1,
     INSPECTOR_CHOICES_COUNT: 4,
+    MAX_ACCUSATIONS: 3,
   },
 } as const;
 
 // Лимиты комнат
 export const DEFAULT_MAX_PLAYERS = 2;
 export const TV_PARTY_MAX_PLAYERS = 8;
+
+export const GAME_RULES = WIN_CONDITIONS;

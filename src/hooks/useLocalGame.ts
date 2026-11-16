@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import type { GameState, GameModeType, Role, OpponentType } from "../types/game";
 import { SPY_COLORS } from "../types/game";
 import type { GameAction } from "../utils/gameReducer";
-import { createInitialState } from "../utils/gameLogic";
+import { createInitialState, isRoleChangeTrigger } from "../utils/gameLogic";
 import { gameReducer } from "../utils/gameReducer";
 import { calculateNextAIMove } from "../utils/aiLogic";
 import {
@@ -222,14 +222,15 @@ export function useLocalGame({
       setGameState((prev) => {
         const nextState = gameReducer(prev, action);
 
-        // 3. Проверка передачи хода для фазы INTERSTITIAL (только при локальном Pass & Play без победы)
+        // 3. Проверка передачи хода для фазы INTERSTITIAL (только при триггерах смены роли: убийство, арест, конспирация)
         const isPassMode = isPassAndPlay && prev.opponent === "PVP";
         const turnChanged = nextState.currentTurn !== prev.currentTurn;
         const spyChanged =
           nextState.mode === "SECRET_SERVICE" &&
           nextState.activeSpyIndex !== prev.activeSpyIndex;
+        const isRoleChange = isRoleChangeTrigger(prev, nextState, action);
 
-        if (isPassMode && (turnChanged || spyChanged) && !nextState.winner) {
+        if (isPassMode && (turnChanged || spyChanged) && isRoleChange && !nextState.winner) {
           setLocalPhase("INTERSTITIAL");
         } else if (nextState.winner) {
           setLocalPhase("ACTION");

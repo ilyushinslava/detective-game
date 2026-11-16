@@ -37,6 +37,7 @@ export function useSpatialNavigation({
   useEffect(() => {
     if (!enabled) return;
     const timer = setTimeout(() => {
+      if (typeof document === 'undefined') return;
       const root = containerRef?.current || document;
       if (initialFocusSelector) {
         const initialEl = root.querySelector<HTMLElement>(initialFocusSelector);

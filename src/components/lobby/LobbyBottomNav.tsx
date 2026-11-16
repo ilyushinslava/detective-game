@@ -28,14 +28,14 @@ export const LobbyBottomNav: React.FC<LobbyBottomNavProps> = ({
           soundManager.play("tapMenu");
           onNavigate("HOME", "LOBBY");
         }}
-        className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer relative ${
+        className={`flex flex-col items-center justify-center w-16 h-12 gap-1 p-1 transition cursor-pointer relative ${
           isHqActive ? "text-white font-bold" : "text-zinc-500 hover:text-zinc-300"
         }`}
       >
-        <Icons.Home />
-        <span className="text-[8px] md:text-[10px] font-mono tracking-widest uppercase">{labels.hq}</span>
+        <Icons.Home className="w-6 h-6 shrink-0" />
+        <span className="text-[9px] font-mono tracking-widest uppercase">{labels.hq}</span>
         {isHqActive && (
-          <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.9)]" />
+          <span className="absolute bottom-0 w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.9)]" />
         )}
       </button>
 
@@ -44,14 +44,14 @@ export const LobbyBottomNav: React.FC<LobbyBottomNavProps> = ({
           soundManager.play("tapMenu");
           onNavigate("TABLES", "TABLES");
         }}
-        className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer relative ${
+        className={`flex flex-col items-center justify-center w-16 h-12 gap-1 p-1 transition cursor-pointer relative ${
           isTablesActive ? "text-white font-bold" : "text-zinc-500 hover:text-zinc-300"
         }`}
       >
-        <Icons.Radar />
-        <span className="text-[8px] md:text-[10px] font-mono tracking-widest uppercase">{labels.tables}</span>
+        <Icons.Radar className="w-6 h-6 shrink-0" />
+        <span className="text-[9px] font-mono tracking-widest uppercase">{labels.tables}</span>
         {isTablesActive && (
-          <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.9)]" />
+          <span className="absolute bottom-0 w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.9)]" />
         )}
       </button>
 
@@ -60,14 +60,14 @@ export const LobbyBottomNav: React.FC<LobbyBottomNavProps> = ({
           soundManager.play("tapMenu");
           onNavigate("PROFILE", "TOP");
         }}
-        className={`flex flex-col items-center gap-1.5 p-1.5 transition cursor-pointer relative ${
+        className={`flex flex-col items-center justify-center w-16 h-12 gap-1 p-1 transition cursor-pointer relative ${
           isProfileActive ? "text-white font-bold" : "text-zinc-500 hover:text-zinc-300"
         }`}
       >
-        <Icons.User />
-        <span className="text-[8px] md:text-[10px] font-mono tracking-widest uppercase">{labels.profile}</span>
+        <Icons.User className="w-6 h-6 shrink-0" />
+        <span className="text-[9px] font-mono tracking-widest uppercase">{labels.profile}</span>
         {isProfileActive && (
-          <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.9)]" />
+          <span className="absolute bottom-0 w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.9)]" />
         )}
       </button>
     </nav>

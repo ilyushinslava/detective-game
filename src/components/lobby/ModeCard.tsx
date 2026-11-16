@@ -3,7 +3,6 @@ import { Icons } from "../ui/Icons";
 
 export interface ModeCardProps {
   title: string;
-  badge?: string;
   description: string;
   actionText: string;
   icon: React.ReactNode;

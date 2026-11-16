@@ -150,13 +150,8 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
               onClick={onSelectSolo}
               className="min-h-[92px] sm:min-h-[105px] border border-white/10 hover:border-white/25 bg-zinc-950/70 hover:bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/30"
             >
-              <div className="flex items-center justify-between w-full">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-900/90 text-zinc-300 border border-white/10 flex items-center justify-center group-hover:text-white group-hover:border-white/25 transition-all shrink-0 shadow-inner">
-                  <Icons.Cards className="w-4 h-4 sm:w-5 sm:h-5" />
-                </div>
-                <span className="bg-zinc-900/90 text-zinc-400 border border-white/10 text-[9px] sm:text-[10px] font-mono px-2 py-0.5 rounded-lg uppercase font-bold tracking-wider shrink-0">
-                  PVE
-                </span>
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-900/90 text-zinc-300 border border-white/10 flex items-center justify-center group-hover:text-white group-hover:border-white/25 transition-all shrink-0 shadow-inner">
+                <Icons.Cards className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="flex flex-col mt-1.5 min-w-0 flex-1 justify-center">
                 <span className="font-bold text-xs sm:text-sm whitespace-normal leading-tight text-zinc-100 uppercase tracking-wider group-hover:text-white transition">
@@ -170,13 +165,8 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
               onClick={onSelectLocalDuel}
               className="min-h-[92px] sm:min-h-[105px] border border-white/10 hover:border-white/25 bg-zinc-950/70 hover:bg-zinc-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-white/30"
             >
-              <div className="flex items-center justify-between w-full">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-900/90 text-zinc-300 border border-white/10 flex items-center justify-center group-hover:text-white group-hover:border-white/25 transition-all shrink-0 shadow-inner">
-                  <Icons.Users className="w-4 h-4 sm:w-5 sm:h-5" />
-                </div>
-                <span className="bg-zinc-900/90 text-zinc-400 border border-white/10 text-[9px] sm:text-[10px] font-mono px-2 py-0.5 rounded-lg uppercase font-bold tracking-wider shrink-0">
-                  PVP
-                </span>
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-900/90 text-zinc-300 border border-white/10 flex items-center justify-center group-hover:text-white group-hover:border-white/25 transition-all shrink-0 shadow-inner">
+                <Icons.Users className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="flex flex-col mt-1.5 min-w-0 flex-1 justify-center">
                 <span className="font-bold text-xs sm:text-sm whitespace-normal leading-tight text-zinc-100 uppercase tracking-wider group-hover:text-white transition">
@@ -206,9 +196,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
                   </span>
                 </div>
               </div>
-              <span className="bg-red-950/80 text-red-400 border border-red-500/40 text-[9px] sm:text-[10px] font-mono px-2 py-0.5 rounded-lg uppercase font-black tracking-wider shrink-0 shadow-[0_0_8px_rgba(239,68,68,0.25)] ml-2">
-                TV PARTY
-              </span>
+              <Icons.ArrowRight className="w-4 h-4 text-zinc-500 group-hover:text-red-400 group-hover:translate-x-1 transition-all shrink-0 mr-1" />
             </button>
           </div>
 
@@ -240,18 +228,13 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
             <div className="w-full flex flex-col bg-zinc-950/70 hover:bg-zinc-950/90 border border-blue-500/30 hover:border-blue-400/60 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 shadow-[0_0_35px_rgba(37,99,235,0.12)] transition-all relative overflow-hidden group">
               <div className="absolute -top-16 -right-16 w-44 h-44 bg-blue-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-500/20 transition-all duration-500" />
 
-              <div className="relative z-10 flex items-center justify-between mb-2">
-                <div>
-                  <h2 className="text-sm sm:text-base font-black text-white uppercase tracking-tight leading-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
-                    {t.menu.quickPlay || "Быстрая игра"}
-                  </h2>
-                  <p className="text-[9px] sm:text-[10px] text-zinc-400 leading-tight">
-                    Мгновенный вход в дуэль 5×5
-                  </p>
-                </div>
-                <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-blue-950/80 border border-blue-500/30 text-blue-300">
-                  FAST MATCH
-                </span>
+              <div className="relative z-10 flex flex-col mb-2">
+                <h2 className="text-sm sm:text-base font-black text-white uppercase tracking-tight leading-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+                  {t.menu.quickPlay || "Быстрая игра"}
+                </h2>
+                <p className="text-[9px] sm:text-[10px] text-zinc-400 leading-tight mt-0.5">
+                  Мгновенный вход в дуэль 5×5
+                </p>
               </div>
 
               <div className="relative z-10 w-full mt-1">

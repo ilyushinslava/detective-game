@@ -71,12 +71,11 @@ export const NetworkSidebar: React.FC<NetworkSidebarProps> = ({
 
       {/* Блок 1: БЫСТРАЯ ИГРА (со слайдером) */}
       <div className="relative z-10 flex flex-col shrink-0">
-        <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center mb-1.5">
           <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded-md bg-zinc-900/80 border border-white/15 text-[10px] font-mono font-bold tracking-wider text-zinc-300 uppercase">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
             <span>МГНОВЕННЫЙ ПОДБОР</span>
           </div>
-          <span className="font-mono text-[10px] text-zinc-500 uppercase">DUEL 5×5</span>
         </div>
 
         <h2 className="text-base xl:text-lg font-display font-black text-white uppercase tracking-tight leading-tight mb-1">

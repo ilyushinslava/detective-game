@@ -32,20 +32,9 @@ export const NetworkSidebar: React.FC<NetworkSidebarProps> = ({
       {/* Декоративное терминальное свечение в глубине фона */}
       <div className="absolute top-0 right-0 w-80 h-80 bg-blue-600/5 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Верхний терминальный заголовок пульта */}
-      <div className="relative z-10 flex items-center justify-between pb-3.5 border-b border-white/10 mb-3.5 shrink-0">
-        <div className="flex items-center gap-2 font-mono text-[11px] font-bold tracking-widest text-zinc-300 uppercase">
-          <span className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)] animate-pulse" />
-          <span>СЕТЕВОЙ ТЕРМИНАЛ // DECK</span>
-        </div>
-        <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">
-          ONLINE OPS
-        </span>
-      </div>
-
       {/* Секция: Возобновление расследования (если есть активный матч) */}
       {hasActiveGame && onResumeGame && (
-        <div className="relative z-10 pb-3 border-b border-white/10 mb-3 shrink-0">
+        <div className="relative z-10 pb-4 border-b border-white/10 mb-4 shrink-0">
           <button
             onClick={onResumeGame}
             className="w-full bg-gradient-to-r from-emerald-950/80 via-zinc-950 to-zinc-950 border border-emerald-500/40 hover:border-emerald-400 p-3 rounded-2xl flex items-center justify-between shadow-[0_0_25px_rgba(16,185,129,0.2)] hover:scale-[1.01] transition-all cursor-pointer group"
@@ -70,7 +59,7 @@ export const NetworkSidebar: React.FC<NetworkSidebarProps> = ({
       )}
 
       {/* Блок 1: БЫСТРАЯ ИГРА (со слайдером) */}
-      <div className="relative z-10 flex flex-col shrink-0">
+      <div className="relative z-10 flex flex-col shrink-0 pb-6 border-b border-white/15">
         <div className="flex items-center mb-1.5">
           <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded-md bg-zinc-900/80 border border-white/15 text-[10px] font-mono font-bold tracking-wider text-zinc-300 uppercase">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0 shadow-[0_0_6px_rgba(59,130,246,0.8)]" />
@@ -96,26 +85,17 @@ export const NetworkSidebar: React.FC<NetworkSidebarProps> = ({
         </div>
       </div>
 
-      {/* Тонкий терминальный разделитель */}
-      <div className="relative z-10 w-full h-px bg-white/10 my-3.5 xl:my-4 shrink-0" />
-
-      {/* Блок 2: СЕТЕВЫЕ СТОЛЫ (доступ к открытым сетевым комнатам) */}
-      <div className="relative z-10 flex flex-col justify-between flex-1 min-h-0">
+      {/* Блок 2: СЕТЕВЫЕ СТОЛЫ (доступ к открытым сетевым комнатам) с увеличенным визуальным разделением */}
+      <div className="relative z-10 flex flex-col justify-between flex-1 min-h-0 pt-6 mt-2">
         <div>
           <div className="flex items-center justify-between pb-2 mb-2">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-blue-950/80 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.2)] shrink-0">
                 <Icons.Radar className="w-4 h-4" />
               </div>
-              <div>
-                <span className="text-xs xl:text-sm font-display font-bold uppercase tracking-wider text-white block leading-tight">
-                  Сетевые столы
-                </span>
-                <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  LIVE ЭФИР
-                </span>
-              </div>
+              <span className="text-xs xl:text-sm font-display font-bold uppercase tracking-wider text-white block leading-tight">
+                Сетевые столы
+              </span>
             </div>
             <span className="text-[10px] xl:text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-md bg-blue-950/70 border border-blue-500/30 text-blue-300 shrink-0">
               {onlineRoomsCount} комнат
@@ -125,14 +105,6 @@ export const NetworkSidebar: React.FC<NetworkSidebarProps> = ({
           <p className="text-[11px] xl:text-xs text-zinc-400 leading-relaxed whitespace-normal line-clamp-2 mb-3">
             Открытые оперативные столы по шифрам комнат и приватные сессии расследований.
           </p>
-
-          <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-              <span className="text-[10px] font-mono text-zinc-300">PartyKit WebSocket SSOT</span>
-            </div>
-            <span className="text-[9px] font-mono uppercase text-zinc-500 tracking-wider">ONLINE</span>
-          </div>
         </div>
 
         <button

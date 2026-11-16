@@ -175,9 +175,20 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
             {GAME_TITLE.ru}
           </h1>
         </div>
-        <div className="flex items-center gap-2 text-xs font-display font-bold uppercase tracking-[0.25em] text-white/70 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md">
-          <span>ЛОББИ ПАРТИИ</span>
-        </div>
+        {!hideExit && onExit ? (
+          <Button
+            variant="secondary"
+            tabIndex={0}
+            onClick={onExit}
+            className="px-4 py-1.5 h-9 rounded-xl text-xs font-display font-bold uppercase tracking-[0.2em] bg-white/[0.05] hover:bg-white/[0.1] border border-white/15 text-white/80 hover:text-white transition-all duration-300 focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_20px_rgba(255,255,255,0.3)] cursor-pointer"
+          >
+            В МЕНЮ
+          </Button>
+        ) : (
+          <div className="flex items-center gap-2 text-xs font-display font-bold uppercase tracking-[0.25em] text-white/70 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md">
+            <span>ЛОББИ ПАРТИИ</span>
+          </div>
+        )}
       </div>
 
       {/* Скрытый контейнер с ссылкой для accessibility и тестов (на экране сырой текст полностью скрыт) */}
@@ -205,33 +216,28 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
             </div>
           </div>
 
-          {/* Блок Морзе: только чистые сигналы, без цифр и без сырых IP */}
+          {/* Блок Морзе: только чистые визуальные индикаторы без текстового дублирования */}
           <div className="w-full pt-3 border-t border-white/10 flex flex-col items-center shrink-0">
-            <div className="text-xs font-display font-bold uppercase tracking-[0.3em] text-rose-300/70 mb-1.5">
+            <div className="text-xs font-display font-bold uppercase tracking-[0.3em] text-rose-300/70 mb-2">
               ШИФР МОРЗЕ
             </div>
 
-            {/* Визуальные пилюли точек и тире со свечением */}
-            <div className="flex flex-nowrap items-center justify-center gap-2.5 py-1 w-full">
+            {/* Крупные визуальные пилюли точек и тире со свечением */}
+            <div className="flex flex-nowrap items-center justify-center gap-3 py-3 w-full">
               {displayMorse.split('').map((sym, idx) => (
                 <div
                   key={idx}
                   className={`flex items-center justify-center transition-all shrink-0 ${
                     sym === '.'
-                      ? 'w-5 h-5 rounded-full bg-rose-100 shadow-[0_0_12px_rgba(244,63,94,0.8)]'
-                      : 'w-12 h-5 rounded-full bg-rose-100 shadow-[0_0_12px_rgba(244,63,94,0.8)]'
+                      ? 'w-6 h-6 rounded-full bg-rose-100 shadow-[0_0_15px_rgba(244,63,94,0.9)]'
+                      : 'w-14 h-6 rounded-full bg-rose-100 shadow-[0_0_15px_rgba(244,63,94,0.9)]'
                   }`}
                 />
               ))}
             </div>
 
-            {/* Крупные символы морзе text-3xl lg:text-4xl */}
-            <div className="text-3xl lg:text-4xl font-display font-black tracking-[0.3em] text-white my-1 drop-shadow-[0_0_15px_rgba(244,63,94,0.5)]">
-              {displayMorse}
-            </div>
-
-            <div className="text-[11px] font-sans font-light text-white/50">
-              Или введите 7 сигналов Морзе на контроллере
+            <div className="text-[11px] font-sans font-light text-white/50 mt-1">
+              Введите 7 сигналов Морзе на контроллере
             </div>
           </div>
         </div>
@@ -363,19 +369,8 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
             </div>
           </div>
 
-          {/* Секция 3: Изолированная нижняя панель действий */}
-          <div className="flex items-center justify-between gap-3 pt-1 shrink-0">
-            {!hideExit && (
-              <Button
-                variant="secondary"
-                tabIndex={0}
-                onClick={onExit}
-                className="px-5 h-13 lg:h-14 rounded-2xl text-sm font-display font-bold uppercase tracking-wider bg-white/[0.05] hover:bg-white/[0.1] border border-white/15 text-white/80 hover:text-white transition-all duration-300 focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_30px_rgba(255,255,255,0.35),inset_0_0_15px_rgba(255,255,255,0.2)]"
-              >
-                В меню
-              </Button>
-            )}
-
+          {/* Секция 3: Изолированная нижняя панель действий (мощная доминирующая кнопка старта) */}
+          <div className="flex items-center gap-3 pt-1 shrink-0 w-full">
             <Button
               variant="primary-danger"
               data-tv-start-btn="true"
@@ -385,7 +380,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                 onStartGame?.(selectedMode, isPassAndPlay);
               }}
               disabled={!canStart}
-              className={`flex-1 h-13 lg:h-14 rounded-2xl font-display font-black uppercase tracking-wider text-lg lg:text-xl transition-all duration-300 cursor-pointer ${
+              className={`w-full h-13 lg:h-14 rounded-2xl font-display font-black uppercase tracking-wider text-lg lg:text-xl transition-all duration-300 cursor-pointer ${
                 canStart
                   ? 'bg-gradient-to-r from-red-700 via-rose-700 to-red-800 hover:from-red-600 hover:via-rose-600 hover:to-red-700 border border-rose-400/40 text-white shadow-[0_10px_35px_rgba(225,29,72,0.45),inset_0_1px_2px_rgba(255,255,255,0.4)]'
                   : 'bg-white/[0.03] border border-white/10 text-white/30 cursor-not-allowed'

@@ -404,4 +404,27 @@
   - Android Capacitor sync синхронизирован.
 - **Статус:** `IMPLEMENTED`.
 
+---
+
+## ADR-23: Генеральная уборка кодовой базы, ликвидация компонентов-призраков и стандартизация системных констант (Hit List)
+
+- **Контекст:** В процессе эволюции архитектуры игры (внедрение процедурной сетки 5×5, единой шторки тайны личности `BlindfoldCurtain`, стандартизация сетевого лобби) в репозитории накопились неиспользуемые компоненты-призраки, дубликаты-реэкспорты, устаревшие тесты и хардкод системных задержек («магические числа»).
+- **Принятое решение:**
+  1. **Ликвидация 11 мёртвых файлов:**
+     - Компоненты-призраки и неиспользуемые модули: `src/components/Board5x5.tsx`, `src/components/ConnectionLossOverlay.tsx`, `src/utils/tvPartyLogic.ts`, `src/hooks/useLocalGame.ts`.
+     - Транзитные файлы-реэкспорты: `src/components/DetectiveNotebookModal.tsx` (перенаправлен на канонический `src/components/controller/DetectiveNotebookModal.tsx`), `src/components/controller/PassAndPlayModal.tsx` (переведён на универсальный `BlindfoldCurtain.tsx`).
+     - Мёртвые и дублирующие тесты: `skhvatka.test.ts`, `tvPartyLogic.test.ts`, `useLocalGame.test.ts`, `ConnectionLossOverlay.test.tsx`, `PassAndPlayModal.test.tsx`.
+  2. **Очистка редьюсера от фантомных реестров:**
+     - Из `src/utils/gameReducer.ts` удалён объект `PROCEDURAL_GRID_DEAD_CODE_CANDIDATES`, выполнявший роль временного аудиторского реестра.
+     - Сохранены в неприкосновенности все активные игровые функции: `SHIFT_BOARD`, `ROB_NEIGHBOR`, `SWEAR_IN_OFFICER`, `FAST_DISGUISE`, `DUEL_ACCUSE`, `areAdjacent`.
+  3. **Стандартизация системных задержек и параметров (SSoT):**
+     - В `src/constants/gameRules.ts` вынесены объекты `TIMINGS` (`GAME_OVER_DELAY_MS: 1300`, `MORSE_DASH_THRESHOLD_MS: 250`, `OLED_IDLE_TIMEOUT_MS: 300000`, `LOBBY_POLL_INTERVAL_MS: 3000`) и `AUDIO_CONFIG` (`MORSE_TONE_FREQ_HZ: 700`).
+     - Хардкод заменён на централизованные константы в `GameLifecycleModals.tsx`, `ControllerConnectView.tsx`, `App.tsx`, `useLobbyNetwork.ts`.
+- **Причина:** Устранение энтропии проекта, предотвращение случайных импортов устаревших модулей, соблюдение принципа единого источника истины (SSoT).
+- **Последствия:**
+  - Кодовая база избавлена от 11 фантомных файлов.
+  - Устранены дублирующиеся цепочки импортов модальных окон.
+  - Централизованное управление таймингами и аудио-частотами через `gameRules.ts`.
+- **Статус:** `IMPLEMENTED`.
+
 

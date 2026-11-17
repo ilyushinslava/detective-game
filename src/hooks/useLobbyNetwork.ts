@@ -4,7 +4,7 @@ import type { UserProfile } from "../types/profile";
 import { partyService } from "../utils/partyPeer";
 import { triggerHaptic } from "../utils/haptics";
 import { soundManager } from "../utils/audio";
-import { DEFAULT_BET } from "../constants/gameRules";
+import { DEFAULT_BET, TIMINGS } from "../constants/gameRules";
 
 export interface PublicRoomInfo {
   roomCode: string;
@@ -67,7 +67,7 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
     loadRooms();
 
     if (screen === "TABLES" || screen === "HOME") {
-      timer = setInterval(loadRooms, 3000);
+      timer = setInterval(loadRooms, TIMINGS.LOBBY_POLL_INTERVAL_MS);
     }
 
     return () => {

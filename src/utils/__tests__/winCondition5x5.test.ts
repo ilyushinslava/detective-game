@@ -1,18 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { gameReducer, PROCEDURAL_GRID_DEAD_CODE_CANDIDATES } from "../gameReducer";
+import { gameReducer } from "../gameReducer";
 import { createInitialState, generateBoard5x5 } from "../gameLogic";
 import type { GameState } from "../../types/game";
 import type { GameAction } from "../../types/multiplayer";
 
 describe("Stage 3: Условия победы и сбор улик на сетке 5x5", () => {
-  it("должен корректно регистрировать список кандидатов в мертвый код (Dead Code Audit)", () => {
-    expect(PROCEDURAL_GRID_DEAD_CODE_CANDIDATES.legacyActions).toContain("SHIFT_BOARD");
-    expect(PROCEDURAL_GRID_DEAD_CODE_CANDIDATES.legacyActions).toContain("ROB_NEIGHBOR");
-    expect(PROCEDURAL_GRID_DEAD_CODE_CANDIDATES.legacyGameLogicFunctions).toContain("shiftBoard");
-    expect(PROCEDURAL_GRID_DEAD_CODE_CANDIDATES.legacyGameLogicFunctions).toContain("robNeighbor");
-    expect(PROCEDURAL_GRID_DEAD_CODE_CANDIDATES.legacyStateFields).toContain("blockedShift");
-  });
-
   it("должен инкрементировать trophiesDetective и добавлять улику в evidenceDeck при открытии CLUE", () => {
     const baseState = createInitialState("MANIAC_VS_OPERATIVE", "PVP");
     const board5x5 = generateBoard5x5({ proceduralDistribution: true, clueCount: 5, emptyCount: 5 });

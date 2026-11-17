@@ -1,10 +1,6 @@
-// @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import React from "react";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { describe, it, expect, beforeEach } from "vitest";
 import { generateBoard5x5, createInitialState } from "../gameLogic";
 import { gameReducer } from "../gameReducer";
-import { Board5x5 } from "../../components/Board5x5";
 import type { GameState } from "../../types/game";
 
 describe("Этап 1: Генерация сетки 5x5 и стейт-машина ходов (SSOT)", () => {
@@ -177,74 +173,6 @@ describe("Этап 1: Генерация сетки 5x5 и стейт-машин
       expect(nextState.board[0].length).toBe(5);
       expect(nextState.actionPoints).toBe(3);
       expect(nextState.board.flat().some((c) => c.status === "HIDDEN")).toBe(true);
-    });
-  });
-
-  describe("3. UI-компонент Board5x5 (Pure SSOT Rendering)", () => {
-    afterEach(() => {
-      cleanup();
-    });
-    it("отображает статус-бар очереди ходов и очков действий", () => {
-      const board = generateBoard5x5({ proceduralDistribution: true, defaultStatus: "HIDDEN" });
-
-      render(
-        <Board5x5
-          board={board}
-          currentTurn="DETECTIVE"
-          actionPoints={2}
-          maxActionPoints={3}
-        />
-      );
-
-      expect(screen.getByText("5×5 [25 КЛЕТОК]")).toBeDefined();
-      expect(screen.getByText("ДЕТЕКТИВ")).toBeDefined();
-      expect(screen.getByText("2/3")).toBeDefined();
-    });
-
-    it("рендерит ровно 25 ячеек в сетке 5x5", () => {
-      const board = generateBoard5x5({ proceduralDistribution: true, defaultStatus: "HIDDEN" });
-
-      render(<Board5x5 board={board} />);
-
-      const grid = screen.getByTestId("board-5x5-grid");
-      expect(grid.children.length).toBe(25);
-    });
-
-    it("клик по скрытой ячейке диспатчит onRevealCell", () => {
-      const board = generateBoard5x5({ proceduralDistribution: true, defaultStatus: "HIDDEN" });
-      const revealSpy = vi.fn();
-
-      render(
-        <Board5x5
-          board={board}
-          actionPoints={3}
-          onRevealCell={revealSpy}
-        />
-      );
-
-      const cell00 = screen.getByTestId("cell-0-0");
-      fireEvent.click(cell00);
-
-      expect(revealSpy).toHaveBeenCalledTimes(1);
-      expect(revealSpy).toHaveBeenCalledWith(board[0][0].id, 0, 0);
-    });
-
-    it("блокирует клик по скрытой ячейке при 0 AP", () => {
-      const board = generateBoard5x5({ proceduralDistribution: true, defaultStatus: "HIDDEN" });
-      const revealSpy = vi.fn();
-
-      render(
-        <Board5x5
-          board={board}
-          actionPoints={0}
-          onRevealCell={revealSpy}
-        />
-      );
-
-      const cell00 = screen.getByTestId("cell-0-0");
-      fireEvent.click(cell00);
-
-      expect(revealSpy).not.toHaveBeenCalled();
     });
   });
 });

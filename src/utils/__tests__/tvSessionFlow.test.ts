@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { createInitialState } from "../gameLogic";
+import { createInitialState, isOppositeShift, getAdjacentCharacters } from "../gameLogic";
 import { gameReducer } from "../gameReducer";
-import { isUndoShift, findCharacterPosition, getCharacterNeighbors } from "../tvPartyLogic";
 import type { GameState, LastShift } from "../../types/game";
 import GameRoomServer from "../../server/index";
 
@@ -49,19 +48,10 @@ describe("TV Session Flow E2E Suite", () => {
         index: 1,
         direction: "FORWARD",
       };
-      const undoShift: LastShift = {
-        type: "ROW",
-        index: 1,
-        direction: "BACKWARD",
-      };
-      const nonUndoShift: LastShift = {
-        type: "ROW",
-        index: 2,
-        direction: "BACKWARD",
-      };
 
-      expect(isUndoShift(shift1, undoShift)).toBe(true);
-      expect(isUndoShift(shift1, nonUndoShift)).toBe(false);
+      expect(isOppositeShift(shift1, "ROW", 1, "BACKWARD")).toBe(true);
+      expect(isOppositeShift(shift1, "ROW", 2, "BACKWARD")).toBe(false);
+      expect(isOppositeShift(shift1, "COL", 1, "BACKWARD")).toBe(false);
     });
   });
 
@@ -103,10 +93,7 @@ describe("TV Session Flow E2E Suite", () => {
   describe("Scenario 3: Pass-and-Play privacy and neighbor resolution", () => {
     it("correctly computes physical neighbors for active agent in TV controller", () => {
       const activeSpySecretId = state.spies![0].secretId;
-      const pos = findCharacterPosition(state.board, activeSpySecretId);
-      expect(pos).not.toBeNull();
-
-      const neighbors = getCharacterNeighbors(state.board, activeSpySecretId);
+      const neighbors = getAdjacentCharacters(state.board, activeSpySecretId);
       expect(neighbors.length).toBeGreaterThanOrEqual(3);
       expect(neighbors.length).toBeLessThanOrEqual(8);
       // Secret agent cannot be their own neighbor

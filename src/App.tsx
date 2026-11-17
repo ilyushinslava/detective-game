@@ -27,7 +27,7 @@ import { gameReducer } from "./utils/gameReducer";
 import { BannerViewerProvider } from "./contexts/BannerViewerContext";
 import { useRulesModal } from "./hooks/useRulesModal";
 import { characterImages } from "./constants/characterImages";
-import { DEFAULT_BET } from "./constants/gameRules";
+import { DEFAULT_BET, TIMINGS } from "./constants/gameRules";
 import { TvScreensaver } from "./components/tv/TvScreensaver";
 import { TvNetworkDisconnectModal } from "./components/tv/TvNetworkDisconnectModal";
 import {
@@ -201,7 +201,7 @@ export default function App() {
 
   // Защита OLED-экранов от выгорания (таймер простоя 5 минут)
   const { isIdle: isOledIdle, resetTimer: resetOledTimer } = useIdleTimer({
-    timeoutMs: 300000,
+    timeoutMs: TIMINGS.OLED_IDLE_TIMEOUT_MS,
     enabled: isAndroidTv || tvPartyState !== "NONE",
   });
 

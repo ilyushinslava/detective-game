@@ -5,6 +5,7 @@ import { Button } from '../ui/Button';
 import { partyService } from '../../utils/partyPeer';
 import { normalizeMorse } from '../../utils/morse';
 import { QrCameraScanner } from './QrCameraScanner';
+import { TIMINGS, AUDIO_CONFIG } from '../../constants/gameRules';
 
 export interface ControllerConnectViewProps {
   onConnect: (roomCode: string) => void;
@@ -137,7 +138,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
     setIsDashReached(false);
     setHoldProgress(0);
 
-    soundManager.startMorseTone(700);
+    soundManager.startMorseTone(AUDIO_CONFIG.MORSE_TONE_FREQ_HZ);
     triggerHaptic('light');
 
     if (animFrameRef.current !== null) {
@@ -156,15 +157,15 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
         setHoldProgress(1);
         triggerHaptic('medium');
       }
-    }, 250);
+    }, TIMINGS.MORSE_DASH_THRESHOLD_MS);
 
     const step = () => {
       if (!isKeyDownRef.current) return;
       const elapsed = performance.now() - pressStartRef.current;
-      const progress = Math.min(1, elapsed / 250);
+      const progress = Math.min(1, elapsed / TIMINGS.MORSE_DASH_THRESHOLD_MS);
       setHoldProgress(progress);
 
-      if (elapsed >= 250) {
+      if (elapsed >= TIMINGS.MORSE_DASH_THRESHOLD_MS) {
         setHoldProgress(1);
         if (!thresholdFiredRef.current) {
           thresholdFiredRef.current = true;
@@ -195,7 +196,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
     }
 
     const duration = performance.now() - pressStartRef.current;
-    const isDash = duration >= 250;
+    const isDash = duration >= TIMINGS.MORSE_DASH_THRESHOLD_MS;
     const symbol = isDash ? '-' : '.';
 
     if (!thresholdFiredRef.current) {

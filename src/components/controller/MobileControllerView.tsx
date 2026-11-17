@@ -4,7 +4,7 @@ import type { GameState, Role, Character } from '../../types/game';
 import { SPY_COLORS } from '../../types/game';
 import { getAdjacentCharacters, isOppositeShift } from '../../utils/gameLogic';
 import { CharacterCard } from '../CharacterCard';
-import { PassAndPlayModal } from './PassAndPlayModal';
+import { BlindfoldCurtain } from '../ui/BlindfoldCurtain';
 import { InspectorChoiceModal } from '../InspectorChoiceModal';
 import { ActionButtonsBar } from '../ui/ActionButtonsBar';
 import { ThinkingBanner } from '../ui/ThinkingBanner';
@@ -605,7 +605,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
   if (isCoverOpen) {
     return (
-      <PassAndPlayModal
+      <BlindfoldCurtain
         isOpen={true}
         nextRole={nextPlayerInfo.nextRole}
         nextPlayerName={nextPlayerInfo.nextPlayerName}
@@ -1511,7 +1511,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       </div>
 
       {/* Шторка Pass-and-Play */}
-      <PassAndPlayModal
+      <BlindfoldCurtain
         isOpen={isCoverOpen}
         nextRole={nextPlayerInfo.nextRole}
         nextPlayerName={nextPlayerInfo.nextPlayerName}

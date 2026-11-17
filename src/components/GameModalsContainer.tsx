@@ -1,6 +1,6 @@
 ﻿import React from "react";
 import type { GameModeType, Role, Character } from "../types/game";
-import { DetectiveNotebookModal } from "./DetectiveNotebookModal";
+import { DetectiveNotebookModal } from "./controller/DetectiveNotebookModal";
 import { DuelQuestionCatalogModal } from "./duel/DuelQuestionCatalogModal";
 import { DuelCandidatesSheet } from "./duel/DuelCandidatesSheet";
 import { DuelAccuseModal } from "./duel/DuelAccuseModal";

@@ -5,6 +5,7 @@ import { GameOverModal } from "./GameOverModal";
 import { IdentityRevealModal } from "./IdentityRevealModal";
 import { InspectorChoiceModal } from "./InspectorChoiceModal";
 import { partyService } from "../utils/partyPeer";
+import { TIMINGS } from "../constants/gameRules";
 
 export interface GameLifecycleModalsProps {
   gameState: GameState;
@@ -69,7 +70,7 @@ export const GameLifecycleModals: React.FC<GameLifecycleModalsProps> = memo(({
     if (gameState.winner) {
       const timer = setTimeout(() => {
         setShowGameOverModal(true);
-      }, 1300);
+      }, TIMINGS.GAME_OVER_DELAY_MS);
       return () => clearTimeout(timer);
     } else {
       setShowGameOverModal(false);

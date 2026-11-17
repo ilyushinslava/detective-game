@@ -41,4 +41,17 @@ export const WIN_CONDITIONS = {
 export const DEFAULT_MAX_PLAYERS = 2;
 export const TV_PARTY_MAX_PLAYERS = 8;
 
+// Системные тайминги UI и сети (в миллисекундах)
+export const TIMINGS = {
+  GAME_OVER_DELAY_MS: 1300,
+  MORSE_DASH_THRESHOLD_MS: 250,
+  OLED_IDLE_TIMEOUT_MS: 300000,
+  LOBBY_POLL_INTERVAL_MS: 3000,
+} as const;
+
+// Аудио-параметры
+export const AUDIO_CONFIG = {
+  MORSE_TONE_FREQ_HZ: 700,
+} as const;
+
 export const GAME_RULES = WIN_CONDITIONS;

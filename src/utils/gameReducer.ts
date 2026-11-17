@@ -22,39 +22,6 @@ import {
   isRoleChangeTrigger,
 } from "./gameLogic";
 
-/**
- * [STAGE 3 DEAD CODE AUDIT]
- * Реестр устаревших сущностей, подлежащих удалению после окончательного
- * перехода всех режимов на процедурную сетку 5x5:
- */
-export const PROCEDURAL_GRID_DEAD_CODE_CANDIDATES = {
-  legacyActions: [
-    "SHIFT_BOARD",        // Тороидальный сдвиг строк/столбцов сетки
-    "PATROL_LINE",        // Блокировка линии патрулем констебля
-    "ROB_NEIGHBOR",       // Кража сокровищ у соседнего персонажа
-    "SWEAR_IN_OFFICER",   // Назначение констебля из соседних персонажей
-    "DISGUISE",           // Смена маски маньяка на классическом поле
-    "DUEL_ACCUSE"         // Устаревшее дуэльное обвинение
-  ],
-  legacyGameLogicFunctions: [
-    "shiftBoard",
-    "patrolLine",
-    "robNeighbor",
-    "swearInOfficer",
-    "disguiseKiller",
-    "fastDisguise",
-    "areAdjacent"
-  ],
-  legacyStateFields: [
-    "blockedShift",
-    "uniformedOfficers",
-    "lastRobbedId",
-    "killerDisguisesRemaining",
-    "interrogationRadar",
-    "duelPenalties"
-  ]
-} as const;
-
 export function gameReducer(state: GameState, action: GameAction): GameState {
   const RESTART_CONTROL_ACTIONS = [
     "RESTART_GAME",

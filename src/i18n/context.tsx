@@ -42,3 +42,6 @@ export const useTranslation = (): I18nContextType => {
   }
   return context;
 };
+
+// Алиас для поддержки именования useLanguage
+export const useLanguage = useTranslation;

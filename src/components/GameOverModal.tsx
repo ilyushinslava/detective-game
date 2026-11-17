@@ -5,6 +5,7 @@ import { getKillerRoleName, getDetectiveRoleName } from '../constants/gameMeta';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import { useSpatialNavigation } from '../hooks/useSpatialNavigation';
+import { useTranslation } from '../i18n/context';
 
 export interface GameOverModalProps {
   winner: Role;
@@ -102,6 +103,24 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   onRematchSame,
 }) => {
   useSpatialNavigation({ initialFocusSelector: '[data-dpad-primary="true"]' });
+  const { t } = useTranslation();
+  const go = t?.gameOver || {
+    protocol: "Протокол закрытия дела",
+    victoryPrefix: "ПОБЕДА:",
+    caseSolved: "ДЕЛО РАСКРЫТО",
+    yourVictory: "ВАША ПОБЕДА",
+    yourDefeat: "ВАШЕ ПОРАЖЕНИЕ",
+    rating: "Рейтинг:",
+    operationTime: "Время операции:",
+    winner: "ПОБЕДИТЕЛЬ",
+    defeat: "ПОРАЖЕНИЕ",
+    unrevealed: "Не раскрыт",
+    rematchSwap: "РЕВАНШ (СМЕНА РОЛЕЙ)",
+    rematchRandom: "РЕВАНШ (СЛУЧАЙНЫЕ РОЛИ)",
+    rematchSame: "РЕВАНШ (ТЕ ЖЕ РОЛИ)",
+    restart: "Новое расследование",
+    exitToMenu: "В главное меню",
+  };
   const [selectedPhotoChar, setSelectedPhotoChar] = useState<Character | null>(null);
 
   const isVictory = playerRole ? winner === playerRole : true;
@@ -112,8 +131,8 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   const winnerTitle = isKillerWinner ? killerTitle : detectiveTitle;
 
   const headlineText = isKillerWinner
-    ? `ПОБЕДА: ${killerTitle.toUpperCase()}`
-    : 'ДЕЛО РАСКРЫТО';
+    ? `${go.victoryPrefix} ${killerTitle.toUpperCase()}`
+    : go.caseSolved;
 
   const renderRoleCard = (char?: Character, roleName?: string, isKillerSide?: boolean) => {
     const isCharWinner = isKillerSide ? isKillerWinner : !isKillerWinner;
@@ -159,11 +178,11 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         <div className="relative z-10 flex items-center justify-between w-full">
           {isCharWinner ? (
             <span className="bg-white text-zinc-950 font-black font-mono text-[9px] uppercase px-2 py-0.5 rounded shadow-sm">
-              ПОБЕДИТЕЛЬ
+              {go.winner}
             </span>
           ) : (
             <span className="bg-zinc-900 text-zinc-500 border border-white/5 font-mono text-[9px] uppercase px-1.5 py-0.5 rounded">
-              ПОРАЖЕНИЕ
+              {go.defeat}
             </span>
           )}
           <span className="font-mono font-bold text-[10px] text-zinc-300 drop-shadow-sm">
@@ -176,7 +195,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             {roleName}
           </span>
           <span className="text-xs sm:text-sm font-bold uppercase leading-tight drop-shadow-md text-white block break-words">
-            {char ? char.name : 'Не раскрыт'}
+            {char ? char.name : go.unrevealed}
           </span>
         </div>
 
@@ -252,7 +271,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         }`}
       >
         <div className="text-[10px] sm:text-xs font-mono font-bold tracking-widest text-[#a1a1aa] uppercase mb-4">
-          Протокол закрытия дела
+          {go.protocol}
         </div>
 
         {/* Драматичное свечение победителю: рубиновое для маньяка, сапфировое/циановое для оперативника */}
@@ -285,13 +304,13 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
                 : 'bg-red-950/80 text-red-300 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]'
             }`}
           >
-            {isVictory ? 'ВАША ПОБЕДА' : 'ВАШЕ ПОРАЖЕНИЕ'}
+            {isVictory ? go.yourVictory : go.yourDefeat}
           </div>
         )}
 
         {rating !== undefined && (
           <div className="flex items-center gap-1.5 text-xs font-mono mb-3 px-3 py-1 rounded-lg bg-zinc-900/90 border border-white/10 text-zinc-300">
-            <span>Рейтинг:</span>
+            <span>{go.rating}</span>
             <span className="font-bold text-white">{rating}</span>
             {ratingDelta !== undefined && (
               <span className={`font-bold ${ratingDelta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -302,7 +321,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         )}
 
         <p className="text-[10px] sm:text-xs font-medium tracking-normal text-[#a1a1aa] uppercase mb-5">
-          Время операции: <span className="font-mono font-bold text-zinc-200">{elapsedTime}</span>
+          {go.operationTime} <span className="font-mono font-bold text-zinc-200">{elapsedTime}</span>
         </p>
 
         <div className="w-full grid grid-cols-2 gap-3 mb-6 text-left">
@@ -320,7 +339,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
               onClick={onRematchSwap}
               className="from-red-950 text-xs sm:text-sm font-bold uppercase tracking-wider gap-2 !h-12 transition-all focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_20px_rgba(255,255,255,0.35)] cursor-pointer"
             >
-              <span>⇄</span> РЕВАНШ (СМЕНА РОЛЕЙ)
+              <span>⇄</span> {go.rematchSwap}
             </Button>
 
             <Button
@@ -330,7 +349,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
               onClick={onRematchRandom}
               className="from-blue-950 text-xs sm:text-sm font-bold uppercase tracking-wider gap-2 !h-12 transition-all focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_20px_rgba(255,255,255,0.35)] cursor-pointer"
             >
-              <span className="font-mono font-bold text-[10px] text-blue-400">[RND]</span> РЕВАНШ (СЛУЧАЙНЫЕ РОЛИ)
+              <span className="font-mono font-bold text-[10px] text-blue-400">[RND]</span> {go.rematchRandom}
             </Button>
 
             <Button
@@ -340,7 +359,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
               onClick={onRematchSame}
               className="text-xs sm:text-sm font-bold uppercase tracking-wider gap-2 !h-12 transition-all focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_20px_rgba(255,255,255,0.35)] cursor-pointer"
             >
-              <span>↻</span> РЕВАНШ (ТЕ ЖЕ РОЛИ)
+              <span>↻</span> {go.rematchSame}
             </Button>
           </div>
         ) : (
@@ -352,8 +371,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             onClick={onRestart}
             className="rounded-full !h-14 text-xs sm:text-sm font-black uppercase tracking-wider gap-2 shadow-lg transition-all focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_25px_rgba(255,255,255,0.45)] cursor-pointer"
           >
-            <span>НАЧАТЬ ЗАНОВО</span>
-            <span className="text-[10px] opacity-75 font-normal">(Новое расследование)</span>
+            <span>{go.restart}</span>
             <Icons.ArrowRight />
           </Button>
         )}
@@ -365,7 +383,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
           onClick={onExitToMenu}
           className="text-zinc-400 hover:text-zinc-100 text-xs sm:text-sm font-bold uppercase tracking-wider py-3 mt-2.5 transition-all rounded-xl focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:text-white focus:shadow-[0_0_20px_rgba(255,255,255,0.35)] cursor-pointer"
         >
-          <span>В главное меню</span>
+          <span>{go.exitToMenu}</span>
         </Button>
       </Modal>
     </>

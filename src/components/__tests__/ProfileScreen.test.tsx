@@ -2,11 +2,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { ProfileScreen } from "../ProfileScreen";
+import { ru } from "../../i18n/ru";
 
 const mockSetLang = vi.fn();
 vi.mock("../../i18n/context", () => ({
   useTranslation: () => ({
-    t: { nav: { profile: "PROFILE" }, menu: { settings: "Settings" } },
+    t: { ...ru, menu: { ...(ru as any).menu, settings: "Settings" } },
+    lang: "ru",
+    setLang: mockSetLang,
+  }),
+  useLanguage: () => ({
+    t: { ...ru, menu: { ...(ru as any).menu, settings: "Settings" } },
     lang: "ru",
     setLang: mockSetLang,
   }),

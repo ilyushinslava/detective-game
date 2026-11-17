@@ -94,6 +94,45 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onBack,
 }) => {
   const { t } = useTranslation();
+  const p = t.profile || {
+    title: 'ПРОФИЛЬ ИГРОКА',
+    back: 'Назад',
+    level: 'УРОВЕНЬ',
+    online: 'В сети',
+    save: 'Сохранить',
+    editCallsign: 'Изменить позывной',
+    changeAvatar: 'Сменить аватар',
+    rating: 'РЕЙТИНГ',
+    winrate: 'ВИНРЕЙТ',
+    totalGames: 'ВСЕГО ИГР',
+    gamesUnit: 'ИГР',
+    wins: 'ПОБЕД:',
+    losses: 'ПОРАЖЕНИЙ:',
+    sideBalance: 'БАЛАНС СТОРОН',
+    detective: 'СЫЩИК',
+    maniac: 'МАНЬЯК',
+    recentMatches: 'ПОСЛЕДНИЕ МАТЧИ',
+    emptyHistory: 'История игр пуста. Сыграйте матч, чтобы увидеть результаты здесь.',
+    win: 'ПОБЕДА',
+    loss: 'ПОРАЖЕНИЕ',
+    rolePrefix: 'Роль:',
+    selectAvatar: 'ВЫБЕРИТЕ АВАТАР',
+    close: 'Закрыть',
+    accountSecured: 'АККАУНТ ЗАЩИЩЕН',
+    saveProgress: 'СОХРАНЕНИЕ ПРОГРЕССА',
+    loginLink: 'Войти в аккаунт →',
+    saveWarning: 'Внимание: мы не собираем вашу почту. Если вы забудете пароль, восстановить аккаунт будет невозможно. Запомните ваши данные!',
+    uniqueLogin: 'Уникальный Логин (только латиница и цифры)',
+    password: 'Пароль',
+    protectAccount: 'Защитить аккаунт',
+    saving: 'Сохранение...',
+    modes: {
+      MANIAC_VS_OPERATIVE: 'Маньяк против Оперативника',
+      THIEF_HUNT: 'Охота на грабителя',
+      SECRET_SERVICE: 'Директива «Ноль»',
+      LINE_UP: 'Очная ставка',
+    },
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [nicknameInput, setNicknameInput] = useState(profile.agentName || profile.nickname || '');
@@ -170,6 +209,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   // Название режима
   const getModeLabel = (mode: string) => {
+    if (p.modes && (p.modes as any)[mode]) {
+      return (p.modes as any)[mode];
+    }
     switch (mode) {
       case 'MANIAC_VS_OPERATIVE': return 'Маньяк против Оперативника';
       case 'THIEF_HUNT': return 'Охота на грабителя';
@@ -191,10 +233,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 variant="ghost"
                 onClick={onBack}
                 className="h-9 px-2 text-zinc-400 hover:text-white gap-1 text-[10px] font-black uppercase tracking-widest shrink-0"
-                title="Назад"
+                title={p.back}
               >
                 <Icons.ChevronLeft />
-                <span className="hidden sm:inline">Назад</span>
+                <span className="hidden sm:inline">{p.back}</span>
               </Button>
             )}
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
@@ -203,7 +245,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
               </div>
               <div className="flex flex-col min-w-0">
                 <h2 className="text-base sm:text-lg md:text-xl font-black uppercase tracking-wider text-white truncate">
-                  {t.nav.profile || 'ПРОФИЛЬ ИГРОКА'}
+                  {p.title}
                 </h2>
               </div>
             </div>
@@ -248,7 +290,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 setIsAvatarPickerOpen(true);
               }}
               className="absolute -bottom-2 -right-2 bg-zinc-800 border border-white/20 hover:border-white/40 text-zinc-300 hover:text-white p-2 rounded-xl shadow-lg active:scale-90 transition cursor-pointer"
-              title="Сменить аватар"
+              title={p.changeAvatar}
             >
               <Icons.Camera />
             </button>
@@ -261,7 +303,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 {profile.rank || 'СТАЖЁР'}
               </span>
               <span className="text-[10px] font-mono text-zinc-500">
-                УРОВЕНЬ {profile.level || 1}
+                {p.level} {profile.level || 1}
               </span>
             </div>
 
@@ -277,7 +319,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   autoFocus
                 />
                 <Button variant="primary" onClick={handleSaveNickname} className="h-8 px-3 text-xs font-bold uppercase active:scale-95">
-                  Сохранить
+                  {p.save}
                 </Button>
               </div>
             ) : (
@@ -293,7 +335,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     setNicknameInput(profile.agentName || profile.nickname);
                   }}
                   className="text-zinc-500 hover:text-zinc-300 transition-colors p-1 active:scale-90"
-                  title="Изменить позывной"
+                  title={p.editCallsign}
                 >
                   <Icons.Edit />
                 </button>
@@ -303,7 +345,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <div className="flex items-center gap-3 justify-center sm:justify-start text-xs font-mono text-zinc-400 flex-wrap">
               <span className="flex items-center gap-1.5 text-emerald-400 font-bold tracking-wider">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                В сети
+                {p.online}
               </span>
               <span>•</span>
               <span className="flex items-center gap-1 text-amber-400 font-bold">
@@ -318,7 +360,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         {!isAnonymous || isAccountProtectedSuccess ? (
           <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold shadow-sm">
             <Icons.Shield className="w-4 h-4 text-emerald-400" />
-            <span>АККАУНТ ЗАЩИЩЕН</span>
+            <span>{p.accountSecured}</span>
           </div>
         ) : (
           <div className="bg-zinc-950/80 border border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-3">
@@ -326,7 +368,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
               <div className="flex items-center gap-2">
                 <Icons.Shield className="w-4 h-4 text-blue-400" />
                 <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
-                  СОХРАНЕНИЕ ПРОГРЕССА
+                  {p.saveProgress}
                 </h3>
               </div>
               <button
@@ -334,21 +376,21 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 onClick={() => setIsLoginModalOpen(true)}
                 className="text-[10px] font-mono text-blue-400 hover:text-blue-300 uppercase cursor-pointer transition-colors"
               >
-                Войти в аккаунт →
+                {p.loginLink}
               </button>
             </div>
 
             <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-500/20 flex gap-2.5 items-start text-left">
               <span className="text-amber-400 text-sm mt-0.5">⚠</span>
               <p className="text-[11px] font-mono text-zinc-300 leading-relaxed">
-                Внимание: мы не собираем вашу почту. Если вы забудете пароль, восстановить аккаунт будет невозможно. Запомните ваши данные!
+                {p.saveWarning}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
               <div>
                 <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
-                  Уникальный Логин (только латиница и цифры)
+                  {p.uniqueLogin}
                 </label>
                 <input
                   type="text"
@@ -367,7 +409,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
               <div>
                 <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
-                  Пароль
+                  {p.password}
                 </label>
                 <input
                   type="password"
@@ -396,7 +438,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 disabled={isAccountLinking}
                 className="h-9 px-4 text-xs font-bold uppercase tracking-wider active:scale-95 cursor-pointer"
               >
-                {isAccountLinking ? 'Сохранение...' : 'Защитить аккаунт'}
+                {isAccountLinking ? p.saving : p.protectAccount}
               </Button>
             </div>
           </div>
@@ -408,7 +450,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           {/* Рейтинг */}
           <div className="bg-zinc-950/70 border border-white/10 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:border-white/20 transition-all">
             <div className="flex items-center justify-between text-zinc-400 mb-2">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">РЕЙТИНГ</span>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">{p.rating}</span>
               <Icons.Award />
             </div>
             <div className="flex items-baseline gap-1.5">
@@ -425,7 +467,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           {/* Винрейт */}
           <div className="bg-zinc-950/70 border border-white/10 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg hover:border-white/20 transition-all">
             <div className="flex items-center justify-between text-zinc-400 mb-2">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">ВИНРЕЙТ</span>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">{p.winrate}</span>
               <Icons.Activity />
             </div>
             <div className="flex items-baseline gap-1.5">
@@ -443,29 +485,29 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           {/* Всего игр */}
           <div className="bg-zinc-950/70 border border-white/10 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg hover:border-white/20 transition-all">
             <div className="flex items-center justify-between text-zinc-400 mb-2">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">ВСЕГО ИГР</span>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">{p.totalGames}</span>
               <Icons.Shield />
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl sm:text-3xl font-black font-mono text-zinc-100">{totalGames}</span>
-              <span className="text-[10px] font-mono text-zinc-500">ИГР</span>
+              <span className="text-[10px] font-mono text-zinc-500">{p.gamesUnit}</span>
             </div>
             <div className="flex items-center gap-2 text-[10px] font-mono mt-2">
-              <span className="text-emerald-400 font-bold">ПОБЕД: <span>{totalWins}</span></span>
+              <span className="text-emerald-400 font-bold">{p.wins} <span>{totalWins}</span></span>
               <span className="text-zinc-600">•</span>
-              <span className="text-zinc-400 font-bold">ПОРАЖЕНИЙ: <span>{Math.max(0, totalGames - totalWins)}</span></span>
+              <span className="text-zinc-400 font-bold">{p.losses} <span>{Math.max(0, totalGames - totalWins)}</span></span>
             </div>
           </div>
 
           {/* Баланс сторон */}
           <div className="bg-zinc-950/70 border border-white/10 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg hover:border-white/20 transition-all">
             <div className="flex items-center justify-between text-zinc-400 mb-2">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">БАЛАНС СТОРОН</span>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">{p.sideBalance}</span>
               <Icons.Trophy />
             </div>
             <div className="flex items-baseline justify-between font-mono text-xs">
-              <span className="text-blue-400 font-bold">{winsDet} <span className="text-[9px] text-zinc-500">СЫЩИК</span></span>
-              <span className="text-rose-400 font-bold">{winsMan} <span className="text-[9px] text-zinc-500">МАНЬЯК</span></span>
+              <span className="text-blue-400 font-bold">{winsDet} <span className="text-[9px] text-zinc-500">{p.detective}</span></span>
+              <span className="text-rose-400 font-bold">{winsMan} <span className="text-[9px] text-zinc-500">{p.maniac}</span></span>
             </div>
             <div className="w-full bg-zinc-900 h-1.5 rounded-full mt-2 flex overflow-hidden">
               <div className="bg-blue-500 h-full" style={{ width: `${lawRatio}%` }} />
@@ -481,12 +523,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-blue-500" />
               <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
-                ПОСЛЕДНИЕ МАТЧИ
+                {p.recentMatches}
               </h3>
             </div>
             {profile.recentMatches && profile.recentMatches.length > 0 && (
               <span className="text-[10px] font-mono text-zinc-500 uppercase">
-                {profile.recentMatches.length} ИГР
+                {profile.recentMatches.length} {p.gamesUnit}
               </span>
             )}
           </div>
@@ -511,7 +553,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                           {getModeLabel(match.mode)}
                         </span>
                         <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500">
-                          <span>Роль: {match.role === 'DETECTIVE' ? 'Сыщик' : 'Маньяк'}</span>
+                          <span>{p.rolePrefix} {match.role === 'DETECTIVE' ? p.detective : p.maniac}</span>
                           <span>•</span>
                           <span className="flex items-center gap-1">
                             <Icons.Clock />
@@ -530,7 +572,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                           ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
                           : 'bg-rose-950/60 border-rose-500/40 text-rose-300'
                       }`}>
-                        {isWin ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ'}
+                        {isWin ? p.win : p.loss}
                       </span>
                     </div>
                   </div>
@@ -540,7 +582,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           ) : (
             <div className="py-8 flex flex-col items-center justify-center text-center gap-2 text-zinc-500 font-mono text-xs">
               <Icons.Shield />
-              <span>История игр пуста. Сыграйте матч, чтобы увидеть результаты здесь.</span>
+              <span>{p.emptyHistory}</span>
             </div>
           )}
         </div>
@@ -552,7 +594,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-[#0b0e14] border border-white/20 rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[85vh] overflow-hidden">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <h3 className="text-base font-black uppercase tracking-wider text-white">ВЫБЕРИТЕ АВАТАР</h3>
+              <h3 className="text-base font-black uppercase tracking-wider text-white">{p.selectAvatar}</h3>
               <button
                 onClick={() => setIsAvatarPickerOpen(false)}
                 className="text-zinc-400 hover:text-white p-1 text-sm font-mono cursor-pointer"
@@ -586,7 +628,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
               onClick={() => setIsAvatarPickerOpen(false)}
               className="w-full h-9 text-xs font-bold uppercase tracking-wider mt-1"
             >
-              Закрыть
+              {p.close}
             </Button>
           </div>
         </div>

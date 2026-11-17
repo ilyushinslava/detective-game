@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { useAuthSafe, validateLogin, validatePassword } from "../../contexts/AuthContext";
+import { useTranslation } from "../../i18n/context";
 import { soundManager } from "../../utils/audio";
 import { triggerHaptic } from "../../utils/haptics";
 
@@ -13,6 +14,32 @@ export interface LoginModalProps {
 
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { signIn } = useAuthSafe();
+  const { t } = useTranslation();
+  const a = t?.auth || {
+    signInTitle: "ВХОД В АККАУНТ",
+    signInDesc: "Введите логин и пароль для загрузки сохраненного профиля и рейтинга.",
+    login: "Логин",
+    password: "Пароль",
+    signInBtn: "Войти",
+    checking: "Проверка...",
+    cancel: "Отмена",
+    account: "Аккаунт",
+    anonymousProfile: "Анонимный профиль",
+    accountProtected: "Аккаунт защищен",
+    signOut: "Выйти",
+    loginHeaderBtn: "Войти",
+    errors: {
+      enterLogin: "Введите логин",
+      cyrillic: "Логин не должен содержать кириллицу (только латиница и цифры)",
+      spaces: "Логин не должен содержать пробелы",
+      invalidChars: "Логин может содержать только латинские буквы, цифры и знак подчеркивания (от 3 до 20 символов)",
+      enterPassword: "Введите пароль",
+      passwordLength: "Пароль должен содержать не менее 6 символов",
+      invalidCredentials: "Неверный логин или пароль",
+      networkError: "Ошибка подключения",
+    },
+  };
+
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +53,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
 
     const loginErr = validateLogin(login);
     if (loginErr) {
-      setError(loginErr);
+      const msg = !login.trim()
+        ? a.errors.enterLogin
+        : /[а-яА-ЯёЁ]/.test(login)
+        ? a.errors.cyrillic
+        : /\s/.test(login)
+        ? a.errors.spaces
+        : a.errors.invalidChars;
+      setError(msg);
       soundManager.play("error");
       triggerHaptic("warning");
       return;
@@ -34,7 +68,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
 
     const passErr = validatePassword(password);
     if (passErr) {
-      setError(passErr);
+      const msg = !password ? a.errors.enterPassword : a.errors.passwordLength;
+      setError(msg);
       soundManager.play("error");
       triggerHaptic("warning");
       return;
@@ -49,12 +84,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
         onSuccess?.();
         onClose();
       } else {
-        setError(res.error || "Неверный логин или пароль");
+        setError(res.error || a.errors.invalidCredentials);
         soundManager.play("error");
         triggerHaptic("warning");
       }
     } catch (err: any) {
-      setError(err?.message || "Ошибка подключения");
+      setError(err?.message || a.errors.networkError);
       soundManager.play("error");
       triggerHaptic("warning");
     } finally {
@@ -66,7 +101,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="ВХОД В АККАУНТ"
+      title={a.signInTitle}
       maxWidth="max-w-sm"
       showCloseButton={true}
       zIndexClass="z-[90]"
@@ -74,12 +109,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
     >
       <form onSubmit={handleSignIn} className="flex flex-col gap-3.5 mb-2 mt-1">
         <p className="text-[11px] font-mono text-zinc-400 leading-relaxed">
-          Введите логин и пароль для загрузки сохраненного профиля и рейтинга.
+          {a.signInDesc}
         </p>
 
         <div>
           <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
-            Логин
+            {a.login}
           </label>
           <input
             type="text"
@@ -99,7 +134,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
 
         <div>
           <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
-            Пароль
+            {a.password}
           </label>
           <input
             type="password"
@@ -128,7 +163,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
             disabled={isLoading}
             className="h-10 text-xs font-bold uppercase tracking-wider active:scale-95 cursor-pointer"
           >
-            {isLoading ? "Проверка..." : "Войти"}
+            {isLoading ? a.checking : a.signInBtn}
           </Button>
 
           <Button
@@ -138,7 +173,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
             onClick={onClose}
             className="h-9 text-[10px] font-black uppercase tracking-widest cursor-pointer"
           >
-            Отмена
+            {a.cancel}
           </Button>
         </div>
       </form>

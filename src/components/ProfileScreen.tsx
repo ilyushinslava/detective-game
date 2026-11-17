@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { UserProfile, MatchHistoryEntry } from '../types/profile';
+import type { UserProfile } from '../types/profile';
 import { useTranslation } from '../i18n/context';
 import { soundManager } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
@@ -7,78 +7,16 @@ import { Button } from './ui/Button';
 import { getCharacterPortraitPath } from '../constants/characterImages';
 import { useAuthSafe } from '../contexts/AuthContext';
 import { LoginModal } from './lobby/LoginModal';
+import {
+  ProfileIcons,
+  AvatarPickerModal,
+  AccountSecurityCard,
+  ProfileStatsGrid,
+  MatchHistorySection,
+  AGENT_AVATARS,
+} from './profile';
 
-// Список доступных аватаров (50 уникальных портретов персонажей без текстовых меток)
-export const AGENT_AVATARS = Array.from({ length: 50 }, (_, i) => ({ id: `c${i + 1}` }));
-
-const Icons = {
-  ChevronLeft: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
-      <path d="M15 18l-6-6 6-6" />
-    </svg>
-  ),
-  User: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  ),
-  Settings: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  ),
-  Coin: ({ className = "w-4 h-4 text-amber-400" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={className}>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
-    </svg>
-  ),
-  Shield: ({ className = "w-4 h-4 text-zinc-400" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  ),
-  Trophy: ({ className = "w-4 h-4 text-amber-400" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-      <path d="M4 22h16" />
-      <path d="M10 14.66V17c0 .55-.45 1-1 1H8c-.55 0-1 .45-1 1v1h10v-1c0-.55-.45-1-1-1h-1c-.55 0-1-.45-1-1v-2.34" />
-      <path d="M6 4h12v5a6 6 0 0 1-12 0V4z" />
-    </svg>
-  ),
-  Activity: ({ className = "w-4 h-4 text-emerald-400" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-    </svg>
-  ),
-  Award: ({ className = "w-4 h-4 text-amber-400" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-      <circle cx="12" cy="8" r="6" />
-      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
-    </svg>
-  ),
-  Edit: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </svg>
-  ),
-  Camera: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
-      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-      <circle cx="12" cy="13" r="4" />
-    </svg>
-  ),
-  Clock: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-zinc-500">
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  ),
-};
+export { AGENT_AVATARS };
 
 export interface ProfileScreenProps {
   profile: UserProfile;
@@ -201,439 +139,212 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     setIsAvatarPickerOpen(false);
   };
 
-  // Форматирование времени матча
-  const formatDuration = (secs: number) => {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${m}м ${s.toString().padStart(2, '0')}с`;
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Название режима
-  const getModeLabel = (mode: string) => {
-    if (p.modes && (p.modes as any)[mode]) {
-      return (p.modes as any)[mode];
-    }
-    switch (mode) {
-      case 'MANIAC_VS_OPERATIVE': return 'Маньяк против Оперативника';
-      case 'THIEF_HUNT': return 'Охота на грабителя';
-      case 'SECRET_SERVICE': return 'Директива «Ноль»';
-      case 'LINE_UP': return 'Очная ставка';
-      default: return mode;
-    }
+  const getModeLabel = (mode?: string) => {
+    if (!mode) return p.modes?.MANIAC_VS_OPERATIVE || 'Матч';
+    const modeKey = mode as keyof typeof p.modes;
+    return p.modes?.[modeKey] || mode;
   };
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-[#080a0f] text-zinc-100 overflow-y-auto custom-scrollbar p-3 sm:p-5 md:p-6 lg:p-8 w-full max-w-full pb-28 lg:pb-12 touch-manipulation select-none">
-      <div className="max-w-4xl w-full mx-auto flex flex-col gap-4 sm:gap-6">
-        
-        {/* Верхняя панель */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-3 sm:pb-4">
-          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            {onBack && (
-              <Button
-                variant="ghost"
-                onClick={onBack}
-                className="h-9 px-2 text-zinc-400 hover:text-white gap-1 text-[10px] font-black uppercase tracking-widest shrink-0"
-                title={p.back}
-              >
-                <Icons.ChevronLeft />
-                <span className="hidden sm:inline">{p.back}</span>
-              </Button>
-            )}
-            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-300 shadow-sm shrink-0">
-                <Icons.User />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <h2 className="text-base sm:text-lg md:text-xl font-black uppercase tracking-wider text-white truncate">
-                  {p.title}
-                </h2>
-              </div>
-            </div>
-          </div>
-
-          {onOpenSettings && (
-            <Button
-              variant="secondary"
-              onClick={() => {
-                soundManager.play('tapMenu');
-                triggerHaptic('light');
-                onOpenSettings();
-              }}
-              className="h-9 px-3 text-xs gap-1.5 shrink-0 border border-white/10 hover:border-white/20 active:scale-95"
-            >
-              <Icons.Settings />
-              <span className="hidden sm:inline">{t.menu?.settings || 'Настройки'}</span>
-            </Button>
-          )}
-        </div>
-
-        {/* Карточка профиля */}
-        <div className="relative bg-zinc-950/80 border border-white/10 rounded-2xl p-4 sm:p-6 shadow-[inset_0_2px_25px_rgba(0,0,0,0.9)] backdrop-blur-xl flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 overflow-hidden">
-          {/* Портрет игрока */}
-          <div className="relative group shrink-0">
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-zinc-900 border-2 border-white/15 p-1 shadow-md overflow-hidden flex items-center justify-center relative">
-              <img
-                src={avatarPortraitUrl}
-                alt={profile.agentName || profile.nickname}
-                className="w-full h-full object-cover rounded-xl filter contrast-110"
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = 'none';
-                }}
-              />
-            </div>
-
-            {/* Кнопка смены аватара */}
+    <div className="min-h-screen bg-[#080a0f] text-zinc-100 flex flex-col font-sans select-none overflow-x-hidden">
+      {/* Шапка экрана */}
+      <header className="sticky top-0 z-20 bg-[#080a0f]/90 backdrop-blur-md border-b border-white/10 px-4 py-3 flex items-center justify-between shadow-md">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          {onBack && (
             <button
               onClick={() => {
                 soundManager.play('click');
                 triggerHaptic('light');
-                setIsAvatarPickerOpen(true);
+                onBack();
               }}
-              className="absolute -bottom-2 -right-2 bg-zinc-800 border border-white/20 hover:border-white/40 text-zinc-300 hover:text-white p-2 rounded-xl shadow-lg active:scale-90 transition cursor-pointer"
-              title={p.changeAvatar}
+              className="p-1.5 rounded-lg bg-zinc-900 border border-white/10 hover:border-white/20 active:scale-95 text-zinc-300 hover:text-white transition-all cursor-pointer"
+              title={p.back}
             >
-              <Icons.Camera />
+              <ProfileIcons.ChevronLeft />
             </button>
+          )}
+          <div className="flex items-center gap-2">
+            <span className="p-1 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              <ProfileIcons.User />
+            </span>
+            <h1 className="text-sm sm:text-base font-black tracking-widest uppercase text-white">
+              {p.title}
+            </h1>
           </div>
+        </div>
 
-          {/* Имя и статус */}
-          <div className="flex-1 flex flex-col gap-2 text-center sm:text-left min-w-0 w-full">
-            <div className="flex items-center gap-2 justify-center sm:justify-start">
-              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-300 font-bold">
-                {profile.rank || 'СТАЖЁР'}
-              </span>
-              <span className="text-[10px] font-mono text-zinc-500">
-                {p.level} {profile.level || 1}
-              </span>
-            </div>
+        <div className="flex items-center gap-2">
+          {onOpenSettings && (
+            <button
+              onClick={() => {
+                soundManager.play('click');
+                triggerHaptic('light');
+                onOpenSettings();
+              }}
+              aria-label="Settings"
+              title="Settings"
+              className="p-1.5 rounded-lg bg-zinc-900 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-white transition-all cursor-pointer"
+            >
+              <ProfileIcons.Settings />
+            </button>
+          )}
+        </div>
+      </header>
 
-            {isEditing ? (
-              <div className="flex items-center gap-2 max-w-sm justify-center sm:justify-start">
-                <input
-                  type="text"
-                  maxLength={18}
-                  value={nicknameInput}
-                  onChange={(e) => setNicknameInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSaveNickname()}
-                  className="bg-zinc-900 border border-blue-500/50 focus:border-blue-400 rounded-xl px-3 py-1.5 text-sm font-black text-white uppercase tracking-wider outline-none shadow-inner"
-                  autoFocus
+      {/* Основной контент */}
+      <div className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-5 sm:gap-6">
+        
+        {/* Карточка агента (Удостоверение) */}
+        <div className="bg-zinc-950/80 border border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative z-10">
+            {/* Аватар */}
+            <div className="relative group shrink-0">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-white/20 bg-zinc-900 shadow-xl relative">
+                <img
+                  src={avatarPortraitUrl}
+                  alt="Avatar"
+                  className="w-full h-full object-cover filter contrast-110"
                 />
-                <Button variant="primary" onClick={handleSaveNickname} className="h-8 px-3 text-xs font-bold uppercase active:scale-95">
-                  {p.save}
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2.5 justify-center sm:justify-start">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white uppercase tracking-wider truncate">
-                  {profile.agentName || profile.nickname}
-                </h1>
                 <button
+                  type="button"
                   onClick={() => {
                     soundManager.play('click');
                     triggerHaptic('light');
-                    setIsEditing(true);
-                    setNicknameInput(profile.agentName || profile.nickname);
+                    setIsAvatarPickerOpen(true);
                   }}
-                  className="text-zinc-500 hover:text-zinc-300 transition-colors p-1 active:scale-90"
-                  title={p.editCallsign}
+                  className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-1 text-white transition-opacity cursor-pointer"
+                  title={p.changeAvatar}
                 >
-                  <Icons.Edit />
+                  <ProfileIcons.Camera />
+                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider">
+                    {p.changeAvatar}
+                  </span>
                 </button>
               </div>
-            )}
+            </div>
 
-            <div className="flex items-center gap-3 justify-center sm:justify-start text-xs font-mono text-zinc-400 flex-wrap">
-              <span className="flex items-center gap-1.5 text-emerald-400 font-bold tracking-wider">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                {p.online}
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1 text-amber-400 font-bold">
-                <Icons.Coin className="w-3.5 h-3.5 text-amber-400" />
-                {profile.cash.toLocaleString()} $
-              </span>
+            {/* Инфо и имя */}
+            <div className="flex-1 flex flex-col items-center sm:items-start gap-2 min-w-0 w-full text-center sm:text-left">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                  {p.level} {profile.level || 1}
+                </span>
+                <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  {p.online}
+                </span>
+              </div>
+
+              {isEditing ? (
+                <div className="flex items-center gap-2 mt-1 w-full max-w-xs">
+                  <input
+                    type="text"
+                    value={nicknameInput}
+                    onChange={(e) => setNicknameInput(e.target.value)}
+                    maxLength={24}
+                    className="flex-1 bg-zinc-900 border border-blue-500/50 rounded-lg px-2.5 py-1 text-sm font-black font-mono text-white focus:outline-none"
+                    autoFocus
+                  />
+                  <Button
+                    variant="primary"
+                    onClick={handleSaveNickname}
+                    className="h-8 px-3 text-xs font-bold uppercase tracking-wider"
+                  >
+                    {p.save}
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 group">
+                  <h2 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-white truncate max-w-xs sm:max-w-md">
+                    {profile.agentName || profile.nickname || 'Агент'}
+                  </h2>
+                  <button
+                    onClick={() => {
+                      soundManager.play('click');
+                      triggerHaptic('light');
+                      setIsEditing(true);
+                    }}
+                    className="p-1 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                    title={p.editCallsign}
+                  >
+                    <ProfileIcons.Edit />
+                  </button>
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 text-xs font-mono text-zinc-400 mt-1">
+                <span className="flex items-center gap-1.5 text-amber-400 font-bold">
+                  <ProfileIcons.Coin className="w-3.5 h-3.5" />
+                  <span>{profile.cash?.toLocaleString() || 0}</span>
+                </span>
+                {profile.rank && (
+                  <>
+                    <span>•</span>
+                    <span className="text-zinc-300 font-bold">{profile.rank}</span>
+                  </>
+                )}
+                <span>•</span>
+                <span className="text-zinc-500 text-[11px]">
+                  ID: {profile.id?.slice(0, 8)}...
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Защита аккаунта / Сохранение прогресса */}
-        {!isAnonymous || isAccountProtectedSuccess ? (
-          <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold shadow-sm">
-            <Icons.Shield className="w-4 h-4 text-emerald-400" />
-            <span>{p.accountSecured}</span>
-          </div>
-        ) : (
-          <div className="bg-zinc-950/80 border border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-3">
-            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
-              <div className="flex items-center gap-2">
-                <Icons.Shield className="w-4 h-4 text-blue-400" />
-                <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
-                  {p.saveProgress}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsLoginModalOpen(true)}
-                className="text-[10px] font-mono text-blue-400 hover:text-blue-300 uppercase cursor-pointer transition-colors"
-              >
-                {p.loginLink}
-              </button>
-            </div>
-
-            <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-500/20 flex gap-2.5 items-start text-left">
-              <span className="text-amber-400 text-sm mt-0.5">⚠</span>
-              <p className="text-[11px] font-mono text-zinc-300 leading-relaxed">
-                {p.saveWarning}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
-              <div>
-                <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
-                  {p.uniqueLogin}
-                </label>
-                <input
-                  type="text"
-                  value={accountLogin}
-                  onChange={(e) => {
-                    setAccountLogin(e.target.value);
-                    setAccountError(null);
-                  }}
-                  placeholder="agent_77"
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  maxLength={20}
-                  className="w-full bg-zinc-900 border border-white/10 focus:border-blue-500 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
-                  {p.password}
-                </label>
-                <input
-                  type="password"
-                  value={accountPassword}
-                  onChange={(e) => {
-                    setAccountPassword(e.target.value);
-                    setAccountError(null);
-                  }}
-                  placeholder="••••••••"
-                  maxLength={32}
-                  className="w-full bg-zinc-900 border border-white/10 focus:border-blue-500 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-colors"
-                />
-              </div>
-            </div>
-
-            {accountError && (
-              <div className="p-2.5 rounded-lg bg-rose-950/40 border border-rose-500/30 text-rose-300 text-[10px] font-mono">
-                {accountError}
-              </div>
-            )}
-
-            <div className="flex justify-end mt-1">
-              <Button
-                variant="primary"
-                onClick={handleLinkAccount}
-                disabled={isAccountLinking}
-                className="h-9 px-4 text-xs font-bold uppercase tracking-wider active:scale-95 cursor-pointer"
-              >
-                {isAccountLinking ? p.saving : p.protectAccount}
-              </Button>
-            </div>
-          </div>
-        )}
+        <AccountSecurityCard
+          isAnonymous={isAnonymous}
+          isAccountProtectedSuccess={isAccountProtectedSuccess}
+          accountLogin={accountLogin}
+          setAccountLogin={setAccountLogin}
+          accountPassword={accountPassword}
+          setAccountPassword={setAccountPassword}
+          accountError={accountError}
+          setAccountError={setAccountError}
+          isAccountLinking={isAccountLinking}
+          onLinkAccount={handleLinkAccount}
+          onOpenLoginModal={() => setIsLoginModalOpen(true)}
+          translations={p}
+        />
 
         {/* Статистика (4 карточки) */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-          
-          {/* Рейтинг */}
-          <div className="bg-zinc-950/70 border border-white/10 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:border-white/20 transition-all">
-            <div className="flex items-center justify-between text-zinc-400 mb-2">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">{p.rating}</span>
-              <Icons.Award />
-            </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl sm:text-3xl font-black font-mono text-zinc-100">{currentMmr}</span>
-            </div>
-            <div className="w-full bg-zinc-900 h-1.5 rounded-full mt-2 overflow-hidden">
-              <div
-                className="bg-blue-600 h-full rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, (currentMmr / 2000) * 100)}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Винрейт */}
-          <div className="bg-zinc-950/70 border border-white/10 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg hover:border-white/20 transition-all">
-            <div className="flex items-center justify-between text-zinc-400 mb-2">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">{p.winrate}</span>
-              <Icons.Activity />
-            </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl sm:text-3xl font-black font-mono text-zinc-100">{winRate}%</span>
-              <span className="text-[10px] font-mono text-zinc-500">({totalWins}/{totalGames})</span>
-            </div>
-            <div className="w-full bg-zinc-900 h-1.5 rounded-full mt-2 overflow-hidden">
-              <div
-                className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                style={{ width: `${winRate}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Всего игр */}
-          <div className="bg-zinc-950/70 border border-white/10 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg hover:border-white/20 transition-all">
-            <div className="flex items-center justify-between text-zinc-400 mb-2">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">{p.totalGames}</span>
-              <Icons.Shield />
-            </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl sm:text-3xl font-black font-mono text-zinc-100">{totalGames}</span>
-              <span className="text-[10px] font-mono text-zinc-500">{p.gamesUnit}</span>
-            </div>
-            <div className="flex items-center gap-2 text-[10px] font-mono mt-2">
-              <span className="text-emerald-400 font-bold">{p.wins} <span>{totalWins}</span></span>
-              <span className="text-zinc-600">•</span>
-              <span className="text-zinc-400 font-bold">{p.losses} <span>{Math.max(0, totalGames - totalWins)}</span></span>
-            </div>
-          </div>
-
-          {/* Баланс сторон */}
-          <div className="bg-zinc-950/70 border border-white/10 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg hover:border-white/20 transition-all">
-            <div className="flex items-center justify-between text-zinc-400 mb-2">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">{p.sideBalance}</span>
-              <Icons.Trophy />
-            </div>
-            <div className="flex items-baseline justify-between font-mono text-xs">
-              <span className="text-blue-400 font-bold">{winsDet} <span className="text-[9px] text-zinc-500">{p.detective}</span></span>
-              <span className="text-rose-400 font-bold">{winsMan} <span className="text-[9px] text-zinc-500">{p.maniac}</span></span>
-            </div>
-            <div className="w-full bg-zinc-900 h-1.5 rounded-full mt-2 flex overflow-hidden">
-              <div className="bg-blue-500 h-full" style={{ width: `${lawRatio}%` }} />
-              <div className="bg-rose-500 h-full" style={{ width: `${100 - lawRatio}%` }} />
-            </div>
-          </div>
-
-        </div>
+        <ProfileStatsGrid
+          currentMmr={currentMmr}
+          winRate={winRate}
+          totalWins={totalWins}
+          totalGames={totalGames}
+          winsDet={winsDet}
+          winsMan={winsMan}
+          lawRatio={lawRatio}
+          translations={p}
+        />
 
         {/* Последние матчи */}
-        <div className="bg-zinc-950/70 border border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-3">
-          <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500" />
-              <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
-                {p.recentMatches}
-              </h3>
-            </div>
-            {profile.recentMatches && profile.recentMatches.length > 0 && (
-              <span className="text-[10px] font-mono text-zinc-500 uppercase">
-                {profile.recentMatches.length} {p.gamesUnit}
-              </span>
-            )}
-          </div>
-
-          {profile.recentMatches && profile.recentMatches.length > 0 ? (
-            <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1 custom-scrollbar">
-              {profile.recentMatches.map((match: MatchHistoryEntry, idx: number) => {
-                const isWin = match.isWinner;
-                return (
-                  <div
-                    key={match.id || `match_${idx}`}
-                    className={`flex items-center justify-between p-2.5 sm:p-3 rounded-xl border transition-all ${
-                      isWin
-                        ? 'bg-emerald-950/20 border-emerald-500/20 hover:border-emerald-500/30'
-                        : 'bg-rose-950/20 border-rose-500/20 hover:border-rose-500/30'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className={`w-2 h-8 rounded-full shrink-0 ${isWin ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-black uppercase tracking-wide text-zinc-200 truncate">
-                          {getModeLabel(match.mode)}
-                        </span>
-                        <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500">
-                          <span>{p.rolePrefix} {match.role === 'DETECTIVE' ? p.detective : p.maniac}</span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <Icons.Clock />
-                            {formatDuration(match.durationSeconds || 120)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className={`text-xs font-mono font-black ${isWin ? 'text-emerald-400' : 'text-rose-400'}`}>
-                        {match.mmrDelta > 0 ? `+${match.mmrDelta}` : match.mmrDelta}
-                      </span>
-                      <span className={`text-[9px] font-mono font-black px-2 py-0.5 rounded border uppercase ${
-                        isWin
-                          ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
-                          : 'bg-rose-950/60 border-rose-500/40 text-rose-300'
-                      }`}>
-                        {isWin ? p.win : p.loss}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="py-8 flex flex-col items-center justify-center text-center gap-2 text-zinc-500 font-mono text-xs">
-              <Icons.Shield />
-              <span>{p.emptyHistory}</span>
-            </div>
-          )}
-        </div>
+        <MatchHistorySection
+          recentMatches={profile.recentMatches}
+          getModeLabel={getModeLabel}
+          formatDuration={formatDuration}
+          translations={p}
+        />
 
       </div>
 
       {/* Модальное окно выбора аватара */}
-      {isAvatarPickerOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#0b0e14] border border-white/20 rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[85vh] overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <h3 className="text-base font-black uppercase tracking-wider text-white">{p.selectAvatar}</h3>
-              <button
-                onClick={() => setIsAvatarPickerOpen(false)}
-                className="text-zinc-400 hover:text-white p-1 text-sm font-mono cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2.5 overflow-y-auto max-h-[60vh] custom-scrollbar p-1">
-              {AGENT_AVATARS.map((agent) => {
-                const isSelected = currentAvatarId === agent.id;
-                const portrait = getCharacterPortraitPath(agent.id);
-                return (
-                  <button
-                    key={agent.id}
-                    onClick={() => handleSelectAvatar(agent.id)}
-                    className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all cursor-pointer active:scale-95 ${
-                      isSelected
-                        ? 'border-blue-500 ring-2 ring-blue-500/40 shadow-lg'
-                        : 'border-white/10 hover:border-white/30 bg-zinc-900'
-                    }`}
-                  >
-                    <img src={portrait} alt="" className="w-full h-full object-cover filter contrast-110" />
-                  </button>
-                );
-              })}
-            </div>
-
-            <Button
-              variant="secondary"
-              onClick={() => setIsAvatarPickerOpen(false)}
-              className="w-full h-9 text-xs font-bold uppercase tracking-wider mt-1"
-            >
-              {p.close}
-            </Button>
-          </div>
-        </div>
-      )}
+      <AvatarPickerModal
+        isOpen={isAvatarPickerOpen}
+        currentAvatarId={currentAvatarId}
+        onSelectAvatar={handleSelectAvatar}
+        onClose={() => setIsAvatarPickerOpen(false)}
+        title={p.selectAvatar}
+        closeLabel={p.close}
+      />
 
       {/* Модальное окно входа в аккаунт */}
       <LoginModal

@@ -2,358 +2,85 @@ import { useState, useRef, useEffect } from "react";
 import { triggerHaptic } from "../utils/haptics";
 import { Modal } from "./ui/Modal";
 import { Button } from "./ui/Button";
-import { GAME_MODES_META } from "../constants/gameMeta";
 import { useBannerViewer } from "../contexts/BannerViewerContext";
+import {
+  type ModeTab,
+  MODES_DATA,
+  RuleModeDetail,
+} from "./rules";
 
 export interface RulesModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type ModeTab = "BASE" | "MANIAC" | "THIEF" | "SECRET_SERVICE" | "LINE_UP";
-
-interface ModeInfo {
-  id: ModeTab;
-  title: string;
-  badge: string;
-  format: string;
-  desc: string;
-  bannerGradient: string;
-  borderColor: string;
-  badgeColor: string;
-  bannerImage?: string;
-  role1: {
-    name: string;
-    badgeColor: string;
-    goal: string;
-  };
-  role2: {
-    name: string;
-    badgeColor: string;
-    goal: string;
-  };
-  mechanics: Array<{
-    name: string;
-    desc: string;
-    tag?: string;
-  }>;
-}
-
-const MODES_DATA: Record<ModeTab, ModeInfo> = {
-  BASE: {
-    id: "BASE",
-    title: "Базовые правила",
-    badge: "Ядро механик",
-    format: "Сетка 5×5 • Все режимы",
-    desc: "Базовые правила игры: модульная сетка 5×5 из 25 персонажей, радиус окружения 3×3, тактические маневры и расследования по колоде улик.",
-    bannerGradient: "from-blue-950 via-zinc-950/70 to-transparent",
-    borderColor: "border-blue-500/40",
-    badgeColor: "text-blue-400",
-    bannerImage: "/assets/modes/base-banner.webp",
-    role1: {
-      name: "Криминал",
-      badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
-      goal: "Скрывать тайную личность среди жителей, маневрировать по сетке и устранять цели или накапливать добычу.",
-    },
-    role2: {
-      name: "Закон",
-      badgeColor: "bg-blue-950/80 text-blue-300 border border-blue-700/60",
-      goal: "Сужать круг подозреваемых через радар 3×3, отсекать невиновных картами алиби и проводить точечные аресты.",
-    },
-    mechanics: [
-      {
-        name: "Сетка 5×5 и Зона 3×3",
-        desc: "Поле состоит из 25 уникальных персонажей. Соседством считаются до 8 клеток вокруг фигуры (ортогонально и по диагонали). Через край поля соседство не замыкается.",
-        tag: "Геометрия",
-      },
-      {
-        name: "Тактический маневр",
-        desc: "1 раз за ход игрок может выполнить маневр любого ряда или колонки на 1 клетку. Вышедшая за край карта циклически возвращается с противоположной стороны.",
-        tag: "Маневр",
-      },
-      {
-        name: "Правило Anti-Undo",
-        desc: "Строгий инвариант: запрещено делать маневр, который в точности возвращает линию в состояние предыдущего хода соперника. Заблокированные направления неактивны.",
-        tag: "Инвариант",
-      },
-      {
-        name: "Колода улик и Алиби",
-        desc: "В колоде 25 карт, дублирующих жителей на поле. Взятие карты подтверждает алиби персонажа — он гарантированно не является преступником.",
-        tag: "Дедукция",
-      },
-      {
-        name: "Зачистка поля",
-        desc: "При скоплении устраненных персонажей игрок может сместить погибших к внешнему периметру сетки, освобождая оперативный простор в центре.",
-        tag: "Зачистка",
-      },
-    ],
-  },
-  MANIAC: {
-    id: "MANIAC",
-    title: GAME_MODES_META.MANIAC_VS_OPERATIVE.title.ru,
-    badge: "Спецоперация",
-    format: "5×5 • 2 игрока",
-    desc: "Серийный убийца действует по скрытому заказу из 4 жертв. Оперативник идет по горячим следам, чтобы остановить кровавую цепочку.",
-    bannerGradient: "from-red-950 via-zinc-950/70 to-transparent",
-    borderColor: "border-red-500/40",
-    badgeColor: "text-red-400",
-    bannerImage: "/assets/modes/maniac-banner.webp",
-    role1: {
-      name: "Маньяк",
-      badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
-      goal: "Устранить 4 цели из фиксированного списка жертв или ликвидировать Оперативника.",
-    },
-    role2: {
-      name: "Оперативник",
-      badgeColor: "bg-blue-950/80 text-blue-300 border border-blue-700/60",
-      goal: "Задержать Маньяка до того, как он завершит серию из 4 заказных убийств.",
-    },
-    mechanics: [
-      {
-        name: "Фиксированный список жертв",
-        desc: "Список состоит ровно из 4 жертв без автопополнения из колоды. Маньяк может атаковать любого соседа для отвода глаз, но прогресс засчитывается только за цель из списка.",
-        tag: "Охота",
-      },
-      {
-        name: "Сближение маневром",
-        desc: "Маньяк и Оперативник двигают линии сетки, чтобы подвести приоритетную цель в радиус удара 3×3.",
-        tag: "Маневр",
-      },
-      {
-        name: "Побег маньяка",
-        desc: "Маньяк сбрасывает раскрытый след, берет новую тайную личность из колоды улик, но получает штраф: +1 цель в список смертников.",
-        tag: "Маскировка",
-      },
-      {
-        name: "Опрос свидетелей (Радар 3×3)",
-        desc: "При любой атаке Маньяка проводится автоматический опрос свидетелей: система сообщает, находится ли Оперативник в радиусе 3×3 вокруг жертвы.",
-        tag: "Радар",
-      },
-      {
-        name: "Проверка алиби (Оперативник)",
-        desc: "Оперативник может выложить карту улик из руки на поле. Проводится проверка Маньяка на соседство 3×3, а невиновный получает статус «Алиби».",
-        tag: "Алиби",
-      },
-      {
-        name: "Оперативный перехват",
-        desc: "Оперативник производит задержание в зоне 3×3 вокруг себя. Ошибка следствия не сокращает список жертв: сыщик просто теряет ход, а проверенный житель получает статус «Алиби».",
-        tag: "Арест",
-      },
-    ],
-  },
-  THIEF: {
-    id: "THIEF",
-    title: GAME_MODES_META.THIEF_HUNT.title.ru,
-    badge: "План-перехват",
-    format: "5×5 • 2 игрока",
-    desc: "Дерзкий вор-виртуоз похищает сокровища горожан без единого выстрела, а полиция стягивает оцепление и перекрывает улицы патрулями.",
-    bannerGradient: "from-blue-950 via-zinc-950/70 to-transparent",
-    borderColor: "border-blue-500/40",
-    badgeColor: "text-blue-400",
-    bannerImage: "/assets/modes/thief-banner.webp",
-    role1: {
-      name: "Грабитель",
-      badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
-      goal: "Похитить 8 жетонов ценностей у соседей по сетке и скрыться с награбленным.",
-    },
-    role2: {
-      name: "Полиция",
-      badgeColor: "bg-blue-950/80 text-blue-300 border border-blue-700/60",
-      goal: "Расставить офицеров патруля, заблокировать пути отхода и поймать грабителя с поличным.",
-    },
-    mechanics: [
-      {
-        name: "Карманная кража",
-        desc: "Вор крадет жетон ценностей у любой из 8 соседних карт без убийства. Цель — 8 сокровищ. Ограбленный житель помечается маркером.",
-        tag: "Добыча",
-      },
-      {
-        name: "Смена маски",
-        desc: "Грабитель держит в руке пул запасных масок и может мгновенно сменить текущую внешность на карту из руки в любой подходящий момент.",
-        tag: "Маскировка",
-      },
-      {
-        name: "Патрули полиции",
-        desc: "Полиция выставляет открытые жетоны офицеров на сетку. Зона задержания формируется вокруг любого дежурного патрульного.",
-        tag: "Оцепление",
-      },
-      {
-        name: "Блокировка улиц",
-        desc: "Линия сетки, на которой дежурит офицер патруля, блокируется для маневров грабителя на следующий раунд.",
-        tag: "Контроль",
-      },
-    ],
-  },
-  SECRET_SERVICE: {
-    id: "SECRET_SERVICE",
-    title: GAME_MODES_META.SECRET_SERVICE.title.ru,
-    badge: "Контрразведка",
-    format: "5×5 • 1-4 игрока",
-    desc: "Закрытая операция разведок: опрашивайте связных в секторе 3×3, вычисляйте тайных резидентов конкурентов и собирайте трофеи компромата.",
-    bannerGradient: "from-indigo-950 via-zinc-950/70 to-transparent",
-    borderColor: "border-indigo-500/40",
-    badgeColor: "text-indigo-400",
-    bannerImage: "/assets/modes/secret-service-banner.webp",
-    role1: {
-      name: "Агент Альфа",
-      badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
-      goal: "Первым собрать целевое число трофеев (3 в дуэли, 4 при 3 игроках, 3 при 4+ игроках).",
-    },
-    role2: {
-      name: "Агент Омега",
-      badgeColor: "bg-blue-950/80 text-blue-300 border border-blue-700/60",
-      goal: "Первым собрать целевое число трофеев (3 в дуэли, 4 при 3 игроках, 3 при 4+ игроках).",
-    },
-    mechanics: [
-      {
-        name: "Перекрестный опрос",
-        desc: "Сканирование свидетеля радаром 3×3: связной передает шифровку о присутствии любого вражеского резидента в зоне охвата.",
-        tag: "Радар",
-      },
-      {
-        name: "Разоблачение резидента",
-        desc: "Вскрытие подозреваемого рядом с собой. При успехе вражеский шпион раскрыт, вы берете трофей, а соперник — новую легенду. Цель: 3 трофея (2P), 4 (3P), 3 (4+P).",
-        tag: "Трофей",
-      },
-      {
-        name: "Шпионская дуэль",
-        desc: "Ход строго передается по кругу между активными разведчиками с сохранением тайны набранных улик и масок.",
-        tag: "Регламент",
-      },
-      {
-        name: "Зачистка резидентуры",
-        desc: "Раскрытые резиденты смещаются на фланги поля для разблокировки ключевых коридоров маневрирования.",
-        tag: "Маневр",
-      },
-    ],
-  },
-  LINE_UP: {
-    id: "LINE_UP",
-    title: GAME_MODES_META.LINE_UP.title.ru,
-    badge: "Интеллектуальная дуэль",
-    format: "5×5 • 2 игрока",
-    desc: "Чистая детективная дуэль на дедукцию без маневров поля: 25 подозреваемых, банк вопросов, сопоставление улик и штрафы за ложные обвинения.",
-    bannerGradient: "from-blue-950 via-zinc-950/70 to-transparent",
-    borderColor: "border-blue-500/40",
-    badgeColor: "text-blue-400",
-    bannerImage: "/assets/modes/lineup-banner.webp",
-    role1: {
-      name: "Подозреваемый",
-      badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",
-      goal: "Запутать следствие, вынудить следователя потратить все улики или сделать ложные обвинения.",
-    },
-    role2: {
-      name: "Следователь",
-      badgeColor: "bg-blue-950/80 text-blue-300 border border-blue-700/60",
-      goal: "За минимальное число вопросов вычислить загаданного подозреваемого и предъявить обвинение.",
-    },
-    mechanics: [
-      {
-        name: "Каталог вопросов",
-        desc: "Игрок задает вопросы по признакам персонажей (пол, головной убор, очки, оружие, локация). Ответ соперника строго бинарен: ДА или НЕТ.",
-        tag: "Допрос",
-      },
-      {
-        name: "Отсечение алиби",
-        desc: "На основе полученных ответов неподходящие подозреваемые исключаются из активного досье, сужая круг поиска до единственной цели.",
-        tag: "Дедукция",
-      },
-      {
-        name: "Выдвижение обвинения",
-        desc: "В любой момент следователь может назвать имя подозреваемого. Точное попадание — победа, ошибка — немедленное поражение или штраф.",
-        tag: "Обвинение",
-      },
-      {
-        name: "Статичное поле",
-        desc: "В данном режиме тактические маневры линий и ликвидации отключены: побеждает исключительно логика и скорость дедукции.",
-        tag: "Формат",
-      },
-    ],
-  },
-};
-
-const getBannerUrl = (path: string | null) => {
-  if (!path) return null;
-  const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
-  return `${base}${path.startsWith("/") ? path : "/" + path}`;
-};
-
-const MODE_BANNERS: Record<ModeTab, string | null> = {
-  BASE: "/assets/modes/base-banner.webp",
-  MANIAC: "/assets/modes/maniac-banner.webp",
-  THIEF: "/assets/modes/thief-banner.webp",
-  SECRET_SERVICE: "/assets/modes/secret-service-banner.webp",
-  LINE_UP: "/assets/modes/lineup-banner.webp",
-};
-
 export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
   const [activeTab, setActiveTab] = useState<ModeTab>("BASE");
-  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
+  const tabListRef = useRef<HTMLDivElement>(null);
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
   const { openBanner } = useBannerViewer();
-  const touchStartRef = useRef<{ x: number; y: number; startX: number } | null>(null);
-  const tabListRef = useRef<HTMLDivElement | null>(null);
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
 
-  const tabs: Array<{ id: ModeTab; label: string }> = [
-    { id: "BASE", label: "ОСНОВЫ" },
-    { id: "MANIAC", label: "ПОЧЕРК УБИЙЦЫ" },
-    { id: "THIEF", label: "ОЦЕПЛЕНИЕ" },
-    { id: "SECRET_SERVICE", label: "ДИРЕКТИВА НОЛЬ" },
-    { id: "LINE_UP", label: "ОЧНАЯ СТАВКА" },
-  ];
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab("BASE");
+      setImgErrors({});
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
-    const activeBtn = tabListRef.current?.querySelector(`[data-tab-id="${activeTab}"]`);
-    if (activeBtn && typeof (activeBtn as HTMLElement).scrollIntoView === "function") {
-      (activeBtn as HTMLElement).scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    const activeBtn = tabListRef.current?.querySelector<HTMLButtonElement>(
+      `[data-tab-id="${activeTab}"]`
+    );
+    if (activeBtn) {
+      activeBtn.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
     }
   }, [activeTab, isOpen]);
 
-  if (!isOpen) return null;
+  const tabs: Array<{ id: ModeTab; label: string }> = [
+    { id: "BASE", label: "Базовые" },
+    { id: "MANIAC", label: "Маньяк" },
+    { id: "THIEF", label: "Грабитель" },
+    { id: "SECRET_SERVICE", label: "Спецслужба" },
+    { id: "LINE_UP", label: "Очная ставка" },
+  ];
 
   const currentMode = MODES_DATA[activeTab];
   const isCrimeOriented = activeTab === "MANIAC";
-  const rawBanner = MODE_BANNERS[activeTab];
-  const bannerSrc = rawBanner && !imgErrors[activeTab] ? getBannerUrl(rawBanner) : null;
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY, startX: touch.clientX };
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
-    const touch = e.changedTouches[0];
-    const deltaX = touch.clientX - touchStartRef.current.x;
-    const deltaY = touch.clientY - touchStartRef.current.y;
-    const startX = touchStartRef.current.startX;
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    const diffX = touchStartXRef.current - e.changedTouches[0].clientX;
+    const diffY = touchStartYRef.current - e.changedTouches[0].clientY;
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
 
-    // 1. Свайп от самого левого края экрана закрывает окно
-    if (startX <= 32 && deltaX > 60 && Math.abs(deltaY) < 40) {
-      triggerHaptic("light");
-      onClose();
-      touchStartRef.current = null;
-      return;
-    }
-
-    // 2. Горизонтальный свайп по контенту переключает вкладки правил
-    if (Math.abs(deltaX) > 45 && Math.abs(deltaY) < 40) {
+    if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
       const currentIndex = tabs.findIndex((t) => t.id === activeTab);
-      if (deltaX < 0) {
-        // Свайп влево -> следующий режим
-        const nextIndex = (currentIndex + 1) % tabs.length;
+      if (diffX > 0 && currentIndex < tabs.length - 1) {
         triggerHaptic("light");
-        setActiveTab(tabs[nextIndex].id);
-      } else {
-        // Свайп вправо -> предыдущий режим
-        const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+        setActiveTab(tabs[currentIndex + 1].id);
+      } else if (diffX < 0 && currentIndex > 0) {
         triggerHaptic("light");
-        setActiveTab(tabs[prevIndex].id);
+        setActiveTab(tabs[currentIndex - 1].id);
       }
     }
-
-    touchStartRef.current = null;
   };
+
+  const bannerSrc = !imgErrors[activeTab] && currentMode.bannerImage
+    ? currentMode.bannerImage
+    : undefined;
 
   return (
     <Modal
@@ -370,7 +97,13 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
       >
         <div className="flex justify-between items-center mb-3 shrink-0 border-b border-white/10 pb-2.5">
           <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${isCrimeOriented ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" : "bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.8)]"} animate-pulse`} />
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isCrimeOriented
+                  ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]"
+                  : "bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.8)]"
+              } animate-pulse`}
+            />
             <h2 className="text-sm font-black uppercase tracking-widest text-[#f1f5f9]">
               Справочник правил
             </h2>
@@ -398,9 +131,10 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
             {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
               const tabIsCrime = tab.id === "MANIAC";
-              const activeClasses = tab.id === "BASE"
-                ? "bg-zinc-800 text-zinc-100 border-zinc-500 shadow-[0_0_12px_rgba(255,255,255,0.15)]"
-                : tabIsCrime
+              const activeClasses =
+                tab.id === "BASE"
+                  ? "bg-zinc-800 text-zinc-100 border-zinc-500 shadow-[0_0_12px_rgba(255,255,255,0.15)]"
+                  : tabIsCrime
                   ? "bg-red-950/80 text-red-300 border-red-600 shadow-[0_0_12px_rgba(239,68,68,0.3)]"
                   : "bg-blue-950/80 text-blue-200 border-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.3)]";
 
@@ -447,107 +181,15 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
           })}
         </div>
 
-        <div
-          onClick={(e) => {
-            if (bannerSrc) {
-              openBanner(e, bannerSrc, currentMode.title);
-            }
+        <RuleModeDetail
+          currentMode={currentMode}
+          bannerSrc={bannerSrc}
+          onOpenBanner={openBanner}
+          onBannerError={() => {
+            console.warn(`[RulesModal] Failed to load banner for ${activeTab}:`, bannerSrc);
+            setImgErrors((prev) => ({ ...prev, [activeTab]: true }));
           }}
-          className={`relative w-full h-[100px] sm:h-[120px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${
-            currentMode.borderColor
-          } shadow-lg cursor-pointer group select-none ${
-            bannerSrc
-              ? "bg-zinc-950"
-              : "bg-gradient-to-r from-blue-950/40 via-zinc-900/60 to-zinc-950 border-white/10"
-          }`}
-          title="Нажмите для просмотра полного фото"
-        >
-          {bannerSrc && (
-            <img
-              src={bannerSrc}
-              alt={currentMode.title}
-              className="absolute inset-0 w-full h-full object-cover object-center opacity-80 pointer-events-none"
-              onError={(e) => {
-                console.warn(`[RulesModal] Failed to load banner for ${activeTab}:`, bannerSrc, e);
-                setImgErrors((prev) => ({ ...prev, [activeTab]: true }));
-              }}
-            />
-          )}
-
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent pointer-events-none" />
-
-          {bannerSrc && (
-            <div className="absolute top-2.5 right-2.5 z-10 flex items-center justify-center p-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 opacity-85 group-hover:opacity-100 transition-opacity pointer-events-none">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-zinc-300">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
-              </svg>
-            </div>
-          )}
-
-          <div className="absolute bottom-2.5 left-3.5 right-3.5 z-10 flex items-end pointer-events-none">
-            <h3 className="text-base sm:text-lg font-black uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-              {currentMode.title}
-            </h3>
-          </div>
-        </div>
-
-        <div className="overflow-y-auto space-y-3 text-left text-xs text-zinc-300 pr-1 pb-2 custom-scrollbar flex-1 min-h-0">
-          <p className="text-[11px] text-zinc-400 leading-relaxed font-medium tracking-normal">
-            {currentMode.desc}
-          </p>
-
-          <div className="space-y-1.5">
-            <span className="font-black text-zinc-400 block text-[9px] uppercase tracking-widest">
-              ЦЕЛИ И ЗАДАЧИ СТОРОН
-            </span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="p-3 rounded-xl bg-zinc-900/70 border border-white/5 space-y-1">
-                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block ${currentMode.role1.badgeColor}`}>
-                  {currentMode.role1.name}
-                </span>
-                <p className="text-[11px] text-zinc-300 leading-snug">
-                  {currentMode.role1.goal}
-                </p>
-              </div>
-              <div className="p-3 rounded-xl bg-zinc-900/70 border border-white/5 space-y-1">
-                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block ${currentMode.role2.badgeColor}`}>
-                  {currentMode.role2.name}
-                </span>
-                <p className="text-[11px] text-zinc-300 leading-snug">
-                  {currentMode.role2.goal}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-1.5 pt-1">
-            <span className="font-black text-zinc-400 block text-[9px] uppercase tracking-widest">
-              РЕГЛАМЕНТ И МЕХАНИКИ ХОДА
-            </span>
-            <div className="space-y-2">
-              {currentMode.mechanics.map((m, idx) => (
-                <div
-                  key={idx}
-                  className="p-3 rounded-xl bg-zinc-900/50 border border-white/5 hover:border-white/10 transition space-y-1"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black uppercase text-zinc-100 tracking-wider">
-                      {m.name}
-                    </span>
-                    {m.tag && (
-                      <span className="text-[8px] font-semibold tracking-wider text-zinc-400 uppercase bg-zinc-950 px-1.5 py-0.5 rounded border border-white/5">
-                        {m.tag}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-zinc-300 leading-relaxed font-sans">
-                    {m.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        />
 
         <div className="pt-3 border-t border-white/10 shrink-0">
           <Button

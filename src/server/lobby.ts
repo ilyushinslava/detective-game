@@ -1,5 +1,8 @@
 // src/server/lobby.ts
 import { normalizeMorse } from "../utils/morse";
+import type { MorseCandidate } from "../types/multiplayer";
+
+export type { MorseCandidate };
 
 export interface PublicRoomMeta {
   roomCode: string;
@@ -10,16 +13,6 @@ export interface PublicRoomMeta {
   playersCount: number;
   maxPlayers: number;
   bet?: number;
-  isPrivate?: boolean;
-}
-
-export interface MorseCandidate {
-  roomCode: string;
-  hostName: string;
-  mode: string;
-  status: string;
-  playersCount: number;
-  maxPlayers: number;
   isPrivate?: boolean;
 }
 

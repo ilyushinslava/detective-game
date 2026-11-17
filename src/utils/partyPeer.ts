@@ -1,16 +1,9 @@
 import type { Role } from "../types/game";
-import type { GameAction } from "../types/multiplayer";
+import type { GameAction, MorseCandidate } from "../types/multiplayer";
 import { GAME_CONFIG } from "../config/gameConfig";
 import { DEFAULT_BET } from "../constants/gameRules";
 
-export interface MorseCandidate {
-  roomCode: string;
-  hostName: string;
-  mode: string;
-  status: string;
-  playersCount: number;
-  maxPlayers: number;
-}
+export type { MorseCandidate };
 
 export interface ResolveRoomResponse {
   ok: boolean;

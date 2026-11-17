@@ -1,8 +1,9 @@
 import { createInitialState, isOppositeShift } from "../utils/gameLogic";
 import { gameReducer } from "../utils/gameReducer";
 import type { GameState, Role, GameModeType } from "../types/game";
+import type { ClientDeviceType } from "../types/multiplayer";
 
-export type ClientDeviceType = "TV_DISPLAY" | "CONTROLLER" | "PLAYER";
+export type { ClientDeviceType };
 
 export interface PlayerInfo {
   clientId: string;

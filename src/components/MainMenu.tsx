@@ -11,17 +11,17 @@ import { useLobbyNetwork } from "../hooks/useLobbyNetwork";
 import { Icons } from "./ui/Icons";
 import { TablesScreen } from "./TablesScreen";
 import { ProfileScreen } from "./ProfileScreen";
-import { CreateRoomModal } from "./lobby/CreateRoomModal";
-import { LobbyWaitingModal } from "./lobby/LobbyWaitingModal";
-import { ModeShowcase } from "./lobby/ModeShowcase";
-import { ModesList } from "./lobby/ModesList";
-import { ModeDetailView } from "./lobby/ModeDetailView";
-import { LobbyHeader } from "./lobby/LobbyHeader";
-import { LobbyBottomNav } from "./lobby/LobbyBottomNav";
-import { TvPartyModal } from "./lobby/TvPartyModal";
-import { SettingsModal } from "./lobby/SettingsModal";
-import { LoginModal } from "./lobby/LoginModal";
-import lobbyBg from "../assets/lobby_background.webp";
+import {
+  CreateRoomModal,
+  LobbyWaitingModal,
+  ModesList,
+  ModeDetailView,
+  LobbyBottomNav,
+  TvPartyModal,
+  SettingsModal,
+  LoginModal,
+  LobbyHomeView,
+} from "./lobby";
 
 // Асинхронный динамический чанк для тяжелого модуля Академии (TASK-ARCH-001)
 const TutorialScreen = lazy(() => import("./TutorialScreen").then((m) => ({ default: m.TutorialScreen })));
@@ -197,49 +197,31 @@ export const MainMenu = ({
     switch (screen) {
       case "HOME":
         return (
-          <div className="relative flex-1 flex flex-col bg-[#080a0f] w-full max-w-full overflow-x-hidden overflow-y-auto custom-scrollbar">
-            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden select-none">
-              <img
-                src={lobbyBg}
-                alt="Wicked City Noir"
-                className="w-full h-full object-cover object-center opacity-55 scale-100 transition-opacity duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/40 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-b from-[#080a0f]/80 via-transparent to-[#080a0f]" />
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#080a0f_90%)] opacity-85" />
-            </div>
-
-            <div className="relative z-10 flex-1 flex flex-col pt-[max(0.5rem,env(safe-area-inset-top))] w-full max-w-full min-h-0 overflow-x-hidden overflow-y-auto custom-scrollbar">
-              <LobbyHeader
-                title={t.menu.title}
-                profile={profile}
-                onOpenProfile={() => {
-                  soundManager.play("tapMenu");
-                  setNavDirection("none");
-                  setScreen("PROFILE");
-                  onTabChange("TOP");
-                }}
-                onOpenDevPanel={onOpenDevPanel}
-                onOpenSettings={() => setIsSettingsOpen(true)}
-                onOpenLogin={() => setIsLoginModalOpen(true)}
-              />
-
-              <ModeShowcase
-                hasActiveGame={hasActiveGame}
-                onResumeGame={onResumeGame}
-                isCreating={network.isCreating}
-                onQuickPlay={network.handleQuickPlay}
-                onSelectSolo={() => { setSelectedOpponent("AI"); navigateTo("MODES"); }}
-                onSelectLocalDuel={() => { setSelectedOpponent("PVP"); navigateTo("MODES"); }}
-                onOpenTvParty={() => setIsTvPartyModalOpen(true)}
-                onOpenOnline={() => { navigateTo("TABLES"); onTabChange("TABLES"); }}
-                onlineRoomsCount={network.filteredRooms.length}
-                onOpenRules={onOpenRules}
-                onOpenTutorial={() => setIsTutorialOpen(true)}
-                t={t}
-              />
-            </div>
-          </div>
+          <LobbyHomeView
+            title={t.menu.title}
+            profile={profile}
+            onOpenProfile={() => {
+              soundManager.play("tapMenu");
+              setNavDirection("none");
+              setScreen("PROFILE");
+              onTabChange("TOP");
+            }}
+            onOpenDevPanel={onOpenDevPanel}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenLogin={() => setIsLoginModalOpen(true)}
+            hasActiveGame={hasActiveGame}
+            onResumeGame={onResumeGame}
+            isCreating={network.isCreating}
+            onQuickPlay={network.handleQuickPlay}
+            onSelectSolo={() => { setSelectedOpponent("AI"); navigateTo("MODES"); }}
+            onSelectLocalDuel={() => { setSelectedOpponent("PVP"); navigateTo("MODES"); }}
+            onOpenTvParty={() => setIsTvPartyModalOpen(true)}
+            onOpenOnline={() => { navigateTo("TABLES"); onTabChange("TABLES"); }}
+            onlineRoomsCount={network.filteredRooms.length}
+            onOpenRules={onOpenRules}
+            onOpenTutorial={() => setIsTutorialOpen(true)}
+            t={t}
+          />
         );
 
       case "MODES":

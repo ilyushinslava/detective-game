@@ -1,5 +1,11 @@
 import { useState } from "react";
 import type { Role, GameModeType } from "../types/game";
+import {
+  DevOutcomesSection,
+  DevStateSection,
+  DevModalsSection,
+  DevEconomySection,
+} from "./dev";
 
 export interface DevPanelProps {
   isOpen: boolean;
@@ -84,64 +90,11 @@ export const DevPanel = ({
             <span className="text-[10px] text-zinc-500">{activeSection === 1 ? "▲" : "▼"}</span>
           </button>
           {activeSection === 1 && (
-            <div className="p-3 pt-0 grid grid-cols-2 gap-2 text-[10px]">
-              <button
-                onClick={() => { onForceWin("KILLER", "SKHVATKA"); onClose(); }}
-                className="py-2 px-2.5 bg-red-950/60 hover:bg-red-900/80 border border-red-700/50 rounded-xl text-red-200 font-bold text-left transition cursor-pointer"
-              >
-                💀 Схватка: Бандит
-              </button>
-              <button
-                onClick={() => { onForceWin("DETECTIVE", "SKHVATKA"); onClose(); }}
-                className="py-2 px-2.5 bg-blue-950/50 hover:bg-blue-900/70 border border-blue-700/40 rounded-xl text-blue-200 font-bold text-left transition cursor-pointer"
-              >
-                🛡️ Схватка: Инспектор
-              </button>
-              <button
-                onClick={() => { onForceWin("KILLER", "MANIAC_VS_OPERATIVE"); onClose(); }}
-                className="py-2 px-2.5 bg-red-950/60 hover:bg-red-900/80 border border-red-700/50 rounded-xl text-red-200 font-bold text-left transition cursor-pointer"
-              >
-                🩸 Маньяк: Победа
-              </button>
-              <button
-                onClick={() => { onForceWin("DETECTIVE", "MANIAC_VS_OPERATIVE"); onClose(); }}
-                className="py-2 px-2.5 bg-blue-950/50 hover:bg-blue-900/70 border border-blue-700/40 rounded-xl text-blue-200 font-bold text-left transition cursor-pointer"
-              >
-                🚨 Оперативник: Победа
-              </button>
-              <button
-                onClick={() => { onForceWin("KILLER", "THIEF_HUNT"); onClose(); }}
-                className="py-2 px-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-xl text-zinc-200 font-bold text-left transition cursor-pointer"
-              >
-                💰 Вор: 5 краж
-              </button>
-              <button
-                onClick={() => { onForceWin("DETECTIVE", "THIEF_HUNT"); onClose(); }}
-                className="py-2 px-2.5 bg-blue-950/60 hover:bg-blue-900/80 border border-blue-700/50 rounded-xl text-blue-200 font-bold text-left transition cursor-pointer"
-              >
-                👮 Полиция: Арест
-              </button>
-              <button
-                onClick={() => { onForceWin("KILLER", "SECRET_SERVICE"); onClose(); }}
-                className="py-2 px-2.5 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-700/50 rounded-xl text-purple-200 font-bold text-left transition cursor-pointer"
-              >
-                🕶️ Служба: Фантом (Восток)
-              </button>
-              <button
-                onClick={() => { onForceWin("DETECTIVE", "SECRET_SERVICE"); onClose(); }}
-                className="py-2 px-2.5 bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-700/50 rounded-xl text-indigo-200 font-bold text-left transition cursor-pointer"
-              >
-                👤 Служба: Призрак (Запад)
-              </button>
-              {onTriggerCluesWin && (
-                <button
-                  onClick={() => { onTriggerCluesWin(); onClose(); }}
-                  className="py-2 px-2.5 col-span-2 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-600/50 rounded-xl text-amber-200 font-bold text-left transition cursor-pointer"
-                >
-                  🏆 4 Улики: Победа Сыщика (Сетка 5×5)
-                </button>
-              )}
-            </div>
+            <DevOutcomesSection
+              onForceWin={onForceWin}
+              onTriggerCluesWin={onTriggerCluesWin}
+              onClose={onClose}
+            />
           )}
         </div>
 
@@ -155,38 +108,13 @@ export const DevPanel = ({
             <span className="text-[10px] text-zinc-500">{activeSection === 2 ? "▲" : "▼"}</span>
           </button>
           {activeSection === 2 && (
-            <div className="p-3 pt-0 flex flex-col gap-2 text-[10px]">
-              {onToggleTurn && (
-                <button
-                  onClick={onToggleTurn}
-                  className="w-full py-2 px-3 bg-zinc-800 hover:bg-zinc-700 border border-white/10 rounded-xl text-zinc-200 font-bold text-left transition cursor-pointer"
-                >
-                  🔄 Сменить чей ход (Killer ⇄ Detective)
-                </button>
-              )}
-              {onTogglePlayerRole && (
-                <button
-                  onClick={onTogglePlayerRole}
-                  className="w-full py-2 px-3 bg-zinc-800 hover:bg-zinc-700 border border-white/10 rounded-xl text-zinc-200 font-bold text-left transition cursor-pointer"
-                >
-                  🔄 Сменить свою роль (KILLER ⇄ DETECTIVE)
-                </button>
-              )}
-              {onAddKill && (
-                <button
-                  onClick={onAddKill}
-                  className="w-full py-2 px-3 bg-zinc-800 hover:bg-zinc-700 border border-white/10 rounded-xl text-zinc-200 font-bold text-left transition cursor-pointer"
-                >
-                  🎯 +1 к убийствам / кражам
-                </button>
-              )}
-              <button
-                onClick={() => { onTriggerInspectorChoice(); onClose(); }}
-                className="w-full py-2 px-3 bg-blue-950/60 hover:bg-blue-900/80 border border-blue-700/50 rounded-xl text-blue-200 font-bold text-left transition cursor-pointer"
-              >
-                🔍 Открыть выбор роли Инспектора (4 карты)
-              </button>
-            </div>
+            <DevStateSection
+              onToggleTurn={onToggleTurn}
+              onTogglePlayerRole={onTogglePlayerRole}
+              onAddKill={onAddKill}
+              onTriggerInspectorChoice={onTriggerInspectorChoice}
+              onClose={onClose}
+            />
           )}
         </div>
 
@@ -200,56 +128,15 @@ export const DevPanel = ({
             <span className="text-[10px] text-zinc-500">{activeSection === 3 ? "▲" : "▼"}</span>
           </button>
           {activeSection === 3 && (
-            <div className="p-3 pt-0 grid grid-cols-2 gap-2 text-[10px]">
-              {onTriggerIntro && (
-                <button
-                  onClick={() => { onTriggerIntro(); onClose(); }}
-                  className="py-2 px-2.5 bg-zinc-800 hover:bg-zinc-700 border border-white/10 rounded-xl text-zinc-200 font-bold text-left transition cursor-pointer"
-                >
-                  👁️ Интро ролей
-                </button>
-              )}
-              {onTriggerRestartRequest && (
-                <button
-                  onClick={() => { onTriggerRestartRequest(); onClose(); }}
-                  className="py-2 px-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-xl text-zinc-200 font-bold text-left transition cursor-pointer"
-                >
-                  🤝 Запрос реванша
-                </button>
-              )}
-              {onTriggerDisguiseModal && (
-                <button
-                  onClick={() => { onTriggerDisguiseModal(); onClose(); }}
-                  className="py-2 px-2.5 bg-zinc-800 hover:bg-zinc-700 border border-white/10 rounded-xl text-zinc-200 font-bold text-left transition cursor-pointer"
-                >
-                  🎭 Смена лица
-                </button>
-              )}
-              {onTriggerCaughtSpyModal && (
-                <button
-                  onClick={() => { onTriggerCaughtSpyModal(); onClose(); }}
-                  className="py-2 px-2.5 bg-zinc-800 hover:bg-zinc-700 border border-white/10 rounded-xl text-zinc-200 font-bold text-left transition cursor-pointer"
-                >
-                  🕵️ Раскрытие шпиона
-                </button>
-              )}
-              {onTriggerOpponentLeft && (
-                <button
-                  onClick={() => { onTriggerOpponentLeft(); onClose(); }}
-                  className="py-2 px-2.5 bg-red-950/60 hover:bg-red-900/80 border border-red-700/50 rounded-xl text-red-200 font-bold text-left transition cursor-pointer"
-                >
-                  🚪 Уход соперника
-                </button>
-              )}
-              {onTriggerGameOver && (
-                <button
-                  onClick={() => { onTriggerGameOver(); onClose(); }}
-                  className="py-2 px-2.5 bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-700/50 rounded-xl text-emerald-200 font-bold text-left transition cursor-pointer"
-                >
-                  🏆 Окно финала (GameOver)
-                </button>
-              )}
-            </div>
+            <DevModalsSection
+              onTriggerIntro={onTriggerIntro}
+              onTriggerRestartRequest={onTriggerRestartRequest}
+              onTriggerDisguiseModal={onTriggerDisguiseModal}
+              onTriggerCaughtSpyModal={onTriggerCaughtSpyModal}
+              onTriggerOpponentLeft={onTriggerOpponentLeft}
+              onTriggerGameOver={onTriggerGameOver}
+              onClose={onClose}
+            />
           )}
         </div>
 
@@ -263,44 +150,13 @@ export const DevPanel = ({
             <span className="text-[10px] text-zinc-500">{activeSection === 4 ? "▲" : "▼"}</span>
           </button>
           {activeSection === 4 && (
-            <div className="p-3 pt-0 flex flex-col gap-2 text-[10px]">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => onAddCash(1000)}
-                  className="py-2 px-2.5 bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-700/50 rounded-xl text-emerald-200 font-bold text-left transition cursor-pointer"
-                >
-                  💰 +1,000 CR
-                </button>
-                <button
-                  onClick={() => onAddCash(10000)}
-                  className="py-2 px-2.5 bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-700/50 rounded-xl text-emerald-200 font-bold text-left transition cursor-pointer"
-                >
-                  💎 +10,000 CR
-                </button>
-              </div>
-              {onResetCash && (
-                <button
-                  onClick={onResetCash}
-                  className="w-full py-2 px-3 bg-zinc-800 hover:bg-zinc-700 border border-white/10 rounded-xl text-zinc-300 font-bold text-left transition cursor-pointer"
-                >
-                  🪙 Обнулить баланс CR
-                </button>
-              )}
-              {onClearSession && (
-                <button
-                  onClick={onClearSession}
-                  className="w-full py-2 px-3 bg-zinc-800 hover:bg-zinc-700 border border-white/10 rounded-xl text-zinc-300 font-bold text-left transition cursor-pointer"
-                >
-                  🧹 Сброс сессии + F5
-                </button>
-              )}
-              <button
-                onClick={() => { onResetToMenu(); onClose(); }}
-                className="w-full py-2 px-3 bg-zinc-900 hover:bg-zinc-800 border border-white/10 rounded-xl text-zinc-300 font-bold text-left transition cursor-pointer"
-              >
-                🏠 Сброс в главное меню
-              </button>
-            </div>
+            <DevEconomySection
+              onAddCash={onAddCash}
+              onResetCash={onResetCash}
+              onClearSession={onClearSession}
+              onResetToMenu={onResetToMenu}
+              onClose={onClose}
+            />
           )}
         </div>
 

@@ -3,9 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Character, GameModeType, Role } from '../types/game';
 import { getKillerRoleName, getDetectiveRoleName } from '../constants/gameMeta';
 import { Modal } from './ui/Modal';
-import { Button } from './ui/Button';
 import { useSpatialNavigation } from '../hooks/useSpatialNavigation';
 import { useTranslation } from '../i18n/context';
+import {
+  RatingDeltaBadge,
+  GameOverRoleCard,
+  GameOverActions,
+} from './gameOver';
 
 export interface GameOverModalProps {
   winner: Role;
@@ -71,18 +75,6 @@ const Icons = {
       <line x1="12" y1="22" x2="12" y2="18" />
     </svg>
   ),
-  ArrowRight: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-      <line x1="5" y1="12" x2="19" y2="12" />
-      <polyline points="12 5 19 12 12 19" />
-    </svg>
-  ),
-  Search: ({ className = "w-3 h-3" }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={className}>
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  ),
 };
 
 export const GameOverModal: React.FC<GameOverModalProps> = ({
@@ -128,85 +120,10 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 
   const killerTitle = getKillerRoleName(mode);
   const detectiveTitle = getDetectiveRoleName(mode);
-  const winnerTitle = isKillerWinner ? killerTitle : detectiveTitle;
 
   const headlineText = isKillerWinner
     ? `${go.victoryPrefix} ${killerTitle.toUpperCase()}`
     : go.caseSolved;
-
-  const renderRoleCard = (char?: Character, roleName?: string, isKillerSide?: boolean) => {
-    const isCharWinner = isKillerSide ? isKillerWinner : !isKillerWinner;
-    const imgUrl = getCharacterImageUrl(char?.id, characterImages);
-    const charNumber = char ? `#${char.id.replace('c', '').padStart(2, '0')}` : '??';
-
-    const roleBadgeClass = isKillerSide
-      ? 'text-red-400 bg-red-950/30 border border-red-500/30'
-      : 'text-blue-400 bg-blue-950/30 border border-blue-500/30';
-
-    const winnerCardClass = isCharWinner
-      ? isKillerSide
-        ? 'border-2 border-rose-500/80 shadow-[0_0_25px_rgba(225,29,72,0.45)] ring-1 ring-rose-400/50 bg-zinc-950'
-        : 'border-2 border-cyan-400/80 shadow-[0_0_25px_rgba(6,182,212,0.45)] ring-1 ring-cyan-400/50 bg-zinc-950'
-      : 'border border-white/5 bg-zinc-950/60 opacity-40 hover:opacity-75';
-
-    return (
-      <div
-        onClick={() => {
-          if (char && imgUrl) {
-            setSelectedPhotoChar(char);
-          }
-        }}
-        className={`group relative h-44 sm:h-48 overflow-hidden rounded-2xl flex flex-col justify-between p-3 select-none transition-all duration-200 ${winnerCardClass} ${char && imgUrl ? 'cursor-pointer active:scale-[0.98]' : ''}`}
-      >
-        {imgUrl ? (
-          <>
-            <img
-              src={imgUrl}
-              alt={char?.name || roleName}
-              className={`absolute inset-0 w-full h-full object-cover contrast-125 transition-transform duration-300 group-hover:scale-105 ${
-                isCharWinner ? 'grayscale opacity-100' : 'grayscale opacity-60'
-              }`}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-zinc-950/70" />
-          </>
-        ) : (
-          <div className="absolute inset-0 bg-zinc-900/60 flex items-center justify-center">
-            <span className="font-mono font-bold text-2xl text-zinc-700">{charNumber}</span>
-          </div>
-        )}
-
-        <div className="relative z-10 flex items-center justify-between w-full">
-          {isCharWinner ? (
-            <span className="bg-white text-zinc-950 font-black font-mono text-[9px] uppercase px-2 py-0.5 rounded shadow-sm">
-              {go.winner}
-            </span>
-          ) : (
-            <span className="bg-zinc-900 text-zinc-500 border border-white/5 font-mono text-[9px] uppercase px-1.5 py-0.5 rounded">
-              {go.defeat}
-            </span>
-          )}
-          <span className="font-mono font-bold text-[10px] text-zinc-300 drop-shadow-sm">
-            {charNumber}
-          </span>
-        </div>
-
-        <div className="relative z-10 mt-auto pr-5">
-          <span className={`inline-block text-[10px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md mb-1.5 drop-shadow-sm ${roleBadgeClass}`}>
-            {roleName}
-          </span>
-          <span className="text-xs sm:text-sm font-bold uppercase leading-tight drop-shadow-md text-white block break-words">
-            {char ? char.name : go.unrevealed}
-          </span>
-        </div>
-
-        {char && imgUrl && (
-          <div className="absolute bottom-2.5 right-2.5 z-10 w-5 h-5 rounded-md bg-black/60 backdrop-blur-sm flex items-center justify-center text-zinc-400 group-hover:text-white transition-colors">
-            <Icons.Search className="w-3 h-3" />
-          </div>
-        )}
-      </div>
-    );
-  };
 
   const selectedImgUrl = selectedPhotoChar
     ? getCharacterImageUrl(selectedPhotoChar.id, characterImages)
@@ -285,7 +202,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
           {isKillerWinner ? <Icons.Crosshair /> : <Icons.Trophy />}
         </div>
 
-        {/* Акцидентный шрифт (Oswald/Rajdhani via font-display) размером не менее text-5xl с глубоким glow */}
+        {/* Акцидентный шрифт */}
         <h3
           className={`font-display text-4xl sm:text-5xl 2xl:text-6xl font-black uppercase tracking-wider mb-2 leading-tight text-center ${
             isKillerWinner
@@ -308,83 +225,50 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
           </div>
         )}
 
-        {rating !== undefined && (
-          <div className="flex items-center gap-1.5 text-xs font-mono mb-3 px-3 py-1 rounded-lg bg-zinc-900/90 border border-white/10 text-zinc-300">
-            <span>{go.rating}</span>
-            <span className="font-bold text-white">{rating}</span>
-            {ratingDelta !== undefined && (
-              <span className={`font-bold ${ratingDelta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                ({ratingDelta >= 0 ? `+${ratingDelta}` : ratingDelta})
-              </span>
-            )}
-          </div>
-        )}
+        <RatingDeltaBadge
+          label={go.rating}
+          rating={rating}
+          ratingDelta={ratingDelta}
+        />
 
         <p className="text-[10px] sm:text-xs font-medium tracking-normal text-[#a1a1aa] uppercase mb-5">
           {go.operationTime} <span className="font-mono font-bold text-zinc-200">{elapsedTime}</span>
         </p>
 
         <div className="w-full grid grid-cols-2 gap-3 mb-6 text-left">
-          {renderRoleCard(killer, killerTitle, true)}
-          {renderRoleCard(detective, detectiveTitle, false)}
+          <GameOverRoleCard
+            char={killer}
+            roleName={killerTitle}
+            isKillerSide={true}
+            isKillerWinner={isKillerWinner}
+            imgUrl={getCharacterImageUrl(killer?.id, characterImages)}
+            winnerLabel={go.winner}
+            defeatLabel={go.defeat}
+            unrevealedLabel={go.unrevealed}
+            onSelectPhoto={setSelectedPhotoChar}
+          />
+          <GameOverRoleCard
+            char={detective}
+            roleName={detectiveTitle}
+            isKillerSide={false}
+            isKillerWinner={isKillerWinner}
+            imgUrl={getCharacterImageUrl(detective?.id, characterImages)}
+            winnerLabel={go.winner}
+            defeatLabel={go.defeat}
+            unrevealedLabel={go.unrevealed}
+            onSelectPhoto={setSelectedPhotoChar}
+          />
         </div>
 
-        {isMultiplayer ? (
-          <div className="flex flex-col gap-2.5 w-full">
-            <Button
-              variant="primary-danger"
-              fullWidth
-              tabIndex={0}
-              data-dpad-primary="true"
-              onClick={onRematchSwap}
-              className="from-red-950 text-xs sm:text-sm font-bold uppercase tracking-wider gap-2 !h-12 transition-all focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_20px_rgba(255,255,255,0.35)] cursor-pointer"
-            >
-              <span>⇄</span> {go.rematchSwap}
-            </Button>
-
-            <Button
-              variant="primary-info"
-              fullWidth
-              tabIndex={0}
-              onClick={onRematchRandom}
-              className="from-blue-950 text-xs sm:text-sm font-bold uppercase tracking-wider gap-2 !h-12 transition-all focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_20px_rgba(255,255,255,0.35)] cursor-pointer"
-            >
-              <span className="font-mono font-bold text-[10px] text-blue-400">[RND]</span> {go.rematchRandom}
-            </Button>
-
-            <Button
-              variant="secondary"
-              fullWidth
-              tabIndex={0}
-              onClick={onRematchSame}
-              className="text-xs sm:text-sm font-bold uppercase tracking-wider gap-2 !h-12 transition-all focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_20px_rgba(255,255,255,0.35)] cursor-pointer"
-            >
-              <span>↻</span> {go.rematchSame}
-            </Button>
-          </div>
-        ) : (
-          <Button
-            variant="primary-danger"
-            fullWidth
-            tabIndex={0}
-            data-dpad-primary="true"
-            onClick={onRestart}
-            className="rounded-full !h-14 text-xs sm:text-sm font-black uppercase tracking-wider gap-2 shadow-lg transition-all focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_25px_rgba(255,255,255,0.45)] cursor-pointer"
-          >
-            <span>{go.restart}</span>
-            <Icons.ArrowRight />
-          </Button>
-        )}
-
-        <Button
-          variant="ghost"
-          fullWidth
-          tabIndex={0}
-          onClick={onExitToMenu}
-          className="text-zinc-400 hover:text-zinc-100 text-xs sm:text-sm font-bold uppercase tracking-wider py-3 mt-2.5 transition-all rounded-xl focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:text-white focus:shadow-[0_0_20px_rgba(255,255,255,0.35)] cursor-pointer"
-        >
-          <span>{go.exitToMenu}</span>
-        </Button>
+        <GameOverActions
+          isMultiplayer={isMultiplayer}
+          onRestart={onRestart}
+          onExitToMenu={onExitToMenu}
+          onRematchSwap={onRematchSwap}
+          onRematchRandom={onRematchRandom}
+          onRematchSame={onRematchSame}
+          translations={go}
+        />
       </Modal>
     </>
   );

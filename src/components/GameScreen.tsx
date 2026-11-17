@@ -1,12 +1,16 @@
 import React, { memo } from "react";
 import type { Character, GameState } from "../types/game";
-import { SPY_COLORS } from "../types/game";
 import { GameBoard } from "./GameBoard";
 import { RoleCards } from "./RoleCards";
 import { GameSheets } from "./GameSheets";
 import { BlindfoldCurtain } from "./ui/BlindfoldCurtain";
 import { soundManager } from "../utils/audio";
-import { getGameModeTitle } from "../constants/gameMeta";
+import {
+  GameTopHeader,
+  GameStatusBar,
+  GameActionDock,
+  type TargetAction,
+} from "./game";
 
 export interface GameScreenProps {
   gameState: GameState;
@@ -44,13 +48,7 @@ export interface GameScreenProps {
   effectiveRadarColorClass: string | null;
   errorCardId: string | null;
   setErrorCardId?: (id: string | null) => void;
-  targetActions: Array<{
-    id: string;
-    label: string;
-    disabled?: boolean;
-    className: string;
-    onClick: () => void;
-  }>;
+  targetActions: TargetAction[];
   cleanupAction?: {
     disabled?: boolean;
     onClick: () => void;
@@ -58,34 +56,44 @@ export interface GameScreenProps {
   isCleanupAvailable: boolean;
   isDetectiveView: boolean;
   isDetectiveTurn: boolean;
-  isKillerTurn: boolean;
   isHandSheetOpen: boolean;
   setIsHandSheetOpen: (val: boolean) => void;
+  isEvidenceSheetOpen: boolean;
+  setIsEvidenceSheetOpen: (val: boolean) => void;
+  isDeckSheetOpen: boolean;
+  setIsDeckSheetOpen: (val: boolean) => void;
+  isVictimsSheetOpen: boolean;
+  setIsVictimsSheetOpen: (val: boolean) => void;
+  isHelpOpen: boolean;
+  setIsHelpOpen: (val: boolean) => void;
   isLogOpen: boolean;
   setIsLogOpen: (val: boolean) => void;
   unreadLogCount: number;
   setUnreadLogCount: (val: number) => void;
-  logContainerRef: React.RefObject<HTMLDivElement>;
-  allChars: Character[];
-  characterImages: Record<string, { default: string }>;
-  selectedCharacter: Character | null;
-  handleReset: () => void;
-  handleShift: (type: "ROW" | "COL", index: number, direction: "FORWARD" | "BACKWARD") => void;
-  handleExonerateFromHand: (id: string) => void;
-  handleFastDisguise: (id: string) => void;
-  setIsPauseOpen: (val: boolean) => void;
+  isNotebookOpen: boolean;
   setIsNotebookOpen: (val: boolean) => void;
-  isOpponentConnected: boolean;
-  opponentDisconnectedNotice: boolean;
-  isInspectorPending?: boolean;
+  logContainerRef: React.RefObject<HTMLDivElement | null>;
+  handleReset: () => void;
+  handleShift: (
+    type: "ROW" | "COL",
+    index: number,
+    direction: "FORWARD" | "BACKWARD"
+  ) => void;
+  killerChar?: Character;
+  detectiveChar?: Character;
+  spyP1Char?: Character;
+  spyP2Char?: Character;
+  isCurtainActive?: boolean;
+  nextPlayerName?: string;
   onConfirmTurnReady?: () => void;
+  setIsMenuOpen: (val: boolean) => void;
 }
 
 export const GameScreen: React.FC<GameScreenProps> = memo(({
   gameState,
   isHumanTurn,
   currentRoleName,
-  actionPanelRoleName,
+  actionPanelRoleName: _actionPanelRoleName,
   pillClasses,
   dotClasses,
   secondsElapsed,
@@ -94,6 +102,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
   setSelectedId,
   killerAdjacentIds,
   detectiveAdjacentIds,
+  activeAgentAdjacentIds,
   showKillerRole,
   setShowKillerRole,
   showDetectiveRole,
@@ -121,291 +130,79 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
   isCleanupAvailable,
   isDetectiveView,
   isDetectiveTurn,
-  isKillerTurn,
   isHandSheetOpen,
   setIsHandSheetOpen,
+  isEvidenceSheetOpen,
+  setIsEvidenceSheetOpen,
+  isDeckSheetOpen,
+  setIsDeckSheetOpen,
+  isVictimsSheetOpen,
+  setIsVictimsSheetOpen,
+  isHelpOpen,
+  setIsHelpOpen,
   isLogOpen,
   setIsLogOpen,
   unreadLogCount,
   setUnreadLogCount,
+  isNotebookOpen,
+  setIsNotebookOpen,
   logContainerRef,
-  allChars,
-  characterImages,
-  selectedCharacter,
   handleReset,
   handleShift,
-  handleExonerateFromHand,
-  handleFastDisguise,
-  setIsPauseOpen,
-  setIsNotebookOpen,
-  isOpponentConnected,
-  opponentDisconnectedNotice,
-  isInspectorPending,
+  killerChar,
+  detectiveChar,
+  spyP1Char,
+  spyP2Char,
+  isCurtainActive,
+  nextPlayerName,
   onConfirmTurnReady,
+  setIsMenuOpen,
 }) => {
-  const hideFooter = isInspectorPending ?? Boolean(
-    gameState.mode === "SKHVATKA" &&
-    gameState.inspectorChoices &&
-    gameState.inspectorChoices.length > 0 &&
-    isDetectiveView &&
-    isDetectiveTurn &&
-    !gameState.winner
+  const allChars = React.useMemo(() => gameState.board.flat(), [gameState.board]);
+  const selectedCharacter = React.useMemo(
+    () => allChars.find((c) => c.id === selectedId) || null,
+    [allChars, selectedId]
   );
 
+  const isInspectorChoosing =
+    Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) &&
+    isDetectiveTurn &&
+    gameState.opponent === "AI";
+
   return (
-    <>
-      <header className="w-full px-4 sm:px-6 pb-2.5 bg-[#07080c] border-b border-white/[0.07] shrink-0 relative flex items-center justify-between z-50 pt-[max(0.75rem,env(safe-area-inset-top))]">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsPauseOpen(true)}
-            className="w-8 h-8 md:w-11 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer"
-            title="Пауза и меню"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
-              <rect x="6" y="4" width="4" height="16"/>
-              <rect x="14" y="4" width="4" height="16"/>
-            </svg>
-          </button>
-          <button
-            onClick={() => setIsNotebookOpen(true)}
-            className="w-8 h-8 md:w-11 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer"
-            title="Блокнот подозреваемых"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => {
-              setIsLogOpen(true);
-              setUnreadLogCount(0);
-            }}
-            className="relative w-8 h-8 md:w-11 md:h-11 bg-zinc-800 active:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer lg:hidden"
-            title="Блокнот расследования"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="16" y1="13" x2="8" y2="13"/>
-              <line x1="16" y1="17" x2="8" y2="17"/>
-            </svg>
-            {unreadLogCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-black rounded-full w-4 h-4 flex items-center justify-center animate-pulse">
-                {unreadLogCount}
-              </span>
-            )}
-          </button>
-        </div>
+    <div className="relative w-screen h-[100dvh] flex flex-col justify-between overflow-hidden bg-[#080a0f] text-zinc-100 select-none">
+      {/* Шапка экрана */}
+      <GameTopHeader
+        gameState={gameState}
+        isHumanTurn={isHumanTurn}
+        currentRoleName={currentRoleName}
+        pillClasses={pillClasses}
+        dotClasses={dotClasses}
+        secondsElapsed={secondsElapsed}
+        formatTimer={formatTimer}
+        unreadLogCount={unreadLogCount}
+        setIsLogOpen={setIsLogOpen}
+        setUnreadLogCount={setUnreadLogCount}
+        setIsNotebookOpen={setIsNotebookOpen}
+        setIsMenuOpen={setIsMenuOpen}
+        onReset={handleReset}
+      />
 
-        <div className="absolute left-1/2 -translate-x-1/2 flex justify-center shrink-0">
-          <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 md:px-5 md:py-2.5 rounded-full border text-[10px] md:text-xs font-black tracking-wider uppercase transition-all shadow max-w-[140px] sm:max-w-[200px] truncate ${
-              gameState.winner === "KILLER"
-                ? "bg-red-950/90 border-red-600 text-red-100 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
-                : gameState.winner === "DETECTIVE"
-                ? (gameState.mode === "THIEF_HUNT"
-                    ? "bg-blue-900/40 border border-blue-800/50 text-blue-400"
-                    : "bg-blue-950/90 border-blue-600 text-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.5)]")
-                : (currentRoleName === "ПОЛИЦИЯ" || currentRoleName === "Полиция")
-                ? "bg-blue-900/40 border border-blue-800/50 text-blue-400"
-                : pillClasses
-            }`}
-          >
-            {gameState.winner === null && (
-              <span className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
-                <span
-                  className={`relative inline-flex rounded-full h-2 w-2 ${dotClasses}`}
-                />
-              </span>
-            )}
-            <span className="whitespace-nowrap truncate">
-              {gameState.winner !== null ? (gameState.winner === "KILLER" ? "ПОБЕДА КРИМИНАЛА" : "ПОБЕДА ЗАКОНА") : gameState.opponent === "ONLINE"
-                ? isHumanTurn
-                  ? "Ваш ход"
-                  : "Ход врага"
-                : currentRoleName}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="hidden md:flex items-center justify-center bg-zinc-950 border border-zinc-800 rounded-lg px-3 h-9 md:h-11 text-xs md:text-sm font-mono text-zinc-400">
-            {formatTimer(secondsElapsed)}
-          </div>
-          <button
-            onClick={handleReset}
-            className="px-2.5 py-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 hover:border-white/25 text-zinc-300 hover:text-white text-xs font-bold uppercase tracking-wider transition-all active:scale-95 flex items-center gap-1.5 shrink-0 cursor-pointer"
-            title="Перезапустить партию"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5">
-              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-              <path d="M3 3v5h5" />
-            </svg>
-            <span>Заново</span>
-          </button>
-        </div>
-      </header>
-
-      {!isOpponentConnected && !opponentDisconnectedNotice && gameState.opponent === "ONLINE" && (
+      {/* Ожидание переподключения */}
+      {gameState.isOpponentDisconnected && (
         <div className="w-full bg-zinc-900 border-b border-zinc-700 text-zinc-300 text-[10px] font-black uppercase tracking-widest py-2 flex justify-center items-center gap-2 shadow-inner z-20">
           <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-ping" />
           Соперник переподключается... (ожидание)
         </div>
       )}
 
-      {gameState.mode === "SECRET_SERVICE" ? (
-        <div className="w-full px-3 md:px-6 py-1.5 md:py-2 bg-zinc-950/90 border-b border-zinc-900 flex flex-col gap-1 text-[10px] md:text-xs text-zinc-400 shrink-0">
-          <div className="flex items-center justify-between w-full">
-            <span className="text-zinc-400 font-medium">Компромат агентов:</span>
-            <div className="flex items-center gap-1.5 text-zinc-500 font-medium">
-              <span className="font-bold text-zinc-300">
-                {getGameModeTitle(gameState.mode, "ru")}
-              </span>
-              <span className="text-zinc-600">•</span>
-              <span>
-                {gameState.opponent === "ONLINE"
-                  ? "онлайн"
-                  : gameState.opponent === "AI"
-                    ? "против бота"
-                    : "вдвоем"}
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 pt-1 border-t border-white/[0.04]">
-            {gameState.spies?.map((spy, idx) => {
-              const color = SPY_COLORS[idx % SPY_COLORS.length];
-              return (
-                <div
-                  key={spy.id}
-                  className="flex items-center gap-1.5 bg-zinc-900/80 border border-white/10 px-2 py-0.5 rounded-md font-mono text-[11px] shrink-0 shadow-sm"
-                >
-                  <span
-                    className={`w-2 h-2 rounded-full ${color.bg} border ${color.border} shrink-0`}
-                  />
-                  <span className="text-zinc-300 font-medium">
-                    {spy.name}:
-                  </span>
-                  <b className={`${color.text} font-black`}>
-                    {spy.trophies}/{gameState.spyTargetTrophies}
-                  </b>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ) : (
-        <div className="w-full px-3 md:px-6 py-1.5 md:py-2 bg-zinc-950/90 border-b border-zinc-900 flex items-center justify-between text-[10px] md:text-xs text-zinc-400 shrink-0">
-          {gameState.mode === "LINE_UP" ? (
-            <div className="flex items-center gap-3">
-              <span className="text-red-400 font-bold">Штрафы:</span>
-              <span>Следствие: <b className="text-zinc-200">{gameState.duelPenalties?.DETECTIVE ?? 0}</b></span>
-              <span>Подозреваемый: <b className="text-zinc-200">{gameState.duelPenalties?.KILLER ?? 0}</b></span>
-              <span className="ml-2">| Вопросов: {(gameState.duelHistory || []).length}</span>
-            </div>
-          ) : gameState.mode === "THIEF_HUNT" ? (
-            <div className="flex items-center gap-1.5">
-              <span>Добыча:</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-amber-400 fill-amber-500/20 shrink-0">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
-              </svg>
-              <b className="text-amber-400 font-bold">
-                {gameState.trophiesKiller ?? 0}/10
-              </b>
-              <span className="ml-1">| Улики: {gameState.evidenceDeck.length}</span>
-            </div>
-          ) : (
-            <div className="flex items-center flex-wrap gap-x-1">
-              <span>Жертвы:</span>
-              <b className="text-red-400">
-                {gameState.killCount}/{gameState.mode === "MANIAC_VS_OPERATIVE" ? 4 : 14}
-              </b>
-              <span className="ml-1">| Улики: {gameState.evidenceDeck.length}</span>
-            </div>
-          )}
-          <div className="flex items-center gap-1.5 text-zinc-500 font-medium">
-            <span className="hidden md:inline">Режим:</span>
-            <span className="font-bold text-zinc-300">
-              {getGameModeTitle(gameState.mode, "ru")}
-            </span>
-            <span className="text-zinc-600">•</span>
-            <span>
-              {gameState.opponent === "ONLINE"
-                ? "онлайн"
-                : gameState.opponent === "AI"
-                  ? "против бота"
-                  : "вдвоем"}
-            </span>
-          </div>
-        </div>
-      )}
+      {/* Статус-бар режима и оперативные показания */}
+      <GameStatusBar
+        gameState={gameState}
+        allChars={allChars}
+      />
 
-      <div className="w-full px-3 h-8 md:h-12 shrink-0 flex items-center justify-center">
-        {gameState.lastInterrogation && !gameState.winner ? (
-          <div
-            className={`w-full h-full px-2.5 rounded-lg border flex items-center justify-between text-[10px] md:text-sm shadow-sm ${gameState.lastInterrogation.isNear ? "bg-red-950/80 border-red-700 text-red-200" : "bg-zinc-900/90 border-zinc-800 text-zinc-300"}`}
-          >
-            <span className="font-semibold truncate mr-2">
-              {gameState.lastInterrogation.interrogator === "DETECTIVE"
-                ? `Алиби (${gameState.lastInterrogation.targetName}): враг рядом?`
-                : `Жертва (${gameState.lastInterrogation.targetName}): законник рядом?`}
-            </span>
-            <span
-              className={`shrink-0 px-2 py-0.5 rounded text-[10px] md:text-xs font-black uppercase border ${gameState.lastInterrogation.isNear ? "bg-red-900 text-red-100 border-red-500 animate-pulse" : "bg-blue-950 text-blue-300 border-blue-700"}`}
-            >
-              {gameState.lastInterrogation.isNear ? "Враг рядом" : "Вне зоны"}
-            </span>
-          </div>
-        ) : gameState.lastSpyInterrogation && !gameState.winner ? (
-          <div className="w-full h-full px-2.5 rounded-lg border border-zinc-800 bg-zinc-900/90 flex items-center justify-between text-[10px] md:text-sm shadow-sm">
-            <span className="font-bold text-zinc-300 truncate mr-2">
-              Допрос:{" "}
-              <b className="text-zinc-100">
-                {gameState.lastSpyInterrogation.targetName}
-              </b>
-            </span>
-            <div className="flex gap-1.5 shrink-0">
-              {gameState.spies?.map((spy) => {
-                const hasContact =
-                  gameState.lastSpyInterrogation?.raisedHandsPlayerNames.includes(
-                    spy.name
-                  );
-                return (
-                  <span
-                    key={spy.id}
-                    className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase border ${hasContact ? "bg-red-950 text-red-400 border-red-700 animate-pulse" : "bg-zinc-950 text-zinc-500 border-zinc-800"}`}
-                  >
-                    {spy.name.replace("Агент «", "").replace("»", "")}:{" "}
-                    {hasContact ? "РЯДОМ" : "НЕТ"}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        ) : gameState.mode === "MANIAC_VS_OPERATIVE" && gameState.victimList.length > 0 && !gameState.winner ? (
-          <div className="w-full h-full px-2.5 rounded-lg border border-red-900/60 bg-red-950/40 flex items-center justify-between text-[10px] md:text-sm shadow-sm">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
-              <span className="text-red-400 font-bold uppercase tracking-wider shrink-0 text-[10px] md:text-xs">Цель:</span>
-              <span className="text-zinc-100 font-black truncate">
-                {allChars.find((c) => c.id === gameState.victimList[0])?.name ?? gameState.victimList[0]}
-              </span>
-              <span className="text-[10px] md:text-xs font-semibold tracking-normal text-red-400/90 shrink-0">
-                (#{gameState.victimList[0].replace("c", "").padStart(2, "0")})
-              </span>
-            </div>
-            <div className="shrink-0 font-medium tracking-normal text-[10px] md:text-xs text-zinc-400 ml-2 flex items-center gap-1">
-              <span>В очереди:</span> <b className="font-bold tabular-nums text-red-400">{gameState.victimList.length}</b>
-            </div>
-          </div>
-        ) : (
-          <div className="w-full h-full px-2.5 rounded-lg border border-dashed border-zinc-900 flex items-center justify-center text-[10px] md:text-sm text-zinc-600 font-medium">
-            Оперативные показания: ожидание допроса
-          </div>
-        )}
-      </div>
-
+      {/* Игровое поле и панели */}
       <div className="flex-1 min-h-0 w-full flex flex-col landscape:flex-row items-center justify-between gap-1 sm:gap-2 md:gap-6 px-2 sm:px-4 md:px-6 py-1 md:py-3 overflow-hidden">
         <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl landscape:max-w-none flex flex-col items-center justify-center relative antialiased">
           <div className="w-full h-full flex-1 min-h-0 flex items-center justify-center overflow-hidden relative antialiased">
@@ -413,221 +210,111 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
               mode={gameState.mode}
               board={gameState.board}
               selectedCharacterId={selectedId}
-              killerAdjacentIds={killerAdjacentIds}
-              detectiveAdjacentIds={detectiveAdjacentIds}
-              showKillerHints={
-                gameState.mode === "SECRET_SERVICE"
-                  ? showSpyP1Role
-                  : showKillerRole
-              }
-              showDetectiveHints={
-                gameState.mode === "SECRET_SERVICE"
-                  ? showSpyP2Role
-                  : showDetectiveRole
-              }
-              lastShift={gameState.lastShift}
-              lastRobbedId={gameState.lastRobbedId}
-              uniformedOfficerIds={gameState.uniformedOfficers}
-              targetVictimId={
-                gameState.mode === "MANIAC_VS_OPERATIVE"
-                  ? gameState.victimList[0]
-                  : null
-              }
-              radarTargetId={effectiveRadarTargetId}
-              radarCellIds={effectiveRadarCellIds}
-              radarColorClass={effectiveRadarColorClass}
-              errorCardId={errorCardId}
-              myCharacterId={myCharacterId}
-              isPVP={isPVP}
-              myRoleColor={myRoleColor}
-              isModalOpen={isHandSheetOpen || isLogOpen || !isHumanTurn}
-              onShift={handleShift}
-              onSelectCharacter={(id) => {
-                const clickedChar = gameState.board?.flat().find((c) => c.id === id);
-                if (clickedChar && !clickedChar.isAlive && gameState.mode !== "LINE_UP") {
-                  soundManager.play('deny');
-                  triggerHaptic('error');
+              onCardClick={(id) => {
+                if (isInspectorChoosing) {
+                  soundManager.play("error");
                   if (setErrorCardId) {
                     setErrorCardId(id);
                     setTimeout(() => setErrorCardId(null), 500);
                   }
                   return;
                 }
-                soundManager.play('click');
+                soundManager.play("click");
                 setSelectedId((prev) => (prev === id ? null : id));
               }}
+              onShift={handleShift}
+              lastShift={gameState.lastShift}
+              killerAdjacentIds={killerAdjacentIds}
+              detectiveAdjacentIds={detectiveAdjacentIds}
+              activeAgentAdjacentIds={activeAgentAdjacentIds}
+              currentRole={gameState.currentTurn}
+              isHumanTurn={isHumanTurn}
+              evidenceDeck={gameState.evidenceDeck}
+              highlightedSpyId={
+                gameState.mode === "SECRET_SERVICE" && myCharacterId
+                  ? myCharacterId
+                  : undefined
+              }
+              radarPingIds={effectiveRadarCellIds}
+              radarTargetId={effectiveRadarTargetId}
+              radarColorClass={effectiveRadarColorClass}
+              isPVP={isPVP}
+              myRoleColor={myRoleColor}
+              errorCardId={errorCardId}
             />
           </div>
         </main>
 
-        <footer className={`w-full max-w-md md:max-w-2xl landscape:w-80 landscape:xl:w-96 shrink-0 flex flex-col justify-end gap-1.5 sm:gap-2 z-20 pb-[max(0.5rem,env(safe-area-inset-bottom))] landscape:pb-0 px-1 md:px-4 landscape:px-0 landscape:my-auto ${hideFooter ? "hidden" : ""}`}>
-          <RoleCards
-            mode={gameState.mode}
-            role1Name={role1Name}
-            role2Name={role2Name}
-            killerNameText={killerNameText}
-            detectiveNameText={detectiveNameText}
-            canPeekKiller={canPeekKiller}
-            canPeekDetective={canPeekDetective}
-            onPeekKillerStart={() => {
-              if (canPeekKiller) {
-                if (gameState.mode === "SECRET_SERVICE")
-                  setShowSpyP1Role(true);
-                else setShowKillerRole(true);
-              }
-            }}
-            onPeekKillerEnd={() => {
-              setShowSpyP1Role(false);
-              setShowKillerRole(false);
-            }}
-            onPeekDetectiveStart={() => {
-              if (canPeekDetective) {
-                if (gameState.mode === "SECRET_SERVICE")
-                  setShowSpyP2Role(true);
-                else setShowDetectiveRole(true);
-              }
-            }}
-            onPeekDetectiveEnd={() => {
-              setShowSpyP2Role(false);
-              setShowDetectiveRole(false);
-            }}
-            isPVP={gameState.opponent === "PVP"}
-          />
-
-          <div className="w-full max-w-md md:max-w-xl h-7 sm:h-8 px-3 bg-zinc-900/90 border border-zinc-800 rounded-lg text-[10px] sm:text-xs font-medium tracking-normal text-zinc-300 text-center shadow-sm shrink-0 flex items-center justify-center overflow-hidden">
-            <span className="truncate w-full">
-              {gameState.log.length > 0 ? gameState.log[gameState.log.length - 1] : "Операция в процессе..."}
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-1 sm:gap-1.5 w-full lg:bg-zinc-900/50 lg:border lg:border-zinc-800 lg:p-4 lg:rounded-2xl">
-            <div className="hidden md:block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
-              Действия ({actionPanelRoleName})
-            </div>
-            <div className="w-full flex items-center gap-1.5 sm:gap-2">
-              {targetActions.map((action) => {
-                const isRed = action.id === 'kill_basic' || action.id === 'capture_spy';
-                const isAmber = action.id === 'rob_basic';
-                const isBlue = action.id === 'accuse_basic' || action.id === 'patrol_call' || action.id === 'interrogate_spy';
-                const isDisguise = action.id === 'disguise_skhvatka' || action.id === 'escape_maniac' || action.id === 'disguise_thief' || action.id === 'DISGUISE' || action.id === 'FAST_DISGUISE' || action.id.includes('disguise') || action.id.includes('escape');
-
-                const colorClasses = isRed
-                  ? "bg-gradient-to-r from-red-700 via-red-600 to-rose-600 hover:from-red-650 hover:to-rose-550 text-white font-black shadow-lg shadow-red-950/50 border border-red-400/40 active:scale-[0.97]"
-                  : isBlue
-                  ? "bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-500 text-white font-black shadow-lg shadow-blue-950/50 border border-blue-400/40 active:scale-[0.97]"
-                  : isAmber
-                  ? "bg-gradient-to-r from-amber-600 to-yellow-500 text-zinc-950 font-black shadow-lg shadow-amber-950/50 border border-amber-300/50 active:scale-[0.97]"
-                  : isDisguise
-                  ? "bg-gradient-to-b from-zinc-900 via-zinc-950 to-black hover:from-zinc-800 hover:to-zinc-950 text-zinc-100 font-black tracking-wider uppercase border border-zinc-500/60 hover:border-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_0_12px_rgba(0,0,0,0.8)] active:scale-[0.97]"
-                  : "bg-zinc-800 hover:bg-zinc-700 text-white font-bold border border-white/20 active:scale-[0.97]";
-
-                return (
-                  <button
-                    key={action.id}
-                    onClick={action.onClick}
-                    disabled={action.disabled}
-                    className={`flex-1 min-w-0 h-10 sm:h-11 md:h-12 px-1.5 sm:px-2 text-[10px] sm:text-xs font-black uppercase tracking-tight sm:tracking-wider flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer select-none transition-all disabled:opacity-40 disabled:cursor-not-allowed rounded-xl ${colorClasses}`}
-                  >
-                    {(action.id === 'kill_basic' || action.id === 'capture_spy') && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
-                    )}
-                    {(action.id === 'accuse_basic' || action.id === 'patrol_call') && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                    )}
-                    {action.id === 'interrogate_spy' && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle><line x1="12" y1="2" x2="12" y2="12"></line></svg>
-                    )}
-                    {(action.id === 'disguise_skhvatka' || action.id === 'escape_maniac' || action.id === 'disguise_thief') && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6"></path></svg>
-                    )}
-                    {action.id === 'rob_basic' && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 shrink-0"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-                    )}
-                    <span className="whitespace-nowrap overflow-hidden text-ellipsis">{selectedCharacter && !action.disabled ? `${action.label}` : action.label}</span>
-                  </button>
-                );
-              })}
-              {((gameState.mode === "SKHVATKA" || gameState.mode === "MANIAC_VS_OPERATIVE") && isDetectiveView) && (
-                <button
-                  onClick={() => setIsHandSheetOpen(true)}
-                  disabled={Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0)}
-                  className="flex-1 min-w-0 h-10 sm:h-11 md:h-12 px-1.5 sm:px-2 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-500 text-white font-black shadow-lg shadow-blue-950/50 border border-blue-400/40 active:scale-[0.97] rounded-xl text-[10px] sm:text-xs uppercase tracking-tight sm:tracking-wider flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer select-none transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-blue-200 shrink-0">
-                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a2.5 2.5 0 0 1-2.5-2.5z" />
-                    <path d="M6 6h10M6 10h10M6 14h6" />
-                  </svg>
-                  <span className="whitespace-nowrap overflow-hidden text-ellipsis">Досье ({gameState.detectiveHand.length})</span>
-                </button>
-              )}
-              {cleanupAction && isCleanupAvailable && (
-                <button
-                  onClick={cleanupAction.onClick}
-                  disabled={cleanupAction.disabled}
-                  className="flex-1 min-w-0 h-10 sm:h-11 md:h-12 px-1.5 sm:px-2 bg-gradient-to-r from-red-700 via-red-600 to-rose-600 hover:from-red-650 hover:to-rose-550 text-white font-black shadow-lg shadow-red-950/50 border border-red-400/40 active:scale-[0.97] text-[10px] sm:text-xs uppercase tracking-tight sm:tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-1 sm:gap-1.5 select-none"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 md:w-5 md:h-5 text-red-200 shrink-0">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M9 10h.01M15 10h.01M10 15h4" />
-                  </svg>
-                  <span className="whitespace-nowrap overflow-hidden text-ellipsis">Зачистка</span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="hidden landscape:lg:flex flex-col flex-1 min-h-0 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4">
-            <div className="flex items-center justify-between mb-3 shrink-0">
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                Протокол событий ({gameState.log.length})
-              </span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-zinc-500">
-                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-                <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-              </svg>
-            </div>
-            <div
-              ref={logContainerRef}
-              className="flex-1 overflow-y-auto space-y-2 text-[10px] font-medium tracking-normal text-zinc-300 pr-2 custom-scrollbar"
-            >
-              {gameState.log.map((entry, idx) => (
-                <div key={idx} className="leading-relaxed break-words">
-                  • {entry}
-                </div>
-              ))}
-            </div>
-          </div>
-        </footer>
+        {/* Боковые карточки ролей */}
+        <RoleCards
+          gameState={gameState}
+          killerChar={killerChar}
+          detectiveChar={detectiveChar}
+          spyP1Char={spyP1Char}
+          spyP2Char={spyP2Char}
+          role1Name={role1Name}
+          role2Name={role2Name}
+          killerNameText={killerNameText}
+          detectiveNameText={detectiveNameText}
+          showKillerRole={showKillerRole}
+          setShowKillerRole={setShowKillerRole}
+          showDetectiveRole={showDetectiveRole}
+          setShowDetectiveRole={setShowDetectiveRole}
+          showSpyP1Role={showSpyP1Role}
+          setShowSpyP1Role={setShowSpyP1Role}
+          showSpyP2Role={showSpyP2Role}
+          setShowSpyP2Role={setShowSpyP2Role}
+          canPeekKiller={canPeekKiller}
+          canPeekDetective={canPeekDetective}
+          isPVP={isPVP}
+        />
       </div>
 
-      <GameSheets
+      {/* Нижняя панель действий */}
+      <GameActionDock
         gameState={gameState}
-        allChars={allChars}
-        characterImages={characterImages}
-        isHumanTurn={isHumanTurn}
-        isDetectiveTurn={isDetectiveTurn}
-        isKillerTurn={isKillerTurn}
-        isHandSheetOpen={isHandSheetOpen}
+        targetActions={targetActions}
+        cleanupAction={cleanupAction}
+        isCleanupAvailable={isCleanupAvailable}
+        isDetectiveView={isDetectiveView}
+        selectedCharacter={selectedCharacter}
         setIsHandSheetOpen={setIsHandSheetOpen}
-        isLogOpen={isLogOpen}
-        setIsLogOpen={setIsLogOpen}
         logContainerRef={logContainerRef}
-        handleExonerateFromHand={handleExonerateFromHand}
-        handleFastDisguise={handleFastDisguise}
       />
 
-      {/* Шторка тайны личности в локальном PVP (SSOT: gameState.isPrivacyScreenActive) */}
-      {gameState.opponent === "PVP" && (
-        <BlindfoldCurtain
-          isOpen={Boolean(gameState.isPrivacyScreenActive ?? gameState.isHotseatCoverOpen) && !gameState.winner}
-          gameState={gameState}
-          onDismiss={() => {
-            if (onConfirmTurnReady) {
-              onConfirmTurnReady();
-            }
-          }}
-        />
-      )}
-    </>
+      {/* Модальные шторки и досье */}
+      <GameSheets
+        gameState={gameState}
+        isHandSheetOpen={isHandSheetOpen}
+        setIsHandSheetOpen={setIsHandSheetOpen}
+        isEvidenceSheetOpen={isEvidenceSheetOpen}
+        setIsEvidenceSheetOpen={setIsEvidenceSheetOpen}
+        isDeckSheetOpen={isDeckSheetOpen}
+        setIsDeckSheetOpen={setIsDeckSheetOpen}
+        isVictimsSheetOpen={isVictimsSheetOpen}
+        setIsVictimsSheetOpen={setIsVictimsSheetOpen}
+        isHelpOpen={isHelpOpen}
+        setIsHelpOpen={setIsHelpOpen}
+        isLogOpen={isLogOpen}
+        setIsLogOpen={setIsLogOpen}
+        isNotebookOpen={isNotebookOpen}
+        setIsNotebookOpen={setIsNotebookOpen}
+        logContainerRef={logContainerRef}
+        isHumanTurn={isHumanTurn}
+      />
+
+      {/* Шторка приватности для Pass & Play */}
+      <BlindfoldCurtain
+        isActive={Boolean(isCurtainActive)}
+        nextPlayerName={nextPlayerName || currentRoleName}
+        onConfirmTurnReady={() => {
+          if (onConfirmTurnReady) {
+            onConfirmTurnReady();
+          }
+        }}
+      />
+    </div>
   );
 });
+
+GameScreen.displayName = "GameScreen";

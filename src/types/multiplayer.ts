@@ -2,6 +2,16 @@ import type { Role } from "./game";
 
 export type ClientDeviceType = "TV_DISPLAY" | "CONTROLLER" | "PLAYER" | "SPECTATOR";
 
+export interface MorseCandidate {
+  roomCode: string;
+  hostName: string;
+  mode: string;
+  status: string;
+  playersCount: number;
+  maxPlayers: number;
+  isPrivate?: boolean;
+}
+
 export type BaseGameAction = {
   senderId?: string;
   timestamp?: number;

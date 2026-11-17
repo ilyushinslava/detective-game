@@ -7,7 +7,7 @@ import { GameLifecycleModals } from "./components/GameLifecycleModals";
 import { GameScreen } from "./components/GameScreen";
 import { MainMenu } from "./components/MainMenu";
 import { GameModalsContainer } from "./components/GameModalsContainer";
-import { usePlayerProfile } from "./utils/usePlayerProfile";
+import { useProfile } from "./hooks/useProfile";
 import { partyService } from "./utils/partyPeer";
 import { useMultiplayer } from "./utils/useMultiplayer";
 import { useGameLog } from "./hooks/useGameLog";
@@ -85,7 +85,7 @@ export default function App() {
     updateProfile,
     awardPrize,
     recordMatchResult,
-  } = usePlayerProfile();
+  } = useProfile();
   const matchResultRecordedRef = useRef(false);
   const [activeTab, setActiveTab] = useState<
     "LOBBY" | "TABLES" | "TOP" | "SHOP"

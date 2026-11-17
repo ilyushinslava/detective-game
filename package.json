@@ -26,6 +26,7 @@
         "@capacitor/cli": "^8.6.2",
         "@capacitor/core": "^8.6.2",
         "@capacitor/haptics": "^8.0.2",
+        "@supabase/supabase-js": "^2.117.2",
         "framer-motion": "^11.1.7",
         "html5-qrcode": "^2.3.8",
         "qrcode.react": "^4.2.0",

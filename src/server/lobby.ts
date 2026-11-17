@@ -169,7 +169,13 @@ export default class LobbyServer {
     }
 
     if (action === "list" || url.pathname.endsWith("/rooms")) {
-      const rooms = Array.from(publicRoomsRegistry.values());
+      const rooms = Array.from(publicRoomsRegistry.values()).map((room) => {
+        if (room.isPrivate) {
+          const { morseCode: _morseCode, ...rest } = room;
+          return rest;
+        }
+        return room;
+      });
       return new Response(JSON.stringify(rooms), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -252,7 +258,13 @@ export default class LobbyServer {
 
   onConnect(conn: any): void {
     // Broadcast active rooms status to newly connected lobby client
-    const rooms = Array.from(publicRoomsRegistry.values());
+    const rooms = Array.from(publicRoomsRegistry.values()).map((room) => {
+      if (room.isPrivate) {
+        const { morseCode: _morseCode, ...rest } = room;
+        return rest;
+      }
+      return room;
+    });
     try {
       conn.send(JSON.stringify({ type: "LOBBY_ROOMS_UPDATE", payload: { rooms } }));
     } catch (_) {}

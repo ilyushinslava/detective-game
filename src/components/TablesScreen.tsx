@@ -283,12 +283,25 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
 
       {/* Нижняя панель действий */}
       <div className="w-full shrink-0 bg-[#07080c] border-t border-white/[0.07] p-4 flex flex-col items-center gap-2.5 z-20">
-        <div className="w-full max-w-xl flex gap-2.5">
+        <div className="w-full max-w-xl flex flex-col sm:flex-row gap-2.5">
+          <Button
+            variant="secondary"
+            fullWidth
+            onClick={() => {
+              if (soundManager?.play) soundManager.play('tapMenu');
+              setSelectedPrivateRoom(null);
+              setIsMorseOpen(true);
+            }}
+            className="py-3.5 text-[10px] font-mono font-bold uppercase tracking-widest rounded-xl border border-white/20 text-zinc-200 hover:border-cyan-500/40 hover:text-white bg-zinc-900/90 shadow-md flex items-center justify-center gap-2 cursor-pointer touch-manipulation active:scale-95 duration-75"
+          >
+            <span>•— Ввести шифр вручную</span>
+          </Button>
+
           <Button
             variant="primary-info"
             fullWidth
             onClick={() => setIsCreateRoomOpen(true)}
-            className="from-red-600 py-3.5 text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-black/50"
+            className="from-red-600 py-3.5 text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-black/50 touch-manipulation active:scale-95 duration-75"
           >
             + Создать партию
           </Button>
@@ -304,6 +317,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
             </div>
           }>
             <ControllerConnectView
+              initialTab="MORSE"
               targetRoomCode={selectedPrivateRoom?.roomCode}
               targetHostName={selectedPrivateRoom?.hostName}
               targetExpectedMorse={selectedPrivateRoom?.morseCode}

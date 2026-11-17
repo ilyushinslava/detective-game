@@ -365,6 +365,7 @@ export const MainMenu = ({
         isOpen={network.isWaitingForOpponent}
         isPrivate={network.createRoomIsPrivate}
         roomCode={network.partyRoomCode || ""}
+        morseCode={network.morseCode}
         isHost={true}
         onCancel={network.handleCancelWaiting}
       />

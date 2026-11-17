@@ -3,6 +3,7 @@ import type { GameModeType, OpponentType, Role } from "../types/game";
 import type { UserProfile } from "../types/profile";
 import { partyService } from "../utils/partyPeer";
 import { triggerHaptic } from "../utils/haptics";
+import { soundManager } from "../utils/audio";
 import { DEFAULT_BET } from "../constants/gameRules";
 
 export interface PublicRoomInfo {
@@ -41,28 +42,31 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
   const [isCreating, setIsCreating] = useState(false);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
   const [partyRoomCode, setPartyRoomCode] = useState<string>("");
+  const [morseCode, setMorseCode] = useState<string | null>(null);
+  const [activeRoomMode, setActiveRoomMode] = useState<GameModeType>("MANIAC_VS_OPERATIVE");
+  const [activeRoomBet, setActiveRoomBet] = useState<number>(DEFAULT_BET);
   const [matchmakingCancel, setMatchmakingCancel] = useState<(() => void) | null>(null);
 
-  // Поллинг публичных комнат при нахождении на вкладке TABLES
+  // Поллинг публичных комнат при нахождении на вкладке TABLES или HOME (для ПК-сайдбара)
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
     let isSubscribed = true;
 
     const loadRooms = async () => {
-      if (screen === "TABLES") {
-        try {
-          const rooms = await partyService.fetchPublicRooms();
-          if (isSubscribed) {
-            setPublicRooms(rooms as any);
-          }
-        } catch (e) {
-          console.warn("fetchPublicRooms error:", e);
+      try {
+        const rooms = await partyService.fetchPublicRooms();
+        if (isSubscribed) {
+          setPublicRooms(rooms as any);
         }
+      } catch (e) {
+        console.warn("fetchPublicRooms error:", e);
       }
     };
 
-    if (screen === "TABLES") {
-      loadRooms();
+    // Первичный вызов для мгновенного отображения счетчика в ПК-сайдбаре и на радаре
+    loadRooms();
+
+    if (screen === "TABLES" || screen === "HOME") {
       timer = setInterval(loadRooms, 3000);
     }
 
@@ -71,6 +75,49 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
       if (timer) clearInterval(timer);
     };
   }, [screen]);
+
+  // Слушатель событий ожидания соперника: получение Морзе и автоматический запуск матча
+  useEffect(() => {
+    if (!isWaitingForOpponent) {
+      return;
+    }
+
+    const prevOnRoomStatus = partyService.onRoomStatus;
+    const prevOnSyncState = partyService.onSyncState;
+
+    if (partyService.morseCode) {
+      setMorseCode(partyService.morseCode);
+    }
+
+    partyService.onRoomStatus = (data: any) => {
+      prevOnRoomStatus?.(data);
+      if (data?.morseCode) {
+        setMorseCode(data.morseCode);
+      }
+      const status = typeof data === "string" ? data : data?.status;
+      if (status === "READY_TO_START" || status === "PLAYING") {
+        soundManager.play("confirm");
+        setIsWaitingForOpponent(false);
+        const targetRole = partyService.isHost ? "KILLER" : "DETECTIVE";
+        onStartGame(activeRoomMode, "ONLINE", targetRole, 2, 3, 0, activeRoomBet);
+      }
+    };
+
+    partyService.onSyncState = (state: any, role?: Role, status?: string) => {
+      prevOnSyncState?.(state, role, status);
+      if (status === "READY_TO_START" || status === "PLAYING") {
+        soundManager.play("confirm");
+        setIsWaitingForOpponent(false);
+        const targetRole = role || (partyService.isHost ? "KILLER" : "DETECTIVE");
+        onStartGame(activeRoomMode, "ONLINE", targetRole, 2, 3, 0, activeRoomBet);
+      }
+    };
+
+    return () => {
+      partyService.onRoomStatus = prevOnRoomStatus;
+      partyService.onSyncState = prevOnSyncState;
+    };
+  }, [isWaitingForOpponent, activeRoomMode, activeRoomBet, onStartGame]);
 
   // Очистка матчмейкинга при анмаунте
   useEffect(() => {
@@ -91,6 +138,8 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
     const cleanCode = String(code).trim();
     partyService.roomCode = cleanCode;
     setPartyRoomCode(cleanCode);
+    setActiveRoomMode(mode);
+    setActiveRoomBet(_bet);
     setIsCreating(false);
     setIsCreateRoomOpen(false);
     setIsWaitingForOpponent(true);
@@ -168,6 +217,7 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
     partyService.disconnect();
     setIsWaitingForOpponent(false);
     setIsCreating(false);
+    setMorseCode(null);
   };
 
   const filteredRooms = publicRooms.filter((r) => roomFilter === "ALL" || r.mode === roomFilter);
@@ -191,6 +241,7 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
     isWaitingForOpponent,
     setIsWaitingForOpponent,
     partyRoomCode,
+    morseCode,
     handleQuickPlay,
     handleConfirmCreateRoom,
     handleJoinRoom,

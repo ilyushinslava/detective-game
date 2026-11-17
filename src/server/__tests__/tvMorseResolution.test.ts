@@ -175,5 +175,42 @@ describe("TV Tactical Morse Resolution & Collision Invariants (TASK-NET-002)", (
       expect(resolveRoomByMorse(morse)).toBeNull();
       expect(resolveRoomByPin("room-to-delete")).toBeNull();
     });
+
+    it("masks/omits morseCode for private rooms in list requests (Security Audit)", async () => {
+      publicRoomsRegistry.set("room-public", {
+        roomCode: "room-public",
+        morseCode: ".......",
+        mode: "MANIAC_VS_OPERATIVE",
+        hostName: "Public Host",
+        status: "WAITING",
+        playersCount: 1,
+        maxPlayers: 2,
+        isPrivate: false,
+      });
+      publicRoomsRegistry.set("room-secret", {
+        roomCode: "room-secret",
+        morseCode: ".------",
+        mode: "MANIAC_VS_OPERATIVE",
+        hostName: "Secret Host",
+        status: "WAITING",
+        playersCount: 1,
+        maxPlayers: 2,
+        isPrivate: true,
+      });
+
+      const mockRoom = { id: "parties/main/server-test" };
+      const server = new GameRoomServer(mockRoom);
+
+      const req = new Request("http://localhost:1999/party/main?action=list");
+      const res = await server.onRequest(req);
+      expect(res.status).toBe(200);
+      const rooms = await res.json();
+
+      const publicRoom = rooms.find((r: any) => r.roomCode === "room-public");
+      const secretRoom = rooms.find((r: any) => r.roomCode === "room-secret");
+
+      expect(publicRoom.morseCode).toBe(".......");
+      expect(secretRoom.morseCode).toBeUndefined();
+    });
   });
 });

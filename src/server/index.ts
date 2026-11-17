@@ -441,9 +441,15 @@ export default class GameRoomServer {
       url.searchParams.get("action") === "list";
 
     if (isRoomsListRequest) {
-      const waitingRooms = Array.from(publicRoomsRegistry.values()).filter(
-        (r) => r.status === "WAITING"
-      );
+      const waitingRooms = Array.from(publicRoomsRegistry.values())
+        .filter((r) => r.status === "WAITING")
+        .map((room) => {
+          if (room.isPrivate) {
+            const { morseCode: _morseCode, ...rest } = room;
+            return rest;
+          }
+          return room;
+        });
       return new Response(JSON.stringify(waitingRooms), {
         headers: {
           "Content-Type": "application/json",
@@ -451,7 +457,13 @@ export default class GameRoomServer {
         },
       });
     }
-    const allRooms = Array.from(publicRoomsRegistry.values());
+    const allRooms = Array.from(publicRoomsRegistry.values()).map((room) => {
+      if (room.isPrivate) {
+        const { morseCode: _morseCode, ...rest } = room;
+        return rest;
+      }
+      return room;
+    });
     return new Response(JSON.stringify(allRooms), {
       headers: {
         "Content-Type": "application/json",

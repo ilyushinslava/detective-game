@@ -16,6 +16,7 @@ export interface ControllerConnectViewProps {
   targetExpectedMorse?: string;
   noticeMessage?: string | null;
   onClearNotice?: () => void;
+  initialTab?: ConnectTab;
 }
 
 export type ConnectTab = 'CAMERA' | 'PIN' | 'MORSE';
@@ -30,8 +31,10 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   targetExpectedMorse,
   noticeMessage,
   onClearNotice,
+  initialTab,
 }) => {
   const [activeTab, setActiveTab] = useState<ConnectTab>(() => {
+    if (initialTab) return initialTab;
     if (targetExpectedMorse) return 'MORSE';
     if (targetRoomCode) return 'PIN';
     return 'CAMERA';

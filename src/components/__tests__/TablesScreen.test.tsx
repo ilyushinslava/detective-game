@@ -94,12 +94,25 @@ describe("TablesScreen", () => {
     expect(screen.queryByText(/Открытый Хост/i)).toBeNull();
 
     // Кликаем по кнопке ввода шифра к выбранной приватной комнате
-    const enterMorseBtn = screen.getByRole("button", { name: /Ввести шифр/i });
+    const enterMorseBtn = screen.getByRole("button", { name: /Ввести шифр ➔/i });
     fireEvent.click(enterMorseBtn);
 
     // Открывается телеграфный ключ с привязкой к хосту (асинхронно через Suspense)
     expect(await screen.findByRole("button", { name: "Ключ телеграфа" })).toBeDefined();
     expect(await screen.findByText(/ШИФР ДОСТУПА: Секретный Агент/i)).toBeDefined();
     expect(await screen.findByText(/ПОДТВЕРДИТЬ ШИФР/i)).toBeDefined();
+  });
+
+  it("кнопка 'Ввести шифр вручную' в нижней панели открывает телеграфный ключ без привязки к конкретной комнате", async () => {
+    render(<TablesScreen {...defaultProps} filteredRooms={[]} />);
+    
+    const manualMorseBtn = screen.getByRole("button", { name: /Ввести шифр вручную/i });
+    expect(manualMorseBtn).toBeDefined();
+    fireEvent.click(manualMorseBtn);
+
+    // Открывается свободный ввод Морзе (ПУЛЬТ УПРАВЛЕНИЯ)
+    expect(await screen.findByRole("button", { name: "Ключ телеграфа" })).toBeDefined();
+    expect(await screen.findByText(/ПУЛЬТ УПРАВЛЕНИЯ/i)).toBeDefined();
+    expect(await screen.findByText(/НАЙТИ ШТАБ/i)).toBeDefined();
   });
 });

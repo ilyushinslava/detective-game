@@ -286,10 +286,11 @@ export function useProfile() {
         await (supabase.rpc as any)("record_match_result", {
           p_mode: matchDetails?.mode || "MANIAC_VS_OPERATIVE",
           p_winner_role: matchDetails?.winnerRole || (isWin ? role : "OPPONENT"),
-          p_duration_seconds: matchDetails?.durationSeconds || 120,
+          p_duration_seconds: Math.max(11, matchDetails?.durationSeconds || 120),
           p_role: role,
           p_is_winner: isWin,
           p_mmr_delta: mmrDelta,
+          p_match_id: (matchDetails as any)?.matchId || null,
         });
       } catch (rpcErr) {
         console.warn("[useProfile] Ошибка записи матча в Supabase RPC:", rpcErr);

@@ -372,7 +372,7 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Backquote" || e.key === "`") {
+      if ((e.code === "Backquote" || e.key === "`") && import.meta.env.DEV) {
         setIsDevPanelOpen((prev) => !prev);
       }
     };
@@ -823,7 +823,7 @@ export default function App() {
         onClosePause={() => setIsPauseOpen(false)}
         onResumeGame={() => setIsPauseOpen(false)}
         onOpenRules={() => openRules()}
-        onOpenDevPanel={() => setIsDevPanelOpen(true)}
+        onOpenDevPanel={import.meta.env.DEV ? () => setIsDevPanelOpen(true) : undefined}
         isRulesOpen={isRulesOpen}
         onCloseRules={closeRules}
         isSfxEnabled={isSfxEnabled}
@@ -1000,7 +1000,7 @@ export default function App() {
               hasActiveGame={Boolean(!gameState.winner && hasStartedEver && gameState.board?.length >= 5 && gameState.log?.length > 2)}
               onResumeGame={handleResumeGame}
               onOpenRules={() => openRules()}
-              onOpenDevPanel={() => setIsDevPanelOpen(true)}
+              onOpenDevPanel={import.meta.env.DEV ? () => setIsDevPanelOpen(true) : undefined}
             />
           </div>
         ) : !isIntroPhase && hasStartedEver && gameState.opponent !== undefined ? (

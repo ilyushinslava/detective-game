@@ -78,6 +78,18 @@ describe("ProfileScreen", () => {
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ nickname: "Neo Agent" }));
   });
 
+  it("санитизирует опасные символы при сохранении позывного для защиты от XSS", () => {
+    const mockUpdate = vi.fn();
+    render(<ProfileScreen profile={defaultProfile} onUpdateProfile={mockUpdate} />);
+    const editBtn = screen.getByTitle("Изменить позывной");
+    fireEvent.click(editBtn);
+    const input = screen.getByDisplayValue("Agent Smith");
+    fireEvent.change(input, { target: { value: "<b>Agent</b>" } });
+    const saveBtn = screen.getByRole("button", { name: /сохранить/i });
+    fireEvent.click(saveBtn);
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ nickname: "bAgent/b" }));
+  });
+
   it("вызывает открытие настроек", () => {
     const mockOnOpenSettings = vi.fn();
     render(<ProfileScreen profile={defaultProfile} onUpdateProfile={vi.fn()} onOpenSettings={mockOnOpenSettings} />);

@@ -42,7 +42,7 @@ export const DevPanel = ({
   onTriggerCluesWin,
   onClearSession,
 }: DevPanelProps) => {
-  if (!isOpen) return null;
+  if (!isOpen || !import.meta.env.DEV) return null;
 
   const [activeSection, setActiveSection] = useState<number | null>(1);
 

@@ -240,26 +240,28 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
 
       <DeviceOrientationOverlay />
 
-      <DevPanel
-        isOpen={isDevPanelOpen}
-        onClose={onCloseDevPanel}
-        cash={cash}
-        onForceWin={onForceWin}
-        onTriggerInspectorChoice={onTriggerInspectorChoice}
-        onResetToMenu={onResetToMenu}
-        onAddCash={onAddCash}
-        onResetCash={onResetCash}
-        onToggleTurn={onToggleTurn}
-        onTogglePlayerRole={onTogglePlayerRole}
-        onAddKill={onAddKill}
-        onTriggerIntro={onTriggerIntro}
-        onTriggerRestartRequest={onTriggerRestartRequest}
-        onTriggerOpponentLeft={onTriggerOpponentLeft}
-        onTriggerDisguiseModal={onTriggerDisguiseModal}
-        onTriggerCaughtSpyModal={onTriggerCaughtSpyModal}
-        onTriggerGameOver={onTriggerGameOver}
-        onClearSession={onClearSession}
-      />
+      {import.meta.env.DEV && (
+        <DevPanel
+          isOpen={isDevPanelOpen}
+          onClose={onCloseDevPanel}
+          cash={cash}
+          onForceWin={onForceWin}
+          onTriggerInspectorChoice={onTriggerInspectorChoice}
+          onResetToMenu={onResetToMenu}
+          onAddCash={onAddCash}
+          onResetCash={onResetCash}
+          onToggleTurn={onToggleTurn}
+          onTogglePlayerRole={onTogglePlayerRole}
+          onAddKill={onAddKill}
+          onTriggerIntro={onTriggerIntro}
+          onTriggerRestartRequest={onTriggerRestartRequest}
+          onTriggerOpponentLeft={onTriggerOpponentLeft}
+          onTriggerDisguiseModal={onTriggerDisguiseModal}
+          onTriggerCaughtSpyModal={onTriggerCaughtSpyModal}
+          onTriggerGameOver={onTriggerGameOver}
+          onClearSession={onClearSession}
+        />
+      )}
     </>
   );
 };

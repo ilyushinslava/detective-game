@@ -84,11 +84,15 @@ export const LobbyHeader: React.FC<LobbyHeaderProps> = ({
           );
         })()}
 
-        {/* Dev Panel Cash Pill */}
+        {/* Dev Panel Cash Pill (кликабелен только в DEV-режиме) */}
         <div
-          onClick={onOpenDevPanel}
-          className="rounded-full bg-zinc-900/80 border border-white/10 hover:border-amber-500/40 hover:bg-zinc-800/80 px-2.5 sm:px-3.5 py-1 sm:py-1.5 flex items-center gap-1 sm:gap-1.5 shadow-lg cursor-pointer transition active:scale-95 shrink-0"
-          title={h.openDevPanel}
+          onClick={import.meta.env.DEV ? onOpenDevPanel : undefined}
+          className={`rounded-full bg-zinc-900/80 border border-white/10 px-2.5 sm:px-3.5 py-1 sm:py-1.5 flex items-center gap-1 sm:gap-1.5 shadow-lg shrink-0 ${
+            import.meta.env.DEV
+              ? "hover:border-amber-500/40 hover:bg-zinc-800/80 cursor-pointer transition active:scale-95"
+              : ""
+          }`}
+          title={import.meta.env.DEV ? h.openDevPanel : undefined}
         >
           <Icons.Coin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400 shrink-0" />
           <span className="text-zinc-100 font-mono text-[11px] sm:text-xs font-bold">{profile.cash.toLocaleString()}</span>

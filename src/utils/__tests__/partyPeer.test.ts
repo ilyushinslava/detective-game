@@ -183,4 +183,66 @@ describe("PartyService Network Client", () => {
       expect(MockWebSocket.instances.length).toBeGreaterThan(1);
     });
   });
+
+  describe("Античит и валидация сетевых пакетов (Стальной Щит)", () => {
+    it("молча дропает вредоносные входящие пакеты с XSS/скриптами вместо экшенов", () => {
+      const actionSpy = vi.fn();
+      partyService.onAction = actionSpy;
+
+      partyService.connect("SECURITY_ROOM", "Агент", true, "SKHVATKA");
+      const ws = MockWebSocket.instances[0];
+      ws.simulateOpen();
+
+      // Отправляем пакет с вредоносным type
+      ws.simulateMessage({ type: "<script>alert('xss')</script>", payload: {} });
+      ws.simulateMessage({ type: "javascript:void(0)", payload: {} });
+      ws.simulateMessage({ type: "bad payload with spaces", payload: {} });
+
+      expect(actionSpy).not.toHaveBeenCalled();
+    });
+
+    it("безопасно обрабатывает битый JSON без краша приложения", () => {
+      const actionSpy = vi.fn();
+      partyService.onAction = actionSpy;
+
+      partyService.connect("SECURITY_ROOM", "Агент", true, "SKHVATKA");
+      const ws = MockWebSocket.instances[0];
+      ws.simulateOpen();
+
+      // Симулируем приход битого JSON
+      expect(() => {
+        ws.onmessage?.({ data: "INVALID_CORRUPTED_JSON{{{" } as MessageEvent);
+      }).not.toThrow();
+
+      expect(actionSpy).not.toHaveBeenCalled();
+    });
+
+    it("дропает пакеты с попыткой прототипного загрязнения (__proto__)", () => {
+      const actionSpy = vi.fn();
+      partyService.onAction = actionSpy;
+
+      partyService.connect("SECURITY_ROOM", "Агент", true, "SKHVATKA");
+      const ws = MockWebSocket.instances[0];
+      ws.simulateOpen();
+
+      const maliciousPayload = JSON.parse('{"type":"SHIFT_BOARD","payload":{"__proto__":{"polluted":true}}}');
+      ws.simulateMessage(maliciousPayload);
+
+      expect(actionSpy).not.toHaveBeenCalled();
+    });
+
+    it("корректно доставляет валидный каноничный GameAction", () => {
+      const actionSpy = vi.fn();
+      partyService.onAction = actionSpy;
+
+      partyService.connect("SECURITY_ROOM", "Агент", true, "SKHVATKA");
+      const ws = MockWebSocket.instances[0];
+      ws.simulateOpen();
+
+      ws.simulateMessage({ type: "SHIFT_BOARD", payload: { type: "ROW", index: 1 } });
+      expect(actionSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "SHIFT_BOARD", payload: { type: "ROW", index: 1 } })
+      );
+    });
+  });
 });

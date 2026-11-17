@@ -989,7 +989,11 @@ export default class GameRoomServer {
 
   onMessage(message: string, sender: any): void {
     try {
+      if (typeof message !== "string" || message.length > 512 * 1024) {
+        return;
+      }
       let action = JSON.parse(message);
+      if (!action || typeof action !== "object" || Array.isArray(action)) return;
       if (action.type === "DISPATCH_ACTION") {
         if (action.action && typeof action.action === "object") {
           action = {
@@ -1003,6 +1007,9 @@ export default class GameRoomServer {
             senderClientId: action.senderClientId,
           };
         }
+      }
+      if (typeof action.type !== "string" || !/^[A-Z0-9_]{3,50}$/.test(action.type)) {
+        return;
       }
       if (action.type === "PING") {
         try {

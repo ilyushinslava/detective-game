@@ -41,7 +41,8 @@ CREATE TABLE IF NOT EXISTS public.match_participants (
     role TEXT NOT NULL,
     is_winner BOOLEAN NOT NULL DEFAULT false,
     mmr_delta INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    CONSTRAINT uq_match_participant_profile UNIQUE (match_id, profile_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_match_participants_profile ON public.match_participants(profile_id, created_at DESC);
@@ -63,11 +64,15 @@ CREATE POLICY "Users can insert their own profile"
 ON public.profiles FOR INSERT 
 WITH CHECK (auth.uid() = id);
 
--- Обновление профиля разрешено владельцу
+-- Обновление профиля: разрешено только владельцу учетной записи
 CREATE POLICY "Users can update their own profile" 
 ON public.profiles FOR UPDATE 
 USING (auth.uid() = id)
 WITH CHECK (auth.uid() = id);
+
+-- Ограничение на уровне колонок: запрещаем прямое обновление любых колонок, кроме agent_name и avatar_id
+REVOKE UPDATE ON public.profiles FROM authenticated;
+GRANT UPDATE (agent_name, avatar_id) ON public.profiles TO authenticated;
 
 -- Политики для matches и match_participants:
 CREATE POLICY "Matches viewable by everyone" 
@@ -78,17 +83,23 @@ CREATE POLICY "Match participants viewable by everyone"
 ON public.match_participants FOR SELECT 
 USING (true);
 
--- 5. Защита от накрутки: Триггер запрета прямого изменения MMR и статистики клиентом
+-- 5. Защита от накрутки: Триггер запрета прямого изменения характеристик профиля клиентом
+-- Клиенту РАЗРЕШЕНО менять только agent_name и avatar_id. Все остальные поля защищены!
 CREATE OR REPLACE FUNCTION public.protect_profile_stats()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Разрешаем изменение системной роли service_role или если вызов идет из SECURITY DEFINER функций
     IF current_user = 'authenticated' THEN
-        IF (NEW.mmr <> OLD.mmr OR 
+        IF (NEW.id <> OLD.id OR
+            NEW.mmr <> OLD.mmr OR 
             NEW.matches_played <> OLD.matches_played OR 
             NEW.wins_detective <> OLD.wins_detective OR 
-            NEW.wins_maniac <> OLD.wins_maniac) THEN
-            RAISE EXCEPTION 'Прямое изменение MMR и статистики запрещено клиентом. Используйте RPC record_match_result.';
+            NEW.wins_maniac <> OLD.wins_maniac OR
+            NEW.cash <> OLD.cash OR
+            NEW.xp <> OLD.xp OR
+            NEW.level <> OLD.level OR
+            NEW.rank <> OLD.rank OR
+            NEW.created_at <> OLD.created_at) THEN
+            RAISE EXCEPTION 'Прямое изменение характеристик профиля запрещено. Разрешено менять только agent_name и avatar_id. Для результатов матчей используйте RPC record_match_result.';
         END IF;
     END IF;
     NEW.updated_at = timezone('utc'::text, now());
@@ -102,14 +113,15 @@ BEFORE UPDATE ON public.profiles
 FOR EACH ROW
 EXECUTE FUNCTION public.protect_profile_stats();
 
--- 6. Хранимая функция (RPC): Безопасная запись результатов матча
+-- 6. Хранимая функция (RPC): Безопасная запись результатов матча с античитом
 CREATE OR REPLACE FUNCTION public.record_match_result(
     p_mode TEXT,
     p_winner_role TEXT,
     p_duration_seconds INTEGER,
     p_role TEXT,
     p_is_winner BOOLEAN,
-    p_mmr_delta INTEGER DEFAULT 0
+    p_mmr_delta INTEGER DEFAULT 0,
+    p_match_id UUID DEFAULT NULL
 )
 RETURNS JSONB AS $$
 DECLARE
@@ -118,16 +130,40 @@ DECLARE
     v_new_mmr INTEGER;
     v_new_wins_det INTEGER := 0;
     v_new_wins_man INTEGER := 0;
+    v_already_participated BOOLEAN;
 BEGIN
     v_user_id := auth.uid();
     IF v_user_id IS NULL THEN
         RAISE EXCEPTION 'Пользователь не авторизован';
     END IF;
 
-    -- Создаем запись матча
-    INSERT INTO public.matches (mode, winner_role, duration_seconds)
-    VALUES (p_mode, p_winner_role, GREATEST(0, p_duration_seconds))
-    RETURNING id INTO v_match_id;
+    -- Античит 1: Проверка длительности матча (> 10 секунд)
+    IF p_duration_seconds <= 10 THEN
+        RAISE EXCEPTION 'Античит: подозрительная длительность матча (% сек). Матч не может завершиться быстрее 11 секунд.', p_duration_seconds;
+    END IF;
+
+    -- Античит 2: Проверка уникальности записи: один игрок не может зафиксировать результат за один и тот же match_id дважды
+    IF p_match_id IS NOT NULL THEN
+        SELECT EXISTS (
+            SELECT 1 FROM public.match_participants
+            WHERE match_id = p_match_id AND profile_id = v_user_id
+        ) INTO v_already_participated;
+
+        IF v_already_participated THEN
+            RAISE EXCEPTION 'Античит: результат матча % уже зафиксирован для данного игрока', p_match_id;
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM public.matches WHERE id = p_match_id) THEN
+            INSERT INTO public.matches (id, mode, winner_role, duration_seconds)
+            VALUES (p_match_id, p_mode, p_winner_role, p_duration_seconds);
+        END IF;
+        v_match_id := p_match_id;
+    ELSE
+        -- Создаем новую запись матча с автогенерируемым ID
+        INSERT INTO public.matches (mode, winner_role, duration_seconds)
+        VALUES (p_mode, p_winner_role, p_duration_seconds)
+        RETURNING id INTO v_match_id;
+    END IF;
 
     -- Привязываем участника
     INSERT INTO public.match_participants (match_id, profile_id, role, is_winner, mmr_delta)

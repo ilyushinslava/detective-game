@@ -75,7 +75,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
         </Button>
       )}
 
-      {onOpenDevPanel && (
+      {import.meta.env.DEV && onOpenDevPanel && (
         <Button
           variant="ghost"
           fullWidth

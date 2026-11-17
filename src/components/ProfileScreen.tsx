@@ -184,11 +184,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const avatarPortraitUrl = getCharacterPortraitPath(currentAvatarId);
 
   const handleSaveNickname = () => {
-    const trimmed = nicknameInput.trim();
-    if (trimmed) {
+    // Защита от XSS и инъекций разметки: санитизация спецсимволов и ограничение длины
+    const sanitized = nicknameInput.replace(/[<>'"&]/g, '').trim().slice(0, 24);
+    if (sanitized) {
       soundManager.play('click');
       triggerHaptic('success');
-      onUpdateProfile({ nickname: trimmed, agentName: trimmed });
+      onUpdateProfile({ nickname: sanitized, agentName: sanitized });
     }
     setIsEditing(false);
   };

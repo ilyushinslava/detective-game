@@ -25,6 +25,25 @@ export interface ResolveRoomResponse {
   message?: string;
 }
 
+/**
+ * Строгая проверка типов входящих сетевых пакетов и GameAction.
+ * Защищает от инъекций вредоносных строк, скриптов и прототипного загрязнения (Prototype Pollution).
+ */
+export function isValidPacketType(type: unknown): type is string {
+  return typeof type === "string" && /^[A-Z0-9_]{3,50}$/.test(type);
+}
+
+export function isSafePacketPayload(payload: unknown): boolean {
+  if (payload === null || payload === undefined) return true;
+  if (typeof payload === "string" || typeof payload === "number" || typeof payload === "boolean") return true;
+  if (typeof payload === "object") {
+    if (Object.prototype.hasOwnProperty.call(payload, "__proto__")) return false;
+    if (Object.prototype.hasOwnProperty.call(payload, "constructor")) return false;
+    return true;
+  }
+  return false;
+}
+
 class PartyService {
   roomCode: string = "";
   morseCode: string | null = null;
@@ -312,8 +331,28 @@ class PartyService {
 
       ws.onmessage = (event: MessageEvent) => {
         try {
-          const data = JSON.parse(event.data);
-          if (!data || typeof data !== "object") return;
+          if (!event || !event.data) return;
+          const raw = typeof event.data === "string" ? event.data : event.data.toString();
+          // Ограничение размера пакета: дропаем аномально большие пакеты (> 512 КБ)
+          if (raw.length > 512 * 1024) {
+            console.warn("[PartyService] Dropped oversized packet (> 512KB)");
+            return;
+          }
+
+          const data = JSON.parse(raw);
+          if (!data || typeof data !== "object" || Array.isArray(data)) return;
+
+          // Строгая валидация data.type и payload:
+          // Если тип содержит спецсимволы/скрипты или нарушает формат, пакет молча отбрасывается (Drop)
+          if (!isValidPacketType(data.type) || !isSafePacketPayload(data.payload)) {
+            return;
+          }
+
+          if (data.action && typeof data.action === "object") {
+            if (!isValidPacketType(data.action.type) || !isSafePacketPayload(data.action.payload)) {
+              return;
+            }
+          }
 
           if (data.type === "PONG") {
             return;
@@ -654,7 +693,13 @@ class PartyService {
 
     ws.onmessage = (event) => {
       try {
-        const msg = JSON.parse(typeof event.data === "string" ? event.data : event.data.toString());
+        if (!event || !event.data) return;
+        const raw = typeof event.data === "string" ? event.data : event.data.toString();
+        if (raw.length > 512 * 1024) return;
+        const msg = JSON.parse(raw);
+        if (!msg || typeof msg !== "object" || Array.isArray(msg) || !isValidPacketType(msg.type)) {
+          return;
+        }
         if (msg.type === "QUEUE_TICKET") {
           this.matchmakingTicketId = msg.payload?.ticketId || null;
           onEvent({ type: "QUEUE_TICKET", payload: msg.payload });

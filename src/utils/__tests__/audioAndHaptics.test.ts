@@ -1,7 +1,35 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { soundManager } from "../audio";
-import { triggerHaptic, setHapticsEnabled, getHapticsEnabled } from "../haptics";
+import {
+  triggerHaptic,
+  setHapticsEnabled,
+  getHapticsEnabled,
+  hapticImpactLight,
+  hapticImpactMedium,
+  hapticSuccess,
+  hapticError,
+} from "../haptics";
+import { Capacitor } from "@capacitor/core";
+import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics";
+
+vi.mock("@capacitor/haptics", () => ({
+  Haptics: {
+    impact: vi.fn().mockResolvedValue(undefined),
+    notification: vi.fn().mockResolvedValue(undefined),
+    vibrate: vi.fn().mockResolvedValue(undefined),
+  },
+  ImpactStyle: {
+    Heavy: "HEAVY",
+    Medium: "MEDIUM",
+    Light: "LIGHT",
+  },
+  NotificationType: {
+    Success: "SUCCESS",
+    Warning: "WARNING",
+    Error: "ERROR",
+  },
+}));
 
 describe("Звуковая система и тактильный отклик (audioAndHaptics)", () => {
   beforeEach(() => {
@@ -177,7 +205,55 @@ describe("Звуковая система и тактильный отклик (
   });
 
   describe("triggerHaptic", () => {
-    it("Вызывает navigator.vibrate с правильными таймингами", () => {
+    it("При доступности Capacitor Haptics вызывает нативные методы плагина", async () => {
+      vi.spyOn(Capacitor, "isPluginAvailable").mockReturnValue(true);
+      (Haptics.impact as any).mockClear();
+      (Haptics.notification as any).mockClear();
+
+      setHapticsEnabled(true);
+
+      triggerHaptic("light");
+      expect(Haptics.impact).toHaveBeenCalledWith({ style: ImpactStyle.Light });
+
+      triggerHaptic("medium");
+      expect(Haptics.impact).toHaveBeenCalledWith({ style: ImpactStyle.Medium });
+
+      triggerHaptic("heavy");
+      expect(Haptics.impact).toHaveBeenCalledWith({ style: ImpactStyle.Heavy });
+
+      triggerHaptic("success");
+      expect(Haptics.notification).toHaveBeenCalledWith({ type: NotificationType.Success });
+
+      triggerHaptic("error");
+      expect(Haptics.notification).toHaveBeenCalledWith({ type: NotificationType.Error });
+
+      triggerHaptic("turn");
+      expect(Haptics.notification).toHaveBeenCalledWith({ type: NotificationType.Warning });
+    });
+
+    it("Семантические хелперы hapticImpactLight, hapticSuccess, hapticError вызывают правильные события", () => {
+      vi.spyOn(Capacitor, "isPluginAvailable").mockReturnValue(true);
+      (Haptics.impact as any).mockClear();
+      (Haptics.notification as any).mockClear();
+
+      setHapticsEnabled(true);
+
+      hapticImpactLight();
+      expect(Haptics.impact).toHaveBeenCalledWith({ style: ImpactStyle.Light });
+
+      hapticImpactMedium();
+      expect(Haptics.impact).toHaveBeenCalledWith({ style: ImpactStyle.Medium });
+
+      hapticSuccess();
+      expect(Haptics.notification).toHaveBeenCalledWith({ type: NotificationType.Success });
+
+      hapticError();
+      expect(Haptics.notification).toHaveBeenCalledWith({ type: NotificationType.Error });
+    });
+
+    it("При недоступности Capacitor Haptics вызывает navigator.vibrate с правильными таймингами", () => {
+      vi.spyOn(Capacitor, "isPluginAvailable").mockReturnValue(false);
+
       const vibrateMock = vi.fn();
       Object.defineProperty(navigator, "vibrate", {
         value: vibrateMock,
@@ -208,19 +284,16 @@ describe("Звуковая система и тактильный отклик (
     });
 
     it("Не вызывает вибрацию, если тактильный отклик отключен", () => {
-      const vibrateMock = vi.fn();
-      Object.defineProperty(navigator, "vibrate", {
-        value: vibrateMock,
-        writable: true,
-        configurable: true,
-      });
+      vi.spyOn(Capacitor, "isPluginAvailable").mockReturnValue(true);
+      (Haptics.impact as any).mockClear();
 
       setHapticsEnabled(false);
       triggerHaptic("heavy");
-      expect(vibrateMock).not.toHaveBeenCalled();
+      expect(Haptics.impact).not.toHaveBeenCalled();
     });
 
     it("Безопасно отрабатывает на iOS Safari при отсутствии navigator.vibrate (DEBT-05)", () => {
+      vi.spyOn(Capacitor, "isPluginAvailable").mockReturnValue(false);
       Object.defineProperty(navigator, "vibrate", {
         value: undefined,
         writable: true,
@@ -240,6 +313,7 @@ describe("Звуковая система и тактильный отклик (
     });
 
     it("Перехватывает исключения NotAllowedError/SecurityError из navigator.vibrate без падения приложения", () => {
+      vi.spyOn(Capacitor, "isPluginAvailable").mockReturnValue(false);
       const failingVibrate = vi.fn().mockImplementation(() => {
         throw new Error("NotAllowedError: vibration not allowed without user gesture");
       });

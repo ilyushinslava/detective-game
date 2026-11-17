@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { MobileControllerView } from "../MobileControllerView";
 import { createInitialState } from "../../../utils/gameLogic";
+import { Capacitor } from "@capacitor/core";
 
 describe("MobileControllerView Component", () => {
   afterEach(() => {
@@ -259,6 +260,7 @@ describe("MobileControllerView Component", () => {
   });
 
   it("triggers haptic vibration pattern when turn transitions to the player", () => {
+    vi.spyOn(Capacitor, "isPluginAvailable").mockReturnValue(false);
     const vibrateSpy = vi.fn();
     Object.defineProperty(navigator, 'vibrate', {
       value: vibrateSpy,

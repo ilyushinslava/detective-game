@@ -247,7 +247,7 @@ const CharacterCardComponent = ({
             : {}
         }
         transition={{ duration: 0.4 }}
-        className={`relative w-full aspect-square rounded-md sm:rounded-xl p-0.5 sm:p-1.5 flex flex-col justify-between border select-none transition-all duration-200 cursor-pointer overflow-hidden ${
+        className={`relative w-full aspect-square rounded-md sm:rounded-xl p-0.5 sm:p-1.5 flex flex-col justify-between border select-none transition-all duration-75 active:scale-95 touch-manipulation cursor-pointer overflow-hidden ${
           isError
             ? "bg-rose-950/40 border-rose-500 ring-2 ring-rose-500/70 shadow-[0_0_20px_rgba(244,63,94,0.6)] z-30"
             : isDead

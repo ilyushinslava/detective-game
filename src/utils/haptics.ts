@@ -1,3 +1,8 @@
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
+
+export type HapticFeedbackType = 'light' | 'medium' | 'heavy' | 'success' | 'error' | 'turn';
+
 export const setHapticsEnabled = (enabled: boolean) => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('crime_city_haptics', enabled ? 'true' : 'false');
@@ -23,10 +28,55 @@ const safeVibrate = (pattern: number | number[]): boolean => {
   return false;
 };
 
-export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | 'error' | 'turn') => {
+/**
+ * Универсальный диспетчер тактильной отдачи с каскадными фоллбэками:
+ * 1. Нативный Capacitor Haptics (Android / iOS app)
+ * 2. Telegram WebApp HapticFeedback
+ * 3. Native WebKit iOS WebView message handler
+ * 4. W3C Vibration API (Android Chrome / Web)
+ * 5. iOS Safari WebKit Switch Click fallback (Taptic Engine)
+ */
+export const triggerHaptic = (type: HapticFeedbackType) => {
   if (!getHapticsEnabled() || typeof window === 'undefined') return;
 
-  // 1. Telegram WebApp Haptic
+  // 1. Нативный плагин Capacitor Haptics (Android / iOS)
+  let capacitorHandled = false;
+  try {
+    if (Capacitor.isPluginAvailable('Haptics')) {
+      switch (type) {
+        case 'light':
+          Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
+          capacitorHandled = true;
+          break;
+        case 'medium':
+          Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {});
+          capacitorHandled = true;
+          break;
+        case 'heavy':
+          Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
+          capacitorHandled = true;
+          break;
+        case 'success':
+          Haptics.notification({ type: NotificationType.Success }).catch(() => {});
+          capacitorHandled = true;
+          break;
+        case 'error':
+          Haptics.notification({ type: NotificationType.Error }).catch(() => {});
+          capacitorHandled = true;
+          break;
+        case 'turn':
+          Haptics.notification({ type: NotificationType.Warning }).catch(() => {});
+          capacitorHandled = true;
+          break;
+      }
+    }
+  } catch {
+    // Безопасный переход на фоллбэки в десктопных браузерах
+  }
+
+  if (capacitorHandled) return;
+
+  // 2. Telegram WebApp Haptic
   const tg = (window as unknown as { Telegram?: { WebApp?: { HapticFeedback?: { impactOccurred: (s: string) => void; notificationOccurred: (s: string) => void } } } }).Telegram?.WebApp?.HapticFeedback;
   if (tg) {
     try {
@@ -41,7 +91,7 @@ export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | '
     } catch {}
   }
 
-  // 2. Native WebKit iOS WebView message handler (if hosted in native iOS wrapper)
+  // 3. Native WebKit iOS WebView message handler (if hosted in native iOS wrapper)
   try {
     const webkitHandler = (window as unknown as { webkit?: { messageHandlers?: { haptic?: { postMessage: (msg: string) => void } } } }).webkit?.messageHandlers?.haptic;
     if (webkitHandler && typeof webkitHandler.postMessage === 'function') {
@@ -50,7 +100,7 @@ export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | '
     }
   } catch {}
 
-  // 3. W3C Vibration API (Android / Supported Browsers)
+  // 4. W3C Vibration API (Android / Supported Browsers)
   if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
     let triggered = false;
     switch (type) {
@@ -64,7 +114,7 @@ export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | '
     if (triggered) return;
   }
 
-  // 4. iOS Safari WebKit Fallback (Taptic Engine Tick via input switch)
+  // 5. iOS Safari WebKit Fallback (Taptic Engine Tick via input switch)
   if (typeof document !== 'undefined' && document.body) {
     try {
       let tickInput = document.getElementById('haptic-tick-input') as HTMLInputElement | null;
@@ -87,3 +137,11 @@ export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | '
     } catch {}
   }
 };
+
+// Семантические хелперы тактильной отдачи
+export const hapticImpactLight = () => triggerHaptic('light');
+export const hapticImpactMedium = () => triggerHaptic('medium');
+export const hapticImpactHeavy = () => triggerHaptic('heavy');
+export const hapticSuccess = () => triggerHaptic('success');
+export const hapticError = () => triggerHaptic('error');
+export const hapticTurnWarning = () => triggerHaptic('turn');

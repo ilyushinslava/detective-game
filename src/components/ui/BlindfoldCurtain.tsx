@@ -32,7 +32,7 @@ export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
 }) => {
   const handleDismiss = useCallback(() => {
     try {
-      triggerHaptic("medium");
+      triggerHaptic("success");
     } catch {}
     try {
       playClickSound();
@@ -145,7 +145,7 @@ export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
             e.stopPropagation();
             handleDismiss();
           }}
-          className="w-full max-w-xs py-3 px-6 border border-white/20 hover:border-cyan-400/80 bg-white/5 hover:bg-cyan-950/20 text-white font-mono uppercase tracking-widest text-xs font-bold transition-all active:scale-[0.98] cursor-pointer shadow-lg hover:shadow-cyan-950/40"
+          className="w-full max-w-xs py-3 px-6 border border-white/20 hover:border-cyan-400/80 bg-white/5 hover:bg-cyan-950/20 text-white font-mono uppercase tracking-widest text-xs font-bold transition-all duration-75 active:scale-95 touch-manipulation cursor-pointer shadow-lg hover:shadow-cyan-950/40"
         >
           [ Я ГОТОВ • ПРИНЯТЬ ХОД ]
         </button>

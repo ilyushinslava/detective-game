@@ -63,7 +63,7 @@ export const ActionButtonsBar: React.FC<ActionButtonsBarProps> = ({
               key={act.id}
               onClick={act.onClick}
               disabled={act.disabled}
-              className={`w-full min-h-[44px] py-2.5 px-3 text-[11px] sm:text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed text-center leading-snug cursor-pointer ${colorClasses}`}
+              className={`w-full min-h-[44px] py-2.5 px-3 text-[11px] sm:text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 rounded-xl transition-all duration-75 touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed text-center leading-snug cursor-pointer ${colorClasses}`}
             >
               {renderIcon(act.id)}
               <span className="whitespace-normal break-words">{act.label}</span>
@@ -76,7 +76,7 @@ export const ActionButtonsBar: React.FC<ActionButtonsBarProps> = ({
         <button
           onClick={cleanupAction.onClick}
           disabled={cleanupAction.disabled}
-          className="w-full min-h-[44px] py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 bg-gradient-to-r from-red-700 via-red-600 to-rose-600 hover:from-red-650 hover:to-rose-550 text-white shadow-lg shadow-red-950/50 border border-red-400/40 active:scale-[0.97] rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full min-h-[44px] py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 bg-gradient-to-r from-red-700 via-red-600 to-rose-600 hover:from-red-650 hover:to-rose-550 text-white shadow-lg shadow-red-950/50 border border-red-400/40 active:scale-[0.97] rounded-xl transition-all duration-75 touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
           {renderIcon('CLEANUP')}
           <span className="whitespace-normal break-words">Зачистка</span>

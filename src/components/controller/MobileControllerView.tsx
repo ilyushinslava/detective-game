@@ -184,6 +184,15 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   const [graceSecondsLeft, setGraceSecondsLeft] = useState(TURN_GRACE_PERIOD_SECONDS);
 
   const activeLocalDisconnected = propIsLocalDisconnected ?? internalLocalDisconnected;
+
+  // Тактильный отклик при потере связи (ошибка)
+  const prevDisconnectRef = useRef(activeLocalDisconnected);
+  useEffect(() => {
+    if (!prevDisconnectRef.current && activeLocalDisconnected) {
+      triggerHaptic('error');
+    }
+    prevDisconnectRef.current = activeLocalDisconnected;
+  }, [activeLocalDisconnected]);
   const activeReconnectAttempt = propReconnectAttempt ?? internalReconnectAttempt;
   const activeDisconnectedOpponent = propDisconnectedOpponent ?? internalDisconnectedOpponent;
 
@@ -457,8 +466,15 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
   // Немедленное выполнение маневра по нажатию стрелки направления (Этап 2)
   const handleExecuteShift = (dir: 'LEFT' | 'RIGHT' | 'UP' | 'DOWN') => {
+    // Проверка очков действий (AP)
+    if (gameState.actionPoints !== undefined && gameState.actionPoints <= 0) {
+      soundManager.play('deny');
+      triggerHaptic('error');
+      return;
+    }
+
     soundManager.play('slide');
-    triggerHaptic('medium');
+    triggerHaptic('success');
     const direction = (dir === 'LEFT' || dir === 'UP') ? 'BACKWARD' : 'FORWARD';
 
     onDispatchAction({
@@ -487,7 +503,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
   const handleFastDisguise = (id: string) => {
     soundManager.play('click');
-    triggerHaptic('medium');
+    triggerHaptic('success');
     onDispatchAction({ type: 'FAST_DISGUISE', payload: { targetId: id } });
     setIsHandSheetOpen(false);
     if (isPassAndPlay) setIsCoverOpen(true);
@@ -495,7 +511,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
   const handleExonerateFromHand = (id: string) => {
     soundManager.play('click');
-    triggerHaptic('medium');
+    triggerHaptic('success');
     onDispatchAction({ type: 'EXONERATE', payload: { targetId: id } });
     setIsHandSheetOpen(false);
     if (isPassAndPlay) setIsCoverOpen(true);
@@ -503,12 +519,19 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
   const handleExecuteAction = (act: ActionDef) => {
     if (activeAIThinking) return;
+    if (gameState.actionPoints !== undefined && gameState.actionPoints <= 0 && act.id !== 'END_TURN') {
+      soundManager.play('deny');
+      triggerHaptic('error');
+      return;
+    }
     if (act.id === 'SHIFT') {
+      triggerHaptic('light');
       setSelectedAxis('ROW');
       setShiftStep('SELECT_LINE');
       return;
     }
     if (act.id === 'END_TURN') {
+      triggerHaptic('success');
       onDispatchAction({ type: 'END_TURN' });
       setIsAwaitingTurnEnd(true);
       if (isPassAndPlay) {
@@ -516,6 +539,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       }
       return;
     }
+    triggerHaptic('light');
     if (act.id === 'DUEL_ASK_QUESTION') {
       onDispatchAction({ type: 'DUEL_ASK_QUESTION', payload: { questionId: 'q_gender' } });
       return;
@@ -534,6 +558,11 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
   const handleConfirmAction = () => {
     if (activeAIThinking || !pendingAction) return;
+    if (gameState.actionPoints !== undefined && gameState.actionPoints <= 0) {
+      soundManager.play('deny');
+      triggerHaptic('error');
+      return;
+    }
     const targetId = selectedTargetId || neighbors[0]?.id || '';
 
     if (pendingAction.id === 'KILL_CHARACTER') {
@@ -543,7 +572,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     } else {
       soundManager.play('click');
     }
-    triggerHaptic('medium');
+    triggerHaptic('success');
 
     if (pendingAction.id === 'CLEANUP') {
       onDispatchAction({ type: 'CLEANUP' });
@@ -745,7 +774,8 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   ) {
     return (
       <div
-        className="flex h-[100dvh] w-full max-w-full flex-col items-center justify-between bg-[#07090e] p-5 pb-8 text-center text-zinc-100 select-none font-sans overflow-y-auto overflow-x-hidden relative"
+        className="flex h-[100dvh] w-full max-w-full flex-col items-center justify-between bg-[#07090e] p-5 pb-8 text-center text-zinc-100 select-none font-sans overflow-y-auto overflow-x-hidden relative overscroll-none touch-manipulation touch-pan-y"
+        style={{ overscrollBehavior: 'none', touchAction: 'manipulation' }}
       >
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-transparent to-black/90 pointer-events-none" />
 
@@ -799,8 +829,8 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
     return (
       <div
-        className="flex h-[100dvh] w-full max-w-full flex-col items-center justify-between bg-[#07090e] p-4 sm:p-5 pb-6 sm:pb-8 text-center text-zinc-100 select-none font-sans overflow-y-auto overflow-x-hidden relative overscroll-none touch-pan-y"
-        style={{ overscrollBehavior: 'none', touchAction: 'pan-y' }}
+        className="flex h-[100dvh] w-full max-w-full flex-col items-center justify-between bg-[#07090e] p-4 sm:p-5 pb-6 sm:pb-8 text-center text-zinc-100 select-none font-sans overflow-y-auto overflow-x-hidden relative overscroll-none touch-manipulation touch-pan-y"
+        style={{ overscrollBehavior: 'none', touchAction: 'manipulation' }}
       >
         {/* Мягкая контровая подсветка нео-нуара */}
         <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] ${
@@ -1041,10 +1071,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                       setSelectedAxis('ROW');
                       updateLinePreview({ type: 'ROW', index: selectedIndex });
                     }}
-                    className={`min-h-[44px] py-2.5 px-3 rounded-xl font-display text-xs font-bold uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                    className={`min-h-[44px] py-2.5 px-3 rounded-xl font-display text-xs font-bold uppercase tracking-wider transition duration-75 active:scale-95 touch-manipulation cursor-pointer flex items-center justify-center gap-1.5 ${
                       selectedAxis === 'ROW'
                         ? 'bg-blue-600 text-white shadow-md border border-blue-400/50'
-                        : 'bg-zinc-900/90 text-zinc-400 border border-white/10 hover:text-white hover:border-zinc-500'
+                        : 'bg-zinc-900/90 text-zinc-400 border border-white/10 hover:text-white hover:border-zinc-500 active:bg-zinc-800'
                     }`}
                   >
                     <span>↔</span>
@@ -1055,10 +1085,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                       setSelectedAxis('COL');
                       updateLinePreview({ type: 'COL', index: selectedIndex });
                     }}
-                    className={`min-h-[44px] py-2.5 px-3 rounded-xl font-display text-xs font-bold uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                    className={`min-h-[44px] py-2.5 px-3 rounded-xl font-display text-xs font-bold uppercase tracking-wider transition duration-75 active:scale-95 touch-manipulation cursor-pointer flex items-center justify-center gap-1.5 ${
                       selectedAxis === 'COL'
                         ? 'bg-blue-600 text-white shadow-md border border-blue-400/50'
-                        : 'bg-zinc-900/90 text-zinc-400 border border-white/10 hover:text-white hover:border-zinc-500'
+                        : 'bg-zinc-900/90 text-zinc-400 border border-white/10 hover:text-white hover:border-zinc-500 active:bg-zinc-800'
                     }`}
                   >
                     <span>↕</span>
@@ -1076,7 +1106,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         updateLinePreview({ type: selectedAxis, index: i });
                         setShiftStep('SELECT_DIR');
                       }}
-                      className="w-full min-h-[44px] h-11 rounded-xl bg-zinc-900/90 border border-white/10 hover:border-blue-400 hover:bg-zinc-800/80 flex items-center justify-between px-3 transition cursor-pointer active:scale-[0.98] shadow-sm group"
+                      className="w-full min-h-[44px] h-11 rounded-xl bg-zinc-900/90 border border-white/10 hover:border-blue-400 hover:bg-zinc-800/80 flex items-center justify-between px-3 transition duration-75 cursor-pointer active:scale-[0.98] active:bg-zinc-800 touch-manipulation shadow-sm group"
                     >
                       <div className="flex items-center gap-2">
                         <span className="w-5 h-5 rounded bg-zinc-950 border border-white/10 flex items-center justify-center font-mono text-[11px] font-bold text-zinc-300 group-hover:border-blue-400 group-hover:text-blue-300">
@@ -1113,10 +1143,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                       <button
                         onClick={() => handleExecuteShift('LEFT')}
                         disabled={isDirUndo('LEFT')}
-                        className={`min-h-[80px] p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md ${
+                        className={`min-h-[80px] p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md duration-75 touch-manipulation ${
                           isDirUndo('LEFT')
                             ? 'bg-zinc-950/80 border border-rose-950/50 text-zinc-600 opacity-40 cursor-not-allowed'
-                            : 'bg-blue-600 hover:bg-blue-500 border border-blue-400/50 text-white active:scale-95 shadow-lg'
+                            : 'bg-blue-600 hover:bg-blue-500 border border-blue-400/50 text-white active:scale-95 active:bg-blue-700 shadow-lg'
                         }`}
                       >
                         <Icons.ArrowLeft />
@@ -1128,10 +1158,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                       <button
                         onClick={() => handleExecuteShift('RIGHT')}
                         disabled={isDirUndo('RIGHT')}
-                        className={`min-h-[80px] p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md ${
+                        className={`min-h-[80px] p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md duration-75 touch-manipulation ${
                           isDirUndo('RIGHT')
                             ? 'bg-zinc-950/80 border border-rose-950/50 text-zinc-600 opacity-40 cursor-not-allowed'
-                            : 'bg-blue-600 hover:bg-blue-500 border border-blue-400/50 text-white active:scale-95 shadow-lg'
+                            : 'bg-blue-600 hover:bg-blue-500 border border-blue-400/50 text-white active:scale-95 active:bg-blue-700 shadow-lg'
                         }`}
                       >
                         <Icons.ArrowRight />
@@ -1146,10 +1176,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                       <button
                         onClick={() => handleExecuteShift('UP')}
                         disabled={isDirUndo('UP')}
-                        className={`min-h-[80px] p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md ${
+                        className={`min-h-[80px] p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md duration-75 touch-manipulation ${
                           isDirUndo('UP')
                             ? 'bg-zinc-950/80 border border-rose-950/50 text-zinc-600 opacity-40 cursor-not-allowed'
-                            : 'bg-blue-600 hover:bg-blue-500 border border-blue-400/50 text-white active:scale-95 shadow-lg'
+                            : 'bg-blue-600 hover:bg-blue-500 border border-blue-400/50 text-white active:scale-95 active:bg-blue-700 shadow-lg'
                         }`}
                       >
                         <Icons.ArrowUp />
@@ -1161,10 +1191,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                       <button
                         onClick={() => handleExecuteShift('DOWN')}
                         disabled={isDirUndo('DOWN')}
-                        className={`min-h-[80px] p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md ${
+                        className={`min-h-[80px] p-4 rounded-2xl text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-md duration-75 touch-manipulation ${
                           isDirUndo('DOWN')
                             ? 'bg-zinc-950/80 border border-rose-950/50 text-zinc-600 opacity-40 cursor-not-allowed'
-                            : 'bg-blue-600 hover:bg-blue-500 border border-blue-400/50 text-white active:scale-95 shadow-lg'
+                            : 'bg-blue-600 hover:bg-blue-500 border border-blue-400/50 text-white active:scale-95 active:bg-blue-700 shadow-lg'
                         }`}
                       >
                         <Icons.ArrowDown />
@@ -1262,8 +1292,8 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   // =========================================================================
   return (
     <div
-      className="flex h-[100dvh] w-full max-w-full flex-col justify-between bg-[#07090e] p-4 sm:p-5 pb-6 sm:pb-8 text-zinc-100 select-none overflow-y-auto overflow-x-hidden font-sans relative overscroll-none touch-pan-y"
-      style={{ overscrollBehavior: 'none', touchAction: 'pan-y' }}
+      className="flex h-[100dvh] w-full max-w-full flex-col justify-between bg-[#07090e] p-4 sm:p-5 pb-6 sm:pb-8 text-zinc-100 select-none overflow-y-auto overflow-x-hidden font-sans relative overscroll-none touch-manipulation touch-pan-y"
+      style={{ overscrollBehavior: 'none', touchAction: 'manipulation' }}
     >
       {/* Мягкая контровая подсветка нео-нуара */}
       <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] ${
@@ -1403,12 +1433,12 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                     triggerHaptic('light');
                     setSelectedTargetId(char.id);
                   }}
-                  className={`aspect-square rounded-2xl border p-1 transition-all relative ${
+                  className={`aspect-square rounded-2xl border p-1 transition-all duration-75 touch-manipulation relative ${
                     isSelected
                       ? `${targetBorderClass} scale-105 z-10 cursor-pointer`
                       : isCenter
-                        ? 'border-blue-500/40 bg-blue-950/20 shadow-[0_0_12px_rgba(59,130,246,0.2)] hover:border-blue-400/60 cursor-pointer'
-                        : 'border-white/10 bg-zinc-950/70 hover:border-zinc-400 cursor-pointer'
+                        ? 'border-blue-500/40 bg-blue-950/20 shadow-[0_0_12px_rgba(59,130,246,0.2)] hover:border-blue-400/60 cursor-pointer active:scale-95'
+                        : 'border-white/10 bg-zinc-950/70 hover:border-zinc-400 cursor-pointer active:scale-95'
                   }`}
                 >
                   <div className="w-full h-full rounded-xl overflow-hidden bg-zinc-900 relative">
@@ -1562,16 +1592,16 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                   triggerHaptic('light');
                   setPendingAction(null);
                 }}
-                className="min-h-[44px] py-3.5 rounded-2xl border border-white/10 bg-zinc-900/90 text-xs font-display font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-200 transition cursor-pointer active:scale-95"
+                className="min-h-[44px] py-3.5 rounded-2xl border border-white/10 bg-zinc-900/90 text-xs font-display font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-200 transition duration-75 cursor-pointer active:scale-95 active:bg-zinc-800 touch-manipulation"
               >
                 Отмена
               </button>
               <button
                 onClick={handleConfirmAction}
-                className={`min-h-[44px] py-3.5 rounded-2xl text-xs font-display font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer transition active:scale-95 ${
+                className={`min-h-[44px] py-3.5 rounded-2xl text-xs font-display font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer transition duration-75 active:scale-95 touch-manipulation ${
                   pendingAction.isRed
-                    ? 'bg-rose-700 hover:bg-rose-600 border border-rose-500/40 shadow-rose-950/50'
-                    : 'bg-blue-600 hover:bg-blue-500 border border-blue-400/50 shadow-blue-950/50'
+                    ? 'bg-rose-700 hover:bg-rose-600 border border-rose-500/40 shadow-rose-950/50 active:bg-rose-800'
+                    : 'bg-blue-600 hover:bg-blue-500 border border-blue-400/50 shadow-blue-950/50 active:bg-blue-700'
                 }`}
               >
                 Подтвердить

@@ -79,10 +79,12 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   const handlePinConnect = () => {
     if (pinInput.length !== 5) {
       setPinError('Введите 5-значный номер комнаты');
+      soundManager.play('error');
+      triggerHaptic('error');
       return;
     }
     soundManager.play('impact');
-    triggerHaptic('heavy');
+    triggerHaptic('success');
     setIsPinConnecting(true);
     onConnect(pinInput);
   };
@@ -238,17 +240,18 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
 
         if (isMatch) {
           soundManager.play('impact');
-          triggerHaptic('heavy');
+          triggerHaptic('success');
           onConnect(targetRoomCode);
           return;
         }
 
         setErrorMessage('Неверный шифр доступа. Проверьте шифр у хоста.');
         soundManager.play('error');
-        triggerHaptic('medium');
+        triggerHaptic('error');
       } catch (_err) {
         setErrorMessage('Сетевая ошибка при проверке шифра.');
         soundManager.play('error');
+        triggerHaptic('error');
       } finally {
         setIsSearching(false);
       }
@@ -260,7 +263,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
 
       if (res?.ok && res.roomCode) {
         soundManager.play('impact');
-        triggerHaptic('heavy');
+        triggerHaptic('success');
         onConnect(res.roomCode);
         return;
       }
@@ -271,10 +274,11 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
         .join(' ');
       setErrorMessage(`Штаб с шифром [ ${displayPattern} ] не обнаружен. Проверьте код на ТВ.`);
       soundManager.play('error');
-      triggerHaptic('medium');
+      triggerHaptic('error');
     } catch (_err) {
       setErrorMessage('Сетевая ошибка при поиске комнаты.');
       soundManager.play('error');
+      triggerHaptic('error');
     } finally {
       setIsSearching(false);
     }
@@ -357,7 +361,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
               triggerHaptic('light');
               setActiveTab('CAMERA');
             }}
-            className={`min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl text-xs font-display tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+            className={`min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl text-xs font-display tracking-wider uppercase transition-all duration-75 active:scale-95 touch-manipulation cursor-pointer ${
               activeTab === 'CAMERA'
                 ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)] font-bold'
                 : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 font-semibold'
@@ -377,7 +381,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
               setActiveTab('PIN');
               setTimeout(() => pinInputRef.current?.focus(), 100);
             }}
-            className={`min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl text-xs font-display tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+            className={`min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl text-xs font-display tracking-wider uppercase transition-all duration-75 active:scale-95 touch-manipulation cursor-pointer ${
               activeTab === 'PIN'
                 ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)] font-bold'
                 : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 font-semibold'
@@ -398,7 +402,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
               triggerHaptic('light');
               setActiveTab('MORSE');
             }}
-            className={`min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl text-xs font-display tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+            className={`min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl text-xs font-display tracking-wider uppercase transition-all duration-75 active:scale-95 touch-manipulation cursor-pointer ${
               activeTab === 'MORSE'
                 ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)] font-bold'
                 : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 font-semibold'

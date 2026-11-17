@@ -104,7 +104,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
                   : "bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.8)]"
               } animate-pulse`}
             />
-            <h2 className="text-sm font-black uppercase tracking-widest text-[#f1f5f9]">
+            <h2 className="text-sm font-black uppercase tracking-widest text-zinc-100">
               Справочник правил
             </h2>
           </div>

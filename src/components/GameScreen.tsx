@@ -170,7 +170,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
     gameState.opponent === "AI";
 
   return (
-    <div className="relative w-screen h-[100dvh] flex flex-col justify-between overflow-hidden bg-[#080a0f] text-zinc-100 select-none">
+    <div className="relative w-screen h-[100dvh] flex flex-col justify-between overflow-hidden bg-background-main text-zinc-100 select-none">
       {/* Шапка экрана */}
       <GameTopHeader
         gameState={gameState}

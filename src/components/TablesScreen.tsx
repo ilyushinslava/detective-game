@@ -43,7 +43,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
   const currentRooms = lobbyTab === 'PUBLIC' ? openRooms : privateRooms;
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-[#07080c] overflow-hidden relative w-full max-w-full">
+    <div className="flex-1 min-h-0 flex flex-col bg-background-main overflow-hidden relative w-full max-w-full">
       <TablesHeader
         onBack={onBack}
         lobbyTab={lobbyTab}
@@ -80,7 +80,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
       </div>
 
       {/* Нижняя панель действий */}
-      <div className="w-full shrink-0 bg-[#07080c] border-t border-white/[0.07] p-4 flex flex-col items-center gap-2.5 z-20">
+      <div className="w-full shrink-0 bg-background-main border-t border-white/[0.07] p-4 flex flex-col items-center gap-2.5 z-20">
         <div className="w-full max-w-xl flex flex-col sm:flex-row gap-2.5">
           <Button
             variant="secondary"
@@ -108,7 +108,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
 
       {/* Оверлей ввода 7-значного шифра Морзе (пароль к выбранной приватной комнате) */}
       {isMorseOpen && (
-        <div className="fixed inset-0 z-50 bg-[#07080c] flex flex-col">
+        <div className="fixed inset-0 z-50 bg-background-main flex flex-col">
           <Suspense fallback={
             <div className="flex-1 flex items-center justify-center text-zinc-500 font-mono text-xs">
               Загрузка терминала связи...

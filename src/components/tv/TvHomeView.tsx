@@ -23,16 +23,16 @@ export const TvHomeView: React.FC<TvHomeViewProps> = ({ onCreateRoom }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-between bg-[#08090e] text-white select-none p-10 lg:p-16 overflow-hidden font-sans">
+    <div className="fixed inset-0 z-50 flex flex-col justify-between bg-background-main text-white select-none p-10 lg:p-16 overflow-hidden font-sans">
       {/* Кинематографичный многослойный градиент: от темно-бордового/винного к глубокому угольному */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#2d0814_0%,#120c16_45%,#07080d_100%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#2d0814_0%,#120c16_45%,theme(colors.background.main)_100%)] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(225,29,72,0.12),transparent_60%)] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.06),transparent_50%)] pointer-events-none" />
 
       {/* Верхний лаконичный статус-бар с эффектом матового стекла */}
-      <div className="relative z-10 flex items-center justify-between border-b border-white/10 pb-6">
-        <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
-          <span className="h-2.5 w-2.5 rounded-full bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.9)] animate-pulse" />
+      <div className="relative z-10 flex items-center justify-between border-b border-border-subtle pb-6">
+        <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/[0.04] border border-border-subtle backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+          <span className="h-2.5 w-2.5 rounded-full bg-accent-danger shadow-neon-rose animate-pulse" />
           <span className="text-xs lg:text-sm font-display font-bold uppercase tracking-[0.3em] text-white/80">
             TV PARTY EDITION
           </span>

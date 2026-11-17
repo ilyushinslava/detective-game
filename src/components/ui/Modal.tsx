@@ -46,7 +46,7 @@ export const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className={`w-full ${maxWidth} bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col text-center relative touch-pan-y overscroll-contain ${className}`}
+            className={`w-full ${maxWidth} bg-background-main/90 backdrop-blur-xl border border-border-subtle rounded-2xl p-6 shadow-2xl flex flex-col text-center relative touch-pan-y overscroll-contain ${className}`}
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
@@ -65,7 +65,7 @@ export const Modal: React.FC<ModalProps> = ({
               </button>
             )}
             {title && (
-              <div className="text-xl font-black uppercase tracking-wider text-[#f1f5f9] mb-4">
+              <div className="text-xl font-black uppercase tracking-wider text-zinc-100 mb-4">
                 {title}
               </div>
             )}

@@ -447,7 +447,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-[100] bg-[#080a0f] flex justify-center overflow-hidden font-sans select-none text-zinc-100 h-full w-full"
+      className="fixed inset-0 z-[100] bg-background-main flex justify-center overflow-hidden font-sans select-none text-zinc-100 h-full w-full"
     >
       <style>{`
         .tutorial-highlight-l1s2 button[title*="Маневр влево"]:nth-of-type(3),
@@ -460,8 +460,8 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
           animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
         }
       `}</style>
-      <div className="w-full max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto h-full flex flex-col justify-between relative overflow-hidden bg-[#080a0f] md:border-x md:border-white/10 shadow-2xl">
-        <div className="w-full flex items-center justify-between px-6 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2.5 shrink-0 border-b border-white/10 bg-[#080a0f] z-20">
+      <div className="w-full max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto h-full flex flex-col justify-between relative overflow-hidden bg-background-main md:border-x md:border-border-subtle shadow-2xl">
+        <div className="w-full flex items-center justify-between px-6 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2.5 shrink-0 border-b border-border-subtle bg-background-main z-20">
           <button
             onClick={() => setCurrentModule("MENU")}
             className="text-zinc-400 hover:text-white transition cursor-pointer text-xs font-black uppercase tracking-widest bg-zinc-900 px-3 py-1.5 rounded-lg border border-white/10"

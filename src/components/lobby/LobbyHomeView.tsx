@@ -46,16 +46,16 @@ export const LobbyHomeView: React.FC<LobbyHomeViewProps> = ({
   t,
 }) => {
   return (
-    <div className="relative flex-1 flex flex-col bg-[#080a0f] w-full max-w-full overflow-x-hidden overflow-y-auto custom-scrollbar">
+    <div className="relative flex-1 flex flex-col bg-background-main w-full max-w-full overflow-x-hidden overflow-y-auto custom-scrollbar">
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden select-none">
         <img
           src={lobbyBg}
           alt="Wicked City Noir"
           className="w-full h-full object-cover object-center opacity-55 scale-100 transition-opacity duration-700"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/40 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#080a0f]/80 via-transparent to-[#080a0f]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#080a0f_90%)] opacity-85" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background-main via-background-main/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background-main/80 via-transparent to-background-main" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,theme(colors.background.main)_90%)] opacity-85" />
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col pt-[max(0.5rem,env(safe-area-inset-top))] w-full max-w-full min-h-0 overflow-x-hidden overflow-y-auto custom-scrollbar">

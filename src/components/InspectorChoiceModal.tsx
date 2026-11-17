@@ -45,14 +45,14 @@ export const InspectorChoiceModal: React.FC<InspectorChoiceModalProps> = ({
   return (
     <div className="fixed inset-0 z-[70] flex flex-col items-center justify-end sm:justify-center p-4 select-none pointer-events-none overflow-hidden pt-16">
       {isPVP && !isPassConfirmed ? (
-        <div className="absolute inset-0 bg-[#080a0f]/95 backdrop-blur-xl flex items-center justify-center p-4 pointer-events-auto">
-          <div className="w-full max-w-sm bg-zinc-950 border border-white/10 rounded-3xl p-6 text-center shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col items-center">
-            <div className="w-16 h-16 rounded-full bg-blue-950/50 border border-blue-500/50 flex items-center justify-center text-blue-400 font-black text-2xl mb-6 shadow-[0_0_20px_rgba(59,130,246,0.25)]">
+        <div className="absolute inset-0 bg-background-main/95 backdrop-blur-xl flex items-center justify-center p-4 pointer-events-auto">
+          <div className="w-full max-w-sm bg-zinc-950 border border-border-subtle rounded-3xl p-6 text-center shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col items-center">
+            <div className="w-16 h-16 rounded-full bg-blue-950/50 border border-accent-primary/50 flex items-center justify-center text-accent-primary font-black text-2xl mb-6 shadow-neon-blue">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
             </div>
-            <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">
+            <span className="text-[10px] font-black text-accent-primary uppercase tracking-widest mb-2">
               Секретные данные
             </span>
             <h2 className="text-xl font-black text-zinc-100 uppercase tracking-wider mb-2">
@@ -63,7 +63,7 @@ export const InspectorChoiceModal: React.FC<InspectorChoiceModalProps> = ({
             </p>
             <button
               onClick={() => setIsPassConfirmed(true)}
-              className="w-full h-14 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 hover:from-blue-600 hover:to-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer shadow-[0_0_20px_rgba(59,130,246,0.45)] flex items-center justify-center gap-2 shrink-0"
+              className="w-full h-14 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 hover:from-blue-600 hover:to-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer shadow-neon-blue flex items-center justify-center gap-2 shrink-0"
             >
               <span>Я держу телефон один</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">

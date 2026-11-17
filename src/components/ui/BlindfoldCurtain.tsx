@@ -85,9 +85,9 @@ export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
       data-testid="blindfold-curtain"
     >
       {/* Верхний гриф конфиденциальности */}
-      <div className="w-full flex items-center justify-between border-b border-white/10 pb-4 pt-2">
+      <div className="w-full flex items-center justify-between border-b border-border-subtle pb-4 pt-2">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-accent-neon shadow-neon-cyan animate-pulse" />
           <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400">
             ОФФЛАЙН РЕЖИМ • PASS & PLAY
           </span>

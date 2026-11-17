@@ -168,7 +168,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
                 <span className="text-xs font-mono text-zinc-400 mb-2">
                   #{selectedPhotoChar.id.replace('c', '').padStart(2, '0')}
                 </span>
-                <h2 className="text-2xl sm:text-3xl font-black text-[#f1f5f9] uppercase tracking-wider leading-tight">
+                <h2 className="text-2xl sm:text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">
                   {selectedPhotoChar.name}
                 </h2>
               </div>
@@ -187,7 +187,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             : 'border-cyan-500/30 bg-gradient-to-b from-blue-950/40 via-zinc-950 to-black/95 shadow-[0_0_60px_rgba(6,182,212,0.25)]'
         }`}
       >
-        <div className="text-[10px] sm:text-xs font-mono font-bold tracking-widest text-[#a1a1aa] uppercase mb-4">
+        <div className="text-[10px] sm:text-xs font-mono font-bold tracking-widest text-zinc-400 uppercase mb-4">
           {go.protocol}
         </div>
 
@@ -231,7 +231,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
           ratingDelta={ratingDelta}
         />
 
-        <p className="text-[10px] sm:text-xs font-medium tracking-normal text-[#a1a1aa] uppercase mb-5">
+        <p className="text-[10px] sm:text-xs font-medium tracking-normal text-zinc-400 uppercase mb-5">
           {go.operationTime} <span className="font-mono font-bold text-zinc-200">{elapsedTime}</span>
         </p>
 

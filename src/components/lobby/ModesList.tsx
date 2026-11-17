@@ -18,8 +18,8 @@ export const ModesList: React.FC<ModesListProps> = ({
   onSelectMode,
 }) => {
   return (
-    <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden w-full h-full">
-      <div className="flex items-center px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-[#080a0f] relative">
+    <div className="flex-1 flex flex-col bg-background-main overflow-hidden w-full h-full">
+      <div className="flex items-center px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-border-subtle bg-background-main relative">
         <Button variant="ghost" onClick={onBack} className="h-9 px-2 text-zinc-400 hover:text-white gap-1">
           <Icons.ChevronLeft />
           <span className="text-[10px] font-black uppercase tracking-widest">Назад</span>

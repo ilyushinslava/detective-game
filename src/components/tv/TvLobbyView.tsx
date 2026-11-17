@@ -161,16 +161,16 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   }, [playerList.length]);
 
   return (
-    <div className="flex h-screen w-screen flex-col justify-between bg-[#08090e] text-white select-none p-4 lg:p-6 overflow-hidden font-sans relative">
+    <div className="flex h-screen w-screen flex-col justify-between bg-background-main text-white select-none p-4 lg:p-6 overflow-hidden font-sans relative">
       {/* Глубокий кинематографичный градиент: от темно-бордового к глубокому угольному */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#2d0814_0%,#120c16_45%,#07080d_100%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#2d0814_0%,#120c16_45%,theme(colors.background.main)_100%)] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(225,29,72,0.1),transparent_60%)] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.08),transparent_50%)] pointer-events-none" />
 
       {/* Верхний лаконичный статус-бар */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-3 relative z-10 shrink-0">
+      <div className="flex items-center justify-between border-b border-border-subtle pb-3 relative z-10 shrink-0">
         <div className="flex items-center gap-3">
-          <span className="h-2.5 w-2.5 rounded-full bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.9)] animate-pulse shrink-0" />
+          <span className="h-2.5 w-2.5 rounded-full bg-accent-danger shadow-neon-rose animate-pulse shrink-0" />
           <h1 className="text-xl lg:text-2xl font-display font-black uppercase tracking-wider text-white">
             {GAME_TITLE.ru}
           </h1>

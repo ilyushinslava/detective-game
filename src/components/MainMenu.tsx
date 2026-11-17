@@ -27,7 +27,7 @@ import {
 const TutorialScreen = lazy(() => import("./TutorialScreen").then((m) => ({ default: m.TutorialScreen })));
 
 const TutorialFullscreenFallback = () => (
-  <div className="fixed inset-0 z-[100] bg-[#080a0f] flex items-center justify-center select-none">
+  <div className="fixed inset-0 z-[100] bg-background-main flex items-center justify-center select-none">
     <div className="flex flex-col items-center gap-3">
       <div className="w-9 h-9 border-2 border-emerald-500/20 border-t-emerald-400 rounded-full animate-spin" />
       <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">Загрузка Академии...</span>
@@ -295,7 +295,7 @@ export const MainMenu = ({
     <div
       ref={screenContainerRef}
       onPointerDown={handleEdgePointerDown}
-      className="flex-1 w-full h-screen flex flex-col bg-[#080a0f] text-zinc-100 select-none overflow-hidden relative max-w-full"
+      className="flex-1 w-full h-screen flex flex-col bg-background-main text-zinc-100 select-none overflow-hidden relative max-w-full"
     >
       <div className="flex-1 w-full h-full relative overflow-hidden flex flex-col min-h-0">
         <AnimatePresence initial={false} custom={navDirection} mode="wait">

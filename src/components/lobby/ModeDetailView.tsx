@@ -84,8 +84,8 @@ export const ModeDetailView: React.FC<ModeDetailViewProps> = ({
   const modeBannerSrc = bannerPath ? `${base}${bannerPath.startsWith("/") ? bannerPath : "/" + bannerPath}` : null;
 
   return (
-    <div className="flex-1 flex flex-col bg-[#080a0f] overflow-hidden relative w-full h-full">
-      <div className="flex items-center px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 z-10 bg-[#080a0f] relative">
+    <div className="flex-1 flex flex-col bg-background-main overflow-hidden relative w-full h-full">
+      <div className="flex items-center px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-border-subtle z-10 bg-background-main relative">
         <Button variant="ghost" onClick={onBack} className="h-9 px-2 text-zinc-400 hover:text-white gap-1">
           <Icons.ChevronLeft />
           <span className="text-[10px] font-black uppercase tracking-widest">Назад</span>
@@ -258,7 +258,7 @@ export const ModeDetailView: React.FC<ModeDetailViewProps> = ({
         </div>
       </div>
 
-      <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-[#080a0f] via-[#080a0f]/95 to-transparent pb-[max(1rem,env(safe-area-inset-bottom))] z-20">
+      <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-background-main via-background-main/95 to-transparent pb-[max(1rem,env(safe-area-inset-bottom))] z-20">
         <div className="w-full max-w-xl mx-auto">
           <Button
             variant="primary-danger"

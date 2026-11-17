@@ -237,7 +237,7 @@ export const RoleRevealModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#080a0f]/95 backdrop-blur-xl p-4 select-none modal-backdrop touch-none"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background-main/95 backdrop-blur-xl p-4 select-none modal-backdrop touch-none"
       onTouchMove={(e) => e.stopPropagation()}
     >
       <FullscreenCharacterPreview
@@ -245,7 +245,7 @@ export const RoleRevealModal = ({
         onClose={() => setFullscreenImage(null)}
       />
 
-      <div className="w-full max-w-lg h-[92dvh] max-h-[85vh] bg-zinc-950 border border-white/10 rounded-3xl p-5 sm:p-7 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col justify-between text-center overflow-y-auto custom-scrollbar">
+      <div className="w-full max-w-lg h-[92dvh] max-h-[85vh] bg-zinc-950 border border-border-subtle rounded-3xl p-5 sm:p-7 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col justify-between text-center overflow-y-auto custom-scrollbar">
 
         {/* Одиночная Директива "Ноль" */}
         {phase === "SECRET_SERVICE_SOLO" && (

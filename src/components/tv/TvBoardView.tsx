@@ -781,8 +781,8 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
     const finalDetectiveChar = flatCards.find((c) => c.id === gameState.detectiveSecretId);
 
     return (
-      <div className="relative h-screen w-screen bg-[#08090e] overflow-hidden select-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#2d0814_0%,#120c16_45%,#07080d_100%)] pointer-events-none" />
+      <div className="relative h-screen w-screen bg-background-main overflow-hidden select-none">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#2d0814_0%,#120c16_45%,theme(colors.background.main)_100%)] pointer-events-none" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(225,29,72,0.1),transparent_60%)] pointer-events-none" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.08),transparent_50%)] pointer-events-none" />
 
@@ -807,9 +807,9 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   }
 
   return (
-    <div className="tv-root flex h-screen w-screen flex-col bg-[#08090e] text-zinc-100 select-none overflow-hidden p-3 sm:p-4 lg:p-5 gap-2.5 sm:gap-3 font-sans relative">
+    <div className="tv-root flex h-screen w-screen flex-col bg-background-main text-zinc-100 select-none overflow-hidden p-3 sm:p-4 lg:p-5 gap-2.5 sm:gap-3 font-sans relative">
       {/* Кинематографичный радиальный градиент Neo-Noir */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#2d0814_0%,#120c16_45%,#07080d_100%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#2d0814_0%,#120c16_45%,theme(colors.background.main)_100%)] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(225,29,72,0.1),transparent_60%)] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.08),transparent_50%)] pointer-events-none" />
 
@@ -832,7 +832,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           ) : (
             <>
               <div className="flex items-center gap-3">
-                <span className="h-3 w-3 rounded-full bg-[#E11D48] shadow-[0_0_10px_rgba(225,29,72,0.9)] shrink-0" />
+                <span className="h-3 w-3 rounded-full bg-accent-danger shadow-neon-rose shrink-0" />
                 <div className="leading-tight">
                   <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 block font-bold">{killerRoleName}</span>
                   <span className="text-base sm:text-xl font-mono font-black text-rose-400">
@@ -842,7 +842,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
               </div>
               <div className="h-7 w-px bg-white/10" />
               <div className="flex items-center gap-3">
-                <span className="h-3 w-3 rounded-full bg-[#2563EB] shadow-[0_0_10px_rgba(37,99,235,0.9)] shrink-0" />
+                <span className="h-3 w-3 rounded-full bg-accent-primary shadow-neon-blue shrink-0" />
                 <div className="leading-tight">
                   <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 block font-bold">{detectiveRoleName}</span>
                   <span className="text-base sm:text-xl font-mono font-black text-blue-400">

@@ -34,10 +34,10 @@ export const LobbyGrid: React.FC<LobbyGridProps> = ({
         <button
           onClick={onOpenTutorial}
           onPointerEnter={() => import("../TutorialScreen")}
-          className="h-8 px-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 hover:border-amber-500/40 text-zinc-300 hover:text-white flex items-center gap-2 text-[11px] font-mono font-bold tracking-wider uppercase transition-all shadow-sm cursor-pointer group active:scale-[0.98]"
+          className="h-8 px-3 rounded-xl bg-background-surface/80 hover:bg-background-panel border border-border-subtle hover:border-accent-warning/40 text-zinc-300 hover:text-white flex items-center gap-2 text-[11px] font-mono font-bold tracking-wider uppercase transition-all shadow-sm cursor-pointer group active:scale-[0.98]"
           title="Интерактивный обучающий курс"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-amber-400 shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-accent-warning shrink-0">
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
           </svg>
@@ -47,10 +47,10 @@ export const LobbyGrid: React.FC<LobbyGridProps> = ({
         {onOpenRules && (
           <button
             onClick={onOpenRules}
-            className="h-8 px-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 hover:border-blue-500/40 text-zinc-300 hover:text-white flex items-center gap-2 text-[11px] font-mono font-bold tracking-wider uppercase transition-all shadow-sm cursor-pointer group active:scale-[0.98]"
+            className="h-8 px-3 rounded-xl bg-background-surface/80 hover:bg-background-panel border border-border-subtle hover:border-accent-primary/40 text-zinc-300 hover:text-white flex items-center gap-2 text-[11px] font-mono font-bold tracking-wider uppercase transition-all shadow-sm cursor-pointer group active:scale-[0.98]"
             title="Справочник правил"
           >
-            <Icons.Shield className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+            <Icons.Shield className="w-3.5 h-3.5 text-accent-primary shrink-0" />
             <span>{t.menu.rulebook || "Справочник"}</span>
           </button>
         )}

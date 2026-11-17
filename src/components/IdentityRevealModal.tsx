@@ -84,7 +84,7 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
                 <span className="text-xs font-mono text-zinc-400 mb-2">
                   #{character.id.replace("c", "").padStart(2, "0")}
                 </span>
-                <h2 className="text-3xl font-black text-[#f1f5f9] uppercase tracking-wider leading-tight">
+                <h2 className="text-3xl font-black text-zinc-100 uppercase tracking-wider leading-tight">
                   {character.name}
                 </h2>
               </motion.div>
@@ -109,10 +109,10 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
             <span className={`text-xs font-bold ${accent} uppercase tracking-widest block mb-1`}>
               {badge}
             </span>
-            <h2 className="text-xl font-black text-[#f1f5f9] mb-2">
+            <h2 className="text-xl font-black text-zinc-100 mb-2">
               Передайте экран: {targetPlayerName}
             </h2>
-            <p className="text-xs font-medium tracking-normal text-[#a1a1aa] mb-6 leading-relaxed">
+            <p className="text-xs font-medium tracking-normal text-zinc-400 mb-6 leading-relaxed">
               Убедитесь, что соперник не смотрит на экран.
             </p>
             <Button
@@ -131,10 +131,10 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
                 <path d="M2 18h20M4 18c0-2 2-3 4-4l2-6h4l2 6c2 1 4 2 4 4M9 13h6" />
               </svg>
             </div>
-            <span className="text-xs font-bold text-[#a1a1aa] uppercase tracking-widest block mb-1">
+            <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest block mb-1">
               {badge}
             </span>
-            <h3 className="text-xl font-black text-[#f1f5f9] mb-2">{title}</h3>
+            <h3 className="text-xl font-black text-zinc-100 mb-2">{title}</h3>
 
             {character && (
               <motion.div

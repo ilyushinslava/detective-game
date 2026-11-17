@@ -20,6 +20,7 @@ import { LobbyHeader } from "./lobby/LobbyHeader";
 import { LobbyBottomNav } from "./lobby/LobbyBottomNav";
 import { TvPartyModal } from "./lobby/TvPartyModal";
 import { SettingsModal } from "./lobby/SettingsModal";
+import { LoginModal } from "./lobby/LoginModal";
 import lobbyBg from "../assets/lobby_background.webp";
 
 // Асинхронный динамический чанк для тяжелого модуля Академии (TASK-ARCH-001)
@@ -107,6 +108,7 @@ export const MainMenu = ({
   const [isTvPartyModalOpen, setIsTvPartyModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   // Свайп-жесты возврата назад
   const [isEdgeDragging, setIsEdgeDragging] = useState(false);
@@ -219,6 +221,7 @@ export const MainMenu = ({
                 }}
                 onOpenDevPanel={onOpenDevPanel}
                 onOpenSettings={() => setIsSettingsOpen(true)}
+                onOpenLogin={() => setIsLoginModalOpen(true)}
               />
 
               <ModeShowcase
@@ -383,6 +386,8 @@ export const MainMenu = ({
       />
 
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
     </div>
   );
 };

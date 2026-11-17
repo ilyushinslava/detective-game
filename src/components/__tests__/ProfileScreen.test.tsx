@@ -65,7 +65,7 @@ describe("ProfileScreen", () => {
     render(<ProfileScreen profile={defaultProfile} onUpdateProfile={mockUpdate} />);
     const editBtn = screen.getByTitle("Изменить позывной");
     fireEvent.click(editBtn);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByDisplayValue("Agent Smith");
     fireEvent.change(input, { target: { value: "Neo Agent" } });
     const saveBtn = screen.getByRole("button", { name: /сохранить/i });
     fireEvent.click(saveBtn);
@@ -108,5 +108,31 @@ describe("ProfileScreen", () => {
       fireEvent.click(firstAvatarBtn);
       expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ avatarId: "c1" }));
     }
+  });
+
+  it("отображает блок 'СОХРАНЕНИЕ ПРОГРЕССА' со строгим предупреждением для анонимного профиля", () => {
+    render(<ProfileScreen profile={defaultProfile} onUpdateProfile={vi.fn()} />);
+
+    expect(screen.getByText("СОХРАНЕНИЕ ПРОГРЕССА")).toBeDefined();
+    expect(
+      screen.getByText(/мы не собираем вашу почту\. Если вы забудете пароль, восстановить аккаунт будет невозможно/i)
+    ).toBeDefined();
+    expect(screen.getByPlaceholderText("agent_77")).toBeDefined();
+    expect(screen.getByRole("button", { name: /Защитить аккаунт/i })).toBeDefined();
+  });
+
+  it("при успешной привязке логина и пароля отображает зеленый бейдж 'АККАУНТ ЗАЩИЩЕН'", async () => {
+    render(<ProfileScreen profile={defaultProfile} onUpdateProfile={vi.fn()} />);
+
+    const loginInput = screen.getByPlaceholderText("agent_77");
+    const passInput = screen.getByPlaceholderText("••••••••");
+    const protectBtn = screen.getByRole("button", { name: /Защитить аккаунт/i });
+
+    fireEvent.change(loginInput, { target: { value: "detective_99" } });
+    fireEvent.change(passInput, { target: { value: "securePass123" } });
+    fireEvent.click(protectBtn);
+
+    expect(await screen.findByText("АККАУНТ ЗАЩИЩЕН")).toBeDefined();
+    expect(screen.queryByText("СОХРАНЕНИЕ ПРОГРЕССА")).toBeNull();
   });
 });

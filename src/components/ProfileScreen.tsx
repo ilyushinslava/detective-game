@@ -5,6 +5,8 @@ import { soundManager } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
 import { Button } from './ui/Button';
 import { getCharacterPortraitPath } from '../constants/characterImages';
+import { useAuthSafe } from '../contexts/AuthContext';
+import { LoginModal } from './lobby/LoginModal';
 
 // Список доступных аватаров (50 уникальных портретов персонажей без текстовых меток)
 export const AGENT_AVATARS = Array.from({ length: 50 }, (_, i) => ({ id: `c${i + 1}` }));
@@ -96,6 +98,38 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [nicknameInput, setNicknameInput] = useState(profile.agentName || profile.nickname || '');
   const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
+
+  // Логика аутентификации и защиты аккаунта
+  const { isAnonymous, linkAccount } = useAuthSafe();
+  const [accountLogin, setAccountLogin] = useState('');
+  const [accountPassword, setAccountPassword] = useState('');
+  const [accountError, setAccountError] = useState<string | null>(null);
+  const [isAccountLinking, setIsAccountLinking] = useState(false);
+  const [isAccountProtectedSuccess, setIsAccountProtectedSuccess] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+  const handleLinkAccount = async () => {
+    setAccountError(null);
+    setIsAccountLinking(true);
+    try {
+      const res = await linkAccount(accountLogin, accountPassword);
+      if (res.success) {
+        soundManager.play('confirm');
+        triggerHaptic('success');
+        setIsAccountProtectedSuccess(true);
+      } else {
+        soundManager.play('error');
+        triggerHaptic('warning');
+        setAccountError(res.error || 'Ошибка привязки аккаунта');
+      }
+    } catch (err: any) {
+      soundManager.play('error');
+      triggerHaptic('warning');
+      setAccountError(err?.message || 'Ошибка сети');
+    } finally {
+      setIsAccountLinking(false);
+    }
+  };
 
   // Расчет статистики
   const totalGames = profile.matchesPlayed || (profile.stats?.wins || 0) + (profile.stats?.losses || 0);
@@ -279,6 +313,94 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Защита аккаунта / Сохранение прогресса */}
+        {!isAnonymous || isAccountProtectedSuccess ? (
+          <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold shadow-sm">
+            <Icons.Shield className="w-4 h-4 text-emerald-400" />
+            <span>АККАУНТ ЗАЩИЩЕН</span>
+          </div>
+        ) : (
+          <div className="bg-zinc-950/80 border border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-3">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
+              <div className="flex items-center gap-2">
+                <Icons.Shield className="w-4 h-4 text-blue-400" />
+                <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+                  СОХРАНЕНИЕ ПРОГРЕССА
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsLoginModalOpen(true)}
+                className="text-[10px] font-mono text-blue-400 hover:text-blue-300 uppercase cursor-pointer transition-colors"
+              >
+                Войти в аккаунт →
+              </button>
+            </div>
+
+            <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-500/20 flex gap-2.5 items-start text-left">
+              <span className="text-amber-400 text-sm mt-0.5">⚠</span>
+              <p className="text-[11px] font-mono text-zinc-300 leading-relaxed">
+                Внимание: мы не собираем вашу почту. Если вы забудете пароль, восстановить аккаунт будет невозможно. Запомните ваши данные!
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+              <div>
+                <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
+                  Уникальный Логин (только латиница и цифры)
+                </label>
+                <input
+                  type="text"
+                  value={accountLogin}
+                  onChange={(e) => {
+                    setAccountLogin(e.target.value);
+                    setAccountError(null);
+                  }}
+                  placeholder="agent_77"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  maxLength={20}
+                  className="w-full bg-zinc-900 border border-white/10 focus:border-blue-500 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
+                  Пароль
+                </label>
+                <input
+                  type="password"
+                  value={accountPassword}
+                  onChange={(e) => {
+                    setAccountPassword(e.target.value);
+                    setAccountError(null);
+                  }}
+                  placeholder="••••••••"
+                  maxLength={32}
+                  className="w-full bg-zinc-900 border border-white/10 focus:border-blue-500 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-colors"
+                />
+              </div>
+            </div>
+
+            {accountError && (
+              <div className="p-2.5 rounded-lg bg-rose-950/40 border border-rose-500/30 text-rose-300 text-[10px] font-mono">
+                {accountError}
+              </div>
+            )}
+
+            <div className="flex justify-end mt-1">
+              <Button
+                variant="primary"
+                onClick={handleLinkAccount}
+                disabled={isAccountLinking}
+                className="h-9 px-4 text-xs font-bold uppercase tracking-wider active:scale-95 cursor-pointer"
+              >
+                {isAccountLinking ? 'Сохранение...' : 'Защитить аккаунт'}
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Статистика (4 карточки) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
@@ -469,6 +591,15 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
         </div>
       )}
+
+      {/* Модальное окно входа в аккаунт */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onSuccess={() => {
+          setIsAccountProtectedSuccess(true);
+        }}
+      />
     </div>
   );
 };

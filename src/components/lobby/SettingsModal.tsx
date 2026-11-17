@@ -4,6 +4,8 @@ import { Button } from "../ui/Button";
 import { soundManager } from "../../utils/audio";
 import { triggerHaptic, setHapticsEnabled } from "../../utils/haptics";
 import { useTranslation } from "../../i18n/context";
+import { useAuthSafe } from "../../contexts/AuthContext";
+import { LoginModal } from "./LoginModal";
 
 export interface SettingsModalProps {
   isOpen: boolean;
@@ -12,6 +14,8 @@ export interface SettingsModalProps {
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const { t, lang, setLang } = useTranslation();
+  const { isAnonymous, signOut } = useAuthSafe();
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSfxEnabled, setIsSfxEnabled] = useState(soundManager.getSfxEnabled());
   const [isAmbientEnabled, setIsAmbientEnabled] = useState(soundManager.getAmbientEnabled());
   const [isHapticsEnabled, setIsHapticsEnabled] = useState(() => {
@@ -132,6 +136,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             </button>
           </div>
         </div>
+
+        {/* Управление аккаунтом */}
+        <div className="flex items-center justify-between p-3 bg-zinc-950/60 rounded-xl border border-white/5">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Аккаунт</span>
+            <span className="text-[9px] text-zinc-500 font-mono mt-0.5">
+              {isAnonymous ? "Анонимный профиль" : "Аккаунт защищен"}
+            </span>
+          </div>
+          {isAnonymous ? (
+            <Button
+              variant="primary"
+              onClick={() => setIsLoginModalOpen(true)}
+              className="h-8 px-3 text-[10px] font-black uppercase tracking-wider cursor-pointer"
+            >
+              Войти
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                soundManager.play("tapMenu");
+                signOut();
+              }}
+              className="h-8 px-3 text-[10px] font-black uppercase tracking-wider text-rose-400 hover:text-rose-300 cursor-pointer"
+            >
+              Выйти
+            </Button>
+          )}
+        </div>
       </div>
 
       <Button
@@ -142,6 +176,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       >
         {t.settings.close}
       </Button>
+
+      {/* Модальное окно входа */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onSuccess={() => {
+          onClose();
+        }}
+      />
     </Modal>
   );
 };

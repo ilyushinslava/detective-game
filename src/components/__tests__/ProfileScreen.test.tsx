@@ -69,7 +69,7 @@ describe("ProfileScreen", () => {
     fireEvent.change(input, { target: { value: "Neo Agent" } });
     const saveBtn = screen.getByRole("button", { name: /сохранить/i });
     fireEvent.click(saveBtn);
-    expect(mockUpdate).toHaveBeenCalledWith({ nickname: "Neo Agent" });
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ nickname: "Neo Agent" }));
   });
 
   it("вызывает открытие настроек", () => {

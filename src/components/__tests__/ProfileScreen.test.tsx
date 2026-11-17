@@ -79,4 +79,34 @@ describe("ProfileScreen", () => {
     fireEvent.click(settingsBtn);
     expect(mockOnOpenSettings).toHaveBeenCalled();
   });
+
+  it("отображает 'РЕЙТИНГ' вместо сленга 'MMR' и не содержит пафосных бутафорских подписей", () => {
+    render(<ProfileScreen profile={defaultProfile} onUpdateProfile={vi.fn()} />);
+    expect(screen.getByText("РЕЙТИНГ")).toBeDefined();
+    expect(screen.queryByText(/РЕЙТИНГ MMR/i)).toBeNull();
+    expect(screen.queryByText(/ОСОБЫЙ ОТДЕЛ/i)).toBeNull();
+    expect(screen.queryByText(/DOSSIER/i)).toBeNull();
+  });
+
+  it("в модалке аватаров отображаются только фотографии без имен персонажей", () => {
+    const mockUpdate = vi.fn();
+    render(<ProfileScreen profile={defaultProfile} onUpdateProfile={mockUpdate} />);
+    const avatarBtn = screen.getByTitle("Сменить аватар");
+    fireEvent.click(avatarBtn);
+
+    expect(screen.getByText("ВЫБЕРИТЕ АВАТАР")).toBeDefined();
+    // Имена персонажей (типа Фокс, Вульф, Химик) отсутствуют
+    expect(screen.queryByText(/Фокс/i)).toBeNull();
+    expect(screen.queryByText(/Вульф/i)).toBeNull();
+    expect(screen.queryByText(/Химик/i)).toBeNull();
+
+    // Клик по первому аватару вызывает onUpdateProfile
+    const avatarModalButtons = screen.getAllByRole("button");
+    const firstAvatarBtn = avatarModalButtons.find(btn => btn.querySelector("img"));
+    expect(firstAvatarBtn).toBeDefined();
+    if (firstAvatarBtn) {
+      fireEvent.click(firstAvatarBtn);
+      expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ avatarId: "c1" }));
+    }
+  });
 });

@@ -4,7 +4,7 @@ export const en: TranslationSchema = {
   nav: {
     hq: "HQ",
     tables: "Network",
-    profile: "Dossier",
+    profile: "Profile",
   },
   menu: {
     title: "PRIME SUSPECT",

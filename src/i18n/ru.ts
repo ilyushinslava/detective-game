@@ -2,7 +2,7 @@ export const ru = {
   nav: {
     hq: "Штаб",
     tables: "Сеть",
-    profile: "Досье",
+    profile: "Профиль",
   },
   menu: {
     title: "ПОД ПОДОЗРЕНИЕМ",

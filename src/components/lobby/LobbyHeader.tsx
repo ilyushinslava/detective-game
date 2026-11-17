@@ -34,7 +34,7 @@ export const LobbyHeader: React.FC<LobbyHeaderProps> = ({
 
       {/* Правая группа: Профиль, баланс, настройки */}
       <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-        {/* Agent Callsign / Dossier Pill */}
+        {/* Profile Pill */}
         {(() => {
           const avatarKey = profile.avatarId || profile.avatar;
           const isPortrait = avatarKey && avatarKey.startsWith('c');
@@ -43,8 +43,8 @@ export const LobbyHeader: React.FC<LobbyHeaderProps> = ({
           return (
             <button
               onClick={onOpenProfile}
-              className="flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-zinc-900/80 border border-white/10 hover:border-cyan-500/40 hover:bg-zinc-800/80 transition cursor-pointer shadow-lg active:scale-95 group text-left shrink-0"
-              title="Досье агента"
+              className="flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-zinc-900/80 border border-white/10 hover:border-white/30 hover:bg-zinc-800/80 transition cursor-pointer shadow-lg active:scale-95 group text-left shrink-0"
+              title="Профиль игрока"
             >
               <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-zinc-950 border border-white/10 flex items-center justify-center text-xs sm:text-sm shrink-0 overflow-hidden">
                 {portraitUrl ? (
@@ -59,7 +59,7 @@ export const LobbyHeader: React.FC<LobbyHeaderProps> = ({
                 )}
               </div>
               <div className="flex flex-col leading-none">
-                <span className="text-[10px] sm:text-xs font-black tracking-wider text-zinc-200 uppercase group-hover:text-cyan-400 transition truncate max-w-[65px] sm:max-w-[120px]">
+                <span className="text-[10px] sm:text-xs font-black tracking-wider text-zinc-200 uppercase group-hover:text-white transition truncate max-w-[65px] sm:max-w-[120px]">
                   {profile.agentName || profile.nickname}
                 </span>
                 <span className="text-[8px] sm:text-[9px] font-mono text-zinc-500 tracking-widest uppercase mt-0.5">

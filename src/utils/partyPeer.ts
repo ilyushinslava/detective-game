@@ -35,13 +35,52 @@ export function isValidPacketType(type: unknown): type is string {
 
 export function isSafePacketPayload(payload: unknown): boolean {
   if (payload === null || payload === undefined) return true;
-  if (typeof payload === "string" || typeof payload === "number" || typeof payload === "boolean") return true;
+  if (typeof payload === "string") {
+    if (/<script|javascript:|onerror=|onload=/i.test(payload)) return false;
+    return true;
+  }
+  if (typeof payload === "number" || typeof payload === "boolean") return true;
   if (typeof payload === "object") {
     if (Object.prototype.hasOwnProperty.call(payload, "__proto__")) return false;
     if (Object.prototype.hasOwnProperty.call(payload, "constructor")) return false;
     return true;
   }
   return false;
+}
+
+/**
+ * Функция безопасного парсинга и валидации сетевого пакета (WebRTC / PartyKit).
+ * Возвращает распарсенный объект или null, если пакет вредоносный/невалидный.
+ */
+export function parseAndValidatePacket(raw: unknown): any | null {
+  try {
+    if (!raw || typeof raw !== "string") return null;
+    if (raw.length > 512 * 1024) return null;
+
+    // Защита от Prototype Pollution и атак через ключи сериализации
+    if (raw.includes('"__proto__"') || raw.includes('"constructor"') || raw.includes('"prototype"')) {
+      return null;
+    }
+
+    const data = JSON.parse(raw);
+    if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+
+    // Проверка наличия и формата типа экшена
+    if (!isValidPacketType(data.type)) return null;
+
+    // Защита от XSS и инъекций в payload
+    if (!isSafePacketPayload(data.payload)) return null;
+
+    if (data.action && typeof data.action === "object") {
+      if (!isValidPacketType(data.action.type) || !isSafePacketPayload(data.action.payload)) {
+        return null;
+      }
+    }
+
+    return data;
+  } catch {
+    return null;
+  }
 }
 
 class PartyService {
@@ -333,26 +372,8 @@ class PartyService {
         try {
           if (!event || !event.data) return;
           const raw = typeof event.data === "string" ? event.data : event.data.toString();
-          // Ограничение размера пакета: дропаем аномально большие пакеты (> 512 КБ)
-          if (raw.length > 512 * 1024) {
-            console.warn("[PartyService] Dropped oversized packet (> 512KB)");
-            return;
-          }
-
-          const data = JSON.parse(raw);
-          if (!data || typeof data !== "object" || Array.isArray(data)) return;
-
-          // Строгая валидация data.type и payload:
-          // Если тип содержит спецсимволы/скрипты или нарушает формат, пакет молча отбрасывается (Drop)
-          if (!isValidPacketType(data.type) || !isSafePacketPayload(data.payload)) {
-            return;
-          }
-
-          if (data.action && typeof data.action === "object") {
-            if (!isValidPacketType(data.action.type) || !isSafePacketPayload(data.action.payload)) {
-              return;
-            }
-          }
+          const data = parseAndValidatePacket(raw);
+          if (!data) return;
 
           if (data.type === "PONG") {
             return;

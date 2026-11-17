@@ -18,7 +18,7 @@ import {
   cleanupDeadCharacters,
   swearInOfficer,
   setInspectorRole,
-  generateBoard5x5,
+  createGameBoard,
   isRoleChangeTrigger,
 } from "./gameLogic";
 
@@ -50,132 +50,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     switch (action.type) {
     case "START_GAME": {
       const mode = action.payload?.mode || state.mode || "MANIAC_VS_OPERATIVE";
-      const procedural = action.payload?.procedural ?? true;
-      const board = generateBoard5x5({
-        mode,
-        boardSize: 5,
-        proceduralDistribution: procedural,
-        defaultStatus: procedural ? "HIDDEN" : "REVEALED",
-      });
+      const board = createGameBoard(5, mode);
       return {
         ...state,
         board,
         boardSize: 5,
-        actionPoints: 3,
-        maxActionPoints: 3,
         winner: null,
-        log: [...state.log, "Матч начался. Сетка 5x5 сгенерирована."],
-      };
-    }
-
-    case "REVEAL_CELL": {
-      if (state.winner) {
-        return state;
-      }
-
-      const { cellId, row, col } = (action as any).payload || {};
-      const actionRole = (action as any).role || (action as any).senderRole || action.senderId;
-
-      // 1. Проверка очереди хода (если роль явно передана и не совпадает с currentTurn)
-      if (
-        actionRole &&
-        (actionRole === "KILLER" || actionRole === "DETECTIVE") &&
-        actionRole !== state.currentTurn
-      ) {
-        return state;
-      }
-
-      // 2. Проверка очков действий (Action Points)
-      const currentAP = state.actionPoints !== undefined ? state.actionPoints : 3;
-      if (currentAP <= 0) {
-        return state;
-      }
-
-      // 3. Поиск клетки на доске
-      let targetCell: any = null;
-      let targetR = -1;
-      let targetC = -1;
-
-      for (let r = 0; r < state.board.length; r++) {
-        for (let c = 0; c < state.board[r].length; c++) {
-          const cell = state.board[r][c];
-          if ((cellId && cell.id === cellId) || (row === r && col === c)) {
-            targetCell = cell;
-            targetR = r;
-            targetC = c;
-            break;
-          }
-        }
-        if (targetCell) break;
-      }
-
-      if (!targetCell || targetCell.status === "BLOCKED" || targetCell.status === "REVEALED") {
-        return state;
-      }
-
-      // 4. Открытие клетки и списание AP
-      const newBoard = state.board.map((rArr, rIdx) =>
-        rArr.map((cell, cIdx) => {
-          if (rIdx === targetR && cIdx === targetC) {
-            return {
-              ...cell,
-              status: "REVEALED" as const,
-            };
-          }
-          return cell;
-        })
-      );
-
-      const nextAP = Math.max(0, currentAP - 1);
-      const cellName = targetCell.name || targetCell.id;
-      const typeLabel =
-        targetCell.cellType === "CLUE"
-          ? "Улика"
-          : targetCell.cellType === "EMPTY"
-          ? "Пустой сектор"
-          : "Подозреваемый";
-
-      // 5. Обработка сбора улик и условий победы
-      const isClue = targetCell.cellType === "CLUE";
-      const newTrophiesDetective = isClue
-        ? (state.trophiesDetective ?? 0) + 1
-        : (state.trophiesDetective ?? 0);
-
-      const newEvidenceDeck =
-        isClue && targetCell.id && !state.evidenceDeck.includes(targetCell.id)
-          ? [...state.evidenceDeck, targetCell.id]
-          : state.evidenceDeck;
-
-      // Порог улик для победы Сыщика (по умолчанию 4, либо spyTargetTrophies)
-      const targetClues = state.spyTargetTrophies ?? 4;
-      const isDetectiveWin = isClue && newTrophiesDetective >= targetClues;
-      const nextWinner: Role | null = isDetectiveWin ? "DETECTIVE" : state.winner;
-
-      const newLogs = [
-        ...state.log,
-        `[Сектор [${targetR + 1}, ${targetC + 1}]] Разведка завершена: ${typeLabel} (${cellName}). Осталось ОД: ${nextAP}.`,
-      ];
-
-      if (isClue) {
-        newLogs.push(
-          `🔍 Найдена ключевая улика: ${cellName}! Собрано: ${newTrophiesDetective}/${targetClues}.`
-        );
-      }
-
-      if (isDetectiveWin) {
-        newLogs.push(
-          `🏆 Сыщик собрал все ключевые улики (${newTrophiesDetective}/${targetClues}) и раскрыл дело! Победа Закона!`
-        );
-      }
-
-      return {
-        ...state,
-        board: newBoard,
-        actionPoints: nextAP,
-        trophiesDetective: newTrophiesDetective,
-        evidenceDeck: newEvidenceDeck,
-        winner: nextWinner,
-        log: newLogs,
+        log: [...state.log, "Матч начался."],
       };
     }
 
@@ -414,7 +295,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         currentTurn: nextTurn,
         activeSpyIndex: nextSpyIndex,
-        actionPoints: state.maxActionPoints ?? 3,
         detectiveSecretId:
           state.mode === "SECRET_SERVICE" && state.spies && nextSpyIndex !== undefined
             ? state.spies[nextSpyIndex]?.secretId ?? state.detectiveSecretId

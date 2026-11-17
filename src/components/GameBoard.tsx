@@ -59,7 +59,6 @@ interface GameBoardProps {
     direction: "FORWARD" | "BACKWARD",
   ) => void;
   onSelectCharacter: (id: string) => void;
-  onRevealCell?: (id: string, row: number, col: number) => void;
 }
 
 export const GameBoard = ({
@@ -85,7 +84,6 @@ export const GameBoard = ({
   isModalOpen = false,
   onShift,
   onSelectCharacter,
-  onRevealCell,
 }: GameBoardProps) => {
   const isLineUp = mode === "LINE_UP";
   const numRows = board.length;
@@ -217,15 +215,10 @@ export const GameBoard = ({
   const onSelectCharacterRef = useRef(onSelectCharacter);
   onSelectCharacterRef.current = onSelectCharacter;
 
-  const handleCardClick = (id: string, row?: number, col?: number) => {
+  const handleCardClick = (id: string) => {
     if (isModalOpen) return;
     if (hasSwipedRef.current) {
       hasSwipedRef.current = false;
-      return;
-    }
-    const card = board.flat().find((c) => c.id === id);
-    if (card?.status === "HIDDEN" && onRevealCell) {
-      onRevealCell(id, row ?? 0, col ?? 0);
       return;
     }
     onSelectCharacterRef.current(id);

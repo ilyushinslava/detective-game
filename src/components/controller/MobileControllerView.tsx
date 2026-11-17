@@ -466,13 +466,6 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
   // Немедленное выполнение маневра по нажатию стрелки направления (Этап 2)
   const handleExecuteShift = (dir: 'LEFT' | 'RIGHT' | 'UP' | 'DOWN') => {
-    // Проверка очков действий (AP)
-    if (gameState.actionPoints !== undefined && gameState.actionPoints <= 0) {
-      soundManager.play('deny');
-      triggerHaptic('error');
-      return;
-    }
-
     soundManager.play('slide');
     triggerHaptic('success');
     const direction = (dir === 'LEFT' || dir === 'UP') ? 'BACKWARD' : 'FORWARD';
@@ -519,11 +512,6 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
   const handleExecuteAction = (act: ActionDef) => {
     if (activeAIThinking) return;
-    if (gameState.actionPoints !== undefined && gameState.actionPoints <= 0 && act.id !== 'END_TURN') {
-      soundManager.play('deny');
-      triggerHaptic('error');
-      return;
-    }
     if (act.id === 'SHIFT') {
       triggerHaptic('light');
       setSelectedAxis('ROW');
@@ -558,11 +546,6 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
   const handleConfirmAction = () => {
     if (activeAIThinking || !pendingAction) return;
-    if (gameState.actionPoints !== undefined && gameState.actionPoints <= 0) {
-      soundManager.play('deny');
-      triggerHaptic('error');
-      return;
-    }
     const targetId = selectedTargetId || neighbors[0]?.id || '';
 
     if (pendingAction.id === 'KILL_CHARACTER') {

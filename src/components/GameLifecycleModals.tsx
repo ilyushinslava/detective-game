@@ -34,6 +34,8 @@ export interface GameLifecycleModalsProps {
   handleSelectInspectorRole: (id: string) => void;
   requestRematch: (type: "SWAP" | "RANDOM" | "SAME") => void;
   setFullscreenImage: (img: { url: string; name: string; id: string } | null) => void;
+  rating?: number;
+  ratingDelta?: number;
 }
 
 export const GameLifecycleModals: React.FC<GameLifecycleModalsProps> = memo(({
@@ -63,6 +65,8 @@ export const GameLifecycleModals: React.FC<GameLifecycleModalsProps> = memo(({
   handleSelectInspectorRole,
   requestRematch,
   setFullscreenImage,
+  rating,
+  ratingDelta,
 }) => {
   const [showGameOverModal, setShowGameOverModal] = React.useState(false);
 
@@ -212,6 +216,8 @@ export const GameLifecycleModals: React.FC<GameLifecycleModalsProps> = memo(({
           onExitToMenu={handleExitToMenu}
           playerRole={gameState.opponent === "PVP" ? undefined : gameState.playerRole}
           isMultiplayer={gameState.opponent === "ONLINE"}
+          rating={rating}
+          ratingDelta={ratingDelta}
           onRematchSwap={() => requestRematch("SWAP")}
           onRematchRandom={() => requestRematch("RANDOM")}
           onRematchSame={() => requestRematch("SAME")}

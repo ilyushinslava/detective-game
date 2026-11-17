@@ -87,6 +87,7 @@ export default function App() {
     recordMatchResult,
   } = useProfile();
   const matchResultRecordedRef = useRef(false);
+  const [matchRatingInfo, setMatchRatingInfo] = useState<{ rating: number; ratingDelta: number } | null>(null);
   const [activeTab, setActiveTab] = useState<
     "LOBBY" | "TABLES" | "TOP" | "SHOP"
   >("LOBBY");
@@ -500,6 +501,13 @@ export default function App() {
     matchResultRecordedRef,
     awardPrize,
     recordMatchResult,
+    secondsElapsed,
+    onRatingCalculated: (info) => {
+      setMatchRatingInfo({
+        rating: info.newMmr ?? ((profile.mmr ?? 1000) + info.mmrDelta),
+        ratingDelta: info.mmrDelta,
+      });
+    },
   });
 
   const { isAIThinking } = useAiTurn({
@@ -577,6 +585,7 @@ export default function App() {
     betAmount: number = 250
   ) => {
     matchResultRecordedRef.current = false;
+    setMatchRatingInfo(null);
     soundManager.play("confirm");
 
     const actualPlayerRole =
@@ -1101,10 +1110,15 @@ export default function App() {
             secondsElapsed={secondsElapsed}
             formatTimer={formatTimer}
             handleExitToMenu={handleExitToMenu}
-            handleReset={handleReset}
+            handleReset={() => {
+              setMatchRatingInfo(null);
+              handleReset();
+            }}
             handleSelectInspectorRole={handleSelectInspectorRole}
             requestRematch={requestRematch}
             setFullscreenImage={setFullscreenImage}
+            rating={matchRatingInfo?.rating}
+            ratingDelta={matchRatingInfo?.ratingDelta}
           />
         )}
       </div>

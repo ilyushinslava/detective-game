@@ -229,12 +229,14 @@ export function useProfile() {
       winnerRole?: string;
       role?: string;
       durationSeconds?: number;
+      mmrDelta?: number;
     }
   ) => {
     const role = matchDetails?.role || (profile.rank.includes("Маньяк") ? "KILLER" : "DETECTIVE");
     const isDetWin = isWin && role === "DETECTIVE";
     const isManWin = isWin && role === "KILLER";
-    const mmrDelta = isWin ? 25 : -20;
+    const mmrDelta = matchDetails?.mmrDelta ?? (isWin ? 25 : -20);
+    let finalMmr = profile.mmr + mmrDelta;
 
     setProfile((prev) => {
       const newWins = (prev.stats?.wins || 0) + (isWin ? 1 : 0);
@@ -242,6 +244,7 @@ export function useProfile() {
       const newXp = prev.xp + (isWin ? 50 : 15);
       const newLevel = Math.floor(newXp / 100) + 1;
       const newMmr = Math.max(100, prev.mmr + mmrDelta);
+      finalMmr = newMmr;
 
       let newRank = prev.rank;
       if (newMmr >= 2000) newRank = "Магистр";
@@ -249,6 +252,17 @@ export function useProfile() {
       else if (newMmr >= 1300) newRank = "Инспектор";
       else if (newMmr >= 1100) newRank = "Сыщик";
       else newRank = "Стажёр";
+
+      const newMatchEntry: MatchHistoryEntry = {
+        id: `match_${Date.now()}`,
+        mode: matchDetails?.mode || "MANIAC_VS_OPERATIVE",
+        role: role as any,
+        isWinner: isWin,
+        mmrDelta: mmrDelta,
+        durationSeconds: matchDetails?.durationSeconds || 120,
+        createdAt: new Date().toISOString(),
+      };
+      const recentMatches = [newMatchEntry, ...(prev.recentMatches || [])].slice(0, 10);
 
       const next: UserProfile = {
         ...prev,
@@ -260,6 +274,7 @@ export function useProfile() {
         winsDetective: prev.winsDetective + (isDetWin ? 1 : 0),
         winsManiac: prev.winsManiac + (isManWin ? 1 : 0),
         stats: { wins: newWins, losses: newLosses },
+        recentMatches,
       };
       storage.setSyncAndPersist("crime_city_profile", next);
       return next;
@@ -280,7 +295,9 @@ export function useProfile() {
         console.warn("[useProfile] Ошибка записи матча в Supabase RPC:", rpcErr);
       }
     }
-  }, [user?.id, isCloudConnected, profile.rank]);
+
+    return { newMmr: finalMmr, mmrDelta };
+  }, [user?.id, isCloudConnected, profile.rank, profile.mmr]);
 
   const awardPrize = useCallback((pot: number) => {
     if (pot <= 0) return;

@@ -113,4 +113,42 @@ describe("GameOverModal", () => {
     fireEvent.click(randomBtn!);
     expect(mockOnRematchRandom).toHaveBeenCalled();
   });
+
+  it("корректно отображает изменение рейтинга (+25) при победе", () => {
+    render(
+      <GameOverModal
+        winner="DETECTIVE"
+        playerRole="DETECTIVE"
+        mode="MANIAC_VS_OPERATIVE"
+        elapsedTime="01:45"
+        rating={1025}
+        ratingDelta={25}
+        onRestart={mockOnRestart}
+      />
+    );
+
+    expect(screen.getByText("Рейтинг:")).toBeDefined();
+    expect(screen.getByText("1025")).toBeDefined();
+    expect(screen.getByText("(+25)")).toBeDefined();
+    expect(screen.getByText("(+25)").className).toContain("text-emerald-400");
+  });
+
+  it("корректно отображает изменение рейтинга (-20) при поражении", () => {
+    render(
+      <GameOverModal
+        winner="KILLER"
+        playerRole="DETECTIVE"
+        mode="MANIAC_VS_OPERATIVE"
+        elapsedTime="02:10"
+        rating={980}
+        ratingDelta={-20}
+        onRestart={mockOnRestart}
+      />
+    );
+
+    expect(screen.getByText("Рейтинг:")).toBeDefined();
+    expect(screen.getByText("980")).toBeDefined();
+    expect(screen.getByText("(-20)")).toBeDefined();
+    expect(screen.getByText("(-20)").className).toContain("text-rose-400");
+  });
 });

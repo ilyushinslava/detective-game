@@ -4,11 +4,24 @@ import { triggerHaptic } from "../utils/haptics";
 import { partyService } from "../utils/partyPeer";
 import type { GameState } from "../types/game";
 
-interface UseMatchEndHandlerParams {
+export interface MatchDetails {
+  mode?: string;
+  winnerRole?: string;
+  role?: string;
+  durationSeconds?: number;
+  mmrDelta?: number;
+}
+
+export interface UseMatchEndHandlerParams {
   gameState: GameState;
   matchResultRecordedRef: MutableRefObject<boolean>;
-  awardPrize: (amount: number) => void;
-  recordMatchResult: (isWin: boolean) => void;
+  awardPrize?: (amount: number) => void;
+  recordMatchResult: (
+    isWin: boolean,
+    details?: MatchDetails
+  ) => Promise<{ newMmr?: number; mmrDelta: number } | void> | void;
+  secondsElapsed?: number;
+  onRatingCalculated?: (ratingInfo: { newMmr?: number; mmrDelta: number; isWin: boolean }) => void;
 }
 
 export function useMatchEndHandler({
@@ -16,10 +29,17 @@ export function useMatchEndHandler({
   matchResultRecordedRef,
   awardPrize,
   recordMatchResult,
+  secondsElapsed,
+  onRatingCalculated,
 }: UseMatchEndHandlerParams) {
   useEffect(() => {
     if (gameState.winner && !matchResultRecordedRef.current) {
+      // Защита от повторной фиксации результата матча
+      matchResultRecordedRef.current = true;
+
       let isLocalWin = false;
+      let localRole = gameState.playerRole || "DETECTIVE";
+
       if (gameState.mode === "SECRET_SERVICE") {
         const mySpyIndex =
           gameState.opponent === "ONLINE"
@@ -30,22 +50,57 @@ export function useMatchEndHandler({
         const mySpy = gameState.spies?.[mySpyIndex];
         isLocalWin =
           (mySpy?.trophies ?? 0) >= (gameState.spyTargetTrophies ?? 3);
+        localRole = "DETECTIVE";
       } else {
-        isLocalWin = gameState.winner === gameState.playerRole || (gameState.playerRole === "DETECTIVE" && gameState.winner === "DETECTIVE");
+        isLocalWin =
+          gameState.winner === gameState.playerRole ||
+          (gameState.playerRole === "DETECTIVE" && gameState.winner === "DETECTIVE");
       }
 
       soundManager.play(isLocalWin ? "win" : "lose");
       triggerHaptic(isLocalWin ? "success" : "warning");
 
-      if (gameState.opponent === "ONLINE") {
-        if (isLocalWin) {
-          awardPrize(gameState.matchPot || 0);
-        }
-        recordMatchResult(isLocalWin);
-      } else {
-        recordMatchResult(isLocalWin);
+      if (gameState.opponent === "ONLINE" && isLocalWin && awardPrize) {
+        awardPrize(gameState.matchPot || 0);
       }
-      matchResultRecordedRef.current = true;
+
+      // Расчет дельты рейтинга (+25 за победу, -20 за поражение)
+      const mmrDelta = isLocalWin ? 25 : -20;
+
+      const matchDetails: MatchDetails = {
+        mode: gameState.mode,
+        winnerRole: gameState.winner,
+        role: localRole,
+        durationSeconds: secondsElapsed || 120,
+        mmrDelta,
+      };
+
+      // Фиксация результатов матча (Supabase + локальный офлайн-кэш)
+      const resPromise = recordMatchResult(isLocalWin, matchDetails);
+
+      if (onRatingCalculated) {
+        if (resPromise && typeof (resPromise as any).then === "function") {
+          (resPromise as Promise<{ newMmr?: number; mmrDelta: number } | void>)
+            .then((res) => {
+              onRatingCalculated({
+                newMmr: res?.newMmr,
+                mmrDelta,
+                isWin: isLocalWin,
+              });
+            })
+            .catch(() => {
+              onRatingCalculated({
+                mmrDelta,
+                isWin: isLocalWin,
+              });
+            });
+        } else {
+          onRatingCalculated({
+            mmrDelta,
+            isWin: isLocalWin,
+          });
+        }
+      }
     }
   }, [
     gameState.winner,
@@ -54,8 +109,10 @@ export function useMatchEndHandler({
     gameState.playerRole,
     gameState.spies,
     gameState.spyTargetTrophies,
+    secondsElapsed,
     awardPrize,
     recordMatchResult,
     matchResultRecordedRef,
+    onRatingCalculated,
   ]);
 }

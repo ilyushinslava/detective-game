@@ -15,6 +15,8 @@ export interface GameOverModalProps {
   elapsedTime: string;
   isMultiplayer?: boolean;
   characterImages?: Record<string, { default: string }>;
+  rating?: number;
+  ratingDelta?: number;
   onRestart?: () => void;
   onExitToMenu?: () => void;
   onRematchSwap?: () => void;
@@ -91,6 +93,8 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   elapsedTime,
   isMultiplayer = false,
   characterImages,
+  rating,
+  ratingDelta,
   onRestart,
   onExitToMenu,
   onRematchSwap,
@@ -282,6 +286,18 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             }`}
           >
             {isVictory ? 'ВАША ПОБЕДА' : 'ВАШЕ ПОРАЖЕНИЕ'}
+          </div>
+        )}
+
+        {rating !== undefined && (
+          <div className="flex items-center gap-1.5 text-xs font-mono mb-3 px-3 py-1 rounded-lg bg-zinc-900/90 border border-white/10 text-zinc-300">
+            <span>Рейтинг:</span>
+            <span className="font-bold text-white">{rating}</span>
+            {ratingDelta !== undefined && (
+              <span className={`font-bold ${ratingDelta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                ({ratingDelta >= 0 ? `+${ratingDelta}` : ratingDelta})
+              </span>
+            )}
           </div>
         )}
 

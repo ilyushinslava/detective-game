@@ -59,7 +59,7 @@ export default {
         },
       },
       animation: {
-        'liquid': 'liquid-gradient 14s ease infinite',
+        'liquid': 'liquid-gradient 24s ease infinite',
       },
     },
   },

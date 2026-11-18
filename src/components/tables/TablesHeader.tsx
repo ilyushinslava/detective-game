@@ -63,11 +63,8 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
           )}
           <div className="flex flex-col select-none min-w-0">
             <h1 className="text-base sm:text-lg font-display font-black tracking-widest uppercase text-white truncate">
-              Сеть // Радар операций
+              Сетевая игра
             </h1>
-            <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase -mt-0.5 hidden xs:inline">
-              Сетевой шлюз открытых и приватных комнат
-            </span>
           </div>
         </div>
 
@@ -118,7 +115,7 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
       </div>
 
       {/* Компактная линейка фильтров */}
-      <div className="flex items-center gap-1.5 px-4 sm:px-6 py-2 overflow-x-auto no-scrollbar shrink-0 border-t border-white/[0.04]">
+      <div className="w-full flex items-center justify-center flex-wrap gap-2.5 px-4 sm:px-6 py-2 border-t border-white/[0.04] shrink-0">
         {roomFilters.map((filter) => {
           const isActive = roomFilter === filter.id;
           return (
@@ -129,7 +126,7 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
                 if (soundManager?.play) soundManager.play("tapMenu");
                 onFilterChange(filter.id);
               }}
-              className={`h-6 px-2.5 text-[10px] font-mono font-bold uppercase tracking-wider rounded-md transition-colors duration-150 cursor-pointer select-none shrink-0 border focus:outline-none active:scale-95 ${
+              className={`h-6 px-3 text-[10px] font-mono font-bold uppercase tracking-wider rounded-md transition-colors duration-150 cursor-pointer select-none shrink-0 border focus:outline-none active:scale-95 ${
                 isActive
                   ? "bg-white/15 text-white border-white/20 shadow-xs"
                   : "bg-transparent text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] border-transparent"

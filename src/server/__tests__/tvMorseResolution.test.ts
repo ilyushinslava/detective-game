@@ -212,5 +212,87 @@ describe("TV Tactical Morse Resolution & Collision Invariants (TASK-NET-002)", (
       expect(publicRoom.morseCode).toBe(".......");
       expect(secretRoom.morseCode).toBeUndefined();
     });
+
+    it("verifies morse password via HTTP action=verify_morse", async () => {
+      publicRoomsRegistry.set("room-sec-99", {
+        roomCode: "room-sec-99",
+        morseCode: "...---...",
+        mode: "MANIAC_VS_OPERATIVE",
+        hostName: "Secret Agent",
+        status: "WAITING",
+        playersCount: 1,
+        maxPlayers: 2,
+        isPrivate: true,
+      });
+      roomToMorseRegistry.set("room-sec-99", "...---...");
+
+      const mockRoom = { id: "parties/main/server-test" };
+      const server = new GameRoomServer(mockRoom);
+
+      // Неверный шифр
+      const reqBad = new Request("http://localhost:1999/party/main?action=verify_morse&roomCode=room-sec-99&morse=.-.-.-.");
+      const resBad = await server.onRequest(reqBad);
+      expect(resBad.status).toBe(400);
+      const dataBad = await resBad.json();
+      expect(dataBad.ok).toBe(false);
+      expect(dataBad.error).toBe("INVALID_MORSE_CODE");
+
+      // Верный шифр
+      const reqGood = new Request("http://localhost:1999/party/main?action=verify_morse&roomCode=room-sec-99&morse=...---...");
+      const resGood = await server.onRequest(reqGood);
+      expect(resGood.status).toBe(200);
+      const dataGood = await resGood.json();
+      expect(dataGood.ok).toBe(true);
+      expect(dataGood.roomCode).toBe("room-sec-99");
+    });
+
+    it("enforces morse password on WebSocket onConnect for private rooms", () => {
+      const mockRoom = { id: "parties/main/priv-room-101" };
+      const server = new GameRoomServer(mockRoom);
+      const expectedMorse = server.getMorseCode();
+
+      // 1. Хост подключается и создает приватную комнату
+      const hostMessages: any[] = [];
+      const hostConn = {
+        id: "host_conn_1",
+        send: (msg: string) => hostMessages.push(JSON.parse(msg)),
+        close: () => {},
+      };
+      server.onConnect(hostConn, {
+        request: new Request("http://localhost:1999/party/priv-room-101?clientId=host_1&nickname=Host&isHost=true&isPrivate=true"),
+      });
+      expect(server.state.isPrivate).toBe(true);
+      expect(server.state.players["host_1"]).toBeDefined();
+
+      // 2. Гость пробует подключиться без шифра Морзе -> сервер блокирует сокет
+      const guestBadMessages: any[] = [];
+      let guestBadClosed = false;
+      const guestBadConn = {
+        id: "guest_bad_conn",
+        send: (msg: string) => guestBadMessages.push(JSON.parse(msg)),
+        close: () => { guestBadClosed = true; },
+      };
+      server.onConnect(guestBadConn, {
+        request: new Request("http://localhost:1999/party/priv-room-101?clientId=guest_bad&nickname=GuestBad&isHost=false"),
+      });
+      expect(guestBadClosed).toBe(true);
+      expect(guestBadMessages).toContainEqual({ type: "ERROR", message: "INVALID_MORSE_CODE" });
+      expect(server.state.players["guest_bad"]).toBeUndefined();
+
+      // 3. Гость подключается с правильным шифром Морзе -> сервер разрешает вход
+      const guestGoodMessages: any[] = [];
+      let guestGoodClosed = false;
+      const guestGoodConn = {
+        id: "guest_good_conn",
+        send: (msg: string) => guestGoodMessages.push(JSON.parse(msg)),
+        close: () => { guestGoodClosed = true; },
+      };
+      server.onConnect(guestGoodConn, {
+        request: new Request(`http://localhost:1999/party/priv-room-101?clientId=guest_good&nickname=GuestGood&isHost=false&morse=${expectedMorse}`),
+      });
+      expect(guestGoodClosed).toBe(false);
+      expect(server.state.players["guest_good"]).toBeDefined();
+      expect(guestGoodMessages.some((m) => m.type === "AUTH_TOKEN")).toBe(true);
+    });
   });
 });

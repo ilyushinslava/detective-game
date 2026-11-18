@@ -85,8 +85,8 @@ describe("TablesScreen", () => {
     fireEvent.click(closeErrorBtn);
     expect(mockClear).toHaveBeenCalled();
 
-    // В переполненной комнате кнопка заблокирована
-    const fullBtn = screen.getByRole("button", { name: /СТОЛ ПОЛОН/i });
+    // В переполненной комнате кнопка заблокирована со стандартным текстом ЗАПОЛНЕНО
+    const fullBtn = screen.getByRole("button", { name: /ЗАПОЛНЕНО/i });
     expect(fullBtn).toBeDefined();
     expect((fullBtn as HTMLButtonElement).disabled).toBe(true);
   });
@@ -114,9 +114,9 @@ describe("TablesScreen", () => {
     const privateTabBtn = screen.getByRole("button", { name: /Приватные игры/i });
     fireEvent.click(privateTabBtn);
 
-    // Должна отображаться только приватная комната
+    // Должна отображаться только приватная комната (без дублирующего бейджа ЗАКРЫТАЯ)
     expect(screen.getByText(/Секретный Агент/i)).toBeDefined();
-    expect(screen.getByText(/ЗАКРЫТАЯ/i)).toBeDefined();
+    expect(screen.queryByText(/ЗАКРЫТАЯ/i)).toBeNull();
     expect(screen.queryByText(/Открытый Хост/i)).toBeNull();
 
     // Кликаем по кнопке ввода шифра к выбранной приватной комнате
@@ -173,5 +173,20 @@ describe("TablesScreen", () => {
     
     // Статус отображается строгим моноширинным текстом
     expect(screen.getByText("ОЖИДАНИЕ")).toBeDefined();
+  });
+
+  it("приводит тексты неактивных кнопок к единому стандарту и не содержит shadow-neon-blue", () => {
+    const rooms = [
+      { roomCode: "room-full", hostName: "FullHost", mode: "SKHVATKA", playersCount: 2, maxPlayers: 2, isPrivate: false, status: "FULL" },
+      { roomCode: "room-ingame", hostName: "PlayingHost", mode: "SKHVATKA", playersCount: 2, maxPlayers: 2, isPrivate: false, status: "PLAYING" },
+    ];
+    const { container } = render(<TablesScreen {...defaultProps} filteredRooms={rooms} />);
+    
+    // Единый стандарт: ЗАПОЛНЕНО и ИДЁТ МАТЧ на кнопках
+    expect(screen.getByRole("button", { name: /^ЗАПОЛНЕНО$/i })).toBeDefined();
+    expect(screen.getByRole("button", { name: /^ИДЁТ МАТЧ$/i })).toBeDefined();
+    
+    // Отсутствие кислотного неона
+    expect(container.querySelector(".shadow-neon-blue")).toBeNull();
   });
 });

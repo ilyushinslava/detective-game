@@ -34,13 +34,14 @@ export interface UseLobbyNetworkOptions {
 
 export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetworkOptions) {
   const [useMockRooms, setUseMockRooms] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
+    if (import.meta.env.DEV && typeof window !== "undefined") {
       return localStorage.getItem("crime_city_mock_tables") === "true";
     }
     return false;
   });
 
   const toggleMockRooms = () => {
+    if (!import.meta.env.DEV) return;
     setUseMockRooms((prev) => {
       const next = !prev;
       if (typeof window !== "undefined") {
@@ -51,7 +52,7 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
   };
 
   const [publicRooms, setPublicRooms] = useState<PublicRoomInfo[]>(() => {
-    if (typeof window !== "undefined" && localStorage.getItem("crime_city_mock_tables") === "true") {
+    if (import.meta.env.DEV && typeof window !== "undefined" && localStorage.getItem("crime_city_mock_tables") === "true") {
       return MOCK_NETWORK_ROOMS as any;
     }
     return [];
@@ -188,7 +189,8 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
     mode: GameModeType,
     isHost: boolean,
     _bet: number = DEFAULT_BET,
-    isPrivate: boolean = false
+    isPrivate: boolean = false,
+    morseCode?: string
   ) => {
     const cleanCode = String(code).trim();
     partyService.roomCode = cleanCode;
@@ -209,7 +211,7 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
       })
     );
 
-    partyService.connect(cleanCode, profile.nickname || "Агент", isHost, mode, undefined, undefined, isPrivate);
+    partyService.connect(cleanCode, profile.nickname || "Агент", isHost, mode, undefined, undefined, isPrivate, morseCode);
   };
 
   const handleQuickPlay = async () => {
@@ -260,12 +262,12 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
     connectToPartyRoom(code, createRoomMode, true, createRoomBet, createRoomIsPrivate);
   };
 
-  const handleJoinRoom = (code: string, mode?: GameModeType) => {
+  const handleJoinRoom = (code: string, mode?: GameModeType, morseCode?: string) => {
     const cleanCode = String(code).trim();
     if (!cleanCode) return;
     triggerHaptic("light");
     setIsCreating(true);
-    connectToPartyRoom(cleanCode, mode || "MANIAC_VS_OPERATIVE", false, 0, false);
+    connectToPartyRoom(cleanCode, mode || "MANIAC_VS_OPERATIVE", false, 0, false, morseCode);
   };
 
   const handleCancelWaiting = () => {

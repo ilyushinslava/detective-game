@@ -79,6 +79,7 @@ export function parseAndValidatePacket(raw: unknown): any | null {
 class PartyService {
   roomCode: string = "";
   morseCode: string | null = null;
+  isPrivate: boolean = false;
   myClientId: string = "local-stub";
   authToken: string | null = null;
   isHost: boolean = true;
@@ -281,7 +282,8 @@ class PartyService {
     mode: string,
     clientId?: string,
     clientType?: string,
-    isPrivate?: boolean
+    isPrivate?: boolean,
+    morseCode?: string
   ): void {
     if (!roomCode || !roomCode.trim()) {
       console.warn("[PartyService] Attempted to connect with empty roomCode, aborting.");
@@ -308,6 +310,10 @@ class PartyService {
     this.isHost = isHost;
     this.nick = nickname || "Агент";
     this.mode = mode || "MANIAC_VS_OPERATIVE";
+    this.isPrivate = Boolean(isPrivate);
+    if (morseCode !== undefined) {
+      this.morseCode = morseCode ? normalizeMorse(morseCode) : null;
+    }
     if (savedClientType) this.clientType = savedClientType;
     this.myClientId = clientId || `client_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     if (!this.authToken && typeof sessionStorage !== "undefined" && roomCode) {
@@ -327,8 +333,9 @@ class PartyService {
 
     const encodedNick = encodeURIComponent(this.nick);
     const authParam = this.authToken ? `&authToken=${encodeURIComponent(this.authToken)}` : "";
-    const privateParam = isPrivate ? `&isPrivate=true` : "";
-    const url = `${wsProtocol}//${host}/party/${roomCode}?clientId=${this.myClientId}&nickname=${encodedNick}&isHost=${this.isHost}&mode=${this.mode}&randomRoles=true${this.clientType ? `&clientType=${this.clientType}` : ""}${privateParam}${authParam}`;
+    const privateParam = this.isPrivate ? `&isPrivate=true` : "";
+    const morseParam = this.morseCode ? `&morse=${encodeURIComponent(this.morseCode)}` : "";
+    const url = `${wsProtocol}//${host}/party/${roomCode}?clientId=${this.myClientId}&nickname=${encodedNick}&isHost=${this.isHost}&mode=${this.mode}&randomRoles=true${this.clientType ? `&clientType=${this.clientType}` : ""}${privateParam}${morseParam}${authParam}`;
 
     try {
       const ws = new WebSocket(url);
@@ -467,7 +474,16 @@ class PartyService {
             );
             this.reconnectTimeout = setTimeout(() => {
               if (!this.isExplicitDisconnect && this.roomCode) {
-                this.connect(this.roomCode, this.nick, this.isHost, this.mode, this.myClientId, this.clientType);
+                this.connect(
+                  this.roomCode,
+                  this.nick,
+                  this.isHost,
+                  this.mode,
+                  this.myClientId,
+                  this.clientType || undefined,
+                  this.isPrivate,
+                  this.morseCode || undefined
+                );
               }
             }, delay);
           } else if (!this.isExplicitDisconnect) {
@@ -612,7 +628,20 @@ class PartyService {
         if (expected && expected === cleanMorse) {
           return { ok: true, roomCode };
         }
+        const { MOCK_PRIVATE_ROOM_PASSWORDS } = await import("./mockRooms");
+        if (MOCK_PRIVATE_ROOM_PASSWORDS[roomCode] && MOCK_PRIVATE_ROOM_PASSWORDS[roomCode] === cleanMorse) {
+          return { ok: true, roomCode };
+        }
         return { ok: false, error: "INVALID_MORSE_CODE" };
+      } catch (_) {}
+    }
+
+    if (import.meta.env.DEV) {
+      try {
+        const { MOCK_PRIVATE_ROOM_PASSWORDS } = await import("./mockRooms");
+        if (MOCK_PRIVATE_ROOM_PASSWORDS[roomCode] && MOCK_PRIVATE_ROOM_PASSWORDS[roomCode] === cleanMorse) {
+          return { ok: true, roomCode };
+        }
       } catch (_) {}
     }
 

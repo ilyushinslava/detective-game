@@ -140,7 +140,7 @@ describe("ControllerConnectView Component (TASK-NET-002 & Phase 8 Tabs)", () => 
       fireEvent.click(submitBtn);
     });
 
-    expect(connectSpy).toHaveBeenCalledWith("room-alpha-99");
+    expect(connectSpy).toHaveBeenCalledWith("room-alpha-99", ".......");
   });
 
   it("отклоняет неверный пароль Морзе для целевой комнаты targetRoomCode", async () => {
@@ -173,7 +173,7 @@ describe("ControllerConnectView Component (TASK-NET-002 & Phase 8 Tabs)", () => 
     });
 
     expect(connectSpy).not.toHaveBeenCalled();
-    expect(screen.getByText(/Неверный шифр доступа/i)).toBeDefined();
+    expect(await screen.findByText(/Неверный шифр доступа/i)).toBeDefined();
   });
 
   it("успешно верифицирует пароль Морзе для targetRoomCode", async () => {
@@ -212,6 +212,6 @@ describe("ControllerConnectView Component (TASK-NET-002 & Phase 8 Tabs)", () => 
       fireEvent.click(submitBtn);
     });
 
-    expect(connectSpy).toHaveBeenCalledWith("room-priv-xyz");
+    expect(connectSpy).toHaveBeenCalledWith("room-priv-xyz", "......-");
   });
 });

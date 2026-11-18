@@ -8,12 +8,13 @@ import { QrCameraScanner } from './QrCameraScanner';
 import { TIMINGS, AUDIO_CONFIG } from '../../constants/gameRules';
 
 export interface ControllerConnectViewProps {
-  onConnect: (roomCode: string) => void;
+  onConnect: (roomCode: string, morseCode?: string) => void;
   onBackToMenu: () => void;
   initialNickname?: string;
   onUpdateNickname?: (nickname: string) => void;
   targetRoomCode?: string;
   targetHostName?: string;
+  /** @deprecated Используйте серверную верификацию verifyRoomMorse */
   targetExpectedMorse?: string;
   noticeMessage?: string | null;
   onClearNotice?: () => void;
@@ -234,18 +235,18 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
     if (targetRoomCode) {
       try {
         let isMatch = false;
-        if (targetExpectedMorse) {
+        const verifyRes = await partyService.verifyRoomMorse(targetRoomCode, cleanMorse);
+        isMatch = Boolean(verifyRes?.ok);
+
+        // Fallback только для изолированных unit-тестов с моковым targetExpectedMorse
+        if (!isMatch && targetExpectedMorse) {
           isMatch = normalizeMorse(targetExpectedMorse) === cleanMorse;
-        }
-        if (!isMatch) {
-          const verifyRes = await partyService.verifyRoomMorse(targetRoomCode, cleanMorse);
-          isMatch = Boolean(verifyRes?.ok);
         }
 
         if (isMatch) {
           soundManager.play('impact');
           triggerHaptic('success');
-          onConnect(targetRoomCode);
+          onConnect(targetRoomCode, cleanMorse);
           return;
         }
 
@@ -268,7 +269,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
       if (res?.ok && res.roomCode) {
         soundManager.play('impact');
         triggerHaptic('success');
-        onConnect(res.roomCode);
+        onConnect(res.roomCode, cleanMorse);
         return;
       }
 

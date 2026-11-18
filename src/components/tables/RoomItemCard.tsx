@@ -25,7 +25,7 @@ export const RoomItemCard: React.FC<RoomItemCardProps> = ({
   const isInGame = room.status === "PLAYING" || room.status === "IN_GAME";
 
   return (
-    <div className="bg-gradient-to-br from-background-surface/90 to-background-main/80 hover:from-background-surface hover:to-background-surface/80 border border-border-subtle hover:border-accent-primary/50 border-t border-t-border-strong rounded-2xl p-4 flex flex-col gap-3.5 backdrop-blur-2xl shadow-lg hover:shadow-neon-blue hover:scale-[1.01] transition-all duration-200 group">
+    <div className="bg-gradient-to-br from-background-surface/90 to-background-main/80 hover:from-background-surface hover:to-background-surface/80 border border-border-subtle hover:border-white/20 border-t border-t-border-strong rounded-2xl p-4 flex flex-col gap-3.5 backdrop-blur-2xl shadow-md hover:scale-[1.01] transition-all duration-200 group">
       <div className="flex items-start justify-between">
         <div className="flex flex-col min-w-0 pr-2">
           <div className="flex items-center gap-2 mb-1">
@@ -35,15 +35,6 @@ export const RoomItemCard: React.FC<RoomItemCardProps> = ({
             <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest truncate">
               {room.hostName || "Игрок"}
             </span>
-            {isPrivateRoom && (
-              <span className="text-[10px] font-mono font-bold text-zinc-300 bg-zinc-900/80 border border-white/10 px-2 py-0.5 rounded-full flex items-center gap-1.5 shrink-0">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3 h-3 text-zinc-400">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-                ЗАКРЫТАЯ
-              </span>
-            )}
           </div>
           <span className="text-xs sm:text-sm font-black text-zinc-100 uppercase tracking-wider truncate group-hover:text-white transition-colors">
             {modeTitle}
@@ -79,19 +70,19 @@ export const RoomItemCard: React.FC<RoomItemCardProps> = ({
             variant="secondary"
             disabled={isFull || isInGame}
             onClick={() => onSelectPrivateRoom(room)}
-            className={`px-5 h-10 text-xs font-mono font-bold uppercase tracking-wider rounded-xl border border-white/15 ${
+            className={`px-5 h-10 text-xs font-mono font-bold uppercase tracking-wider rounded-xl border ${
               isFull || isInGame
-                ? "text-zinc-600 border-white/5 bg-zinc-950/40 cursor-not-allowed"
-                : "text-zinc-200 hover:border-white/30 hover:text-white bg-zinc-900/90 shadow-md cursor-pointer"
+                ? "text-zinc-400 border-white/10 bg-zinc-900/60 cursor-not-allowed"
+                : "text-zinc-200 hover:border-white/30 hover:text-white bg-zinc-800 hover:bg-zinc-700 shadow-sm cursor-pointer border-white/15"
             }`}
           >
-            {isFull ? "ЗАПОЛНЕНО" : "Ввести шифр ➔"}
+            {isInGame ? "ИДЁТ МАТЧ" : isFull ? "ЗАПОЛНЕНО" : "Ввести шифр ➔"}
           </Button>
         ) : isJoining ? (
           <Button
-            variant="primary-info"
+            variant="secondary"
             disabled
-            className="px-5 h-10 text-xs font-mono font-bold uppercase tracking-wider rounded-xl bg-blue-700/80 text-white border border-blue-400/30 flex items-center gap-2 cursor-wait shadow-neon-blue"
+            className="px-5 h-10 text-xs font-mono font-bold uppercase tracking-wider rounded-xl bg-zinc-800 text-zinc-300 border border-white/15 flex items-center gap-2 cursor-wait shadow-sm"
           >
             <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
             ВХОД...
@@ -100,15 +91,15 @@ export const RoomItemCard: React.FC<RoomItemCardProps> = ({
           <Button
             variant="secondary"
             disabled
-            className="px-5 h-10 text-xs font-mono font-bold uppercase tracking-wider rounded-xl border border-white/5 text-zinc-600 bg-zinc-950/40 cursor-not-allowed"
+            className="px-5 h-10 text-xs font-mono font-bold uppercase tracking-wider rounded-xl border border-white/10 text-zinc-400 bg-zinc-900/60 cursor-not-allowed"
           >
-            {isInGame ? "ИДЁТ МАТЧ" : "СТОЛ ПОЛОН"}
+            {isInGame ? "ИДЁТ МАТЧ" : "ЗАПОЛНЕНО"}
           </Button>
         ) : (
           <Button
-            variant="primary-info"
+            variant="secondary"
             onClick={() => onJoinRoom(room.roomCode, room.mode)}
-            className="px-5 h-10 text-xs font-mono font-bold uppercase tracking-wider rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-neon-blue border border-blue-400/30 cursor-pointer transition active:scale-95 duration-75"
+            className="px-5 h-10 text-xs font-mono font-bold uppercase tracking-wider rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white border border-white/15 hover:border-white/30 cursor-pointer transition active:scale-95 duration-75 shadow-sm"
           >
             Войти ➔
           </Button>

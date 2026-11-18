@@ -2,7 +2,6 @@ import type { PublicRoomInfo } from "../hooks/useLobbyNetwork";
 
 export interface MockRoomInfo extends PublicRoomInfo {
   isPrivate?: boolean;
-  morseCode?: string;
 }
 
 export const MOCK_NETWORK_ROOMS: MockRoomInfo[] = [
@@ -98,7 +97,6 @@ export const MOCK_NETWORK_ROOMS: MockRoomInfo[] = [
     maxPlayers: 2,
     bet: 500,
     isPrivate: true,
-    morseCode: "...---...",
   },
   {
     roomCode: "room_priv_safe",
@@ -109,7 +107,6 @@ export const MOCK_NETWORK_ROOMS: MockRoomInfo[] = [
     maxPlayers: 2,
     bet: 1000,
     isPrivate: true,
-    morseCode: ".-.-.-.",
   },
   {
     roomCode: "room_priv_thief",
@@ -120,7 +117,6 @@ export const MOCK_NETWORK_ROOMS: MockRoomInfo[] = [
     maxPlayers: 2,
     bet: 250,
     isPrivate: true,
-    morseCode: "--..--..",
   },
   {
     roomCode: "room_priv_full",
@@ -131,6 +127,13 @@ export const MOCK_NETWORK_ROOMS: MockRoomInfo[] = [
     maxPlayers: 2,
     bet: 5000,
     isPrivate: true,
-    morseCode: ".-.-...",
   },
 ];
+
+export const MOCK_PRIVATE_ROOM_PASSWORDS: Record<string, string> = {
+  room_priv_cipher: "...---...",
+  room_priv_safe: ".-.-.-.",
+  room_priv_thief: "--..--..",
+  room_priv_full: ".-.-...",
+};
+

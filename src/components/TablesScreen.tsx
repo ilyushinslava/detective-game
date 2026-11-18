@@ -12,7 +12,7 @@ interface TablesScreenProps {
   filteredRooms: any[];
   joinCode?: string;
   setJoinCode?: (code: string) => void;
-  handleJoinRoom: (code: string, mode?: any) => void;
+  handleJoinRoom: (code: string, mode?: any, morseCode?: string) => void;
   setIsCreateRoomOpen: (open: boolean) => void;
   ROOM_FILTERS: Array<{ id: string; label: string }>;
   GAME_MODES: any[];
@@ -149,10 +149,10 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
       <div className="w-full shrink-0 bg-background-main/90 backdrop-blur-md border-t border-border-subtle p-4 flex justify-center z-20">
         <div className="w-full max-w-md">
           <Button
-            variant="primary-info"
+            variant="secondary"
             fullWidth
             onClick={() => setIsCreateRoomOpen(true)}
-            className="py-3.5 text-[10px] font-black uppercase tracking-widest rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-neon-blue border border-blue-400/30 touch-manipulation active:scale-95 duration-75"
+            className="py-3.5 text-[10px] font-black uppercase tracking-widest rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white border border-white/20 hover:border-white/30 touch-manipulation active:scale-95 duration-75 shadow-sm"
           >
             + Создать партию
           </Button>
@@ -171,11 +171,11 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
               initialTab="MORSE"
               targetRoomCode={selectedPrivateRoom?.roomCode}
               targetHostName={selectedPrivateRoom?.hostName}
-              targetExpectedMorse={selectedPrivateRoom?.morseCode}
-              onConnect={(roomCode) => {
+              onConnect={(roomCode, morseCode) => {
                 setIsMorseOpen(false);
+                const roomMode = selectedPrivateRoom?.mode;
                 setSelectedPrivateRoom(null);
-                handleJoinRoom(roomCode);
+                handleJoinRoom(roomCode, roomMode, morseCode);
               }}
               onBackToMenu={() => {
                 setIsMorseOpen(false);

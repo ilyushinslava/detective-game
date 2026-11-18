@@ -314,6 +314,31 @@ export default class GameRoomServer {
     }
     const url = new URL(req.url);
 
+    if (url.searchParams.get("action") === "verify_morse") {
+      const targetRoomCode = url.searchParams.get("roomCode");
+      const submittedMorse = normalizeMorse(url.searchParams.get("morse") || "");
+      const targetMeta = targetRoomCode ? publicRoomsRegistry.get(targetRoomCode) : null;
+      const expectedMorse = targetRoomCode
+        ? roomToMorseRegistry.get(targetRoomCode) || targetMeta?.morseCode
+        : null;
+
+      if (targetMeta && expectedMorse && normalizeMorse(expectedMorse) === submittedMorse) {
+        return new Response(JSON.stringify({ ok: true, roomCode: targetRoomCode }), {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      }
+      return new Response(JSON.stringify({ ok: false, error: "INVALID_MORSE_CODE" }), {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
     // Резолв комнат по короткому Морзе-позывному или цифровому PIN-коду (TASK-NET-002)
     const isResolveRequest =
       url.pathname.endsWith("/resolve") ||
@@ -413,31 +438,6 @@ export default class GameRoomServer {
           },
         }
       );
-    }
-
-    if (url.searchParams.get("action") === "verify_morse") {
-      const targetRoomCode = url.searchParams.get("roomCode");
-      const submittedMorse = normalizeMorse(url.searchParams.get("morse") || "");
-      const targetMeta = targetRoomCode ? publicRoomsRegistry.get(targetRoomCode) : null;
-      const expectedMorse = targetRoomCode
-        ? roomToMorseRegistry.get(targetRoomCode) || targetMeta?.morseCode
-        : null;
-
-      if (targetMeta && expectedMorse && normalizeMorse(expectedMorse) === submittedMorse) {
-        return new Response(JSON.stringify({ ok: true, roomCode: targetRoomCode }), {
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-        });
-      }
-      return new Response(JSON.stringify({ ok: false, error: "INVALID_MORSE_CODE" }), {
-        status: 400,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-      });
     }
 
     const isRoomsListRequest =
@@ -704,6 +704,20 @@ export default class GameRoomServer {
       } catch (_err) {}
       console.warn(`[GameRoomServer] Connection rejected: room ${roomCode} is full (${activePlayersCount}/${maxPlayersForMode}).`);
       return;
+    }
+
+    // Защита приватных комнат: подключение гостя без верного шифра Морзе блокируется сервером
+    if (!isHost && this.state.isPrivate) {
+      const incomingMorse = normalizeMorse(url.searchParams.get("morse") || "");
+      const expectedMorse = normalizeMorse(this.getMorseCode() || roomToMorseRegistry.get(roomCode) || "");
+      if (!incomingMorse || incomingMorse !== expectedMorse) {
+        try {
+          conn.send(JSON.stringify({ type: "ERROR", message: "INVALID_MORSE_CODE" }));
+          conn.close();
+        } catch (_err) {}
+        console.warn(`[GameRoomServer] Connection rejected: invalid morse code for private room ${roomCode}.`);
+        return;
+      }
     }
 
     if (isHost || activePlayersCount === 0) {

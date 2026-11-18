@@ -77,37 +77,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
 
   // Логика аутентификации и защиты аккаунта
-  const { isAnonymous, linkAccount } = useAuthSafe();
-  const [accountLogin, setAccountLogin] = useState('');
-  const [accountPassword, setAccountPassword] = useState('');
-  const [accountError, setAccountError] = useState<string | null>(null);
-  const [isAccountLinking, setIsAccountLinking] = useState(false);
+  const { isAnonymous } = useAuthSafe();
   const [isAccountProtectedSuccess, setIsAccountProtectedSuccess] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<"CREATE_PROFILE" | "SIGN_IN">("CREATE_PROFILE");
-
-  const handleLinkAccount = async () => {
-    setAccountError(null);
-    setIsAccountLinking(true);
-    try {
-      const res = await linkAccount(accountLogin, accountPassword);
-      if (res.success) {
-        soundManager.play('confirm');
-        triggerHaptic('success');
-        setIsAccountProtectedSuccess(true);
-      } else {
-        soundManager.play('error');
-        triggerHaptic('warning');
-        setAccountError(res.error || 'Ошибка привязки аккаунта');
-      }
-    } catch (err: any) {
-      soundManager.play('error');
-      triggerHaptic('warning');
-      setAccountError(err?.message || 'Ошибка сети');
-    } finally {
-      setIsAccountLinking(false);
-    }
-  };
 
   // Расчет статистики
   const totalGames = profile.matchesPlayed || (profile.stats?.wins || 0) + (profile.stats?.losses || 0);
@@ -153,11 +126,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-background-panel/60 via-background-main to-background-main text-zinc-100 flex flex-col font-sans select-none overflow-x-hidden relative">
-      {/* Размытые фоновые сферы неонового света */}
-      <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-accent-primary/15 blur-3xl pointer-events-none" />
-      <div className="absolute top-1/3 -right-32 w-80 h-80 rounded-full bg-accent-purple/15 blur-3xl pointer-events-none" />
-
+    <div className="min-h-screen bg-transparent text-zinc-100 flex flex-col font-sans select-none overflow-x-hidden relative">
       {/* Шапка экрана */}
       <header className="sticky top-0 z-20 bg-background-main/90 backdrop-blur-md border-b border-border-subtle px-4 py-3 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
@@ -309,20 +278,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         <AccountSecurityCard
           isAnonymous={isAnonymous}
           isAccountProtectedSuccess={isAccountProtectedSuccess}
-          accountLogin={accountLogin}
-          setAccountLogin={setAccountLogin}
-          accountPassword={accountPassword}
-          setAccountPassword={setAccountPassword}
-          accountError={accountError}
-          setAccountError={setAccountError}
-          isAccountLinking={isAccountLinking}
-          onLinkAccount={handleLinkAccount}
-          onOpenLoginModal={() => {
-            setAuthModalTab("SIGN_IN");
+          onOpenAuthModal={() => {
+            setAuthModalTab("CREATE_PROFILE");
             setIsLoginModalOpen(true);
           }}
-          onOpenCreateProfile={() => {
-            setAuthModalTab("CREATE_PROFILE");
+          onOpenLoginModal={() => {
+            setAuthModalTab("SIGN_IN");
             setIsLoginModalOpen(true);
           }}
           translations={p}

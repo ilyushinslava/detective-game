@@ -48,6 +48,19 @@ export default {
         display: ["Oswald", "Rajdhani", "Inter", "sans-serif"],
         mono: ["JetBrains Mono", "Fira Code", "ui-monospace", "SFMono-Regular", "monospace"],
       },
+      keyframes: {
+        'liquid-gradient': {
+          '0%, 100%': {
+            'background-position': '0% 50%',
+          },
+          '50%': {
+            'background-position': '100% 50%',
+          },
+        },
+      },
+      animation: {
+        'liquid': 'liquid-gradient 14s ease infinite',
+      },
     },
   },
   plugins: [],

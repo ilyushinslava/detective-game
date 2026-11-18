@@ -22,6 +22,7 @@ import { soundManager } from "./utils/audio";
 import { triggerHaptic } from "./utils/haptics";
 import type { GameAction } from "./types/multiplayer";
 import { Button } from "./components/ui/Button";
+import { LiquidBackground } from "./components/ui/LiquidBackground";
 import type { ShiftPayload } from "./types/game";
 import { gameReducer } from "./utils/gameReducer";
 import { BannerViewerProvider } from "./contexts/BannerViewerContext";
@@ -960,6 +961,9 @@ export default function App() {
           window.location.reload();
         }}
       />
+
+      {/* Анимированный Liquid-фон для всех игровых экранов и режимов (вне Главного меню) */}
+      {!isLobbyOpen && <LiquidBackground />}
 
       <div 
         className={`w-full ${isLobbyOpen ? "max-w-full" : "max-w-7xl"} mx-auto h-full relative flex flex-col overflow-hidden`}

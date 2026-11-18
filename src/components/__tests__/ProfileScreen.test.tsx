@@ -128,29 +128,26 @@ describe("ProfileScreen", () => {
     }
   });
 
-  it("отображает блок 'СОХРАНЕНИЕ ПРОГРЕССА' со строгим предупреждением для анонимного профиля", () => {
+  it("отображает блок 'СОХРАНЕНИЕ ПРОГРЕССА' с кнопкой призыва для анонимного профиля", () => {
     render(<ProfileScreen profile={defaultProfile} onUpdateProfile={vi.fn()} />);
 
     expect(screen.getByText("СОХРАНЕНИЕ ПРОГРЕССА")).toBeDefined();
     expect(
       screen.getByText(/Создайте профиль, чтобы навсегда сохранить текущий рейтинг, статистику и монеты/i)
     ).toBeDefined();
-    expect(screen.getByPlaceholderText("agent_77")).toBeDefined();
-    expect(screen.getByRole("button", { name: /СОЗДАТЬ ПРОФИЛЬ/i })).toBeDefined();
+    expect(screen.getByRole("button", { name: /СОЗДАТЬ ПРОФИЛЬ \/ ВОЙТИ/i })).toBeDefined();
+    // Встроенные инпуты перенесены в AuthModal и отсутствуют в карточке
+    expect(screen.queryByPlaceholderText("agent_77")).toBeNull();
   });
 
-  it("при успешной привязке логина и пароля отображает зеленый бейдж 'АККАУНТ ЗАЩИЩЕН'", async () => {
+  it("по клику на кнопку 'СОЗДАТЬ ПРОФИЛЬ / ВОЙТИ' открывает модальное окно AuthModal", () => {
     render(<ProfileScreen profile={defaultProfile} onUpdateProfile={vi.fn()} />);
 
-    const loginInput = screen.getByPlaceholderText("agent_77");
-    const passInput = screen.getByPlaceholderText("••••••••");
-    const protectBtn = screen.getByRole("button", { name: /СОЗДАТЬ ПРОФИЛЬ/i });
+    const authBtn = screen.getByRole("button", { name: /СОЗДАТЬ ПРОФИЛЬ \/ ВОЙТИ/i });
+    fireEvent.click(authBtn);
 
-    fireEvent.change(loginInput, { target: { value: "detective_99" } });
-    fireEvent.change(passInput, { target: { value: "securePass123" } });
-    fireEvent.click(protectBtn);
-
-    expect(await screen.findByText("АККАУНТ ЗАЩИЩЕН")).toBeDefined();
-    expect(screen.queryByText("СОХРАНЕНИЕ ПРОГРЕССА")).toBeNull();
+    // Модальное окно AuthModal открыто на вкладке создания профиля
+    expect(screen.getByText("СОЗДАНИЕ ПРОФИЛЯ")).toBeDefined();
+    expect(screen.getByPlaceholderText("agent_77")).toBeDefined();
   });
 });

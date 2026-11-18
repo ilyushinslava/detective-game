@@ -9,6 +9,7 @@ import { getGameModesList } from "../constants/gameMeta";
 import { useTranslation } from "../i18n/context";
 import { useLobbyNetwork } from "../hooks/useLobbyNetwork";
 import { Icons } from "./ui/Icons";
+import { LiquidBackground } from "./ui/LiquidBackground";
 import { TablesScreen } from "./TablesScreen";
 import { ProfileScreen } from "./ProfileScreen";
 import {
@@ -297,11 +298,17 @@ export const MainMenu = ({
     <div
       ref={screenContainerRef}
       onPointerDown={handleEdgePointerDown}
-      className="flex-1 w-full h-screen flex flex-col bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-background-panel/60 via-background-main to-background-main text-zinc-100 select-none overflow-hidden relative max-w-full"
+      className={`flex-1 w-full h-screen flex flex-col ${screen === "HOME" ? "bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-background-panel/60 via-background-main to-background-main" : "bg-transparent"} text-zinc-100 select-none overflow-hidden relative max-w-full`}
     >
-      {/* Размытые фоновые сферы неонового света */}
-      <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-accent-primary/15 blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 -right-32 w-80 h-80 rounded-full bg-accent-purple/15 blur-3xl pointer-events-none" />
+      {/* Фоновый слой: Liquid-анимация на всех подэкранах кроме Главного меню (HOME) */}
+      {screen !== "HOME" ? (
+        <LiquidBackground />
+      ) : (
+        <>
+          <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-accent-primary/15 blur-3xl pointer-events-none" />
+          <div className="absolute top-1/2 -right-32 w-80 h-80 rounded-full bg-accent-purple/15 blur-3xl pointer-events-none" />
+        </>
+      )}
 
       <div className="flex-1 w-full h-full relative overflow-hidden flex flex-col min-h-0">
         <AnimatePresence initial={false} custom={navDirection} mode="wait">

@@ -71,24 +71,24 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
           </div>
         </div>
 
-        {/* Интегрированный сегмент-контрол вкладок */}
-        <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5 self-start sm:self-auto shrink-0">
+        {/* Стеклянный сегмент-контрол вкладок */}
+        <div className="flex items-center gap-1.5 bg-background-surface/30 p-1.5 rounded-2xl border border-white/5 backdrop-blur-sm self-start sm:self-auto shrink-0">
           <button
             type="button"
             onClick={() => {
               if (soundManager?.play) soundManager.play("tapMenu");
               onTabChange("PUBLIC");
             }}
-            className={`py-1.5 px-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 cursor-pointer select-none flex items-center gap-2 ${
+            className={`py-1.5 px-3.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer select-none flex items-center justify-center gap-2 ${
               lobbyTab === "PUBLIC"
-                ? "bg-accent-primary/20 text-white border border-accent-primary/40 shadow-sm"
-                : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] border border-transparent"
+                ? "bg-background-panel rounded-xl shadow-lg border border-white/10 text-white"
+                : "bg-transparent text-zinc-500 hover:text-zinc-300 border border-transparent"
             }`}
           >
-            <Icons.Globe className={`w-3.5 h-3.5 ${lobbyTab === "PUBLIC" ? "text-accent-primary" : "text-zinc-500"}`} />
-            <span>Открытые игры</span>
-            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${
-              lobbyTab === "PUBLIC" ? "bg-accent-primary/30 text-blue-200 border-accent-primary/30" : "bg-zinc-900 text-zinc-400 border-white/10"
+            <Icons.Globe className={`w-3.5 h-3.5 transition-colors ${lobbyTab === "PUBLIC" ? "text-accent-neon" : "text-zinc-500"}`} />
+            <span className={lobbyTab === "PUBLIC" ? "text-white drop-shadow-[0_0_8px_rgba(6,182,212,0.4)]" : ""}>Открытые игры</span>
+            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full border transition-colors ${
+              lobbyTab === "PUBLIC" ? "bg-accent-neon/20 text-cyan-200 border-accent-neon/30" : "bg-white/[0.04] text-zinc-500 border-white/5"
             }`}>
               {openRoomsCount}
             </span>
@@ -100,16 +100,16 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
               if (soundManager?.play) soundManager.play("tapMenu");
               onTabChange("PRIVATE");
             }}
-            className={`py-1.5 px-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 cursor-pointer select-none flex items-center gap-2 ${
+            className={`py-1.5 px-3.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer select-none flex items-center justify-center gap-2 ${
               lobbyTab === "PRIVATE"
-                ? "bg-accent-primary/20 text-white border border-accent-primary/40 shadow-sm"
-                : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] border border-transparent"
+                ? "bg-background-panel rounded-xl shadow-lg border border-white/10 text-white"
+                : "bg-transparent text-zinc-500 hover:text-zinc-300 border border-transparent"
             }`}
           >
-            <Icons.Lock className={`w-3.5 h-3.5 ${lobbyTab === "PRIVATE" ? "text-accent-primary" : "text-zinc-500"}`} />
-            <span>Приватные игры</span>
-            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${
-              lobbyTab === "PRIVATE" ? "bg-accent-primary/30 text-blue-200 border-accent-primary/30" : "bg-zinc-900 text-zinc-400 border-white/10"
+            <Icons.Lock className={`w-3.5 h-3.5 transition-colors ${lobbyTab === "PRIVATE" ? "text-accent-neon" : "text-zinc-500"}`} />
+            <span className={lobbyTab === "PRIVATE" ? "text-white drop-shadow-[0_0_8px_rgba(6,182,212,0.4)]" : ""}>Приватные игры</span>
+            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full border transition-colors ${
+              lobbyTab === "PRIVATE" ? "bg-accent-neon/20 text-cyan-200 border-accent-neon/30" : "bg-white/[0.04] text-zinc-500 border-white/5"
             }`}>
               {privateRoomsCount}
             </span>

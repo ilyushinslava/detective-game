@@ -75,25 +75,25 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex border-b border-border-subtle bg-background-surface/80 px-4 sm:px-6 pt-2 pb-0 gap-3 shrink-0">
+      <div className="flex border-b border-border-subtle bg-background-surface/80 px-4 sm:px-6 py-2 gap-2 shrink-0">
         <button
           type="button"
           onClick={() => {
             if (soundManager?.play) soundManager.play("tapMenu");
             onTabChange("PUBLIC");
           }}
-          className={`pb-2.5 px-3 text-xs font-black uppercase tracking-wider transition-all relative border-b-2 cursor-pointer select-none ${
+          className={`py-2 px-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer select-none flex items-center gap-2 ${
             lobbyTab === "PUBLIC"
-              ? "border-accent-primary text-white drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-              : "border-transparent text-zinc-400 hover:text-zinc-200"
+              ? "bg-accent-primary/15 text-white border border-accent-primary/40 shadow-sm"
+              : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] border border-transparent"
           }`}
         >
-          <span className="flex items-center gap-2">
-            <Icons.Globe className={`w-3.5 h-3.5 ${lobbyTab === "PUBLIC" ? "text-accent-primary" : "text-zinc-500"}`} />
-            <span>Открытые игры</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-zinc-900 text-zinc-300 border border-white/10">
-              {openRoomsCount}
-            </span>
+          <Icons.Globe className={`w-3.5 h-3.5 ${lobbyTab === "PUBLIC" ? "text-accent-primary" : "text-zinc-500"}`} />
+          <span>Открытые игры</span>
+          <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+            lobbyTab === "PUBLIC" ? "bg-accent-primary/25 text-blue-200 border-accent-primary/30" : "bg-zinc-900 text-zinc-400 border-white/10"
+          }`}>
+            {openRoomsCount}
           </span>
         </button>
 
@@ -103,18 +103,18 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
             if (soundManager?.play) soundManager.play("tapMenu");
             onTabChange("PRIVATE");
           }}
-          className={`pb-2.5 px-3 text-xs font-black uppercase tracking-wider transition-all relative border-b-2 cursor-pointer select-none ${
+          className={`py-2 px-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer select-none flex items-center gap-2 ${
             lobbyTab === "PRIVATE"
-              ? "border-accent-purple text-white drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]"
-              : "border-transparent text-zinc-400 hover:text-zinc-200"
+              ? "bg-accent-primary/15 text-white border border-accent-primary/40 shadow-sm"
+              : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] border border-transparent"
           }`}
         >
-          <span className="flex items-center gap-2">
-            <Icons.Lock className={`w-3.5 h-3.5 ${lobbyTab === "PRIVATE" ? "text-accent-purple" : "text-zinc-500"}`} />
-            <span>Приватные игры</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-zinc-900 text-zinc-300 border border-white/10">
-              {privateRoomsCount}
-            </span>
+          <Icons.Lock className={`w-3.5 h-3.5 ${lobbyTab === "PRIVATE" ? "text-accent-primary" : "text-zinc-500"}`} />
+          <span>Приватные игры</span>
+          <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+            lobbyTab === "PRIVATE" ? "bg-accent-primary/25 text-blue-200 border-accent-primary/30" : "bg-zinc-900 text-zinc-400 border-white/10"
+          }`}>
+            {privateRoomsCount}
           </span>
         </button>
       </div>

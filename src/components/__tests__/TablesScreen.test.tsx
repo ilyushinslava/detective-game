@@ -38,9 +38,9 @@ describe("TablesScreen", () => {
   it("отображает пустое состояние при отсутствии комнат и вызывает открытие создания стола", () => {
     const { container } = render(<TablesScreen {...defaultProps} />);
     
-    // Находим кнопку создания стола по уникальному классу градиента
+    // Находим кнопку создания стола
     const buttons = Array.from(container.querySelectorAll('button'));
-    const createBtn = buttons.find(b => b.className.includes('from-red-600'));
+    const createBtn = buttons.find(b => b.textContent?.includes('Создать') || b.className.includes('from-blue-600'));
     
     expect(createBtn).toBeDefined();
     fireEvent.click(createBtn!);

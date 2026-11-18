@@ -37,7 +37,7 @@ export const TablesEmptyState: React.FC<TablesEmptyStateProps> = ({
       <Button
         variant="primary-info"
         onClick={onCreateRoom}
-        className="from-red-600 px-6 h-10 text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-accent-primary via-blue-600 to-accent-secondary hover:from-blue-500 hover:to-indigo-500 text-white shadow-neon-blue border border-blue-400/40 cursor-pointer"
+        className="px-6 h-10 text-xs font-bold uppercase tracking-wider rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-neon-blue border border-blue-400/30 cursor-pointer transition-all"
       >
         + Создать первый стол
       </Button>

@@ -103,7 +103,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
             variant="primary-info"
             fullWidth
             onClick={() => setIsCreateRoomOpen(true)}
-            className="from-red-600 py-3.5 text-[10px] font-black uppercase tracking-widest rounded-xl bg-gradient-to-r from-accent-primary via-blue-600 to-accent-secondary hover:from-blue-500 hover:to-indigo-500 text-white shadow-neon-blue border border-blue-400/40 touch-manipulation active:scale-95 duration-75"
+            className="py-3.5 text-[10px] font-black uppercase tracking-widest rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-neon-blue border border-blue-400/30 touch-manipulation active:scale-95 duration-75"
           >
             + Создать партию
           </Button>

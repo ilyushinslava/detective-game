@@ -6,7 +6,7 @@ import { triggerHaptic } from '../utils/haptics';
 import { Button } from './ui/Button';
 import { getCharacterPortraitPath } from '../constants/characterImages';
 import { useAuthSafe } from '../contexts/AuthContext';
-import { LoginModal } from './lobby/LoginModal';
+import { AuthModal } from './auth';
 import {
   ProfileIcons,
   AvatarPickerModal,
@@ -84,6 +84,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [isAccountLinking, setIsAccountLinking] = useState(false);
   const [isAccountProtectedSuccess, setIsAccountProtectedSuccess] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState<"CREATE_PROFILE" | "SIGN_IN">("CREATE_PROFILE");
 
   const handleLinkAccount = async () => {
     setAccountError(null);
@@ -316,7 +317,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           setAccountError={setAccountError}
           isAccountLinking={isAccountLinking}
           onLinkAccount={handleLinkAccount}
-          onOpenLoginModal={() => setIsLoginModalOpen(true)}
+          onOpenLoginModal={() => {
+            setAuthModalTab("SIGN_IN");
+            setIsLoginModalOpen(true);
+          }}
+          onOpenCreateProfile={() => {
+            setAuthModalTab("CREATE_PROFILE");
+            setIsLoginModalOpen(true);
+          }}
           translations={p}
         />
 
@@ -352,9 +360,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         closeLabel={p.close}
       />
 
-      {/* Модальное окно входа в аккаунт */}
-      <LoginModal
+      {/* Модальное окно авторизации и привязки профиля */}
+      <AuthModal
         isOpen={isLoginModalOpen}
+        initialTab={authModalTab}
         onClose={() => setIsLoginModalOpen(false)}
         onSuccess={() => {
           setIsAccountProtectedSuccess(true);

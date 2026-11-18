@@ -72,6 +72,7 @@ export const LobbyHomeView: React.FC<LobbyHomeViewProps> = ({
         />
 
         <ModeShowcase
+          title={title}
           hasActiveGame={hasActiveGame}
           onResumeGame={onResumeGame}
           isCreating={isCreating}

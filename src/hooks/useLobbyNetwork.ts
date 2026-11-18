@@ -5,6 +5,7 @@ import { partyService } from "../utils/partyPeer";
 import { triggerHaptic } from "../utils/haptics";
 import { soundManager } from "../utils/audio";
 import { DEFAULT_BET, TIMINGS } from "../constants/gameRules";
+import { MOCK_NETWORK_ROOMS } from "../utils/mockRooms";
 
 export interface PublicRoomInfo {
   roomCode: string;
@@ -32,7 +33,29 @@ export interface UseLobbyNetworkOptions {
 }
 
 export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetworkOptions) {
-  const [publicRooms, setPublicRooms] = useState<PublicRoomInfo[]>([]);
+  const [useMockRooms, setUseMockRooms] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("crime_city_mock_tables") === "true";
+    }
+    return false;
+  });
+
+  const toggleMockRooms = () => {
+    setUseMockRooms((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("crime_city_mock_tables", String(next));
+      }
+      return next;
+    });
+  };
+
+  const [publicRooms, setPublicRooms] = useState<PublicRoomInfo[]>(() => {
+    if (typeof window !== "undefined" && localStorage.getItem("crime_city_mock_tables") === "true") {
+      return MOCK_NETWORK_ROOMS as any;
+    }
+    return [];
+  });
   const [joinCode, setJoinCode] = useState("");
   const [roomFilter, setRoomFilter] = useState<string>("ALL");
   const [isCreateRoomOpen, setIsCreateRoomOpen] = useState(false);
@@ -59,10 +82,18 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
       try {
         const rooms = await partyService.fetchPublicRooms();
         if (isSubscribed) {
-          setPublicRooms(rooms as any);
+          if (useMockRooms) {
+            setPublicRooms(MOCK_NETWORK_ROOMS as any);
+          } else {
+            setPublicRooms(rooms as any);
+          }
         }
       } catch (e) {
-        console.warn("fetchPublicRooms error:", e);
+        if (isSubscribed && useMockRooms) {
+          setPublicRooms(MOCK_NETWORK_ROOMS as any);
+        } else {
+          console.warn("fetchPublicRooms error:", e);
+        }
       }
     };
 
@@ -77,7 +108,7 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
       isSubscribed = false;
       if (timer) clearInterval(timer);
     };
-  }, [screen]);
+  }, [screen, useMockRooms]);
 
   // Слушатель событий ожидания соперника: получение Морзе и автоматический запуск матча
   useEffect(() => {
@@ -272,5 +303,7 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
     handleCancelWaiting,
     networkError,
     clearNetworkError,
+    useMockRooms,
+    toggleMockRooms,
   };
 }

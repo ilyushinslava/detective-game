@@ -20,6 +20,8 @@ interface TablesScreenProps {
   onBack?: () => void;
   networkError?: string | null;
   clearNetworkError?: () => void;
+  useMockRooms?: boolean;
+  toggleMockRooms?: () => void;
 }
 
 export const TablesScreen: React.FC<TablesScreenProps> = ({
@@ -36,6 +38,8 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
   onBack,
   networkError,
   clearNetworkError,
+  useMockRooms,
+  toggleMockRooms,
 }) => {
   const [lobbyTab, setLobbyTab] = useState<'PUBLIC' | 'PRIVATE'>('PUBLIC');
   const [selectedPrivateRoom, setSelectedPrivateRoom] = useState<any | null>(null);
@@ -61,6 +65,18 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
   const privateRooms = filteredRooms.filter((r) => Boolean(r.isPrivate));
   const currentRooms = lobbyTab === 'PUBLIC' ? openRooms : privateRooms;
 
+  // Умная сортировка: сначала доступные (WAITING), затем идущие матчи (IN_GAME), затем полные (FULL)
+  const sortedRooms = [...currentRooms].sort((a, b) => {
+    const getStatusWeight = (r: any) => {
+      const isFull = (r.playersCount || 0) >= (r.maxPlayers || 2);
+      const isInGame = r.status === "PLAYING" || r.status === "IN_GAME";
+      if (!isFull && !isInGame) return 1; // WAITING: наивысший приоритет
+      if (isInGame) return 2;
+      return 3; // FULL: в конец
+    };
+    return getStatusWeight(a) - getStatusWeight(b);
+  });
+
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-background-panel/60 via-background-main to-background-main overflow-hidden relative w-full max-w-full">
       {/* Фоновые мягкие сферы для сетевого хаба */}
@@ -77,6 +93,8 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
         onFilterChange={setRoomFilter}
         roomFilters={ROOM_FILTERS}
         soundManager={soundManager}
+        useMockRooms={useMockRooms}
+        onToggleMockRooms={toggleMockRooms}
       />
 
       {/* Оповещение об ошибке подключения */}
@@ -100,26 +118,30 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
       )}
 
       {/* Rooms List / Empty State */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 space-y-3 custom-scrollbar flex flex-col">
-        {currentRooms.length === 0 ? (
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 custom-scrollbar">
+        {sortedRooms.length === 0 ? (
           <TablesEmptyState
             lobbyTab={lobbyTab}
             onCreateRoom={() => setIsCreateRoomOpen(true)}
+            onToggleMockRooms={toggleMockRooms}
+            useMockRooms={useMockRooms}
           />
         ) : (
-          currentRooms.map((room) => (
-            <RoomItemCard
-              key={room.roomCode}
-              room={room}
-              gameModes={GAME_MODES}
-              isJoining={joiningRoomCode === room.roomCode}
-              onSelectPrivateRoom={(r) => {
-                setSelectedPrivateRoom(r);
-                setIsMorseOpen(true);
-              }}
-              onJoinRoom={(code, mode) => handleJoinRoomSafe(code, mode)}
-            />
-          ))
+          <div className="w-full max-w-4xl mx-auto flex flex-col sm:grid sm:grid-cols-2 gap-3 pb-4">
+            {sortedRooms.map((room) => (
+              <RoomItemCard
+                key={room.roomCode}
+                room={room}
+                gameModes={GAME_MODES}
+                isJoining={joiningRoomCode === room.roomCode}
+                onSelectPrivateRoom={(r) => {
+                  setSelectedPrivateRoom(r);
+                  setIsMorseOpen(true);
+                }}
+                onJoinRoom={(code, mode) => handleJoinRoomSafe(code, mode)}
+              />
+            ))}
+          </div>
         )}
       </div>
 

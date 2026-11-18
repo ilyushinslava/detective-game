@@ -4,11 +4,15 @@ import { Button } from "../ui/Button";
 interface TablesEmptyStateProps {
   lobbyTab: "PUBLIC" | "PRIVATE";
   onCreateRoom: () => void;
+  onToggleMockRooms?: () => void;
+  useMockRooms?: boolean;
 }
 
 export const TablesEmptyState: React.FC<TablesEmptyStateProps> = ({
   lobbyTab,
   onCreateRoom,
+  onToggleMockRooms,
+  useMockRooms: _useMockRooms,
 }) => {
   return (
     <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-border-subtle border-t border-t-border-strong rounded-2xl bg-gradient-to-br from-background-surface/80 to-background-main/80 shadow-[inset_0_2px_25px_rgba(0,0,0,0.9)] backdrop-blur-2xl my-auto max-w-lg mx-auto w-full">
@@ -66,6 +70,15 @@ export const TablesEmptyState: React.FC<TablesEmptyStateProps> = ({
       >
         + Создать первый стол
       </Button>
+      {import.meta.env.DEV && onToggleMockRooms && (
+        <button
+          type="button"
+          onClick={onToggleMockRooms}
+          className="mt-3 text-[10px] font-mono text-zinc-400 hover:text-blue-400 underline underline-offset-4 cursor-pointer transition"
+        >
+          🧪 Заполнить тестовыми столами (12 шт)
+        </button>
+      )}
     </div>
   );
 };

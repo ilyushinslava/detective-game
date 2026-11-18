@@ -32,6 +32,8 @@ interface TablesHeaderProps {
   onFilterChange: (filter: string) => void;
   roomFilters: Array<{ id: string; label: string }>;
   soundManager?: any;
+  onToggleMockRooms?: () => void;
+  useMockRooms?: boolean;
 }
 
 export const TablesHeader: React.FC<TablesHeaderProps> = ({
@@ -44,6 +46,8 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
   onFilterChange,
   roomFilters,
   soundManager,
+  onToggleMockRooms,
+  useMockRooms,
 }) => {
   return (
     <header className="w-full shrink-0 bg-background-main/80 backdrop-blur-xl border-b border-border-subtle flex flex-col z-10">
@@ -61,10 +65,24 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
               <span className="hidden sm:inline">Меню</span>
             </Button>
           )}
-          <div className="flex flex-col select-none min-w-0">
+          <div className="flex items-center gap-2.5 select-none min-w-0">
             <h1 className="text-base sm:text-lg font-display font-black tracking-widest uppercase text-white truncate">
               Сетевая игра
             </h1>
+            {import.meta.env.DEV && onToggleMockRooms && (
+              <button
+                type="button"
+                onClick={onToggleMockRooms}
+                className={`text-[9px] font-mono px-2 py-0.5 rounded border uppercase transition cursor-pointer select-none shrink-0 ${
+                  useMockRooms
+                    ? "bg-blue-500/20 text-blue-300 border-blue-400/40"
+                    : "bg-white/5 text-zinc-400 border-white/10 hover:text-white"
+                }`}
+                title="Переключить тестовые столы"
+              >
+                {useMockRooms ? "🧪 Демо: 12" : "🧪 Демо"}
+              </button>
+            )}
           </div>
         </div>
 

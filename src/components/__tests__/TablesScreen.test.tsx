@@ -141,4 +141,37 @@ describe("TablesScreen", () => {
     fireEvent.click(createBtn);
     expect(mockSetIsCreateRoomOpen).toHaveBeenCalledWith(true);
   });
+
+  it("сортирует комнаты по приоритету доступности (WAITING перед IN_GAME и FULL)", () => {
+    const rooms = [
+      { roomCode: "room-full", hostName: "FullHost", mode: "SKHVATKA", playersCount: 2, maxPlayers: 2, isPrivate: false, status: "FULL" },
+      { roomCode: "room-ingame", hostName: "PlayingHost", mode: "SKHVATKA", playersCount: 2, maxPlayers: 2, isPrivate: false, status: "PLAYING" },
+      { roomCode: "room-waiting", hostName: "WaitingHost", mode: "SKHVATKA", playersCount: 1, maxPlayers: 2, isPrivate: false, status: "WAITING" },
+    ];
+    const { container } = render(<TablesScreen {...defaultProps} filteredRooms={rooms} />);
+    
+    const hostNames = Array.from(container.querySelectorAll(".truncate"))
+      .map((el) => el.textContent)
+      .filter((t) => t && ["WaitingHost", "PlayingHost", "FullHost"].includes(t));
+
+    // Ожидаем, что WaitingHost идет первым
+    expect(hostNames[0]).toBe("WaitingHost");
+    expect(hostNames[1]).toBe("PlayingHost");
+    expect(hostNames[2]).toBe("FullHost");
+  });
+
+  it("не использует цветастые круглые индикаторы для статусов комнат", () => {
+    const rooms = [
+      { roomCode: "room-1", hostName: "Host1", mode: "SKHVATKA", playersCount: 1, maxPlayers: 2, isPrivate: false, status: "WAITING" }
+    ];
+    const { container } = render(<TablesScreen {...defaultProps} filteredRooms={rooms} />);
+    
+    // Никаких зеленых, янтарных или серых кружочков
+    expect(container.querySelector(".bg-emerald-400")).toBeNull();
+    expect(container.querySelector(".bg-amber-400.rounded-full")).toBeNull();
+    expect(container.querySelector(".bg-zinc-500.rounded-full")).toBeNull();
+    
+    // Статус отображается строгим моноширинным текстом
+    expect(screen.getByText("ОЖИДАНИЕ")).toBeDefined();
+  });
 });

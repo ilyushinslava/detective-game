@@ -50,23 +50,14 @@ export const RoomItemCard: React.FC<RoomItemCardProps> = ({
           </span>
         </div>
         <div className="flex flex-col items-end shrink-0">
-          <span className="text-[10px] font-mono font-bold text-zinc-300 uppercase tracking-widest mb-0.5 flex items-center gap-1.5">
-            {isInGame ? (
-              <>
-                <span className="w-2 h-2 bg-amber-400 rounded-full" />
-                В ИГРЕ
-              </>
-            ) : isFull ? (
-              <>
-                <span className="w-2 h-2 bg-zinc-500 rounded-full" />
-                ЗАПОЛНЕНО
-              </>
-            ) : (
-              <>
-                <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
-                ОЖИДАНИЕ
-              </>
-            )}
+          <span className={`text-[10px] font-mono font-bold tracking-widest uppercase mb-1 px-2 py-0.5 rounded-md border ${
+            isInGame
+              ? "text-zinc-400 border-white/5 bg-black/40"
+              : isFull
+              ? "text-zinc-500 border-white/5 bg-black/40"
+              : "text-zinc-200 border-white/15 bg-white/[0.04]"
+          }`}>
+            {isInGame ? "В ИГРЕ" : isFull ? "ЗАПОЛНЕНО" : "ОЖИДАНИЕ"}
           </span>
           <span className="text-[10px] text-zinc-400 font-mono tracking-wider">
             Игроки: {room.playersCount}/{room.maxPlayers}

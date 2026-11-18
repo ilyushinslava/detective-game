@@ -273,6 +273,8 @@ export const MainMenu = ({
             soundManager={soundManager}
             networkError={network.networkError}
             clearNetworkError={network.clearNetworkError}
+            useMockRooms={network.useMockRooms}
+            toggleMockRooms={network.toggleMockRooms}
             onBack={() => { setNavDirection("none"); setScreen("HOME"); onTabChange("LOBBY"); }}
           />
         );

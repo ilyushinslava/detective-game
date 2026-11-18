@@ -6,6 +6,8 @@ import type { UserProfile, MatchHistoryEntry } from "../types/profile";
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { storage } from "../utils/storage";
+import { guestRegistry } from "../utils/guestManager";
+import { sanitizePlayerName, validatePlayerName } from "../utils/nameFilter";
 
 const DEFAULT_AVATAR = "🕵️‍♂️";
 const DEFAULT_AVATAR_ID = "agent_01";
@@ -13,9 +15,11 @@ const DEFAULT_AVATAR_ID = "agent_01";
 function getInitialCallsign(): string {
   if (typeof window !== "undefined") {
     const saved = localStorage.getItem("crime_city_callsign");
-    if (saved) return saved;
+    if (saved && validatePlayerName(saved).isValid) {
+      return saved;
+    }
   }
-  return "Агент #" + Math.floor(100 + Math.random() * 900);
+  return guestRegistry.generateCallsign();
 }
 
 function generateLocalId(): string {

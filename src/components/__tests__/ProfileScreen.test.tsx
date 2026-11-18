@@ -90,6 +90,19 @@ describe("ProfileScreen", () => {
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ nickname: "bAgent/b" }));
   });
 
+  it("блокирует сохранение нецензурного позывного и выводит сообщение об ошибке", () => {
+    const mockUpdate = vi.fn();
+    render(<ProfileScreen profile={defaultProfile} onUpdateProfile={mockUpdate} />);
+    const editBtn = screen.getByTitle("Изменить позывной");
+    fireEvent.click(editBtn);
+    const input = screen.getByDisplayValue("Agent Smith");
+    fireEvent.change(input, { target: { value: "Слава Лох" } });
+    const saveBtn = screen.getByRole("button", { name: /сохранить/i });
+    fireEvent.click(saveBtn);
+    expect(mockUpdate).not.toHaveBeenCalled();
+    expect(screen.getByText(/содержит недопустимые слова/i)).toBeDefined();
+  });
+
   it("вызывает открытие настроек", () => {
     const mockOnOpenSettings = vi.fn();
     render(<ProfileScreen profile={defaultProfile} onUpdateProfile={vi.fn()} onOpenSettings={mockOnOpenSettings} />);

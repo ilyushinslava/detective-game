@@ -5,6 +5,7 @@ import { soundManager } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
 import { Button } from './ui/Button';
 import { getCharacterPortraitPath } from '../constants/characterImages';
+import { validatePlayerName } from '../utils/nameFilter';
 import { useAuthSafe } from '../contexts/AuthContext';
 import { AuthModal } from './auth';
 import {
@@ -74,6 +75,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   const [isEditing, setIsEditing] = useState(false);
   const [nicknameInput, setNicknameInput] = useState(profile.agentName || profile.nickname || '');
+  const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
 
   // Логика аутентификации и защиты аккаунта
@@ -97,12 +99,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   const handleSaveNickname = () => {
     // Защита от XSS и инъекций разметки: санитизация спецсимволов и ограничение длины
-    const sanitized = nicknameInput.replace(/[<>'"&]/g, '').trim().slice(0, 24);
-    if (sanitized) {
-      soundManager.play('click');
-      triggerHaptic('success');
-      onUpdateProfile({ nickname: sanitized, agentName: sanitized });
+    const sanitized = nicknameInput.replace(/[<>'"&]/g, '').trim().slice(0, 20);
+    const validation = validatePlayerName(sanitized);
+    if (!validation.isValid) {
+      soundManager.play('deny');
+      triggerHaptic('warning');
+      setNicknameError(validation.error || 'Недопустимый позывной');
+      return;
     }
+    setNicknameError(null);
+    soundManager.play('click');
+    triggerHaptic('success');
+    onUpdateProfile({ nickname: sanitized, agentName: sanitized });
     setIsEditing(false);
   };
 
@@ -218,22 +226,32 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
               </div>
 
               {isEditing ? (
-                <div className="flex items-center gap-2 mt-1 w-full max-w-xs">
-                  <input
-                    type="text"
-                    value={nicknameInput}
-                    onChange={(e) => setNicknameInput(e.target.value)}
-                    maxLength={24}
-                    className="flex-1 bg-zinc-900 border border-blue-500/50 rounded-lg px-2.5 py-1 text-sm font-black font-mono text-white focus:outline-none"
-                    autoFocus
-                  />
-                  <Button
-                    variant="primary"
-                    onClick={handleSaveNickname}
-                    className="h-8 px-3 text-xs font-bold uppercase tracking-wider"
-                  >
-                    {p.save}
-                  </Button>
+                <div className="flex flex-col gap-1 mt-1 w-full max-w-xs">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={nicknameInput}
+                      onChange={(e) => {
+                        setNicknameInput(e.target.value);
+                        setNicknameError(null);
+                      }}
+                      maxLength={20}
+                      className={`flex-1 bg-zinc-900 border ${nicknameError ? 'border-accent-danger' : 'border-blue-500/50'} rounded-lg px-2.5 py-1 text-sm font-black font-mono text-white focus:outline-none`}
+                      autoFocus
+                    />
+                    <Button
+                      variant="primary"
+                      onClick={handleSaveNickname}
+                      className="h-8 px-3 text-xs font-bold uppercase tracking-wider"
+                    >
+                      {p.save}
+                    </Button>
+                  </div>
+                  {nicknameError && (
+                    <span className="text-[10px] font-mono text-accent-danger leading-tight">
+                      {nicknameError}
+                    </span>
+                  )}
                 </div>
               ) : (
                 <div className="flex items-center gap-2 group">

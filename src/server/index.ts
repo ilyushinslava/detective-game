@@ -1,5 +1,7 @@
 import { createInitialState, isOppositeShift } from "../utils/gameLogic";
 import { gameReducer } from "../utils/gameReducer";
+import { guestRegistry } from "../utils/guestManager";
+import { sanitizePlayerName } from "../utils/nameFilter";
 import type { GameState, Role, GameModeType } from "../types/game";
 import type { ClientDeviceType } from "../types/multiplayer";
 
@@ -193,6 +195,9 @@ export default class GameRoomServer {
   private handleIndividualGraceTimeout(clientId: string): void {
     this.disconnectTimers.delete(clientId);
     const playerWhoLeft = this.state.players[clientId];
+    if (playerWhoLeft?.nickname) {
+      guestRegistry.releaseByCallsign(playerWhoLeft.nickname);
+    }
     delete this.state.players[clientId];
     this.state.readyClients.delete(clientId);
     (this.state as any).restartRequestedBy = null;
@@ -477,13 +482,20 @@ export default class GameRoomServer {
     try {
       const url = new URL(ctx.request?.url || "", "http://localhost");
     const clientId = url.searchParams.get("clientId") || conn.id;
-    const nickname = url.searchParams.get("nickname") || "Игрок";
+    const incomingNickname = url.searchParams.get("nickname") || "Игрок";
     const isHost = url.searchParams.get("isHost") === "true";
     const isPrivate = url.searchParams.get("isPrivate") === "true";
     const mode = (url.searchParams.get("mode") as GameModeType) || "MANIAC_VS_OPERATIVE";
     const randomRoles = url.searchParams.get("randomRoles") === "true";
     const clientType = (url.searchParams.get("clientType") as ClientDeviceType) || "PLAYER";
     const roomCode = this.getRoomCode();
+
+    // Санитизация имени через фильтр цензуры и разрешение коллизий одинаковых имен в комнате
+    const busyNames = Object.values(this.state.players).map((p) => p.nickname);
+    let nickname = sanitizePlayerName(incomingNickname, guestRegistry.generateCallsign(busyNames));
+    if (busyNames.includes(nickname)) {
+      nickname = guestRegistry.generateCallsign(busyNames);
+    }
 
     // Режим ТВ-экрана: экран не занимает слот игрока, а подписывается на события
     if (clientType === "TV_DISPLAY") {
@@ -1204,6 +1216,9 @@ export default class GameRoomServer {
           if (pendingTimer) {
             clearTimeout(pendingTimer);
             this.disconnectTimers.delete(senderClientId);
+          }
+          if (player?.nickname) {
+            guestRegistry.releaseByCallsign(player.nickname);
           }
           delete this.state.players[senderClientId];
           this.state.readyClients.delete(senderClientId);

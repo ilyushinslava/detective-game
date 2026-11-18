@@ -51,18 +51,44 @@ describe("TablesScreen", () => {
     const rooms = [
       { roomCode: "room-open-1", hostName: "Sheriff", mode: "SKHVATKA", playersCount: 1, maxPlayers: 2, isPrivate: false }
     ];
-    const { container } = render(<TablesScreen {...defaultProps} filteredRooms={rooms} />);
+    render(<TablesScreen {...defaultProps} filteredRooms={rooms} />);
     
     // Проверяем отображение имени хоста
     expect(screen.getByText(/Sheriff/i)).toBeDefined();
     
     // Находим кнопку свободного входа в комнату
-    const buttons = Array.from(container.querySelectorAll('button'));
-    const joinBtn = buttons.find(b => b.className.includes('from-red-600') && b.textContent?.includes('Войти'));
-    
+    const joinBtn = screen.getByRole("button", { name: /Войти/i });
     expect(joinBtn).toBeDefined();
-    fireEvent.click(joinBtn!);
+    fireEvent.click(joinBtn);
     expect(mockHandleJoinRoom).toHaveBeenCalledWith("room-open-1", "SKHVATKA");
+  });
+
+  it("отображает баннер сетевой ошибки и блокирует вход в переполненные комнаты", () => {
+    const mockClear = vi.fn();
+    const rooms = [
+      { roomCode: "room-full-1", hostName: "BusyHost", mode: "SKHVATKA", playersCount: 2, maxPlayers: 2, isPrivate: false }
+    ];
+    render(
+      <TablesScreen
+        {...defaultProps}
+        filteredRooms={rooms}
+        networkError="Штаб полон: все слоты агентов уже заняты."
+        clearNetworkError={mockClear}
+      />
+    );
+
+    // Проверяем баннер ошибки
+    expect(screen.getByText(/Штаб полон: все слоты агентов уже заняты./i)).toBeDefined();
+    
+    // Проверяем кнопку закрытия ошибки
+    const closeErrorBtn = screen.getByTitle("Закрыть");
+    fireEvent.click(closeErrorBtn);
+    expect(mockClear).toHaveBeenCalled();
+
+    // В переполненной комнате кнопка заблокирована
+    const fullBtn = screen.getByRole("button", { name: /СТОЛ ПОЛОН/i });
+    expect(fullBtn).toBeDefined();
+    expect((fullBtn as HTMLButtonElement).disabled).toBe(true);
   });
 
   it("обрабатывает переключение фильтров", () => {

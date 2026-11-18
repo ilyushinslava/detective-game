@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Button } from './ui/Button';
 import { TablesHeader, TablesEmptyState, RoomItemCard } from './tables';
 
@@ -18,6 +18,8 @@ interface TablesScreenProps {
   GAME_MODES: any[];
   soundManager?: any;
   onBack?: () => void;
+  networkError?: string | null;
+  clearNetworkError?: () => void;
 }
 
 export const TablesScreen: React.FC<TablesScreenProps> = ({
@@ -32,10 +34,27 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
   GAME_MODES,
   soundManager,
   onBack,
+  networkError,
+  clearNetworkError,
 }) => {
   const [lobbyTab, setLobbyTab] = useState<'PUBLIC' | 'PRIVATE'>('PUBLIC');
   const [selectedPrivateRoom, setSelectedPrivateRoom] = useState<any | null>(null);
   const [isMorseOpen, setIsMorseOpen] = useState(false);
+  const [joiningRoomCode, setJoiningRoomCode] = useState<string | null>(null);
+
+  // Сброс спиннера при получении сетевой ошибки
+  useEffect(() => {
+    if (networkError) {
+      setJoiningRoomCode(null);
+    }
+  }, [networkError]);
+
+  const handleJoinRoomSafe = (code: string, mode?: any) => {
+    if (joiningRoomCode) return;
+    setJoiningRoomCode(code);
+    clearNetworkError?.();
+    handleJoinRoom(code, mode);
+  };
 
   // Разделение списка комнат на "Открытые игры" и "Приватные игры"
   const openRooms = filteredRooms.filter((r) => !r.isPrivate);
@@ -60,6 +79,26 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
         soundManager={soundManager}
       />
 
+      {/* Оповещение об ошибке подключения */}
+      {networkError && (
+        <div className="mx-4 sm:mx-6 mt-3 p-3 rounded-xl bg-rose-950/80 border border-rose-500/40 text-rose-200 text-xs font-mono flex items-center justify-between shadow-lg shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping shrink-0" />
+            <span className="truncate">{networkError}</span>
+          </div>
+          {clearNetworkError && (
+            <button
+              type="button"
+              onClick={clearNetworkError}
+              className="text-rose-400 hover:text-white px-2 py-0.5 rounded cursor-pointer transition shrink-0 ml-2"
+              title="Закрыть"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Rooms List / Empty State */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 space-y-3 custom-scrollbar flex flex-col">
         {currentRooms.length === 0 ? (
@@ -73,11 +112,12 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
               key={room.roomCode}
               room={room}
               gameModes={GAME_MODES}
+              isJoining={joiningRoomCode === room.roomCode}
               onSelectPrivateRoom={(r) => {
                 setSelectedPrivateRoom(r);
                 setIsMorseOpen(true);
               }}
-              onJoinRoom={(code, mode) => handleJoinRoom(code, mode)}
+              onJoinRoom={(code, mode) => handleJoinRoomSafe(code, mode)}
             />
           ))
         )}

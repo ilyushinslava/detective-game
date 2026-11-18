@@ -241,6 +241,7 @@ class PartyService {
   onPlayerReconnected: ((info: { role?: Role; clientId: string }) => void) | null = null;
   onSessionRestored: ((data: any) => void) | null = null;
   onConnectionStateChange: ((state: { isConnected: boolean; isReconnecting: boolean; attempt: number; maxAttempts: number }) => void) | null = null;
+  onError: ((errorData: { type: string; message: string; reason?: string }) => void) | null = null;
 
   constructor() {
     this.setupVisibilityListener();
@@ -369,6 +370,12 @@ class PartyService {
           if (!data) return;
 
           if (data.type === "PONG") {
+            return;
+          }
+
+          if (data.type === "ERROR") {
+            this.onError?.(data);
+            this.onAction?.(data);
             return;
           }
 

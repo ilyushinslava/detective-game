@@ -270,6 +270,8 @@ export const MainMenu = ({
             ROOM_FILTERS={ROOM_FILTERS}
             GAME_MODES={GAME_MODES}
             soundManager={soundManager}
+            networkError={network.networkError}
+            clearNetworkError={network.clearNetworkError}
             onBack={() => { setNavDirection("none"); setScreen("HOME"); onTabChange("LOBBY"); }}
           />
         );

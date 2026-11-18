@@ -46,6 +46,9 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
   const [activeRoomMode, setActiveRoomMode] = useState<GameModeType>("MANIAC_VS_OPERATIVE");
   const [activeRoomBet, setActiveRoomBet] = useState<number>(DEFAULT_BET);
   const [matchmakingCancel, setMatchmakingCancel] = useState<(() => void) | null>(null);
+  const [networkError, setNetworkError] = useState<string | null>(null);
+
+  const clearNetworkError = () => setNetworkError(null);
 
   // Поллинг публичных комнат при нахождении на вкладке TABLES или HOME (для ПК-сайдбара)
   useEffect(() => {
@@ -84,10 +87,30 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
 
     const prevOnRoomStatus = partyService.onRoomStatus;
     const prevOnSyncState = partyService.onSyncState;
+    const prevOnError = partyService.onError;
 
     if (partyService.morseCode) {
       setMorseCode(partyService.morseCode);
     }
+
+    partyService.onError = (err: any) => {
+      prevOnError?.(err);
+      setIsWaitingForOpponent(false);
+      setIsCreating(false);
+      soundManager.play("error");
+      triggerHaptic("error");
+
+      let msg = "Ошибка сетевого соединения.";
+      const errorMsg = String(err?.message || err?.error || "");
+      if (errorMsg === "ROOM_FULL") {
+        msg = "Штаб полон: все слоты агентов уже заняты.";
+      } else if (errorMsg === "ROOM_NOT_FOUND") {
+        msg = "Штаб не найден или комната была расформирована.";
+      } else if (errorMsg === "INVALID_PASSCODE" || errorMsg === "INVALID_MORSE_CODE") {
+        msg = "Неверный шифр доступа к закрытому каналу.";
+      }
+      setNetworkError(msg);
+    };
 
     partyService.onRoomStatus = (data: any) => {
       prevOnRoomStatus?.(data);
@@ -116,6 +139,7 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
     return () => {
       partyService.onRoomStatus = prevOnRoomStatus;
       partyService.onSyncState = prevOnSyncState;
+      partyService.onError = prevOnError;
     };
   }, [isWaitingForOpponent, activeRoomMode, activeRoomBet, onStartGame]);
 
@@ -246,5 +270,7 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
     handleConfirmCreateRoom,
     handleJoinRoom,
     handleCancelWaiting,
+    networkError,
+    clearNetworkError,
   };
 }

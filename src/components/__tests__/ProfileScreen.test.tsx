@@ -133,10 +133,10 @@ describe("ProfileScreen", () => {
 
     expect(screen.getByText("СОХРАНЕНИЕ ПРОГРЕССА")).toBeDefined();
     expect(
-      screen.getByText(/мы не собираем вашу почту\. Если вы забудете пароль, восстановить аккаунт будет невозможно/i)
+      screen.getByText(/Создайте профиль, чтобы навсегда сохранить текущий рейтинг, статистику и монеты/i)
     ).toBeDefined();
     expect(screen.getByPlaceholderText("agent_77")).toBeDefined();
-    expect(screen.getByRole("button", { name: /Защитить аккаунт/i })).toBeDefined();
+    expect(screen.getByRole("button", { name: /СОЗДАТЬ ПРОФИЛЬ/i })).toBeDefined();
   });
 
   it("при успешной привязке логина и пароля отображает зеленый бейдж 'АККАУНТ ЗАЩИЩЕН'", async () => {
@@ -144,7 +144,7 @@ describe("ProfileScreen", () => {
 
     const loginInput = screen.getByPlaceholderText("agent_77");
     const passInput = screen.getByPlaceholderText("••••••••");
-    const protectBtn = screen.getByRole("button", { name: /Защитить аккаунт/i });
+    const protectBtn = screen.getByRole("button", { name: /СОЗДАТЬ ПРОФИЛЬ/i });
 
     fireEvent.change(loginInput, { target: { value: "detective_99" } });
     fireEvent.change(passInput, { target: { value: "securePass123" } });

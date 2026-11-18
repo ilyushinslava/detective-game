@@ -11,7 +11,7 @@ export const TablesEmptyState: React.FC<TablesEmptyStateProps> = ({
   onCreateRoom,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-white/10 rounded-2xl bg-black/60 shadow-[inset_0_2px_25px_rgba(0,0,0,0.9)] backdrop-blur-2xl my-auto max-w-lg mx-auto w-full">
+    <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-border-subtle border-t border-t-border-strong rounded-2xl bg-gradient-to-br from-background-surface/80 to-background-main/80 shadow-[inset_0_2px_25px_rgba(0,0,0,0.9)] backdrop-blur-2xl my-auto max-w-lg mx-auto w-full">
       <div className="relative mb-5 flex items-center justify-center">
         <div className="w-24 h-24 rounded-full border border-white/10 flex items-center justify-center animate-pulse">
           <div className="w-16 h-16 rounded-full border border-white/15 flex items-center justify-center bg-zinc-900/60 shadow-[0_0_25px_rgba(0,0,0,0.8)] relative overflow-hidden">
@@ -37,7 +37,7 @@ export const TablesEmptyState: React.FC<TablesEmptyStateProps> = ({
       <Button
         variant="primary-info"
         onClick={onCreateRoom}
-        className="from-red-600 px-6 h-10 text-xs font-bold uppercase tracking-wider shadow-lg shadow-black/50 border border-white/10"
+        className="from-red-600 px-6 h-10 text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-accent-primary via-blue-600 to-accent-secondary hover:from-blue-500 hover:to-indigo-500 text-white shadow-neon-blue border border-blue-400/40 cursor-pointer"
       >
         + Создать первый стол
       </Button>

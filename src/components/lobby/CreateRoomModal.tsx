@@ -75,7 +75,12 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
           <Button variant="secondary" onClick={onClose} className="flex-1 text-[10px] font-black tracking-widest uppercase">
             Отмена
           </Button>
-          <Button variant="primary-info" onClick={onConfirm} disabled={isCreating} className="flex-1 text-[10px] font-black tracking-widest uppercase">
+          <Button
+            variant="primary-info"
+            onClick={onConfirm}
+            disabled={isCreating}
+            className="flex-1 text-[10px] font-black tracking-widest uppercase bg-gradient-to-r from-accent-primary via-blue-600 to-accent-secondary hover:from-blue-500 hover:to-indigo-500 text-white shadow-neon-blue border border-blue-400/40"
+          >
             {isCreating ? "Инициализация..." : "Создать"}
           </Button>
         </div>

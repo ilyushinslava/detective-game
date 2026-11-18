@@ -152,7 +152,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-background-main text-zinc-100 flex flex-col font-sans select-none overflow-x-hidden">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-background-panel/60 via-background-main to-background-main text-zinc-100 flex flex-col font-sans select-none overflow-x-hidden relative">
+      {/* Размытые фоновые сферы неонового света */}
+      <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-accent-primary/15 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 -right-32 w-80 h-80 rounded-full bg-accent-purple/15 blur-3xl pointer-events-none" />
+
       {/* Шапка экрана */}
       <header className="sticky top-0 z-20 bg-background-main/90 backdrop-blur-md border-b border-border-subtle px-4 py-3 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
@@ -201,11 +205,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       <div className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-5 sm:gap-6">
         
         {/* Карточка агента (Удостоверение) */}
-        <div className="bg-zinc-950/80 border border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+        <div className="bg-gradient-to-br from-background-surface/90 to-background-main/80 border border-border-subtle border-t border-t-border-strong rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden backdrop-blur-xl">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative z-10">
             {/* Аватар */}
             <div className="relative group shrink-0">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-white/20 bg-zinc-900 shadow-xl relative">
+              {/* Мягкое неоновое свечение (glow) за аватаром */}
+              <div className="absolute -inset-1.5 rounded-3xl bg-gradient-to-r from-accent-primary/40 via-accent-neon/30 to-accent-purple/40 blur-lg opacity-75 group-hover:opacity-100 transition duration-500" />
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-white/20 bg-zinc-900 shadow-xl relative z-10">
                 <img
                   src={avatarPortraitUrl}
                   alt="Avatar"

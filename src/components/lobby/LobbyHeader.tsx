@@ -57,7 +57,7 @@ export const LobbyHeader: React.FC<LobbyHeaderProps> = ({
           return (
             <button
               onClick={onOpenProfile}
-              className="flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-zinc-900/80 border border-white/10 hover:border-white/30 hover:bg-zinc-800/80 transition cursor-pointer shadow-lg active:scale-95 group text-left shrink-0"
+              className="flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-background-surface/80 border border-border-strong hover:border-accent-primary/50 hover:bg-zinc-800/80 transition cursor-pointer shadow-lg active:scale-95 group text-left shrink-0"
               title={h.profileTitle}
             >
               <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-zinc-950 border border-white/10 flex items-center justify-center text-xs sm:text-sm shrink-0 overflow-hidden">

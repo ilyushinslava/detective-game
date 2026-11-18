@@ -25,7 +25,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
   translations: p,
 }) => {
   return (
-    <div className="bg-zinc-950/70 border border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-3">
+    <div className="bg-gradient-to-br from-background-surface/90 to-background-main/80 border border-border-subtle border-t border-t-border-strong rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-3">
       <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-blue-500" />

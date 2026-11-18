@@ -109,11 +109,12 @@ export const LobbyWaitingModal: React.FC<LobbyWaitingModalProps> = ({
         )}
 
         <div className="flex justify-center mb-6">
-          <div className="w-12 h-12 border-2 border-zinc-800 border-t-cyan-500 rounded-full animate-spin shadow-[0_0_15px_rgba(6,182,212,0.3)]" />
+          <div className="w-12 h-12 border-2 border-zinc-800 border-t-accent-neon rounded-full animate-spin shadow-neon-cyan" />
         </div>
 
-        <div className="text-[10px] text-zinc-300 font-black tracking-widest uppercase animate-pulse mb-6">
-          {isHost ? "Ожидание подключения агента..." : "Синхронизация с хостом..."}
+        <div className="text-[10px] text-zinc-200 font-black tracking-widest uppercase animate-pulse mb-6 flex items-center justify-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-accent-neon animate-pulse shadow-neon-cyan" />
+          <span>{isHost ? "Ожидание подключения агента..." : "Синхронизация с хостом..."}</span>
         </div>
 
         {isHost && (

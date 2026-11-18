@@ -75,7 +75,7 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex border-b border-white/[0.07] bg-zinc-950/80 px-4 sm:px-6 pt-2 pb-0 gap-3 shrink-0">
+      <div className="flex border-b border-border-subtle bg-background-surface/80 px-4 sm:px-6 pt-2 pb-0 gap-3 shrink-0">
         <button
           type="button"
           onClick={() => {
@@ -84,12 +84,12 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
           }}
           className={`pb-2.5 px-3 text-xs font-black uppercase tracking-wider transition-all relative border-b-2 cursor-pointer select-none ${
             lobbyTab === "PUBLIC"
-              ? "border-zinc-200 text-white"
+              ? "border-accent-primary text-white drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]"
               : "border-transparent text-zinc-400 hover:text-zinc-200"
           }`}
         >
           <span className="flex items-center gap-2">
-            <Icons.Globe className={`w-3.5 h-3.5 ${lobbyTab === "PUBLIC" ? "text-zinc-200" : "text-zinc-500"}`} />
+            <Icons.Globe className={`w-3.5 h-3.5 ${lobbyTab === "PUBLIC" ? "text-accent-primary" : "text-zinc-500"}`} />
             <span>Открытые игры</span>
             <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-zinc-900 text-zinc-300 border border-white/10">
               {openRoomsCount}
@@ -105,12 +105,12 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
           }}
           className={`pb-2.5 px-3 text-xs font-black uppercase tracking-wider transition-all relative border-b-2 cursor-pointer select-none ${
             lobbyTab === "PRIVATE"
-              ? "border-zinc-200 text-white"
+              ? "border-accent-purple text-white drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]"
               : "border-transparent text-zinc-400 hover:text-zinc-200"
           }`}
         >
           <span className="flex items-center gap-2">
-            <Icons.Lock className={`w-3.5 h-3.5 ${lobbyTab === "PRIVATE" ? "text-zinc-200" : "text-zinc-500"}`} />
+            <Icons.Lock className={`w-3.5 h-3.5 ${lobbyTab === "PRIVATE" ? "text-accent-purple" : "text-zinc-500"}`} />
             <span>Приватные игры</span>
             <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-zinc-900 text-zinc-300 border border-white/10">
               {privateRoomsCount}

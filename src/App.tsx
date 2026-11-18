@@ -46,7 +46,7 @@ const MobileControllerView = lazy(() => import("./components/controller/MobileCo
 const ControllerConnectView = lazy(() => import("./components/controller/ControllerConnectView").then((m) => ({ default: m.ControllerConnectView })));
 
 const ScreenFallback = () => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#07080c] text-zinc-300 select-none">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-background-main text-zinc-300 select-none">
     <div className="flex flex-col items-center gap-3">
       <div className="w-10 h-10 border-2 border-white/10 border-t-blue-500 rounded-full animate-spin" />
       <span className="text-xs font-mono tracking-widest text-zinc-400 uppercase">
@@ -774,7 +774,12 @@ export default function App() {
 
   return (
     <BannerViewerProvider>
-      <div className="fixed inset-0 w-full h-full flex flex-col bg-[#07080c] overflow-hidden select-none">
+      <div className="fixed inset-0 w-full h-full flex flex-col bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-background-panel via-background-main to-background-main overflow-hidden select-none relative">
+        {/* Размытые фоновые сферы неонового света для объема и глубины */}
+        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-accent-primary/20 blur-3xl pointer-events-none" />
+        <div className="absolute top-1/3 -right-32 w-96 h-96 rounded-full bg-accent-purple/15 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 left-1/4 w-96 h-96 rounded-full bg-accent-neon/15 blur-3xl pointer-events-none" />
+
         {showSplash && (
           <SplashScreen
             isTv={isAndroidTv}
@@ -1127,7 +1132,7 @@ export default function App() {
       {tvPartyState === "CONTROLLER" && (() => {
         const isControllerInGame = controllerRoomStatus === "PLAYING";
         return (
-          <div className="fixed inset-0 z-50 bg-[#07080c]">
+          <div className="fixed inset-0 z-50 bg-background-main">
             <Suspense fallback={<ScreenFallback />}>
               {!tvRoomCode ? (
                 <ControllerConnectView

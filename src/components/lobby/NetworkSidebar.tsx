@@ -28,9 +28,10 @@ export const NetworkSidebar: React.FC<NetworkSidebarProps> = ({
   t,
 }) => {
   return (
-    <div className="w-[40%] xl:w-[37%] flex flex-col rounded-3xl bg-black/60 border border-white/10 shadow-[inset_0_2px_25px_rgba(0,0,0,0.9)] backdrop-blur-2xl p-5 xl:p-6 relative overflow-hidden justify-between">
+    <div className="w-[40%] xl:w-[37%] flex flex-col rounded-3xl bg-gradient-to-br from-background-surface/90 to-background-main/80 border border-border-subtle border-t border-t-border-strong shadow-[inset_0_2px_25px_rgba(0,0,0,0.9)] backdrop-blur-2xl p-5 xl:p-6 relative overflow-hidden justify-between">
       {/* Декоративное терминальное свечение в глубине фона */}
-      <div className="absolute top-0 right-0 w-80 h-80 bg-blue-600/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-80 h-80 bg-accent-primary/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-accent-purple/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Секция: Возобновление расследования (если есть активный матч) */}
       {hasActiveGame && onResumeGame && (

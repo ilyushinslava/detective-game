@@ -42,15 +42,17 @@ export const AccountSecurityCard: React.FC<AccountSecurityCardProps> = ({
 }) => {
   if (!isAnonymous || isAccountProtectedSuccess) {
     return (
-      <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold shadow-sm">
-        <ProfileIcons.Shield className="w-4 h-4 text-emerald-400" />
-        <span>{p.accountSecured}</span>
+      <div className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-gradient-to-r from-emerald-950/70 via-emerald-900/30 to-background-surface border border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold shadow-[0_0_20px_rgba(16,185,129,0.2)] relative overflow-hidden">
+        <div className="p-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm shrink-0">
+          <ProfileIcons.Shield className="w-4 h-4 text-emerald-400" />
+        </div>
+        <span className="tracking-wide uppercase drop-shadow-sm">{p.accountSecured}</span>
       </div>
     );
   }
 
   return (
-    <div className="bg-zinc-950/80 border border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-3">
+    <div className="bg-gradient-to-br from-background-surface/90 to-background-main/80 border border-border-subtle border-t border-t-border-strong rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-3">
       <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
         <div className="flex items-center gap-2">
           <ProfileIcons.Shield className="w-4 h-4 text-blue-400" />

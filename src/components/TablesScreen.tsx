@@ -43,7 +43,11 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
   const currentRooms = lobbyTab === 'PUBLIC' ? openRooms : privateRooms;
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-background-main overflow-hidden relative w-full max-w-full">
+    <div className="flex-1 min-h-0 flex flex-col bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-background-panel/60 via-background-main to-background-main overflow-hidden relative w-full max-w-full">
+      {/* Фоновые мягкие сферы для сетевого хаба */}
+      <div className="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-accent-primary/15 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 -right-24 w-80 h-80 rounded-full bg-accent-purple/15 blur-3xl pointer-events-none" />
+
       <TablesHeader
         onBack={onBack}
         lobbyTab={lobbyTab}
@@ -80,7 +84,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
       </div>
 
       {/* Нижняя панель действий */}
-      <div className="w-full shrink-0 bg-background-main border-t border-white/[0.07] p-4 flex flex-col items-center gap-2.5 z-20">
+      <div className="w-full shrink-0 bg-background-main/90 backdrop-blur-md border-t border-border-subtle p-4 flex flex-col items-center gap-2.5 z-20">
         <div className="w-full max-w-xl flex flex-col sm:flex-row gap-2.5">
           <Button
             variant="secondary"
@@ -90,7 +94,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
               setSelectedPrivateRoom(null);
               setIsMorseOpen(true);
             }}
-            className="py-3.5 text-[10px] font-mono font-bold uppercase tracking-widest rounded-xl border border-white/20 text-zinc-200 hover:border-cyan-500/40 hover:text-white bg-zinc-900/90 shadow-md flex items-center justify-center gap-2 cursor-pointer touch-manipulation active:scale-95 duration-75"
+            className="py-3.5 text-[10px] font-mono font-bold uppercase tracking-widest rounded-xl border border-border-strong text-zinc-200 hover:border-accent-neon/40 hover:text-white bg-background-surface/90 shadow-md flex items-center justify-center gap-2 cursor-pointer touch-manipulation active:scale-95 duration-75"
           >
             <span>•— Ввести шифр вручную</span>
           </Button>
@@ -99,7 +103,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
             variant="primary-info"
             fullWidth
             onClick={() => setIsCreateRoomOpen(true)}
-            className="from-red-600 py-3.5 text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-black/50 touch-manipulation active:scale-95 duration-75"
+            className="from-red-600 py-3.5 text-[10px] font-black uppercase tracking-widest rounded-xl bg-gradient-to-r from-accent-primary via-blue-600 to-accent-secondary hover:from-blue-500 hover:to-indigo-500 text-white shadow-neon-blue border border-blue-400/40 touch-manipulation active:scale-95 duration-75"
           >
             + Создать партию
           </Button>

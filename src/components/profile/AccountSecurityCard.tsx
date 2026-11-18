@@ -46,22 +46,9 @@ export const AccountSecurityCard: React.FC<AccountSecurityCardProps> = ({
     }
   };
 
-  // Если аккаунт уже защищен или привязка прошла успешно
+  // Если аккаунт уже защищен или привязка прошла успешно — ничего не отображаем (убираем лишний визуальный шум)
   if (!isAnonymous || isAccountProtectedSuccess) {
-    return (
-      <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 rounded-2xl bg-background-surface/50 backdrop-blur-md border border-white/5 text-emerald-400 text-xs font-mono font-bold">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-          <span className="tracking-wide uppercase font-black text-white">
-            {p.accountSecured || "АККАУНТ ЗАЩИЩЕН"}
-          </span>
-          <span className="text-zinc-500 font-normal hidden sm:inline">•</span>
-          <span className="text-zinc-400 font-normal text-[11px] truncate hidden sm:inline">
-            Профиль синхронизирован
-          </span>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (

@@ -69,8 +69,8 @@ describe("AccountSecurityCard", () => {
     expect(screen.queryByPlaceholderText("••••••••")).toBeNull();
   });
 
-  it("рендерит бейдж 'АККАУНТ ЗАЩИЩЕН' если пользователь авторизован или привязка успешна", () => {
-    render(
+  it("не рендерит ничего (return null), если пользователь авторизован или привязка успешна", () => {
+    const { container } = render(
       <AccountSecurityCard
         isAnonymous={false}
         isAccountProtectedSuccess={true}
@@ -79,7 +79,8 @@ describe("AccountSecurityCard", () => {
       />
     );
 
-    expect(screen.getByText("АККАУНТ ЗАЩИЩЕН")).toBeDefined();
+    expect(container.firstChild).toBeNull();
+    expect(screen.queryByText("АККАУНТ ЗАЩИЩЕН")).toBeNull();
     expect(screen.queryByText("СОХРАНЕНИЕ ПРОГРЕССА")).toBeNull();
   });
 });

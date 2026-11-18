@@ -161,11 +161,11 @@ export const Icons = {
     </svg>
   ),
   Radar: ({ className = "w-6 h-6" }: IconProps) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={className}>
-      <circle cx="12" cy="12" r="10" />
-      <circle cx="12" cy="12" r="6" />
-      <circle cx="12" cy="12" r="2" />
-      <line x1="12" y1="2" x2="12" y2="12" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
+      <circle cx="12" cy="12" r="9" opacity="0.3" strokeDasharray="2 2" />
+      <circle cx="12" cy="12" r="5" opacity="0.6" />
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+      <path d="M12 2v3m0 14v3M2 12h3m14 0h3" strokeLinecap="round" />
     </svg>
   ),
   Key: ({ className = "w-4 h-4" }: IconProps) => (

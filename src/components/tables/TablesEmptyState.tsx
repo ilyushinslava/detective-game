@@ -12,18 +12,43 @@ export const TablesEmptyState: React.FC<TablesEmptyStateProps> = ({
 }) => {
   return (
     <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-border-subtle border-t border-t-border-strong rounded-2xl bg-gradient-to-br from-background-surface/80 to-background-main/80 shadow-[inset_0_2px_25px_rgba(0,0,0,0.9)] backdrop-blur-2xl my-auto max-w-lg mx-auto w-full">
-      <div className="relative mb-5 flex items-center justify-center">
-        <div className="w-24 h-24 rounded-full border border-white/10 flex items-center justify-center animate-pulse">
-          <div className="w-16 h-16 rounded-full border border-white/15 flex items-center justify-center bg-zinc-900/60 shadow-[0_0_25px_rgba(0,0,0,0.8)] relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/15 to-transparent rounded-full animate-spin" style={{ animationDuration: "4s" }} />
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-7 h-7 text-zinc-300 relative z-10">
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 3a9 9 0 0 1 9 9" opacity="0.6" />
-              <path d="M12 7a5 5 0 0 1 5 5" opacity="0.8" />
-              <line x1="12" y1="12" x2="18.5" y2="5.5" strokeWidth="2" />
-              <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-            </svg>
-          </div>
+      <div className="relative mb-5 flex flex-col items-center justify-center">
+        {/* Оптический видоискатель слежки */}
+        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border border-white/10 bg-zinc-950/80 p-3 flex items-center justify-center relative shadow-[inset_0_2px_20px_rgba(0,0,0,0.9)] backdrop-blur-md">
+          {/* Угловые засечки видоискателя */}
+          <div className="absolute top-2 left-2 w-2.5 h-2.5 border-t-2 border-l-2 border-white/30 rounded-tl-[2px]" />
+          <div className="absolute top-2 right-2 w-2.5 h-2.5 border-t-2 border-r-2 border-white/30 rounded-tr-[2px]" />
+          <div className="absolute bottom-2 left-2 w-2.5 h-2.5 border-b-2 border-l-2 border-white/30 rounded-bl-[2px]" />
+          <div className="absolute bottom-2 right-2 w-2.5 h-2.5 border-b-2 border-r-2 border-white/30 rounded-br-[2px]" />
+
+          {/* Векторный видоискатель и радиоволна полицейской частоты */}
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" className="w-full h-full text-zinc-400">
+            {/* Тонкая шкала прицела */}
+            <circle cx="24" cy="24" r="18" strokeWidth="1" strokeDasharray="3 3" opacity="0.25" />
+            <circle cx="24" cy="24" r="11" strokeWidth="1.25" opacity="0.5" />
+
+            {/* Осевые маркеры захвата */}
+            <line x1="24" y1="3" x2="24" y2="7" strokeWidth="1.75" strokeLinecap="round" opacity="0.7" />
+            <line x1="24" y1="41" x2="24" y2="45" strokeWidth="1.75" strokeLinecap="round" opacity="0.7" />
+            <line x1="3" y1="24" x2="7" y2="24" strokeWidth="1.75" strokeLinecap="round" opacity="0.7" />
+            <line x1="41" y1="24" x2="45" y2="24" strokeWidth="1.75" strokeLinecap="round" opacity="0.7" />
+
+            {/* Осциллограмма полицейской частоты в центре (сканирование эфира) */}
+            <path
+              d="M16 24h2l1.5-4 2 8 2-6 1.5 4 2-2h3"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-blue-400"
+            />
+            <circle cx="24" cy="24" r="1.5" fill="currentColor" className="text-blue-400" />
+          </svg>
+        </div>
+
+        {/* Статус сканирования эфира */}
+        <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-mono tracking-widest text-blue-400 uppercase">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+          <span>ЭФИР СВОБОДЕН • СИГНАЛ НЕ ОБНАРУЖЕН</span>
         </div>
       </div>
       <span className="text-xs sm:text-sm font-black tracking-widest text-zinc-200 uppercase mb-1">

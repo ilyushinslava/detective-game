@@ -59,14 +59,31 @@ export const AccountSecurityCard: React.FC<AccountSecurityCardProps> = ({
     );
   }
 
-  const isLoginError =
+  // Точечная классификация ошибок
+  const isPasswordError = Boolean(accountError && /парол/i.test(accountError));
+
+  const isLoginError = Boolean(
     accountError &&
-    (/логин/i.test(accountError) ||
-      /кириллиц/i.test(accountError) ||
-      /пробел/i.test(accountError) ||
-      /символ/i.test(accountError));
-  const isPasswordError = accountError && /парол/i.test(accountError);
-  const isGeneralError = accountError && !isLoginError && !isPasswordError;
+      !isPasswordError &&
+      (/логин/i.test(accountError) ||
+        /кириллиц/i.test(accountError) ||
+        /пробел/i.test(accountError) ||
+        /символ/i.test(accountError) ||
+        /занят/i.test(accountError) ||
+        /already registered/i.test(accountError) ||
+        /already exists/i.test(accountError) ||
+        /уже существует/i.test(accountError) ||
+        /user already/i.test(accountError))
+  );
+  const isGeneralError = Boolean(accountError && !isLoginError && !isPasswordError);
+
+  const loginBorderClass = isLoginError
+    ? "border-accent-danger focus:border-accent-danger focus:ring-1 focus:ring-accent-danger/40"
+    : "border-white/10 focus:border-accent-neon focus:ring-1 focus:ring-accent-neon/40";
+
+  const passwordBorderClass = isPasswordError
+    ? "border-accent-danger focus:border-accent-danger focus:ring-1 focus:ring-accent-danger/40"
+    : "border-white/10 focus:border-accent-neon focus:ring-1 focus:ring-accent-neon/40";
 
   return (
     <div className="rounded-2xl bg-background-surface/50 backdrop-blur-md border border-white/5 p-4 sm:p-5 flex flex-col gap-3.5">
@@ -89,9 +106,10 @@ export const AccountSecurityCard: React.FC<AccountSecurityCardProps> = ({
         Создайте профиль, чтобы навсегда сохранить текущий рейтинг, статистику и монеты.
       </p>
 
-      {/* Стеклянные поля ввода: Логин и Пароль */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1 text-left">
-        <div>
+      {/* Стеклянные поля ввода: Логин и Пароль с резервированием места под ошибки (Zero Layout Shift) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 mt-1 text-left">
+        {/* Поле логина */}
+        <div className="relative pb-5">
           <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
             {p.uniqueLogin || "Уникальный Логин"}
           </label>
@@ -106,16 +124,17 @@ export const AccountSecurityCard: React.FC<AccountSecurityCardProps> = ({
             autoCapitalize="none"
             autoCorrect="off"
             maxLength={20}
-            className="w-full bg-black/20 backdrop-blur-sm border border-white/10 focus:border-accent-neon focus:ring-1 focus:ring-accent-neon/40 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-all duration-200"
+            className={`w-full bg-black/20 backdrop-blur-sm border ${loginBorderClass} rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-all duration-200`}
           />
           {isLoginError && (
-            <p className="text-accent-danger text-xs font-mono mt-1">
+            <p className="absolute left-0 bottom-0 text-accent-danger text-xs font-mono truncate max-w-full">
               {accountError}
             </p>
           )}
         </div>
 
-        <div>
+        {/* Поле пароля */}
+        <div className="relative pb-5">
           <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
             {p.password || "Пароль"}
           </label>
@@ -129,7 +148,7 @@ export const AccountSecurityCard: React.FC<AccountSecurityCardProps> = ({
               }}
               placeholder="••••••••"
               maxLength={32}
-              className="w-full bg-black/20 backdrop-blur-sm border border-white/10 focus:border-accent-neon focus:ring-1 focus:ring-accent-neon/40 rounded-xl px-3.5 py-2.5 pr-10 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-all duration-200"
+              className={`w-full bg-black/20 backdrop-blur-sm border ${passwordBorderClass} rounded-xl px-3.5 py-2.5 pr-10 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-all duration-200`}
             />
             <button
               type="button"
@@ -151,7 +170,7 @@ export const AccountSecurityCard: React.FC<AccountSecurityCardProps> = ({
             </button>
           </div>
           {isPasswordError && (
-            <p className="text-accent-danger text-xs font-mono mt-1">
+            <p className="absolute left-0 bottom-0 text-accent-danger text-xs font-mono truncate max-w-full">
               {accountError}
             </p>
           )}
@@ -159,18 +178,19 @@ export const AccountSecurityCard: React.FC<AccountSecurityCardProps> = ({
       </div>
 
       {isGeneralError && (
-        <p className="text-accent-danger text-xs font-mono text-left mt-0.5">
+        <p className="text-accent-danger text-xs font-mono text-center -mt-1">
           {accountError}
         </p>
       )}
 
-      {/* Кнопка отправки формы */}
-      <div className="flex justify-end mt-1">
+      {/* Кнопка отправки формы: строго w-full */}
+      <div className="w-full mt-0.5">
         <Button
           variant="primary"
+          fullWidth
           onClick={onLinkAccount}
           disabled={isAccountLinking}
-          className="h-10 px-5 text-xs font-bold uppercase tracking-wider active:scale-95 cursor-pointer bg-accent-primary hover:bg-blue-600 text-white rounded-xl shadow-none"
+          className="w-full h-10 text-xs font-bold uppercase tracking-wider active:scale-95 cursor-pointer bg-accent-primary hover:bg-blue-600 text-white rounded-xl shadow-none"
         >
           {isAccountLinking ? (p.saving || "Сохранение...") : "СОЗДАТЬ ПРОФИЛЬ"}
         </Button>

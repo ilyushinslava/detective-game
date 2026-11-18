@@ -58,7 +58,7 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
               title="Назад в главное меню"
             >
               <Icons.ChevronLeft />
-              <span className="hidden sm:inline">Штаб</span>
+              <span className="hidden sm:inline">Меню</span>
             </Button>
           )}
           <div className="flex flex-col select-none min-w-0">

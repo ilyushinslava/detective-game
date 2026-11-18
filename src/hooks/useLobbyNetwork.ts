@@ -103,11 +103,11 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
       let msg = "Ошибка сетевого соединения.";
       const errorMsg = String(err?.message || err?.error || "");
       if (errorMsg === "ROOM_FULL") {
-        msg = "Штаб полон: все слоты агентов уже заняты.";
+        msg = "Комната заполнена: нет свободных мест.";
       } else if (errorMsg === "ROOM_NOT_FOUND") {
-        msg = "Штаб не найден или комната была расформирована.";
+        msg = "Комната не найдена или закрыта.";
       } else if (errorMsg === "INVALID_PASSCODE" || errorMsg === "INVALID_MORSE_CODE") {
-        msg = "Неверный шифр доступа к закрытому каналу.";
+        msg = "Неверный пароль комнаты.";
       }
       setNetworkError(msg);
     };

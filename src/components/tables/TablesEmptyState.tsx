@@ -27,12 +27,12 @@ export const TablesEmptyState: React.FC<TablesEmptyStateProps> = ({
         </div>
       </div>
       <span className="text-xs sm:text-sm font-black tracking-widest text-zinc-200 uppercase mb-1">
-        {lobbyTab === "PUBLIC" ? "Открытых столов не найдено" : "Приватных штабов не обнаружено"}
+        {lobbyTab === "PUBLIC" ? "Открытых комнат не найдено" : "Приватных комнат не найдено"}
       </span>
       <p className="text-[10px] sm:text-xs text-zinc-400 max-w-xs leading-relaxed mb-6 font-mono">
         {lobbyTab === "PUBLIC"
-          ? "В эфире нет активных открытых комнат. Создайте открытую партию для свободного подключения игроков."
-          : "Нет активных закрытых каналов. Создайте приватную партию с защитой 7-значным шифром Морзе."}
+          ? "В списке комнат нет активных открытых игр. Создайте партию для подключения игроков."
+          : "В списке комнат нет активных приватных игр. Создайте партию с паролем."}
       </p>
       <Button
         variant="primary-info"

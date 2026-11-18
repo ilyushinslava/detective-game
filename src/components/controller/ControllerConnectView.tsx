@@ -276,7 +276,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
         .split('')
         .map((s) => (s === '.' ? '•' : '—'))
         .join(' ');
-      setErrorMessage(`Штаб с шифром [ ${displayPattern} ] не обнаружен. Проверьте код на ТВ.`);
+      setErrorMessage(`Комната с кодом [ ${displayPattern} ] не найдена. Проверьте код на ТВ.`);
       soundManager.play('error');
       triggerHaptic('error');
     } catch (_err) {

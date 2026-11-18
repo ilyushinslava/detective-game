@@ -72,13 +72,13 @@ describe("TablesScreen", () => {
       <TablesScreen
         {...defaultProps}
         filteredRooms={rooms}
-        networkError="Штаб полон: все слоты агентов уже заняты."
+        networkError="Комната заполнена: нет свободных мест."
         clearNetworkError={mockClear}
       />
     );
 
     // Проверяем баннер ошибки
-    expect(screen.getByText(/Штаб полон: все слоты агентов уже заняты./i)).toBeDefined();
+    expect(screen.getByText(/Комната заполнена: нет свободных мест./i)).toBeDefined();
     
     // Проверяем кнопку закрытия ошибки
     const closeErrorBtn = screen.getByTitle("Закрыть");
@@ -116,7 +116,7 @@ describe("TablesScreen", () => {
 
     // Должна отображаться только приватная комната
     expect(screen.getByText(/Секретный Агент/i)).toBeDefined();
-    expect(screen.getByText(/ЗАКРЫТЫЙ КАНАЛ/i)).toBeDefined();
+    expect(screen.getByText(/ЗАКРЫТАЯ/i)).toBeDefined();
     expect(screen.queryByText(/Открытый Хост/i)).toBeNull();
 
     // Кликаем по кнопке ввода шифра к выбранной приватной комнате

@@ -30,10 +30,10 @@ export const RoomItemCard: React.FC<RoomItemCardProps> = ({
         <div className="flex flex-col min-w-0 pr-2">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-5 h-5 rounded-full bg-background-panel border border-white/10 flex items-center justify-center text-[10px] text-zinc-300 font-mono font-bold shrink-0">
-              {room.hostName ? room.hostName.charAt(0).toUpperCase() : "A"}
+              {room.hostName ? room.hostName.charAt(0).toUpperCase() : "И"}
             </div>
             <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest truncate">
-              {room.hostName || "Аноним"}
+              {room.hostName || "Игрок"}
             </span>
             {isPrivateRoom && (
               <span className="text-[10px] font-mono font-bold text-zinc-300 bg-zinc-900/80 border border-white/10 px-2 py-0.5 rounded-full flex items-center gap-1.5 shrink-0">
@@ -41,7 +41,7 @@ export const RoomItemCard: React.FC<RoomItemCardProps> = ({
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
-                ЗАКРЫТЫЙ КАНАЛ
+                ЗАКРЫТАЯ
               </span>
             )}
           </div>
@@ -69,7 +69,7 @@ export const RoomItemCard: React.FC<RoomItemCardProps> = ({
             )}
           </span>
           <span className="text-[10px] text-zinc-400 font-mono tracking-wider">
-            Агенты: {room.playersCount}/{room.maxPlayers}
+            Игроки: {room.playersCount}/{room.maxPlayers}
           </span>
         </div>
       </div>

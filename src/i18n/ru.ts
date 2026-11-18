@@ -1,6 +1,6 @@
 export const ru = {
   nav: {
-    hq: "Штаб",
+    hq: "Меню",
     tables: "Сеть",
     profile: "Профиль",
   },

@@ -60,9 +60,15 @@ export function useProfile() {
   const [profile, setProfile] = useState<UserProfile>(() => {
     const saved = storage.getSyncItem<Partial<UserProfile> | null>("crime_city_profile", null);
     if (saved) {
+      const validCallsign = sanitizePlayerName(
+        saved.nickname || saved.agentName || "",
+        guestRegistry.generateCallsign()
+      );
       return {
         ...DEFAULT_LOCAL_PROFILE,
         ...saved,
+        nickname: validCallsign,
+        agentName: validCallsign,
         stats: saved.stats || DEFAULT_LOCAL_PROFILE.stats,
       };
     }
@@ -194,19 +200,26 @@ export function useProfile() {
 
   // Обновление позывного или аватара
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
+    const rawName = updates.agentName || updates.nickname;
+    const sanitizedName = rawName ? sanitizePlayerName(rawName, guestRegistry.generateCallsign()) : undefined;
+    const safeUpdates: Partial<UserProfile> = {
+      ...updates,
+      ...(sanitizedName ? { nickname: sanitizedName, agentName: sanitizedName } : {}),
+    };
+
     setProfile((prev) => {
-      const next = { ...prev, ...updates };
+      const next = { ...prev, ...safeUpdates };
       storage.setSyncAndPersist("crime_city_profile", next);
-      if (updates.nickname || updates.agentName) {
-        localStorage.setItem("crime_city_callsign", (updates.agentName || updates.nickname) as string);
+      if (sanitizedName) {
+        localStorage.setItem("crime_city_callsign", sanitizedName);
       }
       return next;
     });
 
     if (user?.id && isCloudConnected) {
       const dbUpdates: Record<string, any> = {};
-      if (updates.agentName || updates.nickname) {
-        dbUpdates.agent_name = updates.agentName || updates.nickname;
+      if (sanitizedName) {
+        dbUpdates.agent_name = sanitizedName;
       }
       if (updates.avatarId || updates.avatar) {
         dbUpdates.avatar_id = updates.avatarId || updates.avatar;

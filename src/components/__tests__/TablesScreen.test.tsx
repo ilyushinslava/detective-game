@@ -103,16 +103,16 @@ describe("TablesScreen", () => {
     expect(await screen.findByText(/ПОДТВЕРДИТЬ ШИФР/i)).toBeDefined();
   });
 
-  it("кнопка 'Ввести шифр вручную' в нижней панели открывает телеграфный ключ без привязки к конкретной комнате", async () => {
+  it("в нижней панели действий отображает только кнопку '+ Создать партию' без лишнего ручного ввода", () => {
     render(<TablesScreen {...defaultProps} filteredRooms={[]} />);
     
-    const manualMorseBtn = screen.getByRole("button", { name: /Ввести шифр вручную/i });
-    expect(manualMorseBtn).toBeDefined();
-    fireEvent.click(manualMorseBtn);
+    // Кнопка ручного ввода шифра удалена
+    expect(screen.queryByText(/Ввести шифр вручную/i)).toBeNull();
 
-    // Открывается свободный ввод Морзе (ПУЛЬТ УПРАВЛЕНИЯ)
-    expect(await screen.findByRole("button", { name: "Ключ телеграфа" })).toBeDefined();
-    expect(await screen.findByText(/ПУЛЬТ УПРАВЛЕНИЯ/i)).toBeDefined();
-    expect(await screen.findByText(/НАЙТИ ШТАБ/i)).toBeDefined();
+    // Доступна только главная кнопка создания партии
+    const createBtn = screen.getByRole("button", { name: /\+ Создать партию/i });
+    expect(createBtn).toBeDefined();
+    fireEvent.click(createBtn);
+    expect(mockSetIsCreateRoomOpen).toHaveBeenCalledWith(true);
   });
 });

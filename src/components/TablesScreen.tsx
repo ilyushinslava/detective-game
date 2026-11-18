@@ -84,21 +84,8 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
       </div>
 
       {/* Нижняя панель действий */}
-      <div className="w-full shrink-0 bg-background-main/90 backdrop-blur-md border-t border-border-subtle p-4 flex flex-col items-center gap-2.5 z-20">
-        <div className="w-full max-w-xl flex flex-col sm:flex-row gap-2.5">
-          <Button
-            variant="secondary"
-            fullWidth
-            onClick={() => {
-              if (soundManager?.play) soundManager.play('tapMenu');
-              setSelectedPrivateRoom(null);
-              setIsMorseOpen(true);
-            }}
-            className="py-3.5 text-[10px] font-mono font-bold uppercase tracking-widest rounded-xl border border-border-strong text-zinc-200 hover:border-accent-neon/40 hover:text-white bg-background-surface/90 shadow-md flex items-center justify-center gap-2 cursor-pointer touch-manipulation active:scale-95 duration-75"
-          >
-            <span>•— Ввести шифр вручную</span>
-          </Button>
-
+      <div className="w-full shrink-0 bg-background-main/90 backdrop-blur-md border-t border-border-subtle p-4 flex justify-center z-20">
+        <div className="w-full max-w-md">
           <Button
             variant="primary-info"
             fullWidth

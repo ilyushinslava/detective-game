@@ -49,12 +49,15 @@ describe("AccountSecurityCard", () => {
     const errorMsg = screen.getByText("Логин уже занят другим игроком");
     expect(errorMsg).toBeDefined();
     expect(errorMsg.className).toContain("text-accent-danger");
+    expect(errorMsg.className).toContain("whitespace-normal");
+    expect(errorMsg.className).toContain("break-words");
+    expect(errorMsg.className).not.toContain("truncate");
 
     const loginInput = screen.getByPlaceholderText("agent_77");
     expect(loginInput.className).toContain("border-accent-danger");
   });
 
-  it("при ошибке пароля выводит ошибку строго под полем пароля и подсвечивает красным контуром", () => {
+  it("при ошибке пароля выводит ошибку строго под полем пароля с переносом строк без обрезки", () => {
     render(
       <AccountSecurityCard
         isAnonymous={true}
@@ -68,6 +71,9 @@ describe("AccountSecurityCard", () => {
     const errorMsg = screen.getByText("Пароль должен содержать не менее 6 символов");
     expect(errorMsg).toBeDefined();
     expect(errorMsg.className).toContain("text-accent-danger");
+    expect(errorMsg.className).toContain("whitespace-normal");
+    expect(errorMsg.className).toContain("break-words");
+    expect(errorMsg.className).not.toContain("truncate");
 
     const passInput = screen.getByPlaceholderText("••••••••");
     expect(passInput.className).toContain("border-accent-danger");

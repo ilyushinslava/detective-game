@@ -126,4 +126,33 @@ describe("AuthModal", () => {
       expect(mockOnClose).toHaveBeenCalled();
     });
   });
+
+  it("при ошибке валидации выводит сообщение без обрезки текста (whitespace-normal break-words) и без truncate", async () => {
+    mockSignIn.mockRejectedValueOnce(new Error("Логин содержит недопустимые символы или слишком длинный для системы"));
+
+    render(
+      <AuthModal
+        isOpen={true}
+        initialTab="SIGN_IN"
+        onClose={mockOnClose}
+        onSuccess={mockOnSuccess}
+      />
+    );
+
+    const loginInput = screen.getByPlaceholderText("agent_77");
+    const passInput = screen.getByPlaceholderText("••••••••");
+    fireEvent.change(loginInput, { target: { value: "invalid_user" } });
+    fireEvent.change(passInput, { target: { value: "validpass123" } });
+
+    const submitBtn = screen.getByRole("button", { name: "Войти" });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      const errorMsg = screen.getByText("Логин содержит недопустимые символы или слишком длинный для системы");
+      expect(errorMsg).toBeDefined();
+      expect(errorMsg.className).toContain("whitespace-normal");
+      expect(errorMsg.className).toContain("break-words");
+      expect(errorMsg.className).not.toContain("truncate");
+    });
+  });
 });

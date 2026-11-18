@@ -109,7 +109,7 @@ export const AccountSecurityCard: React.FC<AccountSecurityCardProps> = ({
       {/* Стеклянные поля ввода: Логин и Пароль с резервированием места под ошибки (Zero Layout Shift) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 mt-1 text-left">
         {/* Поле логина */}
-        <div className="relative pb-5">
+        <div className="relative pb-9">
           <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
             {p.uniqueLogin || "Уникальный Логин"}
           </label>
@@ -127,14 +127,14 @@ export const AccountSecurityCard: React.FC<AccountSecurityCardProps> = ({
             className={`w-full bg-black/20 backdrop-blur-sm border ${loginBorderClass} rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-all duration-200`}
           />
           {isLoginError && (
-            <p className="absolute left-0 bottom-0 text-accent-danger text-xs font-mono truncate max-w-full">
+            <p className="absolute left-0 bottom-0 text-accent-danger text-xs font-mono whitespace-normal break-words leading-tight w-full">
               {accountError}
             </p>
           )}
         </div>
 
         {/* Поле пароля */}
-        <div className="relative pb-5">
+        <div className="relative pb-9">
           <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
             {p.password || "Пароль"}
           </label>
@@ -170,7 +170,7 @@ export const AccountSecurityCard: React.FC<AccountSecurityCardProps> = ({
             </button>
           </div>
           {isPasswordError && (
-            <p className="absolute left-0 bottom-0 text-accent-danger text-xs font-mono truncate max-w-full">
+            <p className="absolute left-0 bottom-0 text-accent-danger text-xs font-mono whitespace-normal break-words leading-tight w-full">
               {accountError}
             </p>
           )}

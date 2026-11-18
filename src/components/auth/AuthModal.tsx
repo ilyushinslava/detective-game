@@ -181,6 +181,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     onClose();
   };
 
+  // Точечная классификация ошибок для Zero Layout Shift
+  const isPasswordError = Boolean(error && /парол/i.test(error));
+  const isLoginError = Boolean(
+    error &&
+      !isPasswordError &&
+      (/логин/i.test(error) ||
+        /кириллиц/i.test(error) ||
+        /пробел/i.test(error) ||
+        /символ/i.test(error) ||
+        /занят/i.test(error) ||
+        /already registered/i.test(error) ||
+        /already exists/i.test(error) ||
+        /уже существует/i.test(error) ||
+        /user already/i.test(error))
+  );
+  const isGeneralError = Boolean(error && !isLoginError && !isPasswordError);
+
+  const loginBorderClass = isLoginError
+    ? "border-accent-danger focus:border-accent-danger focus:ring-1 focus:ring-accent-danger/40"
+    : "border-white/10 focus:border-accent-neon focus:ring-1 focus:ring-accent-neon/40";
+
+  const passwordBorderClass = isPasswordError
+    ? "border-accent-danger focus:border-accent-danger focus:ring-1 focus:ring-accent-danger/40"
+    : "border-white/10 focus:border-accent-neon focus:ring-1 focus:ring-accent-neon/40";
+
   return (
     <Modal
       isOpen={isOpen}
@@ -242,8 +267,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
 
           {/* Контейнер с фиксированной минимальной высотой для предотвращения скачков интерфейса (Layout Shift) */}
-          <div className="min-h-[320px] flex flex-col justify-between">
-            <div className="flex flex-col gap-3">
+          <div className="min-h-[350px] sm:min-h-[360px] flex flex-col justify-between">
+            <div className="flex flex-col gap-2.5">
               {/* Информационный текст */}
               <p className="text-[11px] font-mono text-zinc-400 leading-relaxed">
                 {tab === "CREATE_PROFILE"
@@ -276,8 +301,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
               )}
 
-              {/* Стеклянное поле ввода Логина */}
-              <div>
+              {/* Стеклянное поле ввода Логина с резервированием места под ошибку */}
+              <div className="relative pb-9">
                 <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
                   {a.login}
                 </label>
@@ -292,13 +317,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   autoCapitalize="none"
                   autoCorrect="off"
                   maxLength={20}
-                  className="w-full bg-black/20 backdrop-blur-sm border border-white/10 focus:border-accent-neon focus:ring-1 focus:ring-accent-neon/40 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-all duration-200"
+                  className={`w-full bg-black/20 backdrop-blur-sm border ${loginBorderClass} rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-all duration-200`}
                   autoFocus
                 />
+                {isLoginError && (
+                  <p className="absolute left-0 bottom-0 text-accent-danger text-xs font-mono whitespace-normal break-words leading-tight w-full">
+                    {error}
+                  </p>
+                )}
               </div>
 
-              {/* Стеклянное поле ввода Пароля с кнопкой-глазом */}
-              <div>
+              {/* Стеклянное поле ввода Пароля с кнопкой-глазом и резервированием места под ошибку */}
+              <div className="relative pb-9">
                 <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
                   {a.password}
                 </label>
@@ -312,7 +342,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     }}
                     placeholder="••••••••"
                     maxLength={32}
-                    className="w-full bg-black/20 backdrop-blur-sm border border-white/10 focus:border-accent-neon focus:ring-1 focus:ring-accent-neon/40 rounded-xl px-3.5 py-2.5 pr-10 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-all duration-200"
+                    className={`w-full bg-black/20 backdrop-blur-sm border ${passwordBorderClass} rounded-xl px-3.5 py-2.5 pr-10 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-all duration-200`}
                   />
                   <button
                     type="button"
@@ -323,13 +353,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     {showPassword ? <Icons.EyeOff /> : <Icons.Eye />}
                   </button>
                 </div>
+                {isPasswordError && (
+                  <p className="absolute left-0 bottom-0 text-accent-danger text-xs font-mono whitespace-normal break-words leading-tight w-full">
+                    {error}
+                  </p>
+                )}
               </div>
 
-              {/* Алерт об ошибке */}
-              {error && (
-                <div className="p-2 rounded-lg bg-rose-950/40 border border-rose-500/30 text-rose-300 text-[10px] font-mono">
+              {/* Общая ошибка, если она не относится к конкретному полю */}
+              {isGeneralError && (
+                <p className="text-accent-danger text-xs font-mono whitespace-normal break-words leading-tight text-center -mt-1">
                   {error}
-                </div>
+                </p>
               )}
             </div>
 

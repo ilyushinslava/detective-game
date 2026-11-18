@@ -97,9 +97,7 @@ export const ModeDetailView: React.FC<ModeDetailViewProps> = ({
           {modeBannerSrc && (
             <div
               onClick={(e) => onOpenBanner(e, modeBannerSrc, modeData.title)}
-              className={`relative w-full h-[100px] sm:h-[120px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${
-                modeMeta?.banner?.borderColor || "border-zinc-800"
-              } shadow-lg cursor-pointer group select-none bg-zinc-950`}
+              className="relative w-full h-[100px] sm:h-[120px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border border-white/10 border-t-white/25 shadow-lg cursor-pointer group select-none bg-zinc-950"
               title="Нажмите для просмотра полного фото"
             >
               <img
@@ -137,7 +135,7 @@ export const ModeDetailView: React.FC<ModeDetailViewProps> = ({
                 return (
                   <div
                     key={idx}
-                    className="bg-zinc-950/60 border border-white/10 rounded-2xl p-2.5 sm:p-3 flex flex-col items-center text-center justify-between min-h-[92px] sm:min-h-[96px] shadow-sm"
+                    className="neo-card rounded-2xl p-2.5 sm:p-3 flex flex-col items-center text-center justify-between min-h-[92px] sm:min-h-[96px]"
                   >
                     <ItemIcon className="w-5 h-5 text-zinc-300" />
                     <span className="text-xs sm:text-sm font-black font-mono text-zinc-100 tracking-wider mt-1.5">
@@ -156,7 +154,7 @@ export const ModeDetailView: React.FC<ModeDetailViewProps> = ({
             <h3 className="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
               Формат партии
             </h3>
-            <div className="bg-zinc-900/80 border border-white/10 p-1 rounded-xl flex gap-1 w-full shadow-inner">
+            <div className="neo-card p-1 rounded-xl flex gap-1 w-full">
               {(["AI", "PVP", "ONLINE"] as OpponentType[]).map((opp) => {
                 const isSelected = selectedOpponent === opp;
                 return (
@@ -168,7 +166,7 @@ export const ModeDetailView: React.FC<ModeDetailViewProps> = ({
                     }}
                     className={`flex-1 py-2 text-xs font-bold rounded-lg text-center transition-all cursor-pointer ${
                       isSelected
-                        ? "text-white bg-zinc-800 border border-white/10 shadow-sm"
+                        ? "text-white bg-gradient-to-b from-slate-900/90 via-zinc-950 to-black border border-white/10 border-t-white/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]"
                         : "text-zinc-400 hover:text-zinc-200"
                     }`}
                   >
@@ -189,8 +187,8 @@ export const ModeDetailView: React.FC<ModeDetailViewProps> = ({
                   onClick={() => setSelectedRole("DETECTIVE")}
                   className={`flex-1 py-2.5 sm:py-3 px-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer text-center ${
                     selectedRole === "DETECTIVE"
-                      ? "bg-blue-950/40 border border-blue-500/50 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
-                      : "bg-zinc-950/40 border border-white/10 text-zinc-400 hover:text-zinc-200"
+                      ? "bg-gradient-to-b from-slate-900/90 via-zinc-950 to-black border border-blue-500/30 border-t-blue-400/50 text-white shadow-[inset_0_1px_0_rgba(59,130,246,0.2),0_4px_12px_rgba(0,0,0,0.5)]"
+                      : "bg-zinc-950/60 border border-white/10 text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
                   {modeData.detectiveRoleName}
@@ -199,8 +197,8 @@ export const ModeDetailView: React.FC<ModeDetailViewProps> = ({
                   onClick={() => setSelectedRole("KILLER")}
                   className={`flex-1 py-2.5 sm:py-3 px-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer text-center ${
                     selectedRole === "KILLER"
-                      ? "bg-red-950/40 border border-red-500/50 text-red-300 shadow-[0_0_12px_rgba(239,68,68,0.15)]"
-                      : "bg-zinc-950/40 border border-white/10 text-zinc-400 hover:text-zinc-200"
+                      ? "bg-gradient-to-b from-rose-950/70 via-zinc-950 to-black border border-rose-500/30 border-t-rose-400/50 text-white shadow-[inset_0_1px_0_rgba(244,63,94,0.2),0_4px_12px_rgba(0,0,0,0.5)]"
+                      : "bg-zinc-950/60 border border-white/10 text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
                   {modeData.killerRoleName}
@@ -261,7 +259,7 @@ export const ModeDetailView: React.FC<ModeDetailViewProps> = ({
       <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-background-main via-background-main/95 to-transparent pb-[max(1rem,env(safe-area-inset-bottom))] z-20">
         <div className="w-full max-w-xl mx-auto">
           <Button
-            variant="primary-danger"
+            variant="danger"
             fullWidth
             onClick={() => {
               triggerHaptic("medium");
@@ -274,7 +272,7 @@ export const ModeDetailView: React.FC<ModeDetailViewProps> = ({
                 onStartOffline(effectiveCount, targetTrophies);
               }
             }}
-            className="h-12 shadow-lg shadow-red-950/50 flex items-center justify-center gap-2 text-xs sm:text-sm font-black tracking-widest uppercase cursor-pointer"
+            className="h-12 flex items-center justify-center gap-2 text-xs sm:text-sm font-black tracking-widest uppercase cursor-pointer"
           >
             <span>НАЧАТЬ ИГРУ</span>
             <span>➔</span>

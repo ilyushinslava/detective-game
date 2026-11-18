@@ -14,32 +14,28 @@ export interface ModeCardProps {
 
 const VARIANT_STYLES = {
   pve: {
-    borderHover: "hover:border-accent-primary/50",
-    shadowHover: "hover:shadow-neon-blue",
-    focusRing: "focus:ring-accent-primary/40",
-    iconColor: "text-zinc-300 group-hover:text-accent-primary group-hover:border-accent-primary/40",
-    textHover: "group-hover:text-blue-300",
+    borderHover: "hover:border-white/25 hover:border-t-white/45",
+    focusRing: "focus:ring-white/20",
+    iconColor: "text-zinc-300 group-hover:text-blue-400 group-hover:border-blue-500/30",
+    textHover: "group-hover:text-white",
   },
   pvp: {
-    borderHover: "hover:border-accent-primary/50",
-    shadowHover: "hover:shadow-neon-blue",
-    focusRing: "focus:ring-accent-primary/40",
-    iconColor: "text-zinc-300 group-hover:text-accent-primary group-hover:border-accent-primary/40",
-    textHover: "group-hover:text-blue-300",
+    borderHover: "hover:border-white/25 hover:border-t-white/45",
+    focusRing: "focus:ring-white/20",
+    iconColor: "text-zinc-300 group-hover:text-blue-400 group-hover:border-blue-500/30",
+    textHover: "group-hover:text-white",
   },
   tv: {
-    borderHover: "hover:border-accent-danger/50",
-    shadowHover: "hover:shadow-neon-rose",
-    focusRing: "focus:ring-accent-danger/40",
-    iconColor: "text-accent-danger group-hover:text-rose-300 group-hover:border-accent-danger/50",
-    textHover: "group-hover:text-rose-300",
+    borderHover: "hover:border-white/25 hover:border-t-rose-400/50",
+    focusRing: "focus:ring-rose-500/30",
+    iconColor: "text-rose-400/90 group-hover:text-rose-300 group-hover:border-rose-500/40",
+    textHover: "group-hover:text-white",
   },
   online: {
-    borderHover: "hover:border-accent-success/50",
-    shadowHover: "hover:shadow-neon-emerald",
-    focusRing: "focus:ring-accent-success/40",
-    iconColor: "text-accent-success group-hover:text-emerald-300 group-hover:border-accent-success/50",
-    textHover: "group-hover:text-emerald-300",
+    borderHover: "hover:border-white/25 hover:border-t-white/45",
+    focusRing: "focus:ring-white/20",
+    iconColor: "text-zinc-300 group-hover:text-cyan-400 group-hover:border-cyan-500/30",
+    textHover: "group-hover:text-white",
   },
 };
 
@@ -59,17 +55,17 @@ export const ModeCard: React.FC<ModeCardProps> = ({
     return (
       <button
         onClick={onClick}
-        className={`col-span-2 rounded-2xl xl:rounded-3xl border border-border-strong ${styles.borderHover} bg-transparent hover:bg-background-surface/60 backdrop-blur-xl p-4 xl:p-5 flex flex-col justify-between hover:scale-[1.01] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative ${styles.shadowHover} focus:outline-none focus:ring-2 ${styles.focusRing} ${className}`}
+        className={`col-span-2 neo-card-interactive rounded-2xl xl:rounded-3xl ${styles.borderHover} p-4 xl:p-5 flex flex-col justify-between hover:scale-[1.01] transition-all duration-200 cursor-pointer active:scale-[0.99] group text-left relative focus:outline-none focus:ring-2 ${styles.focusRing} ${className}`}
       >
         <div className="flex items-center gap-3.5 min-w-0 w-full">
-          <div className={`w-10 h-10 xl:w-12 xl:h-12 rounded-xl xl:rounded-2xl bg-zinc-900/80 border border-white/10 flex items-center justify-center ${styles.iconColor} transition-all shrink-0 shadow-md`}>
+          <div className={`w-10 h-10 xl:w-12 xl:h-12 rounded-xl xl:rounded-2xl bg-zinc-950/80 border border-white/10 flex items-center justify-center ${styles.iconColor} transition-all shrink-0 shadow-inner`}>
             {icon}
           </div>
           <div className="flex flex-col min-w-0 flex-1">
             <h3 className={`font-display font-black text-lg xl:text-xl text-white uppercase tracking-tight whitespace-normal leading-tight ${styles.textHover} transition`}>
               {title}
             </h3>
-            <p className="text-[11px] xl:text-xs text-zinc-400 mt-0.5 leading-relaxed whitespace-normal line-clamp-1">
+            <p className="text-[11px] xl:text-xs text-zinc-400 mt-1 leading-relaxed whitespace-normal">
               {description}
             </p>
           </div>
@@ -86,9 +82,9 @@ export const ModeCard: React.FC<ModeCardProps> = ({
   return (
     <button
       onClick={onClick}
-      className={`rounded-2xl xl:rounded-3xl border border-border-strong ${styles.borderHover} bg-transparent hover:bg-background-surface/60 backdrop-blur-xl p-4 xl:p-5 flex flex-col hover:scale-[1.015] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative ${styles.shadowHover} focus:outline-none focus:ring-2 ${styles.focusRing} ${className}`}
+      className={`neo-card-interactive rounded-2xl xl:rounded-3xl ${styles.borderHover} p-4 xl:p-5 flex flex-col hover:scale-[1.015] transition-all duration-200 cursor-pointer active:scale-[0.99] group text-left relative focus:outline-none focus:ring-2 ${styles.focusRing} ${className}`}
     >
-      <div className={`w-10 h-10 xl:w-12 xl:h-12 rounded-xl xl:rounded-2xl bg-zinc-900/80 border border-white/10 flex items-center justify-center ${styles.iconColor} transition-all shrink-0 shadow-md`}>
+      <div className={`w-10 h-10 xl:w-12 xl:h-12 rounded-xl xl:rounded-2xl bg-zinc-950/80 border border-white/10 flex items-center justify-center ${styles.iconColor} transition-all shrink-0 shadow-inner`}>
         {icon}
       </div>
 

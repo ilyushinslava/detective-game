@@ -99,6 +99,21 @@ describe("TablesScreen", () => {
     expect(mockSetRoomFilter).toHaveBeenCalledWith("SKHVATKA");
   });
 
+  it("поддерживает мобильный выпадающий список (Dropdown) фильтрации режимов", () => {
+    render(<TablesScreen {...defaultProps} />);
+
+    // Кнопка селектора показывает текущий режим
+    const dropdownBtn = screen.getByRole("button", { name: /РЕЖИМ:/i });
+    expect(dropdownBtn).toBeDefined();
+
+    // При клике открывается меню с опциями
+    fireEvent.click(dropdownBtn);
+    const options = screen.getAllByRole("button", { name: /Skhvatka/i });
+    // Кликаем по пункту выпадающего меню
+    fireEvent.click(options[options.length - 1]);
+    expect(mockSetRoomFilter).toHaveBeenCalledWith("SKHVATKA");
+  });
+
   it("разделяет лобби на Открытые и Приватные игры, и открывает телеграфный ключ для ввода пароля к выбранной приватной комнате", async () => {
     const rooms = [
       { roomCode: "room-open-1", hostName: "Открытый Хост", mode: "SKHVATKA", playersCount: 1, maxPlayers: 2, isPrivate: false },

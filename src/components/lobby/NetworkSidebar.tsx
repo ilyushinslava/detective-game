@@ -91,14 +91,14 @@ export const NetworkSidebar: React.FC<NetworkSidebarProps> = ({
         <div>
           <div className="flex items-center justify-between pb-2 mb-2">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-blue-950/80 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.2)] shrink-0">
-                <Icons.Radar className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-xl bg-zinc-900/90 border border-white/10 flex items-center justify-center text-zinc-300 shadow-inner shrink-0">
+                <Icons.Radar className="w-4 h-4 text-zinc-300" />
               </div>
               <span className="text-xs xl:text-sm font-display font-bold uppercase tracking-wider text-white block leading-tight">
                 Сетевые столы
               </span>
             </div>
-            <span className="text-[10px] xl:text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-md bg-blue-950/70 border border-blue-500/30 text-blue-300 shrink-0">
+            <span className="text-[10px] xl:text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-md bg-zinc-900/80 border border-white/10 text-zinc-300 shrink-0">
               {onlineRoomsCount} комнат
             </span>
           </div>
@@ -110,7 +110,7 @@ export const NetworkSidebar: React.FC<NetworkSidebarProps> = ({
 
         <button
           onClick={onOpenOnline}
-          className="w-full py-2.5 xl:py-3 px-4 rounded-xl xl:rounded-2xl bg-blue-600 hover:bg-blue-500 border border-blue-400/40 text-white font-display font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(37,99,235,0.25)] hover:scale-[1.01] active:scale-[0.99] cursor-pointer mt-3"
+          className="w-full h-11 xl:h-12 px-4 rounded-xl xl:rounded-2xl neo-button-primary font-display font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.99] cursor-pointer mt-3"
         >
           <span>ОТКРЫТЬ СЕТЕВЫЕ СТОЛЫ</span>
           <Icons.ArrowRight className="w-3.5 h-3.5" />

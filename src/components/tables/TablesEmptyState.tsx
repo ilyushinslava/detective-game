@@ -64,9 +64,9 @@ export const TablesEmptyState: React.FC<TablesEmptyStateProps> = ({
           : "В списке комнат нет активных приватных игр. Создайте партию с паролем."}
       </p>
       <Button
-        variant="secondary"
+        variant="primary"
         onClick={onCreateRoom}
-        className="px-6 h-10 text-xs font-bold uppercase tracking-wider rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white border border-white/20 hover:border-white/30 cursor-pointer transition-all shadow-sm"
+        className="px-6 h-10 text-xs font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all active:scale-95"
       >
         + Создать первый стол
       </Button>

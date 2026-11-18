@@ -147,12 +147,13 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
         {/* [НИЖНЯЯ ЧАСТЬ / THUMB-ZONE]: Интерактивный стек (снизу вверх: Быстрая игра, Сетка режимов, Справочник/Обучение) */}
         <div className="w-full flex flex-col gap-3 shrink-0">
           {/* [ЕЩЕ ВЫШЕ] Горизонтальный ряд «Справочник» и «Обучение» */}
+          {/* Верхняя панель: Справочник и Обучение */}
           <div className="w-full grid grid-cols-2 gap-2 sm:gap-2.5">
             <button
               onClick={onOpenRules}
-              className="h-10 sm:h-11 rounded-2xl bg-zinc-950/70 hover:bg-zinc-900/80 border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2 px-3 text-zinc-300 hover:text-white cursor-pointer active:scale-[0.99] shadow-md group focus:outline-none focus:ring-2 focus:ring-blue-500/40 backdrop-blur-xl"
+              className="h-10 sm:h-11 rounded-2xl neo-card-interactive transition-all flex items-center justify-center gap-2 px-3 text-zinc-300 hover:text-white cursor-pointer active:scale-[0.99] group focus:outline-none"
             >
-              <div className="text-zinc-400 group-hover:text-blue-400 transition-colors shrink-0">
+              <div className="text-zinc-400 group-hover:text-white transition-colors shrink-0">
                 <Icons.Shield />
               </div>
               <div className="flex flex-col items-start leading-tight min-w-0">
@@ -168,9 +169,9 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
             <button
               onClick={onOpenTutorial}
               onPointerEnter={() => import("../TutorialScreen")}
-              className="h-10 sm:h-11 rounded-2xl bg-zinc-950/70 hover:bg-zinc-900/80 border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2 px-3 text-zinc-300 hover:text-white cursor-pointer active:scale-[0.99] shadow-md group focus:outline-none focus:ring-2 focus:ring-blue-500/40 backdrop-blur-xl"
+              className="h-10 sm:h-11 rounded-2xl neo-card-interactive transition-all flex items-center justify-center gap-2 px-3 text-zinc-300 hover:text-white cursor-pointer active:scale-[0.99] group focus:outline-none"
             >
-              <div className="text-zinc-400 group-hover:text-blue-400 transition-colors shrink-0">
+              <div className="text-zinc-400 group-hover:text-white transition-colors shrink-0">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 sm:w-5 sm:h-5">
                   <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
                   <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
@@ -192,9 +193,9 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
             {/* Режим 1 (1 колонка): Одиночная (PVE) */}
             <button
               onClick={onSelectSolo}
-              className="min-h-[92px] sm:min-h-[105px] border border-border-strong hover:border-accent-primary/50 bg-transparent hover:bg-background-surface/60 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-accent-primary/30 hover:shadow-neon-blue"
+              className="min-h-[92px] sm:min-h-[105px] neo-card-interactive rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none"
             >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-900/90 text-zinc-300 border border-border-subtle flex items-center justify-center group-hover:text-accent-primary group-hover:border-accent-primary/40 transition-all shrink-0 shadow-inner">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-950/80 text-zinc-300 border border-white/10 flex items-center justify-center group-hover:text-white transition-all shrink-0 shadow-inner">
                 <Icons.Cards className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="flex flex-col mt-1.5 min-w-0 flex-1 justify-center">
@@ -207,9 +208,9 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
             {/* Режим 2 (1 колонка): На одном экране (Pass & Play PVP) */}
             <button
               onClick={onSelectLocalDuel}
-              className="min-h-[92px] sm:min-h-[105px] border border-border-strong hover:border-accent-primary/50 bg-transparent hover:bg-background-surface/60 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-accent-primary/30 hover:shadow-neon-blue"
+              className="min-h-[92px] sm:min-h-[105px] neo-card-interactive rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none"
             >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-900/90 text-zinc-300 border border-border-subtle flex items-center justify-center group-hover:text-accent-primary group-hover:border-accent-primary/40 transition-all shrink-0 shadow-inner">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-950/80 text-zinc-300 border border-white/10 flex items-center justify-center group-hover:text-white transition-all shrink-0 shadow-inner">
                 <Icons.Users className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="flex flex-col mt-1.5 min-w-0 flex-1 justify-center">
@@ -222,10 +223,10 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
             {/* Режим 3 (2 колонки - широкий ТВ-режим): ТВ Режим (TV PARTY) */}
             <button
               onClick={onOpenTvParty}
-              className="col-span-2 min-h-[85px] sm:min-h-[95px] border border-border-strong hover:border-accent-danger/50 bg-transparent hover:bg-background-surface/60 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 flex items-center justify-between hover:scale-[1.01] transition-all duration-200 cursor-pointer shadow-lg active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-accent-danger/40 hover:shadow-neon-rose"
+              className="col-span-2 min-h-[85px] sm:min-h-[95px] neo-card-interactive rounded-2xl p-3 sm:p-3.5 flex items-center justify-between hover:scale-[1.01] transition-all duration-200 cursor-pointer active:scale-[0.99] group text-left relative overflow-hidden focus:outline-none"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-red-950/40 text-accent-danger border border-accent-danger/30 flex items-center justify-center group-hover:text-rose-300 group-hover:border-accent-danger/50 transition-all shrink-0 shadow-neon-rose">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-zinc-950/80 text-rose-400 border border-rose-500/30 flex items-center justify-center group-hover:text-rose-300 transition-all shrink-0 shadow-inner">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 sm:w-5 sm:h-5">
                     <rect x="2" y="7" width="20" height="15" rx="2" ry="2" />
                     <polyline points="17 2 12 7 7 2" />
@@ -240,7 +241,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
                   </span>
                 </div>
               </div>
-              <Icons.ArrowRight className="w-4 h-4 text-zinc-500 group-hover:text-accent-danger group-hover:translate-x-1 transition-all shrink-0 mr-1" />
+              <Icons.ArrowRight className="w-4 h-4 text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all shrink-0 mr-1" />
             </button>
           </div>
 

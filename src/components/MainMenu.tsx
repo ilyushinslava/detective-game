@@ -54,10 +54,10 @@ const GAME_MODES = getGameModesList().map((mode) => ({ ...mode, icon: MODE_ICONS
 
 const ROOM_FILTERS = [
   { id: "ALL", label: "Все" },
-  { id: "MANIAC_VS_OPERATIVE", label: "Почерк" },
+  { id: "MANIAC_VS_OPERATIVE", label: "Почерк убийцы" },
   { id: "THIEF_HUNT", label: "Оцепление" },
-  { id: "SECRET_SERVICE", label: "Директива" },
-  { id: "LINE_UP", label: "Ставка" },
+  { id: "SECRET_SERVICE", label: "Директива «Ноль»" },
+  { id: "LINE_UP", label: "Очная ставка" },
 ];
 
 export type ScreenType = "HOME" | "MODES" | "MODE_DETAIL" | "PROFILE" | "TABLES";

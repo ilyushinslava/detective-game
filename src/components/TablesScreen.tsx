@@ -149,10 +149,10 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
       <div className="w-full shrink-0 bg-background-main/90 backdrop-blur-md border-t border-border-subtle p-4 flex justify-center z-20">
         <div className="w-full max-w-md">
           <Button
-            variant="secondary"
+            variant="primary"
             fullWidth
             onClick={() => setIsCreateRoomOpen(true)}
-            className="py-3.5 text-[10px] font-black uppercase tracking-widest rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white border border-white/20 hover:border-white/30 touch-manipulation active:scale-95 duration-75 shadow-sm"
+            className="py-3.5 text-xs font-black uppercase tracking-widest rounded-xl touch-manipulation active:scale-95 duration-75 cursor-pointer"
           >
             + Создать партию
           </Button>

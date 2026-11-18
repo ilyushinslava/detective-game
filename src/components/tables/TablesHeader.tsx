@@ -1,10 +1,20 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "../ui/Button";
 
 const Icons = {
   ChevronLeft: () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
       <path d="M15 18l-6-6 6-6" />
+    </svg>
+  ),
+  ChevronDown: ({ className = "" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`w-3.5 h-3.5 shrink-0 ${className}`}>
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  ),
+  Filter: ({ className = "" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-3.5 h-3.5 shrink-0 ${className}`}>
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
     </svg>
   ),
   Lock: ({ className = "w-3.5 h-3.5 text-zinc-400" }: { className?: string }) => (
@@ -49,6 +59,33 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
   onToggleMockRooms,
   useMockRooms,
 }) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const currentFilter = roomFilters.find((f) => f.id === roomFilter) || roomFilters[0] || { id: "ALL", label: "Все" };
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener("pointerdown", handleOutsideClick);
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("pointerdown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isDropdownOpen]);
+
   return (
     <header className="w-full shrink-0 bg-background-main/80 backdrop-blur-xl border-b border-border-subtle flex flex-col z-10">
       {/* Верхний ряд: Навигация и заголовок + сегмент-контрол вкладок */}
@@ -132,8 +169,57 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
         </div>
       </div>
 
-      {/* Компактная линейка фильтров */}
-      <div className="w-full flex items-center justify-center flex-wrap gap-2.5 px-4 sm:px-6 py-2 border-t border-white/[0.04] shrink-0">
+      {/* Мобильная версия: компактный элегантный Dropdown (убран неудобный горизонтальный скролл) */}
+      <div className="md:hidden relative w-full px-4 py-2 border-t border-white/[0.04] shrink-0" ref={dropdownRef}>
+        <button
+          type="button"
+          onClick={() => {
+            if (soundManager?.play) soundManager.play("tapMenu");
+            setIsDropdownOpen((prev) => !prev);
+          }}
+          className="w-full flex items-center justify-between px-3.5 h-9 rounded-xl text-xs font-mono font-bold uppercase tracking-wider neo-button-primary transition-all duration-150 active:scale-[0.98] cursor-pointer"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <Icons.Filter className="text-zinc-400" />
+            <span className="text-zinc-400 font-semibold shrink-0">РЕЖИМ:</span>
+            <span className="text-white font-extrabold truncate">{currentFilter.label}</span>
+          </div>
+          <Icons.ChevronDown className={`text-zinc-400 transition-transform duration-300 ease-out ${isDropdownOpen ? "rotate-180 text-white" : ""}`} />
+        </button>
+
+        {/* Выпадающий список режимов с плавной анимацией выезда */}
+        {isDropdownOpen && (
+          <div className="absolute left-4 right-4 top-full mt-1.5 z-50 rounded-2xl bg-zinc-950/95 border border-white/15 p-1.5 backdrop-blur-2xl shadow-[0_12px_36px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.1)] space-y-1 animate-dropdownSlideDown">
+            {roomFilters.map((filter) => {
+              const isSelected = roomFilter === filter.id;
+              return (
+                <button
+                  key={filter.id}
+                  type="button"
+                  onClick={() => {
+                    if (soundManager?.play) soundManager.play("tapMenu");
+                    onFilterChange(filter.id);
+                    setIsDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all duration-100 cursor-pointer text-left ${
+                    isSelected
+                      ? "bg-white/15 text-white border border-white/20 shadow-xs"
+                      : "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.05] border border-transparent"
+                  }`}
+                >
+                  <span className="truncate">{filter.label}</span>
+                  {isSelected && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)] shrink-0 ml-2" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Десктопная / планшетная версия: центрированная горизонтальная строка режимов */}
+      <div className="hidden md:flex w-full items-center justify-center gap-2 px-6 py-2 border-t border-white/[0.04] shrink-0">
         {roomFilters.map((filter) => {
           const isActive = roomFilter === filter.id;
           return (
@@ -144,10 +230,10 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
                 if (soundManager?.play) soundManager.play("tapMenu");
                 onFilterChange(filter.id);
               }}
-              className={`h-6 px-3 text-[10px] font-mono font-bold uppercase tracking-wider rounded-md transition-colors duration-150 cursor-pointer select-none shrink-0 border focus:outline-none active:scale-95 ${
+              className={`h-7 px-3.5 text-[11px] font-mono font-bold uppercase tracking-wider rounded-lg transition-all duration-150 cursor-pointer select-none shrink-0 border focus:outline-none active:scale-95 ${
                 isActive
-                  ? "bg-white/15 text-white border-white/20 shadow-xs"
-                  : "bg-transparent text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] border-transparent"
+                  ? "bg-white/15 text-white border-white/25 shadow-xs"
+                  : "bg-white/[0.03] text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.07] border-white/5"
               }`}
             >
               {filter.label}

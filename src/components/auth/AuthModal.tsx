@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { useAuthSafe, validateLogin, validatePassword } from "../../contexts/AuthContext";
 import { useTranslation } from "../../i18n/context";
 import { soundManager } from "../../utils/audio";
 import { triggerHaptic } from "../../utils/haptics";
+import { storage } from "../../utils/storage";
 import { RecoveryKeyView, generateRecoveryKey } from "./RecoveryKeyView";
 
 export interface AuthModalProps {
@@ -12,6 +13,7 @@ export interface AuthModalProps {
   onClose: () => void;
   onSuccess?: () => void;
   initialTab?: "CREATE_PROFILE" | "SIGN_IN";
+  currentCallsign?: string;
 }
 
 const Icons = {
@@ -39,8 +41,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   onSuccess,
   initialTab = "SIGN_IN",
+  currentCallsign,
 }) => {
-  const { isAnonymous, signIn, linkAccount } = useAuthSafe();
+  const { user, isAnonymous, signIn, linkAccount } = useAuthSafe();
   const { t } = useTranslation();
 
   const a = t?.auth || {
@@ -73,6 +76,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   // Шаг модального окна: AUTH (форма) или RECOVERY_KEY (финальный ключ)
   const [step, setStep] = useState<"AUTH" | "RECOVERY_KEY">("AUTH");
   const [generatedKey, setGeneratedKey] = useState<string>("");
+
+  // Вычисление текущего позывного игрока для отображения в форме
+  const callsign = useMemo(() => {
+    if (currentCallsign) return currentCallsign;
+    try {
+      const savedProfile = storage.getSyncItem<any>("crime_city_profile", null);
+      if (savedProfile?.agentName || savedProfile?.nickname) {
+        return savedProfile.agentName || savedProfile.nickname;
+      }
+      const saved = localStorage.getItem("crime_city_callsign");
+      if (saved) return saved;
+      if (user?.user_metadata?.agent_name || user?.user_metadata?.login) {
+        return user.user_metadata.agent_name || user.user_metadata.login;
+      }
+    } catch {}
+    return "Агент";
+  }, [currentCallsign, user]);
 
   useEffect(() => {
     if (isOpen) {
@@ -185,8 +205,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         />
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-3.5 mb-1 mt-1">
-          {/* Стеклянный переключатель режима: Создать профиль / Войти */}
-          <div className="flex p-1 rounded-xl bg-background-surface/50 border border-white/5 backdrop-blur-md gap-1">
+          {/* Статичный и элегантный переключатель режима (без мерцаний и пульсаций) */}
+          <div className="flex p-1 rounded-xl bg-background-surface/50 border border-white/5 backdrop-blur-md gap-1 shrink-0">
             <button
               type="button"
               onClick={() => {
@@ -194,10 +214,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 setError(null);
                 soundManager.play("click");
               }}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer select-none flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors duration-200 cursor-pointer select-none flex items-center justify-center gap-1.5 ${
                 tab === "CREATE_PROFILE"
-                  ? "bg-background-panel shadow-md border border-white/10 text-white"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  ? "bg-background-panel text-white border border-white/10 shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200 bg-transparent border border-transparent"
               }`}
             >
               <Icons.Shield />
@@ -211,106 +231,134 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 setError(null);
                 soundManager.play("click");
               }}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer select-none flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors duration-200 cursor-pointer select-none flex items-center justify-center gap-1.5 ${
                 tab === "SIGN_IN"
-                  ? "bg-background-panel shadow-md border border-white/10 text-white"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  ? "bg-background-panel text-white border border-white/10 shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200 bg-transparent border border-transparent"
               }`}
             >
               <span>Вход</span>
             </button>
           </div>
 
-          {/* Информационный текст */}
-          <p className="text-[11px] font-mono text-zinc-400 leading-relaxed">
-            {tab === "CREATE_PROFILE"
-              ? isAnonymous
-                ? "Привяжите логин и пароль к текущему досье: весь рейтинг, заработанные монеты и аватар останутся нетронутыми."
-                : "Задайте логин и пароль для доступа к профилю на любых устройствах."
-              : a.signInDesc}
-          </p>
+          {/* Контейнер с фиксированной минимальной высотой для предотвращения скачков интерфейса (Layout Shift) */}
+          <div className="min-h-[320px] flex flex-col justify-between">
+            <div className="flex flex-col gap-3">
+              {/* Информационный текст */}
+              <p className="text-[11px] font-mono text-zinc-400 leading-relaxed">
+                {tab === "CREATE_PROFILE"
+                  ? isAnonymous
+                    ? "Привяжите логин и пароль к текущему досье: весь рейтинг, монеты и аватар перенесутся без потерь."
+                    : "Задайте логин и пароль для доступа к профилю на любых устройствах."
+                  : a.signInDesc}
+              </p>
 
-          {/* Стеклянное поле ввода Логина */}
-          <div>
-            <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
-              {a.login}
-            </label>
-            <input
-              type="text"
-              value={login}
-              onChange={(e) => {
-                setLogin(e.target.value);
-                setError(null);
-              }}
-              placeholder="agent_77"
-              autoCapitalize="none"
-              autoCorrect="off"
-              maxLength={20}
-              className="w-full bg-black/20 backdrop-blur-sm border border-white/10 focus:border-accent-neon focus:ring-1 focus:ring-accent-neon/40 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-all duration-200"
-              autoFocus
-            />
-          </div>
+              {/* На вкладке «Создать профиль»: предзаполненное поле текущей личности игрока */}
+              {tab === "CREATE_PROFILE" && (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label htmlFor="auth-callsign" className="text-[10px] font-mono uppercase text-zinc-400">
+                      ПОЗЫВНОЙ / ИМЯ
+                    </label>
+                    <span className="text-[9px] font-mono text-accent-neon uppercase tracking-wider">
+                      Текущая личность
+                    </span>
+                  </div>
+                  <input
+                    id="auth-callsign"
+                    type="text"
+                    value={callsign}
+                    readOnly
+                    disabled
+                    aria-label="ПОЗЫВНОЙ / ИМЯ"
+                    className="w-full bg-black/40 backdrop-blur-sm border border-white/5 rounded-xl px-3.5 py-2.5 text-xs font-mono text-zinc-300 opacity-70 cursor-not-allowed outline-none select-none"
+                  />
+                </div>
+              )}
 
-          {/* Стеклянное поле ввода Пароля с кнопкой-глазом */}
-          <div>
-            <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
-              {a.password}
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setError(null);
-                }}
-                placeholder="••••••••"
-                maxLength={32}
-                className="w-full bg-black/20 backdrop-blur-sm border border-white/10 focus:border-accent-neon focus:ring-1 focus:ring-accent-neon/40 rounded-xl px-3.5 py-2.5 pr-10 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-all duration-200"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors cursor-pointer p-1"
-                title={showPassword ? "Скрыть пароль" : "Показать пароль"}
+              {/* Стеклянное поле ввода Логина */}
+              <div>
+                <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
+                  {a.login}
+                </label>
+                <input
+                  type="text"
+                  value={login}
+                  onChange={(e) => {
+                    setLogin(e.target.value);
+                    setError(null);
+                  }}
+                  placeholder="agent_77"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  maxLength={20}
+                  className="w-full bg-black/20 backdrop-blur-sm border border-white/10 focus:border-accent-neon focus:ring-1 focus:ring-accent-neon/40 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-all duration-200"
+                  autoFocus
+                />
+              </div>
+
+              {/* Стеклянное поле ввода Пароля с кнопкой-глазом */}
+              <div>
+                <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
+                  {a.password}
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setError(null);
+                    }}
+                    placeholder="••••••••"
+                    maxLength={32}
+                    className="w-full bg-black/20 backdrop-blur-sm border border-white/10 focus:border-accent-neon focus:ring-1 focus:ring-accent-neon/40 rounded-xl px-3.5 py-2.5 pr-10 text-xs font-mono text-white placeholder:text-zinc-600 outline-none transition-all duration-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors cursor-pointer p-1"
+                    title={showPassword ? "Скрыть пароль" : "Показать пароль"}
+                  >
+                    {showPassword ? <Icons.EyeOff /> : <Icons.Eye />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Алерт об ошибке */}
+              {error && (
+                <div className="p-2 rounded-lg bg-rose-950/40 border border-rose-500/30 text-rose-300 text-[10px] font-mono">
+                  {error}
+                </div>
+              )}
+            </div>
+
+            {/* Кнопки формы: строго w-full */}
+            <div className="flex flex-col gap-2 mt-auto pt-3">
+              <Button
+                variant="primary"
+                fullWidth
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-10 text-xs font-bold uppercase tracking-wider active:scale-95 cursor-pointer bg-accent-primary hover:bg-blue-600 text-white rounded-xl shadow-none"
               >
-                {showPassword ? <Icons.EyeOff /> : <Icons.Eye />}
-              </button>
+                {isLoading
+                  ? a.checking
+                  : tab === "CREATE_PROFILE"
+                  ? "СОХРАНИТЬ И АКТИВИРОВАТЬ"
+                  : a.signInBtn}
+              </Button>
+
+              <Button
+                variant="secondary"
+                fullWidth
+                type="button"
+                onClick={onClose}
+                className="w-full h-9 text-[10px] font-black uppercase tracking-widest cursor-pointer bg-background-surface/40 hover:bg-background-surface/70 border border-white/5 text-zinc-400 hover:text-white rounded-xl"
+              >
+                {a.cancel}
+              </Button>
             </div>
-          </div>
-
-          {/* Алерт об ошибке */}
-          {error && (
-            <div className="p-2.5 rounded-lg bg-rose-950/40 border border-rose-500/30 text-rose-300 text-[10px] font-mono">
-              {error}
-            </div>
-          )}
-
-          {/* Кнопки формы */}
-          <div className="flex flex-col gap-2 mt-2">
-            <Button
-              variant="primary"
-              fullWidth
-              type="submit"
-              disabled={isLoading}
-              className="h-10 text-xs font-bold uppercase tracking-wider active:scale-95 cursor-pointer shadow-neon-blue"
-            >
-              {isLoading
-                ? a.checking
-                : tab === "CREATE_PROFILE"
-                ? "СОХРАНИТЬ И АКТИВИРОВАТЬ"
-                : a.signInBtn}
-            </Button>
-
-            <Button
-              variant="secondary"
-              fullWidth
-              type="button"
-              onClick={onClose}
-              className="h-9 text-[10px] font-black uppercase tracking-widest cursor-pointer bg-background-surface/40 hover:bg-background-surface/70 border-white/5"
-            >
-              {a.cancel}
-            </Button>
           </div>
         </form>
       )}

@@ -40,6 +40,24 @@ describe("AuthModal", () => {
     expect(screen.getByPlaceholderText("••••••••")).toBeDefined();
   });
 
+  it("на вкладке CREATE_PROFILE отображает предзаполненное readOnly поле с позывным игрока", () => {
+    render(
+      <AuthModal
+        isOpen={true}
+        initialTab="CREATE_PROFILE"
+        currentCallsign="Агент Спектр"
+        onClose={mockOnClose}
+        onSuccess={mockOnSuccess}
+      />
+    );
+
+    expect(screen.getByText(/ПОЗЫВНОЙ \/ ИМЯ/i)).toBeDefined();
+    const callsignInput = screen.getByLabelText(/ПОЗЫВНОЙ \/ ИМЯ/i) as HTMLInputElement;
+    expect(callsignInput.value).toBe("Агент Спектр");
+    expect(callsignInput.readOnly).toBe(true);
+    expect(callsignInput.disabled).toBe(true);
+  });
+
   it("переключает видимость пароля при нажатии на иконку глаза", () => {
     render(<AuthModal isOpen={true} onClose={mockOnClose} onSuccess={mockOnSuccess} />);
 

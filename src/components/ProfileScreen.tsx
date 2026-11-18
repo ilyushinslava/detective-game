@@ -364,6 +364,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       <AuthModal
         isOpen={isLoginModalOpen}
         initialTab={authModalTab}
+        currentCallsign={profile.agentName || profile.nickname}
         onClose={() => setIsLoginModalOpen(false)}
         onSuccess={() => {
           setIsAccountProtectedSuccess(true);

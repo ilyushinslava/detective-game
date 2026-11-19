@@ -1,11 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { soundManager } from '../../utils/audio';
 import { triggerHaptic } from '../../utils/haptics';
 import { Button } from '../ui/Button';
 import { partyService } from '../../utils/partyPeer';
 import { normalizeMorse } from '../../utils/morse';
-import { QrCameraScanner } from './QrCameraScanner';
 import { TIMINGS, AUDIO_CONFIG } from '../../constants/gameRules';
+
+const QrCameraScanner = lazy(() =>
+  import('./QrCameraScanner').then((m) => ({ default: m.QrCameraScanner }))
+);
 
 export interface ControllerConnectViewProps {
   onConnect: (roomCode: string, morseCode?: string) => void;
@@ -426,13 +429,21 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
       {/* ============================================================ */}
       {activeTab === 'CAMERA' && (
         <div className="flex-1 flex flex-col items-center justify-center max-w-sm mx-auto w-full relative z-10 py-1">
-          <QrCameraScanner
-            onScanSuccess={(scannedCode) => {
-              onConnect(scannedCode);
-            }}
-            onManualSwitch={() => setActiveTab('PIN')}
-            className="w-full aspect-square max-h-[340px] shadow-2xl"
-          />
+          <Suspense
+            fallback={
+              <div className="w-full aspect-square max-h-[340px] flex items-center justify-center neo-card rounded-2xl">
+                <div className="w-8 h-8 border-2 border-white/20 border-t-blue-500 rounded-full animate-spin" />
+              </div>
+            }
+          >
+            <QrCameraScanner
+              onScanSuccess={(scannedCode) => {
+                onConnect(scannedCode);
+              }}
+              onManualSwitch={() => setActiveTab('PIN')}
+              className="w-full aspect-square max-h-[340px] shadow-2xl"
+            />
+          </Suspense>
         </div>
       )}
 

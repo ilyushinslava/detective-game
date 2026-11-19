@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { UserProfile } from '../types/profile';
 import { useTranslation } from '../i18n/context';
 import { soundManager } from '../utils/audio';
@@ -137,11 +137,45 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     return p.modes?.[modeKey] || mode;
   };
 
+  // Горячая клавиша Escape для удобного возврата в главное меню на десктопе
+  useEffect(() => {
+    if (!onBack) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === 'Escape' &&
+        !isAvatarPickerOpen &&
+        !isLoginModalOpen &&
+        !isMatchHistoryOpen &&
+        !isEditing
+      ) {
+        soundManager.play('tapMenu');
+        triggerHaptic('light');
+        onBack();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onBack, isAvatarPickerOpen, isLoginModalOpen, isMatchHistoryOpen, isEditing]);
+
   return (
     <div className="h-full w-full max-h-[100dvh] bg-transparent text-zinc-100 flex flex-col font-sans select-none overflow-hidden relative">
       {/* Шапка экрана */}
       <header className="sticky top-0 z-20 shrink-0 bg-background-main/80 backdrop-blur-xl border-b border-border-subtle px-4 sm:px-6 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2.5 sm:pb-3 flex items-center justify-between shadow-md">
-        <div className="flex items-center min-w-0">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          {onBack && (
+            <button
+              onClick={() => {
+                soundManager.play('tapMenu');
+                triggerHaptic('light');
+                onBack();
+              }}
+              aria-label={p.back || "Назад"}
+              title={p.back || "Назад"}
+              className="hidden md:inline-flex w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] min-h-[40px] sm:min-w-[44px] sm:min-h-[44px] rounded-xl bg-white/[0.04] border border-white/10 hover:border-white/20 hover:bg-white/[0.08] active:scale-95 items-center justify-center text-zinc-300 hover:text-white transition-all cursor-pointer touch-manipulation"
+            >
+              <ProfileIcons.ChevronLeft />
+            </button>
+          )}
           <h1 className="text-base sm:text-lg font-display font-black tracking-widest uppercase text-white truncate">
             {p.title}
           </h1>

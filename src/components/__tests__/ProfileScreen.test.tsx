@@ -194,4 +194,22 @@ describe("ProfileScreen", () => {
     expect(screen.getByText(/Маньяк против Оперативника/i)).toBeDefined();
     expect(screen.getByText("+25")).toBeDefined();
   });
+
+  it("на десктопе отображает кнопку 'Назад' и возвращается назад по клику или Escape", () => {
+    const mockOnBack = vi.fn();
+    render(<ProfileScreen profile={defaultProfile} onUpdateProfile={vi.fn()} onBack={mockOnBack} />);
+
+    // Кнопка возврата с классом hidden md:inline-flex
+    const backBtn = screen.getByRole("button", { name: /Назад/i });
+    expect(backBtn).toBeDefined();
+    expect(backBtn.className).toContain("hidden md:inline-flex");
+
+    // Клик по кнопке вызывает onBack
+    fireEvent.click(backBtn);
+    expect(mockOnBack).toHaveBeenCalledTimes(1);
+
+    // Нажатие Escape на клавиатуре вызывает onBack
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(mockOnBack).toHaveBeenCalledTimes(2);
+  });
 });

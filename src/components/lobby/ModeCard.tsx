@@ -34,7 +34,7 @@ const VARIANT_STYLES = {
   online: {
     borderHover: "hover:border-white/25 hover:border-t-white/45",
     focusRing: "focus:ring-white/20",
-    iconColor: "text-zinc-300 group-hover:text-cyan-400 group-hover:border-cyan-500/30",
+    iconColor: "text-zinc-300 group-hover:text-blue-400 group-hover:border-blue-500/30",
     textHover: "group-hover:text-white",
   },
 };

@@ -731,7 +731,7 @@ export default function App() {
         {/* Размытые фоновые сферы неонового света для объема и глубины */}
         <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-accent-primary/20 blur-3xl pointer-events-none" />
         <div className="absolute top-1/3 -right-32 w-96 h-96 rounded-full bg-accent-purple/15 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 left-1/4 w-96 h-96 rounded-full bg-accent-neon/15 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 left-1/4 w-96 h-96 rounded-full bg-blue-600/10 blur-3xl pointer-events-none" />
 
         {showSplash && (
           <SplashScreen

@@ -534,7 +534,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
             </div>
           </div>
 
-          {/* Нижняя кнопка отправки шифра */}
+          {/* Нижняя кнопка отправки кода Морзе */}
           <div className="w-full pt-2">
             <Button
               variant="secondary"

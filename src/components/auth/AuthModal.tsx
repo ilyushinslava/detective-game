@@ -200,11 +200,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const loginBorderClass = isLoginError
     ? "border-accent-danger focus:border-accent-danger focus:ring-1 focus:ring-accent-danger/40"
-    : "border-white/10 focus:border-accent-neon focus:ring-1 focus:ring-accent-neon/40";
+    : "border-white/10 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40";
 
   const passwordBorderClass = isPasswordError
     ? "border-accent-danger focus:border-accent-danger focus:ring-1 focus:ring-accent-danger/40"
-    : "border-white/10 focus:border-accent-neon focus:ring-1 focus:ring-accent-neon/40";
+    : "border-white/10 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40";
 
   return (
     <Modal
@@ -285,7 +285,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <label htmlFor="auth-callsign" className="text-[10px] font-mono uppercase text-zinc-400">
                       ПОЗЫВНОЙ / ИМЯ
                     </label>
-                    <span className="text-[9px] font-mono text-accent-neon uppercase tracking-wider">
+                    <span className="text-[9px] font-mono text-blue-400 uppercase tracking-wider">
                       Текущая личность
                     </span>
                   </div>

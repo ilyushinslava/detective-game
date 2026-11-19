@@ -104,7 +104,7 @@ export const NetworkSidebar: React.FC<NetworkSidebarProps> = ({
           </div>
 
           <p className="text-[11px] xl:text-xs text-zinc-400 leading-snug whitespace-normal line-clamp-2 mb-2">
-            Открытые оперативные столы по шифрам комнат и приватные сессии расследований.
+            Открытые оперативные столы по кодам комнат и приватные сессии расследований.
           </p>
         </div>
 

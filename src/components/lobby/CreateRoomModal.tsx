@@ -68,7 +68,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
             onChange={(e) => onTogglePrivate(e.target.checked)}
             className="w-4 h-4 accent-blue-500 bg-zinc-900 border-zinc-700 rounded-sm"
           />
-          <span className="text-[10px] font-black tracking-widest text-zinc-300 uppercase">Закрытый канал (по шифру)</span>
+          <span className="text-[10px] font-black tracking-widest text-zinc-300 uppercase">Приватный стол (по коду)</span>
         </label>
 
         <div className="flex gap-3 pt-3 border-t border-white/10">

@@ -69,8 +69,8 @@ export const LobbyWaitingModal: React.FC<LobbyWaitingModalProps> = ({
         zIndexClass="z-[70]"
         className="items-center p-8 text-center"
       >
-        <div className="text-[9px] font-black text-cyan-400 uppercase tracking-widest mb-2">
-          {isPrivate ? "ШИФРОВАННЫЙ КАНАЛ (МОРЗЕ)" : "ОПЕРАТИВНЫЙ СТОЛ"}
+        <div className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-2">
+          {isPrivate ? "ПРИВАТНЫЙ СТОЛ (КОД МОРЗЕ)" : "ОПЕРАТИВНЫЙ СТОЛ"}
         </div>
 
         {isPrivate ? (
@@ -94,12 +94,12 @@ export const LobbyWaitingModal: React.FC<LobbyWaitingModalProps> = ({
                   .join(" ")}
               </span>
               <span className="text-[9px] font-mono text-zinc-400 uppercase">
-                Продиктуйте этот 7-значный шифр напарнику
+                Продиктуйте этот 7-значный код напарнику
               </span>
             </div>
           ) : (
-            <div className="text-sm font-mono text-cyan-400 animate-pulse mb-6 border border-white/10 rounded-2xl px-6 py-4 bg-zinc-950/70 shadow-inner">
-              Генерация 7-значного шифра...
+            <div className="text-sm font-mono text-blue-400 animate-pulse mb-6 border border-white/10 rounded-2xl px-6 py-4 bg-zinc-950/70 shadow-inner">
+              Генерация кода комнаты...
             </div>
           )
         ) : (
@@ -109,11 +109,11 @@ export const LobbyWaitingModal: React.FC<LobbyWaitingModalProps> = ({
         )}
 
         <div className="flex justify-center mb-6">
-          <div className="w-12 h-12 border-2 border-zinc-800 border-t-accent-neon rounded-full animate-spin shadow-neon-cyan" />
+          <div className="w-12 h-12 border-2 border-zinc-800 border-t-blue-500 rounded-full animate-spin shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
         </div>
 
         <div className="text-[10px] text-zinc-200 font-black tracking-widest uppercase animate-pulse mb-6 flex items-center justify-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-accent-neon animate-pulse shadow-neon-cyan" />
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
           <span>{isHost ? "Ожидание подключения агента..." : "Синхронизация с хостом..."}</span>
         </div>
 

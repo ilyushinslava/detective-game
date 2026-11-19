@@ -15,7 +15,7 @@ export const FullscreenCardModal: React.FC<FullscreenCardModalProps> = ({ card, 
     >
       <button
         onClick={onClose}
-        className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
+        className="absolute top-[max(1.5rem,env(safe-area-inset-top))] right-[max(1.5rem,env(safe-area-inset-right))] w-11 h-11 min-w-[44px] min-h-[44px] bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10 touch-manipulation"
       >
         ✕
       </button>

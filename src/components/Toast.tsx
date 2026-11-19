@@ -29,7 +29,7 @@ export const Toast = ({
         : "border-white/15 text-zinc-200";
 
   return (
-    <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[120] max-w-xs sm:max-w-sm w-auto px-4 pointer-events-none transition-all">
+    <div className="fixed top-[max(0.75rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2 z-[120] max-w-xs sm:max-w-sm w-auto px-4 pointer-events-none transition-all">
       <div
         onClick={onClose}
         className={`cursor-pointer active:scale-95 transition-transform backdrop-blur-md bg-zinc-950/80 border text-zinc-200 shadow-[0_4px_20px_rgba(0,0,0,0.6)] px-4 py-2 rounded-full text-xs font-mono font-medium flex items-center justify-center pointer-events-auto select-none ${borderAccent}`}

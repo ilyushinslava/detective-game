@@ -36,11 +36,11 @@ export const GameTopHeader: React.FC<GameTopHeaderProps> = ({
   const liveSeconds = useGameTimerDisplay();
   const displaySeconds = secondsElapsed !== undefined ? secondsElapsed : liveSeconds;
   return (
-    <header className="relative w-full px-2.5 py-2 md:px-6 md:py-3 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl flex justify-between items-center z-30 shrink-0 shadow-lg gap-2">
-      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 z-10">
+    <header className="relative w-full px-2 sm:px-3 md:px-6 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 md:py-3 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl flex justify-between items-center z-30 shrink-0 shadow-lg gap-1.5 sm:gap-2">
+      <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0 z-10">
         <button
           onClick={() => setIsMenuOpen(true)}
-          className="w-8 h-8 md:w-11 md:h-11 neo-card-interactive rounded-xl flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer text-zinc-300 hover:text-white border-t-white/25 active:scale-95 shadow-md"
+          className="w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 neo-card-interactive rounded-xl flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer text-zinc-300 hover:text-white border-t-white/25 active:scale-95 shadow-md touch-manipulation"
           title="Пауза и меню"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
@@ -50,7 +50,7 @@ export const GameTopHeader: React.FC<GameTopHeaderProps> = ({
         </button>
         <button
           onClick={() => setIsNotebookOpen(true)}
-          className="w-8 h-8 md:w-11 md:h-11 neo-card-interactive rounded-xl flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer text-zinc-300 hover:text-white border-t-white/25 active:scale-95 shadow-md"
+          className="w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 neo-card-interactive rounded-xl flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer text-zinc-300 hover:text-white border-t-white/25 active:scale-95 shadow-md touch-manipulation"
           title="Блокнот подозреваемых"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
@@ -63,7 +63,7 @@ export const GameTopHeader: React.FC<GameTopHeaderProps> = ({
             setIsLogOpen(true);
             setUnreadLogCount(0);
           }}
-          className="relative w-8 h-8 md:w-11 md:h-11 neo-card-interactive rounded-xl flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer text-zinc-300 hover:text-white border-t-white/25 active:scale-95 shadow-md landscape:hidden"
+          className="relative w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 neo-card-interactive rounded-xl flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer text-zinc-300 hover:text-white border-t-white/25 active:scale-95 shadow-md touch-manipulation landscape:hidden"
           title="Блокнот расследования"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
@@ -113,13 +113,13 @@ export const GameTopHeader: React.FC<GameTopHeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0 z-10">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 z-10">
         <div className="hidden md:flex items-center justify-center neo-card border-t-white/25 rounded-xl px-3.5 h-9 md:h-11 text-xs md:text-sm font-mono text-zinc-200 tracking-wider shadow-md">
           {formatTimer(displaySeconds)}
         </div>
         <button
           onClick={onReset}
-          className="h-8 md:h-11 px-2.5 sm:px-3 py-1 md:py-1.5 rounded-xl neo-card-interactive border-t-white/25 text-zinc-200 hover:text-white text-[11px] md:text-xs font-bold uppercase tracking-wider transition-all active:scale-95 flex items-center gap-1 sm:gap-1.5 shrink-0 cursor-pointer shadow-md"
+          className="h-9 sm:h-10 md:h-11 px-2.5 sm:px-3 py-1 md:py-1.5 rounded-xl neo-card-interactive border-t-white/25 text-zinc-200 hover:text-white text-[11px] md:text-xs font-bold uppercase tracking-wider transition-all active:scale-95 flex items-center gap-1 sm:gap-1.5 shrink-0 cursor-pointer shadow-md touch-manipulation"
           title="Перезапустить партию"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5">

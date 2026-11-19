@@ -134,9 +134,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   };
 
   return (
-    <div className="h-full w-full min-h-screen bg-transparent text-zinc-100 flex flex-col font-sans select-none overflow-x-hidden overflow-y-auto custom-scrollbar relative">
+    <div className="h-full w-full min-h-[100dvh] pb-[max(1.5rem,env(safe-area-inset-bottom))] bg-transparent text-zinc-100 flex flex-col font-sans select-none overflow-x-hidden overflow-y-auto custom-scrollbar relative">
       {/* Шапка экрана */}
-      <header className="sticky top-0 z-20 shrink-0 bg-zinc-950/80 backdrop-blur-md border-b border-white/10 px-4 py-3 flex items-center justify-between shadow-md">
+      <header className="sticky top-0 z-20 shrink-0 bg-zinc-950/80 backdrop-blur-md border-b border-white/10 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
           {onBack && (
             <button

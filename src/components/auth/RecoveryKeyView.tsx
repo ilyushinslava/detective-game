@@ -81,19 +81,19 @@ export const RecoveryKeyView: React.FC<RecoveryKeyViewProps> = ({
       <div className="relative rounded-2xl bg-gradient-to-b from-zinc-950 via-zinc-900/90 to-background-surface/90 border border-accent-primary/40 p-4 sm:p-5 shadow-[0_0_30px_rgba(59,130,246,0.18)] overflow-hidden">
         {/* Декоративные перфорационные засечки */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-[radial-gradient(#3b82f6_1.5px,transparent_1.5px)] bg-[size:10px_10px] opacity-40 pointer-events-none" />
-        <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-accent-neon/10 blur-2xl pointer-events-none" />
+        <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-blue-600/10 blur-2xl pointer-events-none" />
 
         <div className="flex items-center justify-between text-[9px] font-mono uppercase tracking-widest text-zinc-400 mb-2 border-b border-white/[0.08] pb-1.5">
-          <span className="flex items-center gap-1.5 text-accent-neon">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent-neon animate-pulse" />
+          <span className="flex items-center gap-1.5 text-blue-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
             РЕЗЕРВНЫЙ КЛЮЧ ДОСТУПА
           </span>
           <span className="text-zinc-500 font-bold">128-BIT NOIR</span>
         </div>
 
         {/* Вывод ключа на формуляре */}
-        <div className="my-3 py-3 px-4 rounded-xl bg-black/50 border border-accent-neon/30 text-center relative group">
-          <div className="font-mono text-lg sm:text-2xl font-black tracking-[0.2em] text-accent-neon drop-shadow-[0_0_12px_rgba(6,182,212,0.4)] select-all">
+        <div className="my-3 py-3 px-4 rounded-xl bg-black/50 border border-blue-500/30 text-center relative group">
+          <div className="font-mono text-lg sm:text-2xl font-black tracking-[0.2em] text-blue-400 drop-shadow-[0_0_12px_rgba(59,130,246,0.4)] select-all">
             {recoveryKey}
           </div>
           <div className="text-[8px] font-mono uppercase tracking-widest text-zinc-500 mt-1">
@@ -116,7 +116,7 @@ export const RecoveryKeyView: React.FC<RecoveryKeyViewProps> = ({
           className={`h-10 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 ${
             copied
               ? "bg-emerald-950/70 border-emerald-500 text-emerald-300"
-              : "bg-background-surface/60 border-white/10 hover:border-accent-neon/50 text-white"
+              : "bg-background-surface/60 border-white/10 hover:border-blue-500/50 text-white"
           }`}
         >
           {copied ? (
@@ -142,9 +142,9 @@ export const RecoveryKeyView: React.FC<RecoveryKeyViewProps> = ({
           fullWidth
           type="button"
           onClick={onComplete}
-          className="h-10 text-xs font-bold uppercase tracking-wider active:scale-95 cursor-pointer shadow-neon-blue"
+          className="h-10 text-xs font-bold uppercase tracking-wider active:scale-95 cursor-pointer"
         >
-          В ШТАБ (ПРОДОЛЖИТЬ)
+          В ГЛАВНОЕ МЕНЮ (ПРОДОЛЖИТЬ)
         </Button>
       </div>
     </div>

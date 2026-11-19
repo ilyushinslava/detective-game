@@ -46,7 +46,7 @@ export const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className={`w-full ${maxWidth} bg-background-main/90 backdrop-blur-xl border border-border-subtle rounded-2xl p-6 shadow-2xl flex flex-col text-center relative touch-pan-y overscroll-contain ${className}`}
+            className={`w-full ${maxWidth} neo-card rounded-2xl p-6 shadow-2xl flex flex-col text-center relative touch-pan-y overscroll-contain ${className}`}
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
@@ -58,7 +58,7 @@ export const Modal: React.FC<ModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-300 transition cursor-pointer p-1"
+                className="absolute top-3 right-3 text-zinc-500 hover:text-zinc-300 transition cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation"
                 aria-label="Закрыть"
               >
                 ✕

@@ -219,7 +219,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           {/* Блок Морзе: крупные контрастные символы для уверенного считывания с 3 метров */}
           <div className="w-full pt-4 border-t border-white/10 flex flex-col items-center shrink-0">
             <div className="text-sm font-display font-black uppercase tracking-[0.3em] text-rose-300 mb-2">
-              ШИФР МОРЗЕ
+              КОД МОРЗЕ
             </div>
 
             {/* Крупные визуальные пилюли точек и тире со свечением */}

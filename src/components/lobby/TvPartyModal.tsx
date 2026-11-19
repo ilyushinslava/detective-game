@@ -94,7 +94,7 @@ export const TvPartyModal: React.FC<TvPartyModalProps> = ({
               ПОДКЛЮЧИТЬСЯ К ТВ (ПУЛЬТ)
             </div>
             <div className="text-[10px] text-zinc-400 mt-0.5 leading-tight">
-              Ввести PIN или передать позывной Морзе для подключения
+              Сканировать QR-код или ввести код Морзе для подключения
             </div>
           </div>
         </button>

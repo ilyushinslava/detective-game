@@ -285,7 +285,7 @@ describe("Reconnection & Grace Period (TASK-NET-003)", () => {
       const tvBanner = screen.getByTestId("tv-player-disconnected-banner");
       expect(tvBanner).toBeDefined();
       expect(screen.getByText(/ВРЕМЕННАЯ ПАУЗА СВЯЗИ • ТАЙМЕР ХОДА ЗАМОРОЖЕН/i)).toBeDefined();
-      expect(screen.getByText(/ОЖИДАНИЕ ВОЗВРАЩЕНИЯ СВЯЗНОГО В СЕТЬ/i)).toBeDefined();
+      expect(screen.getByText(/ОЖИДАНИЕ ВОЗВРАЩЕНИЯ (ИГРОКА|СВЯЗНОГО) В СЕТЬ/i)).toBeDefined();
     });
   });
 });

@@ -137,7 +137,7 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
               </div>
 
               <h2 className="text-3xl font-black uppercase tracking-wider text-zinc-100 mb-3">
-                ОЖИДАНИЕ ВОЗВРАЩЕНИЯ СВЯЗНОГО В СЕТЬ
+                ОЖИДАНИЕ ВОЗВРАЩЕНИЯ ИГРОКА В СЕТЬ
               </h2>
 
               <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden my-5 max-w-lg">

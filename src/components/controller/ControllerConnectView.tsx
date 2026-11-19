@@ -39,7 +39,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   initialTab,
 }) => {
   const [activeTab, setActiveTab] = useState<ConnectTab>(() => {
-    if (initialTab && initialTab !== ('PIN' as any)) return initialTab;
+    if (initialTab) return initialTab;
     if (targetExpectedMorse || targetRoomCode) return 'MORSE';
     return 'CAMERA';
   });
@@ -197,7 +197,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   const handleResolveAndConnect = async () => {
     const cleanMorse = normalizeMorse(morseBuffer);
     if (!cleanMorse || cleanMorse.length < 7) {
-      setErrorMessage('Введите полный шифр из 7 сигналов');
+      setErrorMessage('Введите полный код из 7 сигналов');
       return;
     }
 
@@ -403,7 +403,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
           <div className="flex flex-col items-center text-center w-full space-y-2 mb-2">
             <div className="flex items-center justify-between w-full px-1">
               <span className="text-[10px] font-display uppercase tracking-[0.25em] text-zinc-400 font-bold">
-                ШИФР
+                КОД МОРЗЕ
               </span>
               <span className="text-[10px] font-mono text-blue-400 font-bold tracking-wider">
                 {morseBuffer.length}/7

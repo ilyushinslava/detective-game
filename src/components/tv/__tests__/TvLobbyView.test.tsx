@@ -32,7 +32,7 @@ describe("TvLobbyView Component (TASK-NET-002)", () => {
 
     // Verify room code and tactical Morse callsign are rendered
     expect(screen.getAllByText(/tv-test-999/i).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(/ШИФР/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/КОД МОРЗЕ|ШИФР/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it("displays connected players and mode options", () => {

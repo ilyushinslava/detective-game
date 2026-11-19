@@ -6,6 +6,8 @@ import { partyService } from '../../utils/partyPeer';
 import { normalizeMorse } from '../../utils/morse';
 import { TIMINGS, AUDIO_CONFIG } from '../../constants/gameRules';
 import { safeLocalStorage } from '../../utils/storage';
+import { useWakeLock } from '../../hooks/useWakeLock';
+import { Icons } from '../ui/Icons';
 
 const QrCameraScanner = lazy(() =>
   import('./QrCameraScanner').then((m) => ({ default: m.QrCameraScanner }))
@@ -39,6 +41,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   onClearNotice,
   initialTab,
 }) => {
+  useWakeLock({ enabled: true });
   const [activeTab, setActiveTab] = useState<ConnectTab>(() => {
     if (initialTab) return initialTab;
     if (targetExpectedMorse || targetRoomCode) return 'MORSE';
@@ -293,10 +296,10 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
             {onClearNotice && (
               <button
                 onClick={onClearNotice}
-                className="text-xs text-rose-300 hover:text-white px-1.5 py-0.5 rounded cursor-pointer transition"
+                className="text-xs text-rose-300 hover:text-white p-1 rounded cursor-pointer transition touch-manipulation flex items-center justify-center"
                 aria-label="Закрыть"
               >
-                ✕
+                <Icons.Close className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -305,7 +308,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
 
       {/* Позывной агента */}
       <div className="max-w-sm mx-auto w-full my-2 relative z-10 shrink-0">
-        <div className="p-3 rounded-2xl bg-black/60 border border-white/10 backdrop-blur-2xl shadow-[inset_0_2px_20px_rgba(0,0,0,0.8)] space-y-1">
+        <div className="neo-card p-3 rounded-2xl space-y-1">
           <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-zinc-400">
             <span>ПОЗЫВНОЙ АГЕНТА</span>
             <span className="text-blue-400 font-bold tracking-wider">ПОДКЛЮЧЕНИЕ К ТВ</span>
@@ -323,7 +326,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
 
       {/* Навигация по вкладкам (Tabs): только 2 вкладки КАМЕРА и МОРЗЕ */}
       <div className="max-w-sm mx-auto w-full mb-3 relative z-10 shrink-0">
-        <div className="grid grid-cols-2 p-1 rounded-2xl bg-black/60 border border-white/10 backdrop-blur-2xl shadow-inner">
+        <div className="grid grid-cols-2 p-1 rounded-2xl neo-card">
           <button
             type="button"
             onClick={() => {
@@ -504,24 +507,27 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
               </div>
 
               {/* Управление буфером */}
-              <div className="flex items-center justify-between w-full px-2">
-                <button
+              <div className="flex items-center justify-between w-full px-2 gap-2">
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={handleClear}
                   disabled={!morseBuffer}
-                  className="min-h-[44px] px-4 py-2 rounded-xl border border-white/10 bg-zinc-900/60 text-xs font-mono uppercase text-zinc-400 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed transition cursor-pointer flex items-center justify-center"
+                  className="min-h-[44px] px-4 py-2 text-xs font-mono uppercase text-zinc-400 hover:text-white"
                 >
                   Сброс
-                </button>
+                </Button>
 
-                <button
+                <Button
+                  variant="secondary"
                   type="button"
                   onClick={handleBackspace}
                   disabled={!morseBuffer}
-                  className="min-h-[44px] px-4 py-2 rounded-xl border border-white/10 bg-zinc-900/60 text-xs font-mono uppercase text-red-400 hover:text-red-300 disabled:opacity-25 disabled:cursor-not-allowed transition cursor-pointer flex items-center justify-center"
+                  className="min-h-[44px] px-4 py-2 text-xs font-mono uppercase text-rose-400 hover:text-rose-300 gap-1.5"
                 >
-                  Удалить (⌫)
-                </button>
+                  <Icons.Backspace className="w-3.5 h-3.5 text-rose-400" />
+                  <span>Удалить</span>
+                </Button>
               </div>
             </div>
           </div>

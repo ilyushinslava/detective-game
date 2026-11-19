@@ -24,6 +24,8 @@ import { partyService } from '../../utils/partyPeer';
 import { useSpatialNavigation } from '../../hooks/useSpatialNavigation';
 import { playShiftSound, playEliminateSound, playRadarPing } from '../../utils/tvAudio';
 import { soundManager } from '../../utils/audio';
+import { useWakeLock } from '../../hooks/useWakeLock';
+import { Button } from '../ui/Button';
 import { TvPauseModal } from './TvPauseModal';
 
 export interface TvBoardViewProps {
@@ -32,9 +34,11 @@ export interface TvBoardViewProps {
   secondsLeft?: number;
   onExit?: () => void;
   onRestart?: () => void;
-  disconnectedPlayer?: { role?: string; graceTimeoutSec: number } | null;
+  disconnectedPlayer?: { role?: string; nickname?: string; clientId?: string; graceTimeoutSec: number } | null;
   hideExit?: boolean;
   isAIThinking?: boolean;
+  roomCode?: string;
+  morseCode?: string;
 }
 
 const Icons = {
@@ -372,8 +376,11 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   disconnectedPlayer,
   hideExit = false,
   isAIThinking,
+  roomCode,
+  morseCode,
 }) => {
   useSpatialNavigation({ initialFocusSelector: '[data-tv-pause-btn="true"]' });
+  useWakeLock({ enabled: true });
 
   const [focusedControl, setFocusedControl] = useState<'NONE' | 'CONTINUE' | 'RESTART' | 'EXIT'>('NONE');
   const [isPauseOpen, setIsPauseOpen] = useState<boolean>(false);
@@ -845,18 +852,19 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
         {/* Кнопка вызова меню паузы */}
         <div className="flex items-center gap-3">
-          <button
+          <Button
+            variant="secondary"
             data-tv-pause-btn="true"
             tabIndex={0}
             onClick={() => {
               setIsPauseOpen(true);
               setFocusedControl('CONTINUE');
             }}
-            className="px-4 py-2 rounded-xl border border-white/15 bg-white/[0.05] hover:bg-white/[0.1] text-xs sm:text-sm font-display font-bold uppercase tracking-wider text-zinc-200 transition-all cursor-pointer flex items-center gap-2 shadow-sm active:scale-95 focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_20px_rgba(255,255,255,0.35)]"
+            className="px-4 py-2 text-xs sm:text-sm font-display font-bold uppercase tracking-wider gap-2 focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_20px_rgba(255,255,255,0.35)]"
           >
             <Icons.Settings />
             <span>МЕНЮ ПАУЗЫ [ESC]</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -1116,6 +1124,8 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         hideExit={hideExit}
         activeDisconnected={activeDisconnected}
         tvGraceLeft={tvGraceLeft}
+        roomCode={roomCode || ''}
+        morseCode={morseCode}
       />
     </div>
   );

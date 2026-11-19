@@ -7,6 +7,7 @@ import { Button } from '../ui/Button';
 import { soundManager } from '../../utils/audio';
 import { useSpatialNavigation } from '../../hooks/useSpatialNavigation';
 import { safeLocalStorage } from '../../utils/storage';
+import { useWakeLock } from '../../hooks/useWakeLock';
 
 export interface TvLobbyViewProps {
   roomCode: string;
@@ -92,6 +93,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   hideExit = false,
 }) => {
   useSpatialNavigation({ initialFocusSelector: '[data-tv-start-btn="true"]' });
+  useWakeLock({ enabled: true });
 
   const isLocalDev = useMemo(() => {
     return typeof window !== 'undefined' &&

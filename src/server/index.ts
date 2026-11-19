@@ -569,7 +569,7 @@ export default class GameRoomServer {
         : `auth_${Date.now()}_${Math.random().toString(36).substring(2)}${Math.random().toString(36).substring(2)}`;
 
     // Повторное подключение игрока: поиск по clientId или по authToken
-    const incomingAuthToken = url.searchParams.get("authToken");
+    let incomingAuthToken = url.searchParams.get("authToken");
 
     let existingPlayerId: string | null = null;
     if (this.state.players[clientId]) {
@@ -580,6 +580,19 @@ export default class GameRoomServer {
       );
       if (matchByToken) {
         existingPlayerId = matchByToken.clientId;
+      }
+    }
+
+    // RECONNECT_SLOT: Разрешение перехвата слота отключенного игрока строго в ТВ-комнатах
+    const hasTvDisplay = Object.keys(this.state.tvDisplays).length > 0;
+    if (!existingPlayerId && this.state.status === "PLAYING" && hasTvDisplay) {
+      const disconnectedEntry = Object.entries(this.state.players).find(
+        ([_, p]) => p.isDisconnected === true
+      );
+      if (disconnectedEntry) {
+        existingPlayerId = disconnectedEntry[0];
+        // Подставляем токен сессии, чтобы разрешить перенос слота на новое устройство гостя ТВ
+        incomingAuthToken = this.state.players[existingPlayerId].authToken;
       }
     }
 

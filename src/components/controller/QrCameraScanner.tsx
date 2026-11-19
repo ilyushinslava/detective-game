@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { soundManager } from "../../utils/audio";
 import { triggerHaptic } from "../../utils/haptics";
+import { Button } from "../ui/Button";
 
 export function parseQrRoomCode(decodedText: string): string | null {
   if (!decodedText) return null;
@@ -136,17 +137,18 @@ export const QrCameraScanner: React.FC<QrCameraScannerProps> = ({
               НЕТ ДОСТУПА К КАМЕРЕ
             </div>
             <div className="text-[11px] font-mono text-zinc-400 max-w-xs leading-relaxed">
-              Разрешите доступ к камере или используйте ручной ввод цифрового кода
+              Разрешите доступ к камере или используйте ввод кода Морзе
             </div>
           </div>
           {onManualSwitch && (
-            <button
+            <Button
+              variant="secondary"
               type="button"
               onClick={onManualSwitch}
-              className="min-h-[44px] px-5 py-2.5 rounded-xl border border-white/20 bg-zinc-900 hover:bg-zinc-800 text-xs font-mono uppercase tracking-widest text-zinc-200 hover:text-white transition active:scale-95 cursor-pointer shadow-md"
+              className="text-xs font-mono uppercase tracking-widest"
             >
               Подключиться по Морзе
-            </button>
+            </Button>
           )}
         </div>
       ) : (

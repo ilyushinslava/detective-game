@@ -18,7 +18,14 @@ export function useWakeLock(options: UseWakeLockOptions = {}): UseWakeLockReturn
   const { enabled = true, onRequest, onRelease, onError } = options;
   const [isActive, setIsActive] = useState<boolean>(false);
   const sentinelRef = useRef<any>(null);
+  const isMountedRef = useRef<boolean>(true);
   const isSupported = typeof navigator !== 'undefined' && 'wakeLock' in navigator;
+
+  // Сохраняем актуальные коллбэки в ref для стабильности функций request и release
+  const callbacksRef = useRef({ onRequest, onRelease, onError });
+  useEffect(() => {
+    callbacksRef.current = { onRequest, onRelease, onError };
+  });
 
   const request = useCallback(async (): Promise<boolean> => {
     if (!isSupported) return false;
@@ -29,23 +36,34 @@ export function useWakeLock(options: UseWakeLockOptions = {}): UseWakeLockReturn
       }
 
       const sentinel = await (navigator as any).wakeLock.request('screen');
+      if (!isMountedRef.current) {
+        try {
+          await sentinel.release();
+        } catch {}
+        return false;
+      }
+
       sentinelRef.current = sentinel;
       setIsActive(true);
-      onRequest?.();
+      callbacksRef.current.onRequest?.();
 
       sentinel.addEventListener('release', () => {
         sentinelRef.current = null;
-        setIsActive(false);
-        onRelease?.();
+        if (isMountedRef.current) {
+          setIsActive(false);
+        }
+        callbacksRef.current.onRelease?.();
       });
 
       return true;
     } catch (err: any) {
-      setIsActive(false);
-      onError?.(err);
+      if (isMountedRef.current) {
+        setIsActive(false);
+      }
+      callbacksRef.current.onError?.(err);
       return false;
     }
-  }, [isSupported, onRequest, onRelease, onError]);
+  }, [isSupported]);
 
   const release = useCallback(async (): Promise<void> => {
     if (sentinelRef.current && !sentinelRef.current.released) {
@@ -54,10 +72,13 @@ export function useWakeLock(options: UseWakeLockOptions = {}): UseWakeLockReturn
       } catch {}
     }
     sentinelRef.current = null;
-    setIsActive(false);
+    if (isMountedRef.current) {
+      setIsActive(false);
+    }
   }, []);
 
   useEffect(() => {
+    isMountedRef.current = true;
     if (!enabled || !isSupported) return;
 
     request();
@@ -71,6 +92,7 @@ export function useWakeLock(options: UseWakeLockOptions = {}): UseWakeLockReturn
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
+      isMountedRef.current = false;
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       release();
     };

@@ -146,6 +146,7 @@ export default function App() {
   const [isTvPassAndPlay, setIsTvPassAndPlay] = useState<boolean>(false);
   const [errorCardId, setErrorCardId] = useState<string | null>(null);
   const [controllerConnectNotice, setControllerConnectNotice] = useState<string | null>(null);
+  const [tvDisconnectedPlayer, setTvDisconnectedPlayer] = useState<{ role?: string; nickname?: string; clientId?: string; graceTimeoutSec: number } | null>(null);
 
   const handleLeaveControllerLobby = (notice?: string) => {
     try {
@@ -338,6 +339,15 @@ export default function App() {
         setTvLinePreview(action.payload?.line ?? null);
       } else if (action?.type === "PREVIEW_SHIFT") {
         setTvLinePreview(action.payload ?? null);
+      } else if (action?.type === "PLAYER_DISCONNECTED") {
+        setTvDisconnectedPlayer({
+          role: action.role,
+          nickname: action.nickname,
+          clientId: action.clientId,
+          graceTimeoutSec: action.graceTimeoutSec || 60,
+        });
+      } else if (action?.type === "PLAYER_RECONNECTED") {
+        setTvDisconnectedPlayer(null);
       }
     });
 
@@ -1295,6 +1305,9 @@ export default function App() {
                 selectedLine={tvLinePreview}
                 hideExit={false}
                 isAIThinking={isAIThinking}
+                roomCode={tvRoomCode}
+                morseCode={tvMorseCode}
+                disconnectedPlayer={tvDisconnectedPlayer}
                 onExit={handleExitTvParty}
                 onRestart={() => {
                   partyService.sendAction({ type: "RESTART_GAME" });

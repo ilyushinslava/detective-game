@@ -36,7 +36,7 @@ describe("AccountSecurityCard", () => {
     ).toBeDefined();
   });
 
-  it("рендерит полноразмерную кнопку 'СОЗДАТЬ ПРОФИЛЬ / ВОЙТИ' (w-full) и вызывает onOpenAuthModal при клике", () => {
+  it("рендерит кнопку 'ВОЙТИ' и вызывает onOpenAuthModal при клике", () => {
     const mockOpen = vi.fn();
     render(
       <AccountSecurityCard
@@ -47,9 +47,8 @@ describe("AccountSecurityCard", () => {
       />
     );
 
-    const btn = screen.getByRole("button", { name: /СОЗДАТЬ ПРОФИЛЬ \/ ВОЙТИ/i });
+    const btn = screen.getByRole("button", { name: /ВОЙТИ|СОЗДАТЬ ПРОФИЛЬ/i });
     expect(btn).toBeDefined();
-    expect(btn.className).toContain("w-full");
 
     fireEvent.click(btn);
     expect(mockOpen).toHaveBeenCalledTimes(1);

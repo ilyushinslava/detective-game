@@ -52,30 +52,26 @@ export const AccountSecurityCard: React.FC<AccountSecurityCardProps> = ({
   }
 
   return (
-    <div className="neo-card border-t-white/20 rounded-2xl p-4 sm:p-5 flex flex-col gap-3.5 text-left">
-      {/* Заголовок карточки */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-3">
-        <h3 className="text-sm sm:text-base font-black tracking-wider uppercase text-white">
-          {p.saveProgress || "СОХРАНЕНИЕ ПРОГРЕССА"}
-        </h3>
+    <div className="neo-card border-t-amber-500/30 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 flex items-center justify-between gap-3 text-left shrink-0">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
+        <div className="flex flex-col min-w-0">
+          <h3 className="text-xs font-black tracking-wider uppercase text-amber-300 truncate">
+            {p.saveProgress || "СОХРАНЕНИЕ ПРОГРЕССА"}
+          </h3>
+          <p className="text-[10px] text-zinc-400 font-mono truncate max-w-[190px] xs:max-w-[240px] sm:max-w-md">
+            Создайте профиль, чтобы навсегда сохранить текущий рейтинг, статистику и монеты.
+          </p>
+        </div>
       </div>
 
-      {/* Лаконичный текст призыва */}
-      <p className="text-xs sm:text-sm font-sans text-zinc-400 leading-relaxed -mt-1">
-        Создайте профиль, чтобы навсегда сохранить текущий рейтинг, статистику и монеты.
-      </p>
-
-      {/* Полноразмерная кнопка вызова модального окна авторизации */}
-      <div className="w-full mt-1">
-        <Button
-          variant="primary"
-          fullWidth
-          onClick={handleOpenModal}
-          className="w-full h-10 text-xs font-bold uppercase tracking-wider"
-        >
-          СОЗДАТЬ ПРОФИЛЬ / ВОЙТИ
-        </Button>
-      </div>
+      <Button
+        variant="primary"
+        onClick={handleOpenModal}
+        className="h-8 px-3 text-[11px] font-bold uppercase tracking-wider shrink-0 min-h-[32px] !rounded-lg"
+      >
+        ВОЙТИ
+      </Button>
     </div>
   );
 };

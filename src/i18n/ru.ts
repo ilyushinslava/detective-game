@@ -36,10 +36,12 @@ export const ru = {
     close: "Закрыть",
   },
   profile: {
-    title: "ПРОФИЛЬ ИГРОКА",
+    title: "ПРОФИЛЬ",
     back: "Назад",
     level: "УРОВЕНЬ",
     online: "В сети",
+    statsTab: "Статистика",
+    historyTab: "История матчей",
     save: "Сохранить",
     editCallsign: "Изменить позывной",
     changeAvatar: "Сменить аватар",

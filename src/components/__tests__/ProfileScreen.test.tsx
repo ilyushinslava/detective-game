@@ -148,19 +148,57 @@ describe("ProfileScreen", () => {
     expect(
       screen.getByText(/Создайте профиль, чтобы навсегда сохранить текущий рейтинг, статистику и монеты/i)
     ).toBeDefined();
-    expect(screen.getByRole("button", { name: /СОЗДАТЬ ПРОФИЛЬ \/ ВОЙТИ/i })).toBeDefined();
+    expect(screen.getByRole("button", { name: /ВОЙТИ|СОЗДАТЬ ПРОФИЛЬ/i })).toBeDefined();
     // Встроенные инпуты перенесены в AuthModal и отсутствуют в карточке
     expect(screen.queryByPlaceholderText("agent_77")).toBeNull();
   });
 
-  it("по клику на кнопку 'СОЗДАТЬ ПРОФИЛЬ / ВОЙТИ' открывает модальное окно AuthModal", () => {
+  it("по клику на кнопку призыва авторизации открывает модальное окно AuthModal", () => {
     render(<ProfileScreen profile={defaultProfile} onUpdateProfile={vi.fn()} />);
 
-    const authBtn = screen.getByRole("button", { name: /СОЗДАТЬ ПРОФИЛЬ \/ ВОЙТИ/i });
+    const authBtn = screen.getByRole("button", { name: /ВОЙТИ|СОЗДАТЬ ПРОФИЛЬ/i });
     fireEvent.click(authBtn);
 
     // Модальное окно AuthModal открыто на вкладке создания профиля
     expect(screen.getByText("СОЗДАНИЕ ПРОФИЛЯ")).toBeDefined();
     expect(screen.getByPlaceholderText("agent_77")).toBeDefined();
+  });
+
+  it("поддерживает переключение сегментных вкладок между статистикой и историей матчей", () => {
+    const profileWithMatches = {
+      ...defaultProfile,
+      recentMatches: [
+        {
+          id: "m_1",
+          mode: "MANIAC_VS_OPERATIVE",
+          role: "DETECTIVE" as const,
+          isWinner: true,
+          durationSeconds: 150,
+          timestamp: Date.now(),
+          mmrDelta: 25,
+        },
+      ],
+    };
+
+    render(<ProfileScreen profile={profileWithMatches} onUpdateProfile={vi.fn()} />);
+
+    // По умолчанию активна вкладка 'Статистика'
+    expect(screen.getByText("РЕЙТИНГ")).toBeDefined();
+    expect(screen.getByText("ВИНРЕЙТ")).toBeDefined();
+
+    // Кликаем по вкладке 'История матчей'
+    const historyTabBtn = screen.getByRole("button", { name: /История матчей/i });
+    fireEvent.click(historyTabBtn);
+
+    // Отображается блок истории матчей
+    expect(screen.getByText("ПОСЛЕДНИЕ МАТЧИ")).toBeDefined();
+    expect(screen.getByText(/Маньяк против Оперативника/i)).toBeDefined();
+
+    // Переключаемся обратно на 'Статистика'
+    const statsTabBtn = screen.getByRole("button", { name: /Статистика/i });
+    fireEvent.click(statsTabBtn);
+
+    expect(screen.getByText("РЕЙТИНГ")).toBeDefined();
+    expect(screen.getByText("ВИНРЕЙТ")).toBeDefined();
   });
 });

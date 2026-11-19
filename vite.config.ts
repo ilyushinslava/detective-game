@@ -48,23 +48,37 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
-            return 'vendor';
+          if (
+            id.includes('node_modules/react') ||
+            id.includes('node_modules/react-dom') ||
+            id.includes('node_modules/scheduler')
+          ) {
+            return 'vendor-react';
+          }
+          if (id.includes('node_modules/@supabase')) {
+            return 'vendor-supabase';
           }
           if (id.includes('node_modules/framer-motion')) {
-            return 'motion';
+            return 'vendor-ui';
+          }
+          if (id.includes('node_modules/@capacitor')) {
+            return 'vendor-network';
           }
           if (id.includes('node_modules/html5-qrcode')) {
-            return 'qr-scanner';
+            return 'vendor-qr-scanner';
+          }
+          if (
+            id.includes('node_modules/qrcode.react') ||
+            id.includes('src/components/tv/') ||
+            id.includes('src/components/controller/')
+          ) {
+            return 'tv-party';
           }
           if (id.includes('src/components/ui/Icons') || id.includes('src/components/ui/ActionIcons')) {
             return 'icons';
           }
           if (id.includes('src/components/CharacterCard') || id.includes('src/constants/characterImages')) {
             return 'game-core';
-          }
-          if (id.includes('src/components/tv/') || id.includes('src/components/controller/')) {
-            return 'tv-party';
           }
         },
       },

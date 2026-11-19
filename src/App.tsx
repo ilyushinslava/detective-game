@@ -29,14 +29,13 @@ import { BannerViewerProvider } from "./contexts/BannerViewerContext";
 import { useRulesModal } from "./hooks/useRulesModal";
 import { characterImages } from "./constants/characterImages";
 import { DEFAULT_BET, TIMINGS } from "./constants/gameRules";
-import { TvScreensaver } from "./components/tv/TvScreensaver";
-import { TvNetworkDisconnectModal } from "./components/tv/TvNetworkDisconnectModal";
-
 // Асинхронные динамические чанки второстепенных экранов (TASK-ARCH-001)
 const DuelScreen = lazy(() => import("./components/duel/DuelScreen").then((m) => ({ default: m.DuelScreen })));
 const TvHomeView = lazy(() => import("./components/tv/TvHomeView").then((m) => ({ default: m.TvHomeView })));
 const TvBoardView = lazy(() => import("./components/tv/TvBoardView").then((m) => ({ default: m.TvBoardView })));
 const TvLobbyView = lazy(() => import("./components/tv/TvLobbyView").then((m) => ({ default: m.TvLobbyView })));
+const TvScreensaver = lazy(() => import("./components/tv/TvScreensaver").then((m) => ({ default: m.TvScreensaver })));
+const TvNetworkDisconnectModal = lazy(() => import("./components/tv/TvNetworkDisconnectModal").then((m) => ({ default: m.TvNetworkDisconnectModal })));
 const MobileControllerView = lazy(() => import("./components/controller/MobileControllerView").then((m) => ({ default: m.MobileControllerView })));
 const ControllerConnectView = lazy(() => import("./components/controller/ControllerConnectView").then((m) => ({ default: m.ControllerConnectView })));
 
@@ -1322,15 +1321,19 @@ export default function App() {
       </AnimatePresence>
 
       {/* Защита OLED-экранов от выгорания */}
-      <TvScreensaver isIdle={isOledIdle} onDismiss={resetOledTimer} />
+      <Suspense fallback={null}>
+        <TvScreensaver isIdle={isOledIdle} onDismiss={resetOledTimer} />
+      </Suspense>
 
       {/* Оверлей разрыва сетевого соединения (PartyKit) */}
-      <TvNetworkDisconnectModal
-        isOpen={isTvDisconnected}
-        attempt={tvReconnectAttempt}
-        maxAttempts={10}
-        onCancel={handleEmergencyDisconnectCancel}
-      />
+      <Suspense fallback={null}>
+        <TvNetworkDisconnectModal
+          isOpen={isTvDisconnected}
+          attempt={tvReconnectAttempt}
+          maxAttempts={10}
+          onCancel={handleEmergencyDisconnectCancel}
+        />
+      </Suspense>
     </div>
   </BannerViewerProvider>
   );

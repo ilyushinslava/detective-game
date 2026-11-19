@@ -212,4 +212,28 @@ describe("ProfileScreen", () => {
     fireEvent.keyDown(window, { key: "Escape" });
     expect(mockOnBack).toHaveBeenCalledTimes(2);
   });
+
+  it("позволяет скопировать полный ID по клику на микро-кнопку ID", async () => {
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: writeTextMock,
+      },
+    });
+
+    const testProfile = {
+      ...defaultProfile,
+      id: "uuid-1234-5678-90ab-cdef12345678",
+    };
+
+    render(<ProfileScreen profile={testProfile} onUpdateProfile={vi.fn()} />);
+
+    const copyIdBtn = screen.getByTitle("Скопировать ID в буфер обмена");
+    expect(copyIdBtn).toBeDefined();
+
+    fireEvent.click(copyIdBtn);
+
+    expect(writeTextMock).toHaveBeenCalledWith("uuid-1234-5678-90ab-cdef12345678");
+    expect(await screen.findByText("ID скопирован в буфер обмена")).toBeDefined();
+  });
 });

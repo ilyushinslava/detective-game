@@ -3,6 +3,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { TablesScreen } from "../TablesScreen";
 
+vi.mock("../../contexts/AuthContext", () => ({
+  useAuthSafe: () => ({
+    user: { id: "test_agent_id_777" },
+    isAnonymous: false,
+  }),
+}));
+
 describe("TablesScreen", () => {
   const mockSetRoomFilter = vi.fn();
   const mockSetJoinCode = vi.fn();
@@ -203,5 +210,33 @@ describe("TablesScreen", () => {
     
     // Отсутствие кислотного неона
     expect(container.querySelector(".shadow-neon-blue")).toBeNull();
+  });
+
+  it("переключается на вкладку 'Друзья', скрывает нижнюю кнопку создания стола и отображает ID", async () => {
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: writeTextMock,
+      },
+    });
+
+    render(<TablesScreen {...defaultProps} />);
+
+    // Кликаем по табу «Друзья»
+    const friendsTabBtn = screen.getByRole("button", { name: /Друзья/i });
+    fireEvent.click(friendsTabBtn);
+
+    // Должна появиться карточка «Ваш ID агента» и заглушка
+    expect(screen.getByText("Ваш ID агента")).toBeDefined();
+    expect(screen.getByText("Список друзей и приглашения")).toBeDefined();
+
+    // Нижняя кнопка «+ Создать партию» должна исчезнуть
+    expect(screen.queryByRole("button", { name: /\+ Создать партию/i })).toBeNull();
+
+    // Кликаем по кнопке «Скопировать»
+    const copyBtn = screen.getByRole("button", { name: /Скопировать/i });
+    fireEvent.click(copyBtn);
+
+    expect(await screen.findByText("ID скопирован в буфер обмена")).toBeDefined();
   });
 });

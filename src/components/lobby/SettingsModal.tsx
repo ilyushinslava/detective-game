@@ -7,6 +7,10 @@ import { safeLocalStorage } from "../../utils/storage";
 import { useTranslation } from "../../i18n/context";
 import { useAuthSafe } from "../../contexts/AuthContext";
 import { LoginModal } from "./LoginModal";
+import { FeedbackModal } from "../feedback/FeedbackModal";
+import { LegalModal } from "../legal/LegalModal";
+import { Icons } from "../ui/Icons";
+import { GAME_CONFIG } from "../../config/gameConfig";
 
 export interface SettingsModalProps {
   isOpen: boolean;
@@ -17,6 +21,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const { t, lang, setLang } = useTranslation();
   const { isAnonymous, signOut } = useAuthSafe();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
   const [isSfxEnabled, setIsSfxEnabled] = useState(soundManager.getSfxEnabled());
   const [isAmbientEnabled, setIsAmbientEnabled] = useState(soundManager.getAmbientEnabled());
   const [isHapticsEnabled, setIsHapticsEnabled] = useState(() => {
@@ -189,6 +195,62 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             </Button>
           )}
         </div>
+
+        {/* Блок «О проекте» */}
+        <div className="pt-2 border-t border-white/10 space-y-2">
+          <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-1">
+            О проекте
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            {/* Кнопка обратной связи */}
+            <button
+              type="button"
+              onClick={() => {
+                soundManager.play("tapMenu");
+                setIsFeedbackModalOpen(true);
+              }}
+              className="neo-card border-t-white/15 p-2.5 rounded-xl flex flex-col items-start text-left cursor-pointer transition hover:bg-white/[0.04] active:scale-95 touch-manipulation group"
+            >
+              <div className="flex items-center gap-1.5 text-zinc-300 group-hover:text-white">
+                <Icons.MessageSquare className="w-3.5 h-3.5 text-blue-400" />
+                <span className="text-[10px] font-black uppercase tracking-wider">
+                  Отзыв
+                </span>
+              </div>
+              <span className="text-[9px] text-zinc-500 font-mono mt-0.5">
+                Баги и идеи
+              </span>
+            </button>
+
+            {/* Кнопка правовой информации */}
+            <button
+              type="button"
+              onClick={() => {
+                soundManager.play("tapMenu");
+                setIsLegalModalOpen(true);
+              }}
+              className="neo-card border-t-white/15 p-2.5 rounded-xl flex flex-col items-start text-left cursor-pointer transition hover:bg-white/[0.04] active:scale-95 touch-manipulation group"
+            >
+              <div className="flex items-center gap-1.5 text-zinc-300 group-hover:text-white">
+                <Icons.Scale className="w-3.5 h-3.5 text-blue-400" />
+                <span className="text-[10px] font-black uppercase tracking-wider">
+                  Инфо
+                </span>
+              </div>
+              <span className="text-[9px] text-zinc-500 font-mono mt-0.5">
+                Права и лицензии
+              </span>
+            </button>
+          </div>
+
+          {/* Версия приложения */}
+          <div className="text-center pt-1">
+            <span className="text-[9px] font-mono text-zinc-500 tracking-wider uppercase">
+              Версия v{GAME_CONFIG.VERSION} • Neo-Noir Detective Strategy
+            </span>
+          </div>
+        </div>
       </div>
 
       <Button
@@ -207,6 +269,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         onSuccess={() => {
           onClose();
         }}
+      />
+
+      {/* Модальное окно обратной связи */}
+      <FeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+      />
+
+      {/* Модальное окно правовой информации */}
+      <LegalModal
+        isOpen={isLegalModalOpen}
+        onClose={() => setIsLegalModalOpen(false)}
       />
     </Modal>
   );

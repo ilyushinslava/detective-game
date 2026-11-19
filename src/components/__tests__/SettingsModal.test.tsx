@@ -158,4 +158,20 @@ describe("SettingsModal (MainMenu)", () => {
 
     expect(screen.queryByText("SETTINGS")).toBeNull();
   });
+
+  it("отображает блок 'О проекте' с версией и кнопками 'Отзыв' и 'Инфо'", () => {
+    const { container } = render(<MainMenu {...defaultProps} />);
+    const buttons = Array.from(container.querySelectorAll("button"));
+    const settingsBtn = buttons.find((b) => b.className.includes("w-10 h-10 rounded-full"));
+    fireEvent.click(settingsBtn!);
+
+    expect(screen.getByText("О проекте")).toBeDefined();
+    expect(screen.getByText("Отзыв")).toBeDefined();
+    expect(screen.getByText("Инфо")).toBeDefined();
+    expect(screen.getByText(/Версия v0\.9\.0/i)).toBeDefined();
+
+    // Открытие модалки правовой информации
+    fireEvent.click(screen.getByText("Инфо"));
+    expect(screen.getByText("Правовая информация")).toBeDefined();
+  });
 });

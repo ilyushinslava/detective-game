@@ -129,6 +129,36 @@ export interface Database {
           }
         ];
       };
+      feedback: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          category: "bug" | "idea" | "other";
+          message: string;
+          app_version: string;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          category: "bug" | "idea" | "other";
+          message: string;
+          app_version?: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          category?: "bug" | "idea" | "other";
+          message?: string;
+          app_version?: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

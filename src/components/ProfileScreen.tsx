@@ -9,6 +9,7 @@ import { validatePlayerName } from '../utils/nameFilter';
 import { useAuthSafe } from '../contexts/AuthContext';
 import { AuthModal } from './auth';
 import { Modal } from './ui/Modal';
+import { Toast } from './Toast';
 import {
   ProfileIcons,
   AvatarPickerModal,
@@ -87,6 +88,30 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [isAccountProtectedSuccess, setIsAccountProtectedSuccess] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<"CREATE_PROFILE" | "SIGN_IN">("CREATE_PROFILE");
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleCopyUserId = async (userId?: string) => {
+    if (!userId) return;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(userId);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = userId;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      soundManager.play("click");
+      triggerHaptic("success");
+      setToastMessage("ID скопирован в буфер обмена");
+    } catch (err) {
+      console.error("Ошибка при копировании ID:", err);
+    }
+  };
 
   // Расчет статистики
   const totalGames = profile.matchesPlayed || (profile.stats?.wins || 0) + (profile.stats?.losses || 0);
@@ -301,9 +326,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   </>
                 )}
                 <span>•</span>
-                <span className="text-zinc-500 text-[11px]">
-                  ID: {profile.id?.slice(0, 8)}...
-                </span>
+                <button
+                  type="button"
+                  onClick={() => handleCopyUserId(profile.id)}
+                  title="Скопировать ID в буфер обмена"
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] active:scale-95 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-white transition-all cursor-pointer touch-manipulation group select-none"
+                >
+                  <span className="text-zinc-500 text-[11px] font-mono">ID:</span>
+                  <span className="text-zinc-300 group-hover:text-zinc-100 text-[11px] font-mono font-medium">
+                    {profile.id ? `${profile.id.slice(0, 8)}...` : "—"}
+                  </span>
+                  <ProfileIcons.Copy className="w-3 h-3 text-zinc-500 group-hover:text-blue-400 transition-colors" />
+                </button>
               </div>
             </div>
           </div>
@@ -399,6 +433,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         onSuccess={() => {
           setIsAccountProtectedSuccess(true);
         }}
+      />
+      {/* Всплывающее уведомление о копировании */}
+      <Toast
+        message={toastMessage}
+        type="info"
+        onClose={() => setToastMessage(null)}
+        duration={1500}
       />
     </div>
   );

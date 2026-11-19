@@ -183,31 +183,31 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         overlayClassName="bg-black/90 backdrop-blur-3xl"
         className={`items-center p-6 sm:p-8 rounded-3xl border transition-all duration-500 ${
           isKillerWinner
-            ? 'border-rose-500/30 bg-gradient-to-b from-red-950/40 via-zinc-950 to-black/95 shadow-[0_0_60px_rgba(225,29,72,0.25)]'
-            : 'border-cyan-500/30 bg-gradient-to-b from-blue-950/40 via-zinc-950 to-black/95 shadow-[0_0_60px_rgba(6,182,212,0.25)]'
+            ? 'border-rose-500/30 bg-gradient-to-b from-red-950/30 via-zinc-950 to-black/95 shadow-[0_0_40px_rgba(244,63,94,0.2)]'
+            : 'border-blue-500/30 bg-gradient-to-b from-blue-950/30 via-zinc-950 to-black/95 shadow-[0_0_40px_rgba(59,130,246,0.2)]'
         }`}
       >
         <div className="text-[10px] sm:text-xs font-mono font-bold tracking-widest text-zinc-400 uppercase mb-4">
           {go.protocol}
         </div>
 
-        {/* Драматичное свечение победителю: рубиновое для маньяка, сапфировое/циановое для оперативника */}
+        {/* Драматичное свечение победителю: рубиновое для маньяка, сапфировое для оперативника */}
         <div
           className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-4 border transition-all duration-500 ${
             isKillerWinner
-              ? 'bg-gradient-to-br from-red-950/90 via-rose-900/50 to-black/90 border-rose-500/80 text-rose-400 shadow-[0_0_50px_rgba(225,29,72,0.6)] ring-2 ring-rose-500/40'
-              : 'bg-gradient-to-br from-blue-950/90 via-cyan-900/50 to-black/90 border-cyan-400/80 text-cyan-300 shadow-[0_0_50px_rgba(6,182,212,0.6)] ring-2 ring-cyan-400/40'
+              ? 'bg-gradient-to-br from-red-950/90 via-rose-900/50 to-black/90 border-rose-500/70 text-rose-400 shadow-[0_0_40px_rgba(244,63,94,0.4)] ring-1 ring-rose-400/40'
+              : 'bg-gradient-to-br from-blue-950/90 via-blue-900/40 to-black/90 border-blue-500/70 text-blue-300 shadow-[0_0_40px_rgba(59,130,246,0.4)] ring-1 ring-blue-400/40'
           }`}
         >
           {isKillerWinner ? <Icons.Crosshair /> : <Icons.Trophy />}
         </div>
 
-        {/* Акцидентный шрифт */}
+        {/* Акцидентный заголовок Neo-Noir */}
         <h3
           className={`font-display text-4xl sm:text-5xl 2xl:text-6xl font-black uppercase tracking-wider mb-2 leading-tight text-center ${
             isKillerWinner
-              ? 'text-rose-500 drop-shadow-[0_0_35px_rgba(225,29,72,0.85)]'
-              : 'text-cyan-400 drop-shadow-[0_0_35px_rgba(6,182,212,0.85)]'
+              ? 'text-rose-400 drop-shadow-[0_0_25px_rgba(244,63,94,0.5)]'
+              : 'text-blue-400 drop-shadow-[0_0_25px_rgba(59,130,246,0.5)]'
           }`}
         >
           {headlineText}

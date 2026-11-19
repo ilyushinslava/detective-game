@@ -33,8 +33,8 @@ export const GameOverRoleCard: React.FC<GameOverRoleCardProps> = ({
 
   const winnerCardClass = isCharWinner
     ? isKillerSide
-      ? 'border-2 border-rose-500/80 shadow-[0_0_25px_rgba(225,29,72,0.45)] ring-1 ring-rose-400/50 bg-zinc-950'
-      : 'border-2 border-cyan-400/80 shadow-[0_0_25px_rgba(6,182,212,0.45)] ring-1 ring-cyan-400/50 bg-zinc-950'
+      ? 'border-2 border-rose-500/80 shadow-[0_0_20px_rgba(244,63,94,0.35)] ring-1 ring-rose-400/40 bg-zinc-950'
+      : 'border-2 border-blue-500/80 shadow-[0_0_20px_rgba(59,130,246,0.35)] ring-1 ring-blue-400/40 bg-zinc-950'
     : 'border border-white/5 bg-zinc-950/60 opacity-40 hover:opacity-75';
 
   return (

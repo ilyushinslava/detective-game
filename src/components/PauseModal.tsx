@@ -42,10 +42,10 @@ export const PauseModal: React.FC<PauseModalProps> = ({
       className="gap-3"
     >
       <Button
-        variant="primary-info"
+        variant="primary"
         fullWidth
         onClick={onResume}
-        className="uppercase tracking-wider"
+        className="uppercase tracking-wider font-black text-xs"
       >
         Продолжить
       </Button>
@@ -58,7 +58,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
             onClose();
             onRemindRole();
           }}
-          className="uppercase tracking-wider"
+          className="uppercase tracking-wider font-black text-xs"
         >
           Напомнить роль
         </Button>
@@ -69,7 +69,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
           variant="secondary"
           fullWidth
           onClick={onOpenRules}
-          className="uppercase tracking-wider"
+          className="uppercase tracking-wider font-black text-xs"
         >
           Справочник правил
         </Button>
@@ -90,10 +90,10 @@ export const PauseModal: React.FC<PauseModalProps> = ({
       )}
 
       <Button
-        variant="ghost"
+        variant="danger"
         fullWidth
         onClick={onLeaveGame}
-        className="!text-red-400 hover:!text-red-300 hover:!bg-red-950/20 border border-red-900/40 uppercase tracking-wider"
+        className="uppercase tracking-wider font-black text-xs"
       >
         Покинуть игру
       </Button>
@@ -110,20 +110,31 @@ export const PauseModal: React.FC<PauseModalProps> = ({
 
           <div className="flex flex-col gap-2">
             {onToggleSfx && (
-              <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
-                <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">
-                  Звуки (SFX)
-                </span>
+              <div className="neo-card border-t-white/15 p-3 rounded-xl flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-zinc-200 uppercase tracking-widest">
+                    Звуки (SFX)
+                  </span>
+                  <span className="text-[9px] text-zinc-500 font-mono mt-0.5">
+                    Звуковые эффекты игры
+                  </span>
+                </div>
                 <button
                   type="button"
+                  role="switch"
+                  aria-checked={isSfxEnabled}
                   onClick={onToggleSfx}
-                  className={`w-10 h-5 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${
-                    isSfxEnabled ? "bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.4)]" : "bg-zinc-700"
+                  className={`w-12 h-6 rounded-full px-1 flex items-center transition-all duration-200 cursor-pointer ${
+                    isSfxEnabled
+                      ? "bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 border border-white/40 border-t-white/70 shadow-inner"
+                      : "bg-zinc-900 border border-white/10"
                   }`}
                 >
                   <div
-                    className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
-                      isSfxEnabled ? "translate-x-5" : "translate-x-0"
+                    className={`w-4 h-4 rounded-full shadow-md transition-transform duration-200 ${
+                      isSfxEnabled
+                        ? "translate-x-6 bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]"
+                        : "translate-x-0 bg-zinc-500"
                     }`}
                   />
                 </button>
@@ -131,20 +142,31 @@ export const PauseModal: React.FC<PauseModalProps> = ({
             )}
 
             {onToggleAmbient && (
-              <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
-                <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">
-                  Эмбиент
-                </span>
+              <div className="neo-card border-t-white/15 p-3 rounded-xl flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-zinc-200 uppercase tracking-widest">
+                    Эмбиент
+                  </span>
+                  <span className="text-[9px] text-zinc-500 font-mono mt-0.5">
+                    Фоновая музыка матча
+                  </span>
+                </div>
                 <button
                   type="button"
+                  role="switch"
+                  aria-checked={isAmbientEnabled}
                   onClick={onToggleAmbient}
-                  className={`w-10 h-5 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${
-                    isAmbientEnabled ? "bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.4)]" : "bg-zinc-700"
+                  className={`w-12 h-6 rounded-full px-1 flex items-center transition-all duration-200 cursor-pointer ${
+                    isAmbientEnabled
+                      ? "bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 border border-white/40 border-t-white/70 shadow-inner"
+                      : "bg-zinc-900 border border-white/10"
                   }`}
                 >
                   <div
-                    className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
-                      isAmbientEnabled ? "translate-x-5" : "translate-x-0"
+                    className={`w-4 h-4 rounded-full shadow-md transition-transform duration-200 ${
+                      isAmbientEnabled
+                        ? "translate-x-6 bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]"
+                        : "translate-x-0 bg-zinc-500"
                     }`}
                   />
                 </button>
@@ -152,20 +174,31 @@ export const PauseModal: React.FC<PauseModalProps> = ({
             )}
 
             {onToggleHaptics && (
-              <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-white/5">
-                <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">
-                  Вибрация
-                </span>
+              <div className="neo-card border-t-white/15 p-3 rounded-xl flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-zinc-200 uppercase tracking-widest">
+                    Вибрация
+                  </span>
+                  <span className="text-[9px] text-zinc-500 font-mono mt-0.5">
+                    Тактильный отклик
+                  </span>
+                </div>
                 <button
                   type="button"
+                  role="switch"
+                  aria-checked={isHapticsEnabled}
                   onClick={onToggleHaptics}
-                  className={`w-10 h-5 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${
-                    isHapticsEnabled ? "bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.4)]" : "bg-zinc-700"
+                  className={`w-12 h-6 rounded-full px-1 flex items-center transition-all duration-200 cursor-pointer ${
+                    isHapticsEnabled
+                      ? "bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 border border-white/40 border-t-white/70 shadow-inner"
+                      : "bg-zinc-900 border border-white/10"
                   }`}
                 >
                   <div
-                    className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
-                      isHapticsEnabled ? "translate-x-5" : "translate-x-0"
+                    className={`w-4 h-4 rounded-full shadow-md transition-transform duration-200 ${
+                      isHapticsEnabled
+                        ? "translate-x-6 bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]"
+                        : "translate-x-0 bg-zinc-500"
                     }`}
                   />
                 </button>

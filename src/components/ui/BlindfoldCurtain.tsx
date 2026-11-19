@@ -66,11 +66,11 @@ export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
   const fallbackInfo = gameState ? resolveNextPlayerInfo(gameState) : null;
   const effectiveRole = nextRole ?? fallbackInfo?.nextRole ?? "DETECTIVE";
   const defaultRoleName = effectiveRole === "KILLER" ? "Бандит" : "Инспектор";
-  const defaultRoleColor = effectiveRole === "KILLER" ? "text-rose-400" : "text-cyan-400";
-  const defaultBorderColor = effectiveRole === "KILLER" ? "border-rose-500/40" : "border-cyan-500/40";
+  const defaultRoleColor = effectiveRole === "KILLER" ? "text-rose-400" : "text-blue-400";
+  const defaultBorderColor = effectiveRole === "KILLER" ? "border-rose-500/40" : "border-blue-500/40";
   const defaultBgGlow = effectiveRole === "KILLER"
-    ? "bg-rose-950/20 shadow-[0_0_40px_rgba(244,63,94,0.15)]"
-    : "bg-cyan-950/20 shadow-[0_0_40px_rgba(6,182,212,0.15)]";
+    ? "bg-rose-950/20 shadow-[0_0_30px_rgba(244,63,94,0.15)]"
+    : "bg-blue-950/20 shadow-[0_0_30px_rgba(59,130,246,0.15)]";
 
   const displayName = nextPlayerName || fallbackInfo?.nextPlayerName || defaultRoleName;
   const displayColor = nextPlayerColor || fallbackInfo?.nextPlayerColor || defaultRoleColor;
@@ -80,14 +80,14 @@ export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
       role="dialog"
       aria-label="Смена игрока"
       onClick={handleDismiss}
-      className={`fixed inset-0 ${zIndexClass} flex flex-col items-center justify-between bg-black/90 bg-black backdrop-blur-2xl text-white p-6 select-none cursor-pointer font-mono animate-fadeIn`}
+      className={`fixed inset-0 ${zIndexClass} flex flex-col items-center justify-between bg-black/95 backdrop-blur-2xl text-white p-6 select-none cursor-pointer font-mono animate-fadeIn`}
       style={{ touchAction: "manipulation" }}
       data-testid="blindfold-curtain"
     >
       {/* Верхний гриф конфиденциальности */}
-      <div className="w-full flex items-center justify-between border-b border-border-subtle pb-4 pt-2">
+      <div className="w-full flex items-center justify-between border-b border-white/10 pb-4 pt-2">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-accent-neon shadow-neon-cyan animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.8)] animate-pulse" />
           <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400">
             ОФФЛАЙН РЕЖИМ • PASS & PLAY
           </span>
@@ -97,10 +97,10 @@ export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
         </span>
       </div>
 
-      {/* Центральный терминальный блок передачи хода */}
-      <div className="flex flex-col items-center text-center max-w-md my-auto px-4">
+      {/* Центральный терминальный блок передачи хода в Neo-Noir карточке */}
+      <div className="flex flex-col items-center text-center max-w-md my-auto px-6 py-8 neo-card border-t-white/20 rounded-3xl shadow-2xl">
         {/* Технический видоискатель / иконка передачи */}
-        <div className={`mb-6 flex h-20 w-20 items-center justify-center border ${defaultBorderColor} ${defaultBgGlow} text-zinc-300 transition-all duration-300`}>
+        <div className={`mb-5 flex h-20 w-20 items-center justify-center rounded-2xl border ${defaultBorderColor} ${defaultBgGlow} text-zinc-300 transition-all duration-300`}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-10 h-10">
             <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
             <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2" strokeLinecap="round" />
@@ -109,16 +109,16 @@ export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
         </div>
 
         {/* Индикатор протокола */}
-        <div className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
+        <div className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-zinc-500 mb-1">
           ПРОТОКОЛ СМЕНЫ ХОДА
         </div>
 
         {/* Главный заголовок передачи хода */}
-        <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wider text-zinc-200 mb-1">
+        <h2 className="text-base sm:text-lg font-bold uppercase tracking-wider text-zinc-300 mb-1">
           ПЕРЕДАЙТЕ УСТРОЙСТВО [{displayName}]...
         </h2>
 
-        <div className="text-[11px] font-mono uppercase tracking-widest text-zinc-400 mt-2 mb-1">
+        <div className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 mt-2 mb-1">
           ПЕРЕДАЧА ХОДА:
         </div>
 
@@ -132,7 +132,7 @@ export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
         </div>
 
         {/* Текст секретности */}
-        <p className="text-xs text-zinc-400 leading-relaxed max-w-sm mb-6 border-t border-b border-white/5 py-3">
+        <p className="text-xs text-zinc-400 leading-relaxed max-w-sm mb-6 border-t border-b border-white/10 py-3">
           Секретные данные предыдущего хода скрыты шторкой. Убедитесь, что экран скрыт от глаз оппонента, прежде чем принять управление.
         </p>
 
@@ -145,7 +145,7 @@ export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
             e.stopPropagation();
             handleDismiss();
           }}
-          className="w-full max-w-xs py-3 px-6 border border-white/20 hover:border-cyan-400/80 bg-white/5 hover:bg-cyan-950/20 text-white font-mono uppercase tracking-widest text-xs font-bold transition-all duration-75 active:scale-95 touch-manipulation cursor-pointer shadow-lg hover:shadow-cyan-950/40"
+          className="w-full max-w-xs h-12 rounded-xl neo-button-primary uppercase tracking-widest text-xs font-black transition-all active:scale-95 touch-manipulation cursor-pointer shadow-lg flex items-center justify-center"
         >
           [ Я ГОТОВ • ПРИНЯТЬ ХОД ]
         </button>

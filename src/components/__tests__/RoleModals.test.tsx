@@ -35,24 +35,22 @@ describe("IdentityRevealModal", () => {
   });
 
   it("в фазе PVP pass отображает экран передачи устройства и вызывает onConfirmPvpPass", () => {
-    const { container } = render(<IdentityRevealModal {...defaultProps} isPvpPassPhase={true} />);
+    render(<IdentityRevealModal {...defaultProps} isPvpPassPhase={true} />);
     expect(screen.getByText(/Player 2/)).toBeDefined();
 
-    const buttons = Array.from(container.querySelectorAll("button"));
-    const confirmBtn = buttons.find(b => b.className.includes("bg-red-600"));
+    const confirmBtn = screen.getByText("Я держу телефон один");
     expect(confirmBtn).toBeDefined();
-    fireEvent.click(confirmBtn!);
+    fireEvent.click(confirmBtn);
     expect(mockOnConfirmPvpPass).toHaveBeenCalled();
   });
 
   it("в фазе раскрытия роли рендерит имя персонажа и вызывает onAcceptIdentity", () => {
-    const { container } = render(<IdentityRevealModal {...defaultProps} isPvpPassPhase={false} />);
+    render(<IdentityRevealModal {...defaultProps} isPvpPassPhase={false} />);
     expect(screen.getByText("John Doe")).toBeDefined();
 
-    const buttons = Array.from(container.querySelectorAll("button"));
-    const acceptBtn = buttons.find(b => b.className.includes("bg-red-600"));
+    const acceptBtn = screen.getByText(/Принять личность/);
     expect(acceptBtn).toBeDefined();
-    fireEvent.click(acceptBtn!);
+    fireEvent.click(acceptBtn);
     expect(mockOnAcceptIdentity).toHaveBeenCalled();
   });
 });
@@ -84,18 +82,17 @@ describe("InspectorChoiceModal", () => {
   });
 
   it("в режиме PVP сначала требует подтверждения передачи экрана", () => {
-    const { container } = render(<InspectorChoiceModal {...defaultProps} isPVP={true} />);
+    render(<InspectorChoiceModal {...defaultProps} isPVP={true} />);
     
-    const buttons = Array.from(container.querySelectorAll("button"));
-    const passBtn = buttons.find(b => b.className.includes("from-blue-700"));
+    const passBtn = screen.getByText("Я держу телефон один");
     expect(passBtn).toBeDefined();
     
-    fireEvent.click(passBtn!);
+    fireEvent.click(passBtn);
     expect(screen.getByText("Char One")).toBeDefined();
   });
 
   it("рендерит варианты выбора, позволяет выбрать персонажа и активирует кнопку подтверждения", () => {
-    const { container } = render(<InspectorChoiceModal {...defaultProps} />);
+    render(<InspectorChoiceModal {...defaultProps} />);
     
     expect(screen.getByText("Char One")).toBeDefined();
     
@@ -103,9 +100,9 @@ describe("InspectorChoiceModal", () => {
     expect(charCard).toBeDefined();
     fireEvent.click(charCard!);
 
-    const buttons = Array.from(container.querySelectorAll("button"));
-    const confirmBtn = buttons.find(b => b.className.includes("from-blue-700") && !b.disabled);
+    const confirmBtn = screen.getByText("Подтвердить личность").closest("button");
     expect(confirmBtn).toBeDefined();
+    expect(confirmBtn?.disabled).toBe(false);
     
     fireEvent.click(confirmBtn!);
     expect(mockOnSelectInspectorRole).toHaveBeenCalledWith("c1");
@@ -117,17 +114,13 @@ describe("InspectorChoiceModal", () => {
     const modalContainer = container.querySelector(".max-w-md");
     expect(modalContainer?.className).not.toContain("translate-y-[110%]");
 
-    const minimizeBtn = Array.from(modalContainer?.querySelectorAll("button") || []).find(b =>
-      b.querySelector('svg path[d*="M1 12s4-8"]')
-    );
+    const minimizeBtn = screen.getByText("Осмотреть поле").closest("button");
     expect(minimizeBtn).toBeDefined();
 
     fireEvent.click(minimizeBtn!);
     expect(modalContainer?.className).toContain("translate-y-[110%]");
 
-    const restoreBtn = Array.from(container.querySelectorAll("button")).find(b => 
-      b.className.includes("border-blue-500/30")
-    );
+    const restoreBtn = screen.getByText("Выбор личности").closest("button");
     expect(restoreBtn).toBeDefined();
 
     fireEvent.click(restoreBtn!);

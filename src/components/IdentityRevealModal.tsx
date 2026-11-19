@@ -5,7 +5,7 @@ import { Button } from "./ui/Button";
 
 export interface IdentityRevealModalProps {
   badge: string;
-  badgeColor?: "red" | "cyan" | "blue" | "amber";
+  badgeColor?: "red" | "blue" | "amber";
   character: { id: string; name: string } | null;
   characterImage: string | null;
   isOpen: boolean;
@@ -32,10 +32,10 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const isRed = badgeColor === "red";
-  const accent = isRed ? "text-red-400" : "text-cyan-400";
+  const accent = isRed ? "text-rose-400" : "text-blue-400";
   const accentBg = isRed
-    ? "bg-red-950/60 border-red-600/70 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
-    : "bg-cyan-950/60 border-cyan-500/70 shadow-[0_0_15px_rgba(6,182,212,0.3)]";
+    ? "bg-rose-950/60 border-rose-500/60 shadow-[0_0_15px_rgba(244,63,94,0.25)]"
+    : "bg-blue-950/60 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.25)]";
 
   return (
     <>
@@ -116,10 +116,10 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
               Убедитесь, что соперник не смотрит на экран.
             </p>
             <Button
-              variant={isRed ? "primary-danger" : "primary-info"}
+              variant={isRed ? "danger" : "primary"}
               fullWidth
               onClick={onConfirmPvpPass}
-              className={`text-xs font-black uppercase tracking-wider ${isRed ? "bg-red-600 hover:bg-red-500" : ""}`}
+              className="text-xs font-black uppercase tracking-wider h-12"
             >
               Я держу телефон один
             </Button>
@@ -140,7 +140,7 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
               <motion.div
                 layoutId={`identity-card-${character.id}`}
                 transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
-                className="relative w-full h-48 rounded-xl overflow-hidden border border-zinc-700 my-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] cursor-pointer group bg-zinc-950"
+                className="relative w-full h-48 rounded-2xl overflow-hidden border border-zinc-700 my-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] cursor-pointer group bg-zinc-950"
                 onClick={() => characterImage && setIsFullscreen(true)}
               >
                 {characterImage ? (
@@ -171,10 +171,10 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
             )}
 
             <Button
-              variant={isRed ? "primary-danger" : "primary-info"}
+              variant={isRed ? "danger" : "primary"}
               fullWidth
               onClick={onAcceptIdentity}
-              className={`text-xs font-black uppercase tracking-wider ${isRed ? "bg-red-600 hover:bg-red-500" : ""}`}
+              className="text-xs font-black uppercase tracking-wider h-12"
             >
               Принять личность{isRed ? "" : " ➔"}
             </Button>

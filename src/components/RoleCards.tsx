@@ -149,11 +149,14 @@ export const RoleCards: React.FC<RoleCardsProps> = ({
     <div className={containerClass}>
       {showKillerCard && (
         <div className="flex-1 p-2.5 md:p-3 neo-card rounded-2xl border-t-white/20 flex flex-col justify-between gap-2 shadow-xl">
-          <div className="flex items-start justify-between w-full gap-2">
+          <div className="flex items-center justify-between w-full gap-1.5 min-h-[30px]">
             <span className="text-[8.5px] sm:text-[9px] md:text-[10px] font-black text-rose-200 uppercase bg-rose-950/80 border border-rose-700/60 px-2 py-0.5 rounded-md shrink-0 tracking-widest whitespace-nowrap shadow-sm">
               {role1Name === "ОПЕРАТИВНИК" ? "ОПЕР" : role1Name}
             </span>
-            <span className="text-[9px] sm:text-[10px] md:text-xs font-black text-zinc-100 text-right uppercase tracking-tight leading-tight break-words line-clamp-2 flex-1 min-w-0">
+            <span
+              title={displayedKillerName}
+              className="text-[8.5px] sm:text-[9.5px] md:text-[11px] font-black text-zinc-100 text-right uppercase tracking-tight leading-[1.15] break-words line-clamp-2 flex-1 min-w-0"
+            >
               {displayedKillerName}
             </span>
           </div>
@@ -185,7 +188,7 @@ export const RoleCards: React.FC<RoleCardsProps> = ({
 
       {showDetectiveCard && (
         <div className="flex-1 p-2.5 md:p-3 neo-card rounded-2xl border-t-white/20 flex flex-col justify-between gap-2 shadow-xl">
-          <div className="flex items-start justify-between w-full gap-2">
+          <div className="flex items-center justify-between w-full gap-1.5 min-h-[30px]">
             <span className={`text-[8.5px] sm:text-[9px] md:text-[10px] font-black uppercase px-2 py-0.5 rounded-md shrink-0 tracking-widest whitespace-nowrap shadow-sm ${
               role2Name === "ПОЛИЦИЯ" || role2Name === "Полиция"
                 ? "bg-blue-900/50 border border-blue-700/60 text-blue-200"
@@ -193,7 +196,10 @@ export const RoleCards: React.FC<RoleCardsProps> = ({
             }`}>
               {role2Name === "ОПЕРАТИВНИК" ? "ОПЕР" : role2Name}
             </span>
-            <span className="text-[9px] sm:text-[10px] md:text-xs font-black text-zinc-100 text-right uppercase tracking-tight leading-tight break-words line-clamp-2 flex-1 min-w-0">
+            <span
+              title={displayedDetectiveName}
+              className="text-[8.5px] sm:text-[9.5px] md:text-[11px] font-black text-zinc-100 text-right uppercase tracking-tight leading-[1.15] break-words line-clamp-2 flex-1 min-w-0"
+            >
               {displayedDetectiveName}
             </span>
           </div>

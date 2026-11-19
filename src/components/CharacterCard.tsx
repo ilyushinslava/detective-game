@@ -272,12 +272,10 @@ const CharacterCardComponent = ({
 
       {hasCoin && !isDead && <CoinIndicator />}
 
-      <div className="absolute bottom-0.5 inset-x-0.5 z-10 flex items-end justify-center pointer-events-none transform-none">
+      <div className="absolute bottom-0.5 inset-x-0.5 z-10 flex flex-col items-center justify-end pointer-events-none transform-none">
         <span
           title={character.name}
-          className={`block w-full text-[7.5px] sm:text-[8.5px] md:text-[9.5px] xl:text-[10.5px] font-bold text-zinc-200 leading-[1.05] md:leading-tight tracking-tighter uppercase text-center px-0.5 sm:px-1 py-0.5 rounded-sm bg-black/60 backdrop-blur-[1px] transform-none break-normal whitespace-pre-line hyphens-none ${
-            hasCoin && !isDead ? "pr-4 sm:pr-5" : ""
-          } ${
+          className={`w-full text-center flex flex-col items-center text-[7.5px] sm:text-[8.5px] md:text-[9.5px] xl:text-[10.5px] font-bold text-zinc-200 leading-[1.05] md:leading-tight tracking-tighter uppercase px-0.5 sm:px-1 py-0.5 rounded-sm bg-black/60 backdrop-blur-[1px] transform-none break-normal whitespace-pre-line hyphens-none ${
             isDead
               ? isSecretService
                 ? "text-red-400 line-through"

@@ -148,7 +148,7 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
               </div>
 
               <p className="text-base text-zinc-300 max-w-lg leading-relaxed mb-3">
-                Один из игроков временно вне зоны эфира. Ход матча приостановлен на время грейс-периода (60 сек).
+                Один из игроков временно оффлайн. Ход матча приостановлен на время грейс-периода (60 сек).
               </p>
               <p className="text-sm text-zinc-400 font-mono">
                 При невозврате по истечении таймера будет зафиксировано техническое поражение.

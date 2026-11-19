@@ -30,9 +30,9 @@ describe("GameOverModal", () => {
 
     expect(screen.getByText(/04:15/)).toBeDefined();
 
-    // Находим кнопку рестарта по уникальным классам, чтобы избежать проблем с кодировкой текста
+    // Находим кнопку рестарта по уникальным классам или data-атрибуту
     const buttons = Array.from(container.querySelectorAll("button"));
-    const restartBtn = buttons.find(b => b.className.includes("rounded-full") && !b.className.includes("mt-2.5"));
+    const restartBtn = buttons.find(b => (b.className.includes("rounded-xl") || b.getAttribute("data-dpad-primary") === "true") && !b.className.includes("mt-2.5"));
     
     expect(restartBtn).toBeDefined();
     fireEvent.click(restartBtn!);

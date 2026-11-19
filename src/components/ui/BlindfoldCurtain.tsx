@@ -83,7 +83,7 @@ export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
       role="dialog"
       aria-label="Смена игрока"
       onClick={handleDismiss}
-      className={`fixed inset-0 ${zIndexClass} flex flex-col items-center justify-between bg-black/95 backdrop-blur-2xl text-white p-6 select-none cursor-pointer font-mono animate-fadeIn`}
+      className={`fixed inset-0 ${zIndexClass} flex flex-col items-center justify-between bg-black/95 backdrop-blur-2xl text-white p-6 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] select-none cursor-pointer font-mono animate-fadeIn`}
       style={{ touchAction: "manipulation" }}
       data-testid="blindfold-curtain"
     >

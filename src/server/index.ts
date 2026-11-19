@@ -236,7 +236,7 @@ export default class GameRoomServer {
             type: "MATCH_OVER",
             winner: winnerRole,
             reason: "OPPONENT_ABANDONED",
-            message: "Соперник не вернулся в эфир по истечении 60 секунд. Зафиксировано техническое поражение.",
+            message: "Соперник не вернулся в игру по истечении 60 секунд. Зафиксировано техническое поражение.",
           })
         );
         this.state.status = "FINISHED";

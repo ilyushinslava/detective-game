@@ -163,4 +163,35 @@ describe("ProfileScreen", () => {
     expect(screen.getByText("СОЗДАНИЕ ПРОФИЛЯ")).toBeDefined();
     expect(screen.getByPlaceholderText("agent_77")).toBeDefined();
   });
+
+  it("по клику на строку 'ПОСЛЕДНИЕ МАТЧИ' открывает модальное окно со списком матчей", () => {
+    const profileWithMatches = {
+      ...defaultProfile,
+      recentMatches: [
+        {
+          id: "m_1",
+          mode: "MANIAC_VS_OPERATIVE",
+          role: "DETECTIVE" as const,
+          isWinner: true,
+          durationSeconds: 150,
+          timestamp: Date.now(),
+          mmrDelta: 25,
+        },
+      ],
+    };
+
+    render(<ProfileScreen profile={profileWithMatches} onUpdateProfile={vi.fn()} />);
+
+    // На экране отображаются карточки статистики
+    expect(screen.getByText("РЕЙТИНГ")).toBeDefined();
+    expect(screen.getByText("ВИНРЕЙТ")).toBeDefined();
+
+    // Находим кнопку-строку 'ПОСЛЕДНИЕ МАТЧИ'
+    const openHistoryBtn = screen.getByRole("button", { name: /ПОСЛЕДНИЕ МАТЧИ/i });
+    fireEvent.click(openHistoryBtn);
+
+    // В открывшейся модалке отображаются данные матча
+    expect(screen.getByText(/Маньяк против Оперативника/i)).toBeDefined();
+    expect(screen.getByText("+25")).toBeDefined();
+  });
 });

@@ -25,10 +25,10 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
   translations: p,
 }) => {
   return (
-    <div className="neo-card border-t-white/20 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-3">
-      <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+    <div className="flex-1 min-h-0 flex flex-col gap-2.5 overflow-hidden">
+      <div className="flex items-center justify-between border-b border-white/10 pb-2 shrink-0">
         <div className="flex items-center gap-2">
-          <ProfileIcons.Activity className="w-4 h-4 text-zinc-400" />
+          <ProfileIcons.Activity className="w-3.5 h-3.5 text-zinc-400" />
           <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
             {p.recentMatches}
           </h3>
@@ -41,20 +41,20 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
       </div>
 
       {recentMatches && recentMatches.length > 0 ? (
-        <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1 custom-scrollbar">
+        <div className="flex-1 min-h-0 flex flex-col gap-1.5 sm:gap-2 overflow-y-auto pr-1 custom-scrollbar">
           {recentMatches.map((match: MatchHistoryEntry, idx: number) => {
             const isWin = match.isWinner;
             return (
               <div
                 key={match.id || `match_${idx}`}
-                className={`flex items-center justify-between p-2.5 sm:p-3 rounded-xl border transition-all ${
+                className={`flex items-center justify-between p-2 sm:p-2.5 rounded-xl border transition-all shrink-0 ${
                   isWin
                     ? 'bg-slate-900/60 border-slate-700/60 hover:border-slate-500/60'
                     : 'bg-zinc-900/50 border-white/5 hover:border-white/10'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-1.5 h-7 rounded-full shrink-0 ${isWin ? 'bg-slate-300' : 'bg-zinc-600'}`} />
+                  <div className={`w-1.5 h-6 rounded-full shrink-0 ${isWin ? 'bg-slate-300' : 'bg-zinc-600'}`} />
                   <div className="flex flex-col min-w-0">
                     <span className="text-xs font-black uppercase tracking-wide text-zinc-200 truncate">
                       {getModeLabel(match.mode)}
@@ -87,7 +87,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
           })}
         </div>
       ) : (
-        <div className="py-8 flex flex-col items-center justify-center text-center gap-2 text-zinc-500 font-mono text-xs">
+        <div className="flex-1 min-h-[140px] flex flex-col items-center justify-center text-center gap-2 text-zinc-500 font-mono text-xs">
           <ProfileIcons.Shield />
           <span>{p.emptyHistory}</span>
         </div>

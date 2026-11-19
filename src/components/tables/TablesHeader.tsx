@@ -137,10 +137,10 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
                 : "bg-transparent text-zinc-500 hover:text-zinc-300 border border-transparent"
             }`}
           >
-            <Icons.Globe className={`w-3.5 h-3.5 transition-colors ${lobbyTab === "PUBLIC" ? "text-accent-neon" : "text-zinc-500"}`} />
-            <span className={lobbyTab === "PUBLIC" ? "text-white drop-shadow-[0_0_8px_rgba(6,182,212,0.4)]" : ""}>Открытые игры</span>
+            <Icons.Globe className={`w-3.5 h-3.5 transition-colors ${lobbyTab === "PUBLIC" ? "text-blue-400" : "text-zinc-500"}`} />
+            <span className={lobbyTab === "PUBLIC" ? "text-white drop-shadow-[0_0_8px_rgba(59,130,246,0.4)]" : ""}>Открытые игры</span>
             <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full border transition-colors ${
-              lobbyTab === "PUBLIC" ? "bg-accent-neon/20 text-cyan-200 border-accent-neon/30" : "bg-white/[0.04] text-zinc-500 border-white/5"
+              lobbyTab === "PUBLIC" ? "bg-blue-500/15 text-blue-200 border-blue-500/30" : "bg-white/[0.04] text-zinc-500 border-white/5"
             }`}>
               {openRoomsCount}
             </span>
@@ -158,10 +158,10 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
                 : "bg-transparent text-zinc-500 hover:text-zinc-300 border border-transparent"
             }`}
           >
-            <Icons.Lock className={`w-3.5 h-3.5 transition-colors ${lobbyTab === "PRIVATE" ? "text-accent-neon" : "text-zinc-500"}`} />
-            <span className={lobbyTab === "PRIVATE" ? "text-white drop-shadow-[0_0_8px_rgba(6,182,212,0.4)]" : ""}>Приватные игры</span>
+            <Icons.Lock className={`w-3.5 h-3.5 transition-colors ${lobbyTab === "PRIVATE" ? "text-blue-400" : "text-zinc-500"}`} />
+            <span className={lobbyTab === "PRIVATE" ? "text-white drop-shadow-[0_0_8px_rgba(59,130,246,0.4)]" : ""}>Приватные игры</span>
             <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full border transition-colors ${
-              lobbyTab === "PRIVATE" ? "bg-accent-neon/20 text-cyan-200 border-accent-neon/30" : "bg-white/[0.04] text-zinc-500 border-white/5"
+              lobbyTab === "PRIVATE" ? "bg-blue-500/15 text-blue-200 border-blue-500/30" : "bg-white/[0.04] text-zinc-500 border-white/5"
             }`}>
               {privateRoomsCount}
             </span>
@@ -209,7 +209,7 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
                 >
                   <span className="truncate">{filter.label}</span>
                   {isSelected && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)] shrink-0 ml-2" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-blue-400 shadow-[0_0_6px_rgba(59,130,246,0.8)] shrink-0 ml-2" />
                   )}
                 </button>
               );

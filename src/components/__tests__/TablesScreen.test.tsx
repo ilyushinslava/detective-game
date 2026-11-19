@@ -134,8 +134,8 @@ describe("TablesScreen", () => {
     expect(screen.queryByText(/ЗАКРЫТАЯ/i)).toBeNull();
     expect(screen.queryByText(/Открытый Хост/i)).toBeNull();
 
-    // Кликаем по кнопке ввода шифра к выбранной приватной комнате
-    const enterMorseBtn = screen.getByRole("button", { name: /Ввести шифр ➔/i });
+    // Кликаем по кнопке ввода кода к выбранной приватной комнате
+    const enterMorseBtn = screen.getByRole("button", { name: /Ввести (код|шифр) ➔/i });
     fireEvent.click(enterMorseBtn);
 
     // Открывается телеграфный ключ с привязкой к хосту (асинхронно через Suspense)

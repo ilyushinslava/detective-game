@@ -38,10 +38,12 @@ export const en: TranslationSchema = {
     close: "Close",
   },
   profile: {
-    title: "PLAYER PROFILE",
+    title: "PROFILE",
     back: "Back",
     level: "LEVEL",
     online: "Online",
+    statsTab: "Statistics",
+    historyTab: "Match History",
     save: "Save",
     editCallsign: "Edit Callsign",
     changeAvatar: "Change Avatar",

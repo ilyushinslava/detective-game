@@ -49,10 +49,10 @@ export const TablesEmptyState: React.FC<TablesEmptyStateProps> = ({
           </svg>
         </div>
 
-        {/* Статус сканирования эфира */}
+        {/* Статус поиска столов */}
         <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-mono tracking-widest text-blue-400 uppercase">
           <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-          <span>ЭФИР СВОБОДЕН • СИГНАЛ НЕ ОБНАРУЖЕН</span>
+          <span>СВОБОДНЫХ СТОЛОВ НЕ НАЙДЕНО</span>
         </div>
       </div>
       <span className="text-xs sm:text-sm font-black tracking-widest text-zinc-200 uppercase mb-1">

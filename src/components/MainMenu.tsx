@@ -300,7 +300,7 @@ export const MainMenu = ({
     <div
       ref={screenContainerRef}
       onPointerDown={handleEdgePointerDown}
-      className={`flex-1 w-full h-screen flex flex-col ${screen === "HOME" ? "bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-background-panel/60 via-background-main to-background-main" : "bg-transparent"} text-zinc-100 select-none overflow-hidden custom-scrollbar relative max-w-full`}
+      className={`flex-1 w-full h-[100dvh] flex flex-col ${screen === "HOME" ? "bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-background-panel/60 via-background-main to-background-main" : "bg-transparent"} text-zinc-100 select-none overflow-hidden custom-scrollbar relative max-w-full`}
     >
       {/* Фоновый слой: Liquid-анимация на всех подэкранах кроме Главного меню (HOME) */}
       {screen !== "HOME" ? (

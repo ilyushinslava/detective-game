@@ -55,7 +55,7 @@ export const LobbyHomeView: React.FC<LobbyHomeViewProps> = ({
         />
         <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-accent-primary/20 blur-3xl" />
         <div className="absolute top-1/2 -right-24 w-96 h-96 rounded-full bg-accent-purple/20 blur-3xl" />
-        <div className="absolute -bottom-24 left-1/3 w-96 h-96 rounded-full bg-accent-neon/15 blur-3xl" />
+        <div className="absolute -bottom-24 left-1/3 w-96 h-96 rounded-full bg-blue-600/10 blur-3xl" />
         <div className="absolute inset-0 bg-gradient-to-t from-background-main via-background-main/40 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-b from-background-main/80 via-transparent to-background-main" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,theme(colors.background.main)_90%)] opacity-85" />

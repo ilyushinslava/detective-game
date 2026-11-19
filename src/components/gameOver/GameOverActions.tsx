@@ -68,7 +68,7 @@ export const GameOverActions: React.FC<GameOverActionsProps> = ({
           tabIndex={0}
           data-dpad-primary="true"
           onClick={onRestart}
-          className="rounded-full rounded-xl !h-12 text-xs sm:text-sm font-black uppercase tracking-wider gap-2 shadow-lg transition-all focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_25px_rgba(255,255,255,0.45)] cursor-pointer"
+          className="rounded-xl !h-12 text-xs sm:text-sm font-black uppercase tracking-wider gap-2 shadow-lg transition-all focus:outline-none focus:scale-105 focus:border-white focus:bg-white/20 focus:shadow-[0_0_25px_rgba(255,255,255,0.45)] cursor-pointer"
         >
           <span>{go.restart}</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">

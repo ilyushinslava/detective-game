@@ -453,9 +453,9 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
         .tutorial-highlight-l1s2 button[title*="Маневр влево"]:nth-of-type(3),
         .tutorial-highlight-maniac button[title*="Маневр вниз"]:nth-of-type(3) {
           position: relative; z-index: 30;
-          box-shadow: 0 0 20px rgba(245,158,11,0.9) !important;
-          border-color: #f59e0b !important;
-          background-color: rgba(245,158,11,0.3) !important;
+          box-shadow: 0 0 20px rgba(59,130,246,0.9) !important;
+          border-color: #3b82f6 !important;
+          background-color: rgba(59,130,246,0.3) !important;
           color: white !important;
           animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
         }

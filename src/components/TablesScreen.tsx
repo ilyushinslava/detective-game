@@ -146,7 +146,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
       </div>
 
       {/* Нижняя панель действий */}
-      <div className="w-full shrink-0 bg-background-main/90 backdrop-blur-md border-t border-border-subtle p-4 flex justify-center z-20">
+      <div className="w-full shrink-0 bg-background-main/90 backdrop-blur-md border-t border-border-subtle p-4 pb-[max(1rem,env(safe-area-inset-bottom))] flex justify-center z-20">
         <div className="w-full max-w-md">
           <Button
             variant="primary"
@@ -159,7 +159,7 @@ export const TablesScreen: React.FC<TablesScreenProps> = ({
         </div>
       </div>
 
-      {/* Оверлей ввода 7-значного шифра Морзе (пароль к выбранной приватной комнате) */}
+      {/* Оверлей ввода 7-значного кода Морзе (пароль к выбранной приватной комнате) */}
       {isMorseOpen && (
         <div className="fixed inset-0 z-50 bg-background-main flex flex-col">
           <Suspense fallback={

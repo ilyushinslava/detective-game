@@ -52,26 +52,26 @@ export const AccountSecurityCard: React.FC<AccountSecurityCardProps> = ({
   }
 
   return (
-    <div className="neo-card border-t-white/20 rounded-2xl p-4 sm:p-5 flex flex-col gap-3.5 text-left">
+    <div className="neo-card border-t-white/20 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-2.5 text-left shrink-0">
       {/* Заголовок карточки */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-3">
-        <h3 className="text-sm sm:text-base font-black tracking-wider uppercase text-white">
+      <div className="flex items-center justify-between border-b border-white/10 pb-2">
+        <h3 className="text-xs sm:text-sm font-black tracking-wider uppercase text-white">
           {p.saveProgress || "СОХРАНЕНИЕ ПРОГРЕССА"}
         </h3>
       </div>
 
       {/* Лаконичный текст призыва */}
-      <p className="text-xs sm:text-sm font-sans text-zinc-400 leading-relaxed -mt-1">
+      <p className="text-xs font-sans text-zinc-400 leading-relaxed">
         Создайте профиль, чтобы навсегда сохранить текущий рейтинг, статистику и монеты.
       </p>
 
       {/* Полноразмерная кнопка вызова модального окна авторизации */}
-      <div className="w-full mt-1">
+      <div className="w-full mt-0.5">
         <Button
           variant="primary"
           fullWidth
           onClick={handleOpenModal}
-          className="w-full h-10 text-xs font-bold uppercase tracking-wider"
+          className="w-full h-9 sm:h-10 text-xs font-bold uppercase tracking-wider"
         >
           СОЗДАТЬ ПРОФИЛЬ / ВОЙТИ
         </Button>

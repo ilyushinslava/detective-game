@@ -1,5 +1,5 @@
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "../ui/Button";
 import type { TutorialModule } from "./tutorialBoardSetup";
 
 export interface TutorialActionBarProps {
@@ -43,165 +43,201 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
 }) => {
   return (
     <div className="h-14 md:h-16 shrink-0 w-full flex items-center justify-center px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[#080a0f] border-t border-white/5 z-20">
-      <AnimatePresence mode="wait">
+      <div className="w-full max-w-sm flex justify-center">
         {/* 1. BASICS */}
         {currentModule === "BASICS" && step === 3 && (
-          <motion.button
+          <Button
+            variant="primary"
+            fullWidth
             onClick={() => onCompleteModule("BASICS")}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Завершить урок ➔
-          </motion.button>
+          </Button>
         )}
 
         {/* 2. MANIAC_KILLER */}
         {currentModule === "MANIAC_KILLER" && step === 3 && (
-          <motion.button
+          <Button
+            variant="primary-danger"
+            fullWidth
             onClick={onKill}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Ликвидировать цель
-          </motion.button>
+          </Button>
         )}
         {currentModule === "MANIAC_KILLER" && step === 4 && (
-          <motion.button
+          <Button
+            variant="primary"
+            fullWidth
             onClick={onEscape}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Сменить маску
-          </motion.button>
+          </Button>
         )}
         {currentModule === "MANIAC_KILLER" && step === 5 && (
-          <motion.button
+          <Button
+            variant="primary"
+            fullWidth
             onClick={() => onCompleteModule("MANIAC_KILLER")}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Завершить урок ➔
-          </motion.button>
+          </Button>
         )}
 
         {/* 3. MANIAC_DETECTIVE */}
         {currentModule === "MANIAC_DETECTIVE" && step === 2 && (
-          <motion.button
+          <Button
+            variant="primary"
+            fullWidth
             onClick={onArrest}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Задержать подозреваемого
-          </motion.button>
+          </Button>
         )}
         {currentModule === "MANIAC_DETECTIVE" && step === 3 && (
-          <motion.button
+          <Button
+            variant="primary"
+            fullWidth
             onClick={onCleanup}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Зачистка поля
-          </motion.button>
+          </Button>
         )}
         {currentModule === "MANIAC_DETECTIVE" && step === 4 && (
-          <motion.button
+          <Button
+            variant="primary"
+            fullWidth
             onClick={() => onCompleteModule("MANIAC_DETECTIVE")}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Завершить урок ➔
-          </motion.button>
+          </Button>
         )}
 
         {/* 4. THIEF_ROBBER */}
         {currentModule === "THIEF_ROBBER" && step === 2 && (
-          <motion.button
+          <Button
+            variant="primary-danger"
+            fullWidth
             onClick={onRob}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Украсть сокровище
-          </motion.button>
+          </Button>
         )}
         {currentModule === "THIEF_ROBBER" && step === 3 && (
-          <motion.button
+          <Button
+            variant="primary"
+            fullWidth
             onClick={onThiefDisguise}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Сменить маску
-          </motion.button>
+          </Button>
         )}
         {currentModule === "THIEF_ROBBER" && step === 4 && (
-          <motion.button
+          <Button
+            variant="primary"
+            fullWidth
             onClick={() => onCompleteModule("THIEF_ROBBER")}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Завершить урок ➔
-          </motion.button>
+          </Button>
         )}
 
         {/* 5. THIEF_POLICE */}
         {currentModule === "THIEF_POLICE" && step === 2 && (
-          <motion.button
+          <Button
+            variant="primary"
+            fullWidth
             onClick={onPoliceBlock}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Выставить патруль
-          </motion.button>
+          </Button>
         )}
         {currentModule === "THIEF_POLICE" && step === 3 && (
-          <motion.button
+          <Button
+            variant="primary"
+            fullWidth
             onClick={onPoliceArrest}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Задержать вора
-          </motion.button>
+          </Button>
         )}
 
         {/* 6. SECRET_SERVICE */}
         {currentModule === "SECRET_SERVICE" && step === 2 && Boolean(selectedId) && (
-          <motion.button
+          <Button
+            variant="primary"
+            fullWidth
             onClick={onInterrogate}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Опрос свидетелей
-          </motion.button>
+          </Button>
         )}
         {currentModule === "SECRET_SERVICE" && step === 4 && (
-          <motion.button
+          <Button
+            variant="primary-danger"
+            fullWidth
             onClick={onCaptureSpy}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Разоблачение шпиона
-          </motion.button>
+          </Button>
         )}
 
         {/* 7. LINE_UP */}
         {currentModule === "LINE_UP" && step === 1 && (
-          <motion.button
+          <Button
+            variant="primary"
+            fullWidth
             onClick={onAskQuestionDuel}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Спросить: есть ли головной убор?
-          </motion.button>
+          </Button>
         )}
         {currentModule === "LINE_UP" && step === 2 && (
-          <motion.button
+          <Button
+            variant="primary"
+            fullWidth
             onClick={onEliminateDuel}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Исключить невиновных ➔
-          </motion.button>
+          </Button>
         )}
         {currentModule === "LINE_UP" && step === 4 && (
-          <motion.button
+          <Button
+            variant="primary-danger"
+            fullWidth
             onClick={onAccuseDuel}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Предъявить обвинение
-          </motion.button>
+          </Button>
         )}
         {currentModule === "LINE_UP" && step === 5 && (
-          <motion.button
+          <Button
+            variant="primary"
+            fullWidth
             onClick={() => onCompleteModule("LINE_UP")}
-            className="pointer-events-auto w-full max-w-sm h-11 md:h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-wider rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer"
+            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
           >
             Завершить обучение ➔
-          </motion.button>
+          </Button>
         )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 };

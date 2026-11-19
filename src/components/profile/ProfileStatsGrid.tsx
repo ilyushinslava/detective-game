@@ -33,7 +33,7 @@ export const ProfileStatsGrid: React.FC<ProfileStatsGridProps> = ({
   translations: p,
 }) => {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 shrink-0">
       {/* Рейтинг */}
       <div className="neo-card border-t-white/20 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:border-t-white/40 transition-all duration-200">
         <div className="flex items-center justify-between text-zinc-400 mb-2">

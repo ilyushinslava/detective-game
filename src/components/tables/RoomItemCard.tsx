@@ -76,7 +76,7 @@ export const RoomItemCard: React.FC<RoomItemCardProps> = ({
                 : "cursor-pointer active:scale-95"
             }`}
           >
-            {isInGame ? "ИДЁТ МАТЧ" : isFull ? "ЗАПОЛНЕНО" : "Ввести шифр ➔"}
+            {isInGame ? "ИДЁТ МАТЧ" : isFull ? "ЗАПОЛНЕНО" : "Ввести код ➔"}
           </Button>
         ) : isJoining ? (
           <Button

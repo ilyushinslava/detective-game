@@ -68,7 +68,7 @@ describe("RecoveryKeyView", () => {
       />
     );
 
-    const completeBtn = screen.getByRole("button", { name: /В ШТАБ/i });
+    const completeBtn = screen.getByRole("button", { name: /В ГЛАВНОЕ МЕНЮ/i });
     fireEvent.click(completeBtn);
 
     expect(mockOnComplete).toHaveBeenCalledTimes(1);

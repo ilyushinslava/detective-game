@@ -9,6 +9,8 @@ import {
   GameTopHeader,
   GameStatusBar,
   GameActionDock,
+  GameActionButtons,
+  GameProtocolCard,
   type TargetAction,
 } from "./game";
 
@@ -203,9 +205,10 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
       />
 
       {/* Игровое поле и панели */}
-      <div className="flex-1 min-h-0 w-full flex flex-col landscape:flex-row items-center justify-between gap-1 sm:gap-2 md:gap-6 px-2 sm:px-4 md:px-6 py-1 md:py-3 overflow-hidden">
-        <main className="flex-1 min-h-0 w-full max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl landscape:max-w-none flex flex-col items-center justify-center relative antialiased">
-          <div className="w-full h-full flex-1 min-h-0 flex items-center justify-center overflow-hidden relative antialiased">
+      <div className="flex-1 min-h-0 min-w-0 w-full flex flex-col landscape:flex-row items-center justify-between gap-2 sm:gap-4 lg:gap-6 px-2 sm:px-4 md:px-6 py-1 landscape:py-2 overflow-hidden">
+        {/* Левая / центральная зона: Игровое поле на всю доступную высоту */}
+        <main className="flex-1 min-h-0 min-w-0 w-full h-full flex flex-col items-center justify-center relative antialiased p-0.5 overflow-hidden">
+          <div className="w-full h-auto max-w-full max-h-full aspect-square landscape:w-auto landscape:h-full flex items-center justify-center relative antialiased">
             <GameBoard
               mode={gameState.mode}
               board={gameState.board}
@@ -227,6 +230,33 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
               killerAdjacentIds={killerAdjacentIds}
               detectiveAdjacentIds={detectiveAdjacentIds}
               activeAgentAdjacentIds={activeAgentAdjacentIds}
+              showKillerHints={
+                gameState.mode === "SECRET_SERVICE"
+                  ? (showSpyP1Role || showKillerRole)
+                  : showKillerRole
+              }
+              showDetectiveHints={
+                gameState.mode === "SECRET_SERVICE"
+                  ? (showSpyP2Role || showDetectiveRole)
+                  : showDetectiveRole
+              }
+              killerSecretId={
+                gameState.mode === "SECRET_SERVICE"
+                  ? (gameState.spies?.[0]?.secretId ?? gameState.killerSecretId)
+                  : gameState.killerSecretId
+              }
+              detectiveSecretId={
+                gameState.mode === "SECRET_SERVICE"
+                  ? (gameState.spies?.[1]?.secretId ?? gameState.detectiveSecretId)
+                  : gameState.detectiveSecretId
+              }
+              lastRobbedId={gameState.lastRobbedId}
+              uniformedOfficerIds={gameState.uniformedOfficers}
+              targetVictimId={
+                gameState.mode === "MANIAC_VS_OPERATIVE"
+                  ? gameState.victimList?.[0]
+                  : null
+              }
               currentRole={gameState.currentTurn}
               isHumanTurn={isHumanTurn}
               evidenceDeck={gameState.evidenceDeck}
@@ -235,39 +265,95 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
                   ? myCharacterId
                   : undefined
               }
-              radarPingIds={effectiveRadarCellIds}
               radarTargetId={effectiveRadarTargetId}
+              radarCellIds={effectiveRadarCellIds}
+              radarPingIds={effectiveRadarCellIds}
               radarColorClass={effectiveRadarColorClass}
               isPVP={isPVP}
               myRoleColor={myRoleColor}
+              myCharacterId={myCharacterId}
               errorCardId={errorCardId}
+              isModalOpen={isHandSheetOpen || isLogOpen || isNotebookOpen || !isHumanTurn}
             />
           </div>
         </main>
 
-        {/* Боковые карточки ролей */}
-        <RoleCards
-          gameState={gameState}
-          killerChar={killerChar}
-          detectiveChar={detectiveChar}
-          spyP1Char={spyP1Char}
-          spyP2Char={spyP2Char}
-          role1Name={role1Name}
-          role2Name={role2Name}
-          killerNameText={killerNameText}
-          detectiveNameText={detectiveNameText}
-          showKillerRole={showKillerRole}
-          setShowKillerRole={setShowKillerRole}
-          showDetectiveRole={showDetectiveRole}
-          setShowDetectiveRole={setShowDetectiveRole}
-          showSpyP1Role={showSpyP1Role}
-          setShowSpyP1Role={setShowSpyP1Role}
-          showSpyP2Role={showSpyP2Role}
-          setShowSpyP2Role={setShowSpyP2Role}
-          canPeekKiller={canPeekKiller}
-          canPeekDetective={canPeekDetective}
-          isPVP={isPVP}
-        />
+        {/* Мобильная карточка роли (в портретной ориентации) */}
+        <div className="w-full landscape:hidden max-w-md shrink-0 flex flex-col justify-center">
+          <RoleCards
+            gameState={gameState}
+            killerChar={killerChar}
+            detectiveChar={detectiveChar}
+            spyP1Char={spyP1Char}
+            spyP2Char={spyP2Char}
+            role1Name={role1Name}
+            role2Name={role2Name}
+            killerNameText={killerNameText}
+            detectiveNameText={detectiveNameText}
+            showKillerRole={showKillerRole}
+            setShowKillerRole={setShowKillerRole}
+            showDetectiveRole={showDetectiveRole}
+            setShowDetectiveRole={setShowDetectiveRole}
+            showSpyP1Role={showSpyP1Role}
+            setShowSpyP1Role={setShowSpyP1Role}
+            showSpyP2Role={showSpyP2Role}
+            setShowSpyP2Role={setShowSpyP2Role}
+            canPeekKiller={canPeekKiller}
+            canPeekDetective={canPeekDetective}
+            isPVP={isPVP}
+          />
+        </div>
+
+        {/* Правая колонка на ПК (десктоп / landscape): единый сайдбар на всю высоту */}
+        <aside className="hidden landscape:flex w-72 lg:w-80 h-full shrink-0 flex-col gap-3 py-0.5 overflow-hidden z-20">
+          {/* 1. Сверху: карточка роли */}
+          <div className="shrink-0 w-full">
+            <RoleCards
+              gameState={gameState}
+              killerChar={killerChar}
+              detectiveChar={detectiveChar}
+              spyP1Char={spyP1Char}
+              spyP2Char={spyP2Char}
+              role1Name={role1Name}
+              role2Name={role2Name}
+              killerNameText={killerNameText}
+              detectiveNameText={detectiveNameText}
+              showKillerRole={showKillerRole}
+              setShowKillerRole={setShowKillerRole}
+              showDetectiveRole={showDetectiveRole}
+              setShowDetectiveRole={setShowDetectiveRole}
+              showSpyP1Role={showSpyP1Role}
+              setShowSpyP1Role={setShowSpyP1Role}
+              showSpyP2Role={showSpyP2Role}
+              setShowSpyP2Role={setShowSpyP2Role}
+              canPeekKiller={canPeekKiller}
+              canPeekDetective={canPeekDetective}
+              isPVP={isPVP}
+            />
+          </div>
+
+          {/* 2. Посередине: кнопки действий */}
+          <div className="shrink-0 w-full">
+            <GameActionButtons
+              gameState={gameState}
+              targetActions={targetActions}
+              cleanupAction={cleanupAction}
+              isCleanupAvailable={isCleanupAvailable}
+              isDetectiveView={isDetectiveView}
+              selectedCharacter={selectedCharacter}
+              setIsHandSheetOpen={setIsHandSheetOpen}
+              layout="grid"
+            />
+          </div>
+
+          {/* 3. Снизу: Протокол событий на всю оставшуюся высоту */}
+          <div className="flex-1 min-h-0 w-full flex flex-col">
+            <GameProtocolCard
+              log={gameState.log}
+              logContainerRef={logContainerRef}
+            />
+          </div>
+        </aside>
       </div>
 
       {/* Нижняя панель действий */}

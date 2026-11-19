@@ -122,7 +122,7 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg max-h-[92dvh] rounded-t-3xl sm:rounded-3xl bg-zinc-950/95 backdrop-blur-xl border border-white/10 flex flex-col shadow-2xl overflow-hidden"
+        className="w-full max-w-lg max-h-[92dvh] rounded-t-3xl sm:rounded-3xl neo-card flex flex-col shadow-2xl overflow-hidden"
       >
         {/* Шапка блокнота */}
         <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-zinc-900/40">
@@ -245,7 +245,7 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
         </div>
 
         {/* Скроллируемая область: список персонажей и текстовое поле */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
           <div>
             <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-2 flex items-center justify-between">
               <span>Список персонажей (тап для смены статуса)</span>
@@ -346,7 +346,7 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
               onChange={(e) => handleSetNotesText(e.target.value)}
               placeholder="Записывайте подозрения, исключенные ряды, алиби или версии..."
               rows={3}
-              className="w-full p-3 rounded-2xl bg-zinc-900/90 border border-white/10 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition resize-none font-sans"
+              className="w-full p-3 rounded-2xl bg-zinc-900/90 border border-white/10 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition resize-none font-sans custom-scrollbar"
             />
           </div>
         </div>

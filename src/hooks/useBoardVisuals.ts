@@ -331,27 +331,27 @@ export function useBoardVisuals({
     if (gameState.mode === "SECRET_SERVICE") {
       const isP1Turn = gameState.activeSpyIndex === 0;
       return isP1Turn
-        ? "bg-red-950/90 border-red-600 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
-        : "bg-blue-950/90 border-blue-600 text-blue-200 shadow-[0_0_15px_rgba(59,130,246,0.3)]";
+        ? "bg-rose-950/80 border border-rose-500/50 text-rose-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+        : "bg-blue-950/80 border border-blue-500/50 text-blue-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]";
     }
     if (gameState.mode === "THIEF_HUNT" && !isKillerTurn) {
-      return "bg-blue-900/40 border border-blue-800/50 text-blue-400";
+      return "bg-blue-900/40 border border-blue-700/50 text-blue-300";
     }
     return isKillerTurn
-      ? "bg-red-950/80 border-red-600 text-red-100 shadow-[0_0_15px_rgba(239,68,68,0.25)]"
-      : "bg-blue-950/80 border-blue-600 text-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.25)]";
+      ? "bg-rose-950/80 border border-rose-500/50 text-rose-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+      : "bg-blue-950/80 border border-blue-500/50 text-blue-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]";
   }, [gameState.mode, gameState.activeSpyIndex, isKillerTurn]);
 
   const dotClasses = useMemo(() => {
     if (gameState.mode === "SECRET_SERVICE") {
       const isP1Turn = gameState.activeSpyIndex === 0;
       return isP1Turn
-        ? "bg-red-500 shadow-red-500/80 animate-pulse"
-        : "bg-blue-500 shadow-blue-500/80 animate-pulse";
+        ? "bg-rose-500 animate-pulse"
+        : "bg-blue-500 animate-pulse";
     }
     return isKillerTurn
-      ? "bg-red-500 shadow-red-500/80 animate-pulse"
-      : "bg-blue-500 shadow-blue-500/80 animate-pulse";
+      ? "bg-rose-500 animate-pulse"
+      : "bg-blue-500 animate-pulse";
   }, [gameState.mode, gameState.activeSpyIndex, isKillerTurn]);
 
   return {

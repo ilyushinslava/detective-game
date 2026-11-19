@@ -31,12 +31,6 @@ import { characterImages } from "./constants/characterImages";
 import { DEFAULT_BET, TIMINGS } from "./constants/gameRules";
 import { TvScreensaver } from "./components/tv/TvScreensaver";
 import { TvNetworkDisconnectModal } from "./components/tv/TvNetworkDisconnectModal";
-import {
-  playShiftSound,
-  playEliminateSound,
-  playRadarPing,
-  playClickSound,
-} from "./utils/tvAudio";
 
 // Асинхронные динамические чанки второстепенных экранов (TASK-ARCH-001)
 const DuelScreen = lazy(() => import("./components/duel/DuelScreen").then((m) => ({ default: m.DuelScreen })));
@@ -427,31 +421,6 @@ export default function App() {
       partyService.sendAction(action);
       return;
     }
-
-    // Процедурные звуки Web Audio API для оффлайн режима
-    try {
-      switch (action.type) {
-        case "SHIFT_BOARD":
-          playShiftSound();
-          break;
-        case "KILL_CHARACTER":
-        case "TARGET_KILL":
-        case "CAPTURE_SPY":
-        case "ARREST":
-          playEliminateSound();
-          break;
-        case "INTERROGATE":
-        case "INTERROGATE_SPY":
-        case "CHECK_ALIBI":
-        case "ASK_QUESTION":
-        case "DUEL_ASK_QUESTION":
-          playRadarPing();
-          break;
-        case "END_TURN":
-          playClickSound();
-          break;
-      }
-    } catch {}
 
     setGameState((prev) => gameReducer(prev, action));
   };
@@ -1084,7 +1053,7 @@ export default function App() {
                   handleShift={handleShift}
                   handleExonerateFromHand={handleExonerateFromHand}
                   handleFastDisguise={handleFastDisguise}
-                  setIsPauseOpen={setIsPauseOpen}
+                  setIsMenuOpen={setIsPauseOpen}
                   setIsNotebookOpen={setIsNotebookOpen}
                   isOpponentConnected={isOpponentConnected}
                   opponentDisconnectedNotice={opponentDisconnectedNotice}

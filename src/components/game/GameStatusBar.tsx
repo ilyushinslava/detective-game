@@ -15,7 +15,7 @@ export const GameStatusBar: React.FC<GameStatusBarProps> = ({
   return (
     <>
       {gameState.mode === "SECRET_SERVICE" ? (
-        <div className="w-full px-3 md:px-6 py-1.5 md:py-2 bg-zinc-950/90 border-b border-zinc-900 flex flex-col gap-1 text-[10px] md:text-xs text-zinc-400 shrink-0">
+        <div className="w-full px-3 md:px-6 py-1.5 md:py-2 bg-slate-950/80 border-b border-white/[0.08] backdrop-blur-md flex flex-col gap-1 text-[10px] md:text-xs text-zinc-400 shrink-0">
           <div className="flex items-center justify-between w-full">
             <span className="text-zinc-400 font-medium">Компромат агентов:</span>
             <div className="flex items-center gap-1.5 text-zinc-500 font-medium">
@@ -32,13 +32,13 @@ export const GameStatusBar: React.FC<GameStatusBarProps> = ({
               </span>
             </div>
           </div>
-          <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 pt-1 border-t border-white/[0.04]">
+          <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 pt-1 border-t border-white/[0.06]">
             {gameState.spies?.map((spy, idx) => {
               const color = SPY_COLORS[idx % SPY_COLORS.length];
               return (
                 <div
                   key={spy.id}
-                  className="flex items-center gap-1.5 bg-zinc-900/80 border border-white/10 px-2 py-0.5 rounded-md font-mono text-[11px] shrink-0 shadow-sm"
+                  className="flex items-center gap-1.5 neo-card border-t-white/20 px-2 py-0.5 rounded-md font-mono text-[11px] shrink-0 shadow-sm"
                 >
                   <span
                     className={`w-2 h-2 rounded-full ${color.bg} border ${color.border} shrink-0`}
@@ -53,7 +53,7 @@ export const GameStatusBar: React.FC<GameStatusBarProps> = ({
           </div>
         </div>
       ) : (
-        <div className="w-full px-3 md:px-6 py-1.5 md:py-2 bg-zinc-950/90 border-b border-zinc-900 flex items-center justify-between text-[10px] md:text-xs text-zinc-400 shrink-0">
+        <div className="w-full px-3 md:px-6 py-1 md:py-1.5 bg-slate-950/80 border-b border-white/[0.08] backdrop-blur-md flex items-center justify-between text-[10px] md:text-xs text-zinc-400 shrink-0">
           {gameState.mode === "LINE_UP" ? (
             <div className="flex items-center gap-3">
               <span className="text-red-400 font-bold">Штрафы:</span>
@@ -118,13 +118,13 @@ export const GameStatusBar: React.FC<GameStatusBarProps> = ({
       )}
 
       {/* Окно оперативных показаний / опрос */}
-      <div className="w-full px-3 h-8 md:h-12 shrink-0 flex items-center justify-center">
+      <div className="w-full px-2 sm:px-4 md:px-6 py-1 h-9 md:h-10 shrink-0 flex items-center justify-center">
         {gameState.lastInterrogation && !gameState.winner ? (
           <div
-            className={`w-full h-full px-2.5 rounded-lg border flex items-center justify-between text-[10px] md:text-sm shadow-sm ${
+            className={`w-full h-full px-3 rounded-xl border flex items-center justify-between text-[10px] md:text-xs shadow-md backdrop-blur-xl ${
               gameState.lastInterrogation.isNear
-                ? "bg-red-950/80 border-red-700 text-red-200"
-                : "bg-zinc-900/90 border-zinc-800 text-zinc-300"
+                ? "neo-card border-rose-950/80 border-t-rose-500/50 text-rose-200"
+                : "neo-card border-white/10 border-t-white/25 text-zinc-200"
             }`}
           >
             <span className="font-semibold truncate mr-2">
@@ -135,7 +135,7 @@ export const GameStatusBar: React.FC<GameStatusBarProps> = ({
             <span
               className={`shrink-0 px-2 py-0.5 rounded text-[10px] md:text-xs font-black uppercase border ${
                 gameState.lastInterrogation.isNear
-                  ? "bg-red-900 text-red-100 border-red-500 animate-pulse"
+                  ? "bg-rose-900 text-rose-100 border-rose-500 shadow-sm animate-pulse"
                   : "bg-blue-950 text-blue-300 border-blue-700"
               }`}
             >
@@ -143,7 +143,7 @@ export const GameStatusBar: React.FC<GameStatusBarProps> = ({
             </span>
           </div>
         ) : gameState.lastSpyInterrogation && !gameState.winner ? (
-          <div className="w-full h-full px-2.5 rounded-lg border border-zinc-800 bg-zinc-900/90 flex items-center justify-between text-[10px] md:text-sm shadow-sm">
+          <div className="w-full h-full px-3 rounded-xl border neo-card border-white/10 border-t-white/25 flex items-center justify-between text-[10px] md:text-xs shadow-md backdrop-blur-xl">
             <span className="font-bold text-zinc-300 truncate mr-2">
               Допрос:{" "}
               <b className="text-zinc-100">
@@ -159,9 +159,9 @@ export const GameStatusBar: React.FC<GameStatusBarProps> = ({
                 return (
                   <span
                     key={spy.id}
-                    className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase border ${
+                    className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${
                       hasContact
-                        ? "bg-red-950 text-red-400 border-red-700 animate-pulse"
+                        ? "bg-rose-950 text-rose-300 border-rose-700 shadow-sm animate-pulse"
                         : "bg-zinc-950 text-zinc-500 border-zinc-800"
                     }`}
                   >
@@ -175,29 +175,29 @@ export const GameStatusBar: React.FC<GameStatusBarProps> = ({
         ) : gameState.mode === "MANIAC_VS_OPERATIVE" &&
           gameState.victimList.length > 0 &&
           !gameState.winner ? (
-          <div className="w-full h-full px-2.5 rounded-lg border border-red-900/60 bg-red-950/40 flex items-center justify-between text-[10px] md:text-sm shadow-sm">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
-              <span className="text-red-400 font-bold uppercase tracking-wider shrink-0 text-[10px] md:text-xs">
+          <div className="w-full h-full px-3 sm:px-4 rounded-xl border border-rose-950/70 border-t-rose-500/50 bg-gradient-to-b from-rose-950/50 via-zinc-950/80 to-black/95 shadow-[inset_0_1px_0_rgba(244,63,94,0.25),0_4px_16px_rgba(0,0,0,0.6)] backdrop-blur-xl flex items-center justify-between text-[10px] md:text-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)] animate-pulse shrink-0" />
+              <span className="text-rose-400 font-bold uppercase tracking-wider shrink-0 text-[10px] md:text-xs">
                 Цель:
               </span>
               <span className="text-zinc-100 font-black truncate">
                 {allChars.find((c) => c.id === gameState.victimList[0])?.name ??
                   gameState.victimList[0]}
               </span>
-              <span className="text-[10px] md:text-xs font-semibold tracking-normal text-red-400/90 shrink-0">
+              <span className="text-[10px] md:text-xs font-semibold tracking-normal text-rose-400/90 shrink-0">
                 (#{gameState.victimList[0].replace("c", "").padStart(2, "0")})
               </span>
             </div>
-            <div className="shrink-0 font-medium tracking-normal text-[10px] md:text-xs text-zinc-400 ml-2 flex items-center gap-1">
-              <span>В очереди:</span>{" "}
-              <b className="font-bold tabular-nums text-red-400">
+            <div className="shrink-0 font-medium tracking-normal text-[10px] md:text-xs text-zinc-400 ml-2 flex items-center gap-1.5">
+              <span>В очереди:</span>
+              <b className="font-bold tabular-nums text-rose-300 bg-rose-950/70 border border-rose-800/60 px-1.5 py-0.5 rounded text-[10px] md:text-xs shadow-inner">
                 {gameState.victimList.length}
               </b>
             </div>
           </div>
         ) : (
-          <div className="w-full h-full px-2.5 rounded-lg border border-dashed border-zinc-900 flex items-center justify-center text-[10px] md:text-sm text-zinc-600 font-medium">
+          <div className="w-full h-full px-3 rounded-xl border border-dashed border-white/10 bg-black/30 flex items-center justify-center text-[10px] md:text-xs text-zinc-500 font-medium">
             Оперативные показания: ожидание допроса
           </div>
         )}

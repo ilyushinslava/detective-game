@@ -4,11 +4,6 @@ import type { GameAction } from "../types/multiplayer";
 import { partyService } from "../utils/partyPeer";
 import { soundManager } from "../utils/audio";
 import { triggerHaptic } from "../utils/haptics";
-import {
-  playShiftSound,
-  playEliminateSound,
-  playRadarPing,
-} from "../utils/tvAudio";
 import { getAdjacentCharacters } from "../utils/gameLogic";
 import { DUEL_CHARACTERS } from "../constants/duelCharacters";
 import { filterCandidates } from "../utils/duelLogic";
@@ -147,9 +142,6 @@ export function useGameActions({
 
   const handleSelectDuelQuestion = (questionId: string) => {
     soundManager.play("radar");
-    try {
-      playRadarPing();
-    } catch {}
     triggerHaptic("light");
     dispatchAction({
       type: "DUEL_ASK_QUESTION",
@@ -183,9 +175,6 @@ export function useGameActions({
       return;
     }
     soundManager.play("slide");
-    try {
-      playShiftSound();
-    } catch {}
     triggerHaptic("light");
     setGameState((prev) =>
       prev.interrogationRadar ? { ...prev, interrogationRadar: null } : prev
@@ -204,9 +193,6 @@ export function useGameActions({
       return;
     if (Date.now() - lastKillSoundTimeRef.current > 300) {
       soundManager.play("kill");
-      try {
-        playEliminateSound();
-      } catch {}
       lastKillSoundTimeRef.current = Date.now();
     }
     triggerHaptic("heavy");
@@ -226,9 +212,6 @@ export function useGameActions({
     if (!selectedId || gameState.currentTurn !== "KILLER" || !isHumanTurn)
       return;
     soundManager.play("steal");
-    try {
-      playEliminateSound();
-    } catch {}
     triggerHaptic("medium");
     dispatchAction({
       type: "ROB_NEIGHBOR",
@@ -277,9 +260,6 @@ export function useGameActions({
     const isMiss = !isOnline && selectedId !== gameState.killerSecretId && !targetChar.hasBomb;
     if (isOnline) {
       soundManager.play("arrest");
-      try {
-        playEliminateSound();
-      } catch {}
       triggerHaptic("medium");
     } else if (isMiss) {
       soundManager.play("deny");
@@ -288,9 +268,6 @@ export function useGameActions({
       setTimeout(() => setErrorCardId(null), 500);
     } else {
       soundManager.play("arrest");
-      try {
-        playEliminateSound();
-      } catch {}
       triggerHaptic("medium");
     }
 
@@ -383,9 +360,6 @@ export function useGameActions({
       setTimeout(() => setErrorCardId(null), 500);
     } else {
       soundManager.play("arrest");
-      try {
-        playEliminateSound();
-      } catch {}
       triggerHaptic("medium");
     }
 
@@ -416,9 +390,6 @@ export function useGameActions({
     if (!selectedId || gameState.mode !== "SECRET_SERVICE" || !isHumanTurn)
       return;
     soundManager.play("radar");
-    try {
-      playRadarPing();
-    } catch {}
     triggerHaptic("light");
     dispatchAction({
       type: "INTERROGATE",

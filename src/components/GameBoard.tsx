@@ -1,8 +1,8 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import { motion, LayoutGroup } from "framer-motion";
 import type { Character, LastShift, GameModeType } from "../types/game";
 import { CharacterCard } from "./CharacterCard";
-import { isOppositeShift } from "../utils/gameLogic";
+import { isOppositeShift, getAdjacentCharacters } from "../utils/gameLogic";
 import { BOARD_GRID_SIZE } from "../constants/gameRules";
 import {
   ColShiftBar,
@@ -26,6 +26,8 @@ interface GameBoardProps {
   adjacentIds?: string[];
   showKillerHints?: boolean;
   showDetectiveHints?: boolean;
+  killerSecretId?: string | null;
+  detectiveSecretId?: string | null;
   lastShift: LastShift | null;
   lastRobbedId?: string | null;
   blockedShift?: { type: "ROW" | "COL"; index: number } | null;
@@ -62,7 +64,6 @@ export const GameBoard: React.FC<GameBoardProps> = (props) => {
     uniformedOfficerIds,
     targetVictimId,
     radarTargetId,
-    radarCellIds = [],
     radarColorClass = null,
     errorCardId = null,
     myCharacterId = null,
@@ -78,9 +79,39 @@ export const GameBoard: React.FC<GameBoardProps> = (props) => {
   const detectiveAdjacentIds = props.detectiveAdjacentIds ?? [];
   const showKillerHints = props.showKillerHints ?? Boolean(props.adjacentIds);
   const showDetectiveHints = props.showDetectiveHints ?? false;
+  const radarCellIds = props.radarCellIds ?? props.radarPingIds ?? [];
+  const killerSecretId = props.killerSecretId ?? null;
+  const detectiveSecretId = props.detectiveSecretId ?? null;
   const isLineUp = mode === "LINE_UP";
   const numRows = board.length;
   const numCols = board[0]?.length || BOARD_GRID_SIZE;
+
+  // Определение активной подсвечиваемой роли и её секретного персонажа
+  const activeRole = showKillerHints ? "red" : showDetectiveHints ? "blue" : null;
+  const activeSecretId =
+    activeRole === "red"
+      ? killerSecretId
+      : activeRole === "blue"
+      ? detectiveSecretId
+      : null;
+
+  const effectiveMyCharacterId = activeSecretId ?? myCharacterId;
+  const effectiveRoleColor = activeRole ?? myRoleColor;
+
+  // Динамический пересчёт соседей строго по ТЕКУЩЕМУ положению персонажа на доске board
+  const dynamicKillerAdjacentIds = useMemo(() => {
+    if (killerSecretId) {
+      return getAdjacentCharacters(board, killerSecretId).map((c) => c.id);
+    }
+    return killerAdjacentIds;
+  }, [board, killerSecretId, killerAdjacentIds]);
+
+  const dynamicDetectiveAdjacentIds = useMemo(() => {
+    if (detectiveSecretId) {
+      return getAdjacentCharacters(board, detectiveSecretId).map((c) => c.id);
+    }
+    return detectiveAdjacentIds;
+  }, [board, detectiveSecretId, detectiveAdjacentIds]);
 
   const [activeButtonId, setActiveButtonId] = useState<string | null>(null);
   const shiftTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -203,7 +234,7 @@ export const GameBoard: React.FC<GameBoardProps> = (props) => {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center p-0.5 select-none mx-auto w-full max-w-[min(100vw-0.5rem,calc(100dvh-19.5rem))] landscape:max-w-[min(calc(100vw-22rem),calc(100dvh-7.5rem))] lg:landscape:max-w-[min(calc(100vw-26rem),calc(100dvh-8rem))] xl:landscape:max-w-[min(calc(100vw-30rem),calc(100dvh-8.5rem))] shrink-0 touch-none">
+    <div className="relative flex flex-col items-center justify-between p-0.5 select-none mx-auto w-full h-auto max-w-full max-h-full aspect-square landscape:w-auto landscape:h-full shrink-0 touch-none">
       <style>{`
         @keyframes radarMarch {
           from { stroke-dashoffset: 0; } 
@@ -229,7 +260,7 @@ export const GameBoard: React.FC<GameBoardProps> = (props) => {
       )}
 
       {/* ЦЕНТРАЛЬНАЯ ЧАСТЬ: Левые стрелки + Доска + Правые стрелки */}
-      <div className="w-full flex items-stretch gap-0.5 sm:gap-1">
+      <div className="w-full flex-1 min-h-0 flex items-stretch justify-center gap-0.5 sm:gap-1">
         {!isLineUp && (
           <RowShiftBar
             direction="left"
@@ -245,7 +276,7 @@ export const GameBoard: React.FC<GameBoardProps> = (props) => {
         {/* ЕДИНЫЙ GRID ИГРОВОГО ПОЛЯ */}
         <LayoutGroup id="game-board-grid">
           <div
-            className="flex-1 aspect-square grid gap-0.5 sm:gap-1 touch-none select-none relative isolate"
+            className="h-full aspect-square grid gap-0.5 sm:gap-1 touch-none select-none relative isolate"
             style={{
               gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))`,
               gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))`,
@@ -276,16 +307,23 @@ export const GameBoard: React.FC<GameBoardProps> = (props) => {
                       ? "z-0"
                       : "z-10";
 
-                let neighborRole: "red" | "blue" | "purple" | null = null;
-                const isKillerNeighbor = showKillerHints && killerAdjacentIds.includes(character.id);
-                const isDetectiveNeighbor = showDetectiveHints && detectiveAdjacentIds.includes(character.id);
+                const isMyChar = Boolean(
+                  (activeSecretId && character.id === activeSecretId) ||
+                  (!activeRole && myCharacterId && character.id === myCharacterId)
+                );
 
-                if (isKillerNeighbor && isDetectiveNeighbor) {
-                  neighborRole = "purple";
-                } else if (isKillerNeighbor) {
-                  neighborRole = "red";
-                } else if (isDetectiveNeighbor) {
-                  neighborRole = "blue";
+                let neighborRole: "red" | "blue" | "purple" | null = null;
+                if (!isMyChar) {
+                  const isKillerNeighbor = showKillerHints && dynamicKillerAdjacentIds.includes(character.id);
+                  const isDetectiveNeighbor = showDetectiveHints && dynamicDetectiveAdjacentIds.includes(character.id);
+
+                  if (isKillerNeighbor && isDetectiveNeighbor) {
+                    neighborRole = "purple";
+                  } else if (isKillerNeighbor) {
+                    neighborRole = "red";
+                  } else if (isDetectiveNeighbor) {
+                    neighborRole = "blue";
+                  }
                 }
 
                 const isRedRadar = Boolean(radarColorClass?.includes("red"));
@@ -322,10 +360,10 @@ export const GameBoard: React.FC<GameBoardProps> = (props) => {
                       isRadarCenter={isRadarTarget}
                       radarRingColor={isRadarCell ? (radarColorClass || "border-blue-500 ring-2 ring-blue-500/70") : null}
                       isError={character.id === errorCardId}
-                      isMyCharacter={character.id === myCharacterId}
+                      isMyCharacter={isMyChar}
                       isOverlapZone={false}
                       isPVP={isPVP}
-                      myRoleColor={myRoleColor}
+                      myRoleColor={effectiveRoleColor}
                       onClick={() => handleCardClick(character.id, rIdx, cIdx)}
                     />
 

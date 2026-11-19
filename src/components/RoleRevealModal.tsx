@@ -207,16 +207,16 @@ export const RoleRevealModal = ({
 
   const themeClasses = isRedTheme
     ? {
-        text: "text-red-500",
-        border: "border-red-500/60",
-        shadow: "shadow-[0_0_25px_rgba(239,68,68,0.25)]",
-        button: "bg-gradient-to-r from-red-700 via-red-600 to-red-800 hover:from-red-600 hover:to-red-500 shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-white/25",
+        text: "text-rose-400",
+        border: "border-rose-500/50",
+        shadow: "shadow-[0_0_20px_rgba(225,29,72,0.2)]",
+        button: "neo-button-danger rounded-xl h-12 shadow-lg",
       }
     : {
         text: "text-blue-400",
-        border: "border-blue-500/60",
-        shadow: "shadow-[0_0_25px_rgba(59,130,246,0.25)]",
-        button: "bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 hover:from-blue-600 hover:to-blue-500 shadow-[0_10px_25px_rgba(59,130,246,0.5)] border-t border-white/25",
+        border: "border-blue-500/50",
+        shadow: "shadow-[0_0_20px_rgba(37,99,235,0.2)]",
+        button: "neo-button-primary rounded-xl h-12 shadow-lg",
       };
 
   const getOpponentText = (roleName: string) => {
@@ -237,7 +237,7 @@ export const RoleRevealModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background-main/95 backdrop-blur-xl p-4 select-none modal-backdrop touch-none"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background-main/95 backdrop-blur-xl p-3 sm:p-4 select-none modal-backdrop touch-none"
       onTouchMove={(e) => e.stopPropagation()}
     >
       <FullscreenCharacterPreview
@@ -245,13 +245,13 @@ export const RoleRevealModal = ({
         onClose={() => setFullscreenImage(null)}
       />
 
-      <div className="w-full max-w-lg h-[92dvh] max-h-[85vh] bg-zinc-950 border border-border-subtle rounded-3xl p-5 sm:p-7 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col justify-between text-center overflow-y-auto custom-scrollbar">
+      <div className="w-full max-w-lg max-h-[92vh] sm:max-h-[86vh] neo-card rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col justify-between text-center overflow-hidden relative">
 
         {/* Одиночная Директива "Ноль" */}
         {phase === "SECRET_SERVICE_SOLO" && (
           <>
-            <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border mb-3 ${isRedTheme ? "bg-red-950/90 text-red-300 border-red-700/60 shadow-[0_0_15px_rgba(239,68,68,0.25)]" : "bg-blue-950/90 text-blue-300 border-blue-700/60 shadow-[0_0_15px_rgba(59,130,246,0.25)]"}`}>
+            <div className="flex flex-col items-center justify-start flex-1 w-full min-h-0 overflow-y-auto custom-scrollbar pr-0.5">
+              <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border mb-2.5 shrink-0 ${isRedTheme ? "bg-rose-950/80 text-rose-300 border-rose-700/60" : "bg-blue-950/80 text-blue-300 border-blue-700/60"}`}>
                 {GAME_MODES_META.SECRET_SERVICE.title.ru}: Ваша личность
               </span>
               <CharacterRevealCard
@@ -260,54 +260,58 @@ export const RoleRevealModal = ({
                 isRed={false}
                 onOpenFullscreen={setFullscreenImage}
               />
-              <div className="w-full text-left space-y-2 mt-1">
-                <div className="bg-red-950/20 border border-red-900/40 rounded-2xl p-3.5">
+              <div className="w-full text-left space-y-1.5 mt-0.5 shrink-0">
+                <div className="bg-rose-950/20 border border-rose-900/40 rounded-xl p-2.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Цель операции</span>
                   <span className="text-xs font-bold text-zinc-200">{spyGoalDescription}</span>
                 </div>
               </div>
               <ActionTilesGrid mode={mode} role={playerRole} />
             </div>
-            <button
-              disabled={false}
-              onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
-              className={`w-full h-14 mt-4 ${themeClasses.button} disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-full transition flex items-center justify-center gap-2 cursor-pointer shrink-0`}
-            >
-              <span>{opponent === "ONLINE" ? "ГОТОВ" : "Начать операцию"}</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="pt-3 w-full shrink-0">
+              <button
+                disabled={false}
+                onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
+                className={`w-full ${themeClasses.button} disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2 cursor-pointer`}
+              >
+                <span>{opponent === "ONLINE" ? "ГОТОВ" : "Начать операцию"}</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </>
         )}
 
         {/* PVP Директива "Ноль": Игрок 1 */}
         {phase === "SPY_P1_PROMPT" && (
           <>
-            <div className="flex flex-col items-center justify-center flex-1 my-auto">
-              <div className="w-16 h-16 rounded-full bg-red-950/40 border border-red-500/30 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
-                <RoleRevealIcons.Lock className="w-7 h-7 text-red-400" />
+            <div className="flex flex-col items-center justify-center flex-1 my-auto min-h-0 overflow-y-auto custom-scrollbar">
+              <div className="w-14 h-14 rounded-full bg-rose-950/40 border border-rose-500/30 flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(225,29,72,0.2)]">
+                <RoleRevealIcons.Lock className="w-6 h-6 text-rose-400" />
               </div>
-              <span className="text-[10px] font-black text-red-400 uppercase tracking-widest px-3 py-1 rounded-full bg-red-950/60 border border-red-800/40 mb-3">
+              <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest px-3 py-1 rounded-full bg-rose-950/60 border border-rose-800/40 mb-2.5">
                 {GAME_MODES_META.SECRET_SERVICE.title.ru}
               </span>
-              <h2 className="text-2xl font-black text-white uppercase tracking-wider mb-2">
+              <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider mb-2">
                 Агент 1: {role1Name}
               </h2>
-              <p className="text-xs font-medium tracking-normal text-zinc-400 max-w-xs mb-8 leading-relaxed">
+              <p className="text-xs font-medium tracking-normal text-zinc-400 max-w-xs mb-6 leading-relaxed">
                 Передайте устройство Первому агенту. Личность является строго секретной.
               </p>
             </div>
-            <button
-              onClick={() => setPhase("SPY_P1_REVEAL")}
-              className="w-full h-14 bg-gradient-to-r from-red-700 via-red-600 to-red-800 hover:from-red-600 hover:to-red-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-white/25 flex items-center justify-center gap-2 cursor-pointer shrink-0"
-            >
-              <span>Показать личность</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="pt-3 w-full shrink-0">
+              <button
+                onClick={() => setPhase("SPY_P1_REVEAL")}
+                className="w-full h-12 neo-button-danger text-white text-xs font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Показать личность</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </>
         )}
 
         {phase === "SPY_P1_REVEAL" && (
           <>
-            <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className="text-[10px] font-black text-red-300 uppercase tracking-widest px-3 py-1 rounded-full bg-red-950/90 border border-red-700/60 shadow-[0_0_15px_rgba(239,68,68,0.25)] mb-3">
+            <div className="flex flex-col items-center justify-start flex-1 w-full min-h-0 overflow-y-auto custom-scrollbar pr-0.5">
+              <span className="text-[10px] font-black text-rose-300 uppercase tracking-widest px-3 py-1 rounded-full bg-rose-950/80 border border-rose-700/60 mb-2.5 shrink-0">
                 Агент 1: Ваша личность
               </span>
               <CharacterRevealCard
@@ -316,53 +320,57 @@ export const RoleRevealModal = ({
                 isRed={true}
                 onOpenFullscreen={setFullscreenImage}
               />
-              <div className="w-full text-left space-y-2 mt-1">
-                <div className="bg-red-950/20 border border-red-900/40 rounded-2xl p-3.5">
+              <div className="w-full text-left space-y-1.5 mt-0.5 shrink-0">
+                <div className="bg-rose-950/20 border border-rose-900/40 rounded-xl p-2.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Цель операции</span>
                   <span className="text-xs font-bold text-zinc-200">{spyGoalDescription}</span>
                 </div>
               </div>
               <ActionTilesGrid mode={mode} role="KILLER" />
             </div>
-            <button
-              onClick={() => setPhase("SPY_P2_PROMPT")}
-              className="w-full h-14 mt-4 bg-gradient-to-r from-red-700 via-red-600 to-red-800 hover:from-red-600 hover:to-red-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-white/25 flex items-center justify-center gap-2 cursor-pointer shrink-0"
-            >
-              <span>Скрыть и передать Агенту 2</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="pt-3 w-full shrink-0">
+              <button
+                onClick={() => setPhase("SPY_P2_PROMPT")}
+                className="w-full h-12 neo-button-danger text-white text-xs font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Скрыть и передать Агенту 2</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </>
         )}
 
         {/* PVP Директива "Ноль": Игрок 2 */}
         {phase === "SPY_P2_PROMPT" && (
           <>
-            <div className="flex flex-col items-center justify-center flex-1 my-auto">
-              <div className="w-16 h-16 rounded-full bg-blue-950/40 border border-blue-500/30 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
-                <RoleRevealIcons.Lock className="w-7 h-7 text-blue-400" />
+            <div className="flex flex-col items-center justify-center flex-1 my-auto min-h-0 overflow-y-auto custom-scrollbar">
+              <div className="w-14 h-14 rounded-full bg-blue-950/40 border border-blue-500/30 flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(37,99,235,0.2)]">
+                <RoleRevealIcons.Lock className="w-6 h-6 text-blue-400" />
               </div>
-              <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest px-3 py-1 rounded-full bg-blue-950/60 border border-blue-800/40 mb-3">
+              <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest px-3 py-1 rounded-full bg-blue-950/60 border border-blue-800/40 mb-2.5">
                 {GAME_MODES_META.SECRET_SERVICE.title.ru}
               </span>
-              <h2 className="text-2xl font-black text-white uppercase tracking-wider mb-2">
+              <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider mb-2">
                 Агент 2: {role2Name}
               </h2>
-              <p className="text-xs font-medium tracking-normal text-zinc-400 max-w-xs mb-8 leading-relaxed">
+              <p className="text-xs font-medium tracking-normal text-zinc-400 max-w-xs mb-6 leading-relaxed">
                 Передайте устройство Второму агенту. Убедитесь, что Первый агент не смотрит на экран.
               </p>
             </div>
-            <button
-              onClick={() => setPhase("SPY_P2_REVEAL")}
-              className="w-full h-14 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 hover:from-blue-600 hover:to-blue-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_10px_25px_rgba(59,130,246,0.5)] border-t border-white/25 flex items-center justify-center gap-2 cursor-pointer shrink-0"
-            >
-              <span>Показать личность</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="pt-3 w-full shrink-0">
+              <button
+                onClick={() => setPhase("SPY_P2_REVEAL")}
+                className="w-full h-12 neo-button-primary text-white text-xs font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Показать личность</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </>
         )}
 
         {phase === "SPY_P2_REVEAL" && (
           <>
-            <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest px-3 py-1 rounded-full bg-blue-950/90 border border-blue-700/60 shadow-[0_0_15px_rgba(59,130,246,0.25)] mb-3">
+            <div className="flex flex-col items-center justify-start flex-1 w-full min-h-0 overflow-y-auto custom-scrollbar pr-0.5">
+              <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest px-3 py-1 rounded-full bg-blue-950/80 border border-blue-700/60 mb-2.5 shrink-0">
                 Агент 2: Ваша личность
               </span>
               <CharacterRevealCard
@@ -371,25 +379,27 @@ export const RoleRevealModal = ({
                 isRed={false}
                 onOpenFullscreen={setFullscreenImage}
               />
-              <div className="w-full text-left space-y-2 mt-1">
-                <div className="bg-blue-950/20 border border-blue-900/40 rounded-2xl p-3.5">
+              <div className="w-full text-left space-y-1.5 mt-0.5 shrink-0">
+                <div className="bg-blue-950/20 border border-blue-900/40 rounded-xl p-2.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Цель операции</span>
                   <span className="text-xs font-bold text-zinc-200">{spyGoalDescription}</span>
                 </div>
               </div>
               <ActionTilesGrid mode={mode} role="KILLER" />
             </div>
-            <button onClick={onComplete} className="w-full h-14 mt-4 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 hover:from-blue-600 hover:to-blue-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_10px_25px_rgba(59,130,246,0.5)] border-t border-white/25 flex items-center justify-center gap-2 cursor-pointer shrink-0">
-              <span>Начать шпионскую дуэль</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="pt-3 w-full shrink-0">
+              <button onClick={onComplete} className="w-full h-12 neo-button-primary text-white text-xs font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2 cursor-pointer">
+                <span>Начать шпионскую дуэль</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </>
         )}
 
         {/* Режимы MANIAC, THIEF, LINE_UP */}
         {phase === "SOLO_KILLER" && (
           <>
-            <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className="text-[10px] font-black text-red-300 uppercase tracking-widest px-3 py-1 rounded-full bg-red-950/90 border border-red-700/60 shadow-[0_0_15px_rgba(239,68,68,0.25)] mb-3">
+            <div className="flex flex-col items-center justify-start flex-1 w-full min-h-0 overflow-y-auto custom-scrollbar pr-0.5">
+              <span className="text-[10px] font-black text-rose-300 uppercase tracking-widest px-3 py-1 rounded-full bg-rose-950/80 border border-rose-700/60 mb-2.5 shrink-0">
                 Ваша секретная личность
               </span>
               <CharacterRevealCard
@@ -398,34 +408,36 @@ export const RoleRevealModal = ({
                 isRed={true}
                 onOpenFullscreen={setFullscreenImage}
               />
-              <div className="w-full text-left space-y-2 mt-1">
-                <div className="bg-red-950/20 border border-red-900/40 rounded-2xl p-3.5">
+              <div className="w-full text-left space-y-1.5 mt-0.5 shrink-0">
+                <div className="bg-rose-950/20 border border-rose-900/40 rounded-xl p-2.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Роль и Задача</span>
-                  <span className="text-xs font-bold text-zinc-200 block mb-0.5"><b className="text-red-400">{role1Name}</b></span>
+                  <span className="text-xs font-bold text-zinc-200 block mb-0.5"><b className="text-rose-400">{role1Name}</b></span>
                   <span className="text-[10px] text-zinc-400">{role1Goal}</span>
                 </div>
-                <div className="bg-blue-950/20 border border-blue-900/40 rounded-2xl p-3.5">
+                <div className="bg-blue-950/20 border border-blue-900/40 rounded-xl p-2.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Соперник</span>
                   <span className="text-xs font-bold text-zinc-200">{getOpponentText(role2Name)}</span>
                 </div>
               </div>
               <ActionTilesGrid mode={mode} role="KILLER" />
             </div>
-            <button
-              data-testid="ready-button"
-              disabled={false}
-              onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
-              className="w-full h-14 mt-4 bg-gradient-to-r from-red-700 via-red-600 to-red-800 hover:from-red-600 hover:to-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_0_20px_rgba(220,38,38,0.45)] flex items-center justify-center gap-2 cursor-pointer shrink-0"
-            >
-              <span>{opponent === "ONLINE" ? "ГОТОВ" : "Начать операцию"}</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="pt-3 w-full shrink-0">
+              <button
+                data-testid="ready-button"
+                disabled={false}
+                onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
+                className="w-full h-12 neo-button-danger disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+              >
+                <span>{opponent === "ONLINE" ? "ГОТОВ" : "Начать операцию"}</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </>
         )}
 
         {phase === "SOLO_DETECTIVE_REVEAL" && (
           <>
-            <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest px-3 py-1 rounded-full bg-blue-950/90 border border-blue-700/60 shadow-[0_0_15px_rgba(59,130,246,0.25)] mb-3">
+            <div className="flex flex-col items-center justify-start flex-1 w-full min-h-0 overflow-y-auto custom-scrollbar pr-0.5">
+              <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest px-3 py-1 rounded-full bg-blue-950/80 border border-blue-700/60 mb-2.5 shrink-0">
                 Ваша секретная личность
               </span>
               <CharacterRevealCard
@@ -434,60 +446,64 @@ export const RoleRevealModal = ({
                 isRed={false}
                 onOpenFullscreen={setFullscreenImage}
               />
-              <div className="w-full text-left space-y-2 mt-1">
-                <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
+              <div className="w-full text-left space-y-1.5 mt-0.5 shrink-0">
+                <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-2.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Роль и Задача</span>
                   <span className="text-xs font-bold text-zinc-200 block mb-0.5"><b className="text-blue-400">{role2Name}</b></span>
                   <span className="text-[10px] text-zinc-400">{role2Goal}</span>
                 </div>
-                <div className="bg-red-950/20 border border-red-900/40 rounded-2xl p-3.5">
+                <div className="bg-rose-950/20 border border-rose-900/40 rounded-xl p-2.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Соперник</span>
                   <span className="text-xs font-bold text-zinc-200">{getOpponentText(role1Name)}</span>
                 </div>
               </div>
               <ActionTilesGrid mode={mode} role="DETECTIVE" />
             </div>
-            <button
-              data-testid="ready-button"
-              disabled={false}
-              onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
-              className="w-full h-14 mt-4 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 hover:from-blue-600 hover:to-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_0_20px_rgba(59,130,246,0.45)] flex items-center justify-center gap-2 cursor-pointer shrink-0"
-            >
-              <span>{opponent === "ONLINE" ? "ГОТОВ" : "Начать операцию"}</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="pt-3 w-full shrink-0">
+              <button
+                data-testid="ready-button"
+                disabled={false}
+                onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
+                className="w-full h-12 neo-button-primary disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+              >
+                <span>{opponent === "ONLINE" ? "ГОТОВ" : "Начать операцию"}</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </>
         )}
 
         {/* PVP Пошаговое раскрытие */}
         {phase === "KILLER_PROMPT" && (
           <>
-            <div className="flex flex-col items-center justify-center flex-1 my-auto">
-              <div className="w-16 h-16 rounded-full bg-red-950/40 border border-red-500/30 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
-                <RoleRevealIcons.Lock className="w-7 h-7 text-red-400" />
+            <div className="flex flex-col items-center justify-center flex-1 my-auto min-h-0 overflow-y-auto custom-scrollbar">
+              <div className="w-14 h-14 rounded-full bg-rose-950/40 border border-rose-500/30 flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(225,29,72,0.2)]">
+                <RoleRevealIcons.Lock className="w-6 h-6 text-rose-400" />
               </div>
-              <span className="text-[10px] font-black text-red-400 uppercase tracking-widest px-3 py-1 rounded-full bg-red-950/60 border border-red-800/40 mb-3">
+              <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest px-3 py-1 rounded-full bg-rose-950/60 border border-rose-800/40 mb-2.5">
                 Партия на одном устройстве
               </span>
-              <h2 className="text-2xl font-black text-white uppercase tracking-wider mb-2">
+              <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider mb-2">
                 Игрок 1: {role1Name}
               </h2>
-              <p className="text-xs font-medium tracking-normal text-zinc-400 max-w-xs mb-8 leading-relaxed">
+              <p className="text-xs font-medium tracking-normal text-zinc-400 max-w-xs mb-6 leading-relaxed">
                 Передайте устройство первому игроку. Убедитесь, что второй игрок не смотрит на экран.
               </p>
             </div>
-            <button
-              onClick={() => setPhase("KILLER_REVEAL")}
-              className="w-full h-14 bg-gradient-to-r from-red-700 via-red-600 to-red-800 hover:from-red-600 hover:to-red-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-white/25 flex items-center justify-center gap-2 cursor-pointer shrink-0"
-            >
-              <span>Посмотреть тайную роль</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="pt-3 w-full shrink-0">
+              <button
+                onClick={() => setPhase("KILLER_REVEAL")}
+                className="w-full h-12 neo-button-danger text-white text-xs font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Посмотреть тайную роль</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </>
         )}
 
         {phase === "KILLER_REVEAL" && (
           <>
-            <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className="text-[10px] font-black text-red-300 uppercase tracking-widest px-3 py-1 rounded-full bg-red-950/90 border border-red-700/60 shadow-[0_0_15px_rgba(239,68,68,0.25)] mb-3">
+            <div className="flex flex-col items-center justify-start flex-1 w-full min-h-0 overflow-y-auto custom-scrollbar pr-0.5">
+              <span className="text-[10px] font-black text-rose-300 uppercase tracking-widest px-3 py-1 rounded-full bg-rose-950/80 border border-rose-700/60 mb-2.5 shrink-0">
                 Личность игрока 1
               </span>
               <CharacterRevealCard
@@ -496,53 +512,57 @@ export const RoleRevealModal = ({
                 isRed={true}
                 onOpenFullscreen={setFullscreenImage}
               />
-              <div className="w-full text-left space-y-2 mt-1">
-                <div className="bg-red-950/20 border border-red-900/40 rounded-2xl p-3.5">
+              <div className="w-full text-left space-y-1.5 mt-0.5 shrink-0">
+                <div className="bg-rose-950/20 border border-rose-900/40 rounded-xl p-2.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Роль и Задача</span>
-                  <span className="text-xs font-bold text-zinc-200 block mb-0.5"><b className="text-red-400">{role1Name}</b></span>
+                  <span className="text-xs font-bold text-zinc-200 block mb-0.5"><b className="text-rose-400">{role1Name}</b></span>
                   <span className="text-[10px] text-zinc-400">{role1Goal}</span>
                 </div>
               </div>
               <ActionTilesGrid mode={mode} role="KILLER" />
             </div>
-            <button
-              onClick={() => setPhase("DETECTIVE_PROMPT")}
-              className="w-full h-14 mt-4 bg-gradient-to-r from-red-700 via-red-600 to-red-800 hover:from-red-600 hover:to-red-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_10px_25px_rgba(220,38,38,0.5)] border-t border-white/25 flex items-center justify-center gap-2 cursor-pointer shrink-0"
-            >
-              <span>Скрыть и передать сопернику</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="pt-3 w-full shrink-0">
+              <button
+                onClick={() => setPhase("DETECTIVE_PROMPT")}
+                className="w-full h-12 neo-button-danger text-white text-xs font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Скрыть и передать сопернику</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </>
         )}
 
         {phase === "DETECTIVE_PROMPT" && (
           <>
-            <div className="flex flex-col items-center justify-center flex-1 my-auto">
-              <div className="w-16 h-16 rounded-full bg-blue-950/40 border border-blue-500/30 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
-                <RoleRevealIcons.Lock className="w-7 h-7 text-blue-400" />
+            <div className="flex flex-col items-center justify-center flex-1 my-auto min-h-0 overflow-y-auto custom-scrollbar">
+              <div className="w-14 h-14 rounded-full bg-blue-950/40 border border-blue-500/30 flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(37,99,235,0.2)]">
+                <RoleRevealIcons.Lock className="w-6 h-6 text-blue-400" />
               </div>
-              <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest px-3 py-1 rounded-full bg-blue-950/60 border border-blue-800/40 mb-3">
+              <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest px-3 py-1 rounded-full bg-blue-950/60 border border-blue-800/40 mb-2.5">
                 Партия на одном устройстве
               </span>
-              <h2 className="text-2xl font-black text-white uppercase tracking-wider mb-2">
+              <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider mb-2">
                 Игрок 2: {role2Name}
               </h2>
-              <p className="text-xs font-medium tracking-normal text-zinc-400 max-w-xs mb-8 leading-relaxed">
+              <p className="text-xs font-medium tracking-normal text-zinc-400 max-w-xs mb-6 leading-relaxed">
                 Передайте устройство второму игроку. Убедитесь, что первый игрок не смотрит на экран.
               </p>
             </div>
-            <button
-              onClick={() => setPhase("DETECTIVE_REVEAL")}
-              className="w-full h-14 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 hover:from-blue-600 hover:to-blue-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_10px_25px_rgba(59,130,246,0.5)] border-t border-white/25 flex items-center justify-center gap-2 cursor-pointer shrink-0"
-            >
-              <span>Посмотреть тайную роль</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="pt-3 w-full shrink-0">
+              <button
+                onClick={() => setPhase("DETECTIVE_REVEAL")}
+                className="w-full h-12 neo-button-primary text-white text-xs font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Посмотреть тайную роль</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </>
         )}
 
         {phase === "DETECTIVE_REVEAL" && (
           <>
-            <div className="flex flex-col items-center justify-start flex-1 w-full">
-              <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest px-3 py-1 rounded-full bg-blue-950/90 border border-blue-700/60 shadow-[0_0_15px_rgba(59,130,246,0.25)] mb-3">
+            <div className="flex flex-col items-center justify-start flex-1 w-full min-h-0 overflow-y-auto custom-scrollbar pr-0.5">
+              <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest px-3 py-1 rounded-full bg-blue-950/80 border border-blue-700/60 mb-2.5 shrink-0">
                 Личность игрока 2
               </span>
               <CharacterRevealCard
@@ -551,8 +571,8 @@ export const RoleRevealModal = ({
                 isRed={false}
                 onOpenFullscreen={setFullscreenImage}
               />
-              <div className="w-full text-left space-y-2 mt-1">
-                <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-3.5">
+              <div className="w-full text-left space-y-1.5 mt-0.5 shrink-0">
+                <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-2.5">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-0.5">Роль и Задача</span>
                   <span className="text-xs font-bold text-zinc-200 block mb-0.5"><b className="text-blue-400">{role2Name}</b></span>
                   <span className="text-[10px] text-zinc-400">{role2Goal}</span>
@@ -560,9 +580,11 @@ export const RoleRevealModal = ({
               </div>
               <ActionTilesGrid mode={mode} role="DETECTIVE" />
             </div>
-            <button onClick={onComplete} className="w-full h-14 mt-4 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 hover:from-blue-600 hover:to-blue-500 text-white text-xs font-black uppercase tracking-widest rounded-full transition shadow-[0_10px_25px_rgba(59,130,246,0.5)] border-t border-white/25 flex items-center justify-center gap-2 cursor-pointer shrink-0">
-              <span>Начать партию</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="pt-3 w-full shrink-0">
+              <button onClick={onComplete} className="w-full h-12 neo-button-primary text-white text-xs font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2 cursor-pointer">
+                <span>Начать партию</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </>
         )}
 

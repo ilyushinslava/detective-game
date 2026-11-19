@@ -1,22 +1,36 @@
-import { useState } from "react";
+import React, { useState, useRef } from "react";
+import type { Character, GameState } from "../types/game";
 
-interface RoleCardsProps {
-  mode: string;
+export interface RoleCardsProps {
+  mode?: string;
   role1Name: string;
   role2Name: string;
   killerNameText: string;
   detectiveNameText: string;
   canPeekKiller: boolean;
   canPeekDetective: boolean;
-  onPeekKillerStart: () => void;
-  onPeekKillerEnd: () => void;
-  onPeekDetectiveStart: () => void;
-  onPeekDetectiveEnd: () => void;
+  onPeekKillerStart?: () => void;
+  onPeekKillerEnd?: () => void;
+  onPeekDetectiveStart?: () => void;
+  onPeekDetectiveEnd?: () => void;
+  showKillerRole?: boolean;
+  setShowKillerRole?: (val: boolean | ((prev: boolean) => boolean)) => void;
+  showDetectiveRole?: boolean;
+  setShowDetectiveRole?: (val: boolean | ((prev: boolean) => boolean)) => void;
   isPVP: boolean;
+  gameState?: GameState;
+  killerChar?: Character;
+  detectiveChar?: Character;
+  spyP1Char?: Character;
+  spyP2Char?: Character;
+  showSpyP1Role?: boolean;
+  setShowSpyP1Role?: (val: boolean) => void;
+  showSpyP2Role?: boolean;
+  setShowSpyP2Role?: (val: boolean) => void;
 }
 
-export const RoleCards = ({
-  mode,
+export const RoleCards: React.FC<RoleCardsProps> = ({
+  mode: _mode,
   role1Name,
   role2Name,
   killerNameText,
@@ -27,10 +41,23 @@ export const RoleCards = ({
   onPeekKillerEnd,
   onPeekDetectiveStart,
   onPeekDetectiveEnd,
+  showKillerRole,
+  setShowKillerRole,
+  showDetectiveRole,
+  setShowDetectiveRole,
   isPVP,
-}: RoleCardsProps) => {
-  const [isKillerPeeking, setIsKillerPeeking] = useState(false);
-  const [isDetectivePeeking, setIsDetectivePeeking] = useState(false);
+  killerChar,
+  detectiveChar,
+}) => {
+  const [localKillerPeeking, setLocalKillerPeeking] = useState(false);
+  const [localDetectivePeeking, setLocalDetectivePeeking] = useState(false);
+
+  const isKillerActive = Boolean(showKillerRole || localKillerPeeking);
+  const isDetectiveActive = Boolean(showDetectiveRole || localDetectivePeeking);
+
+  const killerPressTimeRef = useRef(0);
+  const detectivePressTimeRef = useRef(0);
+
   const showKillerCard = isPVP || canPeekKiller;
   const showDetectiveCard = isPVP || canPeekDetective;
   const singleCard = (showKillerCard && !showDetectiveCard) || (!showKillerCard && showDetectiveCard);
@@ -38,35 +65,113 @@ export const RoleCards = ({
     ? "grid grid-cols-1 w-full"
     : "grid grid-cols-2 gap-1.5 w-full";
 
-  void mode;
+  const displayedKillerName = isKillerActive
+    ? (killerNameText !== "••••••••" ? killerNameText : killerChar?.name ?? "Засекречено")
+    : killerNameText;
+
+  const displayedDetectiveName = isDetectiveActive
+    ? (detectiveNameText !== "••••••••" ? detectiveNameText : detectiveChar?.name ?? "Засекречено")
+    : detectiveNameText;
+
+  // Обработчики для Киллера / Преступника
+  const handleKillerPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!canPeekKiller) return;
+    killerPressTimeRef.current = Date.now();
+    setLocalKillerPeeking(true);
+    setShowKillerRole?.(true);
+    onPeekKillerStart?.();
+  };
+
+  const handleKillerPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!canPeekKiller) return;
+    const duration = Date.now() - killerPressTimeRef.current;
+    setLocalKillerPeeking(false);
+    if (duration > 300) {
+      setShowKillerRole?.(false);
+      onPeekKillerEnd?.();
+    }
+  };
+
+  const handleKillerPointerLeave = () => {
+    if (localKillerPeeking) {
+      setLocalKillerPeeking(false);
+      setShowKillerRole?.(false);
+      onPeekKillerEnd?.();
+    }
+  };
+
+  const handleKillerClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (!canPeekKiller) return;
+    const duration = Date.now() - killerPressTimeRef.current;
+    if (duration <= 300) {
+      setShowKillerRole?.((prev) => !prev);
+    }
+  };
+
+  // Обработчики для Детектива / Оперативника
+  const handleDetectivePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!canPeekDetective) return;
+    detectivePressTimeRef.current = Date.now();
+    setLocalDetectivePeeking(true);
+    setShowDetectiveRole?.(true);
+    onPeekDetectiveStart?.();
+  };
+
+  const handleDetectivePointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!canPeekDetective) return;
+    const duration = Date.now() - detectivePressTimeRef.current;
+    setLocalDetectivePeeking(false);
+    if (duration > 300) {
+      setShowDetectiveRole?.(false);
+      onPeekDetectiveEnd?.();
+    }
+  };
+
+  const handleDetectivePointerLeave = () => {
+    if (localDetectivePeeking) {
+      setLocalDetectivePeeking(false);
+      setShowDetectiveRole?.(false);
+      onPeekDetectiveEnd?.();
+    }
+  };
+
+  const handleDetectiveClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (!canPeekDetective) return;
+    const duration = Date.now() - detectivePressTimeRef.current;
+    if (duration <= 300) {
+      setShowDetectiveRole?.((prev) => !prev);
+    }
+  };
 
   return (
     <div className={containerClass}>
       {showKillerCard && (
-        <div className="flex-1 p-2 md:p-3.5 bg-zinc-900/60 backdrop-blur-md rounded-xl border border-white/10 flex flex-col justify-between gap-1.5 shadow-lg">
-          <div className="flex items-start justify-between w-full gap-1.5">
-            <span className="text-[8px] sm:text-[8.5px] md:text-[10px] font-black text-red-400 uppercase bg-red-950/50 border border-red-900/50 px-1.5 py-0.5 rounded-sm shrink-0 tracking-widest mt-0.5 whitespace-nowrap">
+        <div className="flex-1 p-2.5 md:p-3 neo-card rounded-2xl border-t-white/20 flex flex-col justify-between gap-2 shadow-xl">
+          <div className="flex items-start justify-between w-full gap-2">
+            <span className="text-[8.5px] sm:text-[9px] md:text-[10px] font-black text-rose-200 uppercase bg-rose-950/80 border border-rose-700/60 px-2 py-0.5 rounded-md shrink-0 tracking-widest whitespace-nowrap shadow-sm">
               {role1Name === "ОПЕРАТИВНИК" ? "ОПЕР" : role1Name}
             </span>
-            <span className="text-[8.5px] sm:text-[9.5px] md:text-xs font-black text-zinc-100 text-right uppercase tracking-tight leading-[1.1] break-words line-clamp-2 flex-1 min-w-0">
-              {killerNameText}
+            <span className="text-[9px] sm:text-[10px] md:text-xs font-black text-zinc-100 text-right uppercase tracking-tight leading-tight break-words line-clamp-2 flex-1 min-w-0">
+              {displayedKillerName}
             </span>
           </div>
           <button
             type="button"
-            onMouseDown={() => { setIsKillerPeeking(true); onPeekKillerStart(); }}
-            onMouseUp={() => { setIsKillerPeeking(false); onPeekKillerEnd(); }}
-            onMouseLeave={() => { setIsKillerPeeking(false); onPeekKillerEnd(); }}
-            onTouchStart={() => { setIsKillerPeeking(true); onPeekKillerStart(); }}
-            onTouchEnd={() => { setIsKillerPeeking(false); onPeekKillerEnd(); }}
+            onPointerDown={handleKillerPointerDown}
+            onPointerUp={handleKillerPointerUp}
+            onPointerLeave={handleKillerPointerLeave}
+            onPointerCancel={handleKillerPointerLeave}
+            onClick={handleKillerClick}
             onContextMenu={(e) => e.preventDefault()}
             disabled={!canPeekKiller}
-            className={`w-full h-8 sm:h-[34px] md:h-12 rounded-lg text-[8.5px] sm:text-[9.5px] md:text-xs font-black uppercase tracking-wider border transition flex items-center justify-center gap-1.5 ${
+            className={`w-full h-9 sm:h-10 md:h-11 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-wider transition flex items-center justify-center gap-1.5 select-none pointer-events-auto cursor-pointer ${
               !canPeekKiller
-                ? "bg-zinc-950/50 text-zinc-600 border-white/5 cursor-not-allowed"
-                : isKillerPeeking
-                  ? "bg-red-600 text-white border-red-300 shadow-[0_0_20px_rgba(239,68,68,0.6)] scale-[0.98]"
-                  : "bg-red-950/80 hover:bg-red-900 active:bg-red-800 text-red-200 border-red-700/50 cursor-pointer shadow-[0_0_10px_rgba(220,38,38,0.2)]"
+                ? "bg-zinc-950/60 text-zinc-600 border border-white/5 cursor-not-allowed opacity-50"
+                : isKillerActive
+                  ? "neo-button-danger scale-[0.98] shadow-[0_0_15px_rgba(244,63,94,0.5)] ring-1 ring-rose-400/50"
+                  : "neo-button-danger shadow-md"
             }`}
           >
             {!canPeekKiller ? (
@@ -79,38 +184,34 @@ export const RoleCards = ({
       )}
 
       {showDetectiveCard && (
-        <div className="flex-1 p-2 md:p-3.5 bg-zinc-900/60 backdrop-blur-md rounded-xl border border-white/10 flex flex-col justify-between gap-1.5 shadow-lg">
-          <div className="flex items-start justify-between w-full gap-1.5">
-            <span className={`text-[8px] sm:text-[8.5px] md:text-[10px] font-black uppercase px-1.5 py-0.5 rounded-sm shrink-0 tracking-widest mt-0.5 whitespace-nowrap ${
+        <div className="flex-1 p-2.5 md:p-3 neo-card rounded-2xl border-t-white/20 flex flex-col justify-between gap-2 shadow-xl">
+          <div className="flex items-start justify-between w-full gap-2">
+            <span className={`text-[8.5px] sm:text-[9px] md:text-[10px] font-black uppercase px-2 py-0.5 rounded-md shrink-0 tracking-widest whitespace-nowrap shadow-sm ${
               role2Name === "ПОЛИЦИЯ" || role2Name === "Полиция"
-                ? "bg-blue-900/40 border border-blue-800/50 text-blue-400"
-                : "text-blue-400 bg-blue-950/50 border border-blue-900/50"
+                ? "bg-blue-900/50 border border-blue-700/60 text-blue-200"
+                : "text-blue-200 bg-blue-950/80 border border-blue-700/60"
             }`}>
               {role2Name === "ОПЕРАТИВНИК" ? "ОПЕР" : role2Name}
             </span>
-            <span className="text-[8.5px] sm:text-[9.5px] md:text-xs font-black text-zinc-100 text-right uppercase tracking-tight leading-[1.1] break-words line-clamp-2 flex-1 min-w-0">
-              {detectiveNameText}
+            <span className="text-[9px] sm:text-[10px] md:text-xs font-black text-zinc-100 text-right uppercase tracking-tight leading-tight break-words line-clamp-2 flex-1 min-w-0">
+              {displayedDetectiveName}
             </span>
           </div>
           <button
             type="button"
-            onMouseDown={() => { setIsDetectivePeeking(true); onPeekDetectiveStart(); }}
-            onMouseUp={() => { setIsDetectivePeeking(false); onPeekDetectiveEnd(); }}
-            onMouseLeave={() => { setIsDetectivePeeking(false); onPeekDetectiveEnd(); }}
-            onTouchStart={() => { setIsDetectivePeeking(true); onPeekDetectiveStart(); }}
-            onTouchEnd={() => { setIsDetectivePeeking(false); onPeekDetectiveEnd(); }}
+            onPointerDown={handleDetectivePointerDown}
+            onPointerUp={handleDetectivePointerUp}
+            onPointerLeave={handleDetectivePointerLeave}
+            onPointerCancel={handleDetectivePointerLeave}
+            onClick={handleDetectiveClick}
             onContextMenu={(e) => e.preventDefault()}
             disabled={!canPeekDetective}
-            className={`w-full h-8 sm:h-[34px] md:h-12 rounded-lg text-[8.5px] sm:text-[9.5px] md:text-xs font-black uppercase tracking-wider border transition flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed ${
+            className={`w-full h-9 sm:h-10 md:h-11 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-wider transition flex items-center justify-center gap-1.5 select-none pointer-events-auto cursor-pointer ${
               !canPeekDetective
-                ? "bg-zinc-950/50 text-zinc-600 border-white/5 cursor-not-allowed"
-                : isDetectivePeeking
-                  ? (role2Name === "ПОЛИЦИЯ" || role2Name === "Полиция"
-                      ? "bg-blue-900 text-white border-blue-700 shadow-[0_0_15px_rgba(30,64,175,0.5)] scale-[0.98]"
-                      : "bg-blue-600 text-white border-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.6)] scale-[0.98]")
-                  : (role2Name === "ПОЛИЦИЯ" || role2Name === "Полиция"
-                      ? "bg-blue-900/40 hover:bg-blue-900/60 active:bg-blue-900/80 text-blue-400 border border-blue-800/50 shadow-md cursor-pointer"
-                      : "bg-blue-950/80 hover:bg-blue-900 active:bg-blue-800 text-blue-200 border-blue-700/50 shadow-[0_0_10px_rgba(59,130,246,0.2)] cursor-pointer")
+                ? "bg-zinc-950/60 text-zinc-600 border border-white/5 cursor-not-allowed opacity-50"
+                : isDetectiveActive
+                  ? "neo-button-primary scale-[0.98] shadow-[0_0_15px_rgba(59,130,246,0.5)] ring-1 ring-blue-400/50"
+                  : "neo-button-primary shadow-md"
             }`}
           >
             {!canPeekDetective ? (

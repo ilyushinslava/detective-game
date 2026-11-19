@@ -70,30 +70,8 @@ describe('Memory & Teardown Audit (Phase 6)', () => {
     expect(docRemoveEventListenerSpy).toHaveBeenCalledWith('backbutton', expect.any(Function));
   });
 
-  it('tvAudio: AudioContext is a strict singleton (constructor called only once across multiple sound calls)', () => {
+  it('tvAudio: calls play safely without creating procedural AudioContext instances', () => {
     _resetAudioContextForTesting();
-
-    const mockStart = vi.fn();
-    const mockStop = vi.fn();
-    const mockConnect = vi.fn();
-    const mockOscillator = {
-      type: 'sine',
-      frequency: {
-        setValueAtTime: vi.fn(),
-        exponentialRampToValueAtTime: vi.fn(),
-      },
-      connect: mockConnect,
-      start: mockStart,
-      stop: mockStop,
-    };
-
-    const mockGain = {
-      gain: {
-        setValueAtTime: vi.fn(),
-        exponentialRampToValueAtTime: vi.fn(),
-      },
-      connect: mockConnect,
-    };
 
     let constructorCallCount = 0;
     const MockAudioContext = vi.fn().mockImplementation(() => {
@@ -102,8 +80,8 @@ describe('Memory & Teardown Audit (Phase 6)', () => {
         currentTime: 0,
         state: 'running',
         destination: {},
-        createOscillator: vi.fn().mockReturnValue(mockOscillator),
-        createGain: vi.fn().mockReturnValue(mockGain),
+        createOscillator: vi.fn(),
+        createGain: vi.fn(),
         resume: vi.fn().mockResolvedValue(undefined),
       };
     });
@@ -116,8 +94,7 @@ describe('Memory & Teardown Audit (Phase 6)', () => {
       playClickSound();
     }
 
-    // Проверяем, что инстанс AudioContext был создан ровно 1 раз (защита от лимита 6 инстансов в WebView)
-    expect(constructorCallCount).toBe(1);
-    expect(MockAudioContext).toHaveBeenCalledTimes(1);
+    // Проверяем, что процедурные инстансы AudioContext не создаются
+    expect(constructorCallCount).toBe(0);
   });
 });

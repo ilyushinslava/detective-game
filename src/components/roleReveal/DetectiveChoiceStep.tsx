@@ -71,13 +71,15 @@ export const DetectiveChoiceStep: React.FC<DetectiveChoiceStepProps> = ({
           })}
         </div>
       </div>
-      <button
-        onClick={onConfirmChoices}
-        disabled={!selectedInspectorId}
-        className="w-full h-14 mt-4 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 hover:from-blue-600 hover:to-blue-500 disabled:from-zinc-800 disabled:to-zinc-900 disabled:text-zinc-600 disabled:shadow-none text-white text-[10px] font-black uppercase tracking-widest rounded-full transition cursor-pointer disabled:cursor-not-allowed shadow-[0_10px_25px_rgba(59,130,246,0.5)] border-t border-white/25 flex items-center justify-center gap-2 shrink-0"
-      >
-        <span>Подтвердить личность</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
-      </button>
+      <div className="pt-3 w-full shrink-0">
+        <button
+          onClick={onConfirmChoices}
+          disabled={!selectedInspectorId}
+          className="w-full h-12 neo-button-primary text-white text-xs font-black uppercase tracking-widest rounded-xl transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          <span>Подтвердить личность</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
+        </button>
+      </div>
     </>
   );
 };

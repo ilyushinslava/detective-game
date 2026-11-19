@@ -120,14 +120,28 @@ const CharacterCardComponent = ({
       {/* Тонкий стеклянный блик на верхней кромке карточки (Glassmorphism Neo-Noir) */}
       <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-white/[0.1] to-transparent pointer-events-none rounded-t-md sm:rounded-t-xl z-[1]" />
 
+      {/* Подсветка зоны 3x3: соседи персонажа */}
       {neighborRole && (
         <div
+          data-testid="neighbor-highlight"
           className={`absolute inset-0 rounded-md sm:rounded-xl pointer-events-none z-10 border-2 ${
             neighborRole === "red"
               ? "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"
               : neighborRole === "blue"
                 ? "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
                 : "border-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+          }`}
+        />
+      )}
+
+      {/* Подсветка центра зоны 3x3: секретный персонаж игрока */}
+      {isMyCharacter && !isDead && (
+        <div
+          data-testid="my-character-highlight"
+          className={`absolute inset-0 rounded-md sm:rounded-xl pointer-events-none z-20 border-2 ${
+            myRoleColor === "red"
+              ? "border-red-400 ring-2 ring-red-500/70 shadow-[0_0_15px_rgba(239,68,68,0.7)]"
+              : "border-blue-400 ring-2 ring-blue-500/70 shadow-[0_0_15px_rgba(59,130,246,0.7)]"
           }`}
         />
       )}
@@ -166,12 +180,13 @@ const CharacterCardComponent = ({
           >
             {`#${character.id.replace("c", "").padStart(2, "0")}`}
           </span>
-          {isMyCharacter && !isDead && !isPVP && (() => {
+          {isMyCharacter && !isDead && (() => {
             const isRed = myRoleColor
               ? myRoleColor === "red"
               : mode === "SKHVATKA" || mode === "MANIAC_VS_OPERATIVE" || mode === "THIEF_HUNT";
             return (
               <span
+                data-testid="my-character-badge"
                 className={`text-[7.5px] md:text-[9px] font-black uppercase px-1 md:px-1.5 py-[1px] md:py-0.5 rounded tracking-wider shadow-sm shrink-0 ${
                   isRed
                     ? "text-red-400 bg-red-950/90 border border-red-500/70 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
@@ -260,7 +275,7 @@ const CharacterCardComponent = ({
       <div className="absolute bottom-0.5 inset-x-0.5 z-10 flex items-end justify-center pointer-events-none transform-none">
         <span
           title={character.name}
-          className={`block w-full text-[7.5px] sm:text-[8.5px] md:text-[11px] font-bold text-zinc-200 leading-[1.05] md:leading-tight tracking-tight uppercase text-center px-1 py-0.5 rounded-sm bg-black/60 backdrop-blur-[1px] transform-none break-normal whitespace-pre-line hyphens-none ${
+          className={`block w-full text-[7.5px] sm:text-[8.5px] md:text-[9.5px] xl:text-[10.5px] font-bold text-zinc-200 leading-[1.05] md:leading-tight tracking-tighter uppercase text-center px-0.5 sm:px-1 py-0.5 rounded-sm bg-black/60 backdrop-blur-[1px] transform-none break-normal whitespace-pre-line hyphens-none ${
             hasCoin && !isDead ? "pr-4 sm:pr-5" : ""
           } ${
             isDead

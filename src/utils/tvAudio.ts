@@ -1,250 +1,42 @@
 /**
  * src/utils/tvAudio.ts
- * Синтез процедурных UI-звуков через Web Audio API для пульта Android TV (D-Pad).
- * Не требует загрузки внешних аудиофайлов, работает мгновенно с нулевой задержкой.
+ * Звуковые вызовы для TV-интерфейса.
+ * Согласно правилам проекта и регламенту Neo-Noir:
+ * Процедурный синтез через createOscillator полностью отключен.
+ * Воспроизводятся исключительно оригинальные аудиофайлы из public/sounds через soundManager.
  */
+
+import { soundManager } from "./audio";
 
 let audioCtx: AudioContext | null = null;
 
-function getAudioContext(): AudioContext | null {
-  if (typeof window === 'undefined') return null;
-  const AudioContextClass =
-    window.AudioContext ||
-    (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-
-  if (!AudioContextClass) return null;
-
-  if (!audioCtx) {
-    try {
-      audioCtx = new AudioContextClass();
-    } catch {
-      return null;
-    }
-  }
-
-  // Автоматический resume при пользовательском жесте (требование автоплея в современных браузерах)
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume().catch(() => {});
-  }
-
-  return audioCtx;
-}
-
-// Глобальный слушатель первого пользовательского взаимодействия для разблокировки AudioContext
-if (typeof window !== 'undefined') {
-  const unlockAudio = () => {
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume().catch(() => {});
-    }
-    window.removeEventListener('keydown', unlockAudio);
-    window.removeEventListener('click', unlockAudio);
-    window.removeEventListener('touchstart', unlockAudio);
-  };
-  window.addEventListener('keydown', unlockAudio, { passive: true });
-  window.addEventListener('click', unlockAudio, { passive: true });
-  window.addEventListener('touchstart', unlockAudio, { passive: true });
-}
-
-/**
- * Очень короткий, тихий "тик" при навигации D-Pad по элементам.
- * Осциллятор: sine, высокая частота (~950Hz -> ~1300Hz), затухание за 0.05с.
- */
 export function playHoverSound(): void {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sine';
-    const now = ctx.currentTime;
-
-    // Короткий мягкий импульс высокой частоты
-    osc.frequency.setValueAtTime(950, now);
-    osc.frequency.exponentialRampToValueAtTime(1300, now + 0.04);
-
-    // Тихий уровень громкости с быстрым затуханием за 0.05с
-    gain.gain.setValueAtTime(0.04, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    // Очистка аудиоузлов после завершения для предотвращения накопления в памяти
-    osc.onended = () => {
-      try {
-        osc.disconnect();
-        gain.disconnect();
-      } catch {}
-    };
-
-    osc.start(now);
-    osc.stop(now + 0.05);
-  } catch {
-    // Graceful fallback в средах без полной поддержки Web Audio API (например, jsdom)
-  }
+  // Навигация D-Pad: тихий клик меню
+  soundManager.play("tapMenu", 0.4);
 }
 
-/**
- * Более плотный подтверждающий звук при нажатии Enter (DPAD_CENTER).
- * Осциллятор: triangle, низкая/средняя частота (~320Hz -> ~160Hz), затухание за 0.1с.
- */
 export function playClickSound(): void {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'triangle';
-    const now = ctx.currentTime;
-
-    // Плотный тактильный клик
-    osc.frequency.setValueAtTime(320, now);
-    osc.frequency.exponentialRampToValueAtTime(160, now + 0.09);
-
-    // Уверенный, но комфортный щелчок за 0.10с
-    gain.gain.setValueAtTime(0.09, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.10);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    // Очистка узлов графа
-    osc.onended = () => {
-      try {
-        osc.disconnect();
-        gain.disconnect();
-      } catch {}
-    };
-
-    osc.start(now);
-    osc.stop(now + 0.10);
-  } catch {
-    // Graceful fallback
-  }
+  // Выбор D-Pad: клик
+  soundManager.play("click", 0.5);
 }
 
-/**
- * Гул циклического сдвига игрового поля (низкочастотный механический рокот).
- * Осциллятор: triangle, частота 140Hz -> 50Hz, затухание за 0.35с.
- */
 export function playShiftSound(): void {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'triangle';
-    const now = ctx.currentTime;
-
-    osc.frequency.setValueAtTime(140, now);
-    osc.frequency.exponentialRampToValueAtTime(50, now + 0.30);
-
-    gain.gain.setValueAtTime(0.12, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.onended = () => {
-      try {
-        osc.disconnect();
-        gain.disconnect();
-      } catch {}
-    };
-
-    osc.start(now);
-    osc.stop(now + 0.35);
-  } catch {
-    // Graceful fallback
-  }
+  // Звук сдвига ряда/колонки воспроизводится через soundManager.play("slide")
+  // Дублирующий синтезированный осциллятор отключен
 }
 
-/**
- * Резкий звук выстрела / ликвидации / раскрытия с дисторшн-гармониками.
- * Осциллятор: sawtooth, резкий частотный спад 520Hz -> 60Hz за 0.28с.
- */
 export function playEliminateSound(): void {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sawtooth';
-    const now = ctx.currentTime;
-
-    osc.frequency.setValueAtTime(520, now);
-    osc.frequency.exponentialRampToValueAtTime(60, now + 0.25);
-
-    gain.gain.setValueAtTime(0.14, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.onended = () => {
-      try {
-        osc.disconnect();
-        gain.disconnect();
-      } catch {}
-    };
-
-    osc.start(now);
-    osc.stop(now + 0.28);
-  } catch {
-    // Graceful fallback
-  }
+  // Звук выстрела/устранения воспроизводится через soundManager.play("kill")
+  // Дублирующий синтезированный осциллятор отключен
 }
 
-/**
- * Эхо-импульс сонара / радара / допроса.
- * Осциллятор: sine, чистый высокий импульс 1600Hz -> 850Hz за 0.40с.
- */
 export function playRadarPing(): void {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sine';
-    const now = ctx.currentTime;
-
-    osc.frequency.setValueAtTime(1600, now);
-    osc.frequency.exponentialRampToValueAtTime(850, now + 0.35);
-
-    gain.gain.setValueAtTime(0.09, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.40);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.onended = () => {
-      try {
-        osc.disconnect();
-        gain.disconnect();
-      } catch {}
-    };
-
-    osc.start(now);
-    osc.stop(now + 0.40);
-  } catch {
-    // Graceful fallback
-  }
+  // Звук радара воспроизводится через soundManager.play("radar")
+  // Дублирующий синтезированный осциллятор отключен
 }
 
-/**
- * Для изоляции юнит-тестов
- */
 export function _resetAudioContextForTesting(): void {
   audioCtx = null;
 }
+
 

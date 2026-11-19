@@ -28,14 +28,14 @@ export const CharacterRevealCard: React.FC<CharacterRevealCardProps> = ({
     ? "from-red-950 via-zinc-950/80 to-transparent"
     : "from-blue-950 via-zinc-950/80 to-transparent";
   const border = isRed
-    ? "border-red-500/60 shadow-[0_0_30px_rgba(239,68,68,0.3)]"
-    : "border-blue-500/60 shadow-[0_0_30px_rgba(59,130,246,0.3)]";
+    ? "border-rose-500/50 shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
+    : "border-blue-500/50 shadow-[0_8px_24px_rgba(0,0,0,0.6)]";
 
   return (
     <motion.div
       layoutId={character?.id ? `role-card-${character.id}` : "role-card-default"}
       transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
-      className={`relative w-full rounded-3xl overflow-hidden border ${border} bg-zinc-950 h-[190px] sm:h-[220px] flex flex-col justify-between p-5 mb-3.5 select-none shrink-0 shadow-2xl cursor-pointer group`}
+      className={`relative w-full rounded-2xl sm:rounded-3xl overflow-hidden border ${border} bg-zinc-950 h-[140px] sm:h-[175px] md:h-[195px] flex flex-col justify-between p-3.5 sm:p-5 mb-2 sm:mb-3 select-none shrink-0 shadow-2xl cursor-pointer group`}
       onClick={() =>
         imageAsset &&
         character &&

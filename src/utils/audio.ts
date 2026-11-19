@@ -48,25 +48,13 @@ class SoundController {
   private ambientAudio: HTMLAudioElement | null = null;
   private currentAmbientVolume = 0.25;
   private lastPlayTime: Map<string, number> = new Map();
+  private lastActionSoundTime = 0;
   
   // Web Audio API
   private ctx: AudioContext | null = null;
   private bufferCache: Map<string, AudioBuffer> = new Map();
   private isDecodingMap: Map<string, Promise<AudioBuffer | null>> = new Map();
-  private morseOsc: OscillatorNode | null = null;
-  private morseGain: GainNode | null = null;
-
-  // Процедурный ТВ-эмбиент на Web Audio API (чистый синтез, zero-asset)
-  private tvAmbientNodes: {
-    osc1: OscillatorNode;
-    osc2: OscillatorNode;
-    oscSub: OscillatorNode;
-    filter: BiquadFilterNode;
-    lfo: OscillatorNode;
-    lfoGain: GainNode;
-    gain: GainNode;
-  } | null = null;
-  private tvAmbientTargetVolume = 0.16;
+  private isTvAmbientPlaying: boolean = false;
 
   // HTMLAudio fallback pool
   private audioPool: Map<string, HTMLAudioElement[]> = new Map();
@@ -188,13 +176,22 @@ class SoundController {
   public play(type: SoundType, volume = 0.75): void {
     if (!this.isSfxEnabled) return;
 
-    const throttledTypes = ['kill', 'arrest', 'error', 'deny', 'steal'];
-    if (throttledTypes.includes(type)) {
-      const now = Date.now();
-      const last = this.lastPlayTime.get(type) || 0;
-      if (now - last < 250) return;
-      this.lastPlayTime.set(type, now);
+    const now = Date.now();
+    // Защита от наложения общего клика на звук действия на игровом поле
+    const isActionSound = ['slide', 'kill', 'arrest', 'disguise', 'radar', 'steal', 'patrol'].includes(type);
+    if (isActionSound) {
+      this.lastActionSoundTime = now;
+    } else if (type === 'click' || type === 'tapMenu') {
+      if (now - this.lastActionSoundTime < 120) {
+        return; // Подавляем общий клик кнопки при выполнении действия
+      }
     }
+
+    // Анти-дребезг: предотвращение наложения и повторного вызова звука на одно действие (pointerdown + click)
+    const last = this.lastPlayTime.get(type) || 0;
+    const minInterval = ['kill', 'arrest', 'error', 'deny', 'steal'].includes(type) ? 250 : 80;
+    if (now - last < minInterval) return;
+    this.lastPlayTime.set(type, now);
 
     const variations = SOUND_LIBRARY[type];
     if (!variations || variations.length === 0) return;

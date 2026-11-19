@@ -168,7 +168,7 @@ export function getKillerAIMove(state: GameState): GameState {
       interrogationRadar: null,
       log: [
         ...state.log,
-        `🤖 Бот сдвинул ${randomShift.type === "ROW" ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+        `Бот сдвинул ${randomShift.type === "ROW" ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
       ],
     };
   }
@@ -179,7 +179,7 @@ export function getKillerAIMove(state: GameState): GameState {
     interrogationRadar: null,
     log: [
       ...state.log,
-      "🤖 Бот-преступник пропустил ход (нет доступных действий).",
+      "Бот-преступник пропустил ход (нет доступных действий).",
     ],
   };
 }
@@ -235,7 +235,7 @@ export function getDetectiveAIMove(state: GameState): GameState {
       interrogationRadar: null,
       log: [
         ...state.log,
-        `🤖 Бот сдвинул ${randomShift.type === "ROW" ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+        `Бот сдвинул ${randomShift.type === "ROW" ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
       ],
     };
   }
@@ -246,7 +246,7 @@ export function getDetectiveAIMove(state: GameState): GameState {
     interrogationRadar: null,
     log: [
       ...state.log,
-      "🤖 Бот-инспектор пропустил ход (нет доступных действий).",
+      "Бот-инспектор пропустил ход (нет доступных действий).",
     ],
   };
 }
@@ -310,7 +310,7 @@ export function getSecretServiceAIMove(state: GameState): GameState {
       interrogationRadar: null,
       log: [
         ...state.log,
-        `🤖 ${activeSpy.name} сдвинул ${randomShift.type === "ROW" ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
+        `${activeSpy.name} сдвинул ${randomShift.type === "ROW" ? `ряд ${randomShift.index + 1}` : `колонку ${randomShift.index + 1}`}.`,
       ],
     };
   }
@@ -321,7 +321,7 @@ export function getSecretServiceAIMove(state: GameState): GameState {
     ...state,
     activeSpyIndex: nextIndex,
     interrogationRadar: null,
-    log: [...state.log, `🤖 ${activeSpy.name} пропустил ход.`],
+    log: [...state.log, `${activeSpy.name} пропустил ход.`],
   };
 }
 
@@ -488,7 +488,7 @@ export function getDuelAIMove(state: GameState): GameState {
       return {
         ...state,
         winner: botRole,
-        log: [...state.log, `🤖 Бот (${botRole === "DETECTIVE" ? "Следователь" : "Подозреваемый"}) выдвинул точное обвинение против #${targetId.replace("c","")}! Победа!`],
+        log: [...state.log, `Бот (${botRole === "DETECTIVE" ? "Следователь" : "Подозреваемый"}) выдвинул точное обвинение против #${targetId.replace("c","")}! Победа!`],
       };
     } else {
       const nextPenalties = {
@@ -504,7 +504,7 @@ export function getDuelAIMove(state: GameState): GameState {
         duelPenalties: nextPenalties,
         accusedTargets: nextAccused,
         currentTurn: nextTurn,
-        log: [...state.log, `🤖 Бот (${botRole === "DETECTIVE" ? "Следователь" : "Подозреваемый"}) ошибся с обвинением (+1 штраф). Ход переходит оппоненту.`],
+        log: [...state.log, `Бот (${botRole === "DETECTIVE" ? "Следователь" : "Подозреваемый"}) ошибся с обвинением (+1 штраф). Ход переходит оппоненту.`],
       };
     }
   }
@@ -536,7 +536,7 @@ export function getDuelAIMove(state: GameState): GameState {
     currentTurn: nextTurn,
     log: [
       ...state.log,
-      `🤖 Бот задал вопрос: "${chosenQuestion.text}". Ответ: ${answer ? "ДА" : "НЕТ"}.`,
+      `Бот задал вопрос: "${chosenQuestion.text}". Ответ: ${answer ? "ДА" : "НЕТ"}.`,
     ],
   };
 }

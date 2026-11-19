@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import type { Character, GameState } from "../types/game";
 import { GameBoard } from "./GameBoard";
 import { RoleCards } from "./RoleCards";
@@ -21,7 +21,7 @@ export interface GameScreenProps {
   actionPanelRoleName: string;
   pillClasses: string;
   dotClasses: string;
-  secondsElapsed: number;
+  secondsElapsed?: number;
   formatTimer: (totalSeconds: number) => string;
   selectedId: string | null;
   setSelectedId: React.Dispatch<React.SetStateAction<string | null>>;
@@ -184,6 +184,19 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
     isDetectiveTurn &&
     gameState.opponent === "AI";
 
+  const handleCardClick = useCallback((id: string) => {
+    if (isInspectorChoosing) {
+      soundManager.play("error");
+      if (setErrorCardId) {
+        setErrorCardId(id);
+        setTimeout(() => setErrorCardId(null), 500);
+      }
+      return;
+    }
+    soundManager.play("click");
+    setSelectedId((prev) => (prev === id ? null : id));
+  }, [isInspectorChoosing, setErrorCardId, setSelectedId]);
+
   return (
     <div className="relative w-screen h-[100dvh] flex flex-col justify-between overflow-hidden bg-background-main text-zinc-100 select-none">
       {/* Шапка экрана */}
@@ -226,18 +239,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
               mode={gameState.mode}
               board={gameState.board}
               selectedCharacterId={selectedId}
-              onCardClick={(id) => {
-                if (isInspectorChoosing) {
-                  soundManager.play("error");
-                  if (setErrorCardId) {
-                    setErrorCardId(id);
-                    setTimeout(() => setErrorCardId(null), 500);
-                  }
-                  return;
-                }
-                soundManager.play("click");
-                setSelectedId((prev) => (prev === id ? null : id));
-              }}
+              onCardClick={handleCardClick}
               onShift={handleShift}
               lastShift={gameState.lastShift}
               killerAdjacentIds={killerAdjacentIds}

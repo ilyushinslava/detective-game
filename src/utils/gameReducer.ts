@@ -129,6 +129,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return accuseCharacter(state, action.payload.targetId);
 
     case "CAPTURE_SPY": {
+      if (state.mode !== "SECRET_SERVICE") {
+        return state;
+      }
       const payload = action.payload as any;
       const targetId = payload?.targetCardId || payload?.targetId;
       const explicitHit = payload?.isHit === true || Boolean(payload?.caughtSpyId);
@@ -180,7 +183,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
         const attacker = nextSpies[attackerIndex];
         const isWin = (attacker?.trophies ?? 0) >= targetTrophies;
-        const winner = isWin ? (attackerIndex === 0 ? "KILLER" : "DETECTIVE") : (payload?.winner || state.winner);
+        const winner = isWin ? (attackerIndex === 0 ? "KILLER" : "DETECTIVE") : state.winner;
 
         return {
           ...state,
@@ -244,11 +247,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
-    case "INTERROGATE":
+    case "INTERROGATE": {
+      if (state.mode !== "SECRET_SERVICE") {
+        return state;
+      }
       return {
         ...spyInterrogate(state, action.payload.targetId),
         isHotseatCoverOpen: false,
       };
+    }
     case "ESCAPE_MANIAC":
       return escapeManiac(state);
     case "FAST_DISGUISE":
@@ -520,12 +527,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case "CONFIRM_RESTART":
       return { ...state, restartRequestedBy: undefined, pendingRematchMode: undefined };
 
-    case "SET_MATCH_POT":
+    case "SET_MATCH_POT": {
+      const pot = Number(action.payload?.pot);
+      const bet = Number(action.payload?.bet);
+      if (!Number.isFinite(pot) || !Number.isFinite(bet) || pot < 0 || bet < 0) {
+        return state;
+      }
       return {
         ...state,
-        matchPot: action.payload.pot,
-        matchBet: action.payload.bet,
+        matchPot: pot,
+        matchBet: bet,
       };
+    }
 
     case "MATCH_STARTED":
     case "RESTART_GAME": {

@@ -977,6 +977,13 @@ export default class GameRoomServer {
       return { valid: true };
     }
 
+    // 2.1 Валидация действий по режимам игры (P0 Security)
+    if (action.type === "CAPTURE_SPY" || action.type === "INTERROGATE") {
+      if (this.state.mode !== "SECRET_SERVICE") {
+        return { valid: false, reason: "INVALID_ACTION_FOR_MODE" };
+      }
+    }
+
     // 3. Валидация целевых действий
     const targetId = action.payload?.targetId || action.payload?.targetCardId;
     if (targetId && typeof targetId === "string") {
@@ -1140,8 +1147,12 @@ export default class GameRoomServer {
         return;
       }
 
-      // Проверка на TV_DISPLAY: телевизор не может отдавать команды игры
-      if (action.type === "MATCH_STARTED" || action.type === "RESTART_GAME") {
+      // Проверка на TV_DISPLAY и системные экшены: телевизор и клиенты не могут отдавать команды рестарта/накрутки банка
+      if (
+        action.type === "MATCH_STARTED" ||
+        action.type === "RESTART_GAME" ||
+        action.type === "SET_MATCH_POT"
+      ) {
         return;
       }
 
@@ -1670,70 +1681,7 @@ export default class GameRoomServer {
     isPassAndPlay?: boolean,
     playerIndex?: number
   ): GameState {
-    if (state.winner) return state;
-
-    const copy: any = { ...state };
-    copy.evidenceDeck = [];
-    if (copy.victimList && copy.victimList.length > 0) {
-      copy.victimList = [copy.victimList[0], ...copy.victimList.slice(1).map(() => "UNKNOWN")];
-    }
-
-    if (isPassAndPlay) {
-      if (state.mode === "SECRET_SERVICE" && copy.spies && Array.isArray(copy.spies)) {
-        const activeIdx = state.activeSpyIndex ?? 0;
-        copy.spies = copy.spies.map((spy: any, idx: number) => {
-          if (idx === activeIdx) {
-            return spy;
-          }
-          return { ...spy, secretId: null };
-        });
-        copy.detectiveSecretId = null;
-        copy.killerSecretId = null;
-        return copy;
-      }
-
-      if (state.currentTurn === "KILLER") {
-        copy.detectiveSecretId = null;
-        copy.detectiveHand = [];
-        copy.inspectorChoices = [];
-        copy.inspectorTargetId = null;
-      } else {
-        copy.killerSecretId = null;
-        copy.killerHand = [];
-        copy.disguisedNotification = null;
-      }
-      return copy;
-    }
-
-    if (state.mode === "SECRET_SERVICE" && copy.spies && Array.isArray(copy.spies)) {
-      const targetMyIndex = playerIndex !== undefined && playerIndex !== -1
-        ? playerIndex
-        : (isHost === true ? 0 : 1);
-      copy.spies = copy.spies.map((spy: any, idx: number) => {
-        if (idx === targetMyIndex) {
-          return spy;
-        }
-        return { ...spy, secretId: null };
-      });
-      copy.detectiveSecretId = null;
-      copy.killerSecretId = null;
-      return copy;
-    }
-
-    if (role === "KILLER") {
-      copy.detectiveSecretId = null;
-      copy.detectiveHand = [];
-      copy.inspectorChoices = [];
-      copy.inspectorTargetId = null;
-    } else if (role === "DETECTIVE") {
-      copy.killerSecretId = null;
-      copy.killerHand = [];
-      copy.disguisedNotification = null;
-    } else {
-      copy.detectiveSecretId = null;
-      copy.killerSecretId = null;
-    }
-    return copy;
+    return maskStateForPlayer(state, role, isHost, isPassAndPlay, playerIndex);
   }
 
   private getClientIdByConnId(connId: string): string | undefined {
@@ -1780,4 +1728,111 @@ export default class GameRoomServer {
     (this.state as any).restartRequestedBy = null;
     unregisterRoom(this.getRoomCode());
   }
+}
+
+export function maskStateForPlayer(
+  state: GameState,
+  role?: Role,
+  isHost?: boolean,
+  isPassAndPlay?: boolean,
+  playerIndex?: number
+): GameState {
+  if (state.winner) return state;
+
+  const copy: any = { ...state };
+  copy.evidenceDeck = [];
+  if (copy.victimList && copy.victimList.length > 0) {
+    copy.victimList = [copy.victimList[0], ...copy.victimList.slice(1).map(() => "UNKNOWN")];
+  }
+
+  if (isPassAndPlay) {
+    if (state.mode === "SECRET_SERVICE" && copy.spies && Array.isArray(copy.spies)) {
+      const activeIdx = state.activeSpyIndex ?? 0;
+      copy.spies = copy.spies.map((spy: any, idx: number) => {
+        if (idx === activeIdx) {
+          return spy;
+        }
+        return { ...spy, secretId: null };
+      });
+      copy.detectiveSecretId = null;
+      copy.killerSecretId = null;
+      copy.duelSecretKillerId = null;
+      copy.duelSecretDetectiveId = null;
+      copy.killerRoleCard = null;
+      copy.detectiveRoleCard = null;
+      copy.robberHand = [];
+      return copy;
+    }
+
+    if (state.currentTurn === "KILLER") {
+      copy.detectiveSecretId = null;
+      copy.duelSecretDetectiveId = null;
+      copy.detectiveRoleCard = null;
+      copy.detectiveHand = [];
+      copy.inspectorChoices = [];
+      copy.inspectorTargetId = null;
+    } else {
+      copy.killerSecretId = null;
+      copy.duelSecretKillerId = null;
+      copy.killerRoleCard = null;
+      copy.killerHand = [];
+      copy.robberHand = [];
+      copy.disguisedNotification = null;
+    }
+    return copy;
+  }
+
+  if (state.mode === "SECRET_SERVICE" && copy.spies && Array.isArray(copy.spies)) {
+    const targetMyIndex =
+      playerIndex !== undefined && playerIndex !== -1
+        ? playerIndex
+        : isHost === true
+        ? 0
+        : 1;
+    copy.spies = copy.spies.map((spy: any, idx: number) => {
+      if (idx === targetMyIndex) {
+        return spy;
+      }
+      return { ...spy, secretId: null };
+    });
+    copy.detectiveSecretId = null;
+    copy.killerSecretId = null;
+    copy.duelSecretKillerId = null;
+    copy.duelSecretDetectiveId = null;
+    copy.killerRoleCard = null;
+    copy.detectiveRoleCard = null;
+    copy.robberHand = [];
+    return copy;
+  }
+
+  if (role === "KILLER") {
+    copy.detectiveSecretId = null;
+    copy.duelSecretDetectiveId = null;
+    copy.detectiveRoleCard = null;
+    copy.detectiveHand = [];
+    copy.inspectorChoices = [];
+    copy.inspectorTargetId = null;
+  } else if (role === "DETECTIVE") {
+    copy.killerSecretId = null;
+    copy.duelSecretKillerId = null;
+    copy.killerRoleCard = null;
+    copy.killerHand = [];
+    copy.robberHand = [];
+    copy.disguisedNotification = null;
+  } else {
+    // Сторонний наблюдатель / зритель
+    copy.detectiveSecretId = null;
+    copy.killerSecretId = null;
+    copy.duelSecretKillerId = null;
+    copy.duelSecretDetectiveId = null;
+    copy.killerRoleCard = null;
+    copy.detectiveRoleCard = null;
+    copy.killerHand = [];
+    copy.detectiveHand = [];
+    copy.robberHand = [];
+    copy.inspectorChoices = [];
+    copy.inspectorTargetId = null;
+    copy.disguisedNotification = null;
+  }
+  return copy;
 }

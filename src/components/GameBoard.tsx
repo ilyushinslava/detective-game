@@ -54,7 +54,7 @@ interface GameBoardProps {
   onCardClick?: (id: string) => void;
 }
 
-export const GameBoard: React.FC<GameBoardProps> = (props) => {
+export const GameBoard: React.FC<GameBoardProps> = React.memo((props) => {
   const {
     mode = "MANIAC_VS_OPERATIVE",
     board,
@@ -407,4 +407,6 @@ export const GameBoard: React.FC<GameBoardProps> = (props) => {
       )}
     </div>
   );
-};
+});
+
+GameBoard.displayName = "GameBoard";

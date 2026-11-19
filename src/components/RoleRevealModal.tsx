@@ -48,37 +48,30 @@ export const RoleRevealModal = ({
 }: RoleRevealModalProps) => {
   useEffect(() => {
     if (opponent === "ONLINE") {
-      const prevAllReady = partyService.onAllPlayersReady;
-      const prevStatus = partyService.onRoomStatus;
-      const prevAction = partyService.onAction;
-
-      partyService.onAction = (action: any) => {
-        if (prevAction) prevAction(action);
+      const unsubAction = partyService.subscribe("action", (action: any) => {
         if (action?.type === "ALL_PLAYERS_READY") {
           remoteReadyRef.current = true;
           completeOnce();
         }
-      };
+      });
 
-      partyService.onAllPlayersReady = () => {
-        if (prevAllReady) prevAllReady();
+      const unsubAllReady = partyService.subscribe("allPlayersReady", () => {
         remoteReadyRef.current = true;
         completeOnce();
-      };
+      });
 
-      partyService.onRoomStatus = (data: any) => {
+      const unsubStatus = partyService.subscribe("roomStatus", (data: any) => {
         const s = typeof data === "string" ? data : data?.status;
-        if (prevStatus) prevStatus(data);
         if (s === "PLAYING") {
           remoteReadyRef.current = true;
           completeOnce();
         }
-      };
+      });
 
       return () => {
-        partyService.onAllPlayersReady = prevAllReady;
-        partyService.onRoomStatus = prevStatus;
-        partyService.onAction = prevAction;
+        unsubAction();
+        unsubAllReady();
+        unsubStatus();
       };
     }
   }, [opponent, onComplete]);

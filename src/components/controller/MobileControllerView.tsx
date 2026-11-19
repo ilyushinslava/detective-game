@@ -213,29 +213,11 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       setInternalLocalDisconnected(false);
     };
 
-    const prevConn = partyService.onConnectionStateChange;
-    const prevDisc = partyService.onPlayerDisconnected;
-    const prevRec = partyService.onPlayerReconnected;
-    const prevRestored = partyService.onSessionRestored;
-    const prevAction = partyService.onAction;
-
-    partyService.onConnectionStateChange = (st) => {
-      handleConn(st);
-      prevConn?.(st);
-    };
-    partyService.onPlayerDisconnected = (info) => {
-      handleDisc(info);
-      prevDisc?.(info);
-    };
-    partyService.onPlayerReconnected = (info) => {
-      handleRec();
-      prevRec?.(info);
-    };
-    partyService.onSessionRestored = (data) => {
-      handleRestored();
-      prevRestored?.(data);
-    };
-    partyService.onAction = (action) => {
+    const unsubConn = partyService.subscribe("connectionStateChange", handleConn);
+    const unsubDisc = partyService.subscribe("playerDisconnected", handleDisc);
+    const unsubRec = partyService.subscribe("playerReconnected", handleRec);
+    const unsubRestored = partyService.subscribe("sessionRestored", handleRestored);
+    const unsubAction = partyService.subscribe("action", (action: any) => {
       if (action?.type === 'ACTION_REJECTED' || action?.type === 'ERROR' || action?.type === 'SYNC_ERROR') {
         setIsAwaitingTurnEnd(false);
         soundManager.play('deny');
@@ -246,15 +228,14 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           setTimeout(() => setErrorTargetId(null), 500);
         }
       }
-      prevAction?.(action);
-    };
+    });
 
     return () => {
-      partyService.onConnectionStateChange = prevConn;
-      partyService.onPlayerDisconnected = prevDisc;
-      partyService.onPlayerReconnected = prevRec;
-      partyService.onSessionRestored = prevRestored;
-      partyService.onAction = prevAction;
+      unsubConn();
+      unsubDisc();
+      unsubRec();
+      unsubRestored();
+      unsubAction();
     };
   }, []);
 

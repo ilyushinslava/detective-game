@@ -1,5 +1,6 @@
 import React from "react";
 import type { GameState } from "../../types/game";
+import { useGameTimerDisplay } from "../../hooks/useGameTimer";
 
 export interface GameTopHeaderProps {
   gameState: GameState;
@@ -7,7 +8,7 @@ export interface GameTopHeaderProps {
   currentRoleName: string;
   pillClasses: string;
   dotClasses: string;
-  secondsElapsed: number;
+  secondsElapsed?: number;
   formatTimer: (totalSeconds: number) => string;
   unreadLogCount: number;
   setIsLogOpen: (open: boolean) => void;
@@ -32,6 +33,8 @@ export const GameTopHeader: React.FC<GameTopHeaderProps> = ({
   setIsMenuOpen,
   onReset,
 }) => {
+  const liveSeconds = useGameTimerDisplay();
+  const displaySeconds = secondsElapsed !== undefined ? secondsElapsed : liveSeconds;
   return (
     <header className="relative w-full px-2.5 py-2 md:px-6 md:py-3 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl flex justify-between items-center z-30 shrink-0 shadow-lg gap-2">
       <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 z-10">
@@ -112,7 +115,7 @@ export const GameTopHeader: React.FC<GameTopHeaderProps> = ({
 
       <div className="flex items-center gap-2 sm:gap-3 shrink-0 z-10">
         <div className="hidden md:flex items-center justify-center neo-card border-t-white/25 rounded-xl px-3.5 h-9 md:h-11 text-xs md:text-sm font-mono text-zinc-200 tracking-wider shadow-md">
-          {formatTimer(secondsElapsed)}
+          {formatTimer(displaySeconds)}
         </div>
         <button
           onClick={onReset}

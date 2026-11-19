@@ -443,8 +443,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
   // Звуковой отклик на входящие действия с мобильного пульта через partyService
   useEffect(() => {
-    const prevActionHandler = partyService.onAction;
-    partyService.onAction = (action: any) => {
+    const unsub = partyService.subscribe("action", (action: any) => {
       if (action?.type === 'SHIFT_BOARD') {
         playShiftSound();
       } else if (
@@ -479,11 +478,10 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           setTimeout(() => setErrorCardId(null), 500);
         }
       }
-      prevActionHandler?.(action);
-    };
+    });
 
     return () => {
-      partyService.onAction = prevActionHandler;
+      unsub();
     };
   }, []);
 
@@ -497,21 +495,12 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
       setInternalDisconnected(null);
     };
 
-    const prevDisc = partyService.onPlayerDisconnected;
-    const prevRec = partyService.onPlayerReconnected;
-
-    partyService.onPlayerDisconnected = (info: any) => {
-      handleDisc(info);
-      prevDisc?.(info);
-    };
-    partyService.onPlayerReconnected = (info: any) => {
-      handleRec();
-      prevRec?.(info);
-    };
+    const unsubDisc = partyService.subscribe("playerDisconnected", handleDisc);
+    const unsubRec = partyService.subscribe("playerReconnected", handleRec);
 
     return () => {
-      partyService.onPlayerDisconnected = prevDisc;
-      partyService.onPlayerReconnected = prevRec;
+      unsubDisc();
+      unsubRec();
     };
   }, []);
 

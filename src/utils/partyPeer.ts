@@ -232,17 +232,208 @@ class PartyService {
     }
   }
 
-  onSyncState: ((state: any, role?: Role, status?: string) => void) | null = null;
-  onStateUpdate: ((state: any, role?: Role, status?: string) => void) | null = null;
-  onRoomStatus: ((status: any) => void) | null = null;
-  onAllPlayersReady: (() => void) | null = null;
-  onAction: ((action: any) => void) | null = null;
-  onPresenceChanged: ((connected: boolean) => void) | null = null;
-  onPlayerDisconnected: ((info: { role?: Role; clientId: string; graceTimeoutSec: number }) => void) | null = null;
-  onPlayerReconnected: ((info: { role?: Role; clientId: string }) => void) | null = null;
-  onSessionRestored: ((data: any) => void) | null = null;
-  onConnectionStateChange: ((state: { isConnected: boolean; isReconnecting: boolean; attempt: number; maxAttempts: number }) => void) | null = null;
-  onError: ((errorData: { type: string; message: string; reason?: string }) => void) | null = null;
+  // --- Типизированный Event Bus (P0 Security & Memory Leak Fix) ---
+  private listeners: { [key: string]: Set<Function> } = {};
+  private legacyHandlers: { [key: string]: Function | null } = {};
+
+  subscribe(event: string, listener: Function): () => void {
+    if (!this.listeners[event]) {
+      this.listeners[event] = new Set();
+    }
+    this.listeners[event].add(listener);
+
+    return () => {
+      this.listeners[event]?.delete(listener);
+    };
+  }
+
+  on(event: string, listener: Function): () => void {
+    return this.subscribe(event, listener);
+  }
+
+  off(event: string, listener: Function): void {
+    this.listeners[event]?.delete(listener);
+  }
+
+  emit(event: string, ...args: any[]): void {
+    const set = this.listeners[event];
+    if (set && set.size > 0) {
+      for (const listener of Array.from(set)) {
+        try {
+          listener(...args);
+        } catch (err) {
+          console.error(`[PartyService] Error in listener for "${event}":`, err);
+        }
+      }
+    }
+  }
+
+  getListenerCount(event?: string): number {
+    if (event) {
+      return this.listeners[event]?.size || 0;
+    }
+    return Object.values(this.listeners).reduce((acc, set) => acc + (set?.size || 0), 0);
+  }
+
+  clearAllListeners(): void {
+    this.listeners = {};
+    this.legacyHandlers = {};
+  }
+
+  // Legacy геттеры и сеттеры для 100% обратной совместимости
+  get onSyncState() {
+    return ((...args: any[]) => this.emit("syncState", ...args)) as any;
+  }
+  set onSyncState(fn: ((state: any, role?: Role, status?: string) => void) | null) {
+    if (this.legacyHandlers.syncState) {
+      this.off("syncState", this.legacyHandlers.syncState);
+      this.legacyHandlers.syncState = null;
+    }
+    if (fn) {
+      this.legacyHandlers.syncState = fn;
+      this.on("syncState", fn);
+    }
+  }
+
+  get onStateUpdate() {
+    return ((...args: any[]) => this.emit("stateUpdate", ...args)) as any;
+  }
+  set onStateUpdate(fn: ((state: any, role?: Role, status?: string) => void) | null) {
+    if (this.legacyHandlers.stateUpdate) {
+      this.off("stateUpdate", this.legacyHandlers.stateUpdate);
+      this.legacyHandlers.stateUpdate = null;
+    }
+    if (fn) {
+      this.legacyHandlers.stateUpdate = fn;
+      this.on("stateUpdate", fn);
+    }
+  }
+
+  get onRoomStatus() {
+    return ((...args: any[]) => this.emit("roomStatus", ...args)) as any;
+  }
+  set onRoomStatus(fn: ((status: any) => void) | null) {
+    if (this.legacyHandlers.roomStatus) {
+      this.off("roomStatus", this.legacyHandlers.roomStatus);
+      this.legacyHandlers.roomStatus = null;
+    }
+    if (fn) {
+      this.legacyHandlers.roomStatus = fn;
+      this.on("roomStatus", fn);
+    }
+  }
+
+  get onAllPlayersReady() {
+    return ((...args: any[]) => this.emit("allPlayersReady", ...args)) as any;
+  }
+  set onAllPlayersReady(fn: (() => void) | null) {
+    if (this.legacyHandlers.allPlayersReady) {
+      this.off("allPlayersReady", this.legacyHandlers.allPlayersReady);
+      this.legacyHandlers.allPlayersReady = null;
+    }
+    if (fn) {
+      this.legacyHandlers.allPlayersReady = fn;
+      this.on("allPlayersReady", fn);
+    }
+  }
+
+  get onAction() {
+    return ((...args: any[]) => this.emit("action", ...args)) as any;
+  }
+  set onAction(fn: ((action: any) => void) | null) {
+    if (this.legacyHandlers.action) {
+      this.off("action", this.legacyHandlers.action);
+      this.legacyHandlers.action = null;
+    }
+    if (fn) {
+      this.legacyHandlers.action = fn;
+      this.on("action", fn);
+    }
+  }
+
+  get onPresenceChanged() {
+    return ((...args: any[]) => this.emit("presenceChanged", ...args)) as any;
+  }
+  set onPresenceChanged(fn: ((connected: boolean) => void) | null) {
+    if (this.legacyHandlers.presenceChanged) {
+      this.off("presenceChanged", this.legacyHandlers.presenceChanged);
+      this.legacyHandlers.presenceChanged = null;
+    }
+    if (fn) {
+      this.legacyHandlers.presenceChanged = fn;
+      this.on("presenceChanged", fn);
+    }
+  }
+
+  get onPlayerDisconnected() {
+    return ((...args: any[]) => this.emit("playerDisconnected", ...args)) as any;
+  }
+  set onPlayerDisconnected(fn: ((info: { role?: Role; clientId: string; graceTimeoutSec: number }) => void) | null) {
+    if (this.legacyHandlers.playerDisconnected) {
+      this.off("playerDisconnected", this.legacyHandlers.playerDisconnected);
+      this.legacyHandlers.playerDisconnected = null;
+    }
+    if (fn) {
+      this.legacyHandlers.playerDisconnected = fn;
+      this.on("playerDisconnected", fn);
+    }
+  }
+
+  get onPlayerReconnected() {
+    return ((...args: any[]) => this.emit("playerReconnected", ...args)) as any;
+  }
+  set onPlayerReconnected(fn: ((info: { role?: Role; clientId: string }) => void) | null) {
+    if (this.legacyHandlers.playerReconnected) {
+      this.off("playerReconnected", this.legacyHandlers.playerReconnected);
+      this.legacyHandlers.playerReconnected = null;
+    }
+    if (fn) {
+      this.legacyHandlers.playerReconnected = fn;
+      this.on("playerReconnected", fn);
+    }
+  }
+
+  get onSessionRestored() {
+    return ((...args: any[]) => this.emit("sessionRestored", ...args)) as any;
+  }
+  set onSessionRestored(fn: ((data: any) => void) | null) {
+    if (this.legacyHandlers.sessionRestored) {
+      this.off("sessionRestored", this.legacyHandlers.sessionRestored);
+      this.legacyHandlers.sessionRestored = null;
+    }
+    if (fn) {
+      this.legacyHandlers.sessionRestored = fn;
+      this.on("sessionRestored", fn);
+    }
+  }
+
+  get onConnectionStateChange() {
+    return ((...args: any[]) => this.emit("connectionStateChange", ...args)) as any;
+  }
+  set onConnectionStateChange(fn: ((state: { isConnected: boolean; isReconnecting: boolean; attempt: number; maxAttempts: number }) => void) | null) {
+    if (this.legacyHandlers.connectionStateChange) {
+      this.off("connectionStateChange", this.legacyHandlers.connectionStateChange);
+      this.legacyHandlers.connectionStateChange = null;
+    }
+    if (fn) {
+      this.legacyHandlers.connectionStateChange = fn;
+      this.on("connectionStateChange", fn);
+    }
+  }
+
+  get onError() {
+    return ((...args: any[]) => this.emit("error", ...args)) as any;
+  }
+  set onError(fn: ((errorData: { type: string; message: string; reason?: string }) => void) | null) {
+    if (this.legacyHandlers.error) {
+      this.off("error", this.legacyHandlers.error);
+      this.legacyHandlers.error = null;
+    }
+    if (fn) {
+      this.legacyHandlers.error = fn;
+      this.on("error", fn);
+    }
+  }
 
   constructor() {
     this.setupVisibilityListener();

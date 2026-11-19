@@ -11,7 +11,7 @@ import { useProfile } from "./hooks/useProfile";
 import { partyService } from "./utils/partyPeer";
 import { useMultiplayer } from "./utils/useMultiplayer";
 import { useGameLog } from "./hooks/useGameLog";
-import { useGameTimer } from "./hooks/useGameTimer";
+import { useGameTimerController } from "./hooks/useGameTimer";
 import { useMatchEndHandler } from "./hooks/useMatchEndHandler";
 import { useAiTurn } from "./hooks/useAiTurn";
 import { useGameActions } from "./hooks/useGameActions";
@@ -220,12 +220,7 @@ export default function App() {
       }
       partyService.connect(tvRoomCode, profile.nickname || 'Агент', false, 'MANIAC_VS_OPERATIVE', controllerClientId || undefined, 'CONTROLLER');
 
-      const prevOnRoomStatus = partyService.onRoomStatus;
-      const prevOnSyncState = partyService.onSyncState;
-      const prevOnAction = partyService.onAction;
-
-      partyService.onRoomStatus = (data: any) => {
-        prevOnRoomStatus?.(data);
+      const unsubRoomStatus = partyService.subscribe("roomStatus", (data: any) => {
         if (data?.status) {
           setControllerRoomStatus(data.status);
           if (data.status === "PLAYING") {
@@ -237,10 +232,9 @@ export default function App() {
           console.warn("[Controller] TV host is not present in room, kicking to connect screen");
           handleLeaveControllerLobby("ТВ-хост отключился");
         }
-      };
+      });
 
-      partyService.onAction = (action: any) => {
-        prevOnAction?.(action);
+      const unsubAction = partyService.subscribe("action", (action: any) => {
         if (action?.type === "TV_DISCONNECTED" || action?.type === "OPPONENT_LEFT") {
           if (controllerRoomStatus !== "PLAYING") {
             console.warn("[Controller] TV host disconnected event received");
@@ -253,10 +247,9 @@ export default function App() {
           console.warn("[Controller] Room not found, clearing stale session");
           handleLeaveControllerLobby("ТВ-хост отключился");
         }
-      };
+      });
 
-      partyService.onSyncState = (state: any, role?: Role, status?: string) => {
-        prevOnSyncState?.(state, role, status);
+      const unsubSyncState = partyService.subscribe("syncState", (state: any, role?: Role, status?: string) => {
         if (role && (role as any) !== "SPECTATOR") {
           (partyService as any).role = role;
           setControllerRole(role);
@@ -286,12 +279,12 @@ export default function App() {
             setIsIntroPhase(true);
           }
         }
-      };
+      });
 
       return () => {
-        partyService.onRoomStatus = prevOnRoomStatus;
-        partyService.onSyncState = prevOnSyncState;
-        partyService.onAction = prevOnAction;
+        unsubRoomStatus();
+        unsubAction();
+        unsubSyncState();
       };
     }
   }, [clientTypeParam, tvRoomCode, controllerRoomStatus]);
@@ -301,13 +294,7 @@ export default function App() {
 
     partyService.connect(tvRoomCode, 'TV_HOST', true, 'MANIAC_VS_OPERATIVE', undefined, 'TV_DISPLAY');
 
-    const prevOnRoomStatus = partyService.onRoomStatus;
-    const prevOnSyncState = partyService.onSyncState;
-    const prevOnAction = partyService.onAction;
-    const prevOnConnState = partyService.onConnectionStateChange;
-
-    partyService.onConnectionStateChange = (st) => {
-      prevOnConnState?.(st);
+    const unsubConn = partyService.subscribe("connectionStateChange", (st: any) => {
       if (st.isConnected) {
         setIsTvDisconnected(false);
         setTvReconnectAttempt(1);
@@ -315,10 +302,9 @@ export default function App() {
         setIsTvDisconnected(true);
         setTvReconnectAttempt(st.attempt || 1);
       }
-    };
+    });
 
-    partyService.onRoomStatus = (data: any) => {
-      prevOnRoomStatus?.(data);
+    const unsubRoomStatus = partyService.subscribe("roomStatus", (data: any) => {
       if (data?.players) {
         setTvPlayers(data.players);
       }
@@ -329,10 +315,9 @@ export default function App() {
         setTvPartyState((prev) => (prev === "TV_LOBBY" ? "TV_BOARD" : prev));
         setControllerRoomStatus(data.status);
       }
-    };
+    });
 
-    partyService.onSyncState = (state: any, role?: Role, status?: string) => {
-      prevOnSyncState?.(state, role, status);
+    const unsubSyncState = partyService.subscribe("syncState", (state: any, role?: Role, status?: string) => {
       // При получении синхронизации соединение гарантированно активно
       setIsTvDisconnected(false);
       if (state) {
@@ -345,22 +330,21 @@ export default function App() {
       if (role && (role as any) !== "SPECTATOR") {
         setControllerRole(role);
       }
-    };
+    });
 
-    partyService.onAction = (action: any) => {
-      prevOnAction?.(action);
+    const unsubAction = partyService.subscribe("action", (action: any) => {
       if (action?.type === "LINE_PREVIEW") {
         setTvLinePreview(action.payload?.line ?? null);
       } else if (action?.type === "PREVIEW_SHIFT") {
         setTvLinePreview(action.payload ?? null);
       }
-    };
+    });
 
     return () => {
-      partyService.onRoomStatus = prevOnRoomStatus;
-      partyService.onSyncState = prevOnSyncState;
-      partyService.onAction = prevOnAction;
-      partyService.onConnectionStateChange = prevOnConnState;
+      unsubConn();
+      unsubRoomStatus();
+      unsubSyncState();
+      unsubAction();
     };
   }, [tvPartyState, tvRoomCode]);
 
@@ -424,7 +408,7 @@ export default function App() {
     setGameState((prev) => gameReducer(prev, action));
   };
 
-  const { secondsElapsed, setSecondsElapsed } = useGameTimer({
+  const { getElapsedSeconds, setSecondsElapsed } = useGameTimerController({
     hasStartedEver,
     isIntroPhase,
     winner: gameState.winner,
@@ -470,7 +454,7 @@ export default function App() {
     matchResultRecordedRef,
     awardPrize,
     recordMatchResult,
-    secondsElapsed,
+    secondsElapsed: getElapsedSeconds(),
     onRatingCalculated: (info) => {
       setMatchRatingInfo({
         rating: info.newMmr ?? ((profile.mmr ?? 1000) + info.mmrDelta),
@@ -1003,7 +987,7 @@ export default function App() {
                   actionPanelRoleName={actionPanelRoleName}
                   pillClasses={pillClasses}
                   dotClasses={dotClasses}
-                  secondsElapsed={secondsElapsed}
+                  secondsElapsed={getElapsedSeconds()}
                   formatTimer={formatTimer}
                   selectedId={selectedId}
                   setSelectedId={setSelectedId}
@@ -1084,7 +1068,7 @@ export default function App() {
             isRevealConfirmed={isRevealConfirmed}
             setIsRevealConfirmed={setIsRevealConfirmed}
             characterImages={characterImages}
-            secondsElapsed={secondsElapsed}
+            secondsElapsed={getElapsedSeconds()}
             formatTimer={formatTimer}
             handleExitToMenu={handleExitToMenu}
             handleReset={() => {

@@ -117,16 +117,11 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
       return;
     }
 
-    const prevOnRoomStatus = partyService.onRoomStatus;
-    const prevOnSyncState = partyService.onSyncState;
-    const prevOnError = partyService.onError;
-
     if (partyService.morseCode) {
       setMorseCode(partyService.morseCode);
     }
 
-    partyService.onError = (err: any) => {
-      prevOnError?.(err);
+    const unsubError = partyService.subscribe("error", (err: any) => {
       setIsWaitingForOpponent(false);
       setIsCreating(false);
       soundManager.play("error");
@@ -142,10 +137,9 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
         msg = "Неверный пароль комнаты.";
       }
       setNetworkError(msg);
-    };
+    });
 
-    partyService.onRoomStatus = (data: any) => {
-      prevOnRoomStatus?.(data);
+    const unsubRoomStatus = partyService.subscribe("roomStatus", (data: any) => {
       if (data?.morseCode) {
         setMorseCode(data.morseCode);
       }
@@ -156,22 +150,21 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
         const targetRole = partyService.isHost ? "KILLER" : "DETECTIVE";
         onStartGame(activeRoomMode, "ONLINE", targetRole, 2, 3, 0, activeRoomBet);
       }
-    };
+    });
 
-    partyService.onSyncState = (state: any, role?: Role, status?: string) => {
-      prevOnSyncState?.(state, role, status);
+    const unsubSyncState = partyService.subscribe("syncState", (state: any, role?: Role, status?: string) => {
       if (status === "READY_TO_START" || status === "PLAYING") {
         soundManager.play("confirm");
         setIsWaitingForOpponent(false);
         const targetRole = role || (partyService.isHost ? "KILLER" : "DETECTIVE");
         onStartGame(activeRoomMode, "ONLINE", targetRole, 2, 3, 0, activeRoomBet);
       }
-    };
+    });
 
     return () => {
-      partyService.onRoomStatus = prevOnRoomStatus;
-      partyService.onSyncState = prevOnSyncState;
-      partyService.onError = prevOnError;
+      unsubError();
+      unsubRoomStatus();
+      unsubSyncState();
     };
   }, [isWaitingForOpponent, activeRoomMode, activeRoomBet, onStartGame]);
 

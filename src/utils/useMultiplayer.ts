@@ -67,7 +67,17 @@ export function useMultiplayer({
       return;
     }
 
-    partyService.onSyncState = (state: any, role?: Role, status?: string) => {
+    const subscribeOrAssign = (event: string, legacyProp: string, handler: any): (() => void) => {
+      if (typeof partyService.subscribe === "function") {
+        return partyService.subscribe(event, handler);
+      }
+      (partyService as any)[legacyProp] = handler;
+      return () => {
+        (partyService as any)[legacyProp] = null;
+      };
+    };
+
+    const unsubSyncState = subscribeOrAssign("syncState", "onSyncState", (state: any, role?: Role, status?: string) => {
       if (state) {
         if (state.mode) {
           setActiveMode(state.mode);
@@ -100,9 +110,9 @@ export function useMultiplayer({
       if (status === "FINISHED" && state?.winner) {
         setToastMessage(`Матч завершен. Победил: ${state.winner}`);
       }
-    };
+    });
 
-    partyService.onRoomStatus = (data: any) => {
+    const unsubRoomStatus = subscribeOrAssign("roomStatus", "onRoomStatus", (data: any) => {
       const status = typeof data === "string" ? data : data?.status;
       if (status === "WAITING") {
         setIsOpponentConnected(true);
@@ -130,23 +140,23 @@ export function useMultiplayer({
         setIsIntroPhase(false);
         setGameState((prev) => ({ ...prev, opponent: "ONLINE" }));
       }
-    };
+    });
 
-    partyService.onAllPlayersReady = () => {
+    const unsubAllPlayersReady = subscribeOrAssign("allPlayersReady", "onAllPlayersReady", () => {
       setIsLobbyOpen(false);
       setHasStartedEver(true);
       setIsIntroPhase(false);
-    };
+    });
 
-    partyService.onPresenceChanged = (connected: boolean) => {
+    const unsubPresenceChanged = subscribeOrAssign("presenceChanged", "onPresenceChanged", (connected: boolean) => {
       setIsOpponentConnected(connected);
       setOpponentDisconnectedNotice(!connected);
       if (connected) {
         soundManager.play("confirm");
       }
-    };
+    });
 
-    partyService.onAction = (action: any) => {
+    const unsubAction = subscribeOrAssign("action", "onAction", (action: any) => {
       if (!action) return;
       if (action.type === "ALL_PLAYERS_READY") {
         setIsLobbyOpen(false);
@@ -180,14 +190,14 @@ export function useMultiplayer({
       } else if (action.type === "OPPONENT_LEFT") {
         setOpponentDisconnectedNotice(true);
       }
-    };
+    });
 
     return () => {
-      partyService.onSyncState = null;
-      partyService.onRoomStatus = null;
-      partyService.onAllPlayersReady = null;
-      partyService.onPresenceChanged = null;
-      partyService.onAction = null;
+      unsubSyncState();
+      unsubRoomStatus();
+      unsubAllPlayersReady();
+      unsubPresenceChanged();
+      unsubAction();
     };
   }, [gameState.opponent, setGameState, setToastMessage, setIsLobbyOpen, setHasStartedEver, setIsIntroPhase]);
 

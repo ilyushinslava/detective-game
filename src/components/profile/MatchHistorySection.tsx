@@ -25,7 +25,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
   translations: p,
 }) => {
   return (
-    <div className="neo-card border-t-white/20 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xl flex-1 min-h-0 flex flex-col gap-2.5 overflow-hidden">
+    <div className="flex-1 min-h-0 flex flex-col gap-2.5 overflow-hidden">
       <div className="flex items-center justify-between border-b border-white/10 pb-2 shrink-0">
         <div className="flex items-center gap-2">
           <ProfileIcons.Activity className="w-3.5 h-3.5 text-zinc-400" />

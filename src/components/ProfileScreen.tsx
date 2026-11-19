@@ -8,6 +8,7 @@ import { getCharacterPortraitPath } from '../constants/characterImages';
 import { validatePlayerName } from '../utils/nameFilter';
 import { useAuthSafe } from '../contexts/AuthContext';
 import { AuthModal } from './auth';
+import { Modal } from './ui/Modal';
 import {
   ProfileIcons,
   AvatarPickerModal,
@@ -79,7 +80,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [nicknameInput, setNicknameInput] = useState(profile.agentName || profile.nickname || '');
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'STATS' | 'HISTORY'>('STATS');
+  const [isMatchHistoryOpen, setIsMatchHistoryOpen] = useState(false);
 
   // Логика аутентификации и защиты аккаунта
   const { isAnonymous } = useAuthSafe();
@@ -165,14 +166,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       </header>
 
       {/* Основной контент */}
-      <div className="flex-1 min-h-0 max-w-4xl w-full mx-auto p-3 sm:p-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex flex-col gap-2.5 sm:gap-3.5 overflow-hidden">
+      <div className="flex-1 min-h-0 max-w-4xl w-full mx-auto p-3 sm:p-5 pb-[max(1rem,env(safe-area-inset-bottom))] flex flex-col gap-3 sm:gap-4 overflow-y-auto custom-scrollbar">
         
-        {/* Компактная карточка агента (Удостоверение) */}
-        <div className="neo-card border-t-white/20 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 shadow-xl relative overflow-hidden shrink-0">
-          <div className="flex items-center gap-3 sm:gap-4 relative z-10">
-            {/* Аватар 56x56 */}
+        {/* Карточка агента (Удостоверение) */}
+        <div className="neo-card border-t-white/20 rounded-2xl py-3.5 px-4 sm:p-5 shadow-2xl relative overflow-hidden shrink-0">
+          <div className="flex flex-col items-center gap-3 relative z-10 text-center">
+            {/* Аватар */}
             <div className="relative group shrink-0">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border border-white/20 bg-zinc-900 shadow-md relative z-10">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border border-white/20 border-t-white/40 bg-zinc-900 shadow-xl relative z-10">
                 <img
                   src={avatarPortraitUrl}
                   alt="Avatar"
@@ -185,91 +186,88 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     triggerHaptic('light');
                     setIsAvatarPickerOpen(true);
                   }}
-                  className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-0.5 text-white transition-opacity cursor-pointer"
+                  className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-1 text-white transition-opacity cursor-pointer"
                   title={p.changeAvatar}
                 >
                   <ProfileIcons.Camera className="w-4 h-4" />
-                  <span className="text-[8px] font-mono font-bold uppercase tracking-wider">
+                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider">
                     {p.changeAvatar}
                   </span>
                 </button>
               </div>
             </div>
 
-            {/* Правый инфо-блок в 2 строки */}
-            <div className="flex-1 flex flex-col justify-center min-w-0">
-              {/* Строка 1: Позывной + кнопка редактирования + бейдж уровня */}
-              <div className="flex items-center gap-2 flex-wrap">
-                {isEditing ? (
-                  <div className="flex flex-col gap-1 w-full max-w-xs">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={nicknameInput}
-                        onChange={(e) => {
-                          setNicknameInput(e.target.value);
-                          setNicknameError(null);
-                        }}
-                        maxLength={20}
-                        className={`flex-1 bg-zinc-900 border ${nicknameError ? 'border-accent-danger' : 'border-white/20'} rounded-lg px-2 py-0.5 text-sm font-black font-mono text-white focus:outline-none`}
-                        autoFocus
-                      />
-                      <Button
-                        variant="primary"
-                        onClick={handleSaveNickname}
-                        className="h-7 px-2.5 text-xs font-bold uppercase tracking-wider !rounded-lg"
-                      >
-                        {p.save}
-                      </Button>
-                    </div>
-                    {nicknameError && (
-                      <span className="text-[10px] font-mono text-rose-400 leading-tight">
-                        {nicknameError}
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <h2 className="text-base sm:text-lg font-black uppercase tracking-wider text-white truncate max-w-[150px] xs:max-w-[200px] sm:max-w-xs">
-                      {profile.agentName || profile.nickname || 'Агент'}
-                    </h2>
-                    <button
-                      onClick={() => {
-                        soundManager.play('click');
-                        triggerHaptic('light');
-                        setIsEditing(true);
-                      }}
-                      className="p-1 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer shrink-0"
-                      title={p.editCallsign}
-                    >
-                      <ProfileIcons.Edit className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
-
-                {!isEditing && (
-                  <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-blue-400 font-bold bg-blue-500/15 border border-blue-500/30 px-1.5 py-0.5 rounded-md shrink-0">
-                    {p.level} {profile.level || 1}
-                  </span>
-                )}
+            {/* Инфо и имя */}
+            <div className="flex flex-col items-center gap-1.5 min-w-0 w-full">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-300 font-bold bg-zinc-900/80 px-2 py-0.5 rounded border border-white/10">
+                  {p.level} {profile.level || 1}
+                </span>
+                <span className="text-[10px] font-mono text-zinc-400 font-bold bg-zinc-900/80 px-2 py-0.5 rounded border border-white/10">
+                  {p.online}
+                </span>
               </div>
 
-              {/* Строка 2: Монеты • Ранг • Короткий ID */}
-              <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 mt-1 flex-wrap">
-                <span className="flex items-center gap-1 text-amber-400 font-bold text-[11px] sm:text-xs">
+              {isEditing ? (
+                <div className="flex flex-col gap-1 mt-1 w-full max-w-xs items-center">
+                  <div className="flex items-center gap-2 w-full">
+                    <input
+                      type="text"
+                      value={nicknameInput}
+                      onChange={(e) => {
+                        setNicknameInput(e.target.value);
+                        setNicknameError(null);
+                      }}
+                      maxLength={20}
+                      className={`flex-1 bg-zinc-900 border ${nicknameError ? 'border-accent-danger' : 'border-white/20'} rounded-lg px-2.5 py-1 text-sm font-black font-mono text-white focus:outline-none`}
+                      autoFocus
+                    />
+                    <Button
+                      variant="primary"
+                      onClick={handleSaveNickname}
+                      className="h-8 px-3 text-xs font-bold uppercase tracking-wider !rounded-lg"
+                    >
+                      {p.save}
+                    </Button>
+                  </div>
+                  {nicknameError && (
+                    <span className="text-[10px] font-mono text-rose-400 leading-tight">
+                      {nicknameError}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 group justify-center">
+                  <h2 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-white truncate max-w-xs sm:max-w-md">
+                    {profile.agentName || profile.nickname || 'Агент'}
+                  </h2>
+                  <button
+                    onClick={() => {
+                      soundManager.play('click');
+                      triggerHaptic('light');
+                      setIsEditing(true);
+                    }}
+                    className="p-1 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                    title={p.editCallsign}
+                  >
+                    <ProfileIcons.Edit className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              <div className="flex items-center justify-center gap-3 text-xs font-mono text-zinc-400 mt-0.5 flex-wrap">
+                <span className="flex items-center gap-1.5 text-amber-400 font-bold">
                   <ProfileIcons.Coin className="w-3.5 h-3.5" />
                   <span>{profile.cash?.toLocaleString() || 0}</span>
                 </span>
                 {profile.rank && (
                   <>
-                    <span className="text-zinc-600">•</span>
-                    <span className="text-zinc-300 font-bold text-[11px] sm:text-xs truncate max-w-[120px]">
-                      {profile.rank}
-                    </span>
+                    <span>•</span>
+                    <span className="text-zinc-300 font-bold">{profile.rank}</span>
                   </>
                 )}
-                <span className="text-zinc-600">•</span>
-                <span className="text-zinc-500 text-[10px] truncate">
+                <span>•</span>
+                <span className="text-zinc-500 text-[11px]">
                   ID: {profile.id?.slice(0, 8)}...
                 </span>
               </div>
@@ -277,7 +275,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
         </div>
 
-        {/* Защита аккаунта / Сохранение прогресса (тонкая плашка гостя) */}
+        {/* Защита аккаунта / Сохранение прогресса */}
         <AccountSecurityCard
           isAnonymous={isAnonymous}
           isAccountProtectedSuccess={isAccountProtectedSuccess}
@@ -292,74 +290,61 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           translations={p}
         />
 
-        {/* Сегментный переключатель вкладок: Статистика / История матчей */}
-        <div className="bg-background-surface/30 p-1 rounded-xl border border-white/5 backdrop-blur-sm shrink-0 flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => {
-              soundManager.play('tapMenu');
-              triggerHaptic('light');
-              setActiveTab('STATS');
-            }}
-            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 cursor-pointer flex items-center justify-center gap-2 ${
-              activeTab === 'STATS'
-                ? 'bg-background-panel shadow-md border border-white/10 text-white'
-                : 'bg-transparent text-zinc-500 hover:text-zinc-300 border border-transparent'
-            }`}
-          >
-            <ProfileIcons.Award className="w-3.5 h-3.5" />
-            <span>{p.statsTab || 'Статистика'}</span>
-          </button>
+        {/* Статистика (4 карточки 2x2) */}
+        <ProfileStatsGrid
+          currentMmr={currentMmr}
+          winRate={winRate}
+          totalWins={totalWins}
+          totalGames={totalGames}
+          winsDet={winsDet}
+          winsMan={winsMan}
+          lawRatio={lawRatio}
+          translations={p}
+        />
 
-          <button
-            type="button"
-            onClick={() => {
-              soundManager.play('tapMenu');
-              triggerHaptic('light');
-              setActiveTab('HISTORY');
-            }}
-            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 cursor-pointer flex items-center justify-center gap-2 ${
-              activeTab === 'HISTORY'
-                ? 'bg-background-panel shadow-md border border-white/10 text-white'
-                : 'bg-transparent text-zinc-500 hover:text-zinc-300 border border-transparent'
-            }`}
-          >
-            <ProfileIcons.Activity className="w-3.5 h-3.5" />
-            <span>{p.historyTab || 'История матчей'}</span>
-            {profile.recentMatches && profile.recentMatches.length > 0 && (
-              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full border ${
-                activeTab === 'HISTORY' ? 'bg-white/10 text-white border-white/20' : 'bg-white/5 text-zinc-500 border-white/5'
-              }`}>
-                {profile.recentMatches.length}
-              </span>
-            )}
-          </button>
-        </div>
+        {/* Кнопка-строка «Последние матчи» для открытия модального окна */}
+        <button
+          type="button"
+          onClick={() => {
+            soundManager.play('tapMenu');
+            triggerHaptic('light');
+            setIsMatchHistoryOpen(true);
+          }}
+          className="neo-card border-t-white/20 rounded-2xl p-3 sm:p-3.5 flex items-center justify-between shadow-lg hover:border-t-white/40 active:scale-[0.99] transition-all cursor-pointer group shrink-0"
+        >
+          <div className="flex items-center gap-2.5">
+            <span className="p-1.5 rounded-lg bg-zinc-900 border border-white/10 text-zinc-400 group-hover:text-white transition-colors">
+              <ProfileIcons.Activity className="w-4 h-4" />
+            </span>
+            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+              {p.recentMatches} {profile.recentMatches && profile.recentMatches.length > 0 ? `(${profile.recentMatches.length})` : ''}
+            </span>
+          </div>
 
-        {/* Контент активной вкладки */}
-        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-          {activeTab === 'STATS' ? (
-            <ProfileStatsGrid
-              currentMmr={currentMmr}
-              winRate={winRate}
-              totalWins={totalWins}
-              totalGames={totalGames}
-              winsDet={winsDet}
-              winsMan={winsMan}
-              lawRatio={lawRatio}
-              translations={p}
-            />
-          ) : (
-            <MatchHistorySection
-              recentMatches={profile.recentMatches}
-              getModeLabel={getModeLabel}
-              formatDuration={formatDuration}
-              translations={p}
-            />
-          )}
-        </div>
+          <div className="flex items-center gap-1.5 text-zinc-400 group-hover:text-white transition-colors">
+            <span className="text-[10px] font-mono uppercase tracking-wider hidden xs:inline">Смотреть</span>
+            <ProfileIcons.ChevronRight className="w-4 h-4" />
+          </div>
+        </button>
 
       </div>
+
+      {/* Модальное окно истории матчей */}
+      <Modal
+        isOpen={isMatchHistoryOpen}
+        onClose={() => setIsMatchHistoryOpen(false)}
+        title={p.recentMatches || "ПОСЛЕДНИЕ МАТЧИ"}
+        maxWidth="max-w-2xl"
+      >
+        <div className="max-h-[68vh] flex flex-col min-h-0">
+          <MatchHistorySection
+            recentMatches={profile.recentMatches}
+            getModeLabel={getModeLabel}
+            formatDuration={formatDuration}
+            translations={p}
+          />
+        </div>
+      </Modal>
 
       {/* Модальное окно выбора аватара */}
       <AvatarPickerModal

@@ -5,7 +5,7 @@ import { useAuthSafe, validateLogin, validatePassword } from "../../contexts/Aut
 import { useTranslation } from "../../i18n/context";
 import { soundManager } from "../../utils/audio";
 import { triggerHaptic } from "../../utils/haptics";
-import { storage } from "../../utils/storage";
+import { storage, safeLocalStorage } from "../../utils/storage";
 import { RecoveryKeyView, generateRecoveryKey } from "./RecoveryKeyView";
 
 export interface AuthModalProps {
@@ -85,7 +85,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       if (savedProfile?.agentName || savedProfile?.nickname) {
         return savedProfile.agentName || savedProfile.nickname;
       }
-      const saved = localStorage.getItem("crime_city_callsign");
+      const saved = safeLocalStorage.getItem("crime_city_callsign");
       if (saved) return saved;
       if (user?.user_metadata?.agent_name || user?.user_metadata?.login) {
         return user.user_metadata.agent_name || user.user_metadata.login;
@@ -142,8 +142,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           const key = generateRecoveryKey();
           setGeneratedKey(key);
           try {
-            localStorage.setItem("noir_recovery_key", key);
-            localStorage.setItem(`noir_recovery_key_${login.trim().toLowerCase()}`, key);
+            safeLocalStorage.setItem("noir_recovery_key", key);
+            safeLocalStorage.setItem(`noir_recovery_key_${login.trim().toLowerCase()}`, key);
           } catch {}
           soundManager.play("confirm");
           triggerHaptic("success");

@@ -11,16 +11,6 @@ export type TutorialModule =
   | "SECRET_SERVICE"
   | "LINE_UP";
 
-export const ALL_MODULES_LIST: TutorialModule[] = [
-  "BASICS",
-  "MANIAC_KILLER",
-  "MANIAC_DETECTIVE",
-  "THIEF_ROBBER",
-  "THIEF_POLICE",
-  "SECRET_SERVICE",
-  "LINE_UP",
-];
-
 export const getInitialBoard = (module: TutorialModule): Character[][] => {
   const chars = ALL_CHARACTERS.slice(0, 25).map((c) => ({
     ...c,

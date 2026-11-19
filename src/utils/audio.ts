@@ -1,4 +1,5 @@
 // src/utils/audio.ts
+import { safeLocalStorage } from './storage';
 
 type SoundType =
   | 'splash'
@@ -69,10 +70,10 @@ class SoundController {
         } catch {}
       }
 
-      const savedSfx = localStorage.getItem('crime_city_sfx');
+      const savedSfx = safeLocalStorage.getItem('crime_city_sfx');
       if (savedSfx !== null) this.isSfxEnabled = savedSfx === 'true';
 
-      const savedAmbient = localStorage.getItem('crime_city_ambient');
+      const savedAmbient = safeLocalStorage.getItem('crime_city_ambient');
       if (savedAmbient !== null) this.isAmbientEnabled = savedAmbient === 'true';
 
       // Инициализация Web Audio контекста и предзагрузка
@@ -270,244 +271,38 @@ class SoundController {
   }
 
   /**
-   * Запуск аналогового тона телеграфного ключа через Web Audio API (TASK-SND-001)
-   * @param frequency Частота тона в Гц (по умолчанию 700 Гц — стандартный CW радиосигнал)
+   * Воспроизведение сигнала телеграфного ключа (Морзе) через оригинальный аудиосэмпл
    */
-  public startMorseTone(frequency: number = 700): void {
+  public startMorseTone(_frequency: number = 700): void {
     if (!this.isSfxEnabled) return;
-
-    this.unlockAudioContext();
-    if (!this.ctx) return;
-
-    if (this.ctx.state === 'suspended') {
-      this.ctx.resume().catch(() => {});
-    }
-
-    if (this.morseOsc) {
-      return; // Уже играет
-    }
-
-    try {
-      const now = this.ctx.currentTime;
-      const osc = this.ctx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(frequency, now);
-
-      const gain = this.ctx.createGain();
-      // Атака (Envelope attack): плавное нарастание от 0 за 15 мс для исключения щелчков
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(0.2, now + 0.015);
-
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-
-      osc.start(now);
-
-      this.morseOsc = osc;
-      this.morseGain = gain;
-    } catch (err) {
-      console.warn('[Audio] Ошибка воспроизведения тона Морзе:', err);
-    }
+    this.play('confirm', 0.4);
   }
 
   /**
-   * Остановка тона телеграфного ключа с мягким спадом огибающей (Release envelope: 15 мс)
+   * Остановка тона телеграфного ключа
    */
   public stopMorseTone(): void {
-    if (!this.ctx || !this.morseGain || !this.morseOsc) {
-      this.morseOsc = null;
-      this.morseGain = null;
-      return;
-    }
-
-    try {
-      const now = this.ctx.currentTime;
-      const osc = this.morseOsc;
-      const gain = this.morseGain;
-
-      this.morseOsc = null;
-      this.morseGain = null;
-
-      const currentGain = typeof gain.gain.value === 'number' ? gain.gain.value : 0.2;
-      gain.gain.cancelScheduledValues(now);
-      gain.gain.setValueAtTime(currentGain, now);
-      gain.gain.linearRampToValueAtTime(0.0001, now + 0.015);
-
-      osc.stop(now + 0.02);
-      setTimeout(() => {
-        try {
-          osc.disconnect();
-          gain.disconnect();
-        } catch (_) {}
-      }, 50);
-    } catch (err) {
-      console.warn('[Audio] Ошибка остановки тона Морзе:', err);
-      this.morseOsc = null;
-      this.morseGain = null;
-    }
+    // Безопасный no-op при воспроизведении через сэмплы
   }
 
   /**
-   * Запуск кинематографичного аналогового нео-нуарного эмбиента для лобби ТВ
-   * Синтезируется напрямую через Web Audio API без скачивания тяжелых аудиофайлов.
-   * Архитектура:
-   * - Корневой тон (55 Гц / суббас A1) + детюненный обертон (55.4 Гц / треугольник)
-   * - Глубокий суб-бас (27.5 Гц / A0)
-   * - Теплый низкочастотный фильтр (BiquadFilter 140 Гц, Q=2.0)
-   * - Медленная LFO-модуляция частоты среза (0.07 Гц, «дыхание» ~14 сек)
-   * - Мягкая огибающая нарастания (Fade-In 2.0 сек)
+   * Запуск нео-нуарного эмбиента лобби ТВ через оригинальный аудиофайл public/sounds/ambient.mp3
    */
   public startTvAmbient(volume: number = 0.16): void {
     this.tvAmbientTargetVolume = volume;
     if (!this.isAmbientEnabled) return;
-
-    this.unlockAudioContext();
-    if (!this.ctx) return;
-
-    if (this.ctx.state === 'suspended') {
-      this.ctx.resume().catch(() => {});
-    }
-
-    if (this.tvAmbientNodes) {
-      return; // Уже запущен
-    }
-
-    try {
-      const now = this.ctx.currentTime;
-
-      // Низкочастотный фильтр с аналоговым резонансом
-      const filter = this.ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      if (filter.frequency.setValueAtTime) {
-        filter.frequency.setValueAtTime(140, now);
-      } else {
-        filter.frequency.value = 140;
-      }
-      if (filter.Q.setValueAtTime) {
-        filter.Q.setValueAtTime(2.0, now);
-      } else {
-        filter.Q.value = 2.0;
-      }
-
-      // Медленный генератор модуляции (LFO)
-      const lfo = this.ctx.createOscillator();
-      lfo.type = 'sine';
-      if (lfo.frequency.setValueAtTime) {
-        lfo.frequency.setValueAtTime(0.07, now);
-      } else {
-        lfo.frequency.value = 0.07;
-      }
-
-      const lfoGain = this.ctx.createGain();
-      if (lfoGain.gain.setValueAtTime) {
-        lfoGain.gain.setValueAtTime(35, now);
-      } else {
-        lfoGain.gain.value = 35;
-      }
-
-      lfo.connect(lfoGain);
-      lfoGain.connect(filter.frequency);
-
-      // Основной фундаментальный тон
-      const osc1 = this.ctx.createOscillator();
-      osc1.type = 'sine';
-      if (osc1.frequency.setValueAtTime) {
-        osc1.frequency.setValueAtTime(55, now);
-      } else {
-        osc1.frequency.value = 55;
-      }
-
-      // Детюненный обертон (создает фазовое биение)
-      const osc2 = this.ctx.createOscillator();
-      osc2.type = 'triangle';
-      if (osc2.frequency.setValueAtTime) {
-        osc2.frequency.setValueAtTime(55.4, now);
-      } else {
-        osc2.frequency.value = 55.4;
-      }
-
-      // Суб-гармоника для массивности звука в зале
-      const oscSub = this.ctx.createOscillator();
-      oscSub.type = 'sine';
-      if (oscSub.frequency.setValueAtTime) {
-        oscSub.frequency.setValueAtTime(27.5, now);
-      } else {
-        oscSub.frequency.value = 27.5;
-      }
-
-      // Мастер-гейн эмбиента с плавным нарастанием
-      const gain = this.ctx.createGain();
-      const targetVol = Math.max(0, Math.min(1, volume));
-      if (gain.gain.setValueAtTime && gain.gain.linearRampToValueAtTime) {
-        gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(targetVol, now + 2.0);
-      } else {
-        gain.gain.value = targetVol;
-      }
-
-      osc1.connect(filter);
-      osc2.connect(filter);
-      oscSub.connect(filter);
-      filter.connect(gain);
-      gain.connect(this.ctx.destination);
-
-      osc1.start(now);
-      osc2.start(now);
-      oscSub.start(now);
-      lfo.start(now);
-
-      this.tvAmbientNodes = { osc1, osc2, oscSub, filter, lfo, lfoGain, gain };
-    } catch (err) {
-      console.warn('[Audio] Ошибка запуска ТВ эмбиента:', err);
-      this.tvAmbientNodes = null;
-    }
+    this.playAmbient(volume);
   }
 
   /**
-   * Остановка кинематографичного эмбиента лобби ТВ с мягким спадом (1.2 сек)
+   * Остановка эмбиента лобби ТВ
    */
   public stopTvAmbient(): void {
-    if (!this.tvAmbientNodes || !this.ctx) {
-      this.tvAmbientNodes = null;
-      return;
-    }
-
-    try {
-      const now = this.ctx.currentTime;
-      const { osc1, osc2, oscSub, lfo, lfoGain, filter, gain } = this.tvAmbientNodes;
-      this.tvAmbientNodes = null;
-
-      const currentGain = typeof gain.gain.value === 'number' ? gain.gain.value : this.tvAmbientTargetVolume;
-      if (gain.gain.cancelScheduledValues && gain.gain.setValueAtTime && gain.gain.linearRampToValueAtTime) {
-        gain.gain.cancelScheduledValues(now);
-        gain.gain.setValueAtTime(currentGain, now);
-        gain.gain.linearRampToValueAtTime(0.0001, now + 1.2);
-      }
-
-      if (osc1.stop) osc1.stop(now + 1.25);
-      if (osc2.stop) osc2.stop(now + 1.25);
-      if (oscSub.stop) oscSub.stop(now + 1.25);
-      if (lfo.stop) lfo.stop(now + 1.25);
-
-      setTimeout(() => {
-        try {
-          osc1.disconnect();
-          osc2.disconnect();
-          oscSub.disconnect();
-          lfo.disconnect();
-          lfoGain.disconnect();
-          filter.disconnect();
-          gain.disconnect();
-        } catch (_) {}
-      }, 1300);
-    } catch (err) {
-      console.warn('[Audio] Ошибка остановки ТВ эмбиента:', err);
-      this.tvAmbientNodes = null;
-    }
+    this.stopAmbient();
   }
 
   public isTvAmbientActive(): boolean {
-    return this.tvAmbientNodes !== null;
+    return this.ambientAudio !== null && !this.ambientAudio.paused;
   }
 
   /**
@@ -534,7 +329,7 @@ class SoundController {
   public toggleSfx(): boolean {
     this.isSfxEnabled = !this.isSfxEnabled;
     if (typeof window !== 'undefined') {
-      localStorage.setItem('crime_city_sfx', this.isSfxEnabled ? 'true' : 'false');
+      safeLocalStorage.setItem('crime_city_sfx', this.isSfxEnabled ? 'true' : 'false');
     }
     return this.isSfxEnabled;
   }
@@ -542,7 +337,7 @@ class SoundController {
   public toggleAmbient(): boolean {
     this.isAmbientEnabled = !this.isAmbientEnabled;
     if (typeof window !== 'undefined') {
-      localStorage.setItem('crime_city_ambient', this.isAmbientEnabled ? 'true' : 'false');
+      safeLocalStorage.setItem('crime_city_ambient', this.isAmbientEnabled ? 'true' : 'false');
     }
     
     if (!this.isAmbientEnabled) {

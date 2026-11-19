@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { UserProfile, MatchHistoryEntry } from "../types/profile";
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
-import { storage } from "../utils/storage";
+import { storage, safeLocalStorage } from "../utils/storage";
 import { guestRegistry } from "../utils/guestManager";
 import { sanitizePlayerName, validatePlayerName } from "../utils/nameFilter";
 
@@ -14,7 +14,7 @@ const DEFAULT_AVATAR_ID = "agent_01";
 
 function getInitialCallsign(): string {
   if (typeof window !== "undefined") {
-    const saved = localStorage.getItem("crime_city_callsign");
+    const saved = safeLocalStorage.getItem("crime_city_callsign");
     if (saved && validatePlayerName(saved).isValid) {
       return saved;
     }
@@ -211,7 +211,7 @@ export function useProfile() {
       const next = { ...prev, ...safeUpdates };
       storage.setSyncAndPersist("crime_city_profile", next);
       if (sanitizedName) {
-        localStorage.setItem("crime_city_callsign", sanitizedName);
+        safeLocalStorage.setItem("crime_city_callsign", sanitizedName);
       }
       return next;
     });

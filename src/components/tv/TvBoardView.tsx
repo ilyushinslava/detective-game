@@ -143,7 +143,7 @@ const areTvCellPropsEqual = (prev: TvCellProps, next: TvCellProps): boolean => {
   if (characterHasCoin(prevChar, prev.mode) !== characterHasCoin(nextChar, next.mode)) return false;
   if (prevChar.hasCoin !== nextChar.hasCoin) return false;
   if (prevChar.unmaskedSpyIndex !== nextChar.unmaskedSpyIndex) return false;
-  if ((prevChar as any).isArrested !== (nextChar as any).isArrested) return false;
+  if (prevChar.isArrested !== nextChar.isArrested) return false;
 
   return true;
 };

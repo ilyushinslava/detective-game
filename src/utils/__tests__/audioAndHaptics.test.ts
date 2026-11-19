@@ -63,64 +63,15 @@ describe("Звуковая система и тактильный отклик (
       expect(toggledAmbient).toBe(!initialAmbient);
     });
 
-    it("startMorseTone и stopMorseTone управляют аналоговым тоном и огибающей 15мс (TASK-SND-001)", () => {
+    it("startMorseTone и stopMorseTone управляют воспроизведением сигнала Морзе", () => {
       (soundManager as any).isSfxEnabled = true;
+      const playSpy = vi.spyOn(soundManager, "play").mockImplementation(() => {});
 
-      const mockOsc = {
-        type: "sine",
-        frequency: { setValueAtTime: vi.fn() },
-        connect: vi.fn(),
-        start: vi.fn(),
-        stop: vi.fn(),
-        disconnect: vi.fn(),
-      };
-      const mockGain = {
-        gain: {
-          value: 0.2,
-          setValueAtTime: vi.fn(),
-          linearRampToValueAtTime: vi.fn(),
-          cancelScheduledValues: vi.fn(),
-        },
-        connect: vi.fn(),
-        disconnect: vi.fn(),
-      };
-      const mockCtx = {
-        state: "suspended",
-        currentTime: 0,
-        resume: vi.fn().mockResolvedValue(undefined),
-        createOscillator: vi.fn().mockReturnValue(mockOsc),
-        createGain: vi.fn().mockReturnValue(mockGain),
-        createBuffer: vi.fn().mockReturnValue({}),
-        createBufferSource: vi.fn().mockReturnValue({ connect: vi.fn(), start: vi.fn() }),
-        destination: {},
-      };
-
-      (soundManager as any).ctx = mockCtx;
-
-      // 1. Запуск тона с частотой 700 Гц
       soundManager.startMorseTone(700);
+      expect(playSpy).toHaveBeenCalledWith("confirm", 0.4);
 
-      expect(mockCtx.resume).toHaveBeenCalled();
-      expect(mockCtx.createOscillator).toHaveBeenCalled();
-      expect(mockCtx.createGain).toHaveBeenCalled();
-      expect(mockOsc.frequency.setValueAtTime).toHaveBeenCalledWith(700, 0);
-      expect(mockGain.gain.setValueAtTime).toHaveBeenCalledWith(0, 0);
-      expect(mockGain.gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.2, 0.015);
-      expect(mockOsc.start).toHaveBeenCalledWith(0);
-
-      // 2. Защита от дубликатов: повторный start не создает новый осциллятор
-      soundManager.startMorseTone(700);
-      expect(mockCtx.createOscillator).toHaveBeenCalledTimes(1);
-
-      // 3. Остановка тона с плавным release спадом
-      soundManager.stopMorseTone();
-      expect(mockGain.gain.cancelScheduledValues).toHaveBeenCalledWith(0);
-      expect(mockGain.gain.setValueAtTime).toHaveBeenCalledWith(0.2, 0);
-      expect(mockGain.gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.0001, 0.015);
-      expect(mockOsc.stop).toHaveBeenCalledWith(0.02);
-
-      // 4. Безопасность повторной остановки
       expect(() => soundManager.stopMorseTone()).not.toThrow();
+      playSpy.mockRestore();
     });
 
     it("startMorseTone не запускается, если SFX отключен", () => {
@@ -128,79 +79,38 @@ describe("Звуковая система и тактильный отклик (
         soundManager.toggleSfx();
       }
       expect(soundManager.getSfxEnabled()).toBe(false);
-      expect(() => soundManager.startMorseTone(700)).not.toThrow();
+      const playSpy = vi.spyOn(soundManager, "play").mockImplementation(() => {});
+      soundManager.startMorseTone(700);
+      expect(playSpy).not.toHaveBeenCalled();
       soundManager.toggleSfx(); // возвращаем в исходное
+      playSpy.mockRestore();
     });
 
-    it("startTvAmbient и stopTvAmbient управляют процедурным аналоговым нео-нуарным эмбиентом на Web Audio API", () => {
+    it("startTvAmbient и stopTvAmbient управляют воспроизведением нео-нуарного эмбиента через аудиосэмплы", () => {
       (soundManager as any).isAmbientEnabled = true;
-
-      const mockOsc = {
-        type: "sine",
-        frequency: { setValueAtTime: vi.fn(), value: 55 },
-        connect: vi.fn(),
-        start: vi.fn(),
-        stop: vi.fn(),
-        disconnect: vi.fn(),
-      };
-      const mockFilter = {
-        type: "lowpass",
-        frequency: { setValueAtTime: vi.fn(), value: 140 },
-        Q: { setValueAtTime: vi.fn(), value: 2.0 },
-        connect: vi.fn(),
-        disconnect: vi.fn(),
-      };
-      const mockGain = {
-        gain: {
-          value: 0.16,
-          setValueAtTime: vi.fn(),
-          linearRampToValueAtTime: vi.fn(),
-          cancelScheduledValues: vi.fn(),
-        },
-        connect: vi.fn(),
-        disconnect: vi.fn(),
-      };
-      const mockCtx = {
-        state: "suspended",
-        currentTime: 0,
-        resume: vi.fn().mockResolvedValue(undefined),
-        createOscillator: vi.fn().mockReturnValue(mockOsc),
-        createBiquadFilter: vi.fn().mockReturnValue(mockFilter),
-        createGain: vi.fn().mockReturnValue(mockGain),
-        createBuffer: vi.fn().mockReturnValue({}),
-        createBufferSource: vi.fn().mockReturnValue({ connect: vi.fn(), start: vi.fn() }),
-        destination: {},
-      };
-
-      (soundManager as any).ctx = mockCtx;
+      const playAmbientSpy = vi.spyOn(soundManager, "playAmbient").mockImplementation(() => {});
+      const stopAmbientSpy = vi.spyOn(soundManager, "stopAmbient").mockImplementation(() => {});
 
       // 1. Запуск ТВ-эмбиента
       soundManager.startTvAmbient(0.16);
-      expect(mockCtx.resume).toHaveBeenCalled();
-      expect(mockCtx.createBiquadFilter).toHaveBeenCalled();
-      expect(mockCtx.createGain).toHaveBeenCalled();
-      expect(mockCtx.createOscillator).toHaveBeenCalled();
-      expect(soundManager.isTvAmbientActive()).toBe(true);
+      expect(playAmbientSpy).toHaveBeenCalledWith(0.16);
 
-      // 2. Защита от дубликатов: повторный start не создает новые ноды
-      const oscCallsBefore = mockCtx.createOscillator.mock.calls.length;
-      soundManager.startTvAmbient(0.16);
-      expect(mockCtx.createOscillator.mock.calls.length).toBe(oscCallsBefore);
-
-      // 3. Остановка ТВ-эмбиента с плавным затуханием
+      // 2. Остановка ТВ-эмбиента
       soundManager.stopTvAmbient();
-      expect(soundManager.isTvAmbientActive()).toBe(false);
-      expect(mockGain.gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.0001, 1.2);
-      expect(mockOsc.stop).toHaveBeenCalledWith(1.25);
+      expect(stopAmbientSpy).toHaveBeenCalled();
 
-      // 4. Повторный вызов stopTvAmbient безопасен
+      // 3. Повторный вызов stopTvAmbient безопасен
       expect(() => soundManager.stopTvAmbient()).not.toThrow();
 
-      // 5. Не запускается при выключенном эмбиенте
+      // 4. Не запускается при выключенном эмбиенте
       (soundManager as any).isAmbientEnabled = false;
+      playAmbientSpy.mockClear();
       soundManager.startTvAmbient(0.16);
-      expect(soundManager.isTvAmbientActive()).toBe(false);
+      expect(playAmbientSpy).not.toHaveBeenCalled();
       (soundManager as any).isAmbientEnabled = true;
+
+      playAmbientSpy.mockRestore();
+      stopAmbientSpy.mockRestore();
     });
   });
 

@@ -8,11 +8,7 @@ import { DuelQuestionCatalogModal } from "./DuelQuestionCatalogModal";
 import { DuelCandidatesSheet } from "./DuelCandidatesSheet";
 import { DuelAccuseModal } from "./DuelAccuseModal";
 import { PauseModal } from "../PauseModal";
-
-const characterImages = import.meta.glob<{ default: string }>(
-  "../../assets/characters/*.webp",
-  { eager: true }
-);
+import { characterImages } from "../../constants/characterImages";
 
 interface DuelScreenProps {
   onBackToMenu: () => void;

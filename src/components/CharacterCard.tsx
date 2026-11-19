@@ -3,13 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { type Character, type GameModeType } from "../types/game";
 import { characterHasCoin, isSecretServiceMode, isThiefHuntMode } from "../constants/gameMeta";
 import { renderSilhouette, CharacterStamps, CoinIndicator } from "./character";
+import { characterImages } from "../constants/characterImages";
 
 export { renderSilhouette };
-
-const characterImages = import.meta.glob<{ default: string }>(
-  "../assets/characters/*.webp",
-  { eager: true }
-);
 
 export interface CharacterCardProps {
   mode: GameModeType;
@@ -29,10 +25,6 @@ export interface CharacterCardProps {
   isLastRobbed?: boolean;
   onClick: () => void;
 }
-
-export const formatCompactName = (fullName: string): string => {
-  return fullName || "";
-};
 
 export const areCharacterCardPropsEqual = (
   prev: CharacterCardProps,
@@ -63,7 +55,7 @@ export const areCharacterCardPropsEqual = (
   if (prevChar.isRobbed !== nextChar.isRobbed) return false;
   if (characterHasCoin(prevChar, prev.mode) !== characterHasCoin(nextChar, next.mode)) return false;
   if (prevChar.unmaskedSpyIndex !== nextChar.unmaskedSpyIndex) return false;
-  if ((prevChar as any).isArrested !== (nextChar as any).isArrested) return false;
+  if (prevChar.isArrested !== nextChar.isArrested) return false;
   if ((prevChar as any).role !== (nextChar as any).role) return false;
 
   return true;
@@ -89,7 +81,7 @@ const CharacterCardComponent = ({
   const isExonerated = character.isExonerated && !isDead;
   const isSecretService = isSecretServiceMode(mode);
   const hasCoin = characterHasCoin(character, mode);
-  const isArrested = Boolean((character as any).isArrested);
+  const isArrested = Boolean(character.isArrested);
 
   return (
     <motion.div

@@ -55,11 +55,6 @@ export const GAME_TITLE = {
   en: 'Prime Suspect',
 } as const;
 
-export const GAME_SUBTITLE = {
-  ru: 'Последний выстрел',
-  en: 'The Last Shot',
-} as const;
-
 /**
  * Единый источник истины (SSOT) для каноничных названий игровых режимов.
  */
@@ -217,25 +212,6 @@ export function getGameModeTitle(mode: GameModeType | string, lang: 'ru' | 'en' 
     return meta.title[lang] || meta.title.ru;
   }
   return CANONICAL_GAME_MODE_NAMES.MANIAC_VS_OPERATIVE;
-}
-
-export function getGameModeShortTitle(mode: GameModeType | string, lang: 'ru' | 'en' = 'ru'): string {
-  if (lang === 'ru' && mode && mode in CANONICAL_GAME_MODE_NAMES) {
-    return CANONICAL_GAME_MODE_NAMES[mode as GameModeType];
-  }
-  const meta = GAME_MODES_META[mode as GameModeType];
-  if (meta) {
-    return meta.shortTitle[lang] || meta.shortTitle.ru;
-  }
-  return CANONICAL_GAME_MODE_NAMES.MANIAC_VS_OPERATIVE;
-}
-
-export function getGameModeDescription(mode: GameModeType | string, lang: 'ru' | 'en' = 'ru'): string {
-  const meta = GAME_MODES_META[mode as GameModeType];
-  if (meta?.description) {
-    return meta.description[lang] || meta.description.ru;
-  }
-  return '';
 }
 
 export interface GameModeCardData {

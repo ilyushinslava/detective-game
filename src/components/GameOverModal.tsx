@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Character, GameModeType, Role } from '../types/game';
 import { getKillerRoleName, getDetectiveRoleName } from '../constants/gameMeta';
 import { Modal } from './ui/Modal';
+import { getCharacterPortraitPath } from '../constants/characterImages';
 import { useSpatialNavigation } from '../hooks/useSpatialNavigation';
 import { useTranslation } from '../i18n/context';
 import {
@@ -29,11 +30,6 @@ export interface GameOverModalProps {
   onRematchSame?: () => void;
 }
 
-const localCharacterImages = import.meta.glob<{ default: string }>(
-  '../assets/characters/*.webp',
-  { eager: true }
-);
-
 const getCharacterImageUrl = (
   id?: string,
   customImages?: Record<string, { default: string }>
@@ -53,7 +49,7 @@ const getCharacterImageUrl = (
     }
   }
 
-  return localCharacterImages[`../assets/characters/${filename}`]?.default;
+  return getCharacterPortraitPath(id);
 };
 
 const Icons = {

@@ -5,6 +5,7 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from "react";
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
+import { safeLocalStorage } from "../utils/storage";
 
 export const LOGIN_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 
@@ -70,14 +71,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(() => {
-    try {
-      const saved = localStorage.getItem("crime_city_auth_user");
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState<User | null>(() =>
+    safeLocalStorage.getJSON<User | null>("crime_city_auth_user", null)
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -94,9 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (isMounted) {
             setSession(data.session);
             setUser(data.session.user);
-            try {
-              localStorage.setItem("crime_city_auth_user", JSON.stringify(data.session.user));
-            } catch {}
+            safeLocalStorage.setJSON("crime_city_auth_user", data.session.user);
             setIsLoading(false);
           }
           return;
@@ -110,9 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else if (anonData?.session && isMounted) {
             setSession(anonData.session);
             setUser(anonData.session.user);
-            try {
-              localStorage.setItem("crime_city_auth_user", JSON.stringify(anonData.session.user));
-            } catch {}
+            safeLocalStorage.setJSON("crime_city_auth_user", anonData.session.user);
           }
         }
       } catch (err) {
@@ -132,9 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const currentUser = currentSession?.user ?? null;
         setUser(currentUser);
         if (currentUser) {
-          try {
-            localStorage.setItem("crime_city_auth_user", JSON.stringify(currentUser));
-          } catch {}
+          safeLocalStorage.setJSON("crime_city_auth_user", currentUser);
         }
         setIsLoading(false);
       }
@@ -154,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(data.session);
       setUser(data.user);
       if (data.user) {
-        localStorage.setItem("crime_city_auth_user", JSON.stringify(data.user));
+        safeLocalStorage.setJSON("crime_city_auth_user", data.user);
       }
     } catch (err) {
       console.error("[Auth] Ошибка анонимного входа:", err);
@@ -185,7 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user_metadata: { login: login.trim() },
       };
       setUser(updatedUser);
-      localStorage.setItem("crime_city_auth_user", JSON.stringify(updatedUser));
+      safeLocalStorage.setJSON("crime_city_auth_user", updatedUser);
       return { success: true };
     }
 
@@ -207,7 +197,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           is_anonymous: false,
         };
         setUser(updatedUser as any);
-        localStorage.setItem("crime_city_auth_user", JSON.stringify(updatedUser));
+        safeLocalStorage.setJSON("crime_city_auth_user", updatedUser);
       }
 
       return { success: true };
@@ -237,7 +227,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user_metadata: { login: login.trim() },
       };
       setUser(localUser);
-      localStorage.setItem("crime_city_auth_user", JSON.stringify(localUser));
+      safeLocalStorage.setJSON("crime_city_auth_user", localUser);
       return { success: true };
     }
 
@@ -258,7 +248,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data?.session) {
         setSession(data.session);
         setUser(data.session.user);
-        localStorage.setItem("crime_city_auth_user", JSON.stringify(data.session.user));
+        safeLocalStorage.setJSON("crime_city_auth_user", data.session.user);
       }
 
       return { success: true };
@@ -273,7 +263,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await supabase.auth.signOut();
       setSession(null);
       setUser(null);
-      localStorage.removeItem("crime_city_auth_user");
+      safeLocalStorage.removeItem("crime_city_auth_user");
     } finally {
       setIsLoading(false);
     }

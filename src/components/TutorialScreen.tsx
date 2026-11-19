@@ -4,6 +4,7 @@ import { GameBoard } from "./GameBoard";
 import { shiftBoard, getAdjacentCharacters } from "../utils/gameLogic";
 import { soundManager } from "../utils/audio";
 import { triggerHaptic } from "../utils/haptics";
+import { safeLocalStorage } from "../utils/storage";
 import type { Character, LastShift } from "../types/game";
 import {
   type TutorialModule,
@@ -37,8 +38,8 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   const [completedModules, setCompletedModules] = useState<TutorialModule[]>(() => {
     try {
       const saved =
-        localStorage.getItem("crime_city_completed_modules") ||
-        localStorage.getItem("prime_suspect_completed_tutorial_modules");
+        safeLocalStorage.getItem("crime_city_completed_modules") ||
+        safeLocalStorage.getItem("prime_suspect_completed_tutorial_modules");
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -48,8 +49,8 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   const [isRewardClaimed, setIsRewardClaimed] = useState<boolean>(() => {
     try {
       return (
-        localStorage.getItem("crime_city_tutorial_reward_claimed") === "true" ||
-        localStorage.getItem("prime_suspect_tutorial_reward_claimed") === "true"
+        safeLocalStorage.getItem("crime_city_tutorial_reward_claimed") === "true" ||
+        safeLocalStorage.getItem("prime_suspect_tutorial_reward_claimed") === "true"
       );
     } catch {
       return false;
@@ -63,8 +64,8 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       if (prev.includes(mod)) return prev;
       const updated = [...prev, mod];
       try {
-        localStorage.setItem("crime_city_completed_modules", JSON.stringify(updated));
-        localStorage.setItem("prime_suspect_completed_tutorial_modules", JSON.stringify(updated));
+        safeLocalStorage.setItem("crime_city_completed_modules", JSON.stringify(updated));
+        safeLocalStorage.setItem("prime_suspect_completed_tutorial_modules", JSON.stringify(updated));
       } catch {}
       return updated;
     });

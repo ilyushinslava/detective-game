@@ -68,7 +68,7 @@ class StorageService {
 
     try {
       for (const key of MIGRATION_KEYS) {
-        const localVal = localStorage.getItem(key);
+        const localVal = safeLocalStorage.getItem(key);
         if (localVal !== null) {
           const existing = await this.getIdbItem(db, key);
           if (existing === undefined) {
@@ -127,24 +127,11 @@ class StorageService {
   }
 
   getSyncItem<T>(key: string, fallbackValue: T): T {
-    if (typeof window === "undefined" || !window.localStorage) {
-      return fallbackValue;
-    }
-    try {
-      const saved = localStorage.getItem(key);
-      if (saved === null) return fallbackValue;
-      return JSON.parse(saved) as T;
-    } catch {
-      return fallbackValue;
-    }
+    return safeLocalStorage.getJSON(key, fallbackValue);
   }
 
   setSyncAndPersist<T>(key: string, value: T): void {
-    if (typeof window !== "undefined" && window.localStorage) {
-      try {
-        localStorage.setItem(key, JSON.stringify(value));
-      } catch {}
-    }
+    safeLocalStorage.setJSON(key, value);
     this.setItem(key, value).catch(() => {});
   }
 
@@ -169,11 +156,7 @@ class StorageService {
         return;
       } catch {}
     }
-    if (typeof window !== "undefined" && window.localStorage) {
-      try {
-        localStorage.setItem(key, JSON.stringify(value));
-      } catch {}
-    }
+    safeLocalStorage.setJSON(key, value);
   }
 
   async removeItem(key: string): Promise<void> {
@@ -183,12 +166,90 @@ class StorageService {
         await this.removeIdbItem(db, key);
       } catch {}
     }
-    if (typeof window !== "undefined" && window.localStorage) {
-      try {
-        localStorage.removeItem(key);
-      } catch {}
-    }
+    safeLocalStorage.removeItem(key);
   }
 }
+
+class SafeStorageWrapper {
+  private mem = new Map<string, string>();
+  private type: "localStorage" | "sessionStorage";
+
+  constructor(type: "localStorage" | "sessionStorage") {
+    this.type = type;
+  }
+
+  private getNative(): Storage | null {
+    if (typeof window === "undefined") return null;
+    try {
+      return window[this.type] || null;
+    } catch {
+      return null;
+    }
+  }
+
+  getItem(key: string): string | null {
+    const native = this.getNative();
+    if (native) {
+      try {
+        const val = native.getItem(key);
+        if (val !== null) return val;
+      } catch {}
+    }
+    return this.mem.get(key) ?? null;
+  }
+
+  setItem(key: string, value: string): void {
+    const native = this.getNative();
+    if (native) {
+      try {
+        native.setItem(key, value);
+      } catch {}
+    }
+    this.mem.set(key, value);
+  }
+
+  removeItem(key: string): void {
+    const native = this.getNative();
+    if (native) {
+      try {
+        native.removeItem(key);
+      } catch {}
+    }
+    this.mem.delete(key);
+  }
+
+  clear(): void {
+    const native = this.getNative();
+    if (native) {
+      try {
+        native.clear();
+      } catch {}
+    }
+    this.mem.clear();
+  }
+
+  getJSON<T>(key: string, fallback: T): T {
+    const raw = this.getItem(key);
+    if (raw === null) return fallback;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  setJSON<T>(key: string, value: T): void {
+    try {
+      this.setItem(key, JSON.stringify(value));
+    } catch {}
+  }
+}
+
+export const safeLocalStorage = new SafeStorageWrapper("localStorage");
+export const safeSessionStorage = new SafeStorageWrapper("sessionStorage");
+export const safeStorage = {
+  local: safeLocalStorage,
+  session: safeSessionStorage,
+};
 
 export const storage = new StorageService();

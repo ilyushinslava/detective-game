@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Language, I18nContextType } from './types';
 import { ru } from './ru';
 import { en } from './en';
+import { safeLocalStorage } from '../utils/storage';
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
@@ -11,7 +12,7 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [lang, setLangState] = useState<Language>('ru');
 
   useEffect(() => {
-    const savedLang = localStorage.getItem('crime_city_lang') as Language;
+    const savedLang = safeLocalStorage.getItem('crime_city_lang') as Language;
     if (savedLang === 'ru' || savedLang === 'en') {
       setLangState(savedLang);
     }
@@ -19,7 +20,7 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setLang = (newLang: Language) => {
     setLangState(newLang);
-    localStorage.setItem('crime_city_lang', newLang);
+    safeLocalStorage.setItem('crime_city_lang', newLang);
   };
 
   const t = translations[lang];

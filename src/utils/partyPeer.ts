@@ -2,6 +2,7 @@ import type { Role } from "../types/game";
 import type { GameAction, MorseCandidate } from "../types/multiplayer";
 import { GAME_CONFIG } from "../config/gameConfig";
 import { DEFAULT_BET } from "../constants/gameRules";
+import { safeSessionStorage } from "./storage";
 
 export type { MorseCandidate };
 
@@ -507,8 +508,8 @@ class PartyService {
     }
     if (savedClientType) this.clientType = savedClientType;
     this.myClientId = clientId || `client_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    if (!this.authToken && typeof sessionStorage !== "undefined" && roomCode) {
-      this.authToken = sessionStorage.getItem(`crime_city_auth_${roomCode}`);
+    if (!this.authToken && roomCode) {
+      this.authToken = safeSessionStorage.getItem(`crime_city_auth_${roomCode}`);
     }
     this.isExplicitDisconnect = false;
     if (this.reconnectTimeout) {
@@ -579,8 +580,8 @@ class PartyService {
 
           if (data.type === "AUTH_TOKEN" && data.authToken) {
             this.authToken = data.authToken;
-            if (typeof sessionStorage !== "undefined" && this.roomCode) {
-              sessionStorage.setItem(`crime_city_auth_${this.roomCode}`, data.authToken);
+            if (this.roomCode) {
+              safeSessionStorage.setItem(`crime_city_auth_${this.roomCode}`, data.authToken);
             }
             return;
           }
@@ -759,8 +760,8 @@ class PartyService {
       }
       this.socket = null;
     }
-    if (this.roomCode && typeof sessionStorage !== "undefined") {
-      sessionStorage.removeItem(`crime_city_auth_${this.roomCode}`);
+    if (this.roomCode) {
+      safeSessionStorage.removeItem(`crime_city_auth_${this.roomCode}`);
     }
     this.authToken = null;
     this.roomCode = "";

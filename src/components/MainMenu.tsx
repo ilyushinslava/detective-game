@@ -8,6 +8,7 @@ import { useBannerViewer } from "../contexts/BannerViewerContext";
 import { getGameModesList } from "../constants/gameMeta";
 import { useTranslation } from "../i18n/context";
 import { useLobbyNetwork } from "../hooks/useLobbyNetwork";
+import { safeLocalStorage } from "../utils/storage";
 import { Icons } from "./ui/Icons";
 import { LiquidBackground } from "./ui/LiquidBackground";
 import { TablesScreen } from "./TablesScreen";
@@ -153,9 +154,9 @@ export const MainMenu = ({
   const activeModeData = GAME_MODES.find((m) => m.id === selectedMode) || GAME_MODES[0];
 
   const handleFinishTutorial = () => {
-    const completed = localStorage.getItem("crime_city_tutorial");
+    const completed = safeLocalStorage.getItem("crime_city_tutorial");
     if (!completed) {
-      localStorage.setItem("crime_city_tutorial", "true");
+      safeLocalStorage.setItem("crime_city_tutorial", "true");
       if (onUpdateProfile) {
         onUpdateProfile({ cash: profile.cash + 500 });
       }

@@ -75,8 +75,6 @@ export function getAvailableActionDescriptors(
   return list;
 }
 
-export const getAvailableActionTypes = getAvailableActionDescriptors;
-
 export interface ActionItem {
   id: string;
   label: string;

@@ -3,6 +3,7 @@ import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { soundManager } from "../../utils/audio";
 import { triggerHaptic, setHapticsEnabled } from "../../utils/haptics";
+import { safeLocalStorage } from "../../utils/storage";
 import { useTranslation } from "../../i18n/context";
 import { useAuthSafe } from "../../contexts/AuthContext";
 import { LoginModal } from "./LoginModal";
@@ -19,7 +20,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [isSfxEnabled, setIsSfxEnabled] = useState(soundManager.getSfxEnabled());
   const [isAmbientEnabled, setIsAmbientEnabled] = useState(soundManager.getAmbientEnabled());
   const [isHapticsEnabled, setIsHapticsEnabled] = useState(() => {
-    return localStorage.getItem("crime_city_haptics") !== "false";
+    return safeLocalStorage.getItem("crime_city_haptics") !== "false";
   });
 
   if (!isOpen) return null;

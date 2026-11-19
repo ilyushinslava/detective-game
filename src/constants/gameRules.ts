@@ -5,19 +5,25 @@
 
 // Ставки и экономика
 export const DEFAULT_BET = 250;
-export const MIN_BET = 50;
-export const MAX_BET = 5000;
 
 // Тайминги ходов и задержек (в секундах)
-export const TURN_TIMEOUT_BASE_SECONDS = 60;
-export const TURN_TIMEOUT_DUEL_SECONDS = 30;
 export const TURN_GRACE_PERIOD_SECONDS = 60;
-export const REMATCH_TIMEOUT_SECONDS = 30;
 
-// Параметры поля и контроллера
+// Параметры поля
 export const BOARD_GRID_SIZE = 5;
-export const CONTROLLER_VIEWPORT_SIZE = 3;
-export const TOTAL_BOARD_CELLS = BOARD_GRID_SIZE * BOARD_GRID_SIZE; // 25
+
+// Системные тайминги UI и сети (в миллисекундах)
+export const TIMINGS = {
+  GAME_OVER_DELAY_MS: 1300,
+  MORSE_DASH_THRESHOLD_MS: 250,
+  OLED_IDLE_TIMEOUT_MS: 300000,
+  LOBBY_POLL_INTERVAL_MS: 3000,
+} as const;
+
+// Аудио-параметры
+export const AUDIO_CONFIG = {
+  MORSE_TONE_FREQ_HZ: 700,
+} as const;
 
 // Цели победы для игровых режимов
 export const WIN_CONDITIONS = {
@@ -35,23 +41,6 @@ export const WIN_CONDITIONS = {
     INSPECTOR_CHOICES_COUNT: 4,
     MAX_ACCUSATIONS: 3,
   },
-} as const;
-
-// Лимиты комнат
-export const DEFAULT_MAX_PLAYERS = 2;
-export const TV_PARTY_MAX_PLAYERS = 8;
-
-// Системные тайминги UI и сети (в миллисекундах)
-export const TIMINGS = {
-  GAME_OVER_DELAY_MS: 1300,
-  MORSE_DASH_THRESHOLD_MS: 250,
-  OLED_IDLE_TIMEOUT_MS: 300000,
-  LOBBY_POLL_INTERVAL_MS: 3000,
-} as const;
-
-// Аудио-параметры
-export const AUDIO_CONFIG = {
-  MORSE_TONE_FREQ_HZ: 700,
 } as const;
 
 export const GAME_RULES = WIN_CONDITIONS;

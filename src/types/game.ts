@@ -15,6 +15,7 @@ export interface Character {
   isExonerated: boolean;
   isRobbed?: boolean;
   hasCoin?: boolean;
+  isArrested?: boolean;
   unmaskedSpyIndex?: number;
 }
 
@@ -58,6 +59,8 @@ export interface GameState {
   blockedShift?: { type: "ROW" | "COL"; index: number } | null;
   winner: Role | "DRAW" | null;
   winReason?: "ACCUSATION" | "ACCUSATIONS_EXHAUSTED" | "TIE_BREAK_PENALTIES" | "TIE_BREAK_CANDIDATES" | "TIE_BREAK_DRAW";
+  gameResult?: { winner: Role | "DRAW" | null; reason: string };
+  gameEndReason?: string;
   log: string[];
   lastShift: LastShift | null;
   lastInterrogation: InterrogationResult | null;

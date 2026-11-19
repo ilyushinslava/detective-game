@@ -1,17 +1,18 @@
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
+import { safeLocalStorage } from './storage';
 
 export type HapticFeedbackType = 'light' | 'medium' | 'heavy' | 'success' | 'error' | 'turn';
 
 export const setHapticsEnabled = (enabled: boolean) => {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('crime_city_haptics', enabled ? 'true' : 'false');
+    safeLocalStorage.setItem('crime_city_haptics', enabled ? 'true' : 'false');
   }
 };
 
 export const getHapticsEnabled = (): boolean => {
   if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('crime_city_haptics');
+    const saved = safeLocalStorage.getItem('crime_city_haptics');
     if (saved !== null) return saved === 'true';
   }
   return true;
@@ -141,7 +142,5 @@ export const triggerHaptic = (type: HapticFeedbackType) => {
 // Семантические хелперы тактильной отдачи
 export const hapticImpactLight = () => triggerHaptic('light');
 export const hapticImpactMedium = () => triggerHaptic('medium');
-export const hapticImpactHeavy = () => triggerHaptic('heavy');
 export const hapticSuccess = () => triggerHaptic('success');
 export const hapticError = () => triggerHaptic('error');
-export const hapticTurnWarning = () => triggerHaptic('turn');

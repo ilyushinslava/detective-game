@@ -543,8 +543,6 @@ export function killCharacter(state: GameState, targetId: string): GameState {
       if (newKillCount >= 4 || newVictimList.length === 0) {
         winner = "KILLER";
       }
-    } else if (state.mode === "EUROPOL_VS_OPG" && newKillCount >= 6) {
-      winner = "KILLER";
     }
   }
 
@@ -587,23 +585,6 @@ export function killCharacter(state: GameState, targetId: string): GameState {
           ? " Улика уничтожена!"
           : ""
       }${winner ? " Победа преступного мира!" : ""}${interrogationLog}`,
-    ],
-  };
-}
-
-export function setPolicePatrol(
-  state: GameState,
-  type: "ROW" | "COL",
-  index: number,
-): GameState {
-  const lineName = type === "ROW" ? `ряд ${index + 1}` : `колонку ${index + 1}`;
-  return {
-    ...state,
-    blockedShift: { type, index },
-    currentTurn: "KILLER",
-    log: [
-      ...state.log,
-      `Полиция выставила патруль и заблокировала ${lineName}.`,
     ],
   };
 }

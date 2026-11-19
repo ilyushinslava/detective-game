@@ -3,11 +3,7 @@ import { useMemo } from "react";
 import type { DuelCharacter, DuelHistoryEntry } from "../../types/duel";
 import type { Role } from "../../types/game";
 import { filterCandidates } from "../../utils/duelLogic";
-
-const characterImages = import.meta.glob<{ default: string }>(
-  "../../assets/characters/*.webp",
-  { eager: true }
-);
+import { characterImages } from "../../constants/characterImages";
 
 interface DuelCandidatesSheetProps {
   isOpen: boolean;

@@ -3,11 +3,7 @@ import React from "react";
 import type { DuelCharacter } from "../../types/duel";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
-
-const characterImages = import.meta.glob<{ default: string }>(
-  "../../assets/characters/*.webp",
-  { eager: true }
-);
+import { characterImages } from "../../constants/characterImages";
 
 interface DuelAccuseModalProps {
   isOpen: boolean;

@@ -6,6 +6,7 @@ import { triggerHaptic } from "../utils/haptics";
 import { soundManager } from "../utils/audio";
 import { DEFAULT_BET, TIMINGS } from "../constants/gameRules";
 import { MOCK_NETWORK_ROOMS } from "../utils/mockRooms";
+import { safeLocalStorage, safeSessionStorage } from "../utils/storage";
 
 export interface PublicRoomInfo {
   roomCode: string;
@@ -35,7 +36,7 @@ export interface UseLobbyNetworkOptions {
 export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetworkOptions) {
   const [useMockRooms, setUseMockRooms] = useState<boolean>(() => {
     if (import.meta.env.DEV && typeof window !== "undefined") {
-      return localStorage.getItem("crime_city_mock_tables") === "true";
+      return safeLocalStorage.getItem("crime_city_mock_tables") === "true";
     }
     return false;
   });
@@ -45,14 +46,14 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
     setUseMockRooms((prev) => {
       const next = !prev;
       if (typeof window !== "undefined") {
-        localStorage.setItem("crime_city_mock_tables", String(next));
+        safeLocalStorage.setItem("crime_city_mock_tables", String(next));
       }
       return next;
     });
   };
 
   const [publicRooms, setPublicRooms] = useState<PublicRoomInfo[]>(() => {
-    if (import.meta.env.DEV && typeof window !== "undefined" && localStorage.getItem("crime_city_mock_tables") === "true") {
+    if (import.meta.env.DEV && typeof window !== "undefined" && safeLocalStorage.getItem("crime_city_mock_tables") === "true") {
       return MOCK_NETWORK_ROOMS as any;
     }
     return [];
@@ -194,15 +195,12 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
     setIsCreateRoomOpen(false);
     setIsWaitingForOpponent(true);
 
-    sessionStorage.setItem(
-      "mp_session",
-      JSON.stringify({
-        roomCode: cleanCode,
-        isHost,
-        mode,
-        nickname: profile.nickname,
-      })
-    );
+    safeSessionStorage.setJSON("mp_session", {
+      roomCode: cleanCode,
+      isHost,
+      mode,
+      nickname: profile.nickname,
+    });
 
     partyService.connect(cleanCode, profile.nickname || "Агент", isHost, mode, undefined, undefined, isPrivate, morseCode);
   };

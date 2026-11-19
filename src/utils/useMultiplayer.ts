@@ -1,13 +1,14 @@
 import { useEffect, useState, useRef } from "react";
 import type { GameState, GameModeType, Role } from "../types/game";
-import type { PlayerProfile } from "./usePlayerProfile";
+import type { UserProfile } from "../types/profile";
 import { partyService } from "./partyPeer";
 import { soundManager } from "./audio";
+import { safeLocalStorage, safeSessionStorage } from "./storage";
 
 interface UseMultiplayerParams {
   gameState: GameState;
   setGameState: React.Dispatch<React.SetStateAction<GameState>>;
-  profile: PlayerProfile;
+  profile: UserProfile;
   setActiveMode: React.Dispatch<React.SetStateAction<GameModeType>>;
   setIsLobbyOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setHasStartedEver: React.Dispatch<React.SetStateAction<boolean>>;
@@ -62,7 +63,7 @@ export function useMultiplayer({
     const isTvMode =
       typeof window !== "undefined" &&
       (window.location.search.includes("clientType") ||
-        Boolean(localStorage.getItem("tv_session_party_state")));
+        Boolean(safeLocalStorage.getItem("tv_session_party_state")));
     if (isTvMode || gameState.opponent !== "ONLINE") {
       return;
     }
@@ -121,7 +122,7 @@ export function useMultiplayer({
           // Гость подключен и ждет старта
         }
       } else if (status === "EMPTY") {
-        sessionStorage.removeItem("mp_session");
+        safeSessionStorage.removeItem("mp_session");
         setIsLobbyOpen(true);
         setHasStartedEver(false);
       } else if (status === "READY_TO_START") {
@@ -250,7 +251,7 @@ export function useMultiplayer({
   const handleExitToMenu = () => {
     setOpponentDisconnectedNotice(false);
     partyService.disconnect();
-    sessionStorage.removeItem("mp_session");
+    safeSessionStorage.removeItem("mp_session");
     setIsLobbyOpen(true);
     setHasStartedEver(false);
     setIsIntroPhase(false);

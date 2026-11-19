@@ -28,6 +28,8 @@ export interface ServerRoomState {
   readyClients: Set<string>;
   isPassAndPlay?: boolean;
   isPrivate?: boolean;
+  restartRequestedBy?: string | null;
+  pendingRematchMode?: string | null;
 }
 
 export {
@@ -200,7 +202,7 @@ export default class GameRoomServer {
     }
     delete this.state.players[clientId];
     this.state.readyClients.delete(clientId);
-    (this.state as any).restartRequestedBy = null;
+    this.state.restartRequestedBy = null;
 
     const roomCode = this.getRoomCode();
     const remainingPlayers = Object.values(this.state.players);
@@ -1247,7 +1249,7 @@ export default class GameRoomServer {
           }
           delete this.state.players[senderClientId];
           this.state.readyClients.delete(senderClientId);
-          (this.state as any).restartRequestedBy = null;
+          this.state.restartRequestedBy = null;
 
           const roomCode = this.getRoomCode();
           const remainingPlayers = Object.values(this.state.players);
@@ -1290,8 +1292,8 @@ export default class GameRoomServer {
       }
 
       if (action.type === "REQUEST_RESTART") {
-        (this.state as any).pendingRematchMode = action.payload?.rematchMode || "SWAP";
-        (this.state as any).restartRequestedBy = senderClientId;
+        this.state.pendingRematchMode = action.payload?.rematchMode || "SWAP";
+        this.state.restartRequestedBy = senderClientId;
         this.broadcastRaw(
           JSON.stringify({
             type: "REQUEST_RESTART",
@@ -1302,7 +1304,7 @@ export default class GameRoomServer {
       }
 
       if (action.type === "REJECT_RESTART") {
-        (this.state as any).restartRequestedBy = null;
+        this.state.restartRequestedBy = null;
         this.broadcastRaw(JSON.stringify({ type: "REJECT_RESTART" }));
         return;
       }
@@ -1337,7 +1339,7 @@ export default class GameRoomServer {
           return;
         }
 
-        const restartRequestedBy = (this.state as any).restartRequestedBy;
+        const restartRequestedBy = this.state.restartRequestedBy;
         const hostPlayer = Object.values(this.state.players).find((p) => p.isHost);
         const isHostConsentGiven = Boolean(restartRequestedBy && hostPlayer && restartRequestedBy === hostPlayer.clientId);
 
@@ -1365,10 +1367,10 @@ export default class GameRoomServer {
           console.warn("[GameRoomServer] Action rejected: CONFIRM_RESTART not authorized.");
           return;
         }
-        (this.state as any).restartRequestedBy = null;
+        this.state.restartRequestedBy = null;
         const playerIds = Object.keys(this.state.players || {});
         if (playerIds.length >= 2) {
-          const mode = (this.state as any).pendingRematchMode;
+          const mode = this.state.pendingRematchMode;
           if (mode === "RANDOM") {
             const firstIsKiller = Math.random() < 0.5;
             this.state.players[playerIds[0]].role = firstIsKiller ? "KILLER" : "DETECTIVE";
@@ -1725,7 +1727,7 @@ export default class GameRoomServer {
       clearTimeout(timer);
     }
     this.disconnectTimers.clear();
-    (this.state as any).restartRequestedBy = null;
+    this.state.restartRequestedBy = null;
     unregisterRoom(this.getRoomCode());
   }
 }

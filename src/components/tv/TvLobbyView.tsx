@@ -6,6 +6,7 @@ import { GAME_TITLE, GAME_MODES_META } from '../../constants/gameMeta';
 import { Button } from '../ui/Button';
 import { soundManager } from '../../utils/audio';
 import { useSpatialNavigation } from '../../hooks/useSpatialNavigation';
+import { safeLocalStorage } from '../../utils/storage';
 
 export interface TvLobbyViewProps {
   roomCode: string;
@@ -102,10 +103,10 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
       const urlParam = new URLSearchParams(window.location.search).get('lanHost');
       if (urlParam) {
         const clean = urlParam.trim();
-        localStorage.setItem('dev_tv_lan_host', clean);
+        safeLocalStorage.setItem('dev_tv_lan_host', clean);
         return clean;
       }
-      return localStorage.getItem('dev_tv_lan_host') || '';
+      return safeLocalStorage.getItem('dev_tv_lan_host') || '';
     }
     return '';
   });

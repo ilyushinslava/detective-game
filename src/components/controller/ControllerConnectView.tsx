@@ -5,6 +5,7 @@ import { Button } from '../ui/Button';
 import { partyService } from '../../utils/partyPeer';
 import { normalizeMorse } from '../../utils/morse';
 import { TIMINGS, AUDIO_CONFIG } from '../../constants/gameRules';
+import { safeLocalStorage } from '../../utils/storage';
 
 const QrCameraScanner = lazy(() =>
   import('./QrCameraScanner').then((m) => ({ default: m.QrCameraScanner }))
@@ -46,24 +47,15 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
 
   const [nickname, setNickname] = useState(() => {
     if (initialNickname) return initialNickname;
-    try {
-      const saved = localStorage.getItem('crime_city_profile');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.nickname) return parsed.nickname;
-      }
-    } catch {}
-    return 'Агент';
+    const profile = safeLocalStorage.getJSON<{ nickname?: string } | null>('crime_city_profile', null);
+    return profile?.nickname || 'Агент';
   });
 
   const handleNicknameChange = (val: string) => {
     setNickname(val);
     onUpdateNickname?.(val);
-    try {
-      const saved = localStorage.getItem('crime_city_profile');
-      const base = saved ? JSON.parse(saved) : {};
-      localStorage.setItem('crime_city_profile', JSON.stringify({ ...base, nickname: val }));
-    } catch {}
+    const base = safeLocalStorage.getJSON<Record<string, any>>('crime_city_profile', {});
+    safeLocalStorage.setJSON('crime_city_profile', { ...base, nickname: val });
   };
 
   // ==========================================

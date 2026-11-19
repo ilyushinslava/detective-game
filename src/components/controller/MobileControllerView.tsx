@@ -17,6 +17,7 @@ import { useDetectiveNotebook } from '../../hooks/useDetectiveNotebook';
 import { DetectiveNotebookModal } from './DetectiveNotebookModal';
 import { ControllerWaitingView } from './ControllerWaitingView';
 import { partyService } from '../../utils/partyPeer';
+import { characterImages } from '../../constants/characterImages';
 import { BOARD_GRID_SIZE, TURN_GRACE_PERIOD_SECONDS } from '../../constants/gameRules';
 import {
   getKillerRoleName,
@@ -371,10 +372,6 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     const all = gameState.board.flat();
     return handIds.map((id) => all.find((c) => c.id === id)).filter(Boolean) as Character[];
   }, [isKiller, gameState.killerHand, gameState.detectiveHand, gameState.board]);
-
-  const characterImages = useMemo(() => {
-    return import.meta.glob<{ default: string }>('../../assets/characters/*.webp', { eager: true });
-  }, []);
 
   const isInspectorPending =
     gameState.mode === ('SKHVATKA' as any) &&

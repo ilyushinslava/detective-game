@@ -29,6 +29,7 @@ import { BannerViewerProvider } from "./contexts/BannerViewerContext";
 import { useRulesModal } from "./hooks/useRulesModal";
 import { characterImages } from "./constants/characterImages";
 import { DEFAULT_BET, TIMINGS } from "./constants/gameRules";
+import { safeLocalStorage, safeSessionStorage } from "./utils/storage";
 // Асинхронные динамические чанки второстепенных экранов (TASK-ARCH-001)
 const DuelScreen = lazy(() => import("./components/duel/DuelScreen").then((m) => ({ default: m.DuelScreen })));
 const TvHomeView = lazy(() => import("./components/tv/TvHomeView").then((m) => ({ default: m.TvHomeView })));
@@ -62,7 +63,7 @@ export default function App() {
 
   if (clientTypeParam === "TV_DISPLAY" && !roomParam && typeof window !== "undefined" && typeof window.location?.replace === "function") {
     const code = Math.floor(10000 + Math.random() * 90000).toString();
-    sessionStorage.setItem("tv_party_room", code);
+    safeSessionStorage.setItem("tv_party_room", code);
     const newUrl = new URL(window.location.href);
     newUrl.searchParams.set("room", code);
     newUrl.searchParams.set("clientType", "TV_DISPLAY");
@@ -103,8 +104,8 @@ export default function App() {
     if (roomParam || targetRoomParam) return roomParam || targetRoomParam || "";
     if (typeof window !== "undefined") {
       try {
-        const savedRoom = localStorage.getItem("tv_session_room_code");
-        const savedState = localStorage.getItem("tv_session_party_state");
+        const savedRoom = safeLocalStorage.getItem("tv_session_room_code");
+        const savedState = safeLocalStorage.getItem("tv_session_party_state");
         if (savedRoom && (isAndroidTv || savedState === "CONTROLLER" || clientTypeParam === "TV_DISPLAY")) {
           return savedRoom;
         }
@@ -119,8 +120,8 @@ export default function App() {
     if (clientTypeParam === "TV_DISPLAY") return "TV_LOBBY";
     if (typeof window !== "undefined") {
       try {
-        const savedState = localStorage.getItem("tv_session_party_state") as any;
-        const savedRoom = localStorage.getItem("tv_session_room_code") || roomParam || targetRoomParam;
+        const savedState = safeLocalStorage.getItem("tv_session_party_state") as any;
+        const savedRoom = safeLocalStorage.getItem("tv_session_room_code") || roomParam || targetRoomParam;
         if (savedState && savedRoom) {
           if (savedState === "CONTROLLER") return "CONTROLLER";
           if (["TV_LOBBY", "TV_BOARD"].includes(savedState) && (isAndroidTv || clientTypeParam === "TV_DISPLAY")) {
@@ -137,7 +138,7 @@ export default function App() {
   const [controllerRoomStatus, setControllerRoomStatus] = useState<string>("WAITING");
   const [controllerRole, setControllerRole] = useState<Role>(() => {
     if (typeof window !== "undefined") {
-      const saved = sessionStorage.getItem("tv_controller_role") as Role;
+      const saved = safeSessionStorage.getItem("tv_controller_role") as Role;
       if (saved === "KILLER" || saved === "DETECTIVE") return saved;
     }
     return "KILLER";
@@ -148,16 +149,16 @@ export default function App() {
 
   const handleLeaveControllerLobby = (notice?: string) => {
     try {
-      localStorage.removeItem("tv_session_party_state");
-      localStorage.removeItem("tv_session_room_code");
-      localStorage.removeItem("tv_controller_client_id");
+      safeLocalStorage.removeItem("tv_session_party_state");
+      safeLocalStorage.removeItem("tv_session_room_code");
+      safeLocalStorage.removeItem("tv_controller_client_id");
     } catch {}
     try {
-      sessionStorage.removeItem("tv_controller_client_id");
-      sessionStorage.removeItem("tv_controller_role");
-      sessionStorage.removeItem("tv_controller_room");
+      safeSessionStorage.removeItem("tv_controller_client_id");
+      safeSessionStorage.removeItem("tv_controller_role");
+      safeSessionStorage.removeItem("tv_controller_room");
       if (tvRoomCode) {
-        sessionStorage.removeItem(`crime_city_auth_${tvRoomCode}`);
+        safeSessionStorage.removeItem(`crime_city_auth_${tvRoomCode}`);
       }
     } catch {}
     try {
@@ -185,11 +186,11 @@ export default function App() {
     if (typeof window === "undefined") return;
     try {
       if (tvPartyState === "NONE" || !tvRoomCode) {
-        localStorage.removeItem("tv_session_party_state");
-        localStorage.removeItem("tv_session_room_code");
+        safeLocalStorage.removeItem("tv_session_party_state");
+        safeLocalStorage.removeItem("tv_session_room_code");
       } else {
-        localStorage.setItem("tv_session_party_state", tvPartyState);
-        localStorage.setItem("tv_session_room_code", tvRoomCode);
+        safeLocalStorage.setItem("tv_session_party_state", tvPartyState);
+        safeLocalStorage.setItem("tv_session_room_code", tvRoomCode);
       }
     } catch {}
   }, [tvPartyState, tvRoomCode]);
@@ -205,18 +206,18 @@ export default function App() {
   const [tvReconnectAttempt, setTvReconnectAttempt] = useState(1);
 
   useEffect(() => {
-        sessionStorage.removeItem("mp_session");
+        safeSessionStorage.removeItem("mp_session");
   }, []);
 
   useEffect(() => {
     if ((clientTypeParam === "CONTROLLER" || tvPartyState === "CONTROLLER") && tvRoomCode) {
-      let controllerClientId = typeof window !== "undefined" ? localStorage.getItem("tv_controller_client_id") : null;
+      let controllerClientId = typeof window !== "undefined" ? safeLocalStorage.getItem("tv_controller_client_id") : null;
       if (!controllerClientId && typeof window !== "undefined") {
         controllerClientId = `client_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-        localStorage.setItem("tv_controller_client_id", controllerClientId);
+        safeLocalStorage.setItem("tv_controller_client_id", controllerClientId);
       }
       if (typeof window !== "undefined") {
-        sessionStorage.setItem("tv_controller_room", tvRoomCode);
+        safeSessionStorage.setItem("tv_controller_room", tvRoomCode);
       }
       partyService.connect(tvRoomCode, profile.nickname || 'Агент', false, 'MANIAC_VS_OPERATIVE', controllerClientId || undefined, 'CONTROLLER');
 
@@ -254,7 +255,7 @@ export default function App() {
           (partyService as any).role = role;
           setControllerRole(role);
           if (typeof window !== "undefined") {
-            sessionStorage.setItem("tv_controller_role", role);
+            safeSessionStorage.setItem("tv_controller_role", role);
           }
         }
         if (state) {
@@ -263,12 +264,12 @@ export default function App() {
             if (state.detectiveSecretId && !state.killerSecretId) {
               setControllerRole("DETECTIVE");
               if (typeof window !== "undefined") {
-                sessionStorage.setItem("tv_controller_role", "DETECTIVE");
+                safeSessionStorage.setItem("tv_controller_role", "DETECTIVE");
               }
             } else if (state.killerSecretId && !state.detectiveSecretId) {
               setControllerRole("KILLER");
               if (typeof window !== "undefined") {
-                sessionStorage.setItem("tv_controller_role", "KILLER");
+                safeSessionStorage.setItem("tv_controller_role", "KILLER");
               }
             }
           }
@@ -389,7 +390,7 @@ export default function App() {
 
   const [isSfxEnabled, setIsSfxEnabled] = useState(soundManager.getSfxEnabled());
   const [isAmbientEnabled, setIsAmbientEnabled] = useState(soundManager.getAmbientEnabled());
-  const [isHapticsEnabled, setIsHapticsEnabled] = useState(() => localStorage.getItem("crime_city_haptics") !== "false");
+  const [isHapticsEnabled, setIsHapticsEnabled] = useState(() => safeLocalStorage.getItem("crime_city_haptics") !== "false");
 
   const gameStateRef = useRef(gameState);
   useEffect(() => {
@@ -595,7 +596,7 @@ export default function App() {
   const handleExitToMenu = () => {
     setIsPauseOpen(false);
     partyService.disconnect();
-    sessionStorage.removeItem("mp_session");
+    safeSessionStorage.removeItem("mp_session");
     setOpponentDisconnectedNotice(false);
     if (isAndroidTv) {
       setTvPartyState("TV_LOBBY");
@@ -613,9 +614,9 @@ export default function App() {
   const handleExitTvParty = () => {
     partyService.disconnect();
     try {
-      sessionStorage.removeItem("tv_party_room");
-      localStorage.removeItem("tv_session_party_state");
-      localStorage.removeItem("tv_session_room_code");
+      safeSessionStorage.removeItem("tv_party_room");
+      safeLocalStorage.removeItem("tv_session_party_state");
+      safeLocalStorage.removeItem("tv_session_room_code");
     } catch {}
     setTvRoomCode("");
     setTvMorseCode("");
@@ -643,14 +644,14 @@ export default function App() {
     setIsTvDisconnected(false);
     partyService.disconnect();
     try {
-      sessionStorage.removeItem("mp_session");
-      sessionStorage.removeItem("tv_party_room");
-      sessionStorage.removeItem("tv_controller_room");
-      sessionStorage.removeItem("tv_controller_role");
-      sessionStorage.removeItem("tv_controller_client_id");
-      localStorage.removeItem("tv_session_party_state");
-      localStorage.removeItem("tv_session_room_code");
-      localStorage.removeItem("tv_controller_client_id");
+      safeSessionStorage.removeItem("mp_session");
+      safeSessionStorage.removeItem("tv_party_room");
+      safeSessionStorage.removeItem("tv_controller_room");
+      safeSessionStorage.removeItem("tv_controller_role");
+      safeSessionStorage.removeItem("tv_controller_client_id");
+      safeLocalStorage.removeItem("tv_session_party_state");
+      safeLocalStorage.removeItem("tv_session_room_code");
+      safeLocalStorage.removeItem("tv_controller_client_id");
     } catch {}
     setOpponentDisconnectedNotice(false);
     setTvRoomCode("");
@@ -792,7 +793,7 @@ export default function App() {
         onToggleHaptics={() => {
           const newVal = !isHapticsEnabled;
           setIsHapticsEnabled(newVal);
-          localStorage.setItem("crime_city_haptics", newVal ? "true" : "false");
+          safeLocalStorage.setItem("crime_city_haptics", newVal ? "true" : "false");
           if (newVal) triggerHaptic("medium");
         }}
         fullscreenCard={fullscreenImage}
@@ -908,8 +909,8 @@ export default function App() {
           setGameState((prev) => ({ ...prev, winner: prev.winner || "KILLER" }));
         }}
         onClearSession={() => {
-          sessionStorage.clear();
-          localStorage.clear();
+          safeSessionStorage.clear();
+          safeLocalStorage.clear();
           window.location.reload();
         }}
       />
@@ -934,9 +935,9 @@ export default function App() {
                 }
                 const code = Math.floor(10000 + Math.random() * 90000).toString();
                 try {
-                  sessionStorage.setItem("tv_party_room", code);
-                  localStorage.setItem("tv_session_room_code", code);
-                  localStorage.setItem("tv_session_party_state", "TV_LOBBY");
+                  safeSessionStorage.setItem("tv_party_room", code);
+                  safeLocalStorage.setItem("tv_session_room_code", code);
+                  safeLocalStorage.setItem("tv_session_party_state", "TV_LOBBY");
                 } catch {}
                 partyService.disconnect();
                 setTvRoomCode(code);
@@ -1223,9 +1224,9 @@ export default function App() {
                   setTvPlayers({});
                   if (typeof window !== "undefined") {
                     try {
-                      sessionStorage.setItem("tv_party_room", code);
-                      localStorage.setItem("tv_session_room_code", code);
-                      localStorage.setItem("tv_session_party_state", "TV_LOBBY");
+                      safeSessionStorage.setItem("tv_party_room", code);
+                      safeLocalStorage.setItem("tv_session_room_code", code);
+                      safeLocalStorage.setItem("tv_session_party_state", "TV_LOBBY");
                     } catch {}
                   }
                   setTvPartyState("TV_LOBBY");

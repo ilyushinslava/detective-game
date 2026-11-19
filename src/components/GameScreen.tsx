@@ -58,16 +58,17 @@ export interface GameScreenProps {
   isCleanupAvailable: boolean;
   isDetectiveView: boolean;
   isDetectiveTurn: boolean;
+  isKillerTurn: boolean;
   isHandSheetOpen: boolean;
   setIsHandSheetOpen: (val: boolean) => void;
-  isEvidenceSheetOpen: boolean;
-  setIsEvidenceSheetOpen: (val: boolean) => void;
-  isDeckSheetOpen: boolean;
-  setIsDeckSheetOpen: (val: boolean) => void;
-  isVictimsSheetOpen: boolean;
-  setIsVictimsSheetOpen: (val: boolean) => void;
-  isHelpOpen: boolean;
-  setIsHelpOpen: (val: boolean) => void;
+  isEvidenceSheetOpen?: boolean;
+  setIsEvidenceSheetOpen?: (val: boolean) => void;
+  isDeckSheetOpen?: boolean;
+  setIsDeckSheetOpen?: (val: boolean) => void;
+  isVictimsSheetOpen?: boolean;
+  setIsVictimsSheetOpen?: (val: boolean) => void;
+  isHelpOpen?: boolean;
+  setIsHelpOpen?: (val: boolean) => void;
   isLogOpen: boolean;
   setIsLogOpen: (val: boolean) => void;
   unreadLogCount: number;
@@ -75,12 +76,16 @@ export interface GameScreenProps {
   isNotebookOpen: boolean;
   setIsNotebookOpen: (val: boolean) => void;
   logContainerRef: React.RefObject<HTMLDivElement | null>;
+  allChars?: Character[];
+  characterImages?: Record<string, { default: string }>;
   handleReset: () => void;
   handleShift: (
     type: "ROW" | "COL",
     index: number,
     direction: "FORWARD" | "BACKWARD"
   ) => void;
+  handleExonerateFromHand?: (id: string) => void;
+  handleFastDisguise?: (id: string) => void;
   killerChar?: Character;
   detectiveChar?: Character;
   spyP1Char?: Character;
@@ -132,6 +137,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
   isCleanupAvailable,
   isDetectiveView,
   isDetectiveTurn,
+  isKillerTurn,
   isHandSheetOpen,
   setIsHandSheetOpen,
   isEvidenceSheetOpen,
@@ -149,8 +155,12 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
   isNotebookOpen,
   setIsNotebookOpen,
   logContainerRef,
+  allChars: externalAllChars,
+  characterImages,
   handleReset,
   handleShift,
+  handleExonerateFromHand,
+  handleFastDisguise,
   killerChar,
   detectiveChar,
   spyP1Char,
@@ -160,7 +170,10 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
   onConfirmTurnReady,
   setIsMenuOpen,
 }) => {
-  const allChars = React.useMemo(() => gameState.board.flat(), [gameState.board]);
+  const allChars = React.useMemo(
+    () => externalAllChars || gameState.board.flat(),
+    [externalAllChars, gameState.board]
+  );
   const selectedCharacter = React.useMemo(
     () => allChars.find((c) => c.id === selectedId) || null,
     [allChars, selectedId]
@@ -371,33 +384,28 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
       {/* Модальные шторки и досье */}
       <GameSheets
         gameState={gameState}
+        allChars={allChars}
+        characterImages={characterImages}
+        isHumanTurn={isHumanTurn}
+        isDetectiveTurn={isDetectiveTurn}
+        isKillerTurn={isKillerTurn}
         isHandSheetOpen={isHandSheetOpen}
         setIsHandSheetOpen={setIsHandSheetOpen}
-        isEvidenceSheetOpen={isEvidenceSheetOpen}
-        setIsEvidenceSheetOpen={setIsEvidenceSheetOpen}
-        isDeckSheetOpen={isDeckSheetOpen}
-        setIsDeckSheetOpen={setIsDeckSheetOpen}
-        isVictimsSheetOpen={isVictimsSheetOpen}
-        setIsVictimsSheetOpen={setIsVictimsSheetOpen}
-        isHelpOpen={isHelpOpen}
-        setIsHelpOpen={setIsHelpOpen}
         isLogOpen={isLogOpen}
         setIsLogOpen={setIsLogOpen}
-        isNotebookOpen={isNotebookOpen}
-        setIsNotebookOpen={setIsNotebookOpen}
         logContainerRef={logContainerRef}
-        isHumanTurn={isHumanTurn}
+        handleExonerateFromHand={handleExonerateFromHand}
+        handleFastDisguise={handleFastDisguise}
       />
 
       {/* Шторка приватности для Pass & Play */}
       <BlindfoldCurtain
-        isActive={Boolean(isCurtainActive)}
+        isOpen={Boolean(isCurtainActive ?? gameState.isPrivacyScreenActive)}
+        isActive={Boolean(isCurtainActive ?? gameState.isPrivacyScreenActive)}
         nextPlayerName={nextPlayerName || currentRoleName}
-        onConfirmTurnReady={() => {
-          if (onConfirmTurnReady) {
-            onConfirmTurnReady();
-          }
-        }}
+        gameState={gameState}
+        onDismiss={onConfirmTurnReady}
+        onConfirmTakeDevice={onConfirmTurnReady}
       />
     </div>
   );

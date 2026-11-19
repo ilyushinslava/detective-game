@@ -36,7 +36,10 @@ export const GameActionButtons: React.FC<GameActionButtonsProps> = ({
   setIsHandSheetOpen,
   layout = "horizontal",
 }) => {
-  const showDossier = gameState.mode === "MANIAC_VS_OPERATIVE" && isDetectiveView;
+  const showDossier =
+    (gameState.mode === "MANIAC_VS_OPERATIVE" ||
+      gameState.mode === "SKHVATKA") &&
+    isDetectiveView;
   const showCleanup = Boolean(cleanupAction && isCleanupAvailable);
   const totalButtons = targetActions.length + (showDossier ? 1 : 0) + (showCleanup ? 1 : 0);
 
@@ -246,7 +249,7 @@ export const GameActionDock: React.FC<GameActionDockProps> = ({
 }) => {
   void logContainerRef;
   return (
-    <footer className="landscape:hidden w-full shrink-0 flex items-center border-t border-white/10 bg-slate-950/90 backdrop-blur-xl p-1.5 sm:p-2 z-30 max-h-16">
+    <footer className="landscape:hidden w-full shrink-0 flex flex-col justify-center border-t border-white/10 bg-slate-950/90 backdrop-blur-xl px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-30">
       <div className="flex-1 flex flex-col justify-center min-w-0">
         <GameActionButtons
           gameState={gameState}

@@ -5,7 +5,8 @@ import { playClickSound } from "../../utils/tvAudio";
 import { resolveNextPlayerInfo } from "../../utils/gameLogic";
 
 export interface BlindfoldCurtainProps {
-  isOpen: boolean;
+  isOpen?: boolean;
+  isActive?: boolean;
   nextRole?: Role;
   nextPlayerName?: string;
   nextPlayerColor?: string;
@@ -22,6 +23,7 @@ export interface BlindfoldCurtainProps {
  */
 export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
   isOpen,
+  isActive,
   nextRole,
   nextPlayerName,
   nextPlayerColor,
@@ -30,6 +32,7 @@ export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
   gameState,
   zIndexClass = "z-[9999]",
 }) => {
+  const isVisible = Boolean(isOpen ?? isActive);
   const handleDismiss = useCallback(() => {
     try {
       triggerHaptic("success");
@@ -47,7 +50,7 @@ export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
 
   // Поддержка горячих клавиш Space / Enter для быстрого принятия хода
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isVisible) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Enter" || e.key === " " || e.code === "Space") {
@@ -58,9 +61,9 @@ export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, handleDismiss]);
+  }, [isVisible, handleDismiss]);
 
-  if (!isOpen) return null;
+  if (!isVisible) return null;
 
   // Определение параметров следующего игрока
   const fallbackInfo = gameState ? resolveNextPlayerInfo(gameState) : null;

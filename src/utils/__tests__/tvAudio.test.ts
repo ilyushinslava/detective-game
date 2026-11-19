@@ -32,13 +32,16 @@ describe('tvAudio Utility (Neo-Noir Rules & Audio Invariant)', () => {
 
   it('playShiftSound is safe and does not invoke procedural oscillator', () => {
     expect(() => playShiftSound()).not.toThrow();
+    expect(soundManager.play).toHaveBeenCalledWith('slide');
   });
 
   it('playEliminateSound is safe and does not invoke procedural oscillator', () => {
     expect(() => playEliminateSound()).not.toThrow();
+    expect(soundManager.play).toHaveBeenCalledWith('kill');
   });
 
   it('playRadarPing is safe and does not invoke procedural oscillator', () => {
     expect(() => playRadarPing()).not.toThrow();
+    expect(soundManager.play).toHaveBeenCalledWith('radar');
   });
 });

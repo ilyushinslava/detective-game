@@ -53,7 +53,7 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
 }) => {
   return (
     <div
-      className="flex h-[100dvh] w-full max-w-full flex-col items-center justify-between bg-[#07090e] p-4 sm:p-5 pb-6 sm:pb-8 text-center text-zinc-100 select-none font-sans overflow-y-auto overflow-x-hidden relative overscroll-none touch-manipulation touch-pan-y"
+      className="flex h-[100dvh] w-full max-w-full flex-col items-center justify-between bg-[#07090e] p-4 sm:p-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] text-center text-zinc-100 select-none font-sans overflow-y-auto overflow-x-hidden relative overscroll-none touch-manipulation touch-pan-y"
       style={{ overscrollBehavior: "none", touchAction: "manipulation" }}
     >
       {/* Мягкая контровая подсветка нео-нуара */}
@@ -74,7 +74,7 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
             }`}
           />
           <span className="text-xs font-mono uppercase tracking-widest text-zinc-300 font-bold">
-            ТВ-ЭФИР СИНХРОНИЗИРОВАН
+            ПОДКЛЮЧЕНО К ТВ
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -116,12 +116,11 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
           </div>
 
           <div
-            className={`w-14 h-14 rounded-2xl bg-zinc-950 border border-white/15 flex flex-col items-center justify-center z-10 shadow-2xl ${
+            className={`w-14 h-14 rounded-2xl bg-zinc-950 border border-white/15 flex items-center justify-center z-10 shadow-2xl ${
               isKiller ? "text-rose-400" : "text-blue-400"
             }`}
           >
             <ControllerIcons.Radar />
-            <span className="text-[8px] font-mono text-zinc-400 font-bold uppercase mt-0.5">РАДАР</span>
           </div>
         </div>
 

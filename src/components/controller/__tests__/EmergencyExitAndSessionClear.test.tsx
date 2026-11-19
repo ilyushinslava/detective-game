@@ -77,8 +77,8 @@ describe("Emergency Exit & Dead Room Protection (TASK-NET-003)", () => {
     // Verify partyService disconnect called
     expect(disconnectSpy).toHaveBeenCalled();
 
-    // Should return to connect screen (PIN / Morse / Camera)
-    expect(await screen.findByText(/ШИФРОВАННЫЙ КАНАЛ/i)).toBeDefined();
+    // Should return to connect screen (Camera / Morse)
+    expect(await screen.findByText(/ПОДКЛЮЧЕНИЕ К ТВ|ШИФРОВАННЫЙ КАНАЛ/i)).toBeDefined();
   });
 
   it("automatically kicks controller back to connect screen with notice when TV host disconnects in lobby", async () => {

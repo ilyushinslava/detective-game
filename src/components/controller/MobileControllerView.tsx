@@ -625,13 +625,13 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[10000] flex flex-col items-center justify-between bg-[#07090e]/95 p-6 backdrop-blur-xl select-none font-sans"
+          className="fixed inset-0 z-[10000] flex flex-col items-center justify-between bg-[#07090e]/95 p-6 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] backdrop-blur-xl select-none font-sans"
           data-testid="connection-loss-overlay"
         >
           <div className="w-full flex justify-between items-center border-b border-white/10 pb-3">
             <span className="text-xs font-mono font-bold tracking-widest text-zinc-400">ПОД ПОДОЗРЕНИЕМ</span>
             <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-rose-950/80 border border-rose-500/40 text-rose-300 font-bold">
-              РАДИОКАНАЛ: ОФФЛАЙН
+              СОЕДИНЕНИЕ: ОФФЛАЙН
             </span>
           </div>
 
@@ -641,7 +641,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             </div>
 
             <h2 className="font-display text-2xl font-black uppercase tracking-wider text-white mb-2">
-              ПОТЕРЯ РАДИОСВЯЗИ
+              ПОТЕРЯ СОЕДИНЕНИЯ
             </h2>
 
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-white/10 text-xs font-mono text-zinc-300 mb-4">
@@ -649,7 +649,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
               <span>
                 {activeReconnectAttempt > 0
                   ? `ВОССТАНОВЛЕНИЕ СИГНАЛА (${activeReconnectAttempt}/3)...`
-                  : 'ПОИСК РАДИОЧАСТОТЫ...'}
+                  : 'ПОИСК СЕРВЕРА...'}
               </span>
             </div>
 
@@ -692,7 +692,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
               className="w-full min-h-[44px] mt-2.5 py-3 rounded-2xl border border-rose-500/40 hover:border-rose-500/80 bg-rose-950/20 hover:bg-rose-950/40 text-rose-300 hover:text-rose-100 text-xs font-mono font-bold uppercase tracking-wider transition cursor-pointer active:scale-95 shadow-sm font-display flex items-center justify-center gap-2"
             >
               <span>✕</span>
-              <span>ВЕРНУТЬСЯ В ШТАБ (ОТМЕНА)</span>
+              <span>В ГЛАВНОЕ МЕНЮ (ОТМЕНА)</span>
             </button>
           </div>
 
@@ -724,7 +724,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             </div>
 
             <h3 className="font-display text-base font-black uppercase tracking-wider text-zinc-100 mb-2">
-              ОЖИДАНИЕ ВОЗВРАЩЕНИЯ СВЯЗНОГО
+              ОЖИДАНИЕ ВОЗВРАЩЕНИЯ ИГРОКА
             </h3>
 
             <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden my-3">
@@ -735,7 +735,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             </div>
 
             <p className="text-xs text-zinc-400 leading-relaxed mt-2 mb-1">
-              Связной временно вне зоны эфира. Ход матча приостановлен.
+              Игрок временно вне сети. Ход матча приостановлен.
             </p>
             <p className="text-[11px] text-zinc-500 leading-relaxed font-mono">
               При невозврате в течение 60 секунд будет зафиксировано техническое поражение.
@@ -758,15 +758,15 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   ) {
     return (
       <div
-        className="flex h-[100dvh] w-full max-w-full flex-col items-center justify-between bg-[#07090e] p-5 pb-8 text-center text-zinc-100 select-none font-sans overflow-y-auto overflow-x-hidden relative overscroll-none touch-manipulation touch-pan-y"
+        className="flex h-[100dvh] w-full max-w-full flex-col items-center justify-between bg-[#07090e] p-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] text-center text-zinc-100 select-none font-sans overflow-y-auto overflow-x-hidden relative overscroll-none touch-manipulation touch-pan-y"
         style={{ overscrollBehavior: 'none', touchAction: 'manipulation' }}
       >
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-transparent to-black/90 pointer-events-none" />
 
         <div className="w-full flex justify-between items-center border-b border-white/10 pb-3 relative z-10">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-            <span className="text-xs font-mono uppercase tracking-widest text-zinc-300 font-bold">ПОДКЛЮЧЕНО К ЭФИРУ</span>
+            <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+            <span className="text-xs font-mono uppercase tracking-widest text-zinc-300 font-bold">ПОДКЛЮЧЕНО К ТВ</span>
           </div>
         </div>
 
@@ -846,7 +846,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-          className="w-full h-[390px] p-4 bg-gradient-to-b from-slate-950/98 via-zinc-950/98 to-black/98 border-t border-white/15 rounded-t-3xl shadow-[0_-20px_50px_rgba(0,0,0,0.9)] backdrop-blur-md flex flex-col justify-between"
+          className="w-full max-h-[85vh] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gradient-to-b from-slate-950/98 via-zinc-950/98 to-black/98 border-t border-white/15 rounded-t-3xl shadow-[0_-20px_50px_rgba(0,0,0,0.9)] backdrop-blur-md flex flex-col justify-between overflow-y-auto custom-scrollbar"
         >
           {/* Шапка панели маневра — фиксированная высота (Zero Layout Shift) */}
           <div className="h-8 flex items-center justify-between border-b border-white/10 pb-2 shrink-0">
@@ -867,10 +867,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           </div>
 
           {/* Центральная зона с плавной анимацией шагов без скачков высоты */}
-          <div className="flex-1 min-h-0 flex flex-col justify-center py-2 relative overflow-hidden">
+          <div className="flex-1 min-h-0 flex flex-col justify-center py-2 relative">
             {/* ЭТАП 1: ВЫБОР ТИПА ЛИНИИ И ЕЁ НОМЕРА (1–5) С ПОДСВЕТКОЙ НА ТВ */}
             {(shiftStep === 'SELECT_LINE' || shiftStep === 'SELECT_AXIS' || shiftStep === 'SELECT_INDEX') && (
-              <div className="w-full space-y-2.5">
+              <div className="w-full space-y-2">
                 <div className="text-center space-y-0.5">
                   <div className="font-display text-xs uppercase tracking-wider text-zinc-400 font-bold">
                     ЭТАП 1 • ВЫБЕРИТЕ ЛИНИЮ ДЛЯ МАНЕВРА
@@ -887,7 +887,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                       setSelectedAxis('ROW');
                       updateLinePreview({ type: 'ROW', index: selectedIndex });
                     }}
-                    className={`min-h-[44px] py-2.5 px-3 rounded-xl font-display text-xs font-bold uppercase tracking-wider transition duration-75 active:scale-95 touch-manipulation cursor-pointer flex items-center justify-center gap-1.5 ${
+                    className={`min-h-[40px] py-2 px-3 rounded-xl font-display text-xs font-bold uppercase tracking-wider transition duration-75 active:scale-95 touch-manipulation cursor-pointer flex items-center justify-center gap-1.5 ${
                       selectedAxis === 'ROW'
                         ? 'bg-blue-600 text-white shadow-md border border-blue-400/50'
                         : 'bg-zinc-900/90 text-zinc-400 border border-white/10 hover:text-white hover:border-zinc-500 active:bg-zinc-800'
@@ -901,7 +901,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                       setSelectedAxis('COL');
                       updateLinePreview({ type: 'COL', index: selectedIndex });
                     }}
-                    className={`min-h-[44px] py-2.5 px-3 rounded-xl font-display text-xs font-bold uppercase tracking-wider transition duration-75 active:scale-95 touch-manipulation cursor-pointer flex items-center justify-center gap-1.5 ${
+                    className={`min-h-[40px] py-2 px-3 rounded-xl font-display text-xs font-bold uppercase tracking-wider transition duration-75 active:scale-95 touch-manipulation cursor-pointer flex items-center justify-center gap-1.5 ${
                       selectedAxis === 'COL'
                         ? 'bg-blue-600 text-white shadow-md border border-blue-400/50'
                         : 'bg-zinc-900/90 text-zinc-400 border border-white/10 hover:text-white hover:border-zinc-500 active:bg-zinc-800'
@@ -913,7 +913,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                 </div>
 
                 {/* Выбор номера линии 1–5 */}
-                <div className="flex flex-col gap-1.5 w-full max-w-xs mx-auto">
+                <div className="flex flex-col gap-1 w-full max-w-xs mx-auto">
                   {Array.from({ length: boardSize }, (_, i) => i).map((i) => (
                     <button
                       key={i}
@@ -922,7 +922,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         updateLinePreview({ type: selectedAxis, index: i });
                         setShiftStep('SELECT_DIR');
                       }}
-                      className="w-full min-h-[44px] h-11 rounded-xl bg-zinc-900/90 border border-white/10 hover:border-blue-400 hover:bg-zinc-800/80 flex items-center justify-between px-3 transition duration-75 cursor-pointer active:scale-[0.98] active:bg-zinc-800 touch-manipulation shadow-sm group"
+                      className="w-full min-h-[38px] h-10 rounded-xl bg-zinc-900/90 border border-white/10 hover:border-blue-400 hover:bg-zinc-800/80 flex items-center justify-between px-3 transition duration-75 cursor-pointer active:scale-[0.98] active:bg-zinc-800 touch-manipulation shadow-sm group"
                     >
                       <div className="flex items-center gap-2">
                         <span className="w-5 h-5 rounded bg-zinc-950 border border-white/10 flex items-center justify-center font-mono text-[11px] font-bold text-zinc-300 group-hover:border-blue-400 group-hover:text-blue-300">
@@ -1108,7 +1108,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   // =========================================================================
   return (
     <div
-      className="flex h-[100dvh] w-full max-w-full flex-col justify-between bg-[#07090e] p-4 sm:p-5 pb-6 sm:pb-8 text-zinc-100 select-none overflow-y-auto overflow-x-hidden font-sans relative overscroll-none touch-manipulation touch-pan-y"
+      className="flex h-[100dvh] w-full max-w-full flex-col justify-between bg-[#07090e] p-4 sm:p-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] text-zinc-100 select-none overflow-y-auto overflow-x-hidden font-sans relative overscroll-none touch-manipulation touch-pan-y"
       style={{ overscrollBehavior: 'none', touchAction: 'manipulation' }}
     >
       {/* Мягкая контровая подсветка нео-нуара */}
@@ -1298,7 +1298,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         <div className="font-display text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1 flex items-center justify-between">
           <span>ДОСТУПНЫЕ ДЕЙСТВИЯ</span>
           {activeAIThinking && (
-            <span className="text-[10px] font-mono text-cyan-400 font-bold animate-pulse">
+            <span className="text-[10px] font-mono text-blue-400 font-bold animate-pulse">
               [ХОД БОТА...]
             </span>
           )}

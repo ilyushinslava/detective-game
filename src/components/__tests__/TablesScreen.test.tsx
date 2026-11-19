@@ -140,8 +140,8 @@ describe("TablesScreen", () => {
 
     // Открывается телеграфный ключ с привязкой к хосту (асинхронно через Suspense)
     expect(await screen.findByRole("button", { name: "Ключ телеграфа" })).toBeDefined();
-    expect(await screen.findByText(/ШИФР ДОСТУПА: Секретный Агент/i)).toBeDefined();
-    expect(await screen.findByText(/ПОДТВЕРДИТЬ ШИФР/i)).toBeDefined();
+    expect(await screen.findByText(/КОД КОМНАТЫ: Секретный Агент|ШИФР ДОСТУПА: Секретный Агент/i)).toBeDefined();
+    expect(await screen.findByText(/ПОДТВЕРДИТЬ|ПОДТВЕРДИТЬ ШИФР/i)).toBeDefined();
   });
 
   it("в нижней панели действий отображает только кнопку '+ Создать партию' без лишнего ручного ввода", () => {

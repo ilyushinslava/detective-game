@@ -24,7 +24,7 @@ export interface ControllerConnectViewProps {
   initialTab?: ConnectTab;
 }
 
-export type ConnectTab = 'CAMERA' | 'PIN' | 'MORSE';
+export type ConnectTab = 'CAMERA' | 'MORSE';
 
 export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   onConnect,
@@ -39,9 +39,8 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   initialTab,
 }) => {
   const [activeTab, setActiveTab] = useState<ConnectTab>(() => {
-    if (initialTab) return initialTab;
-    if (targetExpectedMorse) return 'MORSE';
-    if (targetRoomCode) return 'PIN';
+    if (initialTab && initialTab !== ('PIN' as any)) return initialTab;
+    if (targetExpectedMorse || targetRoomCode) return 'MORSE';
     return 'CAMERA';
   });
 
@@ -65,36 +64,6 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
       const base = saved ? JSON.parse(saved) : {};
       localStorage.setItem('crime_city_profile', JSON.stringify({ ...base, nickname: val }));
     } catch {}
-  };
-
-  // ==========================================
-  // Стейт вкладки ПИН-КОД (5 цифр)
-  // ==========================================
-  const [pinInput, setPinInput] = useState<string>(targetRoomCode || '');
-  const [pinError, setPinError] = useState<string | null>(null);
-  const [isPinConnecting, setIsPinConnecting] = useState<boolean>(false);
-  const pinInputRef = useRef<HTMLInputElement>(null);
-
-  const handlePinChange = (val: string) => {
-    const digitsOnly = val.replace(/\D/g, '').slice(0, 5);
-    setPinInput(digitsOnly);
-    setPinError(null);
-    if (digitsOnly.length > 0) {
-      triggerHaptic('light');
-    }
-  };
-
-  const handlePinConnect = () => {
-    if (pinInput.length !== 5) {
-      setPinError('Введите 5-значный номер комнаты');
-      soundManager.play('error');
-      triggerHaptic('error');
-      return;
-    }
-    soundManager.play('impact');
-    triggerHaptic('success');
-    setIsPinConnecting(true);
-    onConnect(pinInput);
   };
 
   // ==========================================
@@ -253,11 +222,11 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
           return;
         }
 
-        setErrorMessage('Неверный шифр доступа. Проверьте шифр у хоста.');
+        setErrorMessage('Неверный код комнаты. Проверьте код на экране ТВ.');
         soundManager.play('error');
         triggerHaptic('error');
       } catch (_err) {
-        setErrorMessage('Сетевая ошибка при проверке шифра.');
+        setErrorMessage('Сетевая ошибка при проверке кода.');
         soundManager.play('error');
         triggerHaptic('error');
       } finally {
@@ -298,16 +267,16 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   const strokeDashoffset = RING_CIRCUMFERENCE * (1 - holdProgress);
 
   return (
-    <div className="flex h-[100dvh] w-full max-w-full flex-col justify-between bg-[#080a0f] p-4 sm:p-5 pb-6 sm:pb-8 text-zinc-100 select-none overflow-y-auto overflow-x-hidden font-sans relative">
+    <div className="flex h-[100dvh] w-full max-w-full flex-col justify-between bg-[#080a0f] p-4 sm:p-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] text-zinc-100 select-none overflow-hidden font-sans relative">
       {/* Мягкая контровая подсветка нео-нуара */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-transparent to-black/90 pointer-events-none" />
 
       {/* Верхний статус-бар */}
       <div className="flex items-center justify-between border-b border-white/10 pb-3 relative z-10 shrink-0">
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+          <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
           <span className="text-xs font-display uppercase tracking-widest text-zinc-200 font-bold">
-            {targetHostName ? `ШИФР ДОСТУПА: ${targetHostName}` : 'ПУЛЬТ УПРАВЛЕНИЯ'}
+            {targetHostName ? `КОД КОМНАТЫ: ${targetHostName}` : 'ПУЛЬТ УПРАВЛЕНИЯ'}
           </span>
         </div>
         <Button
@@ -347,7 +316,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
         <div className="p-3 rounded-2xl bg-black/60 border border-white/10 backdrop-blur-2xl shadow-[inset_0_2px_20px_rgba(0,0,0,0.8)] space-y-1">
           <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-zinc-400">
             <span>ПОЗЫВНОЙ АГЕНТА</span>
-            <span className="text-blue-400 font-bold tracking-wider">ШИФРОВАННЫЙ КАНАЛ</span>
+            <span className="text-blue-400 font-bold tracking-wider">ПОДКЛЮЧЕНИЕ К ТВ</span>
           </div>
           <input
             type="text"
@@ -360,9 +329,9 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
         </div>
       </div>
 
-      {/* Премиальная навигация по вкладкам (Tabs) */}
+      {/* Навигация по вкладкам (Tabs): только 2 вкладки КАМЕРА и МОРЗЕ */}
       <div className="max-w-sm mx-auto w-full mb-3 relative z-10 shrink-0">
-        <div className="grid grid-cols-3 p-1 rounded-2xl bg-black/60 border border-white/10 backdrop-blur-2xl shadow-inner">
+        <div className="grid grid-cols-2 p-1 rounded-2xl bg-black/60 border border-white/10 backdrop-blur-2xl shadow-inner">
           <button
             type="button"
             onClick={() => {
@@ -380,28 +349,6 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
               <circle cx="12" cy="13" r="4" />
             </svg>
             <span>КАМЕРА</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              triggerHaptic('light');
-              setActiveTab('PIN');
-              setTimeout(() => pinInputRef.current?.focus(), 100);
-            }}
-            className={`min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl text-xs font-display tracking-wider uppercase transition-all duration-75 active:scale-95 touch-manipulation cursor-pointer ${
-              activeTab === 'PIN'
-                ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)] font-bold'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 font-semibold'
-            }`}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 shrink-0">
-              <rect x="3" y="3" width="7" height="7" />
-              <rect x="14" y="3" width="7" height="7" />
-              <rect x="14" y="14" width="7" height="7" />
-              <rect x="3" y="14" width="7" height="7" />
-            </svg>
-            <span>ПИН-КОД</span>
           </button>
 
           <button
@@ -428,7 +375,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
       {/* ВКЛАДКА 1: КАМЕРА (Встроенный QR-сканер)                       */}
       {/* ============================================================ */}
       {activeTab === 'CAMERA' && (
-        <div className="flex-1 flex flex-col items-center justify-center max-w-sm mx-auto w-full relative z-10 py-1">
+        <div className="flex-1 flex flex-col items-center justify-center max-w-sm mx-auto w-full relative z-10 py-1 overflow-hidden">
           <Suspense
             fallback={
               <div className="w-full aspect-square max-h-[340px] flex items-center justify-center neo-card rounded-2xl">
@@ -440,7 +387,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
               onScanSuccess={(scannedCode) => {
                 onConnect(scannedCode);
               }}
-              onManualSwitch={() => setActiveTab('PIN')}
+              onManualSwitch={() => setActiveTab('MORSE')}
               className="w-full aspect-square max-h-[340px] shadow-2xl"
             />
           </Suspense>
@@ -448,87 +395,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
       )}
 
       {/* ============================================================ */}
-      {/* ВКЛАДКА 2: ПИН-КОД (5 цифр с экрана ТВ)                      */}
-      {/* ============================================================ */}
-      {activeTab === 'PIN' && (
-        <div className="flex-1 flex flex-col justify-between max-w-sm mx-auto w-full relative z-10 py-2 space-y-4">
-          <div className="flex flex-col items-center text-center space-y-3 my-auto">
-            <div className="text-center space-y-1">
-              <h2 className="text-xl sm:text-2xl font-display font-black uppercase tracking-wider text-white">
-                КОД КОМНАТЫ С ТВ
-              </h2>
-              <p className="text-xs font-mono text-zinc-400">
-                Введите 5-значный цифровой код, отображаемый на экране
-              </p>
-            </div>
-
-            {/* Стилизованные 5 слотов для цифр кода */}
-            <div
-              onClick={() => pinInputRef.current?.focus()}
-              className="relative flex items-center justify-center gap-2.5 sm:gap-3 py-4 w-full cursor-pointer"
-            >
-              {[0, 1, 2, 3, 4].map((idx) => {
-                const digit = pinInput[idx];
-                const isCurrent = idx === pinInput.length;
-                return (
-                  <div
-                    key={idx}
-                    className={`w-12 h-14 sm:w-14 sm:h-16 rounded-2xl flex items-center justify-center font-display font-black text-2xl sm:text-3xl transition-all shadow-md ${
-                      digit
-                        ? 'bg-zinc-900 border-2 border-blue-500/80 text-blue-200 shadow-[0_0_15px_rgba(37,99,235,0.4)]'
-                        : isCurrent
-                        ? 'bg-zinc-950 border-2 border-white/60 text-white animate-pulse'
-                        : 'bg-zinc-950/70 border border-white/15 text-zinc-600'
-                    }`}
-                  >
-                    {digit || ''}
-                  </div>
-                );
-              })}
-
-              {/* Невидимый, но строго активный числовой инпут */}
-              <input
-                ref={pinInputRef}
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={5}
-                value={pinInput}
-                onChange={(e) => handlePinChange(e.target.value)}
-                autoFocus
-                className="absolute inset-0 opacity-0 cursor-pointer pointer-events-auto"
-                aria-label="Поле ввода 5-значного пин-кода комнаты"
-              />
-            </div>
-
-            {pinError && (
-              <div className="p-2.5 px-4 rounded-xl bg-red-950/70 border border-red-500/60 text-xs font-mono text-red-200 shadow-[0_0_12px_rgba(239,68,68,0.3)]">
-                {pinError}
-              </div>
-            )}
-          </div>
-
-          {/* Нижняя кнопка подключения */}
-          <div className="w-full pt-2">
-            <Button
-              variant="secondary"
-              fullWidth
-              onClick={handlePinConnect}
-              disabled={pinInput.length !== 5 || isPinConnecting}
-              className={`min-h-[50px] rounded-2xl text-xs font-display font-bold uppercase tracking-widest transition cursor-pointer ${
-                pinInput.length !== 5 || isPinConnecting
-                  ? 'opacity-40 cursor-not-allowed bg-zinc-900/50 border-white/10 text-zinc-500'
-                  : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 border border-blue-400/50 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] active:scale-95'
-              }`}
-            >
-              {isPinConnecting ? 'ПОДКЛЮЧЕНИЕ К ШТАБУ...' : 'ПОДКЛЮЧИТЬСЯ'}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* ============================================================ */}
-      {/* ВКЛАДКА 3: МОРЗЕ (Телеграфный ключ)                          */}
+      {/* ВКЛАДКА 2: МОРЗЕ (Телеграфный ключ)                          */}
       {/* ============================================================ */}
       {activeTab === 'MORSE' && (
         <div className="flex-1 flex flex-col justify-between max-w-sm mx-auto w-full relative z-10 py-1">
@@ -682,11 +549,11 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
             >
               {targetRoomCode
                 ? isSearching
-                  ? 'ПРОВЕРКА ШИФРА...'
-                  : 'ПОДТВЕРДИТЬ ШИФР'
+                  ? 'ПРОВЕРКА КОДА...'
+                  : 'ПОДТВЕРДИТЬ'
                 : isSearching
-                  ? 'ПОИСК ШТАБА В ЭФИРЕ...'
-                  : 'НАЙТИ ШТАБ'}
+                  ? 'ПОИСК КОМНАТЫ...'
+                  : 'ПОДКЛЮЧИТЬСЯ'}
             </Button>
           </div>
         </div>

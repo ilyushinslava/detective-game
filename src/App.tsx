@@ -1133,13 +1133,13 @@ export default function App() {
                   }}
                 />
               ) : !isControllerInGame ? (
-                <div className="flex h-screen w-screen flex-col justify-between p-6 text-zinc-100 select-none font-sans bg-[#07080c] relative">
+                <div className="flex h-[100dvh] w-full max-w-full flex-col justify-between p-6 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] text-zinc-100 select-none font-sans bg-[#07080c] relative overflow-hidden">
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-transparent to-black/90 pointer-events-none" />
 
                   <div className="flex items-center justify-between border-b border-white/10 pb-3 relative z-10">
                     <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-                      <span className="text-xs font-display uppercase tracking-widest text-zinc-300 font-bold">ПОДКЛЮЧЕНО К ЭФИРУ</span>
+                      <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+                      <span className="text-xs font-display uppercase tracking-widest text-zinc-300 font-bold">ПОДКЛЮЧЕНО К ТВ</span>
                     </div>
                     <div className="text-xs font-mono text-zinc-400 font-bold">КОМНАТА #{tvRoomCode}</div>
                   </div>

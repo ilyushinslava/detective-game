@@ -63,7 +63,7 @@ export const RoleCards: React.FC<RoleCardsProps> = ({
   const singleCard = (showKillerCard && !showDetectiveCard) || (!showKillerCard && showDetectiveCard);
   const containerClass = singleCard
     ? "grid grid-cols-1 w-full"
-    : "grid grid-cols-2 gap-1.5 w-full";
+    : "grid grid-cols-2 landscape:grid-cols-1 gap-1.5 landscape:gap-2 w-full";
 
   const displayedKillerName = isKillerActive
     ? (killerNameText !== "••••••••" ? killerNameText : killerChar?.name ?? "Засекречено")
@@ -103,10 +103,11 @@ export const RoleCards: React.FC<RoleCardsProps> = ({
   const handleKillerClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (!canPeekKiller) return;
-    const duration = Date.now() - killerPressTimeRef.current;
+    const duration = killerPressTimeRef.current === 0 ? 0 : Date.now() - killerPressTimeRef.current;
     if (duration <= 300) {
       setShowKillerRole?.((prev) => !prev);
     }
+    killerPressTimeRef.current = 0;
   };
 
   // Обработчики для Детектива / Оперативника
@@ -139,26 +140,32 @@ export const RoleCards: React.FC<RoleCardsProps> = ({
   const handleDetectiveClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (!canPeekDetective) return;
-    const duration = Date.now() - detectivePressTimeRef.current;
+    const duration = detectivePressTimeRef.current === 0 ? 0 : Date.now() - detectivePressTimeRef.current;
     if (duration <= 300) {
       setShowDetectiveRole?.((prev) => !prev);
     }
+    detectivePressTimeRef.current = 0;
   };
 
   return (
     <div className={containerClass}>
       {showKillerCard && (
-        <div className="flex-1 p-2.5 md:p-3 neo-card rounded-2xl border-t-white/20 flex flex-col justify-between gap-2 shadow-xl">
-          <div className="flex items-center justify-between w-full gap-1.5 min-h-[30px]">
-            <span className="text-[8.5px] sm:text-[9px] md:text-[10px] font-black text-rose-200 uppercase bg-rose-950/80 border border-rose-700/60 px-2 py-0.5 rounded-md shrink-0 tracking-widest whitespace-nowrap shadow-sm">
-              {role1Name === "ОПЕРАТИВНИК" ? "ОПЕР" : role1Name}
-            </span>
-            <span
+        <div className="flex-1 p-2.5 md:p-3 neo-card rounded-2xl border-t-white/20 flex flex-col justify-between gap-1.5 shadow-xl">
+          <div className="flex flex-col gap-1 w-full">
+            <div className="flex items-center justify-between w-full min-h-[22px]">
+              <span className="text-[8.5px] sm:text-[9px] md:text-[10px] font-black text-rose-200 uppercase bg-rose-950/80 border border-rose-700/60 px-2 py-0.5 rounded-md shrink-0 tracking-widest whitespace-nowrap shadow-sm">
+                {role1Name === "ОПЕРАТИВНИК" ? "ОПЕР" : role1Name}
+              </span>
+              <span className="text-[8px] sm:text-[8.5px] font-mono text-zinc-500 uppercase tracking-wider">
+                {isKillerActive ? "РАСКРЫТО" : "СЕКРЕТНО"}
+              </span>
+            </div>
+            <div
               title={displayedKillerName}
-              className="text-[8.5px] sm:text-[9.5px] md:text-[11px] font-black text-zinc-100 text-right uppercase tracking-tight leading-[1.15] break-words line-clamp-2 flex-1 min-w-0"
+              className="text-[9px] sm:text-[10px] md:text-[11px] font-black text-zinc-100 uppercase tracking-tight leading-snug truncate w-full min-h-[16px]"
             >
               {displayedKillerName}
-            </span>
+            </div>
           </div>
           <button
             type="button"
@@ -169,7 +176,7 @@ export const RoleCards: React.FC<RoleCardsProps> = ({
             onClick={handleKillerClick}
             onContextMenu={(e) => e.preventDefault()}
             disabled={!canPeekKiller}
-            className={`w-full h-9 sm:h-10 md:h-11 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-wider transition flex items-center justify-center gap-1.5 select-none pointer-events-auto cursor-pointer ${
+            className={`w-full h-8 sm:h-9 md:h-10 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-wider transition flex items-center justify-center gap-1.5 select-none pointer-events-auto cursor-pointer ${
               !canPeekKiller
                 ? "bg-zinc-950/60 text-zinc-600 border border-white/5 cursor-not-allowed opacity-50"
                 : isKillerActive
@@ -187,21 +194,26 @@ export const RoleCards: React.FC<RoleCardsProps> = ({
       )}
 
       {showDetectiveCard && (
-        <div className="flex-1 p-2.5 md:p-3 neo-card rounded-2xl border-t-white/20 flex flex-col justify-between gap-2 shadow-xl">
-          <div className="flex items-center justify-between w-full gap-1.5 min-h-[30px]">
-            <span className={`text-[8.5px] sm:text-[9px] md:text-[10px] font-black uppercase px-2 py-0.5 rounded-md shrink-0 tracking-widest whitespace-nowrap shadow-sm ${
-              role2Name === "ПОЛИЦИЯ" || role2Name === "Полиция"
-                ? "bg-blue-900/50 border border-blue-700/60 text-blue-200"
-                : "text-blue-200 bg-blue-950/80 border border-blue-700/60"
-            }`}>
-              {role2Name === "ОПЕРАТИВНИК" ? "ОПЕР" : role2Name}
-            </span>
-            <span
+        <div className="flex-1 p-2.5 md:p-3 neo-card rounded-2xl border-t-white/20 flex flex-col justify-between gap-1.5 shadow-xl">
+          <div className="flex flex-col gap-1 w-full">
+            <div className="flex items-center justify-between w-full min-h-[22px]">
+              <span className={`text-[8.5px] sm:text-[9px] md:text-[10px] font-black uppercase px-2 py-0.5 rounded-md shrink-0 tracking-widest whitespace-nowrap shadow-sm ${
+                role2Name === "ПОЛИЦИЯ" || role2Name === "Полиция"
+                  ? "bg-blue-900/50 border border-blue-700/60 text-blue-200"
+                  : "text-blue-200 bg-blue-950/80 border border-blue-700/60"
+              }`}>
+                {role2Name === "ОПЕРАТИВНИК" ? "ОПЕР" : role2Name}
+              </span>
+              <span className="text-[8px] sm:text-[8.5px] font-mono text-zinc-500 uppercase tracking-wider">
+                {isDetectiveActive ? "РАСКРЫТО" : "СЕКРЕТНО"}
+              </span>
+            </div>
+            <div
               title={displayedDetectiveName}
-              className="text-[8.5px] sm:text-[9.5px] md:text-[11px] font-black text-zinc-100 text-right uppercase tracking-tight leading-[1.15] break-words line-clamp-2 flex-1 min-w-0"
+              className="text-[9px] sm:text-[10px] md:text-[11px] font-black text-zinc-100 uppercase tracking-tight leading-snug truncate w-full min-h-[16px]"
             >
               {displayedDetectiveName}
-            </span>
+            </div>
           </div>
           <button
             type="button"
@@ -212,7 +224,7 @@ export const RoleCards: React.FC<RoleCardsProps> = ({
             onClick={handleDetectiveClick}
             onContextMenu={(e) => e.preventDefault()}
             disabled={!canPeekDetective}
-            className={`w-full h-9 sm:h-10 md:h-11 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-wider transition flex items-center justify-center gap-1.5 select-none pointer-events-auto cursor-pointer ${
+            className={`w-full h-8 sm:h-9 md:h-10 rounded-xl text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-wider transition flex items-center justify-center gap-1.5 select-none pointer-events-auto cursor-pointer ${
               !canPeekDetective
                 ? "bg-zinc-950/60 text-zinc-600 border border-white/5 cursor-not-allowed opacity-50"
                 : isDetectiveActive

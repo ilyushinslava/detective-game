@@ -199,7 +199,7 @@ const CharacterCardComponent = ({
           })()}
         </div>
 
-        <div className="flex items-center gap-1 leading-none shrink-0">
+        <div className={`flex items-center gap-1 leading-none shrink-0 ${hasCoin && !isDead ? "mr-3.5 sm:mr-4.5" : ""}`}>
           {isTargetVictim && !isDead && (
             <svg
               viewBox="0 0 24 24"

@@ -95,7 +95,7 @@ export const CoinIndicator: React.FC = () => (
   <div
     data-testid="coin-indicator"
     title="Золотая монета"
-    className="absolute bottom-1 right-1 z-20 pointer-events-none flex items-center justify-center"
+    className="absolute top-1 right-1 z-20 pointer-events-none flex items-center justify-center"
   >
     <svg
       viewBox="0 0 24 24"

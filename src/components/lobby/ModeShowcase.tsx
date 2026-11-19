@@ -54,35 +54,25 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
       {/* ========================================================================= */}
       {/* 1. ДЕСКТОП (lg и выше) - СХЕМА «ШТАБ: ЛОКАЛЬНЫЙ ХАБ И БЫСТРЫЕ ДЕЙСТВИЯ»    */}
       {/* ========================================================================= */}
-      <main className="hidden lg:flex flex-col px-8 xl:px-10 py-4 w-full max-w-[1700px] mx-auto select-none flex-1 gap-4">
-        {/* Десктопный Hero-блок с глубиной и тактическими слоями */}
-        <div className="relative flex flex-col justify-center items-center py-5 px-6 text-center select-none overflow-hidden rounded-3xl border border-white/[0.04] bg-background-surface/20 backdrop-blur-sm">
-          {/* Фоновая тактическая сетка */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)] pointer-events-none -z-10" />
-          {/* Мягкая рассеянная неоновая сфера (flare) */}
-          <div className="absolute w-96 h-36 rounded-full bg-accent-primary/20 blur-3xl pointer-events-none -z-10" />
-          {/* Полупрозрачный тактический прицел */}
-          <div className="absolute pointer-events-none -z-10 text-white/[0.03]">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="w-64 h-64">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="2" x2="12" y2="22" strokeDasharray="2 2" />
-              <line x1="2" y1="12" x2="22" y2="12" strokeDasharray="2 2" />
-            </svg>
-          </div>
+      <main className="hidden lg:flex flex-col px-6 xl:px-10 py-2.5 xl:py-3.5 w-full max-w-[1700px] mx-auto select-none flex-1 gap-2.5 xl:gap-3.5 min-h-0 justify-between">
+        {/* Десктопный Hero-блок без резких рамок и синего прямоугольника */}
+        <div className="relative flex flex-col justify-center items-center py-1 xl:py-2 px-4 text-center select-none shrink-0">
+          {/* Мягкая радиальная подсветка без видимых углов и прямоугольных швов */}
+          <div className="absolute w-96 h-20 rounded-full bg-slate-800/25 blur-3xl pointer-events-none -z-10" />
 
-          <h1 className="text-4xl xl:text-5xl font-display font-black tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-100 to-zinc-400 drop-shadow-[0_4px_25px_rgba(255,255,255,0.15)] leading-tight">
+          <h1 className="text-3xl xl:text-4xl font-display font-black tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-100 to-zinc-400 drop-shadow-[0_4px_25px_rgba(255,255,255,0.15)] leading-tight">
             {title || "ПОД ПОДОЗРЕНИЕМ"}
           </h1>
-          <div className="text-xs sm:text-sm font-mono tracking-[0.3em] uppercase text-accent-primary font-bold mt-2">
+          <div className="text-[10px] xl:text-xs font-mono tracking-[0.3em] uppercase text-slate-300 font-bold mt-1">
             ТАКТИЧЕСКИЙ ДЕТЕКТИВ
           </div>
-          <div className="w-36 h-px bg-gradient-to-r from-transparent via-accent-primary/40 to-transparent my-2.5" />
-          <p className="text-xs sm:text-sm font-sans text-zinc-300 tracking-wide leading-relaxed">
+          <div className="w-28 xl:w-36 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent my-1.5 xl:my-2" />
+          <p className="text-[11px] xl:text-xs font-sans text-zinc-400 tracking-wide leading-relaxed">
             Манипулируй. Вычисляй. Не выдавай себя.
           </p>
         </div>
 
-        <div className="flex flex-row gap-x-10 xl:gap-x-14 w-full flex-1">
+        <div className="flex flex-row gap-x-6 xl:gap-x-10 w-full flex-1 min-h-0 items-stretch">
           {/* Левая колонка: Обучение/Справочник + Сетка 3-х режимов (PVE, PVP, TV широкий) */}
           <LobbyGrid
             onSelectSolo={onSelectSolo}

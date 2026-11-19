@@ -300,7 +300,7 @@ export const MainMenu = ({
     <div
       ref={screenContainerRef}
       onPointerDown={handleEdgePointerDown}
-      className={`flex-1 w-full h-screen flex flex-col ${screen === "HOME" ? "bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-background-panel/60 via-background-main to-background-main" : "bg-transparent"} text-zinc-100 select-none overflow-hidden relative max-w-full`}
+      className={`flex-1 w-full h-screen flex flex-col ${screen === "HOME" ? "bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-background-panel/60 via-background-main to-background-main" : "bg-transparent"} text-zinc-100 select-none overflow-hidden custom-scrollbar relative max-w-full`}
     >
       {/* Фоновый слой: Liquid-анимация на всех подэкранах кроме Главного меню (HOME) */}
       {screen !== "HOME" ? (
@@ -328,7 +328,7 @@ export const MainMenu = ({
             dragConstraints={{ left: 0, right: 300 }}
             dragElastic={{ left: 0, right: 0.2 }}
             onDragEnd={handleDragEnd}
-            className="w-full h-full flex-1 flex flex-col min-h-0 overflow-hidden relative"
+            className="w-full h-full flex-1 flex flex-col min-h-0 overflow-hidden custom-scrollbar relative"
           >
             {renderScreenContent()}
           </motion.div>

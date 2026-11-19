@@ -35,29 +35,29 @@ export const ProfileStatsGrid: React.FC<ProfileStatsGridProps> = ({
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
       {/* Рейтинг */}
-      <div className="bg-gradient-to-br from-background-surface/90 to-transparent border border-border-subtle border-t border-t-border-strong rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:border-t-accent-primary/70 hover:shadow-neon-blue/20 hover:scale-[1.01] transition-all duration-200">
+      <div className="neo-card border-t-white/20 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:border-t-white/40 transition-all duration-200">
         <div className="flex items-center justify-between text-zinc-400 mb-2">
           <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">{p.rating}</span>
-          <div className="text-accent-primary">
+          <div className="text-zinc-400 group-hover:text-zinc-200 transition-colors">
             <ProfileIcons.Award />
           </div>
         </div>
         <div className="flex items-baseline gap-1.5">
           <span className="text-2xl sm:text-3xl font-black font-mono text-zinc-100">{currentMmr}</span>
         </div>
-        <div className="w-full bg-zinc-900 h-1.5 rounded-full mt-2 overflow-hidden">
+        <div className="w-full bg-zinc-900/90 h-1.5 rounded-full mt-2 overflow-hidden border border-white/5">
           <div
-            className="bg-accent-primary h-full rounded-full transition-all duration-500 shadow-neon-blue"
+            className="bg-slate-400 h-full rounded-full transition-all duration-500"
             style={{ width: `${Math.min(100, (currentMmr / 2000) * 100)}%` }}
           />
         </div>
       </div>
 
       {/* Винрейт */}
-      <div className="bg-gradient-to-br from-background-surface/90 to-transparent border border-border-subtle border-t border-t-border-strong rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:border-t-accent-success/70 hover:shadow-neon-emerald/20 hover:scale-[1.01] transition-all duration-200">
+      <div className="neo-card border-t-white/20 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:border-t-white/40 transition-all duration-200">
         <div className="flex items-center justify-between text-zinc-400 mb-2">
           <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">{p.winrate}</span>
-          <div className="text-accent-success">
+          <div className="text-zinc-400 group-hover:text-zinc-200 transition-colors">
             <ProfileIcons.Activity />
           </div>
         </div>
@@ -65,19 +65,19 @@ export const ProfileStatsGrid: React.FC<ProfileStatsGridProps> = ({
           <span className="text-2xl sm:text-3xl font-black font-mono text-zinc-100">{winRate}%</span>
           <span className="text-[10px] font-mono text-zinc-500">({totalWins}/{totalGames})</span>
         </div>
-        <div className="w-full bg-zinc-900 h-1.5 rounded-full mt-2 overflow-hidden">
+        <div className="w-full bg-zinc-900/90 h-1.5 rounded-full mt-2 overflow-hidden border border-white/5">
           <div
-            className="bg-accent-success h-full rounded-full transition-all duration-500 shadow-neon-emerald"
+            className="bg-slate-300 h-full rounded-full transition-all duration-500"
             style={{ width: `${winRate}%` }}
           />
         </div>
       </div>
 
       {/* Всего игр */}
-      <div className="bg-gradient-to-br from-background-surface/90 to-transparent border border-border-subtle border-t border-t-border-strong rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:border-t-accent-neon/70 hover:shadow-neon-cyan/20 hover:scale-[1.01] transition-all duration-200">
+      <div className="neo-card border-t-white/20 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:border-t-white/40 transition-all duration-200">
         <div className="flex items-center justify-between text-zinc-400 mb-2">
           <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">{p.totalGames}</span>
-          <div className="text-accent-neon">
+          <div className="text-zinc-400 group-hover:text-zinc-200 transition-colors">
             <ProfileIcons.Shield />
           </div>
         </div>
@@ -86,27 +86,27 @@ export const ProfileStatsGrid: React.FC<ProfileStatsGridProps> = ({
           <span className="text-[10px] font-mono text-zinc-500">{p.gamesUnit}</span>
         </div>
         <div className="flex items-center gap-2 text-[10px] font-mono mt-2">
-          <span className="text-accent-success font-bold">{p.wins} <span>{totalWins}</span></span>
+          <span className="text-zinc-300 font-bold">{p.wins} <span>{totalWins}</span></span>
           <span className="text-zinc-600">•</span>
           <span className="text-zinc-400 font-bold">{p.losses} <span>{Math.max(0, totalGames - totalWins)}</span></span>
         </div>
       </div>
 
       {/* Баланс сторон */}
-      <div className="bg-gradient-to-br from-background-surface/90 to-transparent border border-border-subtle border-t border-t-border-strong rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:border-t-accent-purple/70 hover:scale-[1.01] transition-all duration-200">
+      <div className="neo-card border-t-white/20 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:border-t-white/40 transition-all duration-200">
         <div className="flex items-center justify-between text-zinc-400 mb-2">
           <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">{p.sideBalance}</span>
-          <div className="text-accent-warning">
+          <div className="text-zinc-400 group-hover:text-zinc-200 transition-colors">
             <ProfileIcons.Trophy />
           </div>
         </div>
         <div className="flex items-baseline justify-between font-mono text-xs">
-          <span className="text-accent-primary font-bold">{winsDet} <span className="text-[9px] text-zinc-500">{p.detective}</span></span>
-          <span className="text-accent-danger font-bold">{winsMan} <span className="text-[9px] text-zinc-500">{p.maniac}</span></span>
+          <span className="text-slate-300 font-bold">{winsDet} <span className="text-[9px] text-zinc-500">{p.detective}</span></span>
+          <span className="text-zinc-400 font-bold">{winsMan} <span className="text-[9px] text-zinc-500">{p.maniac}</span></span>
         </div>
-        <div className="w-full bg-zinc-900 h-1.5 rounded-full mt-2 flex overflow-hidden">
-          <div className="bg-accent-primary h-full" style={{ width: `${lawRatio}%` }} />
-          <div className="bg-accent-danger h-full" style={{ width: `${100 - lawRatio}%` }} />
+        <div className="w-full bg-zinc-900/90 h-1.5 rounded-full mt-2 flex overflow-hidden border border-white/5">
+          <div className="bg-slate-400 h-full" style={{ width: `${lawRatio}%` }} />
+          <div className="bg-zinc-600 h-full" style={{ width: `${100 - lawRatio}%` }} />
         </div>
       </div>
     </div>

@@ -52,9 +52,9 @@ export const AccountSecurityCard: React.FC<AccountSecurityCardProps> = ({
   }
 
   return (
-    <div className="rounded-2xl bg-background-surface/50 backdrop-blur-md border border-white/5 p-4 sm:p-5 flex flex-col gap-3.5 text-left">
+    <div className="neo-card border-t-white/20 rounded-2xl p-4 sm:p-5 flex flex-col gap-3.5 text-left">
       {/* Заголовок карточки */}
-      <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+      <div className="flex items-center justify-between border-b border-white/10 pb-3">
         <h3 className="text-sm sm:text-base font-black tracking-wider uppercase text-white">
           {p.saveProgress || "СОХРАНЕНИЕ ПРОГРЕССА"}
         </h3>
@@ -71,7 +71,7 @@ export const AccountSecurityCard: React.FC<AccountSecurityCardProps> = ({
           variant="primary"
           fullWidth
           onClick={handleOpenModal}
-          className="w-full h-10 text-xs font-bold uppercase tracking-wider active:scale-95 cursor-pointer bg-accent-primary hover:bg-blue-600 text-white rounded-xl shadow-none"
+          className="w-full h-10 text-xs font-bold uppercase tracking-wider"
         >
           СОЗДАТЬ ПРОФИЛЬ / ВОЙТИ
         </Button>

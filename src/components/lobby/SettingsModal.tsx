@@ -34,91 +34,113 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       zIndexClass="z-[80]"
       className="p-6 text-left"
     >
-      <div className="space-y-3.5 mb-6 mt-1">
-        <div className="flex items-center justify-between p-3 bg-zinc-950/60 rounded-xl border border-white/5">
+      <div className="space-y-3 mb-6 mt-1">
+        {/* SFX */}
+        <div className="neo-card border-t-white/15 p-3 rounded-xl flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.sfx}</span>
+            <span className="text-[10px] font-black text-zinc-200 uppercase tracking-widest">{t.settings.sfx}</span>
             <span className="text-[9px] text-zinc-500 font-mono mt-0.5">{t.settings.sfxDesc}</span>
           </div>
           <button
             type="button"
+            role="switch"
+            aria-checked={isSfxEnabled}
             onClick={() => {
               const enabled = soundManager.toggleSfx();
               setIsSfxEnabled(enabled);
             }}
-            className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${
-              isSfxEnabled ? "bg-blue-600" : "bg-zinc-800 border border-white/10"
+            className={`w-12 h-6 rounded-full px-1 flex items-center transition-all duration-200 cursor-pointer ${
+              isSfxEnabled
+                ? "bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 border border-white/40 border-t-white/70 shadow-inner"
+                : "bg-zinc-900 border border-white/10"
             }`}
           >
             <div
-              className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
-                isSfxEnabled ? "translate-x-6" : "translate-x-0"
+              className={`w-4 h-4 rounded-full shadow-md transition-transform duration-200 ${
+                isSfxEnabled
+                  ? "translate-x-6 bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]"
+                  : "translate-x-0 bg-zinc-500"
               }`}
             />
           </button>
         </div>
 
-        <div className="flex items-center justify-between p-3 bg-zinc-950/60 rounded-xl border border-white/5">
+        {/* Ambient */}
+        <div className="neo-card border-t-white/15 p-3 rounded-xl flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.ambient}</span>
+            <span className="text-[10px] font-black text-zinc-200 uppercase tracking-widest">{t.settings.ambient}</span>
             <span className="text-[9px] text-zinc-500 font-mono mt-0.5">{t.settings.ambientDesc}</span>
           </div>
           <button
             type="button"
+            role="switch"
+            aria-checked={isAmbientEnabled}
             onClick={() => {
               const enabled = soundManager.toggleAmbient();
               setIsAmbientEnabled(enabled);
             }}
-            className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${
-              isAmbientEnabled ? "bg-blue-600" : "bg-zinc-800 border border-white/10"
+            className={`w-12 h-6 rounded-full px-1 flex items-center transition-all duration-200 cursor-pointer ${
+              isAmbientEnabled
+                ? "bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 border border-white/40 border-t-white/70 shadow-inner"
+                : "bg-zinc-900 border border-white/10"
             }`}
           >
             <div
-              className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
-                isAmbientEnabled ? "translate-x-6" : "translate-x-0"
+              className={`w-4 h-4 rounded-full shadow-md transition-transform duration-200 ${
+                isAmbientEnabled
+                  ? "translate-x-6 bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]"
+                  : "translate-x-0 bg-zinc-500"
               }`}
             />
           </button>
         </div>
 
-        <div className="flex items-center justify-between p-3 bg-zinc-950/60 rounded-xl border border-white/5">
+        {/* Haptics */}
+        <div className="neo-card border-t-white/15 p-3 rounded-xl flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.haptics}</span>
+            <span className="text-[10px] font-black text-zinc-200 uppercase tracking-widest">{t.settings.haptics}</span>
             <span className="text-[9px] text-zinc-500 font-mono mt-0.5">{t.settings.hapticsDesc}</span>
           </div>
           <button
             type="button"
+            role="switch"
+            aria-checked={isHapticsEnabled}
             onClick={() => {
               const newVal = !isHapticsEnabled;
               setIsHapticsEnabled(newVal);
               setHapticsEnabled(newVal);
               if (newVal) triggerHaptic("medium");
             }}
-            className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer ${
-              isHapticsEnabled ? "bg-blue-600" : "bg-zinc-800 border border-white/10"
+            className={`w-12 h-6 rounded-full px-1 flex items-center transition-all duration-200 cursor-pointer ${
+              isHapticsEnabled
+                ? "bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 border border-white/40 border-t-white/70 shadow-inner"
+                : "bg-zinc-900 border border-white/10"
             }`}
           >
             <div
-              className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
-                isHapticsEnabled ? "translate-x-6" : "translate-x-0"
+              className={`w-4 h-4 rounded-full shadow-md transition-transform duration-200 ${
+                isHapticsEnabled
+                  ? "translate-x-6 bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]"
+                  : "translate-x-0 bg-zinc-500"
               }`}
             />
           </button>
         </div>
 
-        <div className="flex items-center justify-between p-3 bg-zinc-950/60 rounded-xl border border-white/5">
+        {/* Язык */}
+        <div className="neo-card border-t-white/15 p-3 rounded-xl flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{t.settings.language}</span>
+            <span className="text-[10px] font-black text-zinc-200 uppercase tracking-widest">{t.settings.language}</span>
             <span className="text-[9px] text-zinc-500 font-mono mt-0.5">Выберите язык / Select language</span>
           </div>
           <div className="flex gap-1.5">
             <button
               type="button"
               onClick={() => setLang("ru")}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider ${
+              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider ${
                 lang === "ru"
-                  ? "bg-zinc-200 text-zinc-950 shadow-sm"
-                  : "bg-zinc-900 text-zinc-400 hover:text-white border border-white/10"
+                  ? "neo-button-primary text-white border-white/30 border-t-white/60 shadow-md"
+                  : "bg-zinc-900/80 text-zinc-400 hover:text-white border border-white/10 hover:border-white/20"
               }`}
             >
               RU
@@ -126,10 +148,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             <button
               type="button"
               onClick={() => setLang("en")}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider ${
+              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider ${
                 lang === "en"
-                  ? "bg-zinc-200 text-zinc-950 shadow-sm"
-                  : "bg-zinc-900 text-zinc-400 hover:text-white border border-white/10"
+                  ? "neo-button-primary text-white border-white/30 border-t-white/60 shadow-md"
+                  : "bg-zinc-900/80 text-zinc-400 hover:text-white border border-white/10 hover:border-white/20"
               }`}
             >
               EN
@@ -138,9 +160,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         </div>
 
         {/* Управление аккаунтом */}
-        <div className="flex items-center justify-between p-3 bg-zinc-950/60 rounded-xl border border-white/5">
+        <div className="neo-card border-t-white/15 p-3 rounded-xl flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Аккаунт</span>
+            <span className="text-[10px] font-black text-zinc-200 uppercase tracking-widest">Аккаунт</span>
             <span className="text-[9px] text-zinc-500 font-mono mt-0.5">
               {isAnonymous ? "Анонимный профиль" : "Аккаунт защищен"}
             </span>

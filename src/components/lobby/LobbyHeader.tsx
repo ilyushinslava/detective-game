@@ -32,7 +32,7 @@ export const LobbyHeader: React.FC<LobbyHeaderProps> = ({
   };
 
   return (
-    <header className="flex items-center justify-end shrink-0 py-2 sm:py-3 px-3 sm:px-6 lg:px-10 border-b border-white/[0.06] w-full max-w-full bg-zinc-950/40 backdrop-blur-md z-30">
+    <header className="flex items-center justify-end shrink-0 py-1.5 xl:py-2.5 px-3 sm:px-6 lg:px-10 border-b border-white/[0.06] w-full max-w-full bg-zinc-950/40 backdrop-blur-md z-30">
       {/* Правая группа: Профиль, баланс, настройки */}
       <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 ml-auto">
         {/* Profile Button */}
@@ -102,7 +102,7 @@ export const LobbyHeader: React.FC<LobbyHeaderProps> = ({
           className="w-10 h-10 rounded-full bg-background-surface/40 backdrop-blur-sm border border-white/5 hover:border-white/10 hover:bg-background-surface/60 flex items-center justify-center text-zinc-300 hover:text-white transition cursor-pointer shadow-sm active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent-primary/30 shrink-0"
           title={h.settings}
         >
-          <Icons.Settings className="w-5 h-5" />
+          <Icons.Settings className="w-4 h-4 xl:w-5 xl:h-5" />
         </button>
       </div>
     </header>

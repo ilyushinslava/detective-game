@@ -22,20 +22,14 @@ export const RuleModeDetail: React.FC<RuleModeDetailProps> = ({
             onOpenBanner(e, bannerSrc, currentMode.title);
           }
         }}
-        className={`relative w-full h-[100px] sm:h-[120px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${
-          currentMode.borderColor
-        } shadow-lg cursor-pointer group select-none ${
-          bannerSrc
-            ? "bg-zinc-950"
-            : "bg-gradient-to-r from-blue-950/40 via-zinc-900/60 to-zinc-950 border-white/10"
-        }`}
+        className={`relative w-full h-[120px] sm:h-[140px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border border-white/15 border-t-white/35 shadow-xl cursor-pointer group select-none bg-zinc-950`}
         title="Нажмите для просмотра полного фото"
       >
         {bannerSrc && (
           <img
             src={bannerSrc}
             alt={currentMode.title}
-            className="absolute inset-0 w-full h-full object-cover object-center opacity-80 pointer-events-none"
+            className="absolute inset-0 w-full h-full object-cover object-center opacity-95 group-hover:scale-105 transition-transform duration-500 pointer-events-none"
             onError={onBannerError}
           />
         )}
@@ -66,19 +60,19 @@ export const RuleModeDetail: React.FC<RuleModeDetailProps> = ({
         </div>
       </div>
 
-      <div className="overflow-y-auto space-y-3 text-left text-xs text-zinc-300 pr-1 pb-2 custom-scrollbar flex-1 min-h-0">
-        <p className="text-[11px] text-zinc-400 leading-relaxed font-medium tracking-normal">
+      <div className="overflow-y-auto space-y-3.5 text-left text-xs text-zinc-300 pr-1 pb-2 custom-scrollbar flex-1 min-h-0">
+        <p className="text-xs text-zinc-300 leading-relaxed font-normal tracking-normal bg-zinc-900/40 p-3 rounded-xl border border-white/5">
           {currentMode.desc}
         </p>
 
         <div className="space-y-1.5">
-          <span className="font-black text-zinc-400 block text-[9px] uppercase tracking-widest">
+          <span className="font-mono font-bold text-zinc-400 block text-[10px] uppercase tracking-widest">
             ЦЕЛИ И ЗАДАЧИ СТОРОН
           </span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div className="p-3 rounded-xl bg-zinc-900/70 border border-white/5 space-y-1">
+            <div className="p-3 rounded-xl neo-card border-t-white/15 space-y-1.5">
               <span
-                className={`text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block ${currentMode.role1.badgeColor}`}
+                className={`text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded inline-block ${currentMode.role1.badgeColor}`}
               >
                 {currentMode.role1.name}
               </span>
@@ -86,9 +80,9 @@ export const RuleModeDetail: React.FC<RuleModeDetailProps> = ({
                 {currentMode.role1.goal}
               </p>
             </div>
-            <div className="p-3 rounded-xl bg-zinc-900/70 border border-white/5 space-y-1">
+            <div className="p-3 rounded-xl neo-card border-t-white/15 space-y-1.5">
               <span
-                className={`text-[10px] font-black uppercase px-2 py-0.5 rounded inline-block ${currentMode.role2.badgeColor}`}
+                className={`text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded inline-block ${currentMode.role2.badgeColor}`}
               >
                 {currentMode.role2.name}
               </span>
@@ -100,21 +94,21 @@ export const RuleModeDetail: React.FC<RuleModeDetailProps> = ({
         </div>
 
         <div className="space-y-1.5 pt-1">
-          <span className="font-black text-zinc-400 block text-[9px] uppercase tracking-widest">
+          <span className="font-mono font-bold text-zinc-400 block text-[10px] uppercase tracking-widest">
             РЕГЛАМЕНТ И МЕХАНИКИ ХОДА
           </span>
           <div className="space-y-2">
             {currentMode.mechanics.map((m, idx) => (
               <div
                 key={idx}
-                className="p-3 rounded-xl bg-zinc-900/50 border border-white/5 hover:border-white/10 transition space-y-1"
+                className="p-3 rounded-xl neo-card border-t-white/10 hover:border-t-white/25 transition space-y-1"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-zinc-100 tracking-wider">
                     {m.name}
                   </span>
                   {m.tag && (
-                    <span className="text-[8px] font-semibold tracking-wider text-zinc-400 uppercase bg-zinc-950 px-1.5 py-0.5 rounded border border-white/5">
+                    <span className="text-[9px] font-mono font-bold tracking-wider text-zinc-400 uppercase bg-zinc-950/80 px-2 py-0.5 rounded border border-white/5">
                       {m.tag}
                     </span>
                   )}

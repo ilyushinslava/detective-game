@@ -16,7 +16,9 @@ export interface RulesModalProps {
 
 export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
   const [activeTab, setActiveTab] = useState<ModeTab>("BASE");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const tabListRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
   const { openBanner } = useBannerViewer();
@@ -25,9 +27,25 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
   useEffect(() => {
     if (isOpen) {
       setActiveTab("BASE");
+      setIsDropdownOpen(false);
       setImgErrors({});
     }
   }, [isOpen]);
+
+  // Закрытие дропдауна при клике вне его
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -45,14 +63,21 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
 
   const tabs: Array<{ id: ModeTab; label: string }> = [
     { id: "BASE", label: "Базовые" },
-    { id: "MANIAC", label: "Маньяк" },
-    { id: "THIEF", label: "Грабитель" },
-    { id: "SECRET_SERVICE", label: "Спецслужба" },
+    { id: "MANIAC", label: "Почерк убийцы" },
+    { id: "THIEF", label: "Оцепление" },
+    { id: "SECRET_SERVICE", label: "Директива «Ноль»" },
     { id: "LINE_UP", label: "Очная ставка" },
   ];
 
   const currentMode = MODES_DATA[activeTab];
-  const isCrimeOriented = activeTab === "MANIAC";
+  const activeTabObj = tabs.find((t) => t.id === activeTab) || tabs[0];
+
+  const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+  const resolveBannerPath = (path?: string) => {
+    if (!path) return undefined;
+    if (path.startsWith("http") || path.startsWith("data:")) return path;
+    return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
+  };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartXRef.current = e.touches[0].clientX;
@@ -78,40 +103,46 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
     }
   };
 
-  const bannerSrc = !imgErrors[activeTab] && currentMode.bannerImage
-    ? currentMode.bannerImage
+  const rawBannerSrc = currentMode.bannerImage;
+  const resolvedBannerSrc = resolveBannerPath(rawBannerSrc);
+  const bannerSrc = !imgErrors[activeTab] && resolvedBannerSrc
+    ? resolvedBannerSrc
     : undefined;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth="max-w-lg"
+      maxWidth="max-w-2xl"
       zIndexClass="z-[70]"
-      className="p-5 sm:p-6 max-h-[90vh] text-left"
+      className="p-4 sm:p-6 max-h-[90vh] text-left"
     >
       <div
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         className="flex flex-col h-full overflow-hidden"
       >
+        {/* Шапка модального окна */}
         <div className="flex justify-between items-center mb-3 shrink-0 border-b border-white/10 pb-2.5">
           <div className="flex items-center gap-2">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isCrimeOriented
-                  ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]"
-                  : "bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.8)]"
-              } animate-pulse`}
-            />
+            <svg
+              className="w-4 h-4 text-zinc-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
+            </svg>
             <h2 className="text-sm font-black uppercase tracking-widest text-zinc-100">
               Справочник правил
             </h2>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono font-bold text-zinc-400 bg-zinc-900 px-2 py-0.5 rounded-md border border-white/10">
-              {tabs.findIndex((t) => t.id === activeTab) + 1}/{tabs.length}
-            </span>
             <Button
               variant="ghost"
               onClick={onClose}
@@ -123,44 +154,88 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
           </div>
         </div>
 
-        <div className="relative mb-2 shrink-0">
-          <div
-            ref={tabListRef}
-            className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scrollbar-none pb-1 pr-6 touch-pan-x overscroll-x-contain"
+        {/* Выбор режима: Мобильный дропдаун (md:hidden) */}
+        <div className="relative mb-3 shrink-0 md:hidden" ref={dropdownRef}>
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic("light");
+              setIsDropdownOpen(!isDropdownOpen);
+            }}
+            className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-900/80 border border-white/10 border-t-white/20 text-xs font-black uppercase tracking-wider text-zinc-200 transition-all active:scale-[0.99] cursor-pointer"
           >
-            {tabs.map((tab) => {
-              const isActive = activeTab === tab.id;
-              const tabIsCrime = tab.id === "MANIAC";
-              const activeClasses =
-                tab.id === "BASE"
-                  ? "bg-zinc-800 text-zinc-100 border-zinc-500 shadow-[0_0_12px_rgba(255,255,255,0.15)]"
-                  : tabIsCrime
-                  ? "bg-red-950/80 text-red-300 border-red-600 shadow-[0_0_12px_rgba(239,68,68,0.3)]"
-                  : "bg-blue-950/80 text-blue-200 border-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.3)]";
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-500 font-mono text-[10px]">РАЗДЕЛ:</span>
+              <span className="text-zinc-100">{activeTabObj.label}</span>
+            </div>
+            <svg
+              className={`w-4 h-4 text-zinc-400 transition-transform duration-200 ${
+                isDropdownOpen ? "rotate-180" : ""
+              }`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-              return (
-                <button
-                  key={tab.id}
-                  data-tab-id={tab.id}
-                  onClick={() => {
-                    triggerHaptic("light");
-                    setActiveTab(tab.id);
-                  }}
-                  className={`px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-black uppercase tracking-wider transition cursor-pointer whitespace-nowrap shrink-0 ${
-                    isActive
-                      ? activeClasses
-                      : "bg-zinc-900/80 text-zinc-400 border-white/10 hover:border-white/20 hover:text-zinc-200"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-          <div className="absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-zinc-950 to-transparent pointer-events-none z-10" />
+          {isDropdownOpen && (
+            <div className="absolute top-full left-0 right-0 mt-1.5 z-30 p-1.5 rounded-xl bg-zinc-950/95 border border-white/10 shadow-2xl backdrop-blur-xl animate-dropdownSlideDown flex flex-col gap-1">
+              {tabs.map((tab) => {
+                const isSelected = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => {
+                      triggerHaptic("light");
+                      setActiveTab(tab.id);
+                      setIsDropdownOpen(false);
+                    }}
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all text-left cursor-pointer ${
+                      isSelected
+                        ? "bg-slate-800/80 text-white border border-white/15"
+                        : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                    {isSelected && (
+                      <span className="text-xs font-mono font-bold text-slate-300">✓</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center justify-center gap-1 mb-3 shrink-0">
+        {/* Выбор режима: Десктопная панель кнопок (hidden md:flex) */}
+        <div className="hidden md:flex items-stretch gap-1.5 mb-3 shrink-0" ref={tabListRef}>
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                data-tab-id={tab.id}
+                onClick={() => {
+                  triggerHaptic("light");
+                  setActiveTab(tab.id);
+                }}
+                className={`flex-1 min-h-[44px] px-2.5 py-1.5 rounded-xl border text-[11px] lg:text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center justify-center text-center leading-tight ${
+                  isActive
+                    ? "bg-gradient-to-b from-slate-800 to-slate-900 text-white border-white/25 border-t-white/40 shadow-sm"
+                    : "bg-zinc-900/60 text-zinc-400 border-white/5 hover:border-white/15 hover:text-zinc-200"
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Индикаторы страниц (точки) */}
+        <div className="flex items-center justify-center gap-1.5 mb-3 shrink-0">
           {tabs.map((tab) => {
             const isCurrent = tab.id === activeTab;
             return (
@@ -172,8 +247,8 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
                 }}
                 className={`h-1 rounded-full transition-all duration-300 cursor-pointer ${
                   isCurrent
-                    ? "w-5 sm:w-6 bg-white shadow-[0_0_6px_rgba(255,255,255,0.6)]"
-                    : "w-1.5 sm:w-2 bg-zinc-700/60 hover:bg-zinc-600"
+                    ? "w-6 bg-slate-200 shadow-[0_0_6px_rgba(255,255,255,0.4)]"
+                    : "w-2 bg-zinc-800 hover:bg-zinc-700"
                 }`}
                 title={tab.label}
               />

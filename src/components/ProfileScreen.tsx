@@ -134,9 +134,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-zinc-100 flex flex-col font-sans select-none overflow-x-hidden relative">
+    <div className="h-full w-full min-h-screen bg-transparent text-zinc-100 flex flex-col font-sans select-none overflow-x-hidden overflow-y-auto custom-scrollbar relative">
       {/* Шапка экрана */}
-      <header className="sticky top-0 z-20 bg-background-main/90 backdrop-blur-md border-b border-border-subtle px-4 py-3 flex items-center justify-between shadow-md">
+      <header className="sticky top-0 z-20 shrink-0 bg-zinc-950/80 backdrop-blur-md border-b border-white/10 px-4 py-3 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
           {onBack && (
             <button
@@ -152,7 +152,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             </button>
           )}
           <div className="flex items-center gap-2">
-            <span className="p-1 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            <span className="p-1.5 rounded-lg bg-zinc-900 text-zinc-300 border border-white/10">
               <ProfileIcons.User />
             </span>
             <h1 className="text-sm sm:text-base font-black tracking-widest uppercase text-white">
@@ -183,13 +183,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       <div className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-5 sm:gap-6">
         
         {/* Карточка агента (Удостоверение) */}
-        <div className="bg-gradient-to-br from-background-surface/90 to-background-main/80 border border-border-subtle border-t border-t-border-strong rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+        <div className="neo-card border-t-white/20 rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative z-10">
             {/* Аватар */}
             <div className="relative group shrink-0">
-              {/* Мягкое неоновое свечение (glow) за аватаром */}
-              <div className="absolute -inset-1.5 rounded-3xl bg-gradient-to-r from-accent-primary/40 via-accent-neon/30 to-accent-purple/40 blur-lg opacity-75 group-hover:opacity-100 transition duration-500" />
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-white/20 bg-zinc-900 shadow-xl relative z-10">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border border-white/20 border-t-white/40 bg-zinc-900 shadow-xl relative z-10">
                 <img
                   src={avatarPortraitUrl}
                   alt="Avatar"
@@ -216,11 +214,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             {/* Инфо и имя */}
             <div className="flex-1 flex flex-col items-center sm:items-start gap-2 min-w-0 w-full text-center sm:text-left">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-300 font-bold bg-zinc-900/80 px-2 py-0.5 rounded border border-white/10">
                   {p.level} {profile.level || 1}
                 </span>
-                <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[10px] font-mono text-zinc-400 font-bold bg-zinc-900/80 px-2 py-0.5 rounded border border-white/10">
                   {p.online}
                 </span>
               </div>
@@ -236,7 +233,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                         setNicknameError(null);
                       }}
                       maxLength={20}
-                      className={`flex-1 bg-zinc-900 border ${nicknameError ? 'border-accent-danger' : 'border-blue-500/50'} rounded-lg px-2.5 py-1 text-sm font-black font-mono text-white focus:outline-none`}
+                      className={`flex-1 bg-zinc-900 border ${nicknameError ? 'border-accent-danger' : 'border-white/20'} rounded-lg px-2.5 py-1 text-sm font-black font-mono text-white focus:outline-none`}
                       autoFocus
                     />
                     <Button
@@ -248,7 +245,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     </Button>
                   </div>
                   {nicknameError && (
-                    <span className="text-[10px] font-mono text-accent-danger leading-tight">
+                    <span className="text-[10px] font-mono text-rose-400 leading-tight">
                       {nicknameError}
                     </span>
                   )}

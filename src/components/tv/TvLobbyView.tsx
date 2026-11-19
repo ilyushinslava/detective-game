@@ -170,7 +170,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
       {/* Верхний лаконичный статус-бар */}
       <div className="flex items-center justify-between border-b border-border-subtle pb-3 relative z-10 shrink-0">
         <div className="flex items-center gap-3">
-          <span className="h-2.5 w-2.5 rounded-full bg-accent-danger shadow-neon-rose animate-pulse shrink-0" />
+          <span className="h-2.5 w-2.5 rounded-full bg-accent-danger shadow-[0_0_10px_rgba(225,29,72,0.8)] animate-pulse shrink-0" />
           <h1 className="text-xl lg:text-2xl font-display font-black uppercase tracking-wider text-white">
             {GAME_TITLE.ru}
           </h1>
@@ -199,54 +199,54 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
       {/* Основной контент: строго 2 изолированные колонки с эффектом плотного матового стекла */}
       <div className="grid grid-cols-2 gap-6 lg:gap-8 my-auto flex-1 min-h-0 items-stretch w-full max-w-7xl mx-auto relative z-10 py-2">
         
-        {/* ЛЕВАЯ КОЛОНКА: Терминал доступа (Чистый QR + Морзе, без технического мусора и переполнения) */}
-        <div className="flex flex-col items-center justify-between p-5 lg:p-6 rounded-3xl bg-white/[0.04] border border-white/10 border-t-2 border-t-rose-500/60 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.1)] text-center h-full min-h-0">
+        {/* ЛЕВАЯ КОЛОНКА: Терминал доступа (Чистый QR 240px + Морзе, без технического мусора и переполнения) */}
+        <div className="neo-card flex flex-col items-center justify-between p-5 lg:p-6 rounded-3xl border-t-2 border-t-rose-500/60 shadow-[0_20px_50px_rgba(0,0,0,0.7)] text-center h-full min-h-0">
           <div className="w-full flex flex-col items-center">
-            <div className="text-rose-200/60 tracking-[0.35em] font-light text-xs uppercase mb-2">
+            <div className="text-rose-200/80 tracking-[0.35em] font-bold text-xs uppercase mb-3">
               ПОДКЛЮЧЕНИЕ СО СМАРТФОНА
             </div>
 
-            {/* Чистый QR-код на премиальной белой подложке с мягким свечением */}
-            <div className="p-3.5 rounded-2xl bg-white shadow-[0_0_35px_rgba(255,255,255,0.25)] mb-2 transition-transform duration-300 hover:scale-102">
-              <QRCodeSVG value={joinUrl} size={160} level="M" />
+            {/* Чистый увеличенный QR-код на премиальной белой подложке со свечением */}
+            <div className="p-3.5 rounded-2xl bg-white shadow-[0_0_35px_rgba(255,255,255,0.25)] mb-3 transition-transform duration-300 hover:scale-102">
+              <QRCodeSVG value={joinUrl} size={240} level="M" />
             </div>
 
-            <div className="text-xs lg:text-sm font-sans font-light text-white/60 max-w-xs mx-auto">
+            <div className="text-sm font-sans text-white/75 max-w-sm mx-auto leading-normal">
               Наведите камеру смартфона для быстрого входа
             </div>
           </div>
 
-          {/* Блок Морзе: только чистые визуальные индикаторы без текстового дублирования */}
-          <div className="w-full pt-3 border-t border-white/10 flex flex-col items-center shrink-0">
-            <div className="text-xs font-display font-bold uppercase tracking-[0.3em] text-rose-300/70 mb-2">
-              ШИФР МОРЗЕ
+          {/* Блок Морзе: крупные контрастные символы для уверенного считывания с 3 метров */}
+          <div className="w-full pt-4 border-t border-white/10 flex flex-col items-center shrink-0">
+            <div className="text-sm font-display font-black uppercase tracking-[0.3em] text-rose-300 mb-2">
+              КОД МОРЗЕ
             </div>
 
             {/* Крупные визуальные пилюли точек и тире со свечением */}
-            <div className="flex flex-nowrap items-center justify-center gap-3 py-3 w-full">
+            <div className="flex flex-nowrap items-center justify-center gap-3.5 py-2 w-full">
               {displayMorse.split('').map((sym, idx) => (
                 <div
                   key={idx}
-                  className={`flex items-center justify-center transition-all shrink-0 ${
+                  className={`flex items-center justify-center transition-all shrink-0 border border-white/40 ${
                     sym === '.'
-                      ? 'w-6 h-6 rounded-full bg-rose-100 shadow-[0_0_15px_rgba(244,63,94,0.9)]'
-                      : 'w-14 h-6 rounded-full bg-rose-100 shadow-[0_0_15px_rgba(244,63,94,0.9)]'
+                      ? 'w-7 h-7 rounded-full bg-white shadow-[0_0_18px_rgba(244,63,94,0.95)]'
+                      : 'w-16 h-7 rounded-full bg-white shadow-[0_0_18px_rgba(244,63,94,0.95)]'
                   }`}
                 />
               ))}
             </div>
 
-            <div className="text-[11px] font-sans font-light text-white/50 mt-1">
-              Введите 7 сигналов Морзе на контроллере
+            <div className="text-xs font-sans text-white/70 mt-2 font-medium">
+              Сигналы на пульте: <span className="text-rose-300 font-mono font-bold">Клик = Точка (•)</span>, <span className="text-rose-300 font-mono font-bold">Удержание = Тире (—)</span>
             </div>
           </div>
         </div>
 
-        {/* ПРАВАЯ КОЛОНКА: Панель настроек, Оперативники и Кнопка Старта */}
+        {/* ПРАВАЯ КОЛОНКА: Панель настроек, Игроки и Кнопка Старта */}
         <div className="flex flex-col justify-between gap-3 lg:gap-4 h-full min-h-0">
           
           {/* Секция 1: Выбор режима и формата с цветовым кодированием */}
-          <div className="p-4 lg:p-5 rounded-3xl bg-white/[0.04] border border-white/10 border-t-2 border-t-rose-500/60 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.1)] space-y-3 shrink-0">
+          <div className="neo-card p-4 lg:p-5 rounded-3xl border-t-2 border-t-rose-500/60 shadow-[0_20px_50px_rgba(0,0,0,0.7)] space-y-3 shrink-0">
             <div className="flex items-center justify-between">
               <span className="text-xs font-display font-bold uppercase tracking-wider text-white/70">
                 РЕЖИМ СЕССИИ
@@ -301,11 +301,11 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                       <span className="text-sm lg:text-base font-display font-black uppercase text-white tracking-wide drop-shadow-sm">
                         {m.label}
                       </span>
-                      <span className={`text-[9px] lg:text-[10px] font-display font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${theme.badge}`}>
+                      <span className={`text-[10px] lg:text-xs font-display font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${theme.badge}`}>
                         {m.badge}
                       </span>
                     </div>
-                    <p className="text-[11px] font-sans font-light text-white/60 line-clamp-1">
+                    <p className="text-xs font-sans font-normal text-white/70 line-clamp-1">
                       {m.desc}
                     </p>
                   </button>
@@ -314,45 +314,45 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
             </div>
           </div>
 
-          {/* Секция 2: Зона «ОПЕРАТИВНИКИ» */}
-          <div className="p-4 lg:p-5 rounded-3xl bg-white/[0.04] border border-white/10 border-t-2 border-t-blue-500/50 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.1)] flex-1 flex flex-col justify-between min-h-0">
+          {/* Секция 2: Зона «ИГРОКИ» — компактная сетка без скроллбара */}
+          <div className="neo-card p-4 lg:p-5 rounded-3xl border-t-2 border-t-blue-500/50 shadow-[0_20px_50px_rgba(0,0,0,0.7)] flex-1 flex flex-col justify-between min-h-0">
             <div className="flex items-center justify-between mb-2 shrink-0">
-              <span className="text-xs font-mono font-bold uppercase tracking-widest text-zinc-300">
-                ОПЕРАТИВНИКИ В СЕТИ ({playerList.length}/6)
+              <span className="text-xs sm:text-sm font-mono font-bold uppercase tracking-widest text-zinc-300">
+                ИГРОКИ В СЕТИ ({playerList.length}/6)
               </span>
-              <span className="text-xs font-sans font-light text-white/40">
+              <span className="text-xs font-sans text-white/50 font-medium">
                 {isPassAndPlay ? 'Минимум 1 контроллер' : 'Минимум 2 контроллера'}
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5 overflow-y-auto max-h-36 custom-scrollbar pr-1 flex-1">
+            <div className="grid grid-cols-2 gap-2 flex-1 min-h-0 content-start">
               {playerList.length === 0 ? (
-                <div className="col-span-2 p-4 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] flex flex-col items-center justify-center text-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
-                  <span className="text-xs font-display font-bold uppercase tracking-wider text-white/60">
-                    Ожидание подключения оперативников...
+                <div className="col-span-2 p-5 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] flex flex-col items-center justify-center text-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+                  <span className="text-sm font-display font-bold uppercase tracking-wider text-white/70">
+                    Ожидание подключения игроков...
                   </span>
                 </div>
               ) : (
                 playerList.map((player, index) => (
                   <div
                     key={index}
-                    tabIndex={0}
-                    className={`p-3 rounded-2xl border transition-all duration-300 flex items-center justify-between ${
+                    tabIndex={-1}
+                    className={`py-2 px-3 rounded-2xl border transition-all duration-300 flex items-center justify-between ${
                       player
-                        ? 'bg-gradient-to-r from-blue-950/30 via-slate-900/40 to-black/40 border-blue-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.4)]'
+                        ? 'bg-gradient-to-r from-blue-950/40 via-slate-900/50 to-black/50 border-blue-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.4)]'
                         : 'bg-white/[0.02] border-dashed border-white/10'
-                    } focus:outline-none focus:scale-105 focus:border-blue-400 focus:bg-blue-950/40 focus:shadow-[0_0_30px_rgba(37,99,235,0.45),inset_0_0_15px_rgba(255,255,255,0.15)]`}
+                    }`}
                   >
-                    <div className="flex items-center gap-3 truncate">
-                      <div className="w-7 h-7 rounded-xl bg-blue-950/60 border border-blue-500/40 flex items-center justify-center text-blue-300 font-display font-black text-xs shrink-0 shadow-[0_0_10px_rgba(37,99,235,0.3)]">
+                    <div className="flex items-center gap-2.5 truncate">
+                      <div className="w-8 h-8 rounded-xl bg-blue-950/70 border border-blue-500/40 flex items-center justify-center text-blue-300 font-display font-black text-xs shrink-0 shadow-[0_0_10px_rgba(37,99,235,0.3)]">
                         #{index + 1}
                       </div>
                       <div className="truncate">
-                        <div className="text-sm font-display font-black text-white truncate">
+                        <div className="text-sm lg:text-base font-display font-black text-white truncate">
                           {player ? player.nickname : 'Ожидание...'}
                         </div>
-                        <div className="text-[11px] font-sans font-light text-emerald-400 flex items-center gap-1.5">
+                        <div className="text-xs font-sans text-emerald-400 flex items-center gap-1.5 font-medium">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse" />
                           <span>ГОТОВ</span>
                         </div>

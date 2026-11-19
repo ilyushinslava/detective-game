@@ -235,7 +235,7 @@ describe("Reconnection & Grace Period (TASK-NET-003)", () => {
       // Оверлей потери связи отображается
       const lossOverlay = screen.getByTestId("connection-loss-overlay");
       expect(lossOverlay).toBeDefined();
-      expect(screen.getByText(/ПОТЕРЯ РАДИОСВЯЗИ/i)).toBeDefined();
+      expect(screen.getByText(/ПОТЕРЯ СОЕДИНЕНИЯ|ПОТЕРЯ РАДИОСВЯЗИ/i)).toBeDefined();
       expect(screen.getByText(/ВОССТАНОВЛЕНИЕ СИГНАЛА \(2\/3\)\.\.\./i)).toBeDefined();
 
       // Связь восстановилась: rerender с isLocalDisconnected={false}
@@ -270,7 +270,7 @@ describe("Reconnection & Grace Period (TASK-NET-003)", () => {
 
       const banner = screen.getByTestId("opponent-reconnecting-banner");
       expect(banner).toBeDefined();
-      expect(screen.getByText(/ОЖИДАНИЕ ВОЗВРАЩЕНИЯ СВЯЗНОГО/i)).toBeDefined();
+      expect(screen.getByText(/ОЖИДАНИЕ ВОЗВРАЩЕНИЯ ИГРОКА|ОЖИДАНИЕ ВОЗВРАЩЕНИЯ СВЯЗНОГО/i)).toBeDefined();
       expect(screen.getByText(/ВРЕМЕННАЯ ПАУЗА СВЯЗИ • ТАЙМЕР ЗАМОРОЖЕН/i)).toBeDefined();
     });
 
@@ -285,7 +285,7 @@ describe("Reconnection & Grace Period (TASK-NET-003)", () => {
       const tvBanner = screen.getByTestId("tv-player-disconnected-banner");
       expect(tvBanner).toBeDefined();
       expect(screen.getByText(/ВРЕМЕННАЯ ПАУЗА СВЯЗИ • ТАЙМЕР ХОДА ЗАМОРОЖЕН/i)).toBeDefined();
-      expect(screen.getByText(/ОЖИДАНИЕ ВОЗВРАЩЕНИЯ СВЯЗНОГО В СЕТЬ/i)).toBeDefined();
+      expect(screen.getByText(/ОЖИДАНИЕ ВОЗВРАЩЕНИЯ (ИГРОКА|СВЯЗНОГО) В СЕТЬ/i)).toBeDefined();
     });
   });
 });

@@ -31,8 +31,8 @@ export const TvHomeView: React.FC<TvHomeViewProps> = ({ onCreateRoom }) => {
 
       {/* Верхний лаконичный статус-бар с эффектом матового стекла */}
       <div className="relative z-10 flex items-center justify-between border-b border-border-subtle pb-6">
-        <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/[0.04] border border-border-subtle backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
-          <span className="h-2.5 w-2.5 rounded-full bg-accent-danger shadow-neon-rose animate-pulse" />
+        <div className="flex items-center gap-3 px-4 py-2 rounded-full neo-card border border-border-subtle shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+          <span className="h-2.5 w-2.5 rounded-full bg-accent-danger shadow-[0_0_10px_rgba(225,29,72,0.8)] animate-pulse" />
           <span className="text-xs lg:text-sm font-display font-bold uppercase tracking-[0.3em] text-white/80">
             TV PARTY EDITION
           </span>

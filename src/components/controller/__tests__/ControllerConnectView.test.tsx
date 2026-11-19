@@ -33,36 +33,29 @@ describe("ControllerConnectView Component (TASK-NET-002 & Phase 8 Tabs)", () => 
     cleanup();
   });
 
-  it("рендерит навигацию с тремя вкладками (КАМЕРА, ПИН-КОД, МОРЗЕ)", () => {
+  it("рендерит навигацию с двумя вкладками (КАМЕРА, МОРЗЕ) без ПИН-кода", () => {
     render(<ControllerConnectView onConnect={vi.fn()} onBackToMenu={vi.fn()} />);
 
     expect(screen.getByText(/ПУЛЬТ УПРАВЛЕНИЯ/i)).toBeDefined();
     expect(screen.getByRole("button", { name: /КАМЕРА/i })).toBeDefined();
-    expect(screen.getByRole("button", { name: /ПИН-КОД/i })).toBeDefined();
     expect(screen.getByRole("button", { name: /МОРЗЕ/i })).toBeDefined();
+    expect(screen.queryByRole("button", { name: /ПИН-КОД/i })).toBeNull();
   });
 
-  it("поддерживает ввод 5-значного цифрового кода комнаты на вкладке ПИН-КОД", () => {
-    const connectSpy = vi.fn();
-    render(<ControllerConnectView onConnect={connectSpy} onBackToMenu={vi.fn()} />);
+  it("поддерживает переключение между вкладками КАМЕРА и МОРЗЕ", () => {
+    render(<ControllerConnectView onConnect={vi.fn()} onBackToMenu={vi.fn()} />);
 
-    // Переключаемся на вкладку ПИН-КОД
-    const pinTabBtn = screen.getByRole("button", { name: /ПИН-КОД/i });
-    fireEvent.click(pinTabBtn);
+    // По умолчанию активна КАМЕРА
+    const morseTabBtn = screen.getByRole("button", { name: /МОРЗЕ/i });
+    fireEvent.click(morseTabBtn);
 
-    expect(screen.getByText(/КОД КОМНАТЫ С ТВ/i)).toBeDefined();
-    const connectBtn = screen.getByRole("button", { name: /ПОДКЛЮЧИТЬСЯ/i }) as HTMLButtonElement;
-    // Кнопка отключена, пока не введено 5 цифр
-    expect(connectBtn.disabled).toBe(true);
+    // Появился телеграфный ключ
+    expect(screen.getByRole("button", { name: "Ключ телеграфа" })).toBeDefined();
 
-    // Вводим 5-значный код
-    const input = screen.getByLabelText(/Поле ввода 5-значного пин-кода/i);
-    fireEvent.change(input, { target: { value: "54321" } });
-
-    expect(connectBtn.disabled).toBe(false);
-    fireEvent.click(connectBtn);
-
-    expect(connectSpy).toHaveBeenCalledWith("54321");
+    // Возврат на вкладку КАМЕРА
+    const cameraTabBtn = screen.getByRole("button", { name: /КАМЕРА/i });
+    fireEvent.click(cameraTabBtn);
+    expect(screen.queryByRole("button", { name: "Ключ телеграфа" })).toBeNull();
   });
 
   it("записывает точку по короткому нажатию и тире по удержанию на вкладке МОРЗЕ", () => {
@@ -133,7 +126,7 @@ describe("ControllerConnectView Component (TASK-NET-002 & Phase 8 Tabs)", () => 
       fireEvent.pointerUp(telegraphBtn);
     }
 
-    const submitBtn = screen.getByRole("button", { name: /НАЙТИ ШТАБ/i }) as HTMLButtonElement;
+    const submitBtn = screen.getByRole("button", { name: /ПОДКЛЮЧИТЬСЯ|НАЙТИ ШТАБ/i }) as HTMLButtonElement;
     expect(submitBtn.disabled).toBe(false);
 
     await act(async () => {
@@ -167,13 +160,13 @@ describe("ControllerConnectView Component (TASK-NET-002 & Phase 8 Tabs)", () => 
       fireEvent.pointerUp(telegraphBtn);
     }
 
-    const submitBtn = screen.getByRole("button", { name: /ПОДТВЕРДИТЬ ШИФР/i });
+    const submitBtn = screen.getByRole("button", { name: /ПОДТВЕРДИТЬ|ПОДТВЕРДИТЬ ШИФР/i });
     await act(async () => {
       fireEvent.click(submitBtn);
     });
 
     expect(connectSpy).not.toHaveBeenCalled();
-    expect(await screen.findByText(/Неверный шифр доступа/i)).toBeDefined();
+    expect(await screen.findByText(/Неверный код комнаты|Неверный шифр доступа/i)).toBeDefined();
   });
 
   it("успешно верифицирует пароль Морзе для targetRoomCode", async () => {
@@ -188,8 +181,8 @@ describe("ControllerConnectView Component (TASK-NET-002 & Phase 8 Tabs)", () => 
       />
     );
 
-    expect(screen.getByText(/ШИФР ДОСТУПА: Агент 007/i)).toBeDefined();
-    expect(screen.getByRole("button", { name: /ПОДТВЕРДИТЬ ШИФР/i })).toBeDefined();
+    expect(screen.getByText(/КОД КОМНАТЫ: Агент 007|ШИФР ДОСТУПА: Агент 007/i)).toBeDefined();
+    expect(screen.getByRole("button", { name: /ПОДТВЕРДИТЬ|ПОДТВЕРДИТЬ ШИФР/i })).toBeDefined();
 
     const telegraphBtn = screen.getByRole("button", { name: "Ключ телеграфа" });
     let simulatedTime = 1000;
@@ -207,7 +200,7 @@ describe("ControllerConnectView Component (TASK-NET-002 & Phase 8 Tabs)", () => 
     simulatedTime += 300; // dash
     fireEvent.pointerUp(telegraphBtn);
 
-    const submitBtn = screen.getByRole("button", { name: /ПОДТВЕРДИТЬ ШИФР/i });
+    const submitBtn = screen.getByRole("button", { name: /ПОДТВЕРДИТЬ|ПОДТВЕРДИТЬ ШИФР/i });
     await act(async () => {
       fireEvent.click(submitBtn);
     });

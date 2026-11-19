@@ -211,7 +211,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
       {/* 3. Верхняя сервисная строчка (Номер ячейки и статусы офицера/прицела/радара) */}
       <div className="flex items-center justify-between p-1 sm:p-1.5 z-10 w-full pointer-events-none">
         <span
-          className={`text-[9px] sm:text-[11px] 2xl:text-xs font-mono font-bold px-1.5 py-0.5 rounded-md backdrop-blur-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] ${
+          className={`text-[10px] sm:text-xs 2xl:text-sm font-mono font-bold px-1.5 py-0.5 rounded-md backdrop-blur-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] ${
             isDead
               ? 'bg-black/70 text-zinc-500 line-through'
               : isExonerated
@@ -253,7 +253,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
               exit={{ opacity: 0, scale: 0.6 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
             >
-              <div className={`border whitespace-nowrap font-display font-black uppercase tracking-wider text-[9px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_15px_rgba(220,38,38,0.7)] backdrop-blur-sm text-center ${
+              <div className={`border whitespace-nowrap font-display font-black uppercase tracking-wider text-[10px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_15px_rgba(220,38,38,0.7)] backdrop-blur-sm text-center max-w-full truncate ${
                 spyMeta
                   ? `border-${spyMeta.border} bg-zinc-950/95 text-${spyMeta.text}`
                   : isSecretService || char.unmaskedSpyIndex !== undefined
@@ -282,7 +282,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
               exit={{ opacity: 0, scale: 0.6 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
             >
-              <div className="border border-blue-500/80 bg-zinc-950/95 text-blue-400 whitespace-nowrap font-display font-black uppercase tracking-wider text-[9px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_12px_rgba(59,130,246,0.4)] backdrop-blur-sm text-center">
+              <div className="border border-blue-500/80 bg-zinc-950/95 text-blue-400 whitespace-nowrap font-display font-black uppercase tracking-wider text-[10px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_12px_rgba(59,130,246,0.4)] backdrop-blur-sm text-center max-w-full truncate">
                 АЛИБИ
               </div>
             </motion.div>
@@ -299,7 +299,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
               exit={{ opacity: 0, scale: 0.6 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
             >
-              <div className="border border-blue-500/80 bg-blue-950/95 text-blue-300 whitespace-nowrap font-display font-black uppercase tracking-wider text-[9px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_12px_rgba(59,130,246,0.5)] backdrop-blur-sm text-center">
+              <div className="border border-blue-500/80 bg-blue-950/95 text-blue-300 whitespace-nowrap font-display font-black uppercase tracking-wider text-[10px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_12px_rgba(59,130,246,0.5)] backdrop-blur-sm text-center max-w-full truncate">
                 АРЕСТОВАН
               </div>
             </motion.div>
@@ -334,7 +334,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
       <div className="absolute inset-x-0 bottom-0 z-10 pt-5 pb-1 sm:pb-1.5 px-1 bg-gradient-to-t from-black/95 via-black/80 to-transparent flex items-end justify-center pointer-events-none">
         <span
           title={char.name}
-          className={`block w-full font-bold text-zinc-100 uppercase tracking-tight whitespace-normal text-center leading-[1.1] text-[10px] sm:text-[11px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] font-sans ${
+          className={`block w-full font-bold text-zinc-100 uppercase tracking-tight whitespace-normal text-center leading-[1.15] text-[11px] sm:text-xs 2xl:text-sm drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] font-sans line-clamp-2 ${
             hasCoin && !isDead ? 'pr-4 sm:pr-5' : ''
           }`}
         >
@@ -373,7 +373,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   hideExit = false,
   isAIThinking,
 }) => {
-  useSpatialNavigation({ initialFocusSelector: '[data-tv-focus-primary="true"]' });
+  useSpatialNavigation({ initialFocusSelector: '[data-tv-pause-btn="true"]' });
 
   const [focusedControl, setFocusedControl] = useState<'NONE' | 'CONTINUE' | 'RESTART' | 'EXIT'>('NONE');
   const [isPauseOpen, setIsPauseOpen] = useState<boolean>(false);
@@ -803,7 +803,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.08),transparent_50%)] pointer-events-none" />
 
       {/* Верхний компактный хедер телевизора */}
-      <div className="flex items-center justify-between px-6 py-2 rounded-2xl bg-white/[0.04] border border-white/10 border-t-2 border-t-rose-500/50 backdrop-blur-2xl shadow-[0_4px_24px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.1)] shrink-0 z-10">
+      <div className="neo-card flex items-center justify-between px-6 py-2 rounded-2xl border-t-2 border-t-rose-500/50 shadow-[0_4px_24px_rgba(0,0,0,0.7)] shrink-0 z-10">
         {/* Статусы и счета участников */}
         <div className="flex items-center gap-6 lg:gap-8">
           {isSecretService && spies.length > 0 ? (
@@ -821,7 +821,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           ) : (
             <>
               <div className="flex items-center gap-3">
-                <span className="h-3 w-3 rounded-full bg-accent-danger shadow-neon-rose shrink-0" />
+                <span className="h-3 w-3 rounded-full bg-accent-danger shadow-[0_0_10px_rgba(225,29,72,0.8)] shrink-0" />
                 <div className="leading-tight">
                   <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 block font-bold">{killerRoleName}</span>
                   <span className="text-base sm:text-xl font-mono font-black text-rose-400">
@@ -831,7 +831,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
               </div>
               <div className="h-7 w-px bg-white/10" />
               <div className="flex items-center gap-3">
-                <span className="h-3 w-3 rounded-full bg-accent-primary shadow-neon-blue shrink-0" />
+                <span className="h-3 w-3 rounded-full bg-accent-primary shadow-[0_0_10px_rgba(37,99,235,0.8)] shrink-0" />
                 <div className="leading-tight">
                   <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 block font-bold">{detectiveRoleName}</span>
                   <span className="text-base sm:text-xl font-mono font-black text-blue-400">
@@ -846,6 +846,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         {/* Кнопка вызова меню паузы */}
         <div className="flex items-center gap-3">
           <button
+            data-tv-pause-btn="true"
             tabIndex={0}
             onClick={() => {
               setIsPauseOpen(true);
@@ -863,7 +864,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
       <div className="flex-1 flex gap-3 sm:gap-4 lg:gap-5 min-h-0 overflow-hidden z-10">
         {/* ЛЕВАЯ ЗОНА (~68%): Primary Stage (Поле 5×5 с монолитной тактической плитой) */}
         <div className="w-[66%] lg:w-[68%] h-full flex items-center justify-center min-w-0">
-          <div className="relative w-full h-full max-w-[min(100%,calc(100vh-80px))] aspect-square p-2.5 sm:p-3 2xl:p-4 rounded-2xl sm:rounded-3xl bg-white/[0.03] border border-white/10 border-t-2 border-t-rose-500/40 shadow-[0_20px_60px_rgba(0,0,0,0.9),inset_0_1px_2px_rgba(255,255,255,0.1)] backdrop-blur-2xl flex items-center justify-center">
+          <div className="neo-card relative w-full h-full max-w-[min(100%,calc(100vh-80px))] aspect-square p-2.5 sm:p-3 2xl:p-4 rounded-2xl sm:rounded-3xl border-t-2 border-t-rose-500/40 shadow-[0_20px_60px_rgba(0,0,0,0.9)] flex items-center justify-center">
             <div
               className="grid gap-1.5 sm:gap-2 2xl:gap-2.5 w-full h-full"
               style={{
@@ -937,7 +938,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           )}
 
           {/* БЛОК 1: ТЕКУЩИЙ АКТИВНЫЙ ХОД (МАКСИМАЛЬНО КОМПАКТНЫЙ) */}
-          <div className={`p-2.5 sm:p-3 rounded-2xl border border-white/10 border-t-2 backdrop-blur-2xl transition-all duration-500 shadow-xl relative overflow-hidden shrink-0 ${
+          <div className={`neo-card p-2.5 sm:p-3 rounded-2xl border border-white/10 border-t-2 transition-all duration-500 shadow-xl relative overflow-hidden shrink-0 ${
             isKillerTurn
               ? 'border-t-rose-500/80 bg-gradient-to-br from-red-950/45 via-white/[0.04] to-black/80 shadow-[0_8px_30px_rgba(225,29,72,0.25)]'
               : 'border-t-blue-500/80 bg-gradient-to-br from-blue-950/45 via-white/[0.04] to-black/80 shadow-[0_8px_30px_rgba(37,99,235,0.25)]'
@@ -976,7 +977,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           </div>
 
           {/* БЛОК 2: ДОСТУПНЫЕ ДЕЙСТВИЯ ТЕКУЩЕЙ РОЛИ (FLEX-1 СО СКРОЛЛОМ) */}
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-white/[0.04] border border-white/10 border-t-2 border-t-blue-500/50 backdrop-blur-2xl shadow-xl flex-1 min-h-0 flex flex-col gap-2 overflow-hidden">
+          <div className="neo-card p-2.5 sm:p-3 rounded-2xl border border-white/10 border-t-2 border-t-blue-500/50 shadow-xl flex-1 min-h-0 flex flex-col gap-2 overflow-hidden">
             {/* Блок «Выбранная линия» */}
             {selectedLine ? (
               <div className="p-2 rounded-xl bg-blue-950/40 border border-blue-400/50 shadow-[0_0_15px_rgba(37,99,235,0.25)] space-y-0.5 shrink-0">
@@ -1006,7 +1007,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
             </div>
 
             {/* Список действий со скроллом */}
-            <div className="flex-1 overflow-y-auto min-h-0 space-y-1.5 pr-1">
+            <div className="flex-1 overflow-y-auto min-h-0 space-y-1.5 pr-1 custom-scrollbar">
               {/* Маневр поля */}
               <div className={`p-1.5 sm:py-2 sm:px-2.5 rounded-xl border flex items-center justify-between transition-all ${
                 selectedLine
@@ -1064,7 +1065,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           </div>
 
           {/* БЛОК 3: ХРОНИКА РАССЛЕДОВАНИЯ (КОМПАКТНЫЙ СНИЗУ) */}
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-white/[0.04] border border-white/10 border-t-2 border-t-amber-500/50 backdrop-blur-2xl shadow-xl h-[130px] sm:h-[150px] 2xl:h-[180px] shrink-0 flex flex-col min-h-0 overflow-hidden">
+          <div className="neo-card p-2.5 sm:p-3 rounded-2xl border border-white/10 border-t-2 border-t-amber-500/50 shadow-xl h-[130px] sm:h-[150px] 2xl:h-[180px] shrink-0 flex flex-col min-h-0 overflow-hidden">
             <div className="flex items-center text-[11px] sm:text-xs font-mono uppercase tracking-widest text-zinc-300 mb-1.5 font-bold shrink-0">
               <span className="flex items-center gap-1.5">
                 <Icons.Terminal />
@@ -1072,7 +1073,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
               </span>
             </div>
 
-            <div className="flex-1 space-y-1.5 overflow-y-auto min-h-0 pr-1 text-xs font-sans">
+            <div className="flex-1 space-y-1.5 overflow-y-auto min-h-0 pr-1 text-xs font-sans custom-scrollbar">
               {gameState?.log && gameState.log.length > 0 ? (
                 gameState.log.slice(-8).map((entry, idx) => (
                   <div

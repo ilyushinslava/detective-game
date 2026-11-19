@@ -21,18 +21,18 @@ export function playClickSound(): void {
 }
 
 export function playShiftSound(): void {
-  // Звук сдвига ряда/колонки воспроизводится через soundManager.play("slide")
-  // Дублирующий синтезированный осциллятор отключен
+  // Звук сдвига ряда/колонки через soundManager.play("slide")
+  soundManager.play("slide");
 }
 
 export function playEliminateSound(): void {
-  // Звук выстрела/устранения воспроизводится через soundManager.play("kill")
-  // Дублирующий синтезированный осциллятор отключен
+  // Звук выстрела/устранения через soundManager.play("kill")
+  soundManager.play("kill");
 }
 
 export function playRadarPing(): void {
-  // Звук радара воспроизводится через soundManager.play("radar")
-  // Дублирующий синтезированный осциллятор отключен
+  // Звук радара через soundManager.play("radar")
+  soundManager.play("radar");
 }
 
 export function _resetAudioContextForTesting(): void {

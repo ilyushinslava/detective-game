@@ -31,7 +31,7 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
           isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       >
-        <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-zinc-950/90 border border-white/15 border-t-2 border-t-rose-500/60 backdrop-blur-2xl shadow-[0_30px_90px_rgba(0,0,0,0.95),inset_0_1px_1px_rgba(255,255,255,0.15)] space-y-6 text-center">
+        <div className="neo-card w-full max-w-md p-6 sm:p-8 rounded-3xl border-t-2 border-t-rose-500/60 shadow-[0_30px_90px_rgba(0,0,0,0.95)] space-y-6 text-center">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-3">
               <span className="text-rose-400 text-xl">
@@ -127,7 +127,7 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
             className="fixed inset-0 z-[70] flex items-center justify-center p-8 bg-black/85 backdrop-blur-2xl select-none font-sans"
             data-testid="tv-player-disconnected-banner"
           >
-            <div className="w-full max-w-2xl rounded-3xl bg-zinc-950/90 border border-white/15 border-t-2 border-t-blue-500/60 backdrop-blur-2xl p-10 text-center shadow-[0_30px_90px_rgba(0,0,0,0.95),inset_0_1px_1px_rgba(255,255,255,0.15)] flex flex-col items-center">
+            <div className="neo-card w-full max-w-2xl rounded-3xl border-t-2 border-t-blue-500/60 p-10 text-center shadow-[0_30px_90px_rgba(0,0,0,0.95)] flex flex-col items-center">
               <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-blue-950/90 border border-blue-500/50 text-sm font-mono uppercase tracking-wider text-blue-300 font-bold mb-6">
                 <span>ВРЕМЕННАЯ ПАУЗА СВЯЗИ • ТАЙМЕР ХОДА ЗАМОРОЖЕН</span>
               </div>
@@ -137,7 +137,7 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
               </div>
 
               <h2 className="text-3xl font-black uppercase tracking-wider text-zinc-100 mb-3">
-                ОЖИДАНИЕ ВОЗВРАЩЕНИЯ СВЯЗНОГО В СЕТЬ
+                ОЖИДАНИЕ ВОЗВРАЩЕНИЯ ИГРОКА В СЕТЬ
               </h2>
 
               <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden my-5 max-w-lg">

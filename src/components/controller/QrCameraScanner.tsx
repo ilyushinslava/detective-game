@@ -145,7 +145,7 @@ export const QrCameraScanner: React.FC<QrCameraScannerProps> = ({
               onClick={onManualSwitch}
               className="min-h-[44px] px-5 py-2.5 rounded-xl border border-white/20 bg-zinc-900 hover:bg-zinc-800 text-xs font-mono uppercase tracking-widest text-zinc-200 hover:text-white transition active:scale-95 cursor-pointer shadow-md"
             >
-              Ввести код вручную
+              Подключиться по Морзе
             </button>
           )}
         </div>
@@ -158,19 +158,19 @@ export const QrCameraScanner: React.FC<QrCameraScannerProps> = ({
           {/* Прицельный квадрат 240x240 с угловыми скобками */}
           <div className="relative w-56 h-56 sm:w-60 sm:h-60 rounded-xl flex items-center justify-center overflow-hidden">
             {/* Лазерная полоса сканирования */}
-            <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_12px_rgba(34,211,238,0.9)] animate-scanLaser" />
+            <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_12px_rgba(59,130,246,0.9)] animate-scanLaser" />
 
             {/* Угловые скобки (Reticle Brackets) */}
-            <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-cyan-400 rounded-tl-lg shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
-            <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-cyan-400 rounded-tr-lg shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
-            <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-cyan-400 rounded-bl-lg shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
-            <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-cyan-400 rounded-br-lg shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
+            <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-blue-500 rounded-tl-lg shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+            <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-blue-500 rounded-tr-lg shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+            <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-blue-500 rounded-bl-lg shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+            <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-blue-500 rounded-br-lg shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
           </div>
 
           {/* Статусная подсказка */}
           <div className="relative z-10 mt-4 px-4 py-1.5 rounded-full bg-zinc-950/80 border border-white/10 backdrop-blur-md">
             <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-300 font-bold flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
               {isInitializing ? "ПОДКЛЮЧЕНИЕ КАМЕРЫ..." : "НАВЕДИТЕ НА QR-КОД ТЕЛЕВИЗОРА"}
             </span>
           </div>

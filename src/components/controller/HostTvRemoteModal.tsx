@@ -133,6 +133,7 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
             <>
               {/* Кнопка Пауза / Продолжить */}
               <Button
+                data-testid="remote-pause-btn"
                 variant={isTvPaused ? "primary" : "secondary"}
                 fullWidth
                 onClick={handleTogglePause}

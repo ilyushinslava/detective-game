@@ -22,7 +22,7 @@ describe("Интерактивное взаимодействие с экран�
     const mockProfile = {
       id: "test",
       nickname: "Агент 007",
-      avatar: "🕵️",
+      avatar: "c1",
       level: 1,
       xp: 0,
       cash: 15000,

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { triggerHaptic } from "../utils/haptics";
+import { Icons } from "../components/ui/Icons";
 
 export interface BannerRect {
   top: number;
@@ -120,7 +121,7 @@ export const BannerViewerProvider: React.FC<{ children: React.ReactNode }> = ({ 
           }`}
           title="Закрыть"
         >
-          ✕
+          <Icons.Close className="w-5 h-5 text-zinc-400 group-hover:text-white" />
         </button>
         <motion.div
           custom={bannerViewer.rect}

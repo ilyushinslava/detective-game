@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Modal } from "./ui/Modal";
 import { Button } from "./ui/Button";
+import { Icons } from "./ui/Icons";
 
 export interface IdentityRevealModalProps {
   badge: string;
@@ -58,7 +59,7 @@ export const IdentityRevealModal: React.FC<IdentityRevealModalProps> = ({
               onClick={() => setIsFullscreen(false)}
               className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
             >
-              ✕
+              <Icons.Close className="w-5 h-5 text-zinc-400" />
             </motion.button>
 
             <motion.div

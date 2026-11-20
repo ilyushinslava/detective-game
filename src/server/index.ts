@@ -517,13 +517,13 @@ export default class GameRoomServer {
       const existingTvIds = Object.keys(this.state.tvDisplays);
       const isExistingTv = Boolean(this.state.tvDisplays[clientId]);
 
-      // К комнате может подключиться только 1 ТВ-дисплей
+      // К комнате может подключиться только 1 ТВ-дисплей (SEC-05)
       if (existingTvIds.length >= 1 && !isExistingTv) {
         try {
           conn.send(JSON.stringify({ type: "ERROR", message: "MAX_TV_REACHED" }));
           conn.close();
         } catch (_err) {}
-        console.warn(`[GameRoomServer] TV connection rejected for room ${roomCode}: only 1 TV allowed.`);
+        console.warn(`[GameRoomServer] TV connection rejected for room ${this.getRoomCode()}: only 1 TV allowed.`);
         return;
       }
 

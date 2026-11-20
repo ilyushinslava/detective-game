@@ -487,6 +487,9 @@ class PartyService {
     }
 
     const savedClientType = clientType || this.clientType;
+    const previousAuthToken = (this.roomCode === roomCode && this.authToken)
+      ? this.authToken
+      : (roomCode ? safeSessionStorage.getItem(`crime_city_auth_${roomCode}`) : null);
 
     if (this.socket) {
       try {
@@ -508,8 +511,9 @@ class PartyService {
     }
     if (savedClientType) this.clientType = savedClientType;
     this.myClientId = clientId || `client_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    if (!this.authToken && roomCode) {
-      this.authToken = safeSessionStorage.getItem(`crime_city_auth_${roomCode}`);
+    this.authToken = previousAuthToken || (roomCode ? safeSessionStorage.getItem(`crime_city_auth_${roomCode}`) : null);
+    if (this.authToken && roomCode) {
+      safeSessionStorage.setItem(`crime_city_auth_${roomCode}`, this.authToken);
     }
     this.isExplicitDisconnect = false;
     if (this.reconnectTimeout) {
@@ -748,7 +752,9 @@ class PartyService {
     this.stopHeartbeat();
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       try {
-        this.socket.send(JSON.stringify({ type: "PLAYER_LEFT_EXPLICIT", senderClientId: this.myClientId }));
+        if (this.clientType !== "TV_DISPLAY") {
+          this.socket.send(JSON.stringify({ type: "PLAYER_LEFT_EXPLICIT", senderClientId: this.myClientId }));
+        }
       } catch (_) {}
     }
     if (this.socket) {
@@ -858,7 +864,7 @@ class PartyService {
     const { httpProtocol, host } = this.resolveEndpoints();
 
     try {
-      const res = await fetch(`${httpProtocol}//${host}/parties/lobby?action=list`, {
+      const res = await fetch(`${httpProtocol}//${host}/parties/lobby/main?action=list`, {
         signal: AbortSignal.timeout(2000),
       });
       if (res.ok) {

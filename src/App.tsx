@@ -140,6 +140,10 @@ export default function App() {
   const [tvSelectedMode, setTvSelectedMode] = useState<GameModeType>("MANIAC_VS_OPERATIVE");
   const [tvRoleDistribution, setTvRoleDistribution] = useState<"RANDOM" | "HOST_KILLER" | "HOST_DETECTIVE">("RANDOM");
   const [controllerRoomStatus, setControllerRoomStatus] = useState<string>("WAITING");
+  const controllerRoomStatusRef = useRef(controllerRoomStatus);
+  useEffect(() => {
+    controllerRoomStatusRef.current = controllerRoomStatus;
+  }, [controllerRoomStatus]);
   const [controllerRole, setControllerRole] = useState<Role>(() => {
     if (typeof window !== "undefined") {
       const saved = safeSessionStorage.getItem("tv_controller_role") as Role;
@@ -233,16 +237,28 @@ export default function App() {
             setIsIntroPhase(true);
           }
         }
+        if (data?.players) {
+          setTvPlayers(data.players);
+        }
+        if (data?.readyClients) {
+          setTvReadyClients(new Set(data.readyClients));
+        }
+        if (data?.mode) {
+          setTvSelectedMode(data.mode);
+        }
+        if (data?.roleDistribution) {
+          setTvRoleDistribution(data.roleDistribution);
+        }
         // Защита от мертвых комнат: если хост (ТВ) отключился или отсутствует в лобби
-        if (data && data.hasTvDisplay === false && controllerRoomStatus !== "PLAYING") {
+        if (data && data.hasTvDisplay === false && controllerRoomStatusRef.current !== "PLAYING") {
           console.warn("[Controller] TV host is not present in room, kicking to connect screen");
           handleLeaveControllerLobby("ТВ-хост отключился");
         }
       });
 
       const unsubAction = partyService.subscribe("action", (action: any) => {
-        if (action?.type === "TV_DISCONNECTED" || action?.type === "OPPONENT_LEFT") {
-          if (controllerRoomStatus !== "PLAYING") {
+        if (action?.type === "TV_DISCONNECTED") {
+          if (controllerRoomStatusRef.current !== "PLAYING") {
             console.warn("[Controller] TV host disconnected event received");
             handleLeaveControllerLobby("ТВ-хост отключился");
           }
@@ -293,12 +309,14 @@ export default function App() {
         unsubSyncState();
       };
     }
-  }, [clientTypeParam, tvRoomCode, controllerRoomStatus]);
+  }, [clientTypeParam, tvRoomCode]);
+
+  const isTvPartyActive = tvPartyState === "TV_LOBBY" || tvPartyState === "TV_BOARD";
 
   useEffect(() => {
-    if ((tvPartyState !== "TV_LOBBY" && tvPartyState !== "TV_BOARD") || !tvRoomCode) return;
+    if (!isTvPartyActive || !tvRoomCode) return;
 
-    partyService.connect(tvRoomCode, 'TV_HOST', true, 'MANIAC_VS_OPERATIVE', undefined, 'TV_DISPLAY');
+    partyService.connect(tvRoomCode, 'TV_HOST', true, 'MANIAC_VS_OPERATIVE', `tv_${tvRoomCode}`, 'TV_DISPLAY');
 
     const unsubConn = partyService.subscribe("connectionStateChange", (st: any) => {
       if (st.isConnected) {
@@ -376,7 +394,7 @@ export default function App() {
       unsubSyncState();
       unsubAction();
     };
-  }, [tvPartyState, tvRoomCode]);
+  }, [isTvPartyActive, tvRoomCode]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -765,8 +783,8 @@ export default function App() {
 
         {showSplash && (
           <SplashScreen
-            isTv={isAndroidTv}
-            autoDismissDelayMs={isAndroidTv ? 2500 : undefined}
+            isTv={isAndroidTv || clientTypeParam === "TV_DISPLAY" || tvPartyState === "TV_LOBBY" || tvPartyState === "TV_BOARD"}
+            autoDismissDelayMs={isAndroidTv || clientTypeParam === "TV_DISPLAY" || tvPartyState === "TV_LOBBY" || tvPartyState === "TV_BOARD" ? 2500 : undefined}
             onComplete={() => setShowSplash(false)}
           />
         )}

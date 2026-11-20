@@ -37,9 +37,9 @@ export const LobbyHeader: React.FC<LobbyHeaderProps> = ({
       <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 ml-auto">
         {/* Profile Button */}
         {(() => {
-          const avatarKey = profile.avatarId || profile.avatar;
-          const isPortrait = avatarKey && avatarKey.startsWith('c');
-          const portraitUrl = isPortrait ? getCharacterPortraitPath(avatarKey) : null;
+          const avatarKey = profile.avatarId || profile.avatar || 'c1';
+          const validPortraitId = avatarKey && avatarKey.startsWith('c') ? avatarKey : 'c1';
+          const portraitUrl = getCharacterPortraitPath(validPortraitId);
 
           return (
             <button
@@ -50,8 +50,6 @@ export const LobbyHeader: React.FC<LobbyHeaderProps> = ({
               <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-zinc-950/80 border border-white/10 flex items-center justify-center text-xs sm:text-sm shrink-0 overflow-hidden">
                 {portraitUrl ? (
                   <img src={portraitUrl} alt={h.profileTitle} className="w-full h-full object-cover" />
-                ) : profile.avatar ? (
-                  profile.avatar
                 ) : (
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-zinc-400">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />

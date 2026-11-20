@@ -120,6 +120,7 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
           {isHost && onOpenTvRemote && (
             <button
               type="button"
+              data-testid="host-tv-remote-btn"
               onClick={() => {
                 triggerHaptic("medium");
                 onOpenTvRemote();

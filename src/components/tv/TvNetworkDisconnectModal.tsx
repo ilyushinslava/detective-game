@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Icons } from '../ui/Icons';
 
 export interface TvNetworkDisconnectModalProps {
   isOpen: boolean;
@@ -101,7 +102,7 @@ export const TvNetworkDisconnectModal: React.FC<TvNetworkDisconnectModalProps> =
             }}
             className="px-6 py-3.5 rounded-2xl border border-rose-500/40 hover:border-rose-500/80 bg-rose-950/40 hover:bg-rose-900/60 text-rose-200 hover:text-white font-display text-xs sm:text-sm font-bold uppercase tracking-widest transition-all duration-200 cursor-pointer shadow-[0_0_20px_rgba(244,63,94,0.3)] hover:shadow-[0_0_30px_rgba(244,63,94,0.5)] active:scale-95 flex items-center gap-2"
           >
-            <span>✕</span>
+            <Icons.Close className="w-4 h-4 text-rose-300" />
             <span>В ГЛАВНОЕ МЕНЮ (ОТМЕНА)</span>
           </button>
         </motion.div>

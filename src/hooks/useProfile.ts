@@ -9,8 +9,8 @@ import { storage, safeLocalStorage } from "../utils/storage";
 import { guestRegistry } from "../utils/guestManager";
 import { sanitizePlayerName, validatePlayerName } from "../utils/nameFilter";
 
-const DEFAULT_AVATAR = "🕵️‍♂️";
-const DEFAULT_AVATAR_ID = "agent_01";
+const DEFAULT_AVATAR = "c1";
+const DEFAULT_AVATAR_ID = "c1";
 
 function getInitialCallsign(): string {
   if (typeof window !== "undefined") {

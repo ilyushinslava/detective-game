@@ -1373,6 +1373,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           {isHost && (
             <button
               type="button"
+              data-testid="host-tv-remote-btn"
               onClick={() => {
                 triggerHaptic('medium');
                 setIsTvRemoteOpen(true);

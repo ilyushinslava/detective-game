@@ -61,6 +61,7 @@ export const ActionButtonsBar: React.FC<ActionButtonsBarProps> = ({
           return (
             <button
               key={act.id}
+              data-action-id={act.id}
               onClick={act.onClick}
               disabled={act.disabled}
               className={`w-full min-h-[44px] py-2.5 px-3 text-[11px] sm:text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 rounded-xl transition-all duration-75 touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed text-center leading-snug cursor-pointer ${colorClasses}`}

@@ -53,6 +53,12 @@ const getCharacterImageUrl = (
 };
 
 const Icons = {
+  Close: ({ className = "w-5 h-5 text-zinc-400" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  ),
   Trophy: () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8">
       <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
@@ -146,7 +152,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
               onClick={() => setSelectedPhotoChar(null)}
               className="absolute top-6 right-6 w-10 h-10 bg-zinc-900/80 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer z-10"
             >
-              ✕
+              <Icons.Close className="w-5 h-5 text-zinc-400" />
             </motion.button>
 
             <motion.div

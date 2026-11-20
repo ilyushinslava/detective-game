@@ -623,6 +623,9 @@ class PartyService {
             if (data.morseCode) {
               this.morseCode = data.morseCode;
             }
+            if (data.players && this.myClientId && data.players[this.myClientId]) {
+              this.isHost = Boolean(data.players[this.myClientId].isHost);
+            }
             this.onRoomStatus?.(data);
             return;
           }

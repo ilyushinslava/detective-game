@@ -354,4 +354,100 @@ describe("GameRoomServer Security (SEC-01 & SEC-02)", () => {
       expect(server.state.players["brand_new_client_id"].connectionId).toBe("conn_p1_reloaded");
     });
   });
+
+  describe("SEC-06: RECONNECT_SLOT Invariant & Room Isolation", () => {
+    it("seamlessly rebinds disconnected player slot to new controller connection in TV rooms during PLAYING phase", () => {
+      // 1. Подключаем TV_DISPLAY
+      const tvConn = createMockConn("conn_tv");
+      connections.push(tvConn);
+      server.onConnect(tvConn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=tv_display&clientType=TV_DISPLAY"),
+      });
+      expect(Object.keys(server.state.tvDisplays).length).toBe(1);
+
+      // 2. Подключаем Хост-контроллер (player_1, KILLER)
+      const hostConn = createMockConn("conn_host");
+      connections.push(hostConn);
+      server.onConnect(hostConn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=p_host&isHost=true&clientType=CONTROLLER"),
+      });
+
+      // 3. Подключаем Гость-контроллер (player_2, DETECTIVE)
+      const guestConn = createMockConn("conn_guest");
+      connections.push(guestConn);
+      server.onConnect(guestConn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=p_guest&isHost=false&clientType=CONTROLLER"),
+      });
+
+      // 4. Переводим комнату в статус PLAYING
+      server.state.status = "PLAYING";
+      const originalDetectiveRole = server.state.players["p_guest"].role;
+
+      // 5. Гость отключается
+      server.onClose(guestConn);
+      expect(server.state.players["p_guest"].isDisconnected).toBe(true);
+
+      // 6. Новый смартфон сканирует QR-код ТВ с новым clientId и без authToken
+      const newGuestConn = createMockConn("conn_new_device");
+      connections.push(newGuestConn);
+      server.onConnect(newGuestConn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=p_new_device&clientType=CONTROLLER"),
+      });
+
+      // Проверки RECONNECT_SLOT:
+      expect(newGuestConn.close).not.toHaveBeenCalled();
+      expect(server.state.players["p_guest"]).toBeUndefined(); // Старый ID очищен
+      expect(server.state.players["p_new_device"]).toBeDefined(); // Новый ID занял слот
+      expect(server.state.players["p_new_device"].role).toBe(originalDetectiveRole);
+      expect(server.state.players["p_new_device"].isDisconnected).toBe(false);
+      expect(server.state.players["p_new_device"].connectionId).toBe("conn_new_device");
+
+      const sessionRestored = newGuestConn.sent
+        .map((s: string) => JSON.parse(s))
+        .find((m: any) => m.type === "SESSION_RESTORED");
+      expect(sessionRestored).toBeDefined();
+      expect(sessionRestored.role).toBe(originalDetectiveRole);
+    });
+
+    it("strictly rejects RECONNECT_SLOT hijacking in standard online rooms (without TV) and returns ROOM_FULL", () => {
+      // 1. Комната без ТВ (hasTvDisplay: false)
+      const hostConn = createMockConn("conn_pvp_host");
+      connections.push(hostConn);
+      server.onConnect(hostConn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=pvp_host&isHost=true"),
+      });
+
+      const guestConn = createMockConn("conn_pvp_guest");
+      connections.push(guestConn);
+      server.onConnect(guestConn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=pvp_guest&isHost=false"),
+      });
+
+      server.state.status = "PLAYING";
+      expect(Object.keys(server.state.tvDisplays).length).toBe(0);
+
+      // 2. Гость отключается, удерживая слот на grace-период
+      server.onClose(guestConn);
+      expect(server.state.players["pvp_guest"].isDisconnected).toBe(true);
+
+      // 3. Злоумышленник пытается перехватить слот чужого отключенного игрока без токена
+      const attackerConn = createMockConn("conn_attacker");
+      connections.push(attackerConn);
+      server.onConnect(attackerConn, {
+        request: new Request("http://localhost:1999/party/security-test-room?clientId=attacker_new_id&isHost=false"),
+      });
+
+      // Проверки защиты от перехвата:
+      expect(attackerConn.close).toHaveBeenCalled();
+      const errorMsg = attackerConn.sent
+        .map((s: string) => JSON.parse(s))
+        .find((m: any) => m.type === "ERROR");
+      expect(errorMsg?.message).toBe("ROOM_FULL");
+
+      // Слот законного игрока не тронут
+      expect(server.state.players["pvp_guest"]).toBeDefined();
+      expect(server.state.players["pvp_guest"].connectionId).toBe("conn_pvp_guest");
+      expect(server.state.players["attacker_new_id"]).toBeUndefined();
+    });
+  });
 });

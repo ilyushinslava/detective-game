@@ -16,6 +16,9 @@ import { getAvailableActionDescriptors, type ActionDescriptor } from '../../hook
 import { useDetectiveNotebook } from '../../hooks/useDetectiveNotebook';
 import { DetectiveNotebookModal } from './DetectiveNotebookModal';
 import { ControllerWaitingView } from './ControllerWaitingView';
+import { HostTvRemoteModal } from './HostTvRemoteModal';
+import { safeLocalStorage } from '../../utils/storage';
+import { Icons as UiIcons } from '../ui/Icons';
 import { partyService } from '../../utils/partyPeer';
 import { characterImages } from '../../constants/characterImages';
 import { BOARD_GRID_SIZE, TURN_GRACE_PERIOD_SECONDS } from '../../constants/gameRules';
@@ -44,6 +47,8 @@ export interface MobileControllerViewProps {
   roomStatus?: string;
   onLeaveLobby?: () => void;
   isAIThinking?: boolean;
+  isHost?: boolean;
+  isTvParty?: boolean;
 }
 
 export type ShiftWizardStep =
@@ -143,6 +148,8 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   roomStatus,
   onLeaveLobby,
   isAIThinking: propIsAIThinking,
+  isHost = false,
+  isTvParty = false,
 }) => {
   const boardSize = gameState?.board?.length || BOARD_GRID_SIZE;
   const isSecretService = gameState.mode === 'SECRET_SERVICE';
@@ -175,6 +182,30 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
   // Удержание экрана активным на мобильном устройстве (Wake Lock API)
   useWakeLock({ enabled: true });
+
+  // Состояния звука и удаленного управления ТВ
+  const [isTvRemoteOpen, setIsTvRemoteOpen] = useState(false);
+  const [isTvPaused, setIsTvPaused] = useState(false);
+  const [isTvMuted, setIsTvMuted] = useState(false);
+  const [isLocalSfxEnabled, setIsLocalSfxEnabled] = useState(() => {
+    const saved = safeLocalStorage.getItem('controller_sfx_enabled');
+    return saved !== null ? saved === 'true' : Boolean(isPassAndPlay);
+  });
+
+  const toggleLocalSfx = () => {
+    triggerHaptic('light');
+    setIsLocalSfxEnabled((prev) => {
+      const next = !prev;
+      safeLocalStorage.setItem('controller_sfx_enabled', String(next));
+      return next;
+    });
+  };
+
+  const playLocalSound = (sound: any, volume?: number) => {
+    if (isPassAndPlay || isLocalSfxEnabled) {
+      soundManager.play(sound, volume);
+    }
+  };
 
   // Тактильный отклик при передаче хода данному игроку
   const prevTurnRef = useRef(isTurnActuallyMine);
@@ -236,13 +267,17 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     const unsubAction = partyService.subscribe("action", (action: any) => {
       if (action?.type === 'ACTION_REJECTED' || action?.type === 'ERROR' || action?.type === 'SYNC_ERROR') {
         setIsAwaitingTurnEnd(false);
-        soundManager.play('deny');
+        playLocalSound('deny');
         triggerHaptic('error');
         const errId = action.payload?.errorCardId || action.payload?.targetId || selectedTargetId;
         if (errId) {
           setErrorTargetId(errId);
           setTimeout(() => setErrorTargetId(null), 500);
         }
+      } else if (action?.type === 'TV_PAUSE_CHANGED') {
+        setIsTvPaused(Boolean(action.isPaused));
+      } else if (action?.type === 'TV_TOGGLE_MUTE') {
+        setIsTvMuted((prev) => !prev);
       }
     });
 
@@ -460,7 +495,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
 
   // Немедленное выполнение маневра по нажатию стрелки направления (Этап 2)
   const handleExecuteShift = (dir: 'LEFT' | 'RIGHT' | 'UP' | 'DOWN') => {
-    soundManager.play('slide');
+    playLocalSound('slide');
     triggerHaptic('success');
     const direction = (dir === 'LEFT' || dir === 'UP') ? 'BACKWARD' : 'FORWARD';
 
@@ -489,7 +524,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   };
 
   const handleFastDisguise = (id: string) => {
-    soundManager.play('click');
+    playLocalSound('click');
     triggerHaptic('success');
     onDispatchAction({ type: 'FAST_DISGUISE', payload: { targetId: id } });
     setIsHandSheetOpen(false);
@@ -497,7 +532,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   };
 
   const handleExonerateFromHand = (id: string) => {
-    soundManager.play('click');
+    playLocalSound('click');
     triggerHaptic('success');
     onDispatchAction({ type: 'EXONERATE', payload: { targetId: id } });
     setIsHandSheetOpen(false);
@@ -543,11 +578,11 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     const targetId = selectedTargetId || neighbors[0]?.id || '';
 
     if (pendingAction.id === 'KILL_CHARACTER') {
-      soundManager.play('kill');
+      playLocalSound('kill');
     } else if (pendingAction.id === 'ROB_NEIGHBOR') {
-      soundManager.play('steal');
+      playLocalSound('steal');
     } else {
-      soundManager.play('click');
+      playLocalSound('click');
     }
     triggerHaptic('success');
 
@@ -801,28 +836,43 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   // =========================================================================
   if (!isTurnActuallyMine || isAwaitingTurnEnd) {
     return (
-      <ControllerWaitingView
-        isKiller={isKiller}
-        roleName={roleName}
-        myCharacter={myCharacter}
-        neighbors={neighbors}
-        activeAIThinking={activeAIThinking}
-        isPeeking={isPeeking}
-        setIsPeeking={setIsPeeking}
-        isNotebookOpen={isNotebookOpen}
-        setIsNotebookOpen={setIsNotebookOpen}
-        onExit={onExit}
-        gameState={gameState}
-        currentMatchCharacters={currentMatchCharacters}
-        marks={marks}
-        notes={notes}
-        cycleMark={cycleMark}
-        setMark={setMark}
-        setNotesText={setNotesText}
-        clearNotebook={clearNotebook}
-        renderConnectionLossOverlay={renderConnectionLossOverlay}
-        renderOpponentReconnectingBanner={renderOpponentReconnectingBanner}
-      />
+      <>
+        <ControllerWaitingView
+          isKiller={isKiller}
+          roleName={roleName}
+          myCharacter={myCharacter}
+          neighbors={neighbors}
+          activeAIThinking={activeAIThinking}
+          isPeeking={isPeeking}
+          setIsPeeking={setIsPeeking}
+          isNotebookOpen={isNotebookOpen}
+          setIsNotebookOpen={setIsNotebookOpen}
+          onExit={onExit}
+          gameState={gameState}
+          currentMatchCharacters={currentMatchCharacters}
+          marks={marks}
+          notes={notes}
+          cycleMark={cycleMark}
+          setMark={setMark}
+          setNotesText={setNotesText}
+          clearNotebook={clearNotebook}
+          renderConnectionLossOverlay={renderConnectionLossOverlay}
+          renderOpponentReconnectingBanner={renderOpponentReconnectingBanner}
+          isHost={isHost}
+          onOpenTvRemote={() => setIsTvRemoteOpen(true)}
+          isLocalSfxEnabled={isLocalSfxEnabled}
+          onToggleLocalSfx={toggleLocalSfx}
+        />
+        {isHost && (
+          <HostTvRemoteModal
+            isOpen={isTvRemoteOpen}
+            onClose={() => setIsTvRemoteOpen(false)}
+            onDispatchAction={onDispatchAction}
+            isTvPaused={isTvPaused}
+            isTvMuted={isTvMuted}
+          />
+        )}
+      </>
     );
   }
 
@@ -1111,11 +1161,11 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       } via-transparent to-black/90 pointer-events-none`} />
 
       {/* Верхний статус роли */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-3 gap-3 relative z-10">
+      <div className="flex items-center justify-between border-b border-white/10 pb-2.5 gap-2 relative z-10 shrink-0">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2.5 p-2 rounded-xl bg-gradient-to-r from-slate-900/80 via-zinc-950/80 to-slate-900/80 border border-white/10 shadow-lg backdrop-blur-xl">
+          <div className="flex items-center gap-2 p-1.5 sm:p-2 rounded-xl bg-gradient-to-r from-slate-900/80 via-zinc-950/80 to-slate-900/80 border border-white/10 shadow-lg backdrop-blur-xl min-w-0">
             <span
-              className={`font-display text-[10px] sm:text-xs font-bold uppercase px-2.5 py-1 rounded-lg tracking-wider shrink-0 shadow-sm ${
+              className={`font-display text-[9px] sm:text-xs font-bold uppercase px-2 py-0.5 sm:py-1 rounded-md tracking-wider shrink-0 shadow-sm ${
                 isKiller
                   ? 'bg-rose-950/80 border border-rose-600/60 text-rose-200 shadow-rose-950/40'
                   : roleName === 'Полиция' || roleName === 'ПОЛИЦИЯ'
@@ -1125,31 +1175,65 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             >
               {roleName}
             </span>
-            <span className="text-xs sm:text-sm font-bold text-zinc-100 whitespace-normal break-words leading-tight">
+            <span className="text-xs sm:text-sm font-bold text-zinc-100 truncate leading-tight">
               {myCharacter?.name || '••••••••'}
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0 self-start mt-1">
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Тумблер звука контроллера: Touch target ≥ 44×44px */}
           <button
+            type="button"
+            onClick={toggleLocalSfx}
+            title={isLocalSfxEnabled ? "Звук контроллера: Вкл" : "Звук контроллера: Выкл (Mute)"}
+            className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl border flex items-center justify-center transition active:scale-95 cursor-pointer backdrop-blur-md ${
+              isLocalSfxEnabled
+                ? 'bg-blue-950/80 border-blue-500/60 text-blue-400 shadow-[0_0_12px_rgba(37,99,235,0.3)]'
+                : 'bg-zinc-900/80 border-white/10 text-zinc-500 hover:text-zinc-300'
+            }`}
+          >
+            {isLocalSfxEnabled ? <UiIcons.VolumeOn className="w-4 h-4" /> : <UiIcons.VolumeOff className="w-4 h-4" />}
+          </button>
+
+          {/* Кнопка БЛОКНОТ */}
+          <button
+            type="button"
             onClick={() => {
               triggerHaptic('light');
               setIsNotebookOpen(true);
             }}
-            className="inline-flex min-h-[44px] items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-900/90 border border-white/20 text-xs font-mono text-zinc-200 hover:border-blue-400 hover:text-white transition shadow-sm active:scale-95 cursor-pointer backdrop-blur-md"
+            className="h-11 min-h-[44px] px-2.5 sm:px-3 rounded-xl bg-zinc-900/90 border border-white/20 text-xs font-mono text-zinc-200 hover:border-blue-400 hover:text-white transition shadow-sm active:scale-95 cursor-pointer backdrop-blur-md flex items-center gap-1"
           >
             <Icons.Notebook />
-            <span>БЛОКНОТ</span>
+            <span className="hidden xs:inline sm:inline">БЛОКНОТ</span>
           </button>
-          {onExit && (
+
+          {/* Кнопка [ ТВ ] для Хоста */}
+          {isHost && (
             <button
+              type="button"
+              onClick={() => {
+                triggerHaptic('medium');
+                setIsTvRemoteOpen(true);
+              }}
+              title="ТВ Пульт Хоста"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-blue-950/80 border border-blue-500/60 text-blue-400 hover:text-white hover:border-blue-400 flex items-center justify-center transition shadow-sm active:scale-95 cursor-pointer backdrop-blur-md"
+            >
+              <UiIcons.Tv className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Кнопка Выйти */}
+          {onExit && !isHost && (
+            <button
+              type="button"
               onClick={() => {
                 triggerHaptic('light');
                 onExit();
               }}
-              className="inline-flex min-h-[44px] items-center text-[11px] font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer px-3 py-2 rounded-lg hover:bg-zinc-900/40"
+              className="h-11 min-h-[44px] px-2 text-[11px] font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer flex items-center rounded-lg hover:bg-zinc-900/40"
             >
-              Выйти
+              Выход
             </button>
           )}
         </div>
@@ -1261,7 +1345,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                       onClick={() => {
                         if (activeAIThinking) return;
                         if (!char.isAlive) {
-                          soundManager.play('deny');
+                          playLocalSound('deny');
                           triggerHaptic('error');
                           setErrorTargetId(char.id);
                           setTimeout(() => setErrorTargetId(null), 500);
@@ -1435,6 +1519,17 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         onClearNotebook={clearNotebook}
         onClear={clearNotebook}
       />
+
+      {/* Дистанционный ТВ Пульт Хоста */}
+      {isHost && (
+        <HostTvRemoteModal
+          isOpen={isTvRemoteOpen}
+          onClose={() => setIsTvRemoteOpen(false)}
+          onDispatchAction={onDispatchAction}
+          isTvPaused={isTvPaused}
+          isTvMuted={isTvMuted}
+        />
+      )}
 
       {/* Оверлеи потери связи и ожидания соперника (Z-Index 65/70) */}
       {renderConnectionLossOverlay()}

@@ -1211,6 +1211,10 @@ export default class GameRoomServer {
         "START_MATCH",
         "TURN_TIMEOUT",
         "TIMEOUT_PASS",
+        "TV_TOGGLE_PAUSE",
+        "TV_TOGGLE_MUTE",
+        "TV_CONFIRM_RESTART",
+        "TV_EXIT_TO_LOBBY",
       ];
       if (!SYSTEM_ACTIONS.includes(action.type)) {
         if (!player && !((typeof process !== "undefined" && (process.env?.VITEST || process.env?.NODE_ENV === "test")) && action.type === "LINE_PREVIEW")) {
@@ -1408,6 +1412,80 @@ export default class GameRoomServer {
         this.state.gameState.matchPot = 500;
         this.broadcastStatus();
         this.broadcastState();
+        return;
+      }
+
+      if (action.type === "TV_TOGGLE_PAUSE") {
+        if (!player?.isHost && !isTvSender) {
+          try {
+            sender?.send(JSON.stringify({ type: "ACTION_REJECTED", reason: "NOT_HOST" }));
+          } catch (_) {}
+          return;
+        }
+        if (this.turnTimerState.isPaused) {
+          this.resumeTurnTimer();
+        } else {
+          this.pauseTurnTimer();
+        }
+        this.broadcastRaw(
+          JSON.stringify({
+            type: "TV_PAUSE_CHANGED",
+            isPaused: this.turnTimerState.isPaused,
+          })
+        );
+        return;
+      }
+
+      if (action.type === "TV_TOGGLE_MUTE") {
+        if (!player?.isHost && !isTvSender) {
+          try {
+            sender?.send(JSON.stringify({ type: "ACTION_REJECTED", reason: "NOT_HOST" }));
+          } catch (_) {}
+          return;
+        }
+        this.broadcastRaw(
+          JSON.stringify({
+            type: "TV_TOGGLE_MUTE",
+          })
+        );
+        return;
+      }
+
+      if (action.type === "TV_CONFIRM_RESTART") {
+        if (!player?.isHost && !isTvSender) {
+          try {
+            sender?.send(JSON.stringify({ type: "ACTION_REJECTED", reason: "NOT_HOST" }));
+          } catch (_) {}
+          return;
+        }
+        const mode = this.state.mode || "MANIAC_VS_OPERATIVE";
+        this.state.gameState = createInitialState(
+          mode,
+          "ONLINE",
+          "KILLER",
+          2,
+          mode === "SECRET_SERVICE" ? 2 : 3,
+          16
+        );
+        this.state.status = "PLAYING";
+        this.startTurnTimer(30);
+        this.broadcastStatus();
+        this.broadcastState();
+        return;
+      }
+
+      if (action.type === "TV_EXIT_TO_LOBBY") {
+        if (!player?.isHost && !isTvSender) {
+          try {
+            sender?.send(JSON.stringify({ type: "ACTION_REJECTED", reason: "NOT_HOST" }));
+          } catch (_) {}
+          return;
+        }
+        this.clearTurnTimer();
+        this.state.status = "WAITING";
+        this.state.gameState = null;
+        this.broadcastStatus();
+        this.broadcastRaw(JSON.stringify({ type: "TV_EXIT_TO_LOBBY" }));
         return;
       }
 

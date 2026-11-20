@@ -6,6 +6,8 @@ import {
   playShiftSound,
   playEliminateSound,
   playRadarPing,
+  playArrestSound,
+  playStealSound,
   _resetAudioContextForTesting,
 } from '../tvAudio';
 import { soundManager } from '../audio';
@@ -43,5 +45,15 @@ describe('tvAudio Utility (Neo-Noir Rules & Audio Invariant)', () => {
   it('playRadarPing is safe and does not invoke procedural oscillator', () => {
     expect(() => playRadarPing()).not.toThrow();
     expect(soundManager.play).toHaveBeenCalledWith('radar');
+  });
+
+  it('playArrestSound delegates to soundManager.play("arrest")', () => {
+    expect(() => playArrestSound()).not.toThrow();
+    expect(soundManager.play).toHaveBeenCalledWith('arrest');
+  });
+
+  it('playStealSound delegates to soundManager.play("steal")', () => {
+    expect(() => playStealSound()).not.toThrow();
+    expect(soundManager.play).toHaveBeenCalledWith('steal');
   });
 });

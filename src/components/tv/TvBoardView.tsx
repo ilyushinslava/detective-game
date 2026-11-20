@@ -22,7 +22,7 @@ import {
 } from '../../constants/gameMeta';
 import { partyService } from '../../utils/partyPeer';
 import { useSpatialNavigation } from '../../hooks/useSpatialNavigation';
-import { playShiftSound, playEliminateSound, playRadarPing } from '../../utils/tvAudio';
+import { playShiftSound, playEliminateSound, playRadarPing, playArrestSound, playStealSound } from '../../utils/tvAudio';
 import { soundManager } from '../../utils/audio';
 import { useWakeLock } from '../../hooks/useWakeLock';
 import { Button } from '../ui/Button';
@@ -388,6 +388,48 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   const [internalDisconnected, setInternalDisconnected] = useState<{ role?: string; graceTimeoutSec: number } | null>(null);
   const [tvGraceLeft, setTvGraceLeft] = useState(60);
 
+  // 10-foot Режиссёрская система событийных баннеров над полем
+  const [currentBanner, setCurrentBanner] = useState<{
+    id: string;
+    priority: 1 | 2 | 3;
+    title: string;
+    subtitle?: string;
+    tone: 'danger' | 'primary' | 'warning' | 'neutral';
+    shiftDir?: 'LEFT' | 'RIGHT' | 'UP' | 'DOWN';
+  } | null>(null);
+  const bannerTimeoutRef = useRef<any>(null);
+  const currentBannerPriorityRef = useRef<number>(99);
+
+  const showBanner = (
+    banner: {
+      id: string;
+      priority: 1 | 2 | 3;
+      title: string;
+      subtitle?: string;
+      tone: 'danger' | 'primary' | 'warning' | 'neutral';
+      shiftDir?: 'LEFT' | 'RIGHT' | 'UP' | 'DOWN';
+    },
+    durationMs: number = 1800
+  ) => {
+    if (currentBanner && currentBannerPriorityRef.current < banner.priority) {
+      return;
+    }
+    if (bannerTimeoutRef.current) {
+      clearTimeout(bannerTimeoutRef.current);
+    }
+    currentBannerPriorityRef.current = banner.priority;
+    setCurrentBanner(banner);
+    bannerTimeoutRef.current = setTimeout(() => {
+      setCurrentBanner((prev) => {
+        if (prev?.id === banner.id) {
+          currentBannerPriorityRef.current = 99;
+          return null;
+        }
+        return prev;
+      });
+    }, durationMs);
+  };
+
   const activeDisconnected = disconnectedPlayer ?? internalDisconnected;
 
   const isAITurn =
@@ -440,26 +482,122 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
     }
   }, [gameState?.log, (gameState as any)?.logs]);
 
-  // Звуковой отклик на сдвиг поля
+  // Отслеживание смены хода и отображение 10-foot баннера перехода инициативы (Приоритет 3)
+  const prevTurnRef = useRef<string | number | undefined>(undefined);
+  useEffect(() => {
+    if (!gameState || gameState.winner) return;
+    const currentTurnKey = isSecretServiceMode(gameState.mode)
+      ? gameState.activeSpyIndex
+      : gameState.currentTurn;
+
+    if (prevTurnRef.current !== undefined && prevTurnRef.current !== currentTurnKey) {
+      soundManager.play('tapMenu', 0.45);
+      if (isSecretServiceMode(gameState.mode)) {
+        const spy = gameState.spies?.[gameState.activeSpyIndex ?? 0];
+        const spyName = spy?.name || 'Агент';
+        showBanner({
+          id: `turn_${Date.now()}`,
+          priority: 3,
+          title: `ХОД АГЕНТА: ${spyName.toUpperCase()}`,
+          subtitle: 'Тактическая фаза',
+          tone: 'primary',
+        }, 1500);
+      } else {
+        const isKillerTurn = gameState.currentTurn === 'KILLER';
+        showBanner({
+          id: `turn_${Date.now()}`,
+          priority: 3,
+          title: isKillerTurn ? 'ХОД ПРЕСТУПНИКА' : 'ХОД ДЕТЕКТИВА',
+          subtitle: isKillerTurn ? 'Ликвидация или маневр поля' : 'Проверка алиби или арест',
+          tone: isKillerTurn ? 'danger' : 'primary',
+        }, 1500);
+      }
+    }
+    prevTurnRef.current = currentTurnKey;
+  }, [gameState?.currentTurn, gameState?.activeSpyIndex, gameState?.winner, gameState?.mode, gameState?.spies]);
+
+  // Звуковой отклик и баннер на сдвиг поля (Приоритет 2, единый источник истины)
   useEffect(() => {
     if (gameState?.lastShift && gameState.lastShift !== prevLastShiftRef.current) {
       playShiftSound();
       prevLastShiftRef.current = gameState.lastShift;
+      const { type, index, direction } = gameState.lastShift;
+      const isRow = type === 'ROW';
+      const isForward = direction === 'FORWARD';
+      const shiftDir: 'LEFT' | 'RIGHT' | 'UP' | 'DOWN' = isRow
+        ? (isForward ? 'RIGHT' : 'LEFT')
+        : (isForward ? 'DOWN' : 'UP');
+
+      const dirText = isRow
+        ? (isForward ? 'ВПРАВО' : 'ВЛЕВО')
+        : (isForward ? 'ВНИЗ' : 'ВВЕРХ');
+
+      showBanner({
+        id: `shift_${Date.now()}`,
+        priority: 2,
+        title: isRow ? `СДВИГ РЯДА #${index + 1}` : `СДВИГ СТОЛБЦА #${index + 1}`,
+        subtitle: `НАПРАВЛЕНИЕ: ${dirText}`,
+        tone: 'primary',
+        shiftDir,
+      }, 1600);
     }
   }, [gameState?.lastShift]);
 
-  // Звуковой отклик на входящие действия с мобильного пульта через partyService
+  // Реакция на входящие действия с мобильного пульта и сетевые события
   useEffect(() => {
     const unsub = partyService.subscribe("action", (action: any) => {
-      if (action?.type === 'SHIFT_BOARD') {
-        playShiftSound();
-      } else if (
+      if (
         action?.type === 'KILL_CHARACTER' ||
         action?.type === 'DUEL_ACCUSE' ||
         action?.type === 'ACCUSE_CHARACTER' ||
         action?.type === 'SPY_CATCH'
       ) {
         playEliminateSound();
+        showBanner({
+          id: `kill_${Date.now()}`,
+          priority: 1,
+          title: 'ПОКУШЕНИЕ!',
+          subtitle: 'Совершена ликвидация',
+          tone: 'danger',
+        }, 2000);
+      } else if (action?.type === 'ACCUSE' || action?.type === 'CAPTURE_SPY') {
+        if (action.payload?.isMiss) {
+          soundManager.play('deny');
+          showBanner({
+            id: `deny_${Date.now()}`,
+            priority: 1,
+            title: 'ОШИБКА ОБВИНЕНИЯ!',
+            subtitle: 'Арестован невиновный гражданин',
+            tone: 'danger',
+          }, 2000);
+        } else {
+          playArrestSound();
+          showBanner({
+            id: `arrest_${Date.now()}`,
+            priority: 1,
+            title: 'АРЕСТ ПРЕСТУПНИКА!',
+            subtitle: 'Подозреваемый взят с поличным',
+            tone: 'primary',
+          }, 2000);
+        }
+      } else if (action?.type === 'ROB_NEIGHBOR') {
+        playStealSound();
+        showBanner({
+          id: `steal_${Date.now()}`,
+          priority: 1,
+          title: 'КРАЖА ТРОФЕЯ!',
+          subtitle: 'Золотая монета похищена',
+          tone: 'warning',
+        }, 2000);
+      } else if (action?.type === 'EXONERATE') {
+        soundManager.play('confirm');
+        showBanner({
+          id: `alibi_${Date.now()}`,
+          priority: 1,
+          title: 'АЛИБИ ПОДТВЕРЖДЕНО',
+          subtitle: 'Гражданин вне подозрений',
+          tone: 'primary',
+        }, 2000);
       } else if (
         action?.type === 'DUEL_ASK_QUESTION' ||
         action?.type === 'INTERROGATE_SPY' ||
@@ -477,20 +615,22 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
           setErrorCardId(errId);
           setTimeout(() => setErrorCardId(null), 500);
         }
-      } else if (action?.type === 'ACCUSE' && action.payload?.isMiss) {
-        soundManager.play('deny');
-        const errId = action.payload?.errorCardId || action.payload?.targetId;
-        if (errId) {
-          setErrorCardId(errId);
-          setTimeout(() => setErrorCardId(null), 500);
-        }
+      } else if (action?.type === 'TV_PAUSE_CHANGED') {
+        setIsPauseOpen(Boolean(action.isPaused));
+      } else if (action?.type === 'TV_TOGGLE_MUTE') {
+        soundManager.toggleMute();
+      } else if (action?.type === 'TV_EXIT_TO_LOBBY') {
+        onExit?.();
       }
     });
 
     return () => {
       unsub();
+      if (bannerTimeoutRef.current) {
+        clearTimeout(bannerTimeoutRef.current);
+      }
     };
-  }, []);
+  }, [onExit]);
 
   // Слушатель событий дисконнекта игроков
   useEffect(() => {
@@ -803,7 +943,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   }
 
   return (
-    <div className="tv-root flex h-screen w-screen flex-col bg-background-main text-zinc-100 select-none overflow-hidden p-3 sm:p-4 lg:p-5 gap-2.5 sm:gap-3 font-sans relative">
+    <div className="tv-root flex h-screen w-screen flex-col bg-background-main text-zinc-100 select-none overflow-hidden p-3 sm:p-4 lg:p-6 gap-2 sm:gap-2.5 font-sans relative box-border">
       {/* Кинематографичный радиальный градиент Neo-Noir */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#2d0814_0%,#120c16_45%,theme(colors.background.main)_100%)] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(225,29,72,0.1),transparent_60%)] pointer-events-none" />
@@ -872,7 +1012,50 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
       <div className="flex-1 flex gap-3 sm:gap-4 lg:gap-5 min-h-0 overflow-hidden z-10">
         {/* ЛЕВАЯ ЗОНА (~68%): Primary Stage (Поле 5×5 с монолитной тактической плитой) */}
         <div className="w-[66%] lg:w-[68%] h-full flex items-center justify-center min-w-0">
-          <div className="neo-card relative w-full h-full max-w-[min(100%,calc(100vh-80px))] aspect-square p-2.5 sm:p-3 2xl:p-4 rounded-2xl sm:rounded-3xl border-t-2 border-t-rose-500/40 shadow-[0_20px_60px_rgba(0,0,0,0.9)] flex items-center justify-center">
+          <div className="neo-card relative w-full h-full max-w-[min(100%,calc(100vh-110px))] max-h-full aspect-square p-2 sm:p-2.5 2xl:p-3 rounded-2xl sm:rounded-3xl border-t-2 border-t-rose-500/40 shadow-[0_20px_60px_rgba(0,0,0,0.9)] flex items-center justify-center">
+            {/* 10-foot Режиссёрский событийный баннер над полем */}
+            <AnimatePresence>
+              {currentBanner && (
+                <motion.div
+                  key={currentBanner.id}
+                  initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className="absolute top-2.5 left-1/2 -translate-x-1/2 z-40 pointer-events-none w-auto max-w-[90%]"
+                >
+                  <div
+                    className={`neo-card flex items-center gap-3 px-5 py-2 rounded-2xl shadow-2xl border backdrop-blur-xl ${
+                      currentBanner.tone === 'danger'
+                        ? 'bg-rose-950/95 border-rose-500/80 text-rose-100 shadow-[0_0_35px_rgba(225,29,72,0.5)]'
+                        : currentBanner.tone === 'warning'
+                          ? 'bg-amber-950/95 border-amber-500/80 text-amber-100 shadow-[0_0_35px_rgba(245,158,11,0.5)]'
+                          : 'bg-zinc-950/95 border-blue-500/80 text-zinc-100 shadow-[0_0_35px_rgba(37,99,235,0.5)]'
+                    }`}
+                  >
+                    {currentBanner.shiftDir && (
+                      <div className="p-1 rounded-lg bg-white/10 text-blue-400">
+                        {currentBanner.shiftDir === 'LEFT' && <Icons.ArrowLeft />}
+                        {currentBanner.shiftDir === 'RIGHT' && <Icons.ArrowRight />}
+                        {currentBanner.shiftDir === 'UP' && <Icons.ArrowUp />}
+                        {currentBanner.shiftDir === 'DOWN' && <Icons.ArrowDown />}
+                      </div>
+                    )}
+                    <div className="flex flex-col text-center">
+                      <span className="font-display font-black text-xs sm:text-sm tracking-wider uppercase drop-shadow">
+                        {currentBanner.title}
+                      </span>
+                      {currentBanner.subtitle && (
+                        <span className="text-[9px] sm:text-[10px] font-mono tracking-widest text-zinc-300 opacity-90 uppercase">
+                          {currentBanner.subtitle}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <div
               className="grid gap-1.5 sm:gap-2 2xl:gap-2.5 w-full h-full"
               style={{

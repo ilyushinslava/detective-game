@@ -164,7 +164,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   }, [playerList.length]);
 
   return (
-    <div className="flex h-screen w-screen flex-col justify-between bg-background-main text-white select-none p-4 lg:p-6 overflow-hidden font-sans relative">
+    <div className="flex h-screen w-screen flex-col justify-between bg-background-main text-white select-none p-4 sm:p-5 lg:p-6 overflow-hidden font-sans relative box-border">
       {/* Глубокий кинематографичный градиент: от темно-бордового к глубокому угольному */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#2d0814_0%,#120c16_45%,theme(colors.background.main)_100%)] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(225,29,72,0.1),transparent_60%)] pointer-events-none" />

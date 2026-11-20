@@ -5,6 +5,7 @@ import { ThinkingBanner } from "../ui/ThinkingBanner";
 import { triggerHaptic } from "../../utils/haptics";
 import { ControllerIcons } from "./controllerIcons";
 import { DetectiveNotebookModal } from "./DetectiveNotebookModal";
+import { Icons as UiIcons } from "../ui/Icons";
 
 interface ControllerWaitingViewProps {
   isKiller: boolean;
@@ -27,6 +28,10 @@ interface ControllerWaitingViewProps {
   clearNotebook: () => void;
   renderConnectionLossOverlay: () => React.ReactNode;
   renderOpponentReconnectingBanner: () => React.ReactNode;
+  isHost?: boolean;
+  onOpenTvRemote?: () => void;
+  isLocalSfxEnabled?: boolean;
+  onToggleLocalSfx?: () => void;
 }
 
 export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
@@ -50,6 +55,10 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
   clearNotebook,
   renderConnectionLossOverlay,
   renderOpponentReconnectingBanner,
+  isHost,
+  onOpenTvRemote,
+  isLocalSfxEnabled,
+  onToggleLocalSfx,
 }) => {
   return (
     <div
@@ -64,39 +73,75 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
       />
 
       {/* Верхняя статусная строка синхронизации */}
-      <div className="w-full flex justify-between items-center border-b border-white/10 pb-3 gap-2 relative z-10">
-        <div className="flex items-center gap-2">
+      <div className="w-full flex justify-between items-center border-b border-white/10 pb-2.5 gap-2 relative z-10 shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
           <span
-            className={`h-2 w-2 rounded-full ${
+            className={`h-2 w-2 rounded-full shrink-0 ${
               isKiller
                 ? "bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)]"
                 : "bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]"
             }`}
           />
-          <span className="text-xs font-mono uppercase tracking-widest text-zinc-300 font-bold">
+          <span className="text-[11px] sm:text-xs font-mono uppercase tracking-widest text-zinc-300 font-bold truncate">
             ПОДКЛЮЧЕНО К ТВ
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Тумблер звука */}
+          {onToggleLocalSfx && (
+            <button
+              type="button"
+              onClick={onToggleLocalSfx}
+              title={isLocalSfxEnabled ? "Звук контроллера: Вкл" : "Звук контроллера: Выкл"}
+              className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl border flex items-center justify-center transition active:scale-95 cursor-pointer backdrop-blur-md ${
+                isLocalSfxEnabled
+                  ? 'bg-blue-950/80 border-blue-500/60 text-blue-400 shadow-[0_0_12px_rgba(37,99,235,0.3)]'
+                  : 'bg-zinc-900/80 border-white/10 text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              {isLocalSfxEnabled ? <UiIcons.VolumeOn className="w-4 h-4" /> : <UiIcons.VolumeOff className="w-4 h-4" />}
+            </button>
+          )}
+
+          {/* Блокнот */}
           <button
+            type="button"
             onClick={() => {
               triggerHaptic("light");
               setIsNotebookOpen(true);
             }}
-            className="inline-flex min-h-[44px] items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-900/90 border border-white/15 text-xs font-mono text-zinc-200 hover:border-blue-400 hover:text-white transition shadow-sm active:scale-95 cursor-pointer backdrop-blur-md"
+            className="h-11 min-h-[44px] px-2.5 sm:px-3 rounded-xl bg-zinc-900/90 border border-white/15 text-xs font-mono text-zinc-200 hover:border-blue-400 hover:text-white transition shadow-sm active:scale-95 cursor-pointer backdrop-blur-md flex items-center gap-1"
           >
             <ControllerIcons.Notebook />
-            <span>БЛОКНОТ</span>
+            <span className="hidden xs:inline sm:inline">БЛОКНОТ</span>
           </button>
-          {onExit && (
+
+          {/* ТВ Пульт Хоста */}
+          {isHost && onOpenTvRemote && (
             <button
+              type="button"
+              onClick={() => {
+                triggerHaptic("medium");
+                onOpenTvRemote();
+              }}
+              title="ТВ Пульт Хоста"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-blue-950/80 border border-blue-500/60 text-blue-400 hover:text-white hover:border-blue-400 flex items-center justify-center transition shadow-sm active:scale-95 cursor-pointer backdrop-blur-md"
+            >
+              <UiIcons.Tv className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Выйти */}
+          {onExit && !isHost && (
+            <button
+              type="button"
               onClick={() => {
                 triggerHaptic("light");
                 onExit();
               }}
-              className="inline-flex min-h-[44px] items-center text-xs font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer px-3 py-2 rounded-lg hover:bg-zinc-900/50"
+              className="h-11 min-h-[44px] px-2 text-xs font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer flex items-center rounded-lg hover:bg-zinc-900/50"
             >
-              Выйти
+              Выход
             </button>
           )}
         </div>

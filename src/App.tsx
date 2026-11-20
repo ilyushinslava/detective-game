@@ -1196,6 +1196,8 @@ export default function App() {
                       : controllerRole
                   }
                   isPassAndPlay={isTvPassAndPlay}
+                  isTvParty={tvPartyState === "NONE" && Boolean(controllerRoomStatus)}
+                  isHost={Boolean(partyService.isHost || tvPlayers[partyService.myClientId]?.isHost)}
                   roomStatus={controllerRoomStatus}
                   isAIThinking={isAIThinking}
                   onLeaveLobby={() => handleLeaveControllerLobby()}

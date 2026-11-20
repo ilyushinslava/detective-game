@@ -48,4 +48,8 @@ export type GameAction = BaseGameAction & (
   | { type: "START_GAME"; payload?: any }
   | { type: "END_TURN" }
   | { type: "CONFIRM_TURN_READY" }
+  | { type: "TV_TOGGLE_PAUSE" }
+  | { type: "TV_TOGGLE_MUTE" }
+  | { type: "TV_CONFIRM_RESTART" }
+  | { type: "TV_EXIT_TO_LOBBY" }
 );

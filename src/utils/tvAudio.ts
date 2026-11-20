@@ -35,6 +35,16 @@ export function playRadarPing(): void {
   soundManager.play("radar");
 }
 
+export function playArrestSound(): void {
+  // Звук задержания через soundManager.play("arrest")
+  soundManager.play("arrest");
+}
+
+export function playStealSound(): void {
+  // Звук кражи трофея через soundManager.play("steal")
+  soundManager.play("steal");
+}
+
 export function _resetAudioContextForTesting(): void {
   audioCtx = null;
 }

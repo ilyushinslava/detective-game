@@ -45,7 +45,7 @@ const getModeSummaryItems = (modeId: GameModeType): ModeSummaryItem[] => {
     case "SECRET_SERVICE":
       return [
         { icon: Icons.Users, title: "2–6 АГЕНТОВ", subtitle: "СПЕЦСЛУЖБЫ" },
-        { icon: Icons.FileText, title: "КОМПРОМАТ", subtitle: "СБОР 4 УЛИК" },
+        { icon: Icons.FileText, title: "КОМПРОМАТ", subtitle: "СБОР 4 ДОСЬЕ" },
         { icon: Icons.EyeOff, title: "ПРИКРЫТИЕ", subtitle: "ТАЙНЫЕ ЯВКИ" },
       ];
     case "LINE_UP":
@@ -138,7 +138,7 @@ export const ModeDetailView: React.FC<ModeDetailViewProps> = ({
                     className="neo-card rounded-2xl p-2.5 sm:p-3 flex flex-col items-center text-center justify-between min-h-[92px] sm:min-h-[96px]"
                   >
                     <ItemIcon className="w-5 h-5 text-zinc-300" />
-                    <span className="text-xs sm:text-sm font-black font-mono text-zinc-100 tracking-wider mt-1.5">
+                    <span className="text-xs sm:text-sm font-black font-sans text-zinc-100 tracking-wider mt-1.5">
                       {item.title}
                     </span>
                     <span className="text-[9px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-tight mt-0.5">
@@ -213,7 +213,7 @@ export const ModeDetailView: React.FC<ModeDetailViewProps> = ({
                 <h3 className="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest">
                   Количество агентов
                 </h3>
-                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
+                <span className="text-[10px] font-sans font-semibold text-zinc-500 uppercase tracking-wider">
                   Сетка: {playerCount >= 5 ? "6×6 (36 карт)" : "5×5 (25 карт)"}
                 </span>
               </div>
@@ -246,7 +246,7 @@ export const ModeDetailView: React.FC<ModeDetailViewProps> = ({
                   <span className="text-[7px] font-black text-red-500/80 uppercase tracking-tighter">ТВ</span>
                 </div>
               </div>
-              <div className="text-[10px] font-mono text-zinc-500">
+              <div className="text-[10px] font-sans text-zinc-400">
                 {selectedOpponent === "AI"
                   ? `Вы против ${playerCount - 1} агентов ИИ. Цель: 4 компромата.`
                   : `Локальный матч на ${playerCount} человек. Передача устройства по кругу.`}

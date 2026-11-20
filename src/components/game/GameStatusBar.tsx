@@ -87,7 +87,7 @@ export const GameStatusBar: React.FC<GameStatusBarProps> = ({
                 <path d="M12 6v12M15 9.5a3 3 0 0 0-6 0c0 3 6 2 6 5a3 3 0 0 1-6 0" />
               </svg>
               <b className="text-amber-400 font-bold">
-                {gameState.trophiesKiller ?? 0}/10
+                {gameState.trophiesKiller ?? 0}/8
               </b>
               <span className="ml-1">| Улики: {gameState.evidenceDeck.length}</span>
             </div>

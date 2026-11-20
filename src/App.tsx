@@ -778,10 +778,15 @@ export default function App() {
   });
 
   const myRoleColor: "red" | "blue" =
-    gameState.playerRole === "KILLER" ||
-    (gameState.mode === "SECRET_SERVICE" && gameState.activeSpyIndex === 0)
-      ? "red"
-      : "blue";
+    gameState.mode === "SECRET_SERVICE"
+      ? (gameState.opponent === "PVP"
+          ? (gameState.activeSpyIndex === 0 ? "red" : "blue")
+          : (gameState.opponent === "ONLINE"
+              ? (partyService.isHost ? "red" : "blue")
+              : "red"))
+      : gameState.playerRole === "KILLER"
+        ? "red"
+        : "blue";
 
   return (
     <BannerViewerProvider>

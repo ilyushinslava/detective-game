@@ -191,7 +191,8 @@ const CharacterCardComponent = ({
           })()}
         </div>
 
-        <div className={`flex items-center gap-1 leading-none shrink-0 ${hasCoin && !isDead ? "mr-3.5 sm:mr-4.5" : ""}`}>
+        <div className="flex items-center gap-1 leading-none shrink-0">
+          {hasCoin && !isDead && <CoinIndicator />}
           {isTargetVictim && !isDead && (
             <svg
               viewBox="0 0 24 24"
@@ -261,8 +262,6 @@ const CharacterCardComponent = ({
           className="absolute bottom-0 inset-x-0 h-[2px] z-20 pointer-events-none bg-gradient-to-r from-transparent via-zinc-600/40 to-transparent"
         />
       )}
-
-      {hasCoin && !isDead && <CoinIndicator />}
 
       <div className="absolute bottom-0.5 inset-x-0.5 z-10 flex flex-col items-center justify-end pointer-events-none transform-none">
         <span

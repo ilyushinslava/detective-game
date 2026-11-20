@@ -189,7 +189,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             : 'border-blue-500/30 bg-gradient-to-b from-blue-950/30 via-zinc-950 to-black/95 shadow-[0_0_40px_rgba(59,130,246,0.2)]'
         }`}
       >
-        <div className="text-[10px] sm:text-xs font-mono font-bold tracking-widest text-zinc-400 uppercase mb-4">
+        <div className="text-[10px] sm:text-xs font-display tracking-widest text-zinc-400 uppercase mb-4">
           {go.protocol}
         </div>
 
@@ -217,7 +217,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 
         {playerRole && (
           <div
-            className={`text-[10px] sm:text-xs font-mono font-black uppercase tracking-widest px-3 py-1 rounded-full border mb-3 ${
+            className={`text-[10px] sm:text-xs font-sans font-black uppercase tracking-widest px-3 py-1 rounded-full border mb-3 ${
               isVictory
                 ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
                 : 'bg-red-950/80 text-red-300 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]'

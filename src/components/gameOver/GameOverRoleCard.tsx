@@ -67,11 +67,11 @@ export const GameOverRoleCard: React.FC<GameOverRoleCardProps> = ({
 
       <div className="relative z-10 flex items-center justify-between w-full">
         {isCharWinner ? (
-          <span className="bg-white text-zinc-950 font-black font-mono text-[9px] uppercase px-2 py-0.5 rounded shadow-sm">
+          <span className="bg-white text-zinc-950 font-black font-sans text-[9px] uppercase px-2 py-0.5 rounded shadow-sm">
             {winnerLabel}
           </span>
         ) : (
-          <span className="bg-zinc-900 text-zinc-500 border border-white/5 font-mono text-[9px] uppercase px-1.5 py-0.5 rounded">
+          <span className="bg-zinc-900 text-zinc-500 border border-white/5 font-sans font-bold text-[9px] uppercase px-1.5 py-0.5 rounded">
             {defeatLabel}
           </span>
         )}

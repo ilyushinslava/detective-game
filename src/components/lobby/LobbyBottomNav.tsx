@@ -34,7 +34,7 @@ export const LobbyBottomNav: React.FC<LobbyBottomNavProps> = ({
         }`}
       >
         <Icons.Home className="w-6 h-6 shrink-0" />
-        <span className="text-[9px] font-mono tracking-widest uppercase leading-none">{labels.hq}</span>
+        <span className="text-[9px] font-sans font-bold tracking-wider uppercase leading-none">{labels.hq}</span>
         {isHqActive && (
           <span className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-accent-primary shadow-[0_0_8px_rgba(59,130,246,0.9)]" />
         )}
@@ -51,7 +51,7 @@ export const LobbyBottomNav: React.FC<LobbyBottomNavProps> = ({
         }`}
       >
         <Icons.Radar className="w-6 h-6 shrink-0" />
-        <span className="text-[9px] font-mono tracking-widest uppercase leading-none">{labels.tables}</span>
+        <span className="text-[9px] font-sans font-bold tracking-wider uppercase leading-none">{labels.tables}</span>
         {isTablesActive && (
           <span className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-accent-primary shadow-[0_0_8px_rgba(59,130,246,0.9)]" />
         )}
@@ -68,7 +68,7 @@ export const LobbyBottomNav: React.FC<LobbyBottomNavProps> = ({
         }`}
       >
         <Icons.User className="w-6 h-6 shrink-0" />
-        <span className="text-[9px] font-mono tracking-widest uppercase leading-none">{labels.profile}</span>
+        <span className="text-[9px] font-sans font-bold tracking-wider uppercase leading-none">{labels.profile}</span>
         {isProfileActive && (
           <span className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-accent-primary shadow-[0_0_8px_rgba(59,130,246,0.9)]" />
         )}

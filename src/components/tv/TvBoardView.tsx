@@ -175,7 +175,10 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
   const isExonerated = char.isExonerated && !isDead;
   const isSecretService = isSecretServiceMode(mode);
   const hasCoin = characterHasCoin(char, mode);
-  const spyMeta = char.unmaskedSpyIndex !== undefined ? SPY_COLORS[char.unmaskedSpyIndex] : null;
+  const spyMeta =
+    char.unmaskedSpyIndex !== undefined
+      ? SPY_COLORS[char.unmaskedSpyIndex % SPY_COLORS.length]
+      : null;
   const portraitUrl = getCharacterPortraitPath(char.id);
 
   return (
@@ -261,7 +264,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
             >
               <div className={`border whitespace-nowrap font-display font-black uppercase tracking-wider text-[10px] sm:text-xs 2xl:text-sm px-2 py-0.5 rounded shadow-[0_0_15px_rgba(220,38,38,0.7)] backdrop-blur-sm text-center max-w-full truncate ${
                 spyMeta
-                  ? `border-${spyMeta.border} bg-zinc-950/95 text-${spyMeta.text}`
+                  ? `${spyMeta.border} bg-zinc-950/95 ${spyMeta.text}`
                   : isSecretService || char.unmaskedSpyIndex !== undefined
                     ? 'border-red-600 bg-red-950/95 text-red-300'
                     : char.isArrested
@@ -269,7 +272,7 @@ const TvCell: React.FC<TvCellProps> = React.memo(({
                       : 'border-red-600 bg-red-950/95 text-red-300'
               }`}>
                 {isSecretService || char.unmaskedSpyIndex !== undefined
-                  ? (spyMeta ? `РАСКРЫТ: ${spyMeta.name.toUpperCase()}` : 'РАСКРЫТ')
+                  ? (spyMeta?.name ? `РАСКРЫТ: ${spyMeta.name.toUpperCase()}` : 'РАСКРЫТ')
                   : char.isArrested
                     ? 'АРЕСТОВАН'
                     : 'УБИТ'}

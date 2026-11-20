@@ -94,8 +94,8 @@ export const RoleRevealModal = ({
   } else if (mode === "SECRET_SERVICE") {
     role1Name = propRole1Name || "Фантом";
     role2Name = propRole2Name || "Призрак";
-    role1Goal = "Собрать 3 трофея, разоблачая шпиона";
-    role2Goal = "Собрать 3 трофея, разоблачая шпиона";
+    role1Goal = "Собрать 3 единицы компромата, разоблачая шпиона";
+    role2Goal = "Собрать 3 единицы компромата, разоблачая шпиона";
   }
 
   const isSoloOrOnline = opponent === "AI" || opponent === "ONLINE";
@@ -103,8 +103,8 @@ export const RoleRevealModal = ({
     role1Goal = "Похитить 8 сокровищ у соседей и менять маски";
   }
   if (mode === "SECRET_SERVICE") {
-    role1Goal = "Собрать целевые трофеи (3 в дуэли, 4 при 3 игроках, 3 при 4+)";
-    role2Goal = "Собрать целевые трофеи (3 в дуэли, 4 при 3 игроках, 3 при 4+)";
+    role1Goal = "Собрать целевой компромат (3 в дуэли, 4 при 3 игроках, 3 при 4+)";
+    role2Goal = "Собрать целевой компромат (3 в дуэли, 4 при 3 игроках, 3 при 4+)";
   }
 
   const [phase, setPhase] = useState<string>(() => {
@@ -120,7 +120,7 @@ export const RoleRevealModal = ({
   });
 
   const spyTargetTrophiesCount = (opponent === "PVP" || opponent === "ONLINE") ? 3 : 4;
-  const spyGoalDescription = `Собрать ${spyTargetTrophiesCount} трофея для победы`;
+  const spyGoalDescription = `Собрать ${spyTargetTrophiesCount} компромата для победы`;
 
   const [selectedInspectorId, setSelectedInspectorId] = useState<string | null>(null);
   const [fullscreenImage, setFullscreenImage] = useState<{ url: string; name: string; id: string } | null>(null);
@@ -244,13 +244,13 @@ export const RoleRevealModal = ({
         {phase === "SECRET_SERVICE_SOLO" && (
           <>
             <div className="flex flex-col items-center justify-start flex-1 w-full min-h-0 overflow-y-auto custom-scrollbar pr-0.5">
-              <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border mb-2.5 shrink-0 ${isRedTheme ? "bg-rose-950/80 text-rose-300 border-rose-700/60" : "bg-blue-950/80 text-blue-300 border-blue-700/60"}`}>
+              <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border mb-2.5 shrink-0 bg-rose-950/80 text-rose-300 border-rose-700/60">
                 {GAME_MODES_META.SECRET_SERVICE.title.ru}: Ваша личность
               </span>
               <CharacterRevealCard
                 character={detective}
-                titleLabel={currentRoleName}
-                isRed={false}
+                titleLabel={role1Name}
+                isRed={true}
                 onOpenFullscreen={setFullscreenImage}
               />
               <div className="w-full text-left space-y-1.5 mt-0.5 shrink-0">
@@ -259,13 +259,13 @@ export const RoleRevealModal = ({
                   <span className="text-xs font-bold text-zinc-200">{spyGoalDescription}</span>
                 </div>
               </div>
-              <ActionTilesGrid mode={mode} role={playerRole} />
+              <ActionTilesGrid mode={mode} role="KILLER" />
             </div>
             <div className="pt-3 w-full shrink-0">
               <button
                 disabled={false}
                 onClick={opponent === "ONLINE" ? handleOnlineReady : onComplete}
-                className={`w-full ${themeClasses.button} disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2 cursor-pointer`}
+                className="w-full neo-button-danger disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-lg h-12"
               >
                 <span>{opponent === "ONLINE" ? "ГОТОВ" : "Начать операцию"}</span> <RoleRevealIcons.ArrowRight className="w-4 h-4" />
               </button>
@@ -378,7 +378,7 @@ export const RoleRevealModal = ({
                   <span className="text-xs font-bold text-zinc-200">{spyGoalDescription}</span>
                 </div>
               </div>
-              <ActionTilesGrid mode={mode} role="KILLER" />
+              <ActionTilesGrid mode={mode} role="DETECTIVE" />
             </div>
             <div className="pt-3 w-full shrink-0">
               <button onClick={onComplete} className="w-full h-12 neo-button-primary text-white text-xs font-black uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2 cursor-pointer">

@@ -26,6 +26,7 @@ export interface ServerRoomState {
   gameState: GameState | null;
   mode: GameModeType;
   readyClients: Set<string>;
+  roleDistribution?: "RANDOM" | "HOST_KILLER" | "HOST_DETECTIVE";
   isPassAndPlay?: boolean;
   isPrivate?: boolean;
   restartRequestedBy?: string | null;
@@ -143,6 +144,15 @@ export default class GameRoomServer {
     }
   }
 
+  clearTurnTimer(): void {
+    if (this.turnTimerState.timer) {
+      clearTimeout(this.turnTimerState.timer);
+      this.turnTimerState.timer = null;
+    }
+    this.turnTimerState.isPaused = false;
+    this.turnTimerState.remainingMs = 0;
+  }
+
   private handleTurnTimeout(): void {
     this.turnTimerState.timer = null;
     this.turnTimerState.isPaused = false;
@@ -202,6 +212,9 @@ export default class GameRoomServer {
     }
     delete this.state.players[clientId];
     this.state.readyClients.delete(clientId);
+    if (this.state.status === "READY_TO_START" && this.state.readyClients.size < 2) {
+      this.state.status = "WAITING";
+    }
     this.state.restartRequestedBy = null;
 
     const roomCode = this.getRoomCode();
@@ -882,6 +895,11 @@ export default class GameRoomServer {
     if (playerWhoLeft) {
       playerWhoLeft.isDisconnected = true;
     }
+    this.state.readyClients.delete(clientId);
+    if (this.state.status === "READY_TO_START" && this.state.readyClients.size < 2) {
+      this.state.status = "WAITING";
+      this.broadcastStatus();
+    }
     if (playerWhoLeft?.isHost && this.state.status === "WAITING") {
       unregisterRoom(this.getRoomCode());
     }
@@ -1179,8 +1197,15 @@ export default class GameRoomServer {
       const isTvSender = Object.values(this.state.tvDisplays).some(
         (tv) => tv.connectionId === sender?.id
       );
-      if (isTvSender && action.type !== "START_MATCH") {
-        console.warn("[GameRoomServer] Action rejected: TV_DISPLAY cannot issue game actions.");
+      const TV_ALLOWED_ACTIONS = [
+        "START_MATCH",
+        "TV_CONFIRM_RESTART",
+        "TV_EXIT_TO_LOBBY",
+        "TV_TOGGLE_PAUSE",
+        "TV_TOGGLE_MUTE",
+      ];
+      if (isTvSender && !TV_ALLOWED_ACTIONS.includes(action.type)) {
+        console.warn(`[GameRoomServer] Action ${action.type} rejected: TV_DISPLAY cannot issue game actions.`);
         return;
       }
 
@@ -1204,6 +1229,7 @@ export default class GameRoomServer {
         "CREATE_ROOM",
         "PLAYER_LEFT_EXPLICIT",
         "PLAYER_READY",
+        "PLAYER_UNREADY",
         "REQUEST_RESTART",
         "REJECT_RESTART",
         "CONFIRM_RESTART",
@@ -1266,6 +1292,9 @@ export default class GameRoomServer {
           }
           delete this.state.players[senderClientId];
           this.state.readyClients.delete(senderClientId);
+          if (this.state.status === "READY_TO_START" && this.state.readyClients.size < 2) {
+            this.state.status = "WAITING";
+          }
           this.state.restartRequestedBy = null;
 
           const roomCode = this.getRoomCode();
@@ -1342,6 +1371,25 @@ export default class GameRoomServer {
         }
         if (action.payload?.mode) {
           this.state.mode = action.payload.mode;
+        }
+        if (action.payload?.roleDistribution) {
+          this.state.roleDistribution = action.payload.roleDistribution;
+          const playerIds = Object.keys(this.state.players);
+          const hostId = playerIds.find((id) => this.state.players[id].isHost);
+          const guestId = playerIds.find((id) => !this.state.players[id].isHost);
+          if (hostId && guestId) {
+            if (this.state.roleDistribution === "HOST_KILLER") {
+              this.state.players[hostId].role = "KILLER";
+              this.state.players[guestId].role = "DETECTIVE";
+            } else if (this.state.roleDistribution === "HOST_DETECTIVE") {
+              this.state.players[hostId].role = "DETECTIVE";
+              this.state.players[guestId].role = "KILLER";
+            } else if (this.state.roleDistribution === "RANDOM") {
+              const hostIsKiller = Math.random() < 0.5;
+              this.state.players[hostId].role = hostIsKiller ? "KILLER" : "DETECTIVE";
+              this.state.players[guestId].role = hostIsKiller ? "DETECTIVE" : "KILLER";
+            }
+          }
         }
         this.broadcastStatus();
         return;
@@ -1458,6 +1506,13 @@ export default class GameRoomServer {
           } catch (_) {}
           return;
         }
+        const roleAction = action.payload?.roleAction || "SAME";
+        const playerIds = Object.keys(this.state.players || {});
+        if (playerIds.length >= 2 && roleAction === "SWAP") {
+          const prevRole0 = this.state.players[playerIds[0]].role;
+          this.state.players[playerIds[0]].role = prevRole0 === "KILLER" ? "DETECTIVE" : "KILLER";
+          this.state.players[playerIds[1]].role = prevRole0 === "KILLER" ? "KILLER" : "DETECTIVE";
+        }
         const mode = this.state.mode || "MANIAC_VS_OPERATIVE";
         this.state.gameState = createInitialState(
           mode,
@@ -1468,7 +1523,7 @@ export default class GameRoomServer {
           16
         );
         this.state.status = "PLAYING";
-        this.startTurnTimer(30);
+        this.startTurnTimer(this.state.gameState.currentTurn || "KILLER", 30000);
         this.broadcastStatus();
         this.broadcastState();
         return;
@@ -1483,6 +1538,7 @@ export default class GameRoomServer {
         }
         this.clearTurnTimer();
         this.state.status = "WAITING";
+        this.state.readyClients.clear();
         this.state.gameState = null;
         this.broadcastStatus();
         this.broadcastRaw(JSON.stringify({ type: "TV_EXIT_TO_LOBBY" }));
@@ -1525,14 +1581,30 @@ export default class GameRoomServer {
         if (senderClientId) {
           this.state.readyClients.add(senderClientId);
         }
+        const hasTvDisplay = Object.keys(this.state.tvDisplays).length > 0;
         if (this.state.readyClients.size >= 2) {
-          this.state.status = "PLAYING";
-          publicRoomsRegistry.delete(this.getRoomCode());
-          this.broadcastRaw(JSON.stringify({ type: "ALL_PLAYERS_READY" }));
+          if (hasTvDisplay) {
+            this.state.status = "READY_TO_START";
+          } else {
+            this.state.status = "PLAYING";
+            publicRoomsRegistry.delete(this.getRoomCode());
+            this.broadcastRaw(JSON.stringify({ type: "ALL_PLAYERS_READY" }));
+          }
           this.broadcastStatus();
         } else {
           this.broadcastStatus();
         }
+        return;
+      }
+
+      if (action.type === "PLAYER_UNREADY") {
+        if (senderClientId) {
+          this.state.readyClients.delete(senderClientId);
+        }
+        if (this.state.status === "READY_TO_START") {
+          this.state.status = "WAITING";
+        }
+        this.broadcastStatus();
         return;
       }
 
@@ -1651,6 +1723,8 @@ export default class GameRoomServer {
       status: this.state.status,
       roomCode: this.getRoomCode(),
       morseCode: this.getMorseCode(),
+      mode: this.state.mode,
+      roleDistribution: this.state.roleDistribution || "RANDOM",
       players: sanitizedPlayers,
       isReady: this.state.status === "READY_TO_START" || this.state.status === "PLAYING",
       ready: this.state.status === "READY_TO_START" || this.state.status === "PLAYING",

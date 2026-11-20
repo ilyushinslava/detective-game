@@ -20,7 +20,8 @@ import { HostTvRemoteModal } from './HostTvRemoteModal';
 import { safeLocalStorage } from '../../utils/storage';
 import { Icons as UiIcons } from '../ui/Icons';
 import { partyService } from '../../utils/partyPeer';
-import { characterImages } from '../../constants/characterImages';
+import { characterImages, getCharacterPortraitPath } from '../../constants/characterImages';
+import { Button } from '../ui/Button';
 import { BOARD_GRID_SIZE, TURN_GRACE_PERIOD_SECONDS } from '../../constants/gameRules';
 import {
   getKillerRoleName,
@@ -826,6 +827,166 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           >
             ПОКИНУТЬ ЛОББИ
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // 0. ФИНАЛ МАТЧА: ЭКРАН ИТОГОВ И РЕВАНША (gameState.winner)
+  // =========================================================================
+  if (gameState.winner) {
+    const isWinner = isSecretService
+      ? (gameState.spies?.[mySpyIndex]?.id === gameState.winner || (gameState.winner === 'KILLER' && mySpyIndex === 0) || (gameState.winner === 'DETECTIVE' && mySpyIndex === 1))
+      : gameState.winner === playerRole;
+
+    const flatCards = gameState.board.flat();
+    const opponentSecretId = isKiller ? gameState.detectiveSecretId : gameState.killerSecretId;
+    const opponentCharacter = flatCards.find((c) => c.id === opponentSecretId);
+    const opponentPortraitUrl = opponentCharacter ? getCharacterPortraitPath(opponentCharacter.id) : '';
+    const myPortraitUrl = myCharacter ? getCharacterPortraitPath(myCharacter.id) : '';
+
+    return (
+      <div
+        className="flex h-[100dvh] w-full max-w-full flex-col justify-between bg-[#07090e] p-3 sm:p-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] text-zinc-100 select-none font-sans overflow-hidden relative overscroll-none touch-manipulation"
+        style={{ overscrollBehavior: 'none', touchAction: 'manipulation' }}
+      >
+        <div
+          className={`absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] ${
+            isWinner ? 'from-blue-950/30' : 'from-rose-950/30'
+          } via-transparent to-black/95 pointer-events-none`}
+        />
+
+        {/* Шапка */}
+        <div className="w-full flex justify-between items-center border-b border-white/10 pb-2.5 gap-2 relative z-10 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <span
+              className={`h-2 w-2 rounded-full shrink-0 ${
+                isWinner ? 'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]' : 'bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)]'
+              }`}
+            />
+            <span className="text-[11px] sm:text-xs font-mono uppercase tracking-widest text-zinc-300 font-bold truncate">
+              {isWinner ? 'ДЕЛО ЗАКРЫТО В ВАШУ ПОЛЬЗУ' : 'ДЕЛО ЗАКРЫТО НЕ В ВАШУ ПОЛЬЗУ'}
+            </span>
+          </div>
+          {onExit && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                triggerHaptic('light');
+                onExit();
+              }}
+              className="text-[11px] h-8 px-2 text-zinc-400 hover:text-white shrink-0"
+            >
+              В МЕНЮ
+            </Button>
+          )}
+        </div>
+
+        {/* Центральный блок */}
+        <div className="flex-1 flex flex-col justify-center items-center gap-3 py-2 min-h-0 relative z-10 w-full max-w-md mx-auto">
+          {/* Статус победы */}
+          <div className="text-center shrink-0">
+            <div
+              className={`text-[10px] font-mono uppercase tracking-[0.25em] font-bold mb-1 ${
+                isWinner ? 'text-blue-400' : 'text-rose-400'
+              }`}
+            >
+              ИТОГИ РАССЛЕДОВАНИЯ
+            </div>
+            <h2
+              className={`text-2xl sm:text-3xl font-black uppercase tracking-wider font-display ${
+                isWinner ? 'text-blue-400' : 'text-rose-400'
+              }`}
+            >
+              {isWinner ? 'ВАША ПОБЕДА' : 'ВАШЕ ПОРАЖЕНИЕ'}
+            </h2>
+          </div>
+
+          {/* Разоблачение: Мой персонаж vs Оппонент */}
+          <div className="grid grid-cols-2 gap-2.5 w-full">
+            {/* Карточка игрока */}
+            <div className="neo-card p-2.5 rounded-2xl border-white/10 bg-zinc-950/70 flex flex-col items-center text-center">
+              <span className="text-[9px] font-mono uppercase text-zinc-400 font-bold mb-1.5">ВЫ</span>
+              <div className="w-16 h-20 rounded-xl overflow-hidden bg-black border border-white/10 shrink-0 mb-1.5 shadow-md">
+                {myPortraitUrl ? (
+                  <img src={myPortraitUrl} alt={myCharacter?.name || ''} className="w-full h-full object-cover object-top" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[9px] text-zinc-500 font-mono">ФОТО</div>
+                )}
+              </div>
+              <div className="text-xs font-bold text-white truncate max-w-full">{myCharacter?.name || 'Персонаж'}</div>
+              <div className="text-[10px] font-mono text-zinc-400 truncate">{roleName}</div>
+            </div>
+
+            {/* Карточка оппонента */}
+            <div className="neo-card p-2.5 rounded-2xl border-white/10 bg-zinc-950/70 flex flex-col items-center text-center">
+              <span className="text-[9px] font-mono uppercase text-zinc-400 font-bold mb-1.5">ОППОНЕНТ</span>
+              <div className="w-16 h-20 rounded-xl overflow-hidden bg-black border border-white/10 shrink-0 mb-1.5 shadow-md">
+                {opponentPortraitUrl ? (
+                  <img src={opponentPortraitUrl} alt={opponentCharacter?.name || ''} className="w-full h-full object-cover object-top" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[9px] text-zinc-500 font-mono">ФОТО</div>
+                )}
+              </div>
+              <div className="text-xs font-bold text-white truncate max-w-full">{opponentCharacter?.name || 'Секретная роль'}</div>
+              <div className="text-[10px] font-mono text-zinc-400 truncate">
+                {isKiller ? getDetectiveRoleName(gameState.mode) : getKillerRoleName(gameState.mode)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Нижняя панель действий / Реванш */}
+        <div className="w-full shrink-0 pt-2 relative z-10 max-w-md mx-auto">
+          {isHost ? (
+            <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="primary-danger"
+                  onClick={() => {
+                    triggerHaptic('medium');
+                    onDispatchAction?.({
+                      type: 'TV_CONFIRM_RESTART',
+                      payload: { roleAction: 'SWAP' },
+                    });
+                  }}
+                  className="h-11 min-h-[44px] rounded-xl text-xs font-bold uppercase tracking-wider"
+                >
+                  СМЕНИТЬ РОЛИ
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    triggerHaptic('medium');
+                    onDispatchAction?.({
+                      type: 'TV_CONFIRM_RESTART',
+                      payload: { roleAction: 'SAME' },
+                    });
+                  }}
+                  className="h-11 min-h-[44px] rounded-xl text-xs font-bold uppercase tracking-wider"
+                >
+                  ТЕ ЖЕ РОЛИ
+                </Button>
+              </div>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  triggerHaptic('light');
+                  onDispatchAction?.({ type: 'TV_EXIT_TO_LOBBY' });
+                }}
+                className="w-full h-10 min-h-[40px] rounded-xl text-xs font-bold uppercase tracking-wider text-zinc-300 border-white/15 hover:text-white"
+              >
+                В ТВ-ЛОББИ
+              </Button>
+            </div>
+          ) : (
+            <div className="p-3 rounded-2xl bg-zinc-950/80 border border-white/10 text-center text-xs text-zinc-400 font-sans flex items-center justify-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+              <span>Ожидание решения хоста по реваншу...</span>
+            </div>
+          )}
         </div>
       </div>
     );

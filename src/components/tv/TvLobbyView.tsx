@@ -14,6 +14,10 @@ export interface TvLobbyViewProps {
   morseCode?: string;
   players?: Record<string, { nickname: string; isHost?: boolean }>;
   connectedPlayers?: Record<string, { nickname: string; isHost?: boolean }>;
+  readyClients?: Set<string>;
+  selectedMode?: GameModeType;
+  roleDistribution?: "RANDOM" | "HOST_KILLER" | "HOST_DETECTIVE";
+  roomStatus?: string;
   onStartGame?: (mode: GameModeType, isPassAndPlay: boolean) => void;
   onExit?: () => void;
   hideExit?: boolean;
@@ -72,15 +76,6 @@ const MODE_THEMES: Record<
     focus:
       'focus:scale-105 focus:border-blue-300 focus:bg-gradient-to-br focus:from-blue-900/60 focus:to-blue-950/90 focus:shadow-[0_0_40px_rgba(37,99,235,0.65),inset_0_0_20px_rgba(255,255,255,0.2)]',
   },
-  LINE_UP: {
-    normal:
-      'bg-gradient-to-br from-purple-950/30 via-zinc-950/60 to-black/70 border-purple-500/25 border-t-2 border-t-purple-500/70 hover:border-purple-500/50 text-white/80',
-    selected:
-      'bg-gradient-to-br from-purple-950/70 via-purple-900/35 to-black/80 border-purple-400/80 border-t-2 border-t-purple-400 shadow-[0_0_30px_rgba(168,85,247,0.35)] text-white ring-1 ring-purple-400/40',
-    badge: 'bg-purple-950/80 border border-purple-500/50 text-purple-200',
-    focus:
-      'focus:scale-105 focus:border-purple-300 focus:bg-gradient-to-br focus:from-purple-900/60 focus:to-purple-950/90 focus:shadow-[0_0_40px_rgba(168,85,247,0.65),inset_0_0_20px_rgba(255,255,255,0.2)]',
-  },
 };
 
 export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
@@ -88,6 +83,10 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   morseCode,
   players = {},
   connectedPlayers,
+  readyClients,
+  selectedMode: propSelectedMode,
+  roleDistribution: _roleDistribution,
+  roomStatus,
   onStartGame,
   onExit,
   hideExit = false,
@@ -127,6 +126,8 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
   const [selectedMode, setSelectedMode] = useState<GameModeType>('MANIAC_VS_OPERATIVE');
   const [isPassAndPlay, setIsPassAndPlay] = useState<boolean>(false);
 
+  const activeMode = propSelectedMode || selectedMode;
+
   // Мгновенная визуализация кода комнаты в виде Морзе (точки и тире)
   const displayMorse = useMemo(() => {
     if (morseCode && morseCode.trim().length >= 4) {
@@ -139,14 +140,14 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
     { id: 'MANIAC_VS_OPERATIVE', label: GAME_MODES_META.MANIAC_VS_OPERATIVE.title.ru, badge: '4 ЦЕЛИ', desc: 'Сыщик ловит маньяка на улицах города' },
     { id: 'THIEF_HUNT', label: GAME_MODES_META.THIEF_HUNT.title.ru, badge: '10 КРАЖ', desc: 'Охота за скрывающимся вором' },
     { id: 'SECRET_SERVICE', label: GAME_MODES_META.SECRET_SERVICE.title.ru, badge: 'ШПИОНЫ', desc: 'Тактическая дуэль агентов за кейсы' },
-    { id: 'LINE_UP', label: GAME_MODES_META.LINE_UP.title.ru, badge: 'ОЧНАЯ СТАВКА', desc: 'Интеллектуальная дуэль по досье' },
   ];
 
   const rawPlayers = (connectedPlayers && Object.keys(connectedPlayers).length > 0)
     ? connectedPlayers
     : players;
-  const playerList = Array.isArray(rawPlayers) ? rawPlayers : Object.values(rawPlayers || {});
-  const canStart = isPassAndPlay ? playerList.length >= 1 : playerList.length >= 2;
+  const playerEntries = Object.entries(rawPlayers || {});
+  const isReadyToStart = roomStatus === "READY_TO_START" || (playerEntries.length >= 2 && playerEntries.every(([id]) => readyClients?.has(id)));
+  const canStart = isPassAndPlay ? playerEntries.length >= 1 : isReadyToStart;
 
   useEffect(() => {
     soundManager.startTvAmbient();
@@ -155,13 +156,13 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
     };
   }, []);
 
-  const prevPlayerCountRef = useRef(playerList.length);
+  const prevPlayerCountRef = useRef(playerEntries.length);
   useEffect(() => {
-    if (playerList.length > prevPlayerCountRef.current && playerList.length >= 2) {
+    if (playerEntries.length > prevPlayerCountRef.current && playerEntries.length >= 2) {
       soundManager.play('confirm');
     }
-    prevPlayerCountRef.current = playerList.length;
-  }, [playerList.length]);
+    prevPlayerCountRef.current = playerEntries.length;
+  }, [playerEntries.length]);
 
   return (
     <div className="flex h-screen w-screen flex-col justify-between bg-background-main text-white select-none p-4 sm:p-5 lg:p-6 overflow-hidden font-sans relative box-border">
@@ -282,10 +283,10 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
               </div>
             </div>
 
-            {/* Карточки 4 игровых режимов с сочным цветовым кодированием и объемным фокусом */}
-            <div className="grid grid-cols-2 gap-2.5 lg:gap-3">
+            {/* Карточки 3 игровых режимов с сочным цветовым кодированием и объемным фокусом */}
+            <div className="grid grid-cols-3 gap-2 lg:gap-2.5">
               {GAME_MODES.map((m) => {
-                const isSelected = selectedMode === m.id;
+                const isSelected = activeMode === m.id;
                 const theme = MODE_THEMES[m.id];
                 return (
                   <button
@@ -296,19 +297,19 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                       soundManager.play('click');
                       setSelectedMode(m.id);
                     }}
-                    className={`p-3 lg:p-3.5 rounded-2xl border text-left transition-all duration-300 cursor-pointer flex flex-col justify-between gap-1 backdrop-blur-md ${
+                    className={`p-2.5 lg:p-3 rounded-2xl border text-left transition-all duration-300 cursor-pointer flex flex-col justify-between gap-1 backdrop-blur-md ${
                       isSelected ? theme.selected : theme.normal
                     } ${theme.focus} focus:outline-none`}
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className="text-sm lg:text-base font-display font-black uppercase text-white tracking-wide drop-shadow-sm">
+                      <span className="text-xs lg:text-sm font-display font-black uppercase text-white tracking-wide drop-shadow-sm truncate">
                         {m.label}
                       </span>
-                      <span className={`text-[10px] lg:text-xs font-display font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${theme.badge}`}>
+                      <span className={`text-[9px] lg:text-[10px] font-display font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${theme.badge}`}>
                         {m.badge}
                       </span>
                     </div>
-                    <p className="text-xs font-sans font-normal text-white/70 line-clamp-1">
+                    <p className="text-[11px] font-sans font-normal text-white/70 line-clamp-1">
                       {m.desc}
                     </p>
                   </button>
@@ -321,7 +322,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           <div className="neo-card p-4 lg:p-5 rounded-3xl border-t-2 border-t-blue-500/50 shadow-[0_20px_50px_rgba(0,0,0,0.7)] flex-1 flex flex-col justify-between min-h-0">
             <div className="flex items-center justify-between mb-2 shrink-0">
               <span className="text-xs sm:text-sm font-mono font-bold uppercase tracking-widest text-zinc-300">
-                ИГРОКИ В СЕТИ ({playerList.length}/6)
+                ИГРОКИ В СЕТИ ({playerEntries.length}/2)
               </span>
               <span className="text-xs font-sans text-white/50 font-medium">
                 {isPassAndPlay ? 'Минимум 1 контроллер' : 'Минимум 2 контроллера'}
@@ -329,7 +330,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
             </div>
 
             <div className="grid grid-cols-2 gap-2 flex-1 min-h-0 content-start">
-              {playerList.length === 0 ? (
+              {playerEntries.length === 0 ? (
                 <div className="col-span-2 p-5 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] flex flex-col items-center justify-center text-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
                   <span className="text-sm font-display font-bold uppercase tracking-wider text-white/70">
@@ -337,37 +338,47 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                   </span>
                 </div>
               ) : (
-                playerList.map((player, index) => (
-                  <div
-                    key={index}
-                    tabIndex={-1}
-                    className={`py-2 px-3 rounded-2xl border transition-all duration-300 flex items-center justify-between ${
-                      player
-                        ? 'bg-gradient-to-r from-blue-950/40 via-slate-900/50 to-black/50 border-blue-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.4)]'
-                        : 'bg-white/[0.02] border-dashed border-white/10'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 truncate">
-                      <div className="w-8 h-8 rounded-xl bg-blue-950/70 border border-blue-500/40 flex items-center justify-center text-blue-300 font-display font-black text-xs shrink-0 shadow-[0_0_10px_rgba(37,99,235,0.3)]">
-                        #{index + 1}
-                      </div>
-                      <div className="truncate">
-                        <div className="text-sm lg:text-base font-display font-black text-white truncate">
-                          {player ? player.nickname : 'Ожидание...'}
+                playerEntries.map(([id, player], index) => {
+                  const isReady = readyClients ? readyClients.has(id) : false;
+                  return (
+                    <div
+                      key={id || index}
+                      tabIndex={-1}
+                      className={`py-2 px-3 rounded-2xl border transition-all duration-300 flex items-center justify-between ${
+                        player
+                          ? 'bg-gradient-to-r from-blue-950/40 via-slate-900/50 to-black/50 border-blue-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.4)]'
+                          : 'bg-white/[0.02] border-dashed border-white/10'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 truncate">
+                        <div className="w-8 h-8 rounded-xl bg-blue-950/70 border border-blue-500/40 flex items-center justify-center text-blue-300 font-display font-black text-xs shrink-0 shadow-[0_0_10px_rgba(37,99,235,0.3)]">
+                          #{index + 1}
                         </div>
-                        <div className="text-xs font-sans text-emerald-400 flex items-center gap-1.5 font-medium">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse" />
-                          <span>ГОТОВ</span>
+                        <div className="truncate">
+                          <div className="text-sm lg:text-base font-display font-black text-white truncate">
+                            {player ? player.nickname : 'Ожидание...'}
+                          </div>
+                          {isReady ? (
+                            <div className="text-xs font-sans text-blue-400 flex items-center gap-1.5 font-medium">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
+                              <span>ГОТОВ</span>
+                            </div>
+                          ) : (
+                            <div className="text-xs font-sans text-zinc-400 flex items-center gap-1.5 font-medium">
+                              <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-pulse" />
+                              <span>НЕ ГОТОВ</span>
+                            </div>
+                          )}
                         </div>
                       </div>
+                      {player?.isHost && (
+                        <span className="text-[10px] font-display font-bold px-2 py-0.5 rounded-md bg-blue-950/80 border border-blue-500/50 text-blue-300 shrink-0 shadow-[0_0_10px_rgba(59,130,246,0.3)]">
+                          HOST
+                        </span>
+                      )}
                     </div>
-                    {player?.isHost && (
-                      <span className="text-[10px] font-display font-bold px-2 py-0.5 rounded-md bg-blue-950/80 border border-blue-500/50 text-blue-300 shrink-0 shadow-[0_0_10px_rgba(59,130,246,0.3)]">
-                        HOST
-                      </span>
-                    )}
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
@@ -375,25 +386,30 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           {/* Секция 3: Изолированная нижняя панель действий (мощная доминирующая кнопка старта) */}
           <div className="flex items-center gap-3 pt-1 shrink-0 w-full">
             <Button
-              variant="primary-danger"
+              variant={canStart ? "primary-danger" : "secondary"}
               data-tv-start-btn="true"
               tabIndex={0}
               onClick={() => {
+                if (!canStart) return;
                 soundManager.play('confirm');
-                onStartGame?.(selectedMode, isPassAndPlay);
+                onStartGame?.(activeMode, isPassAndPlay);
               }}
               disabled={!canStart}
-              className={`w-full h-13 lg:h-14 rounded-2xl font-display font-black uppercase tracking-wider text-lg lg:text-xl transition-all duration-300 cursor-pointer ${
+              className={`w-full h-13 lg:h-14 rounded-2xl font-display font-black uppercase tracking-wider text-base lg:text-lg transition-all duration-300 cursor-pointer ${
                 canStart
                   ? 'bg-gradient-to-r from-red-700 via-rose-700 to-red-800 hover:from-red-600 hover:via-rose-600 hover:to-red-700 border border-rose-400/40 text-white shadow-[0_10px_35px_rgba(225,29,72,0.45),inset_0_1px_2px_rgba(255,255,255,0.4)]'
                   : 'bg-white/[0.03] border border-white/10 text-white/30 cursor-not-allowed'
               } focus:outline-none focus:scale-105 focus:border-white focus:shadow-[0_0_55px_rgba(244,63,94,0.7),inset_0_0_20px_rgba(255,255,255,0.35)] active:scale-95`}
             >
               <div className="flex items-center justify-center gap-3">
-                <span className="drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">НАЧАТЬ МАТЧ</span>
-                <span className="text-xs font-sans font-semibold px-2.5 py-0.5 rounded-lg bg-black/40 border border-white/20 text-white/90 shadow-inner">
-                  [ENTER]
+                <span className="drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                  {canStart ? 'НАЧАТЬ МАТЧ' : 'ОЖИДАНИЕ ГОТОВНОСТИ ИГРОКОВ'}
                 </span>
+                {canStart && (
+                  <span className="text-xs font-sans font-semibold px-2.5 py-0.5 rounded-lg bg-black/40 border border-white/20 text-white/90 shadow-inner">
+                    [ENTER]
+                  </span>
+                )}
               </div>
             </Button>
           </div>

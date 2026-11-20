@@ -1,6 +1,8 @@
-import type { Role } from "./game";
+import type { Role, GameModeType } from "./game";
 
 export type ClientDeviceType = "TV_DISPLAY" | "CONTROLLER" | "PLAYER" | "SPECTATOR";
+
+export type RoomStatus = "EMPTY" | "WAITING" | "READY_TO_START" | "PLAYING" | "PAUSED" | "FINISHED";
 
 export interface MorseCandidate {
   roomCode: string;
@@ -40,16 +42,19 @@ export type GameAction = BaseGameAction & (
   | { type: "REJECT_RESTART" }
   | { type: "SET_MATCH_POT"; payload: { pot: number; bet: number } }
   | { type: "PLAYER_READY" }
+  | { type: "PLAYER_UNREADY" }
   | { type: "SWEAR_IN_OFFICER"; payload: any }
   | { type: "SET_INSPECTOR_ROLE"; payload: { chosenId: string } }
   | { type: "DUEL_ASK_QUESTION"; payload: { questionId: string }; senderId?: string }
   | { type: "DUEL_ACCUSE"; payload: { targetId: string }; senderId?: string }
   | { type: "PREVIEW_SHIFT"; payload: { type: "ROW" | "COL"; index: number } | null }
   | { type: "START_GAME"; payload?: any }
+  | { type: "START_MATCH"; payload?: { mode?: GameModeType; isPassAndPlay?: boolean } }
+  | { type: "CHANGE_SETTINGS"; payload?: { mode?: GameModeType; roleDistribution?: "RANDOM" | "HOST_KILLER" | "HOST_DETECTIVE" } }
   | { type: "END_TURN" }
   | { type: "CONFIRM_TURN_READY" }
   | { type: "TV_TOGGLE_PAUSE" }
   | { type: "TV_TOGGLE_MUTE" }
-  | { type: "TV_CONFIRM_RESTART" }
+  | { type: "TV_CONFIRM_RESTART"; payload?: { roleAction?: "SWAP" | "SAME" } }
   | { type: "TV_EXIT_TO_LOBBY" }
 );

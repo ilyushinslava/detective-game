@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { App as CapApp } from '@capacitor/app';
-import { GameOverModal } from '../GameOverModal';
+import { TvVictoryScreen } from './TvVictoryScreen';
 import { ActionIcons } from '../ui/ActionIcons';
 import { renderSilhouette } from '../CharacterCard';
 import { getCharacterPortraitPath } from '../../constants/characterImages';
@@ -34,11 +34,13 @@ export interface TvBoardViewProps {
   secondsLeft?: number;
   onExit?: () => void;
   onRestart?: () => void;
+  onExitToLobby?: () => void;
   disconnectedPlayer?: { role?: string; nickname?: string; clientId?: string; graceTimeoutSec: number } | null;
   hideExit?: boolean;
   isAIThinking?: boolean;
   roomCode?: string;
   morseCode?: string;
+  players?: Record<string, { nickname: string; isHost?: boolean }>;
 }
 
 const Icons = {
@@ -373,11 +375,13 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   secondsLeft = 60,
   onExit,
   onRestart,
+  onExitToLobby,
   disconnectedPlayer,
   hideExit = false,
   isAIThinking,
   roomCode,
   morseCode,
+  players,
 }) => {
   useSpatialNavigation({ initialFocusSelector: '[data-tv-pause-btn="true"]' });
   useWakeLock({ enabled: true });
@@ -730,9 +734,9 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
       // Если модалка паузы ЗАКРЫТА: стрелки D-Pad НЕ открывают паузу!
       if (!isPauseOpen) {
-        if (gameState?.winner && (e.key === 'Enter' || e.key === ' ' || e.keyCode === 13 || e.keyCode === 32 || e.keyCode === 23 || e.keyCode === 66)) {
-          e.preventDefault();
-          if (onExit) onExit();
+        if (gameState?.winner) {
+          // Когда матч завершён, навигацией управляет TvVictoryScreen
+          return;
         }
         return;
       }
@@ -916,29 +920,24 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
     const finalKillerChar = flatCards.find((c) => c.id === (winningSpy?.secretId || gameState.killerSecretId));
     const finalDetectiveChar = flatCards.find((c) => c.id === gameState.detectiveSecretId);
 
-    return (
-      <div className="relative h-screen w-screen bg-background-main overflow-hidden select-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#2d0814_0%,#120c16_45%,theme(colors.background.main)_100%)] pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(225,29,72,0.1),transparent_60%)] pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.08),transparent_50%)] pointer-events-none" />
+    const playerList = Object.values(players || {});
+    const killerNickname = playerList.find((p) => p.isHost)?.nickname || 'Преступник';
+    const detectiveNickname = playerList.find((p) => !p.isHost)?.nickname || 'Детектив';
 
-        <GameOverModal
-          winner={isKillerWinner ? 'KILLER' : 'DETECTIVE'}
-          mode={gameState.mode}
-          killer={finalKillerChar}
-          detective={finalDetectiveChar}
-          elapsedTime="--:--"
-          isMultiplayer={true}
-          onRestart={onRestart || (() => {})}
-          onExitToMenu={onExit || (() => {})}
-        />
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 inline-flex items-center gap-3 px-6 py-2.5 rounded-full border border-white/10 border-t-2 border-t-rose-500/50 bg-white/[0.04] shadow-2xl backdrop-blur-2xl">
-          <span className="h-2.5 w-2.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.8)]" />
-          <span className="text-xs 2xl:text-sm font-mono uppercase tracking-widest text-zinc-300">
-            Ожидание выбора реванша на контроллерах
-          </span>
-        </div>
-      </div>
+    return (
+      <TvVictoryScreen
+        winner={isKillerWinner ? 'KILLER' : 'DETECTIVE'}
+        mode={gameState.mode}
+        killer={finalKillerChar}
+        detective={finalDetectiveChar}
+        killerNickname={killerNickname}
+        detectiveNickname={detectiveNickname}
+        elapsedTime="--:--"
+        turnCount={gameState.turnNumber || gameState.history?.length || 0}
+        eliminatedCount={flatCards.filter((c) => !c.isAlive).length}
+        onRestart={onRestart || (() => {})}
+        onExitToLobby={onExitToLobby || onExit || (() => {})}
+      />
     );
   }
 

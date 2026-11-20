@@ -4,3 +4,4 @@ export * from './MobileControllerView';
 export * from './QrCameraScanner';
 export * from './controllerIcons';
 export * from './ControllerWaitingView';
+export * from './ControllerLobbyView';

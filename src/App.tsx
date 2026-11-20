@@ -30,6 +30,7 @@ import { useRulesModal } from "./hooks/useRulesModal";
 import { characterImages } from "./constants/characterImages";
 import { DEFAULT_BET, TIMINGS } from "./constants/gameRules";
 import { safeLocalStorage, safeSessionStorage } from "./utils/storage";
+import { ControllerLobbyView } from "./components/controller/ControllerLobbyView";
 // Асинхронные динамические чанки второстепенных экранов (TASK-ARCH-001)
 const DuelScreen = lazy(() => import("./components/duel/DuelScreen").then((m) => ({ default: m.DuelScreen })));
 const TvHomeView = lazy(() => import("./components/tv/TvHomeView").then((m) => ({ default: m.TvHomeView })));
@@ -135,6 +136,9 @@ export default function App() {
   });
   const [tvLinePreview, setTvLinePreview] = useState<ShiftPayload | null>(null);
   const [tvPlayers, setTvPlayers] = useState<Record<string, { nickname: string; isHost?: boolean }>>({});
+  const [tvReadyClients, setTvReadyClients] = useState<Set<string>>(new Set());
+  const [tvSelectedMode, setTvSelectedMode] = useState<GameModeType>("MANIAC_VS_OPERATIVE");
+  const [tvRoleDistribution, setTvRoleDistribution] = useState<"RANDOM" | "HOST_KILLER" | "HOST_DETECTIVE">("RANDOM");
   const [controllerRoomStatus, setControllerRoomStatus] = useState<string>("WAITING");
   const [controllerRole, setControllerRole] = useState<Role>(() => {
     if (typeof window !== "undefined") {
@@ -313,8 +317,20 @@ export default function App() {
       if (data?.morseCode) {
         setTvMorseCode(data.morseCode);
       }
+      if (data?.readyClients) {
+        setTvReadyClients(new Set(data.readyClients));
+      }
+      if (data?.mode) {
+        setTvSelectedMode(data.mode);
+      }
+      if (data?.roleDistribution) {
+        setTvRoleDistribution(data.roleDistribution);
+      }
       if (data?.status === "PLAYING" || data?.status === "FINISHED") {
         setTvPartyState((prev) => (prev === "TV_LOBBY" ? "TV_BOARD" : prev));
+        setControllerRoomStatus(data.status);
+      } else if (data?.status === "WAITING" || data?.status === "READY_TO_START") {
+        setTvPartyState((prev) => (prev === "TV_BOARD" ? "TV_LOBBY" : prev));
         setControllerRoomStatus(data.status);
       }
     });
@@ -348,6 +364,9 @@ export default function App() {
         });
       } else if (action?.type === "PLAYER_RECONNECTED") {
         setTvDisconnectedPlayer(null);
+      } else if (action?.type === "TV_EXIT_TO_LOBBY") {
+        setTvPartyState((prev) => (prev === "TV_BOARD" ? "TV_LOBBY" : prev));
+        setControllerRoomStatus("WAITING");
       }
     });
 
@@ -1097,7 +1116,13 @@ export default function App() {
 
       {/* РЕЖИМ TV PARTY: Мобильный пульт управления */}
       {tvPartyState === "CONTROLLER" && (() => {
-        const isControllerInGame = controllerRoomStatus === "PLAYING";
+        const isControllerInGame = controllerRoomStatus === "PLAYING" || controllerRoomStatus === "FINISHED";
+        const myClientId = partyService.myClientId;
+        const isHostController = Boolean(
+          partyService.isHost ||
+          (myClientId && tvPlayers[myClientId]?.isHost) ||
+          (myClientId && Object.keys(tvPlayers)[0] === myClientId)
+        );
         return (
           <div className="fixed inset-0 z-50 bg-background-main">
             <Suspense fallback={<ScreenFallback />}>
@@ -1128,63 +1153,46 @@ export default function App() {
                   }}
                 />
               ) : !isControllerInGame ? (
-                <div className="flex h-[100dvh] w-full max-w-full flex-col justify-between p-6 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] text-zinc-100 select-none font-sans bg-[#07080c] relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-transparent to-black/90 pointer-events-none" />
-
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3 relative z-10">
-                    <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-                      <span className="text-xs font-display uppercase tracking-widest text-zinc-300 font-bold">ПОДКЛЮЧЕНО К ТВ</span>
-                    </div>
-                    <div className="text-xs font-mono text-zinc-400 font-bold">КОМНАТА #{tvRoomCode}</div>
-                  </div>
-
-                  <div className="flex flex-col items-center text-center max-w-sm mx-auto my-auto space-y-5 relative z-10 w-full px-2">
-                    <div className="w-24 h-24 rounded-3xl border border-white/10 bg-zinc-950/70 backdrop-blur-md flex items-center justify-center shadow-2xl text-blue-400">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-12 h-12">
-                        <circle cx="12" cy="12" r="3" />
-                        <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-wider text-zinc-100 font-display">
-                        ВЫ В ЛОББИ
-                      </h2>
-                      <p className="text-xs sm:text-sm text-zinc-400 mt-2 leading-relaxed">
-                        Ожидайте запуска игры на телевизоре.
-                      </p>
-                    </div>
-                    <div className="p-4 rounded-2xl bg-zinc-950/70 border border-white/10 backdrop-blur-md shadow-lg w-full text-left">
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1 font-mono">ВАШ ПОЗЫВНОЙ</div>
-                      <div className="text-base font-black text-zinc-100 truncate">
-                        {profile.nickname || 'Агент'}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="w-full max-w-sm mx-auto space-y-2 relative z-10">
-                    <button
-                      onClick={() => {
-                        triggerHaptic('medium');
-                        handleLeaveControllerLobby();
-                      }}
-                      className="w-full min-h-[48px] rounded-2xl border border-rose-500/40 bg-rose-950/40 hover:bg-rose-900/60 hover:border-rose-500/80 text-rose-200 active:scale-95 transition font-display text-xs font-bold uppercase tracking-wider flex items-center justify-center shadow-lg cursor-pointer"
-                    >
-                      ПОКИНУТЬ ЛОББИ
-                    </button>
-                    <button
-                      onClick={() => {
-                        triggerHaptic('light');
-                        handleLeaveControllerLobby();
-                        setTvPartyState("NONE");
-                        setIsLobbyOpen(true);
-                      }}
-                      className="w-full py-2.5 text-xs font-mono uppercase tracking-wider text-zinc-500 hover:text-zinc-300 transition text-center cursor-pointer"
-                    >
-                      Главное меню
-                    </button>
-                  </div>
-                </div>
+                <ControllerLobbyView
+                  roomCode={tvRoomCode}
+                  isHost={isHostController}
+                  myNickname={profile.nickname || "Агент"}
+                  isReady={Boolean(myClientId && tvReadyClients.has(myClientId))}
+                  onToggleReady={() => {
+                    const isReady = myClientId ? tvReadyClients.has(myClientId) : false;
+                    partyService.sendAction({
+                      type: isReady ? "PLAYER_UNREADY" : "PLAYER_READY",
+                    });
+                  }}
+                  players={tvPlayers}
+                  readyClients={tvReadyClients}
+                  selectedMode={tvSelectedMode}
+                  onSelectMode={(mode) => {
+                    setTvSelectedMode(mode);
+                    partyService.sendAction({
+                      type: "CHANGE_SETTINGS",
+                      payload: { mode },
+                    });
+                  }}
+                  roleDistribution={tvRoleDistribution}
+                  onSelectRoleDistribution={(dist) => {
+                    setTvRoleDistribution(dist);
+                    partyService.sendAction({
+                      type: "CHANGE_SETTINGS",
+                      payload: { roleDistribution: dist },
+                    });
+                  }}
+                  canStartMatch={Object.keys(tvPlayers).length >= 2 && tvReadyClients.size >= 2}
+                  onStartMatch={() => {
+                    partyService.sendAction({
+                      type: "START_MATCH",
+                      payload: { mode: tvSelectedMode },
+                    });
+                  }}
+                  onLeaveRoom={() => {
+                    handleLeaveControllerLobby();
+                  }}
+                />
               ) : (
                 <MobileControllerView
                   gameState={gameState}
@@ -1197,7 +1205,7 @@ export default function App() {
                   }
                   isPassAndPlay={isTvPassAndPlay}
                   isTvParty={tvPartyState === "NONE" && Boolean(controllerRoomStatus)}
-                  isHost={Boolean(partyService.isHost || tvPlayers[partyService.myClientId]?.isHost)}
+                  isHost={isHostController}
                   roomStatus={controllerRoomStatus}
                   isAIThinking={isAIThinking}
                   onLeaveLobby={() => handleLeaveControllerLobby()}
@@ -1263,6 +1271,10 @@ export default function App() {
                 morseCode={tvMorseCode}
                 players={tvPlayers}
                 connectedPlayers={tvPlayers}
+                readyClients={tvReadyClients}
+                selectedMode={tvSelectedMode}
+                roleDistribution={tvRoleDistribution}
+                roomStatus={controllerRoomStatus}
                 hideExit={isAndroidTv}
                 onStartGame={(mode, passAndPlay) => {
                   setIsTvPassAndPlay(passAndPlay);
@@ -1309,10 +1321,18 @@ export default function App() {
                 isAIThinking={isAIThinking}
                 roomCode={tvRoomCode}
                 morseCode={tvMorseCode}
+                players={tvPlayers}
                 disconnectedPlayer={tvDisconnectedPlayer}
                 onExit={handleExitTvParty}
+                onExitToLobby={() => {
+                  partyService.sendAction({ type: "TV_EXIT_TO_LOBBY" });
+                  setTvPartyState("TV_LOBBY");
+                }}
                 onRestart={() => {
-                  partyService.sendAction({ type: "RESTART_GAME" });
+                  partyService.sendAction({
+                    type: "TV_CONFIRM_RESTART",
+                    payload: { roleAction: "SAME" },
+                  });
                 }}
               />
             </Suspense>

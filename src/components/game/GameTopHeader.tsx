@@ -82,7 +82,7 @@ export const GameTopHeader: React.FC<GameTopHeaderProps> = ({
 
       <div className="flex-1 min-w-0 flex justify-center items-center px-1 z-0 overflow-hidden">
         <div
-          className={`flex items-center gap-1.5 px-2.5 py-1 md:px-5 md:py-2.5 rounded-full border text-[10px] md:text-xs font-black tracking-wider uppercase transition-all shadow-lg backdrop-blur-xl max-w-full sm:max-w-[220px] truncate ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 md:px-5 md:py-2.5 rounded-full border text-[10px] md:text-xs font-black tracking-wider uppercase transition-all shadow-lg backdrop-blur-xl max-w-[120px] sm:max-w-[180px] md:max-w-[220px] truncate ${
             gameState.winner === "KILLER"
               ? "bg-rose-950/80 border-rose-500/50 border-t-rose-400/80 text-rose-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]"
               : gameState.winner === "DETECTIVE"

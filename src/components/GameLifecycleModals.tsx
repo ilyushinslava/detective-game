@@ -6,6 +6,7 @@ import { IdentityRevealModal } from "./IdentityRevealModal";
 import { InspectorChoiceModal } from "./InspectorChoiceModal";
 import { partyService } from "../utils/partyPeer";
 import { TIMINGS } from "../constants/gameRules";
+import { getKillerRoleName, getDetectiveRoleName } from "../constants/gameMeta";
 
 export interface GameLifecycleModalsProps {
   gameState: GameState;
@@ -92,17 +93,13 @@ export const GameLifecycleModals: React.FC<GameLifecycleModalsProps> = memo(({
           onCancelMatch={handleExitToMenu}
           role1Name={
             gameState.mode === "SECRET_SERVICE"
-              ? (gameState.opponent === "PVP" ? "Фантом" : (gameState.spies?.[0]?.name || "Агент 1"))
-                                    : gameState.playerRole === "KILLER"
-                        ? profileNickname || "Бандит"
-                : "Бандит"
+              ? (gameState.opponent === "PVP" ? "Фантом" : (gameState.spies?.[0]?.name || "Фантом"))
+              : getKillerRoleName(gameState.mode)
           }
           role2Name={
             gameState.mode === "SECRET_SERVICE"
-              ? (gameState.opponent === "PVP" ? "Призрак" : (gameState.spies?.[1]?.name || "Агент 2"))
-                                    : gameState.playerRole === "DETECTIVE"
-                        ? profileNickname || "Инспектор"
-                : "Инспектор"
+              ? (gameState.opponent === "PVP" ? "Призрак" : (gameState.spies?.[1]?.name || "Призрак"))
+              : getDetectiveRoleName(gameState.mode)
           }
           killer={
             gameState.mode === "SECRET_SERVICE"
@@ -169,7 +166,7 @@ export const GameLifecycleModals: React.FC<GameLifecycleModalsProps> = memo(({
             character={allChars.find(c => c.id === gameState.spies?.find(s => s.id === gameState.justCaughtSpyId)?.secretId) ?? null}
             characterImage={(() => { const character = allChars.find(c => c.id === gameState.spies?.find(s => s.id === gameState.justCaughtSpyId)?.secretId); return character ? characterImages[`./assets/characters/${character.id}.webp`]?.default ?? null : null; })()}
             isPvpPassPhase={!isRevealConfirmed && gameState.opponent === "PVP"}
-            targetPlayerName={gameState.spies.find(s => s.id === gameState.justCaughtSpyId)?.name}
+            targetPlayerName={gameState.spies?.find(s => s.id === gameState.justCaughtSpyId)?.name}
             onConfirmPvpPass={() => setIsRevealConfirmed(true)}
             onAcceptIdentity={() => { setIsRevealConfirmed(false); setGameState((prev) => ({ ...prev, justCaughtSpyId: undefined })); }}
             onPreviewCard={(character) => { const image = characterImages[`./assets/characters/${character.id}.webp`]?.default; if (image) setFullscreenImage({ url: image, name: character.name, id: character.id }); }}

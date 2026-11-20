@@ -19,7 +19,10 @@ export const CharacterStamps: React.FC<CharacterStampsProps> = ({
   unmaskedSpyIndex,
   isSecretService,
 }) => {
-  const spyMeta = unmaskedSpyIndex !== undefined ? SPY_COLORS[unmaskedSpyIndex] : null;
+  const spyMeta =
+    unmaskedSpyIndex !== undefined
+      ? SPY_COLORS[unmaskedSpyIndex % SPY_COLORS.length]
+      : null;
 
   return (
     <AnimatePresence>
@@ -36,16 +39,16 @@ export const CharacterStamps: React.FC<CharacterStampsProps> = ({
             <div
               className={`border whitespace-nowrap font-display font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none backdrop-blur-sm text-center ${
                 spyMeta
-                  ? `border-${spyMeta.border} bg-zinc-950/95 text-${spyMeta.text} shadow-[0_0_15px_rgba(239,68,68,0.5)]`
+                  ? `${spyMeta.border} bg-zinc-950/95 ${spyMeta.text} shadow-[0_0_15px_rgba(244,63,94,0.3)]`
                   : isSecretService || unmaskedSpyIndex !== undefined
-                    ? "border-red-600 bg-red-950/90 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                    ? "border-rose-600 bg-rose-950/90 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.3)]"
                     : isArrested
                       ? "border border-blue-500/80 bg-blue-950/95 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.4)]"
-                      : "border-red-600 bg-red-950/90 text-red-500 shadow-[0_0_15px_rgba(220,38,38,0.4)]"
+                      : "border-rose-600 bg-rose-950/90 text-rose-500 shadow-[0_0_15px_rgba(225,29,72,0.4)]"
               }`}
             >
               {isSecretService || unmaskedSpyIndex !== undefined
-                ? spyMeta ? `РАСКРЫТ: ${spyMeta.name.toUpperCase()}` : "РАСКРЫТ"
+                ? spyMeta?.name ? `РАСКРЫТ: ${spyMeta.name.toUpperCase()}` : "РАСКРЫТ"
                 : isArrested
                   ? "АРЕСТОВАН"
                   : "УБИТ"}
@@ -95,7 +98,7 @@ export const CoinIndicator: React.FC = () => (
   <div
     data-testid="coin-indicator"
     title="Золотая монета"
-    className="absolute top-1 right-1 z-20 pointer-events-none flex items-center justify-center"
+    className="flex items-center justify-center shrink-0 pointer-events-none"
   >
     <svg
       viewBox="0 0 24 24"

@@ -63,7 +63,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
           <h1 className="text-3xl xl:text-4xl font-display font-black tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-100 to-zinc-400 drop-shadow-[0_4px_25px_rgba(255,255,255,0.15)] leading-tight">
             {title || "ПОД ПОДОЗРЕНИЕМ"}
           </h1>
-          <div className="text-[10px] xl:text-xs font-mono tracking-[0.3em] uppercase text-slate-300 font-bold mt-1">
+          <div className="text-[10px] xl:text-xs font-sans tracking-[0.3em] uppercase text-slate-300 font-bold mt-1">
             ТАКТИЧЕСКИЙ ДЕТЕКТИВ
           </div>
           <div className="w-28 xl:w-36 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent my-1.5 xl:my-2" />
@@ -101,7 +101,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
       {/* ========================================================================= */}
       <main className="lg:hidden flex-1 flex flex-col justify-between px-3.5 sm:px-5 pt-2 pb-4 overflow-y-auto w-full select-none min-h-0 gap-3">
         {/* [ВЕРХНЯЯ ПОЛОВИНА]: Премиальная кинематографичная типографика (Cinematic Typography 2.0) */}
-        <div className="relative flex-1 flex flex-col justify-center items-center py-7 sm:py-9 px-4 text-center select-none min-h-[180px] sm:min-h-[220px] my-1 overflow-hidden rounded-3xl border border-white/[0.04]">
+        <div className="relative flex-1 flex flex-col justify-center items-center py-3.5 sm:py-8 px-4 text-center select-none min-h-[120px] sm:min-h-[200px] my-0.5 sm:my-1 overflow-hidden rounded-3xl border border-white/[0.04]">
           {/* Фоновая тактическая сетка */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)] pointer-events-none -z-10" />
           {/* Мягкая рассеянная неоновая сфера (flare) прямо за названием игры */}
@@ -116,17 +116,17 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
           </div>
 
           {/* Заголовок с градиентным металлическим блеском */}
-          <h1 className="text-3xl xs:text-4xl sm:text-5xl font-display font-black tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-100 to-zinc-400 drop-shadow-[0_4px_25px_rgba(255,255,255,0.15)] leading-tight max-w-[340px] xs:max-w-md sm:max-w-xl">
+          <h1 className="text-2xl xs:text-3xl sm:text-5xl font-display font-black tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-100 to-zinc-400 drop-shadow-[0_4px_25px_rgba(255,255,255,0.15)] leading-tight max-w-[340px] xs:max-w-md sm:max-w-xl">
             {title || "ПОД ПОДОЗРЕНИЕМ"}
           </h1>
 
           {/* Подзаголовок прямо под названием */}
-          <div className="text-xs sm:text-sm font-mono tracking-[0.25em] sm:tracking-[0.3em] uppercase text-accent-primary font-bold mt-2 sm:mt-2.5">
+          <div className="text-xs sm:text-sm font-sans tracking-[0.25em] sm:tracking-[0.3em] uppercase text-accent-primary font-bold mt-1.5 sm:mt-2.5">
             ТАКТИЧЕСКИЙ ДЕТЕКТИВ
           </div>
 
           {/* Тонкий неоновый разделитель */}
-          <div className="w-24 sm:w-36 h-px bg-gradient-to-r from-transparent via-accent-primary/40 to-transparent my-3 sm:my-3.5" />
+          <div className="w-24 sm:w-36 h-px bg-gradient-to-r from-transparent via-accent-primary/40 to-transparent my-2 sm:my-3.5" />
 
           {/* Лозунг игры */}
           <p className="text-xs sm:text-sm font-sans text-zinc-300 tracking-wide max-w-[280px] sm:max-w-sm leading-relaxed">
@@ -150,7 +150,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
                 <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-zinc-200 group-hover:text-white whitespace-normal">
                   {t.menu.rulebook || "Справочник"}
                 </span>
-                <span className="text-[8px] sm:text-[9px] font-mono text-zinc-500 uppercase tracking-widest whitespace-normal">
+                <span className="text-[8px] sm:text-[9px] font-sans font-semibold text-zinc-500 uppercase tracking-widest whitespace-normal">
                   {t.menu.rulebookDesc || "Правила игры"}
                 </span>
               </div>
@@ -171,7 +171,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
                 <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-zinc-200 group-hover:text-white whitespace-normal">
                   {t.menu.tutorial || "Академия"}
                 </span>
-                <span className="text-[8px] sm:text-[9px] font-mono text-zinc-500 uppercase tracking-widest whitespace-normal">
+                <span className="text-[8px] sm:text-[9px] font-sans font-semibold text-zinc-500 uppercase tracking-widest whitespace-normal">
                   {t.menu.tutorialDesc || "Обучающий курс"}
                 </span>
               </div>
@@ -247,7 +247,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
                     <Icons.Play />
                   </div>
                   <div className="flex flex-col text-left">
-                    <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-zinc-300 flex items-center gap-1.5">
+                    <span className="text-[9px] sm:text-[10px] font-sans font-semibold uppercase tracking-widest text-zinc-300 flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                       ДЕЛО ПРИОСТАНОВЛЕНО
                     </span>

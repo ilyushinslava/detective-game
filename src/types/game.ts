@@ -108,10 +108,10 @@ export interface GameState {
   inspectorTargetId?: string | null;
 }
 export const SPY_COLORS = [
-  { text: "text-red-400", bg: "bg-red-950", border: "border-red-500", ring: "ring-red-500/80" },
-  { text: "text-blue-400", bg: "bg-blue-950", border: "border-blue-500", ring: "ring-blue-500/80" },
-  { text: "text-rose-400", bg: "bg-rose-950", border: "border-rose-700", ring: "ring-rose-700/80" },
-  { text: "text-emerald-400", bg: "bg-emerald-950", border: "border-emerald-600", ring: "ring-emerald-600/80" },
-  { text: "text-zinc-300", bg: "bg-zinc-800", border: "border-zinc-500", ring: "ring-zinc-400/80" },
-  { text: "text-indigo-400", bg: "bg-indigo-950", border: "border-indigo-600", ring: "ring-indigo-600/80" },
+  { name: "Фантом", text: "text-red-400", bg: "bg-red-950", border: "border-red-500", ring: "ring-red-500/80" },
+  { name: "Призрак", text: "text-blue-400", bg: "bg-blue-950", border: "border-blue-500", ring: "ring-blue-500/80" },
+  { name: "Филин", text: "text-rose-400", bg: "bg-rose-950", border: "border-rose-700", ring: "ring-rose-700/80" },
+  { name: "Спектр", text: "text-emerald-400", bg: "bg-emerald-950", border: "border-emerald-600", ring: "ring-emerald-600/80" },
+  { name: "Орион", text: "text-zinc-300", bg: "bg-zinc-800", border: "border-zinc-500", ring: "ring-zinc-400/80" },
+  { name: "Зенит", text: "text-indigo-400", bg: "bg-indigo-950", border: "border-indigo-600", ring: "ring-indigo-600/80" },
 ];

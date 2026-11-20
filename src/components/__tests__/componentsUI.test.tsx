@@ -20,7 +20,7 @@ describe("UI Компоненты и Тексты", () => {
         onComplete={vi.fn()}
       />
     );
-    expect(screen.getAllByText(/4 трофе/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/4 (компромат|трофе)/i).length).toBeGreaterThan(0);
     unmount();
 
     render(

@@ -146,7 +146,7 @@ export const ActionTilesGrid: React.FC<ActionTilesGridProps> = ({ mode, role }) 
       id: "capture_spy",
       label: "Разоблачение",
       icon: <RoleRevealIcons.Target className={`w-6 h-6 ${isRed ? "text-red-400" : "text-blue-400"}`} />,
-      desc: "Вскрыть соседнего подозреваемого. Если это чужой агент — забрать трофей.",
+      desc: "Вскрыть соседнего подозреваемого. Если это чужой агент — забрать компромат.",
     });
     tiles.push({
       id: "shift",
@@ -170,7 +170,7 @@ export const ActionTilesGrid: React.FC<ActionTilesGridProps> = ({ mode, role }) 
         <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">
           ДОСТУПНЫЕ ДЕЙСТВИЯ
         </span>
-        <span className="text-[8px] font-mono text-zinc-500 uppercase tracking-wider flex items-center gap-1">
+        <span className="text-[8px] font-sans text-zinc-400 font-semibold uppercase tracking-wider flex items-center gap-1">
           <RoleRevealIcons.Info className="w-3 h-3 text-zinc-500" /> Нажмите для деталей
         </span>
       </div>
@@ -185,7 +185,9 @@ export const ActionTilesGrid: React.FC<ActionTilesGridProps> = ({ mode, role }) 
               onClick={() => setActiveTooltip((prev) => (prev === t.id ? null : t.id))}
               className={`rounded-2xl p-3 flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer border ${
                 isCurrent
-                  ? "bg-zinc-800/90 border-white/50 shadow-[0_0_15px_rgba(255,255,255,0.2)] scale-[1.02]"
+                  ? isRed
+                    ? "bg-rose-950/40 border-rose-500/80 shadow-[0_0_15px_rgba(244,63,94,0.3)] scale-[1.02]"
+                    : "bg-blue-950/40 border-blue-500/80 shadow-[0_0_15px_rgba(59,130,246,0.3)] scale-[1.02]"
                   : "bg-zinc-900/80 border-white/10 hover:border-white/30 active:scale-95 shadow-md"
               }`}
             >

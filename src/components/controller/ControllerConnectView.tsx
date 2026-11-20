@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { soundManager } from '../../utils/audio';
 import { triggerHaptic } from '../../utils/haptics';
 import { Button } from '../ui/Button';
@@ -261,6 +262,12 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
   const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
   const strokeDashoffset = RING_CIRCUMFERENCE * (1 - holdProgress);
 
+  const activeBannerText = noticeMessage || errorMessage;
+  const handleDismissBanner = () => {
+    if (noticeMessage && onClearNotice) onClearNotice();
+    if (errorMessage) setErrorMessage(null);
+  };
+
   return (
     <div className="flex h-[100dvh] w-full max-w-full flex-col justify-between bg-[#080a0f] p-4 sm:p-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] text-zinc-100 select-none overflow-hidden font-sans relative">
       {/* Деликатный фирменный Neo-Noir фон со свечением */}
@@ -285,28 +292,35 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
         </Button>
       </div>
 
-      {/* Баннер системного уведомления (например, отключение ТВ-хоста) */}
-      {noticeMessage && (
-        <div className="max-w-sm mx-auto w-full mt-2 relative z-10 shrink-0">
-          <div className="flex items-center justify-between rounded-xl border border-rose-500/40 bg-rose-950/70 p-3 backdrop-blur-md shadow-lg">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-rose-400 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.8)]" />
-              <span className="font-display text-xs font-bold uppercase tracking-wider text-rose-200">
-                {noticeMessage}
-              </span>
-            </div>
-            {onClearNotice && (
+      {/* Плавающий оверлей системных уведомлений и ошибок (Zero Layout Shift) */}
+      <AnimatePresence>
+        {activeBannerText && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.96 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="absolute left-4 right-4 top-[calc(max(0.75rem,env(safe-area-inset-top))+3.75rem)] z-50 max-w-sm mx-auto pointer-events-auto"
+          >
+            <div className="neo-card flex items-center justify-between rounded-2xl border border-rose-500/60 bg-rose-950/95 p-3 backdrop-blur-xl shadow-[0_12px_30px_rgba(0,0,0,0.85),0_0_20px_rgba(244,63,94,0.4)]">
+              <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-rose-400 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.9)]" />
+                <span className="font-display text-xs font-bold uppercase tracking-wider text-rose-100 truncate">
+                  {activeBannerText}
+                </span>
+              </div>
               <button
-                onClick={onClearNotice}
-                className="text-xs text-rose-300 hover:text-white p-1 rounded cursor-pointer transition touch-manipulation flex items-center justify-center"
+                type="button"
+                onClick={handleDismissBanner}
+                className="text-xs text-rose-300 hover:text-white p-1 rounded-lg cursor-pointer transition touch-manipulation flex items-center justify-center shrink-0 hover:bg-white/10"
                 aria-label="Закрыть"
               >
                 <Icons.Close className="w-3.5 h-3.5" />
               </button>
-            )}
-          </div>
-        </div>
-      )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Позывной агента */}
       <div className="max-w-sm mx-auto w-full my-2 relative z-10 shrink-0">
@@ -425,12 +439,6 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
                 );
               })}
             </div>
-
-            {errorMessage && (
-              <div className="p-2 px-3 rounded-xl bg-red-950/70 border border-red-500/60 text-xs font-sans font-medium text-red-200 shadow-[0_0_12px_rgba(239,68,68,0.3)]">
-                {errorMessage}
-              </div>
-            )}
           </div>
 
           {/* Телеграфный ключ */}

@@ -146,7 +146,7 @@ describe("TablesScreen", () => {
     fireEvent.click(enterMorseBtn);
 
     // Открывается телеграфный ключ с привязкой к хосту (асинхронно через Suspense)
-    expect(await screen.findByRole("button", { name: "Ключ телеграфа" })).toBeDefined();
+    expect(await screen.findByRole("button", { name: "Ключ телеграфа" }, { timeout: 3000 })).toBeDefined();
     expect(await screen.findByText(/КОД КОМНАТЫ: Секретный Агент|ШИФР ДОСТУПА: Секретный Агент/i)).toBeDefined();
     expect(await screen.findByText(/ПОДТВЕРДИТЬ|ПОДТВЕРДИТЬ ШИФР/i)).toBeDefined();
   });

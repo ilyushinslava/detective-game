@@ -224,4 +224,21 @@ describe("ControllerConnectView Component (TASK-NET-002 & Phase 8 Tabs)", () => 
     expect(screen.getByText(/КОД МОРЗЕ/i)).toBeDefined();
     expect(screen.getByText("0/7")).toBeDefined();
   });
+
+  it("рендерит системное уведомление в плавающем оверлее и закрывает по кнопке", () => {
+    const clearNoticeSpy = vi.fn();
+    render(
+      <ControllerConnectView
+        onConnect={vi.fn()}
+        onBackToMenu={vi.fn()}
+        noticeMessage="ТВ-ХОСТ ОТКЛЮЧИЛСЯ"
+        onClearNotice={clearNoticeSpy}
+      />
+    );
+
+    expect(screen.getByText("ТВ-ХОСТ ОТКЛЮЧИЛСЯ")).toBeDefined();
+    const closeBtn = screen.getByRole("button", { name: "Закрыть" });
+    fireEvent.click(closeBtn);
+    expect(clearNoticeSpy).toHaveBeenCalled();
+  });
 });

@@ -55,8 +55,10 @@ export const ControllerLobbyView: React.FC<ControllerLobbyViewProps> = ({
       className="flex h-[100dvh] w-full max-w-full flex-col justify-between bg-[#07090e] p-3 sm:p-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] text-zinc-100 select-none font-sans overflow-hidden relative overscroll-none touch-manipulation"
       style={{ overscrollBehavior: 'none', touchAction: 'manipulation' }}
     >
-      {/* Мягкий нео-нуар градиент */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/25 via-transparent to-black/95 pointer-events-none" />
+      {/* Деликатный фирменный Neo-Noir фон со свечением */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_60%_at_50%_-15%,rgba(37,99,235,0.22),transparent_70%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(225,29,72,0.10),transparent_50%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.08),transparent_40%)] pointer-events-none" />
 
       {/* Верхняя статусная панель */}
       <div className="w-full flex justify-between items-center border-b border-white/10 pb-2.5 gap-2 relative z-10 shrink-0">

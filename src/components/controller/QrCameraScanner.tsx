@@ -133,10 +133,10 @@ export const QrCameraScanner: React.FC<QrCameraScannerProps> = ({
             </svg>
           </div>
           <div className="space-y-1">
-            <div className="text-xs font-mono font-bold uppercase tracking-wider text-red-400">
+            <div className="text-xs font-display font-bold uppercase tracking-wider text-red-400">
               НЕТ ДОСТУПА К КАМЕРЕ
             </div>
-            <div className="text-[11px] font-mono text-zinc-400 max-w-xs leading-relaxed">
+            <div className="text-xs font-sans text-zinc-300 max-w-xs leading-relaxed">
               Разрешите доступ к камере или используйте ввод кода Морзе
             </div>
           </div>
@@ -145,7 +145,7 @@ export const QrCameraScanner: React.FC<QrCameraScannerProps> = ({
               variant="secondary"
               type="button"
               onClick={onManualSwitch}
-              className="text-xs font-mono uppercase tracking-widest"
+              className="text-xs font-sans font-bold uppercase tracking-widest"
             >
               Подключиться по Морзе
             </Button>
@@ -171,7 +171,7 @@ export const QrCameraScanner: React.FC<QrCameraScannerProps> = ({
 
           {/* Статусная подсказка */}
           <div className="relative z-10 mt-4 px-4 py-1.5 rounded-full bg-zinc-950/80 border border-white/10 backdrop-blur-md">
-            <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-300 font-bold flex items-center gap-2">
+            <span className="text-[10px] font-display tracking-widest uppercase text-zinc-300 font-bold flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
               {isInitializing ? "ПОДКЛЮЧЕНИЕ КАМЕРЫ..." : "НАВЕДИТЕ НА QR-КОД ТЕЛЕВИЗОРА"}
             </span>

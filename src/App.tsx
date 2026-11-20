@@ -1142,7 +1142,7 @@ export default function App() {
           (myClientId && Object.keys(tvPlayers)[0] === myClientId)
         );
         return (
-          <div className="fixed inset-0 z-50 bg-background-main">
+          <div className="fixed inset-0 z-50 bg-[#080a0f]">
             <Suspense fallback={<ScreenFallback />}>
               {!tvRoomCode ? (
                 <ControllerConnectView

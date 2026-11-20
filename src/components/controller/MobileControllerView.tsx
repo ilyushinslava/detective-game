@@ -790,12 +790,15 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         className="flex h-[100dvh] w-full max-w-full flex-col items-center justify-between bg-[#07090e] p-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] text-center text-zinc-100 select-none font-sans overflow-y-auto overflow-x-hidden relative overscroll-none touch-manipulation touch-pan-y"
         style={{ overscrollBehavior: 'none', touchAction: 'manipulation' }}
       >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-transparent to-black/90 pointer-events-none" />
+        {/* Деликатный фирменный Neo-Noir фон со свечением */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_60%_at_50%_-15%,rgba(37,99,235,0.22),transparent_70%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(225,29,72,0.10),transparent_50%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.08),transparent_40%)] pointer-events-none" />
 
         <div className="w-full flex justify-between items-center border-b border-white/10 pb-3 relative z-10">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-            <span className="text-xs font-mono uppercase tracking-widest text-zinc-300 font-bold">ПОДКЛЮЧЕНО К ТВ</span>
+            <span className="text-xs font-display uppercase tracking-widest text-zinc-300 font-bold">ПОДКЛЮЧЕНО К ТВ</span>
           </div>
         </div>
 
@@ -851,11 +854,18 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         className="flex h-[100dvh] w-full max-w-full flex-col justify-between bg-[#07090e] p-3 sm:p-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] text-zinc-100 select-none font-sans overflow-hidden relative overscroll-none touch-manipulation"
         style={{ overscrollBehavior: 'none', touchAction: 'manipulation' }}
       >
+        {/* Деликатный фирменный Neo-Noir фон со свечением */}
         <div
-          className={`absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] ${
-            isWinner ? 'from-blue-950/30' : 'from-rose-950/30'
-          } via-transparent to-black/95 pointer-events-none`}
+          className={`absolute inset-0 bg-[radial-gradient(ellipse_100%_60%_at_50%_-15%,${
+            isWinner ? 'rgba(37,99,235,0.22)' : 'rgba(225,29,72,0.22)'
+          },transparent_70%)] pointer-events-none`}
         />
+        <div
+          className={`absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,${
+            isWinner ? 'rgba(37,99,235,0.10)' : 'rgba(225,29,72,0.10)'
+          },transparent_50%)] pointer-events-none`}
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.03),transparent_40%)] pointer-events-none" />
 
         {/* Шапка */}
         <div className="w-full flex justify-between items-center border-b border-white/10 pb-2.5 gap-2 relative z-10 shrink-0">
@@ -1316,10 +1326,18 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       className="flex h-[100dvh] w-full max-w-full flex-col justify-between bg-[#07090e] p-4 sm:p-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] text-zinc-100 select-none overflow-y-auto overflow-x-hidden font-sans relative overscroll-none touch-manipulation touch-pan-y"
       style={{ overscrollBehavior: 'none', touchAction: 'manipulation' }}
     >
-      {/* Мягкая контровая подсветка нео-нуара */}
-      <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] ${
-        isKiller ? 'from-rose-950/25' : 'from-blue-950/30'
-      } via-transparent to-black/90 pointer-events-none`} />
+      {/* Деликатный фирменный Neo-Noir фон со свечением */}
+      <div
+        className={`absolute inset-0 bg-[radial-gradient(ellipse_100%_60%_at_50%_-15%,${
+          isKiller ? 'rgba(225,29,72,0.22)' : 'rgba(37,99,235,0.22)'
+        },transparent_70%)] pointer-events-none`}
+      />
+      <div
+        className={`absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,${
+          isKiller ? 'rgba(225,29,72,0.10)' : 'rgba(37,99,235,0.10)'
+        },transparent_50%)] pointer-events-none`}
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.03),transparent_40%)] pointer-events-none" />
 
       {/* Верхний статус роли */}
       <div className="flex items-center justify-between border-b border-white/10 pb-2.5 gap-2 relative z-10 shrink-0">

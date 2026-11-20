@@ -146,7 +146,10 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
     ? connectedPlayers
     : players;
   const playerEntries = Object.entries(rawPlayers || {});
-  const isReadyToStart = roomStatus === "READY_TO_START" || (playerEntries.length >= 2 && playerEntries.every(([id]) => readyClients?.has(id)));
+  const isReadyToStart =
+    roomStatus === "READY_TO_START" &&
+    playerEntries.length >= 2 &&
+    (readyClients ? playerEntries.every(([id]) => readyClients.has(id)) : true);
   const canStart = isPassAndPlay ? playerEntries.length >= 1 : isReadyToStart;
 
   useEffect(() => {

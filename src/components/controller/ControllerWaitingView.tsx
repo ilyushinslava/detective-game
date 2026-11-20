@@ -65,12 +65,18 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
       className="flex h-[100dvh] w-full max-w-full flex-col items-center justify-between bg-[#07090e] p-4 sm:p-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] text-center text-zinc-100 select-none font-sans overflow-y-auto overflow-x-hidden relative overscroll-none touch-manipulation touch-pan-y"
       style={{ overscrollBehavior: "none", touchAction: "manipulation" }}
     >
-      {/* Мягкая контровая подсветка нео-нуара */}
+      {/* Деликатный фирменный Neo-Noir фон со свечением */}
       <div
-        className={`absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] ${
-          isKiller ? "from-rose-950/20" : "from-blue-950/25"
-        } via-transparent to-black/90 pointer-events-none`}
+        className={`absolute inset-0 bg-[radial-gradient(ellipse_100%_60%_at_50%_-15%,${
+          isKiller ? "rgba(225,29,72,0.22)" : "rgba(37,99,235,0.22)"
+        },transparent_70%)] pointer-events-none`}
       />
+      <div
+        className={`absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,${
+          isKiller ? "rgba(225,29,72,0.10)" : "rgba(37,99,235,0.10)"
+        },transparent_50%)] pointer-events-none`}
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.03),transparent_40%)] pointer-events-none" />
 
       {/* Верхняя статусная строка синхронизации */}
       <div className="w-full flex justify-between items-center border-b border-white/10 pb-2.5 gap-2 relative z-10 shrink-0">

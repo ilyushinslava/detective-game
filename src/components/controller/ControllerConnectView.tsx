@@ -263,8 +263,10 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
 
   return (
     <div className="flex h-[100dvh] w-full max-w-full flex-col justify-between bg-[#080a0f] p-4 sm:p-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] text-zinc-100 select-none overflow-hidden font-sans relative">
-      {/* Мягкая контровая подсветка нео-нуара */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-transparent to-black/90 pointer-events-none" />
+      {/* Деликатный фирменный Neo-Noir фон со свечением */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_60%_at_50%_-15%,rgba(37,99,235,0.22),transparent_70%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(225,29,72,0.10),transparent_50%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.08),transparent_40%)] pointer-events-none" />
 
       {/* Верхний статус-бар */}
       <div className="flex items-center justify-between border-b border-white/10 pb-3 relative z-10 shrink-0">
@@ -309,9 +311,9 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
       {/* Позывной агента */}
       <div className="max-w-sm mx-auto w-full my-2 relative z-10 shrink-0">
         <div className="neo-card p-3 rounded-2xl space-y-1">
-          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-zinc-400">
+          <div className="flex items-center justify-between text-[10px] font-display uppercase tracking-widest text-zinc-400 font-bold">
             <span>ПОЗЫВНОЙ АГЕНТА</span>
-            <span className="text-blue-400 font-bold tracking-wider">ПОДКЛЮЧЕНИЕ К ТВ</span>
+            <span className="text-blue-400 tracking-wider">ПОДКЛЮЧЕНИЕ К ТВ</span>
           </div>
           <input
             type="text"
@@ -319,7 +321,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
             value={nickname}
             onChange={(e) => handleNicknameChange(e.target.value)}
             placeholder="Агент"
-            className="w-full min-h-[44px] px-3.5 py-2 rounded-xl bg-zinc-900/90 border border-white/10 text-zinc-100 text-xs font-mono uppercase font-bold focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/40 tracking-wider shadow-inner"
+            className="w-full min-h-[44px] px-3.5 py-2 rounded-xl bg-zinc-900/90 border border-white/10 text-zinc-100 text-xs font-sans uppercase font-bold focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/40 tracking-wider shadow-inner"
           />
         </div>
       </div>
@@ -400,7 +402,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
               <span className="text-[10px] font-display uppercase tracking-[0.25em] text-zinc-400 font-bold">
                 КОД МОРЗЕ
               </span>
-              <span className="text-[10px] font-mono text-blue-400 font-bold tracking-wider">
+              <span className="text-[10px] font-sans text-blue-400 font-bold tracking-wider">
                 {morseBuffer.length}/7
               </span>
             </div>
@@ -425,7 +427,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
             </div>
 
             {errorMessage && (
-              <div className="p-2 px-3 rounded-xl bg-red-950/70 border border-red-500/60 text-xs font-mono text-red-200 shadow-[0_0_12px_rgba(239,68,68,0.3)]">
+              <div className="p-2 px-3 rounded-xl bg-red-950/70 border border-red-500/60 text-xs font-sans font-medium text-red-200 shadow-[0_0_12px_rgba(239,68,68,0.3)]">
                 {errorMessage}
               </div>
             )}
@@ -539,7 +541,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
               fullWidth
               onClick={handleResolveAndConnect}
               disabled={!isReadyMorse || isSearching}
-              className={`min-h-[50px] rounded-2xl text-xs font-display font-bold uppercase tracking-widest transition cursor-pointer ${
+              className={`min-h-[50px] rounded-2xl text-xs font-sans font-bold uppercase tracking-widest transition cursor-pointer ${
                 !isReadyMorse || isSearching
                   ? 'opacity-40 cursor-not-allowed bg-zinc-900/50 border-white/10 text-zinc-500'
                   : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 border border-blue-400/50 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] active:scale-95'

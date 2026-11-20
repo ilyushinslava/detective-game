@@ -203,16 +203,16 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
       {/* Основной контент: строго 2 изолированные колонки с эффектом плотного матового стекла */}
       <div className="grid grid-cols-2 gap-6 lg:gap-8 my-auto flex-1 min-h-0 items-stretch w-full max-w-7xl mx-auto relative z-10 py-2">
         
-        {/* ЛЕВАЯ КОЛОНКА: Терминал доступа (Чистый QR 240px + Морзе, без технического мусора и переполнения) */}
-        <div className="neo-card flex flex-col items-center justify-between p-5 lg:p-6 rounded-3xl border-t-2 border-t-rose-500/60 shadow-[0_20px_50px_rgba(0,0,0,0.7)] text-center h-full min-h-0">
+        {/* ЛЕВАЯ КОЛОНКА: Терминал доступа (Чистый QR + Морзе, сбалансированная верстка без пустот) */}
+        <div className="neo-card flex flex-col items-center justify-center gap-5 lg:gap-8 p-5 lg:p-6 rounded-3xl border-t-2 border-t-rose-500/60 shadow-[0_20px_50px_rgba(0,0,0,0.7)] text-center h-full min-h-0">
           <div className="w-full flex flex-col items-center">
-            <div className="text-rose-200/80 tracking-[0.35em] font-bold text-xs uppercase mb-3">
+            <div className="text-rose-200/80 tracking-[0.35em] font-display font-bold text-xs uppercase mb-3">
               ПОДКЛЮЧЕНИЕ СО СМАРТФОНА
             </div>
 
             {/* Чистый увеличенный QR-код на премиальной белой подложке со свечением */}
-            <div className="p-3.5 rounded-2xl bg-white shadow-[0_0_35px_rgba(255,255,255,0.25)] mb-3 transition-transform duration-300 hover:scale-102">
-              <QRCodeSVG value={joinUrl} size={240} level="M" />
+            <div className="p-3.5 lg:p-4 rounded-2xl bg-white shadow-[0_0_35px_rgba(255,255,255,0.25)] mb-3 transition-transform duration-300 hover:scale-102">
+              <QRCodeSVG value={joinUrl} size={270} level="M" />
             </div>
 
             <div className="text-sm font-sans text-white/75 max-w-sm mx-auto leading-normal">
@@ -241,7 +241,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
             </div>
 
             <div className="text-xs font-sans text-white/70 mt-2 font-medium">
-              Сигналы на пульте: <span className="text-rose-300 font-mono font-bold">Клик = Точка (•)</span>, <span className="text-rose-300 font-mono font-bold">Удержание = Тире (—)</span>
+              Сигналы на пульте: <span className="text-rose-300 font-sans font-bold">Клик = Точка (•)</span>, <span className="text-rose-300 font-sans font-bold">Удержание = Тире (—)</span>
             </div>
           </div>
         </div>
@@ -297,15 +297,15 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
                       soundManager.play('click');
                       setSelectedMode(m.id);
                     }}
-                    className={`p-2.5 lg:p-3 rounded-2xl border text-left transition-all duration-300 cursor-pointer flex flex-col justify-between gap-1 backdrop-blur-md ${
+                    className={`p-2.5 lg:p-3 rounded-2xl border text-left transition-all duration-300 cursor-pointer flex flex-col justify-between gap-1.5 backdrop-blur-md ${
                       isSelected ? theme.selected : theme.normal
                     } ${theme.focus} focus:outline-none`}
                   >
-                    <div className="flex items-center justify-between w-full">
-                      <span className="text-xs lg:text-sm font-display font-black uppercase text-white tracking-wide drop-shadow-sm truncate">
+                    <div className="flex items-start justify-between w-full gap-1.5">
+                      <span className="text-xs lg:text-sm font-display font-black uppercase text-white tracking-wide leading-tight drop-shadow-sm">
                         {m.label}
                       </span>
-                      <span className={`text-[9px] lg:text-[10px] font-display font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${theme.badge}`}>
+                      <span className={`text-[9px] lg:text-[10px] font-display font-bold px-2 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap shrink-0 ${theme.badge}`}>
                         {m.badge}
                       </span>
                     </div>
@@ -321,7 +321,7 @@ export const TvLobbyView: React.FC<TvLobbyViewProps> = ({
           {/* Секция 2: Зона «ИГРОКИ» — компактная сетка без скроллбара */}
           <div className="neo-card p-4 lg:p-5 rounded-3xl border-t-2 border-t-blue-500/50 shadow-[0_20px_50px_rgba(0,0,0,0.7)] flex-1 flex flex-col justify-between min-h-0">
             <div className="flex items-center justify-between mb-2 shrink-0">
-              <span className="text-xs sm:text-sm font-mono font-bold uppercase tracking-widest text-zinc-300">
+              <span className="text-xs sm:text-sm font-display font-bold uppercase tracking-widest text-zinc-300">
                 ИГРОКИ В СЕТИ ({playerEntries.length}/2)
               </span>
               <span className="text-xs font-sans text-white/50 font-medium">

@@ -62,7 +62,7 @@ export const ControllerLobbyView: React.FC<ControllerLobbyViewProps> = ({
       <div className="w-full flex justify-between items-center border-b border-white/10 pb-2.5 gap-2 relative z-10 shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <span className="h-2 w-2 rounded-full shrink-0 bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
-          <span className="text-[11px] sm:text-xs font-mono uppercase tracking-widest text-zinc-300 font-bold truncate">
+          <span className="text-[11px] sm:text-xs font-display uppercase tracking-wider text-zinc-200 font-bold truncate">
             ВЫ В ЛОББИ
           </span>
         </div>
@@ -76,7 +76,7 @@ export const ControllerLobbyView: React.FC<ControllerLobbyViewProps> = ({
                 triggerHaptic('light');
                 onLeaveRoom();
               }}
-              className="text-[11px] h-8 px-2.5 text-zinc-400 hover:text-white"
+              className="text-[11px] h-8 px-2.5 font-sans font-bold uppercase tracking-wider text-zinc-400 hover:text-white"
             >
               ПОКИНУТЬ ЛОББИ
             </Button>
@@ -90,13 +90,13 @@ export const ControllerLobbyView: React.FC<ControllerLobbyViewProps> = ({
         <div className="neo-card p-3 sm:p-3.5 rounded-2xl border-white/10 bg-zinc-950/70 flex flex-col gap-2 shrink-0">
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold">
+              <div className="text-[10px] font-display uppercase tracking-widest text-zinc-400 font-bold">
                 {isHost ? 'ХОСТ КОМНАТЫ' : 'ИГРОК'}
               </div>
-              <div className="text-sm sm:text-base font-black text-white truncate">{myNickname}</div>
+              <div className="text-sm sm:text-base font-display font-black text-white truncate">{myNickname}</div>
             </div>
             <span
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+              className={`text-[10px] font-display font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
                 isReady
                   ? 'bg-blue-950/80 border border-blue-500/50 text-blue-300 shadow-[0_0_8px_rgba(37,99,235,0.3)]'
                   : 'bg-zinc-900 border border-white/10 text-zinc-500'
@@ -107,16 +107,12 @@ export const ControllerLobbyView: React.FC<ControllerLobbyViewProps> = ({
           </div>
 
           <Button
-            variant={isReady ? 'primary-info' : 'secondary'}
+            variant={isReady ? 'primary' : 'secondary'}
             onClick={() => {
               triggerHaptic('medium');
               onToggleReady();
             }}
-            className={`w-full h-11 min-h-[44px] rounded-xl font-bold uppercase tracking-wider text-xs sm:text-sm transition-all ${
-              isReady
-                ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
-                : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-white/15'
-            }`}
+            className="w-full h-11 min-h-[44px] rounded-xl font-sans font-bold uppercase tracking-wider text-xs sm:text-sm transition-all"
           >
             <div className="flex items-center justify-center gap-2">
               <span className={`w-2 h-2 rounded-full ${isReady ? 'bg-white' : 'bg-zinc-500 animate-pulse'}`} />
@@ -132,8 +128,8 @@ export const ControllerLobbyView: React.FC<ControllerLobbyViewProps> = ({
               {opponent ? '2' : '?'}
             </div>
             <div className="min-w-0 truncate">
-              <div className="text-[10px] font-mono uppercase text-zinc-500 font-bold">ОППОНЕНТ</div>
-              <div className="text-xs sm:text-sm font-bold text-zinc-200 truncate">
+              <div className="text-[10px] font-display uppercase text-zinc-400 font-bold tracking-wider">ОППОНЕНТ</div>
+              <div className="text-xs sm:text-sm font-display font-bold text-zinc-200 truncate">
                 {opponent ? opponent.nickname : 'Ожидание подключения...'}
               </div>
             </div>
@@ -141,7 +137,7 @@ export const ControllerLobbyView: React.FC<ControllerLobbyViewProps> = ({
           <div className="shrink-0">
             {opponent ? (
               <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                className={`text-[10px] font-display font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
                   opponentReady
                     ? 'bg-blue-950/60 border border-blue-500/40 text-blue-300'
                     : 'bg-zinc-900 border border-white/10 text-zinc-500'
@@ -150,7 +146,7 @@ export const ControllerLobbyView: React.FC<ControllerLobbyViewProps> = ({
                 {opponentReady ? 'ГОТОВ' : 'ОЖИДАНИЕ'}
               </span>
             ) : (
-              <span className="text-[10px] font-mono text-zinc-500 animate-pulse">ПОИСК...</span>
+              <span className="text-[10px] font-display font-bold text-zinc-500 animate-pulse tracking-wider">ПОИСК...</span>
             )}
           </div>
         </div>
@@ -158,7 +154,7 @@ export const ControllerLobbyView: React.FC<ControllerLobbyViewProps> = ({
         {/* Настройки партии (Хост управляет, Гость видит выбранное) */}
         {isHost ? (
           <div className="neo-card p-3 rounded-2xl border-white/10 bg-zinc-950/70 flex flex-col gap-2 shrink-0">
-            <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold">
+            <div className="text-[10px] font-display uppercase tracking-widest text-zinc-400 font-bold">
               РЕЖИМ ИГРЫ (ВЫБОР ХОСТА)
             </div>
             <div className="grid grid-cols-3 gap-1.5">
@@ -178,13 +174,13 @@ export const ControllerLobbyView: React.FC<ControllerLobbyViewProps> = ({
                         : 'bg-zinc-900/60 border-white/10 text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
-                    <div className="text-[11px] font-bold uppercase truncate">{m.badge}</div>
+                    <div className="text-[11px] font-display font-bold uppercase tracking-wider truncate">{m.badge}</div>
                   </button>
                 );
               })}
             </div>
 
-            <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold mt-1">
+            <div className="text-[10px] font-display uppercase tracking-widest text-zinc-400 font-bold mt-1">
               РАСПРЕДЕЛЕНИЕ РОЛЕЙ
             </div>
             <div className="grid grid-cols-3 gap-1.5">
@@ -208,7 +204,7 @@ export const ControllerLobbyView: React.FC<ControllerLobbyViewProps> = ({
                         : 'bg-zinc-900/60 border-white/10 text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
-                    <div className="text-[10px] uppercase truncate">{r.label}</div>
+                    <div className="text-[10px] font-display font-bold uppercase tracking-wider truncate">{r.label}</div>
                   </button>
                 );
               })}
@@ -216,10 +212,10 @@ export const ControllerLobbyView: React.FC<ControllerLobbyViewProps> = ({
           </div>
         ) : (
           <div className="neo-card p-3 rounded-2xl border-white/10 bg-zinc-950/70 flex flex-col gap-1.5 shrink-0 text-left">
-            <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold">
+            <div className="text-[10px] font-display uppercase tracking-widest text-zinc-400 font-bold">
               РЕЖИМ ПАРТИИ
             </div>
-            <div className="text-sm font-black text-white">
+            <div className="text-sm font-display font-black text-white">
               {MODES.find((m) => m.id === selectedMode)?.label || 'Маньяк против Сыщика'}
             </div>
             <div className="text-[11px] text-zinc-400 font-sans">
@@ -242,11 +238,7 @@ export const ControllerLobbyView: React.FC<ControllerLobbyViewProps> = ({
               }
             }}
             disabled={!canStartMatch}
-            className={`w-full h-12 min-h-[48px] rounded-2xl font-black uppercase tracking-wider text-sm sm:text-base transition-all ${
-              canStartMatch
-                ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white shadow-[0_0_25px_rgba(37,99,235,0.45)]'
-                : 'bg-zinc-900/80 border-white/10 text-zinc-500 cursor-not-allowed'
-            }`}
+            className="w-full h-12 min-h-[48px] rounded-2xl font-sans font-bold uppercase tracking-wider text-sm sm:text-base transition-all"
           >
             <div className="flex items-center justify-center gap-2">
               <Icons.Play className="w-4 h-4" />

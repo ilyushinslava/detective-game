@@ -277,7 +277,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
         <Button
           variant="ghost"
           onClick={onBackToMenu}
-          className="min-h-[44px] px-3.5 text-xs font-mono uppercase text-zinc-400 hover:text-white rounded-xl border border-white/5 hover:border-white/15 bg-zinc-900/40 transition cursor-pointer flex items-center justify-center"
+          className="min-h-[44px] px-3.5 text-xs font-sans font-bold uppercase text-zinc-400 hover:text-white rounded-xl border border-white/5 hover:border-white/15 bg-zinc-900/40 transition cursor-pointer flex items-center justify-center tracking-wider"
         >
           В МЕНЮ
         </Button>
@@ -513,7 +513,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
                   type="button"
                   onClick={handleClear}
                   disabled={!morseBuffer}
-                  className="min-h-[44px] px-4 py-2 text-xs font-mono uppercase text-zinc-400 hover:text-white"
+                  className="min-h-[44px] px-4 py-2 text-xs font-sans font-bold uppercase tracking-wider text-zinc-400 hover:text-white"
                 >
                   Сброс
                 </Button>
@@ -523,7 +523,7 @@ export const ControllerConnectView: React.FC<ControllerConnectViewProps> = ({
                   type="button"
                   onClick={handleBackspace}
                   disabled={!morseBuffer}
-                  className="min-h-[44px] px-4 py-2 text-xs font-mono uppercase text-rose-400 hover:text-rose-300 gap-1.5"
+                  className="min-h-[44px] px-4 py-2 text-xs font-sans font-bold uppercase tracking-wider text-rose-400 hover:text-rose-300 gap-1.5"
                 >
                   <Icons.Backspace className="w-3.5 h-3.5 text-rose-400" />
                   <span>Удалить</span>

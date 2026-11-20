@@ -958,8 +958,8 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
               return (
                 <div key={spy.id || idx} className="flex items-center gap-2.5">
                   <span className={`h-3 w-3 rounded-full ${color.bg} border ${color.border} shadow-[0_0_8px_rgba(255,255,255,0.4)]`} />
-                  <span className="text-sm sm:text-base font-bold tracking-wide text-zinc-300">
-                    {spy.name}: <span className={`${color.text} font-mono font-black text-base sm:text-lg`}>{spy.trophies}/{killerTarget}</span>
+                  <span className="text-base sm:text-lg font-bold tracking-wide text-zinc-200 font-display">
+                    {spy.name}: <span className={`${color.text} font-mono font-black text-lg sm:text-2xl`}>{spy.trophies}/{killerTarget}</span>
                   </span>
                 </div>
               );
@@ -969,9 +969,9 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
               <div className="flex items-center gap-3">
                 <span className="h-3 w-3 rounded-full bg-accent-danger shadow-[0_0_10px_rgba(225,29,72,0.8)] shrink-0" />
                 <div className="leading-tight">
-                  <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 block font-bold">{killerRoleName}</span>
-                  <span className="text-base sm:text-xl font-mono font-black text-rose-400">
-                    {killerScore} <span className="text-xs text-zinc-400 font-semibold">/ {killerTarget} ЖЕРТВ</span>
+                  <span className="text-xs sm:text-sm font-display uppercase tracking-wider text-zinc-400 block font-bold">{killerRoleName}</span>
+                  <span className="text-lg sm:text-2xl font-mono font-black text-rose-400">
+                    {killerScore} <span className="text-xs sm:text-sm text-zinc-300 font-display font-bold uppercase tracking-wider">/ {killerTarget} ЖЕРТВ</span>
                   </span>
                 </div>
               </div>
@@ -979,9 +979,9 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
               <div className="flex items-center gap-3">
                 <span className="h-3 w-3 rounded-full bg-accent-primary shadow-[0_0_10px_rgba(37,99,235,0.8)] shrink-0" />
                 <div className="leading-tight">
-                  <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 block font-bold">{detectiveRoleName}</span>
-                  <span className="text-base sm:text-xl font-mono font-black text-blue-400">
-                    {detectiveScore} <span className="text-xs text-zinc-400 font-semibold">/ {detectiveTarget} ОПРАВДАНО</span>
+                  <span className="text-xs sm:text-sm font-display uppercase tracking-wider text-zinc-400 block font-bold">{detectiveRoleName}</span>
+                  <span className="text-lg sm:text-2xl font-mono font-black text-blue-400">
+                    {detectiveScore} <span className="text-xs sm:text-sm text-zinc-300 font-display font-bold uppercase tracking-wider">/ {detectiveTarget} ОПРАВДАНО</span>
                   </span>
                 </div>
               </div>

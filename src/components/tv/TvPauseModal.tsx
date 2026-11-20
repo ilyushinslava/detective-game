@@ -99,12 +99,13 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
 
   // 1. Аварийный режим отключения игрока (2 колонки: статус + QR/Морзе)
   if (isDisconnected) {
-    const playerName =
+    const rawName =
       effectiveDisconnected?.nickname ||
-      effectiveDisconnected?.name ||
-      effectiveDisconnected?.playerId ||
-      effectiveDisconnected?.clientId ||
-      'Игрок';
+      effectiveDisconnected?.name;
+    const playerName =
+      rawName && !rawName.startsWith('client_') && rawName !== effectiveDisconnected?.clientId
+        ? rawName
+        : 'Игрок';
 
     const playerRole =
       effectiveDisconnected?.role === 'criminal' || effectiveDisconnected?.role === 'KILLER'
@@ -116,17 +117,10 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
         data-testid="tv-player-disconnected-banner"
         className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 backdrop-blur-md p-6 select-none font-sans"
       >
-        <div className="neo-card w-full max-w-4xl border-zinc-700/80 bg-zinc-950/95 p-8 shadow-2xl relative overflow-hidden transition-all duration-300">
-          {/* Акцентная полоса */}
-          <div
-            className={`absolute top-0 left-0 right-0 h-1.5 ${
-              isTimeExpired ? 'bg-rose-600' : 'bg-amber-500 animate-pulse'
-            }`}
-          />
-
+        <div className={`neo-card w-full max-w-4xl border-t-2 ${isTimeExpired ? 'border-t-rose-600' : 'border-t-amber-500'} bg-zinc-950/95 p-8 shadow-2xl relative overflow-hidden transition-all duration-300`}>
           <div className="flex items-center justify-between pb-6 border-b border-zinc-800">
             <div className="flex flex-col gap-1">
-              <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-blue-300 font-bold">
+              <div className="inline-flex items-center gap-2 text-xs font-display uppercase tracking-wider text-blue-300 font-bold">
                 <div
                   className={`w-2.5 h-2.5 rounded-full ${
                     isTimeExpired
@@ -136,13 +130,13 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
                 />
                 <span>ВРЕМЕННАЯ ПАУЗА СВЯЗИ • ТАЙМЕР ХОДА ЗАМОРОЖЕН</span>
               </div>
-              <h2 className="text-2xl font-bold tracking-wider text-zinc-100 uppercase font-mono">
+              <h2 className="text-2xl font-bold tracking-wider text-zinc-100 uppercase font-display">
                 {isTimeExpired ? 'Время ожидания истекло' : 'ОЖИДАНИЕ ВОЗВРАЩЕНИЯ ИГРОКА В СЕТЬ'}
               </h2>
             </div>
             {roomCode && (
-              <span className="font-mono text-sm tracking-widest text-zinc-400 bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-md self-start">
-                КОМНАТА #{roomCode}
+              <span className="font-mono text-sm tracking-widest text-zinc-300 bg-zinc-900 border border-white/10 px-3 py-1 rounded-xl self-start font-bold">
+                #{roomCode}
               </span>
             )}
           </div>
@@ -151,20 +145,20 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
             {/* Левая колонка: статус, таймер, пояснения и действия */}
             <div className="flex flex-col justify-between space-y-6">
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-zinc-900/90 border border-zinc-800">
-                  <div className="text-xs uppercase tracking-wider text-zinc-400 font-mono mb-1">
+                <div className="p-4 rounded-2xl bg-zinc-900/90 border border-white/10">
+                  <div className="text-xs uppercase tracking-wider text-zinc-400 font-display font-semibold mb-1">
                     Отключился игрок:
                   </div>
-                  <div className="text-lg font-semibold text-zinc-200 flex items-center gap-2">
-                    <span className="text-rose-400 font-mono">{playerName}</span>
-                    <span className="text-xs font-mono uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+                  <div className="text-lg font-bold text-zinc-100 flex items-center gap-2 font-display">
+                    <span className="text-rose-400">{playerName}</span>
+                    <span className="text-xs font-sans uppercase px-2.5 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-white/10 font-bold">
                       {playerRole}
                     </span>
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-zinc-900/50 border border-zinc-800/80 flex flex-col items-center justify-center text-center">
-                  <div className="text-xs font-mono uppercase text-zinc-400 tracking-widest mb-1">
+                <div className="p-5 rounded-2xl bg-zinc-900/50 border border-white/10 flex flex-col items-center justify-center text-center">
+                  <div className="text-xs font-display uppercase text-zinc-400 tracking-widest mb-1 font-semibold">
                     {isTimeExpired ? 'Время ожидания истекло' : 'Окно переподключения'}
                   </div>
                   <div
@@ -184,7 +178,7 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
                       }}
                     />
                   </div>
-                  <p className="text-xs text-zinc-400 mt-3 max-w-xs leading-relaxed">
+                  <p className="text-xs text-zinc-400 mt-3 max-w-xs leading-relaxed font-sans">
                     Сессия и состояние доски зафиксированы. Ход матча заморожен на время ожидания.
                   </p>
                 </div>
@@ -197,7 +191,7 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
                   size="lg"
                   fullWidth
                   onClick={handleResume}
-                  className="font-mono tracking-wider"
+                  className="font-sans font-bold tracking-wider uppercase text-sm"
                 >
                   ПРОДОЛЖИТЬ ИГРУ
                 </Button>
@@ -208,7 +202,7 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
                       size="md"
                       onClick={onRestart}
                       data-testid="tv-restart-btn"
-                      className="font-mono text-xs tracking-wider"
+                      className="font-sans font-bold text-xs tracking-wider uppercase"
                     >
                       ПЕРЕЗАПУСК
                     </Button>
@@ -219,7 +213,7 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
                       size="md"
                       onClick={onExit}
                       data-testid="tv-exit-btn"
-                      className="font-mono text-xs tracking-wider"
+                      className="font-sans font-bold text-xs tracking-wider uppercase"
                     >
                       ВЫЙТИ В МЕНЮ
                     </Button>
@@ -229,18 +223,18 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
             </div>
 
             {/* Правая колонка: QR-код для повторного входа и Морзе */}
-            <div className="flex flex-col items-center justify-center p-6 bg-zinc-900/40 rounded-xl border border-zinc-800/80 space-y-4">
+            <div className="flex flex-col items-center justify-center p-6 bg-zinc-900/40 rounded-2xl border border-white/10 space-y-4">
               <div className="text-center">
-                <div className="text-xs font-mono uppercase tracking-widest text-zinc-300 font-semibold mb-1">
+                <div className="text-xs font-display uppercase tracking-widest text-zinc-200 font-bold mb-1">
                   Быстрое переподключение
                 </div>
-                <div className="text-[11px] text-zinc-400">
+                <div className="text-[11px] text-zinc-400 font-sans">
                   Наведите камеру смартфона на QR-код
                 </div>
               </div>
 
               {/* QR-код на белой подложке */}
-              <div className="p-3.5 bg-white rounded-xl shadow-lg flex items-center justify-center">
+              <div className="p-3.5 bg-white rounded-2xl shadow-lg flex items-center justify-center">
                 <QRCodeSVG
                   value={qrUrl}
                   size={160}
@@ -249,18 +243,31 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
                 />
               </div>
 
-              {/* Код Морзе */}
+              {/* Код Морзе со светящимися пилюлями точек и тире */}
               {effectiveMorse && (
-                <div className="w-full text-center space-y-1.5 pt-1">
-                  <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
+                <div className="w-full text-center space-y-2 pt-2 border-t border-white/10">
+                  <div className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-zinc-300">
                     Резервный ввод (код Морзе)
                   </div>
-                  <div className="flex justify-center items-center gap-1.5 bg-zinc-950 px-4 py-2 rounded-lg border border-zinc-800 text-blue-400 font-mono tracking-widest text-base">
-                    {effectiveMorse.split(' ').map((char, idx) => (
-                      <span key={idx} className="bg-zinc-900 border border-zinc-700/60 px-2 py-0.5 rounded">
-                        {char}
-                      </span>
+                  <div className="flex flex-nowrap items-center justify-center gap-2.5 py-1.5 w-full">
+                    {effectiveMorse.replace(/\s+/g, '').split('').map((sym, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex items-center justify-center transition-all shrink-0 border border-white/40 ${
+                          sym === '.'
+                            ? 'w-5 h-5 rounded-full bg-white shadow-[0_0_14px_rgba(255,255,255,0.95)]'
+                            : 'w-11 h-5 rounded-full bg-white shadow-[0_0_14px_rgba(255,255,255,0.95)]'
+                        }`}
+                      />
                     ))}
+                  </div>
+                  {effectiveMorse.split(' ').map((chunk, idx) => (
+                    <span key={idx} className="sr-only">
+                      {chunk}
+                    </span>
+                  ))}
+                  <div className="text-[10px] font-sans text-zinc-400">
+                    Клик = Точка (•), Удержание = Тире (—)
                   </div>
                 </div>
               )}
@@ -305,7 +312,7 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
             data-tv-focus-primary="true"
             tabIndex={0}
             onClick={handleResume}
-            className={`font-mono text-sm tracking-wider uppercase ${
+            className={`font-sans font-bold text-sm tracking-wider uppercase ${
               focusedControl === 'CONTINUE'
                 ? 'border-2 border-white ring-2 ring-white scale-105 shadow-[0_0_35px_rgba(59,130,246,0.65)]'
                 : ''
@@ -321,7 +328,7 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
               tabIndex={0}
               onClick={onRestart}
               data-testid="tv-restart-btn"
-              className={`font-mono text-sm tracking-wider uppercase ${
+              className={`font-sans font-bold text-sm tracking-wider uppercase ${
                 focusedControl === 'RESTART'
                   ? 'border-2 border-white ring-2 ring-white bg-white/20 text-white scale-105 shadow-[0_0_30px_rgba(255,255,255,0.45)]'
                   : ''
@@ -338,7 +345,7 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
               tabIndex={0}
               onClick={onExit}
               data-testid="tv-exit-btn"
-              className={`font-mono text-sm tracking-wider uppercase ${
+              className={`font-sans font-bold text-sm tracking-wider uppercase ${
                 focusedControl === 'EXIT'
                   ? 'border-2 border-white ring-2 ring-red-500 scale-105 shadow-[0_0_35px_rgba(244,63,94,0.7)]'
                   : ''
@@ -349,7 +356,7 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
           )}
         </div>
 
-        <div className="p-3.5 rounded-xl bg-black/60 border border-white/10 text-xs sm:text-sm font-mono text-zinc-400 text-left">
+        <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 text-xs sm:text-sm font-sans text-zinc-400 text-left">
           Нажмите [ESC] на пульте или клавишу Назад для закрытия меню паузы.
         </div>
       </div>

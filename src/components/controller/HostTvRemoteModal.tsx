@@ -47,21 +47,19 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md select-none">
-      <div className="neo-card w-full max-w-sm border-zinc-700/80 bg-zinc-950/95 p-6 shadow-2xl relative overflow-hidden transition-all duration-200">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600" />
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md select-none font-sans">
+      <div className="neo-card w-full max-w-sm border-t-2 border-t-blue-500/60 bg-zinc-950/95 p-6 shadow-2xl relative overflow-hidden transition-all duration-200 rounded-3xl">
         {/* Заголовок пульта */}
-        <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
+        <div className="flex items-center justify-between pb-4 border-b border-white/10">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-950/80 border border-blue-600/40 flex items-center justify-center text-blue-400">
+            <div className="w-9 h-9 rounded-xl bg-blue-950/80 border border-blue-500/40 flex items-center justify-center text-blue-400 shadow-[0_0_12px_rgba(37,99,235,0.3)]">
               <Icons.Tv className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold uppercase tracking-wider text-zinc-100 font-mono">
+              <h3 className="text-base font-bold uppercase tracking-wider text-zinc-100 font-display">
                 ТВ Пульт Хоста
               </h3>
-              <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+              <p className="text-[11px] font-sans text-zinc-400 uppercase tracking-widest font-semibold">
                 Дистанционное управление
               </p>
             </div>
@@ -73,7 +71,7 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
               setConfirmState('NONE');
               onClose();
             }}
-            className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center transition active:scale-95 cursor-pointer"
+            className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-zinc-400 hover:text-white flex items-center justify-center transition active:scale-95 cursor-pointer"
           >
             <Icons.Close className="w-4 h-4" />
           </button>
@@ -82,8 +80,8 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
         {/* Тело управления */}
         <div className="py-4 space-y-3">
           {confirmState === 'RESTART' ? (
-            <div className="space-y-3 p-4 rounded-xl bg-zinc-900/90 border border-amber-500/40 text-center">
-              <p className="text-xs text-zinc-200 font-medium">
+            <div className="space-y-3 p-4 rounded-2xl bg-zinc-900/90 border border-amber-500/40 text-center">
+              <p className="text-xs text-zinc-200 font-sans font-medium">
                 Перезапустить матч на телевизоре для всех участников?
               </p>
               <div className="grid grid-cols-2 gap-2 pt-1">
@@ -91,7 +89,7 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
                   variant="secondary"
                   size="sm"
                   onClick={() => setConfirmState('NONE')}
-                  className="text-xs font-mono"
+                  className="text-xs font-sans font-bold uppercase tracking-wider"
                 >
                   ОТМЕНА
                 </Button>
@@ -99,15 +97,15 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
                   variant="primary"
                   size="sm"
                   onClick={handleConfirmRestart}
-                  className="text-xs font-mono"
+                  className="text-xs font-sans font-bold uppercase tracking-wider"
                 >
                   ДА, СБРОС
                 </Button>
               </div>
             </div>
           ) : confirmState === 'LOBBY' ? (
-            <div className="space-y-3 p-4 rounded-xl bg-zinc-900/90 border border-rose-500/40 text-center">
-              <p className="text-xs text-zinc-200 font-medium">
+            <div className="space-y-3 p-4 rounded-2xl bg-zinc-900/90 border border-rose-500/40 text-center">
+              <p className="text-xs text-zinc-200 font-sans font-medium">
                 Прервать текущий матч и вернуть телевизор в комнату ожидания?
               </p>
               <div className="grid grid-cols-2 gap-2 pt-1">
@@ -115,7 +113,7 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
                   variant="secondary"
                   size="sm"
                   onClick={() => setConfirmState('NONE')}
-                  className="text-xs font-mono"
+                  className="text-xs font-sans font-bold uppercase tracking-wider"
                 >
                   ОТМЕНА
                 </Button>
@@ -123,7 +121,7 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
                   variant="danger"
                   size="sm"
                   onClick={handleConfirmLobby}
-                  className="text-xs font-mono"
+                  className="text-xs font-sans font-bold uppercase tracking-wider"
                 >
                   В ЛОББИ
                 </Button>
@@ -137,7 +135,7 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
                 variant={isTvPaused ? "primary" : "secondary"}
                 fullWidth
                 onClick={handleTogglePause}
-                className="font-mono text-xs tracking-wider flex items-center justify-center gap-2"
+                className="font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 min-h-[44px]"
               >
                 <span>{isTvPaused ? 'ПРОДОЛЖИТЬ МАТЧ НА ТВ' : 'ПАУЗА НА ТВ'}</span>
               </Button>
@@ -147,7 +145,7 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
                 variant="secondary"
                 fullWidth
                 onClick={handleToggleMute}
-                className="font-mono text-xs tracking-wider flex items-center justify-center gap-2"
+                className="font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 min-h-[44px]"
               >
                 {isTvMuted ? (
                   <>
@@ -170,7 +168,7 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
                     triggerHaptic('light');
                     setConfirmState('RESTART');
                   }}
-                  className="font-mono text-xs tracking-wider"
+                  className="font-sans font-bold text-xs uppercase tracking-wider min-h-[44px]"
                 >
                   ПЕРЕЗАПУСК
                 </Button>
@@ -180,7 +178,7 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
                     triggerHaptic('light');
                     setConfirmState('LOBBY');
                   }}
-                  className="font-mono text-xs tracking-wider"
+                  className="font-sans font-bold text-xs uppercase tracking-wider min-h-[44px]"
                 >
                   В ЛОББИ
                 </Button>

@@ -915,6 +915,7 @@ export default class GameRoomServer {
           type: "PLAYER_DISCONNECTED",
           role: playerWhoLeft?.role,
           clientId,
+          nickname: playerWhoLeft?.nickname,
           graceTimeoutSec: Math.round(DISCONNECT_GRACE_PERIOD_MS / 1000),
         })
       );

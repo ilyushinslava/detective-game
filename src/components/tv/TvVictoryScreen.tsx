@@ -93,11 +93,11 @@ export const TvVictoryScreen: React.FC<TvVictoryScreenProps> = ({
                 : 'bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.9)] animate-pulse'
             }`}
           />
-          <span className="text-xs lg:text-sm font-mono uppercase tracking-[0.25em] text-zinc-300 font-bold">
+          <span className="text-xs lg:text-sm font-display uppercase tracking-[0.2em] text-zinc-300 font-bold">
             ПРОТОКОЛ ЗАКРЫТИЯ ДЕЛА • {modeTitle}
           </span>
         </div>
-        <div className="text-xs font-mono text-zinc-400 font-bold">
+        <div className="text-xs font-display uppercase tracking-wider text-zinc-400 font-bold">
           РЕЗУЛЬТАТ ПАРТИИ
         </div>
       </div>
@@ -107,7 +107,7 @@ export const TvVictoryScreen: React.FC<TvVictoryScreenProps> = ({
         {/* Главный заголовок триумфа */}
         <div className="text-center mb-4 lg:mb-6 shrink-0">
           <div
-            className={`text-xs sm:text-sm font-mono uppercase tracking-[0.35em] font-bold mb-1.5 ${
+            className={`text-xs sm:text-sm font-display uppercase tracking-[0.25em] font-bold mb-1.5 ${
               isKillerWinner ? 'text-rose-400' : 'text-blue-400'
             }`}
           >
@@ -128,7 +128,7 @@ export const TvVictoryScreen: React.FC<TvVictoryScreenProps> = ({
         <div className="grid grid-cols-2 gap-6 lg:gap-8 w-full items-stretch max-h-[58vh]">
           {/* Левая колонка: Сорванная маска преступника */}
           <div className="neo-card p-4 lg:p-6 rounded-3xl border-t-2 border-t-rose-500/60 bg-zinc-950/70 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.7)] flex flex-col items-center justify-between text-center min-h-0">
-            <div className="text-[11px] lg:text-xs font-mono uppercase tracking-widest text-rose-300/90 font-bold mb-2">
+            <div className="text-[11px] lg:text-xs font-display uppercase tracking-widest text-rose-300/90 font-bold mb-2">
               ТАЙНАЯ ЛИЧНОСТЬ ПРЕСТУПНИКА
             </div>
 
@@ -140,7 +140,7 @@ export const TvVictoryScreen: React.FC<TvVictoryScreenProps> = ({
                   className="w-full h-full object-cover object-top"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-zinc-500 font-mono text-xs">
+                <div className="w-full h-full flex items-center justify-center text-zinc-500 font-sans text-xs">
                   НЕТ ФОТО
                 </div>
               )}
@@ -149,14 +149,14 @@ export const TvVictoryScreen: React.FC<TvVictoryScreenProps> = ({
                 <div className="text-sm lg:text-base font-black text-white font-display truncate">
                   {killer?.name || 'Неизвестный'}
                 </div>
-                <div className="text-[10px] lg:text-xs font-mono text-rose-300 font-bold truncate">
+                <div className="text-[10px] lg:text-xs font-sans text-rose-300 font-bold truncate">
                   {killerRoleName}
                 </div>
               </div>
             </div>
 
             <div className="mt-2 w-full pt-2 border-t border-white/10 flex items-center justify-between text-xs text-zinc-400">
-              <span className="font-mono uppercase text-[10px]">ИГРОК:</span>
+              <span className="font-sans font-bold uppercase text-[10px]">ИГРОК:</span>
               <span className="font-bold text-white truncate max-w-[200px]">
                 {killerNickname || 'Агент Преступника'}
               </span>
@@ -166,7 +166,7 @@ export const TvVictoryScreen: React.FC<TvVictoryScreenProps> = ({
           {/* Правая колонка: Досье партии и детектив */}
           <div className="neo-card p-4 lg:p-6 rounded-3xl border-t-2 border-t-blue-500/60 bg-zinc-950/70 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.7)] flex flex-col justify-between min-h-0">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] lg:text-xs font-mono uppercase tracking-widest text-blue-300/90 font-bold">
+              <span className="text-[11px] lg:text-xs font-display uppercase tracking-widest text-blue-300/90 font-bold">
                 МАТЕРИАЛЫ СЛЕДСТВИЯ
               </span>
               <span className="text-xs font-mono text-zinc-400 font-bold">{elapsedTime}</span>
@@ -175,11 +175,11 @@ export const TvVictoryScreen: React.FC<TvVictoryScreenProps> = ({
             <div className="grid grid-cols-2 gap-3 my-auto">
               <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 text-center">
                 <div className="text-2xl lg:text-3xl font-black text-white font-display">{turnCount}</div>
-                <div className="text-[10px] lg:text-xs font-mono text-zinc-400 uppercase mt-0.5">Всего ходов</div>
+                <div className="text-[10px] lg:text-xs font-sans font-semibold text-zinc-300 uppercase mt-0.5">Всего ходов</div>
               </div>
               <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 text-center">
                 <div className="text-2xl lg:text-3xl font-black text-rose-400 font-display">{eliminatedCount}</div>
-                <div className="text-[10px] lg:text-xs font-mono text-zinc-400 uppercase mt-0.5">Устранено</div>
+                <div className="text-[10px] lg:text-xs font-sans font-semibold text-zinc-300 uppercase mt-0.5">Устранено</div>
               </div>
             </div>
 
@@ -193,19 +193,19 @@ export const TvVictoryScreen: React.FC<TvVictoryScreenProps> = ({
                     className="w-full h-full object-cover object-top"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-zinc-500 font-mono text-[9px]">
+                  <div className="w-full h-full flex items-center justify-center text-zinc-500 font-sans text-[9px]">
                     СЫЩИК
                   </div>
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[10px] font-mono uppercase text-blue-400 font-bold">
+                <div className="text-[10px] font-display uppercase text-blue-400 font-bold tracking-wider">
                   {detectiveRoleName}
                 </div>
-                <div className="text-sm font-bold text-white truncate">
+                <div className="text-sm font-bold text-white truncate font-display">
                   {detective?.name || 'Следственная группа'}
                 </div>
-                <div className="text-[11px] text-zinc-400 truncate">
+                <div className="text-[11px] text-zinc-400 truncate font-sans">
                   Игрок: {detectiveNickname || 'Агент Следствия'}
                 </div>
               </div>
@@ -258,7 +258,7 @@ export const TvVictoryScreen: React.FC<TvVictoryScreenProps> = ({
           </Button>
         </div>
 
-        <div className="text-[11px] font-mono uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+        <div className="text-[11px] font-sans uppercase tracking-wider font-semibold text-zinc-400 flex items-center gap-2">
           <span>D-PAD: ВЛЕВО/ВПРАВО • ВЫБОР: [ENTER] • ХОСТ МОЖЕТ ВЫБРАТЬ РЕВАНШ НА ТЕЛЕФОНЕ</span>
         </div>
       </div>

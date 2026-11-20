@@ -1363,7 +1363,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
               triggerHaptic('light');
               setIsNotebookOpen(true);
             }}
-            className="h-11 min-h-[44px] px-2.5 sm:px-3 rounded-xl bg-zinc-900/90 border border-white/20 text-xs font-mono text-zinc-200 hover:border-blue-400 hover:text-white transition shadow-sm active:scale-95 cursor-pointer backdrop-blur-md flex items-center gap-1"
+            className="h-11 min-h-[44px] px-2.5 sm:px-3 rounded-xl bg-zinc-900/90 border border-white/20 text-xs font-sans font-bold uppercase tracking-wider text-zinc-200 hover:border-blue-400 hover:text-white transition shadow-sm active:scale-95 cursor-pointer backdrop-blur-md flex items-center gap-1.5"
           >
             <Icons.Notebook />
             <span className="hidden xs:inline sm:inline">БЛОКНОТ</span>
@@ -1393,7 +1393,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                 triggerHaptic('light');
                 onExit();
               }}
-              className="h-11 min-h-[44px] px-2 text-[11px] font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer flex items-center rounded-lg hover:bg-zinc-900/40"
+              className="h-11 min-h-[44px] px-2 text-[11px] font-sans font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-300 transition cursor-pointer flex items-center rounded-lg hover:bg-zinc-900/40"
             >
               Выход
             </button>
@@ -1408,13 +1408,13 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             triggerHaptic('light');
             setIsHandSheetOpen(true);
           }}
-          className="my-2 p-3 rounded-2xl bg-gradient-to-br from-slate-900/40 via-zinc-950/80 to-slate-950/80 border border-white/10 shadow-xl cursor-pointer active:scale-[0.99] transition-transform backdrop-blur-xl relative z-10"
+          className="my-1 sm:my-2 p-2.5 rounded-2xl bg-gradient-to-br from-slate-900/40 via-zinc-950/80 to-slate-950/80 border border-white/10 shadow-xl cursor-pointer active:scale-[0.99] transition-transform backdrop-blur-xl relative z-10 shrink-0"
         >
-          <div className="font-display text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2 flex items-center justify-between">
+          <div className="font-display text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5 flex items-center justify-between">
             <span>{isKiller ? 'КАРТЫ МАСОК (В РУКЕ)' : 'ДОСЬЕ АЛИБИ (В РУКЕ)'}</span>
             <span className="text-[10px] text-zinc-400 font-mono">КАРТ: {handCards.length}</span>
           </div>
-          <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
             {handCards.map((char) => (
               <div
                 key={char.id}
@@ -1437,7 +1437,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                     setSelectedTargetId(char.id);
                   }
                 }}
-                className="w-20 sm:w-24 shrink-0 rounded-2xl overflow-hidden border border-white/10 bg-zinc-900/90 p-1 hover:border-zinc-500 active:scale-95 transition cursor-pointer"
+                className="w-16 sm:w-20 shrink-0 rounded-2xl overflow-hidden border border-white/10 bg-zinc-900/90 p-1 hover:border-zinc-500 active:scale-95 transition cursor-pointer"
               >
                 <div className="aspect-square w-full rounded-xl overflow-hidden bg-zinc-950">
                   <CharacterCard
@@ -1455,17 +1455,17 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       )}
 
       {/* Пространственная вырезка 3x3 игрового поля (Соседи) */}
-      <div className="my-2 relative z-10">
-        <div className="flex items-center justify-between font-display text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">
+      <div className="my-1 sm:my-2 relative z-10 shrink-0">
+        <div className="flex items-center justify-between font-display text-[11px] sm:text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1 sm:mb-2">
           <span>{`ВАШИ СОСЕДИ (ВЫРЕЗКА 3×3)`}</span>
           <span className="text-[10px] text-zinc-500 font-mono font-normal">ЦЕЛЕЙ: {neighbors.length}</span>
         </div>
         {locatorGrid.length === 0 ? (
-          <div className="p-4 rounded-2xl border border-dashed border-white/10 bg-zinc-950/40 text-center">
+          <div className="p-3 sm:p-4 rounded-2xl border border-dashed border-white/10 bg-zinc-950/40 text-center">
             <span className="text-xs text-zinc-500 font-mono">[НЕТ ДОСТУПНЫХ ЦЕЛЕЙ]</span>
           </div>
         ) : (
-          <div className="grid grid-cols-3 grid-rows-3 gap-1.5 sm:gap-2 w-full max-w-[280px] sm:max-w-xs aspect-square mx-auto my-2">
+          <div className="grid grid-cols-3 grid-rows-3 gap-1 sm:gap-2 w-full max-w-[220px] sm:max-w-xs aspect-square mx-auto my-1 sm:my-2">
             {locatorGrid.map((cell, idx) => {
               if (cell.isOutOfBounds) {
                 return (

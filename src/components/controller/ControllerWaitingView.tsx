@@ -82,7 +82,7 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
                 : "bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]"
             }`}
           />
-          <span className="text-[11px] sm:text-xs font-mono uppercase tracking-widest text-zinc-300 font-bold truncate">
+          <span className="text-[11px] sm:text-xs font-display uppercase tracking-wider text-zinc-200 font-bold truncate">
             ПОДКЛЮЧЕНО К ТВ
           </span>
         </div>
@@ -110,7 +110,7 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
               triggerHaptic("light");
               setIsNotebookOpen(true);
             }}
-            className="h-11 min-h-[44px] px-2.5 sm:px-3 rounded-xl bg-zinc-900/90 border border-white/15 text-xs font-mono text-zinc-200 hover:border-blue-400 hover:text-white transition shadow-sm active:scale-95 cursor-pointer backdrop-blur-md flex items-center gap-1"
+            className="h-11 min-h-[44px] px-2.5 sm:px-3 rounded-xl bg-zinc-900/90 border border-white/15 text-xs font-sans font-bold uppercase tracking-wider text-zinc-200 hover:border-blue-400 hover:text-white transition shadow-sm active:scale-95 cursor-pointer backdrop-blur-md flex items-center gap-1.5"
           >
             <ControllerIcons.Notebook />
             <span className="hidden xs:inline sm:inline">БЛОКНОТ</span>
@@ -140,7 +140,7 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
                 triggerHaptic("light");
                 onExit();
               }}
-              className="h-11 min-h-[44px] px-2 text-xs font-mono uppercase text-zinc-500 hover:text-zinc-300 transition cursor-pointer flex items-center rounded-lg hover:bg-zinc-900/50"
+              className="h-11 min-h-[44px] px-2 text-xs font-sans font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-300 transition cursor-pointer flex items-center rounded-lg hover:bg-zinc-900/50"
             >
               Выход
             </button>
@@ -149,11 +149,10 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
       </div>
 
       {/* Центральный блок: Тактический радар ожидания */}
-      <div className="my-auto flex flex-col items-center max-w-sm w-full px-2 py-4 relative z-10">
-        <div className="relative w-36 h-36 rounded-full border border-white/10 bg-zinc-950/60 flex items-center justify-center overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.8)] mb-5">
-          <div className="absolute inset-2 rounded-full border border-white/5" />
-          <div className="absolute inset-6 rounded-full border border-white/5" />
-          <div className="absolute inset-12 rounded-full border border-white/5" />
+      <div className="my-auto flex flex-col items-center max-w-sm w-full px-1 py-1 sm:py-2 relative z-10">
+        <div className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-full border border-white/10 bg-zinc-950/60 flex items-center justify-center overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.8)] mb-2 sm:mb-3">
+          <div className="absolute inset-1.5 sm:inset-2 rounded-full border border-white/5" />
+          <div className="absolute inset-4 sm:inset-6 rounded-full border border-white/5" />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-full h-px bg-white/5" />
           </div>
@@ -162,7 +161,7 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
           </div>
 
           <div
-            className={`w-14 h-14 rounded-2xl bg-zinc-950 border border-white/15 flex items-center justify-center z-10 shadow-2xl ${
+            className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-zinc-950 border border-white/15 flex items-center justify-center z-10 shadow-2xl ${
               isKiller ? "text-rose-400" : "text-blue-400"
             }`}
           >
@@ -170,45 +169,45 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
           </div>
         </div>
 
-        <h2 className="font-display text-2xl sm:text-3xl font-black uppercase tracking-wider text-white mb-1.5">
+        <h2 className="font-display text-xl sm:text-2xl font-black uppercase tracking-wider text-white mb-1">
           {activeAIThinking ? "ХОД ПРОТИВНИКА" : "ОЖИДАНИЕ"}
         </h2>
 
         {activeAIThinking ? (
-          <div className="w-full my-3">
+          <div className="w-full my-2">
             <ThinkingBanner label="СИСТЕМА АНАЛИЗИРУЕТ" />
           </div>
         ) : (
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900/90 border border-white/10 shadow-sm mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/90 border border-white/10 shadow-sm mb-2">
             <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${isKiller ? "bg-rose-400" : "bg-blue-400"}`} />
-            <span className="font-display text-xs font-bold text-zinc-300 uppercase tracking-wider">
+            <span className="font-display text-[11px] sm:text-xs font-bold text-zinc-300 uppercase tracking-wider">
               СЕЙЧАС ХОД СОПЕРНИКА
             </span>
           </div>
         )}
 
-        <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed max-w-xs mb-6">
+        <p className="text-[11px] sm:text-xs text-zinc-400 leading-snug max-w-xs mb-2 sm:mb-3 font-sans">
           {activeAIThinking
             ? "Искусственный интеллект рассчитывает оптимальные векторы маневра и цели."
             : "Сейчас ход другого игрока. Следите за происходящим на телевизоре."}
         </p>
 
         {/* Карточка досье игрока */}
-        <div className="p-4 rounded-3xl bg-gradient-to-br from-slate-900/60 via-zinc-950/90 to-slate-950/80 border border-white/10 w-full text-left shadow-xl backdrop-blur-xl mb-3">
-          <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500 mb-2 flex items-center justify-between">
+        <div className="p-2.5 sm:p-3.5 rounded-2xl bg-gradient-to-br from-slate-900/60 via-zinc-950/90 to-slate-950/80 border border-white/10 w-full text-left shadow-xl backdrop-blur-xl mb-2 sm:mb-3">
+          <div className="text-[10px] font-display font-bold uppercase tracking-widest text-zinc-400 mb-1.5 flex items-center justify-between">
             <span>ВАША РОЛЬ • ВАШЕ ДОСЬЕ</span>
-            <span className="text-emerald-400 font-mono text-[9px] font-bold">ПРИВАТНО</span>
+            <span className="text-zinc-400 font-display text-[9px] font-bold tracking-wider">ПРИВАТНО</span>
           </div>
           <div
             onPointerDown={() => setIsPeeking(true)}
             onPointerUp={() => setIsPeeking(false)}
             onPointerLeave={() => setIsPeeking(false)}
             onPointerCancel={() => setIsPeeking(false)}
-            className="flex items-center gap-3.5 cursor-pointer select-none"
+            className="flex items-center gap-3 cursor-pointer select-none"
             title="Удерживайте для просмотра"
           >
             {isPeeking && myCharacter ? (
-              <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/20 bg-zinc-900 shrink-0 shadow-md">
+              <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/20 bg-zinc-900 shrink-0 shadow-md">
                 <CharacterCard
                   mode={gameState?.mode || "MANIAC_VS_OPERATIVE"}
                   character={myCharacter}
@@ -217,7 +216,7 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
                 />
               </div>
             ) : (
-              <div className="w-12 h-12 rounded-2xl border border-white/10 bg-zinc-900/90 flex flex-col items-center justify-center text-zinc-400 shrink-0 shadow-inner">
+              <div className="w-10 h-10 rounded-xl border border-white/10 bg-zinc-900/90 flex flex-col items-center justify-center text-zinc-400 shrink-0 shadow-inner">
                 <ControllerIcons.Eye />
               </div>
             )}
@@ -236,12 +235,12 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
                   {roleName}
                 </span>
                 {myCharacter && (
-                  <span className="text-[10px] font-mono text-zinc-500">
+                  <span className="text-[10px] font-mono text-zinc-400">
                     #{myCharacter.id.replace("c", "").padStart(2, "0")}
                   </span>
                 )}
               </div>
-              <div className="text-sm font-bold text-zinc-100 leading-tight break-words mt-1 font-sans">
+              <div className="text-xs sm:text-sm font-bold text-zinc-100 leading-tight break-words mt-1 font-sans">
                 {isPeeking && myCharacter ? myCharacter.name : "•••••••• (Удерживайте)"}
               </div>
             </div>
@@ -250,16 +249,16 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
 
         {/* Сводка соседей персонажа */}
         {neighbors.length > 0 && (
-          <div className="p-3.5 rounded-2xl bg-gradient-to-br from-slate-900/40 via-zinc-950/70 to-slate-950/70 border border-white/10 w-full text-left shadow-lg backdrop-blur-md">
-            <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500 mb-2 flex items-center justify-between">
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-gradient-to-br from-slate-900/40 via-zinc-950/70 to-slate-950/70 border border-white/10 w-full text-left shadow-lg backdrop-blur-md">
+            <div className="text-[10px] font-display font-bold uppercase tracking-widest text-zinc-400 mb-1.5 flex items-center justify-between">
               <span>ВАШИ СОСЕДИ</span>
               <span className="text-zinc-400 font-mono">({neighbors.length})</span>
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1 sm:gap-1.5">
               {neighbors.map((c) => (
                 <span
                   key={c.id}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-zinc-900/90 border border-white/10 text-[11px] font-mono text-zinc-300 shadow-xs"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-xl bg-zinc-900/90 border border-white/10 text-[10px] sm:text-[11px] font-mono text-zinc-300 shadow-xs"
                 >
                   <span className="text-blue-400/80 font-bold">#{c.id.replace("c", "").padStart(2, "0")}</span>
                   <span className="font-sans font-semibold text-zinc-200">{c.name}</span>
@@ -270,7 +269,7 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
         )}
       </div>
 
-      <div className="text-xs font-mono text-zinc-500 uppercase tracking-widest flex items-center gap-2 relative z-10">
+      <div className="text-[11px] font-sans text-zinc-400 uppercase tracking-wider font-semibold flex items-center gap-2 relative z-10 shrink-0">
         <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" />
         Дождитесь своего хода • Смотрите на ТВ
       </div>

@@ -207,4 +207,21 @@ describe("ControllerConnectView Component (TASK-NET-002 & Phase 8 Tabs)", () => 
 
     expect(connectSpy).toHaveBeenCalledWith("room-priv-xyz", "......-");
   });
+
+  it("P0 регрессионный тест: рендеринг вкладки MORSE без сбоев TvErrorBoundary (isAcpive / isActive)", () => {
+    // Проверяем монтирование с явным initialTab="MORSE", отсутствие падений и корректную отрисовку ключа
+    expect(() => {
+      render(
+        <ControllerConnectView
+          onConnect={vi.fn()}
+          onBackToMenu={vi.fn()}
+          initialTab="MORSE"
+        />
+      );
+    }).not.toThrow();
+
+    expect(screen.getByRole("button", { name: "Ключ телеграфа" })).toBeDefined();
+    expect(screen.getByText(/КОД МОРЗЕ/i)).toBeDefined();
+    expect(screen.getByText("0/7")).toBeDefined();
+  });
 });

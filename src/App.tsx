@@ -72,7 +72,17 @@ export default function App() {
     return null;
   }
 
-  const [showSplash, setShowSplash] = useState(true);
+  const isControllerMode = useMemo(() => {
+    if (clientTypeParam === "CONTROLLER" || Boolean(targetRoomParam)) return true;
+    if (Boolean(roomParam) && clientTypeParam !== "TV_DISPLAY") return true;
+    try {
+      const saved = safeLocalStorage.getItem("tv_session_party_state");
+      if (saved === "CONTROLLER") return true;
+    } catch {}
+    return false;
+  }, [clientTypeParam, targetRoomParam, roomParam]);
+
+  const [showSplash, setShowSplash] = useState(() => !isControllerMode);
   const [, setActiveMode] = useState<GameModeType>("MANIAC_VS_OPERATIVE");
   const [isLobbyOpen, setIsLobbyOpen] = useState(() => !isAndroidTv);
   const [hasStartedEver, setHasStartedEver] = useState(false);
@@ -781,7 +791,7 @@ export default function App() {
         <div className="absolute top-1/3 -right-32 w-96 h-96 rounded-full bg-accent-purple/15 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-32 left-1/4 w-96 h-96 rounded-full bg-blue-600/10 blur-3xl pointer-events-none" />
 
-        {showSplash && (
+        {showSplash && !isControllerMode && (
           <SplashScreen
             isTv={isAndroidTv || clientTypeParam === "TV_DISPLAY" || tvPartyState === "TV_LOBBY" || tvPartyState === "TV_BOARD"}
             autoDismissDelayMs={isAndroidTv || clientTypeParam === "TV_DISPLAY" || tvPartyState === "TV_LOBBY" || tvPartyState === "TV_BOARD" ? 2500 : undefined}
@@ -889,12 +899,19 @@ export default function App() {
           setIsIntroPhase(false);
           setIsPauseOpen(false);
           setIsChoiceSheetMinimized(false);
-          setGameState((prev) => ({
-            ...prev,
-            mode: forcedMode || prev.mode,
-            winner,
-            log: [...prev.log, `[DEV] Принудительная победа: ${winner} (${forcedMode || prev.mode})`],
-          }));
+          setGameState((prev) => {
+            const allCards = prev.board?.flat() || [];
+            const killerId = prev.killerSecretId || allCards.find(c => c.isAlive)?.id || allCards[0]?.id || "c1";
+            return {
+              ...prev,
+              mode: forcedMode || prev.mode,
+              winner,
+              killerSecretId: killerId,
+              killerId,
+              criminalId: killerId,
+              log: [...prev.log, `[DEV] Принудительная победа: ${winner} (${forcedMode || prev.mode})`],
+            };
+          });
         }}
         onTriggerInspectorChoice={() => {
           setGameState((prev) => {

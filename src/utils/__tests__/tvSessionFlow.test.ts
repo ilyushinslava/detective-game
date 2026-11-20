@@ -160,6 +160,50 @@ describe("TV Session Flow E2E Suite", () => {
       server.close();
     });
 
+    it("TV_DISPLAY receives unmasked killerId and killerSecretId when winner is not null (match finished)", () => {
+      const tvMessages: string[] = [];
+      const mockTvConn = {
+        id: "conn-tv-win",
+        send: (msg: string) => tvMessages.push(msg),
+        close: () => {},
+      };
+      const mockRoom = {
+        id: "room-tv-win",
+        getConnections: () => [mockTvConn],
+      };
+      const server = new GameRoomServer(mockRoom);
+      server.onConnect(mockTvConn, {
+        request: new Request("http://localhost/party/room-tv-win?clientId=tv-client-win&clientType=TV_DISPLAY"),
+      });
+
+      const initialGameState = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "KILLER");
+      const realKillerId = initialGameState.killerSecretId;
+      expect(realKillerId).toBeTruthy();
+
+      server.state.gameState = initialGameState;
+      server.state.status = "PLAYING";
+
+      // 1. Во время матча killerSecretId замаскирован
+      tvMessages.length = 0;
+      server.broadcastState();
+      let syncMsg = tvMessages.find((m) => JSON.parse(m).type === "SYNC_STATE");
+      expect(JSON.parse(syncMsg!).state.killerSecretId).toBeNull();
+
+      // 2. После завершения партии (winner !== null) TV получает реальный killerId и killerSecretId
+      server.state.gameState.winner = "KILLER";
+      server.state.status = "FINISHED";
+      tvMessages.length = 0;
+      server.broadcastState();
+
+      syncMsg = tvMessages.find((m) => JSON.parse(m).type === "SYNC_STATE");
+      expect(syncMsg).toBeDefined();
+      const parsedFinished = JSON.parse(syncMsg!);
+      expect(parsedFinished.state.killerSecretId).toBe(realKillerId);
+      expect(parsedFinished.state.killerId).toBe(realKillerId);
+      expect(parsedFinished.state.criminalId).toBe(realKillerId);
+      server.close();
+    });
+
     it("broadcasts LINE_PREVIEW without modifying gameState or invoking reducer", () => {
       const broadcastMessages: string[] = [];
       const mockTvConn = {

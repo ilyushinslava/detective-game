@@ -917,12 +917,29 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
          (gameState.winner === 'KILLER' ? spies[0] : gameState.winner === 'DETECTIVE' ? spies[1] : null))
       : null;
     const isKillerWinner = gameState.winner === 'KILLER' || Boolean(winningSpy && spies[0]?.id === winningSpy.id);
-    const finalKillerChar = flatCards.find((c) => c.id === (winningSpy?.secretId || gameState.killerSecretId));
-    const finalDetectiveChar = flatCards.find((c) => c.id === gameState.detectiveSecretId);
+    const killerTargetId =
+      winningSpy?.secretId ||
+      gameState.killerSecretId ||
+      (gameState as any).killerId ||
+      (gameState as any).criminalId;
+    let finalKillerChar = flatCards.find((c) => c.id === killerTargetId);
+    if (!finalKillerChar && flatCards.length > 0) {
+      finalKillerChar = flatCards.find((c) => c.isAlive) || flatCards[0];
+    }
+    const finalDetectiveChar =
+      flatCards.find((c) => c.id === gameState.detectiveSecretId) ||
+      flatCards.find((c) => c.id !== finalKillerChar?.id);
 
     const playerList = Object.values(players || {});
     const killerNickname = playerList.find((p) => p.isHost)?.nickname || 'Преступник';
     const detectiveNickname = playerList.find((p) => !p.isHost)?.nickname || 'Детектив';
+
+    const turnCount =
+      (gameState as any).turnCount ||
+      gameState.turnNumber ||
+      gameState.history?.length ||
+      (gameState.log ? Math.max(1, Math.floor(gameState.log.length / 2)) : 1);
+    const elapsedTime = (gameState as any).elapsedTime || (gameState as any).matchDuration || '--:--';
 
     return (
       <TvVictoryScreen
@@ -932,8 +949,8 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         detective={finalDetectiveChar}
         killerNickname={killerNickname}
         detectiveNickname={detectiveNickname}
-        elapsedTime="--:--"
-        turnCount={gameState.turnNumber || gameState.history?.length || 0}
+        elapsedTime={elapsedTime}
+        turnCount={turnCount}
         eliminatedCount={flatCards.filter((c) => !c.isAlive).length}
         onRestart={onRestart || (() => {})}
         onExitToLobby={onExitToLobby || onExit || (() => {})}
@@ -1046,7 +1063,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                         {currentBanner.title}
                       </span>
                       {currentBanner.subtitle && (
-                        <span className="text-[9px] sm:text-[10px] font-mono tracking-widest text-zinc-300 opacity-90 uppercase">
+                        <span className="text-[9px] sm:text-[10px] font-display tracking-wider text-zinc-300 opacity-90 uppercase font-bold">
                           {currentBanner.subtitle}
                         </span>
                       )}
@@ -1135,7 +1152,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
               : 'border-t-blue-500/80 bg-gradient-to-br from-blue-950/45 via-white/[0.04] to-black/80 shadow-[0_8px_30px_rgba(37,99,235,0.25)]'
           }`}>
             <div className="flex items-center mb-1">
-              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-widest border shadow-xs ${
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-display font-bold uppercase tracking-wider border shadow-xs ${
                 isKillerTurn
                   ? 'bg-red-950/80 border-red-500/40 text-red-200'
                   : 'bg-blue-950/80 border-blue-500/40 text-blue-200'
@@ -1146,7 +1163,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
             </div>
 
             <div className="flex items-center gap-2.5">
-              <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl border flex items-center justify-center font-mono text-xl sm:text-2xl font-black text-white shrink-0 shadow-md ${
+              <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl border flex items-center justify-center font-display text-xl sm:text-2xl font-black text-white shrink-0 shadow-md ${
                 isKillerTurn
                   ? 'bg-gradient-to-br from-red-600 to-rose-700 border-white/30 shadow-[0_0_15px_rgba(225,29,72,0.5)]'
                   : 'bg-gradient-to-br from-blue-600 to-indigo-700 border-white/30 shadow-[0_0_15px_rgba(37,99,235,0.5)]'
@@ -1154,13 +1171,13 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                 {activeTurnName.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold leading-none mb-0.5">
+                <div className="text-[9px] sm:text-[10px] font-display uppercase tracking-widest text-zinc-400 font-bold leading-none mb-0.5">
                   АКТИВНЫЙ ИГРОК
                 </div>
-                <div className="text-base sm:text-lg 2xl:text-xl font-black tracking-wider uppercase truncate text-white drop-shadow leading-tight">
+                <div className="text-base sm:text-lg 2xl:text-xl font-black tracking-wider uppercase truncate text-white drop-shadow leading-tight font-display">
                   {activeTurnName.toUpperCase()}
                 </div>
-                <div className="text-white/50 text-xs font-mono truncate leading-tight">
+                <div className="text-white/50 text-xs font-sans truncate leading-tight">
                   {canonicalGameModeName}
                 </div>
               </div>
@@ -1172,14 +1189,14 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
             {/* Блок «Выбранная линия» */}
             {selectedLine ? (
               <div className="p-2 rounded-xl bg-blue-950/40 border border-blue-400/50 shadow-[0_0_15px_rgba(37,99,235,0.25)] space-y-0.5 shrink-0">
-                <div className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-blue-300 flex items-center gap-1 font-bold">
+                <div className="text-[9px] sm:text-[10px] font-display uppercase tracking-widest text-blue-300 flex items-center gap-1 font-bold">
                   <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_4px_rgba(37,99,235,0.8)]" />
                   ВЫБРАННАЯ ЛИНИЯ
                 </div>
-                <div className="text-sm sm:text-base font-black text-white tracking-wide flex items-center justify-between">
+                <div className="text-sm sm:text-base font-black text-white tracking-wide flex items-center justify-between font-display">
                   <span>{selectedLineType === 'ROW' ? `РЯД #${selectedLineIdx}` : `СТОЛБЕЦ #${selectedLineIdx}`}</span>
                   {selectedLineDir && (
-                    <span className="text-[10px] sm:text-xs font-mono uppercase text-blue-100 font-black px-2 py-0.5 rounded-md bg-blue-950/90 border border-blue-400/60 shadow-xs">
+                    <span className="text-[10px] sm:text-xs font-display uppercase text-blue-100 font-black px-2 py-0.5 rounded-md bg-blue-950/90 border border-blue-400/60 shadow-xs">
                       {selectedLineType === 'ROW'
                         ? (selectedLineDir === 'FORWARD' ? 'ВПРАВО →' : '← ВЛЕВО')
                         : (selectedLineDir === 'FORWARD' ? 'ВНИЗ ↓' : '↑ ВВЕРХ')}
@@ -1190,7 +1207,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
             ) : null}
 
             {/* Заголовок блока действий */}
-            <div className="flex items-center text-[11px] sm:text-xs font-mono font-bold uppercase tracking-widest text-zinc-300 shrink-0">
+            <div className="flex items-center text-[11px] sm:text-xs font-display font-bold uppercase tracking-widest text-zinc-300 shrink-0">
               <span className="flex items-center gap-1.5">
                 <span className={`h-2 w-2 rounded-full ${isKillerTurn ? 'bg-rose-500' : 'bg-blue-500'}`} />
                 ДЕЙСТВИЯ: {activeTurnName.toUpperCase()}
@@ -1210,14 +1227,14 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                     <ActionIcons.Shift className="w-3.5 h-3.5" />
                   </span>
                   <div className="flex-1 min-w-0 pr-2">
-                    <div className="text-xs sm:text-sm font-black uppercase text-white tracking-wide truncate">МАНЕВР ПОЛЯ</div>
-                    <div className="text-[10px] leading-tight text-white/50 truncate">
+                    <div className="text-xs sm:text-sm font-black uppercase text-white tracking-wide truncate font-display">МАНЕВР ПОЛЯ</div>
+                    <div className="text-[10px] leading-tight text-white/50 truncate font-sans">
                       {selectedLine ? 'Маневр линии активен' : 'Сдвиг ряда или столбца'}
                     </div>
                   </div>
                 </div>
                 {selectedLine && (
-                  <span className="shrink-0 text-[9px] sm:text-[10px] font-mono font-bold px-2 py-0.5 rounded border bg-blue-600 text-white border-blue-400 animate-pulse">
+                  <span className="shrink-0 text-[9px] sm:text-[10px] font-display font-bold px-2 py-0.5 rounded border bg-blue-600 text-white border-blue-400 animate-pulse">
                     В ПРОЦЕССЕ
                   </span>
                 )}
@@ -1240,12 +1257,12 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                         {act.icon}
                       </span>
                       <div className="flex-1 min-w-0 pr-2">
-                        <div className="text-xs sm:text-sm font-black uppercase text-white tracking-wide truncate">{act.name}</div>
-                        <div className="text-[10px] leading-tight text-white/50 truncate">{act.desc}</div>
+                        <div className="text-xs sm:text-sm font-black uppercase text-white tracking-wide truncate font-display">{act.name}</div>
+                        <div className="text-[10px] leading-tight text-white/50 truncate font-sans">{act.desc}</div>
                       </div>
                     </div>
                     {act.badge && act.badge !== 'ДОСТУПНО' && (
-                      <span className="shrink-0 text-[9px] sm:text-[10px] font-mono font-bold px-2 py-0.5 rounded border bg-amber-950/80 text-amber-300 border-amber-500/50 font-black">
+                      <span className="shrink-0 text-[9px] sm:text-[10px] font-display font-bold px-2 py-0.5 rounded border bg-amber-950/80 text-amber-300 border-amber-500/50 font-black">
                         {act.badge}
                       </span>
                     )}
@@ -1257,7 +1274,7 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
 
           {/* БЛОК 3: ХРОНИКА РАССЛЕДОВАНИЯ (КОМПАКТНЫЙ СНИЗУ) */}
           <div className="neo-card p-2.5 sm:p-3 rounded-2xl border border-white/10 border-t-2 border-t-amber-500/50 shadow-xl h-[130px] sm:h-[150px] 2xl:h-[180px] shrink-0 flex flex-col min-h-0 overflow-hidden">
-            <div className="flex items-center text-[11px] sm:text-xs font-mono uppercase tracking-widest text-zinc-300 mb-1.5 font-bold shrink-0">
+            <div className="flex items-center text-[11px] sm:text-xs font-display uppercase tracking-widest text-zinc-300 mb-1.5 font-bold shrink-0">
               <span className="flex items-center gap-1.5">
                 <Icons.Terminal />
                 ХРОНИКА РАССЛЕДОВАНИЯ

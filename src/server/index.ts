@@ -76,6 +76,7 @@ export default class GameRoomServer {
   private disconnectTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
   private dualDisconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private dualDisconnectStartedAt: number | null = null;
+  private matchStartedAt: number | null = null;
   private turnTimerState: {
     role: Role | null;
     remainingMs: number;
@@ -1524,6 +1525,7 @@ export default class GameRoomServer {
           16
         );
         this.state.status = "PLAYING";
+        this.matchStartedAt = Date.now();
         this.startTurnTimer(this.state.gameState.currentTurn || "KILLER", 30000);
         this.broadcastStatus();
         this.broadcastState();
@@ -1538,6 +1540,7 @@ export default class GameRoomServer {
           return;
         }
         this.clearTurnTimer();
+        this.matchStartedAt = null;
         this.state.status = "WAITING";
         this.state.readyClients.clear();
         this.state.gameState = null;
@@ -1558,6 +1561,7 @@ export default class GameRoomServer {
           return;
         }
         this.state.status = "PLAYING";
+        this.matchStartedAt = Date.now();
         this.state.isPassAndPlay = Boolean(action.payload?.isPassAndPlay);
         const playerKeys = Object.keys(this.state.players);
         const p2Name = playerKeys[1] ? this.state.players[playerKeys[1]].nickname : "Player 2";
@@ -1813,7 +1817,30 @@ export default class GameRoomServer {
   }
 
   private maskStateForTv(state: GameState): GameState {
-    if (state.winner) return state;
+    if (state.winner || this.state.status === "FINISHED") {
+      const unmasked: any = { ...state };
+      if (unmasked.killerSecretId) {
+        unmasked.killerId = unmasked.killerSecretId;
+        unmasked.criminalId = unmasked.killerSecretId;
+      }
+      if (unmasked.detectiveSecretId) {
+        unmasked.detectiveId = unmasked.detectiveSecretId;
+      }
+      if (this.matchStartedAt) {
+        const elapsedSec = Math.max(0, Math.floor((Date.now() - this.matchStartedAt) / 1000));
+        const mins = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
+        const secs = String(elapsedSec % 60).padStart(2, '0');
+        unmasked.elapsedTime = `${mins}:${secs}`;
+        unmasked.matchDuration = unmasked.elapsedTime;
+      }
+      if (!unmasked.turnCount) {
+        unmasked.turnCount =
+          unmasked.turnNumber ||
+          unmasked.history?.length ||
+          (unmasked.log ? Math.max(1, Math.floor(unmasked.log.length / 2)) : 1);
+      }
+      return unmasked;
+    }
 
     const copy: any = { ...state };
     copy.killerSecretId = null;

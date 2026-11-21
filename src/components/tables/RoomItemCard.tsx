@@ -70,7 +70,7 @@ export const RoomItemCard: React.FC<RoomItemCardProps> = ({
             variant={isFull || isInGame ? "secondary" : "primary"}
             disabled={isFull || isInGame}
             onClick={() => onSelectPrivateRoom(room)}
-            className={`px-5 h-10 text-xs font-mono font-bold uppercase tracking-wider rounded-xl transition-all duration-150 ${
+            className={`px-5 h-10 text-xs font-sans font-bold uppercase tracking-wider rounded-xl transition-all duration-150 ${
               isFull || isInGame
                 ? "text-zinc-500 border border-white/10 bg-zinc-950/60 cursor-not-allowed"
                 : "cursor-pointer active:scale-95"
@@ -82,7 +82,7 @@ export const RoomItemCard: React.FC<RoomItemCardProps> = ({
           <Button
             variant="secondary"
             disabled
-            className="px-5 h-10 text-xs font-mono font-bold uppercase tracking-wider rounded-xl bg-zinc-950 text-zinc-400 border border-white/10 flex items-center gap-2 cursor-wait shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-xl"
+            className="px-5 h-10 text-xs font-sans font-bold uppercase tracking-wider rounded-xl bg-zinc-950 text-zinc-400 border border-white/10 flex items-center gap-2 cursor-wait shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-xl"
           >
             <span className="w-3.5 h-3.5 border-2 border-white/20 border-t-white/70 rounded-full animate-spin shrink-0" />
             ВХОД...
@@ -91,7 +91,7 @@ export const RoomItemCard: React.FC<RoomItemCardProps> = ({
           <Button
             variant="secondary"
             disabled
-            className="px-5 h-10 text-xs font-mono font-bold uppercase tracking-wider rounded-xl border border-white/10 text-zinc-500 bg-zinc-950/60 cursor-not-allowed"
+            className="px-5 h-10 text-xs font-sans font-bold uppercase tracking-wider rounded-xl border border-white/10 text-zinc-500 bg-zinc-950/60 cursor-not-allowed"
           >
             {isInGame ? "ИДЁТ МАТЧ" : "ЗАПОЛНЕНО"}
           </Button>
@@ -99,7 +99,7 @@ export const RoomItemCard: React.FC<RoomItemCardProps> = ({
           <Button
             variant="primary"
             onClick={() => onJoinRoom(room.roomCode, room.mode)}
-            className="px-5 h-10 text-xs font-mono font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all duration-150 active:scale-95"
+            className="px-5 h-10 text-xs font-sans font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all duration-150 active:scale-95"
           >
             Войти ➔
           </Button>

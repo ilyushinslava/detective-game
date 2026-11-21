@@ -31,6 +31,7 @@ export interface ServerRoomState {
   isPrivate?: boolean;
   restartRequestedBy?: string | null;
   pendingRematchMode?: string | null;
+  bet?: number;
 }
 
 export {
@@ -314,6 +315,7 @@ export default class GameRoomServer {
       mode: "MANIAC_VS_OPERATIVE",
       readyClients: new Set(),
       isPassAndPlay: false,
+      bet: 250,
     };
   }
 
@@ -504,6 +506,8 @@ export default class GameRoomServer {
     const mode = (url.searchParams.get("mode") as GameModeType) || "MANIAC_VS_OPERATIVE";
     const randomRoles = url.searchParams.get("randomRoles") === "true";
     const clientType = (url.searchParams.get("clientType") as ClientDeviceType) || "PLAYER";
+    const rawBet = parseInt(url.searchParams.get("bet") || "", 10);
+    const incomingBet = !isNaN(rawBet) && rawBet > 0 ? rawBet : 250;
     const roomCode = this.getRoomCode();
 
     // Санитизация имени через фильтр цензуры и разрешение коллизий одинаковых имен в комнате
@@ -533,6 +537,10 @@ export default class GameRoomServer {
         this.state.status = "WAITING";
         this.state.mode = mode;
       }
+      const existingRoom = publicRoomsRegistry.get(roomCode);
+      const roomBet = existingRoom?.bet || incomingBet || 250;
+      this.state.bet = roomBet;
+
       if (!this.state.gameState) {
         this.state.gameState = createInitialState(
           this.state.mode,
@@ -542,6 +550,8 @@ export default class GameRoomServer {
           this.state.mode === "SECRET_SERVICE" ? 2 : 3,
           16
         );
+        this.state.gameState.matchBet = roomBet;
+        this.state.gameState.matchPot = roomBet * 2;
       }
 
       publicRoomsRegistry.set(roomCode, {
@@ -552,7 +562,7 @@ export default class GameRoomServer {
         status: this.state.status,
         playersCount: Object.keys(this.state.players).length,
         maxPlayers: this.getMaxPlayersForMode(this.state.mode),
-        bet: 250,
+        bet: roomBet,
         isPrivate: true,
       });
 
@@ -774,6 +784,7 @@ export default class GameRoomServer {
       } catch (_err) {}
 
       this.state.isPrivate = isPrivate;
+      this.state.bet = incomingBet;
 
       publicRoomsRegistry.set(roomCode, {
         roomCode,
@@ -783,7 +794,7 @@ export default class GameRoomServer {
         status: "WAITING",
         playersCount: 1,
         maxPlayers: 2,
-        bet: 250,
+        bet: incomingBet,
         isPrivate,
       });
       defer(() => {
@@ -830,7 +841,8 @@ export default class GameRoomServer {
         nickname
       );
       const existingRoom = publicRoomsRegistry.get(roomCode);
-      const roomBet = existingRoom?.bet || 250;
+      const roomBet = existingRoom?.bet || this.state.bet || incomingBet || 250;
+      this.state.bet = roomBet;
       this.state.gameState.matchBet = roomBet;
       this.state.gameState.matchPot = roomBet * 2;
       this.state.status = "READY_TO_START";
@@ -846,7 +858,7 @@ export default class GameRoomServer {
           status: "READY_TO_START",
           playersCount: 2,
           maxPlayers: 2,
-          bet: 250,
+          bet: roomBet,
           isPrivate: this.state.isPrivate || false,
         });
       }
@@ -1283,6 +1295,9 @@ export default class GameRoomServer {
             mode === "SECRET_SERVICE" ? 2 : 3,
             16
           );
+          const currentBet = this.state.bet || 250;
+          this.state.gameState.matchBet = currentBet;
+          this.state.gameState.matchPot = currentBet * 2;
         }
         this.broadcastStatus();
         this.broadcastState();
@@ -1479,8 +1494,10 @@ export default class GameRoomServer {
           this.state.mode === "SECRET_SERVICE" ? 2 : 3,
           16
         );
-        this.state.gameState.matchBet = 250;
-        this.state.gameState.matchPot = 500;
+        const currentBet = this.state.bet || 250;
+        const playersCount = Math.max(2, Object.keys(this.state.players).length);
+        this.state.gameState.matchBet = currentBet;
+        this.state.gameState.matchPot = currentBet * playersCount;
         this.broadcastStatus();
         this.broadcastState();
         return;
@@ -1545,6 +1562,10 @@ export default class GameRoomServer {
           mode === "SECRET_SERVICE" ? 2 : 3,
           16
         );
+        const currentBet = this.state.bet || 250;
+        const playersCount = Math.max(2, playerIds.length);
+        this.state.gameState.matchBet = currentBet;
+        this.state.gameState.matchPot = currentBet * playersCount;
         this.state.status = "PLAYING";
         this.matchStartedAt = Date.now();
         this.startTurnTimer(this.state.gameState.currentTurn || "KILLER", 30000);
@@ -1597,6 +1618,10 @@ export default class GameRoomServer {
           16,
           p2Name
         );
+        const currentBet = this.state.bet || 250;
+        const playersCount = Math.max(2, playerKeys.length);
+        this.state.gameState.matchBet = currentBet;
+        this.state.gameState.matchPot = currentBet * playersCount;
         publicRoomsRegistry.delete(this.getRoomCode());
         this.broadcastStatus();
         this.broadcastState();

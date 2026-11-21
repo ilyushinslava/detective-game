@@ -58,7 +58,7 @@ export const TablesEmptyState: React.FC<TablesEmptyStateProps> = ({
       <span className="text-xs sm:text-sm font-black tracking-widest text-zinc-200 uppercase mb-1">
         {lobbyTab === "PUBLIC" ? "Открытых комнат не найдено" : "Приватных комнат не найдено"}
       </span>
-      <p className="text-[10px] sm:text-xs text-zinc-400 max-w-xs leading-relaxed mb-6 font-mono">
+      <p className="text-[10px] sm:text-xs text-zinc-400 max-w-xs leading-relaxed mb-6 font-sans">
         {lobbyTab === "PUBLIC"
           ? "В списке комнат нет активных открытых игр. Создайте партию для подключения игроков."
           : "В списке комнат нет активных приватных игр. Создайте партию с паролем."}
@@ -74,9 +74,9 @@ export const TablesEmptyState: React.FC<TablesEmptyStateProps> = ({
         <button
           type="button"
           onClick={onToggleMockRooms}
-          className="mt-3 text-[10px] font-mono text-zinc-400 hover:text-blue-400 underline underline-offset-4 cursor-pointer transition"
+          className="mt-3 text-[10px] font-sans text-zinc-400 hover:text-blue-400 underline underline-offset-4 cursor-pointer transition"
         >
-          🧪 Заполнить тестовыми столами (12 шт)
+          [DEV] Заполнить тестовыми столами (12 шт)
         </button>
       )}
     </div>

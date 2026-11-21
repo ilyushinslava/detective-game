@@ -40,7 +40,7 @@ export const GameTopHeader: React.FC<GameTopHeaderProps> = ({
       <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0 z-10">
         <button
           onClick={() => setIsMenuOpen(true)}
-          className="w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 neo-card-interactive rounded-xl flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer text-zinc-300 hover:text-white border-t-white/25 active:scale-95 shadow-md touch-manipulation"
+          className="w-11 h-11 neo-card-interactive rounded-xl flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer text-zinc-300 hover:text-white border-t-white/25 active:scale-95 shadow-md touch-manipulation"
           title="Пауза и меню"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
@@ -50,7 +50,7 @@ export const GameTopHeader: React.FC<GameTopHeaderProps> = ({
         </button>
         <button
           onClick={() => setIsNotebookOpen(true)}
-          className="w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 neo-card-interactive rounded-xl flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer text-zinc-300 hover:text-white border-t-white/25 active:scale-95 shadow-md touch-manipulation"
+          className="w-11 h-11 neo-card-interactive rounded-xl flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer text-zinc-300 hover:text-white border-t-white/25 active:scale-95 shadow-md touch-manipulation"
           title="Блокнот подозреваемых"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
@@ -63,7 +63,7 @@ export const GameTopHeader: React.FC<GameTopHeaderProps> = ({
             setIsLogOpen(true);
             setUnreadLogCount(0);
           }}
-          className="relative w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 neo-card-interactive rounded-xl flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer text-zinc-300 hover:text-white border-t-white/25 active:scale-95 shadow-md touch-manipulation landscape:hidden"
+          className="relative w-11 h-11 neo-card-interactive rounded-xl flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer text-zinc-300 hover:text-white border-t-white/25 active:scale-95 shadow-md touch-manipulation landscape:hidden"
           title="Блокнот расследования"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 md:w-5 md:h-5">
@@ -119,7 +119,7 @@ export const GameTopHeader: React.FC<GameTopHeaderProps> = ({
         </div>
         <button
           onClick={onReset}
-          className="h-9 sm:h-10 md:h-11 px-2.5 sm:px-3 py-1 md:py-1.5 rounded-xl neo-card-interactive border-t-white/25 text-zinc-200 hover:text-white text-[11px] md:text-xs font-bold uppercase tracking-wider transition-all active:scale-95 flex items-center gap-1 sm:gap-1.5 shrink-0 cursor-pointer shadow-md touch-manipulation"
+          className="h-11 px-3 rounded-xl neo-card-interactive border-t-white/25 text-zinc-200 hover:text-white text-xs font-bold uppercase tracking-wider transition-all active:scale-95 flex items-center gap-1.5 shrink-0 cursor-pointer shadow-md touch-manipulation"
           title="Перезапустить партию"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5">

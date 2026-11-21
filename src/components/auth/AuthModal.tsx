@@ -270,7 +270,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <div className="min-h-[350px] sm:min-h-[360px] flex flex-col justify-between">
             <div className="flex flex-col gap-2.5">
               {/* Информационный текст */}
-              <p className="text-[11px] font-mono text-zinc-400 leading-relaxed">
+              <p className="text-[11px] font-sans text-zinc-400 leading-relaxed">
                 {tab === "CREATE_PROFILE"
                   ? isAnonymous
                     ? "Привяжите логин и пароль к текущему досье: весь рейтинг, монеты и аватар перенесутся без потерь."
@@ -282,10 +282,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               {tab === "CREATE_PROFILE" && (
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label htmlFor="auth-callsign" className="text-[10px] font-mono uppercase text-zinc-400">
+                    <label htmlFor="auth-callsign" className="text-[10px] font-sans font-bold uppercase text-zinc-400">
                       ПОЗЫВНОЙ / ИМЯ
                     </label>
-                    <span className="text-[9px] font-mono text-blue-400 uppercase tracking-wider">
+                    <span className="text-[9px] font-sans text-blue-400 uppercase tracking-wider">
                       Текущая личность
                     </span>
                   </div>
@@ -303,7 +303,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               {/* Стеклянное поле ввода Логина с резервированием места под ошибку */}
               <div className="relative pb-9">
-                <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
+                <label className="text-[10px] font-sans font-bold uppercase text-zinc-400 block mb-1">
                   {a.login}
                 </label>
                 <input
@@ -321,7 +321,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   autoFocus
                 />
                 {isLoginError && (
-                  <p className="absolute left-0 bottom-0 text-accent-danger text-xs font-mono whitespace-normal break-words leading-tight w-full">
+                  <p className="absolute left-0 bottom-0 text-accent-danger text-xs font-sans whitespace-normal break-words leading-tight w-full">
                     {error}
                   </p>
                 )}
@@ -329,7 +329,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               {/* Стеклянное поле ввода Пароля с кнопкой-глазом и резервированием места под ошибку */}
               <div className="relative pb-9">
-                <label className="text-[10px] font-mono uppercase text-zinc-400 block mb-1">
+                <label className="text-[10px] font-sans font-bold uppercase text-zinc-400 block mb-1">
                   {a.password}
                 </label>
                 <div className="relative">
@@ -354,7 +354,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </button>
                 </div>
                 {isPasswordError && (
-                  <p className="absolute left-0 bottom-0 text-accent-danger text-xs font-mono whitespace-normal break-words leading-tight w-full">
+                  <p className="absolute left-0 bottom-0 text-accent-danger text-xs font-sans whitespace-normal break-words leading-tight w-full">
                     {error}
                   </p>
                 )}
@@ -362,7 +362,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               {/* Общая ошибка, если она не относится к конкретному полю */}
               {isGeneralError && (
-                <p className="text-accent-danger text-xs font-mono whitespace-normal break-words leading-tight text-center -mt-1">
+                <p className="text-accent-danger text-xs font-sans whitespace-normal break-words leading-tight text-center -mt-1">
                   {error}
                 </p>
               )}

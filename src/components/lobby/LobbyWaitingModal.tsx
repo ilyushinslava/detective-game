@@ -93,17 +93,17 @@ export const LobbyWaitingModal: React.FC<LobbyWaitingModalProps> = ({
                   .map((s: string) => (s === "." ? "•" : "—"))
                   .join(" ")}
               </span>
-              <span className="text-[9px] font-mono text-zinc-400 uppercase">
+              <span className="text-[9px] font-sans text-zinc-400 uppercase">
                 Продиктуйте этот 7-значный код напарнику
               </span>
             </div>
           ) : (
-            <div className="text-sm font-mono text-blue-400 animate-pulse mb-6 border border-white/10 rounded-2xl px-6 py-4 bg-zinc-950/70 shadow-inner">
+            <div className="text-sm font-sans text-blue-400 animate-pulse mb-6 border border-white/10 rounded-2xl px-6 py-4 bg-zinc-950/70 shadow-inner">
               Генерация кода комнаты...
             </div>
           )
         ) : (
-          <div className="text-base font-black text-emerald-400 tracking-widest font-mono mb-6 border border-emerald-500/20 rounded-2xl px-6 py-4 bg-zinc-950/70 shadow-inner">
+          <div className="text-sm font-black text-emerald-400 tracking-widest font-sans mb-6 border border-emerald-500/20 rounded-2xl px-6 py-4 bg-zinc-950/70 shadow-inner">
             ОТКРЫТЫЙ СТОЛ (ВХОД БЕЗ ПАРОЛЯ)
           </div>
         )}

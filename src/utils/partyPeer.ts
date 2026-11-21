@@ -89,6 +89,7 @@ class PartyService {
   private nick: string = "Агент";
   private mode: string = "MANIAC_VS_OPERATIVE";
   private clientType?: string | null;
+  public bet?: number;
   private pingInterval: ReturnType<typeof setInterval> | null = null;
   private isExplicitDisconnect: boolean = false;
   private reconnectAttempts: number = 0;
@@ -475,7 +476,8 @@ class PartyService {
     clientId?: string,
     clientType?: string,
     isPrivate?: boolean,
-    morseCode?: string
+    morseCode?: string,
+    bet?: number
   ): void {
     if (!roomCode || !roomCode.trim()) {
       console.warn("[PartyService] Attempted to connect with empty roomCode, aborting.");
@@ -506,6 +508,9 @@ class PartyService {
     this.nick = nickname || "Агент";
     this.mode = mode || "MANIAC_VS_OPERATIVE";
     this.isPrivate = Boolean(isPrivate);
+    if (bet !== undefined) {
+      this.bet = bet;
+    }
     if (morseCode !== undefined) {
       this.morseCode = morseCode ? normalizeMorse(morseCode) : null;
     }
@@ -531,7 +536,8 @@ class PartyService {
     const authParam = this.authToken ? `&authToken=${encodeURIComponent(this.authToken)}` : "";
     const privateParam = this.isPrivate ? `&isPrivate=true` : "";
     const morseParam = this.morseCode ? `&morse=${encodeURIComponent(this.morseCode)}` : "";
-    const url = `${wsProtocol}//${host}/party/${roomCode}?clientId=${this.myClientId}&nickname=${encodedNick}&isHost=${this.isHost}&mode=${this.mode}&randomRoles=true${this.clientType ? `&clientType=${this.clientType}` : ""}${privateParam}${morseParam}${authParam}`;
+    const betParam = this.bet ? `&bet=${this.bet}` : "";
+    const url = `${wsProtocol}//${host}/party/${roomCode}?clientId=${this.myClientId}&nickname=${encodedNick}&isHost=${this.isHost}&mode=${this.mode}&randomRoles=true${this.clientType ? `&clientType=${this.clientType}` : ""}${privateParam}${morseParam}${betParam}${authParam}`;
 
     try {
       const ws = new WebSocket(url);

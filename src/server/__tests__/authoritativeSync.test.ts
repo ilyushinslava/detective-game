@@ -440,5 +440,52 @@ describe("Authoritative PartyKit Server & Strict State Sync", () => {
 
       expect(server.state.gameState!.winner).toBeNull();
     });
+
+    it("authoritatively initializes and recalculates matchBet and matchPot on START_MATCH and CONFIRM_RESTART", () => {
+      // 1. By default, START_MATCH initializes default bet (250) and pot (500 for 2 players)
+      expect(server.state.gameState!.matchBet).toBe(250);
+      expect(server.state.gameState!.matchPot).toBe(500);
+
+      // 2. On CONFIRM_RESTART (rematch), server maintains room bet and recalculates matchPot
+      server.state.status = "FINISHED";
+      server.state.restartRequestedBy = "c_guest";
+      server.onMessage(
+        JSON.stringify({
+          type: "CONFIRM_RESTART",
+          senderClientId: "c_host",
+        }),
+        hostConn
+      );
+
+      expect(server.state.gameState!.matchBet).toBe(250);
+      expect(server.state.gameState!.matchPot).toBe(500);
+
+      // 3. New room with custom bet (e.g. 500)
+      const customServer = new GameRoomServer({ id: "parties/main/custom-bet-room", getConnections: () => [] });
+      const hConn = createMockConn("c_h_custom");
+      const gConn = createMockConn("c_g_custom");
+
+      customServer.onConnect(hConn, {
+        request: new Request("http://localhost:1999/party/custom-bet-room?clientId=c_h_custom&isHost=true&nickname=Host&bet=500"),
+      });
+      customServer.onConnect(gConn, {
+        request: new Request("http://localhost:1999/party/custom-bet-room?clientId=c_g_custom&isHost=false&nickname=Guest"),
+      });
+
+      expect(customServer.state.bet).toBe(500);
+      expect(customServer.state.gameState!.matchBet).toBe(500);
+      expect(customServer.state.gameState!.matchPot).toBe(1000);
+
+      customServer.onMessage(
+        JSON.stringify({
+          type: "START_MATCH",
+          senderClientId: "c_h_custom",
+        }),
+        hConn
+      );
+
+      expect(customServer.state.gameState!.matchBet).toBe(500);
+      expect(customServer.state.gameState!.matchPot).toBe(1000);
+    });
   });
 });

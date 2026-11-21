@@ -202,7 +202,7 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
       nickname: profile.nickname,
     });
 
-    partyService.connect(cleanCode, profile.nickname || "Агент", isHost, mode, undefined, undefined, isPrivate, morseCode);
+    partyService.connect(cleanCode, profile.nickname || "Агент", isHost, mode, undefined, undefined, isPrivate, morseCode, _bet);
   };
 
   const handleQuickPlay = async () => {

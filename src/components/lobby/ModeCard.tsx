@@ -71,7 +71,7 @@ export const ModeCard: React.FC<ModeCardProps> = ({
           </div>
         </div>
 
-        <div className={`pt-2 xl:pt-2.5 border-t border-white/10 mt-2 xl:mt-2.5 flex items-center justify-between text-[10px] xl:text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 ${styles.textHover} transition shrink-0 w-full`}>
+        <div className={`pt-2 xl:pt-2.5 border-t border-white/10 mt-2 xl:mt-2.5 flex items-center justify-between text-[10px] xl:text-xs font-sans font-bold uppercase tracking-wider text-zinc-400 ${styles.textHover} transition shrink-0 w-full`}>
           <span>{actionText}</span>
           <Icons.ArrowRight className="w-3.5 h-3.5 xl:w-4 xl:h-4 group-hover:translate-x-1.5 transition-transform" />
         </div>
@@ -99,7 +99,7 @@ export const ModeCard: React.FC<ModeCardProps> = ({
         </div>
       </div>
 
-      <div className={`pt-2 xl:pt-2.5 border-t border-white/10 mt-2 xl:mt-3 flex items-center justify-between text-[10px] xl:text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 ${styles.textHover} transition shrink-0`}>
+      <div className={`pt-2 xl:pt-2.5 border-t border-white/10 mt-2 xl:mt-3 flex items-center justify-between text-[10px] xl:text-xs font-sans font-bold uppercase tracking-wider text-zinc-400 ${styles.textHover} transition shrink-0`}>
         <span>{actionText}</span>
         <Icons.ArrowRight className="w-3.5 h-3.5 xl:w-4 xl:h-4 group-hover:translate-x-1.5 transition-transform" />
       </div>

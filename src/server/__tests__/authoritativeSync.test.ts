@@ -334,4 +334,111 @@ describe("Authoritative PartyKit Server & Strict State Sync", () => {
       expect(snapshotMsg.status).toBe(server.state.status);
     });
   });
+
+  describe("4. Anti-Cheat: Mode-Specific Actions & Prohibited Client Actions", () => {
+    let hostConn: any;
+    let guestConn: any;
+
+    beforeEach(() => {
+      hostConn = createMockConn("conn_ac_host");
+      guestConn = createMockConn("conn_ac_guest");
+      connections.push(hostConn, guestConn);
+
+      const hostReq = new Request(
+        "http://localhost:1999/party/authoritative-test-room?clientId=c_host&isHost=true&nickname=Host&mode=MANIAC_VS_OPERATIVE"
+      );
+      server.onConnect(hostConn, { request: hostReq });
+
+      const guestReq = new Request(
+        "http://localhost:1999/party/authoritative-test-room?clientId=c_guest&isHost=false&nickname=Guest&mode=MANIAC_VS_OPERATIVE"
+      );
+      server.onConnect(guestConn, { request: guestReq });
+
+      // Start match
+      server.onMessage(
+        JSON.stringify({
+          type: "START_MATCH",
+          senderClientId: "c_host",
+        }),
+        hostConn
+      );
+
+      hostConn.sent.length = 0;
+      guestConn.sent.length = 0;
+    });
+
+    it("rejects CAPTURE_SPY when mode is MANIAC_VS_OPERATIVE with INVALID_ACTION_FOR_MODE", () => {
+      server.state.gameState!.currentTurn = "KILLER";
+      const allChars = server.state.gameState!.board.flat();
+      const targetChar = allChars[0];
+
+      server.onMessage(
+        JSON.stringify({
+          type: "DISPATCH_ACTION",
+          action: {
+            type: "CAPTURE_SPY",
+            payload: { targetId: targetChar.id, isHit: true, winner: "KILLER" },
+          },
+          senderClientId: "c_host",
+        }),
+        hostConn
+      );
+
+      const rejectedMsg = hostConn.sent
+        .map((s: string) => JSON.parse(s))
+        .find((m: any) => m.type === "ACTION_REJECTED");
+
+      expect(rejectedMsg).toBeDefined();
+      expect(rejectedMsg.reason).toBe("INVALID_ACTION_FOR_MODE");
+      expect(server.state.gameState!.winner).toBeNull();
+    });
+
+    it("rejects STEAL when mode is MANIAC_VS_OPERATIVE with INVALID_ACTION_FOR_MODE", () => {
+      server.state.gameState!.currentTurn = "KILLER";
+      const targetChar = server.state.gameState!.board.flat()[0];
+
+      server.onMessage(
+        JSON.stringify({
+          type: "DISPATCH_ACTION",
+          action: {
+            type: "STEAL",
+            payload: { targetId: targetChar.id },
+          },
+          senderClientId: "c_host",
+        }),
+        hostConn
+      );
+
+      const rejectedMsg = hostConn.sent
+        .map((s: string) => JSON.parse(s))
+        .find((m: any) => m.type === "ACTION_REJECTED");
+
+      expect(rejectedMsg).toBeDefined();
+      expect(rejectedMsg.reason).toBe("INVALID_ACTION_FOR_MODE");
+    });
+
+    it("blocks prohibited client commands (SET_MATCH_POT, RESTART_DUEL, RESOLVE_DUEL_TIE_BREAK)", () => {
+      server.onMessage(
+        JSON.stringify({
+          type: "SET_MATCH_POT",
+          payload: { pot: 999999, bet: 999999 },
+          senderClientId: "c_host",
+        }),
+        hostConn
+      );
+
+      expect(server.state.gameState!.matchPot).not.toBe(999999);
+
+      server.onMessage(
+        JSON.stringify({
+          type: "RESOLVE_DUEL_TIE_BREAK",
+          payload: {},
+          senderClientId: "c_host",
+        }),
+        hostConn
+      );
+
+      expect(server.state.gameState!.winner).toBeNull();
+    });
+  });
 });

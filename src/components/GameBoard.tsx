@@ -113,6 +113,12 @@ export const GameBoard: React.FC<GameBoardProps> = React.memo((props) => {
     return detectiveAdjacentIds;
   }, [board, detectiveSecretId, detectiveAdjacentIds]);
 
+  // Быстрые Set-коллекции для O(1) проверки в 25 ячейках (P0 Performance)
+  const radarSet = useMemo(() => new Set(radarCellIds), [radarCellIds]);
+  const killerAdjacentSet = useMemo(() => new Set(dynamicKillerAdjacentIds), [dynamicKillerAdjacentIds]);
+  const detectiveAdjacentSet = useMemo(() => new Set(dynamicDetectiveAdjacentIds), [dynamicDetectiveAdjacentIds]);
+  const uniformedOfficerSet = useMemo(() => new Set(uniformedOfficerIds || []), [uniformedOfficerIds]);
+
   const [activeButtonId, setActiveButtonId] = useState<string | null>(null);
   const shiftTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -286,7 +292,7 @@ export const GameBoard: React.FC<GameBoardProps> = React.memo((props) => {
             {board.flatMap((row, rIdx) =>
               row.map((character, cIdx) => {
                 const isSelected = selectedCharacterId === character.id;
-                const isRadarCell = radarCellIds.includes(character.id);
+                const isRadarCell = radarSet.has(character.id);
                 const isRadarTarget = character.id === radarTargetId;
 
                 const isWrappingCell = Boolean(
@@ -314,8 +320,8 @@ export const GameBoard: React.FC<GameBoardProps> = React.memo((props) => {
 
                 let neighborRole: "red" | "blue" | "purple" | null = null;
                 if (!isMyChar) {
-                  const isKillerNeighbor = showKillerHints && dynamicKillerAdjacentIds.includes(character.id);
-                  const isDetectiveNeighbor = showDetectiveHints && dynamicDetectiveAdjacentIds.includes(character.id);
+                  const isKillerNeighbor = showKillerHints && killerAdjacentSet.has(character.id);
+                  const isDetectiveNeighbor = showDetectiveHints && detectiveAdjacentSet.has(character.id);
 
                   if (isKillerNeighbor && isDetectiveNeighbor) {
                     neighborRole = "purple";
@@ -354,7 +360,7 @@ export const GameBoard: React.FC<GameBoardProps> = React.memo((props) => {
                       isSelected={isSelected}
                       neighborRole={neighborRole}
                       neighborHighlightColor={neighborRole ? `border-2 border-${neighborRole}-500` : null}
-                      isUniformedOfficer={uniformedOfficerIds?.includes(character.id)}
+                      isUniformedOfficer={uniformedOfficerSet.has(character.id)}
                       isTargetVictim={character.id === targetVictimId}
                       isLastRobbed={character.id === lastRobbedId}
                       isRadarCenter={isRadarTarget}

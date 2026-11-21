@@ -48,10 +48,12 @@ describe("PartyService Network Client", () => {
     MockWebSocket.instances = [];
     vi.stubGlobal("WebSocket", MockWebSocket);
     partyService.disconnect();
+    partyService.clearAllListeners();
   });
 
   afterEach(() => {
     partyService.disconnect();
+    partyService.clearAllListeners();
     vi.clearAllTimers();
     vi.useRealTimers();
     vi.unstubAllGlobals();
@@ -243,6 +245,69 @@ describe("PartyService Network Client", () => {
       expect(actionSpy).toHaveBeenCalledWith(
         expect.objectContaining({ type: "SHIFT_BOARD", payload: { type: "ROW", index: 1 } })
       );
+    });
+  });
+
+  describe("Event Bus & Memory Leak Prevention (CRIT-05)", () => {
+    it("subscribe возвращает cleanup-функцию, которая надёжно отписывает слушатель", () => {
+      const listener = vi.fn();
+      const unsub = partyService.subscribe("action", listener);
+
+      expect(partyService.getListenerCount("action")).toBe(1);
+
+      partyService.emit("action", { type: "TEST_ACTION" });
+      expect(listener).toHaveBeenCalledTimes(1);
+
+      // Отписываемся
+      unsub();
+      expect(partyService.getListenerCount("action")).toBe(0);
+
+      partyService.emit("action", { type: "TEST_ACTION_2" });
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it("поддерживает независимую подписку и корректный подсчет нескольких слушателей", () => {
+      const listenerA = vi.fn();
+      const listenerB = vi.fn();
+
+      const unsubA = partyService.subscribe("syncState", listenerA);
+      const unsubB = partyService.subscribe("syncState", listenerB);
+
+      expect(partyService.getListenerCount("syncState")).toBe(2);
+
+      partyService.emit("syncState", { mode: "MANIAC_VS_OPERATIVE" });
+      expect(listenerA).toHaveBeenCalledTimes(1);
+      expect(listenerB).toHaveBeenCalledTimes(1);
+
+      unsubA();
+      expect(partyService.getListenerCount("syncState")).toBe(1);
+
+      partyService.emit("syncState", { mode: "THIEF_HUNT" });
+      expect(listenerA).toHaveBeenCalledTimes(1);
+      expect(listenerB).toHaveBeenCalledTimes(2);
+
+      unsubB();
+      expect(partyService.getListenerCount("syncState")).toBe(0);
+    });
+
+    it("ошибка в одном обработчике не ломает выполнение остальных слушателей (fault tolerance)", () => {
+      const errorListener = vi.fn(() => {
+        throw new Error("Crashing listener");
+      });
+      const safeListener = vi.fn();
+
+      const unsubError = partyService.subscribe("roomStatus", errorListener);
+      const unsubSafe = partyService.subscribe("roomStatus", safeListener);
+
+      expect(() => {
+        partyService.emit("roomStatus", { status: "PLAYING" });
+      }).not.toThrow();
+
+      expect(errorListener).toHaveBeenCalledTimes(1);
+      expect(safeListener).toHaveBeenCalledTimes(1);
+
+      unsubError();
+      unsubSafe();
     });
   });
 });

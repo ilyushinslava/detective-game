@@ -1057,7 +1057,6 @@ export default function App() {
                   actionPanelRoleName={actionPanelRoleName}
                   pillClasses={pillClasses}
                   dotClasses={dotClasses}
-                  secondsElapsed={getElapsedSeconds()}
                   formatTimer={formatTimer}
                   selectedId={selectedId}
                   setSelectedId={setSelectedId}

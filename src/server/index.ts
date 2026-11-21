@@ -1012,9 +1012,27 @@ export default class GameRoomServer {
       return { valid: true };
     }
 
-    // 2.1 Валидация действий по режимам игры (P0 Security)
+    // 2.1 Валидация действий по режимам игры и защита от читов (P0 Security)
+    if (
+      action.type === "SET_MATCH_POT" ||
+      action.type === "RESTART_DUEL" ||
+      action.type === "RESOLVE_DUEL_TIE_BREAK"
+    ) {
+      return { valid: false, reason: "PROHIBITED_ACTION" };
+    }
+
     if (action.type === "CAPTURE_SPY" || action.type === "INTERROGATE") {
       if (this.state.mode !== "SECRET_SERVICE") {
+        return { valid: false, reason: "INVALID_ACTION_FOR_MODE" };
+      }
+    }
+    if (action.type === "TARGET_KILL") {
+      if (this.state.mode !== "MANIAC_VS_OPERATIVE") {
+        return { valid: false, reason: "INVALID_ACTION_FOR_MODE" };
+      }
+    }
+    if (action.type === "STEAL" || action.type === "ROB_NEIGHBOR" || action.type === "ROB") {
+      if (this.state.mode !== "THIEF_HUNT") {
         return { valid: false, reason: "INVALID_ACTION_FOR_MODE" };
       }
     }
@@ -1186,8 +1204,11 @@ export default class GameRoomServer {
       if (
         action.type === "MATCH_STARTED" ||
         action.type === "RESTART_GAME" ||
-        action.type === "SET_MATCH_POT"
+        action.type === "SET_MATCH_POT" ||
+        action.type === "RESTART_DUEL" ||
+        action.type === "RESOLVE_DUEL_TIE_BREAK"
       ) {
+        console.warn(`[GameRoomServer] Blocked prohibited client action: ${action.type}`);
         return;
       }
 

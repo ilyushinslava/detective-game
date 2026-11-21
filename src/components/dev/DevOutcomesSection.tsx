@@ -2,7 +2,7 @@ import React from "react";
 import type { Role, GameModeType } from "../../types/game";
 
 interface DevOutcomesSectionProps {
-  onForceWin: (winner: Role, mode?: GameModeType) => void;
+  onForceWin: (winner: Role, mode?: GameModeType | string) => void;
   onTriggerCluesWin?: () => void;
   onClose: () => void;
 }
@@ -18,13 +18,13 @@ export const DevOutcomesSection: React.FC<DevOutcomesSectionProps> = ({
         onClick={() => { onForceWin("KILLER", "SKHVATKA"); onClose(); }}
         className="py-2 px-2.5 bg-red-950/60 hover:bg-red-900/80 border border-red-700/50 rounded-xl text-red-200 font-bold text-left transition cursor-pointer"
       >
-        💀 Схватка: Бандит
+        Схватка: Бандит
       </button>
       <button
         onClick={() => { onForceWin("DETECTIVE", "SKHVATKA"); onClose(); }}
         className="py-2 px-2.5 bg-blue-950/50 hover:bg-blue-900/70 border border-blue-700/40 rounded-xl text-blue-200 font-bold text-left transition cursor-pointer"
       >
-        🛡️ Схватка: Инспектор
+        Схватка: Инспектор
       </button>
       <button
         onClick={() => { onForceWin("KILLER", "MANIAC_VS_OPERATIVE"); onClose(); }}

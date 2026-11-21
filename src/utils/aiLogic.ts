@@ -222,7 +222,7 @@ export function getKillerAIMove(state: GameState): GameState {
     if (victimTarget) {
       return killCharacter(state, victimTarget.id);
     }
-  } else if (state.mode === "SKHVATKA") {
+  } else if (state.mode === "LINE_UP") {
     const validTargets = killerNeighbors.filter(
       (c) => c.isAlive && !c.isExonerated,
     );
@@ -286,7 +286,7 @@ export function getKillerAIMove(state: GameState): GameState {
           score += delta * 50;
           score += (5 - distAfter) * 15;
         }
-      } else if (state.mode === "SKHVATKA") {
+      } else if (state.mode === "LINE_UP") {
         const simNeighbors = getAdjacentCharacters(simBoard, state.killerSecretId);
         const lethalCount = simNeighbors.filter((c) => c.isAlive && !c.isExonerated).length;
         score += lethalCount * 25;

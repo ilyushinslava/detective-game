@@ -11,7 +11,7 @@ export interface ActionTile {
 
 export interface ActionTilesGridProps {
   mode: GameModeType;
-  role: Role;
+  role: Role | string;
 }
 
 export const ActionTilesGrid: React.FC<ActionTilesGridProps> = ({ mode, role }) => {

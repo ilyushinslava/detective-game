@@ -73,7 +73,6 @@ export const ControllerLobbyView: React.FC<ControllerLobbyViewProps> = ({
           {onLeaveRoom && (
             <Button
               variant="ghost"
-              size="sm"
               onClick={() => {
                 triggerHaptic('light');
                 onLeaveRoom();

@@ -23,6 +23,7 @@ interface GameBoardProps {
   selectedId?: string | null;
   killerAdjacentIds?: string[];
   detectiveAdjacentIds?: string[];
+  activeAgentAdjacentIds?: string[];
   adjacentIds?: string[];
   showKillerHints?: boolean;
   showDetectiveHints?: boolean;
@@ -39,6 +40,9 @@ interface GameBoardProps {
   errorCardId?: string | null;
   myCharacterId?: string | null;
   isPVP?: boolean;
+  isHumanTurn?: boolean;
+  evidenceDeck?: string[] | Character[];
+  highlightedSpyId?: string;
   myRoleColor?: "red" | "blue";
   isModalOpen?: boolean;
   currentRole?: any;
@@ -370,7 +374,7 @@ export const GameBoard: React.FC<GameBoardProps> = React.memo((props) => {
                       isOverlapZone={false}
                       isPVP={isPVP}
                       myRoleColor={effectiveRoleColor}
-                      onClick={() => handleCardClick(character.id, rIdx, cIdx)}
+                      onClick={() => handleCardClick(character.id)}
                     />
 
                     {(isRadarCell || isRadarTarget) && (

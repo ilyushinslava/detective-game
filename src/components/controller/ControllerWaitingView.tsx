@@ -21,7 +21,7 @@ interface ControllerWaitingViewProps {
   gameState: GameState;
   currentMatchCharacters: Character[];
   marks: Record<string, any>;
-  notes: Record<string, string>;
+  notes: string;
   cycleMark: (id: string) => void;
   setMark: (id: string, mark: any) => void;
   setNotesText: (text: string) => void;
@@ -219,6 +219,7 @@ export const ControllerWaitingView: React.FC<ControllerWaitingViewProps> = ({
                   character={myCharacter}
                   isSelected={false}
                   isPVP={true}
+                  onClick={() => {}}
                 />
               </div>
             ) : (

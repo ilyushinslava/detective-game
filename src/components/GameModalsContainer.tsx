@@ -59,7 +59,7 @@ export interface GameModalsContainerProps {
   onClosePause: () => void;
   onResumeGame: () => void;
   onOpenRules: () => void;
-  onOpenDevPanel: () => void;
+  onOpenDevPanel?: () => void;
   isRulesOpen: boolean;
   onCloseRules: () => void;
   isSfxEnabled: boolean;
@@ -77,6 +77,7 @@ export interface GameModalsContainerProps {
   isDevPanelOpen: boolean;
   onCloseDevPanel: () => void;
   cash: number;
+  onTriggerCluesWin?: () => void;
   onForceWin: (winner: Role, forcedMode?: GameModeType) => void;
   onTriggerInspectorChoice: () => void;
   onResetToMenu: () => void;
@@ -142,6 +143,7 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
   isDevPanelOpen,
   onCloseDevPanel,
   cash,
+  onTriggerCluesWin,
   onForceWin,
   onTriggerInspectorChoice,
   onResetToMenu,
@@ -244,7 +246,7 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
         <DevPanel
           isOpen={isDevPanelOpen}
           onClose={onCloseDevPanel}
-          cash={cash}
+          onTriggerCluesWin={onTriggerCluesWin}
           onForceWin={onForceWin}
           onTriggerInspectorChoice={onTriggerInspectorChoice}
           onResetToMenu={onResetToMenu}

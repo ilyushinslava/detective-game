@@ -73,9 +73,9 @@ export interface GameScreenProps {
   setIsLogOpen: (val: boolean) => void;
   unreadLogCount: number;
   setUnreadLogCount: (val: number) => void;
-  isNotebookOpen: boolean;
-  setIsNotebookOpen: (val: boolean) => void;
-  logContainerRef: React.RefObject<HTMLDivElement | null>;
+  isNotebookOpen?: boolean;
+  setIsNotebookOpen?: (val: boolean) => void;
+  logContainerRef: React.RefObject<HTMLDivElement>;
   allChars?: Character[];
   characterImages?: Record<string, { default: string }>;
   handleReset: () => void;
@@ -93,6 +93,9 @@ export interface GameScreenProps {
   isCurtainActive?: boolean;
   nextPlayerName?: string;
   onConfirmTurnReady?: () => void;
+  isOpponentConnected?: boolean;
+  opponentDisconnectedNotice?: boolean | string | null;
+  isInspectorPending?: boolean;
   setIsMenuOpen: (val: boolean) => void;
 }
 
@@ -167,6 +170,9 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
   spyP2Char,
   isCurtainActive,
   nextPlayerName,
+  isOpponentConnected,
+  opponentDisconnectedNotice,
+  isInspectorPending: _isInspectorPending,
   onConfirmTurnReady,
   setIsMenuOpen,
 }) => {
@@ -217,10 +223,12 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
       />
 
       {/* Ожидание переподключения */}
-      {gameState.isOpponentDisconnected && (
+      {(isOpponentConnected === false || Boolean(opponentDisconnectedNotice)) && (
         <div className="w-full bg-zinc-900 border-b border-zinc-700 text-zinc-300 text-[10px] font-black uppercase tracking-widest py-2 flex justify-center items-center gap-2 shadow-inner z-20">
           <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-ping" />
-          Соперник переподключается... (ожидание)
+          {typeof opponentDisconnectedNotice === "string"
+            ? opponentDisconnectedNotice
+            : "Соперник переподключается... (ожидание)"}
         </div>
       )}
 

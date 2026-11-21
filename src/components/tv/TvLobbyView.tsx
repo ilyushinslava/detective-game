@@ -76,6 +76,15 @@ const MODE_THEMES: Record<
     focus:
       'focus:scale-105 focus:border-blue-300 focus:bg-gradient-to-br focus:from-blue-900/60 focus:to-blue-950/90 focus:shadow-[0_0_40px_rgba(37,99,235,0.65),inset_0_0_20px_rgba(255,255,255,0.2)]',
   },
+  LINE_UP: {
+    normal:
+      'bg-gradient-to-br from-indigo-950/30 via-zinc-950/60 to-black/70 border-indigo-500/25 border-t-2 border-t-indigo-500/70 hover:border-indigo-500/50 text-white/80',
+    selected:
+      'bg-gradient-to-br from-indigo-950/70 via-indigo-900/35 to-black/80 border-indigo-400/80 border-t-2 border-t-indigo-400 shadow-[0_0_30px_rgba(99,102,241,0.35)] text-white ring-1 ring-indigo-400/40',
+    badge: 'bg-indigo-950/80 border border-indigo-500/50 text-indigo-200',
+    focus:
+      'focus:scale-105 focus:border-indigo-300 focus:bg-gradient-to-br focus:from-indigo-900/60 focus:to-indigo-950/90 focus:shadow-[0_0_40px_rgba(99,102,241,0.65),inset_0_0_20px_rgba(255,255,255,0.2)]',
+  },
 };
 
 export const TvLobbyView: React.FC<TvLobbyViewProps> = ({

@@ -106,6 +106,13 @@ const Icons = {
   ),
 };
 
+const ThinkingBanner: React.FC<{ label: string; className?: string }> = ({ label, className = "" }) => (
+  <div className={`flex items-center justify-center gap-2 py-1 px-3 rounded-xl bg-blue-950/40 border border-blue-500/30 text-blue-300 text-xs font-bold uppercase tracking-wider animate-pulse ${className}`}>
+    <span className="w-2 h-2 rounded-full bg-blue-400" />
+    {label}
+  </div>
+);
+
 interface TvCellProps {
   char: any;
   index: number;
@@ -937,10 +944,11 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
     const killerNickname = playerList.find((p) => p.isHost)?.nickname || 'Преступник';
     const detectiveNickname = playerList.find((p) => !p.isHost)?.nickname || 'Детектив';
 
+    const stateWithTurn = gameState as { turnCount?: number; turnNumber?: number; history?: unknown[] };
     const turnCount =
-      (gameState as any).turnCount ||
-      gameState.turnNumber ||
-      gameState.history?.length ||
+      stateWithTurn.turnCount ||
+      stateWithTurn.turnNumber ||
+      stateWithTurn.history?.length ||
       (gameState.log ? Math.max(1, Math.floor(gameState.log.length / 2)) : 1);
     const elapsedTime = (gameState as any).elapsedTime || (gameState as any).matchDuration || '--:--';
 

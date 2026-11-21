@@ -10,7 +10,7 @@ import {
 export interface DevPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  onForceWin: (winner: Role, mode?: GameModeType) => void;
+  onForceWin: (winner: Role, mode?: GameModeType | string) => void;
   onTriggerInspectorChoice: () => void;
   onResetToMenu: () => void;
   onAddCash: (amount: number) => void;

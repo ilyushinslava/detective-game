@@ -48,6 +48,7 @@ class SoundController {
   private isAmbientEnabled: boolean = true;
   private ambientAudio: HTMLAudioElement | null = null;
   private currentAmbientVolume = 0.25;
+  private tvAmbientTargetVolume: number = 0.16;
   private lastPlayTime: Map<string, number> = new Map();
   private lastActionSoundTime = 0;
   

@@ -217,7 +217,11 @@ export function useProfile() {
     });
 
     if (user?.id && isCloudConnected) {
-      const dbUpdates: Record<string, any> = {};
+      const dbUpdates: {
+        agent_name?: string;
+        avatar_id?: string;
+        updated_at?: string;
+      } = {};
       if (sanitizedName) {
         dbUpdates.agent_name = sanitizedName;
       }
@@ -226,6 +230,7 @@ export function useProfile() {
       }
 
       if (Object.keys(dbUpdates).length > 0) {
+        dbUpdates.updated_at = new Date().toISOString();
         const { error: updateError } = await supabase
           .from("profiles")
           .update(dbUpdates)
@@ -270,10 +275,15 @@ export function useProfile() {
       else if (newMmr >= 1100) newRank = "Сыщик";
       else newRank = "Стажёр";
 
+      const matchId = `match_${Date.now()}`;
+      const winnerRole = matchDetails?.winnerRole || (isWin ? role : (role === "DETECTIVE" ? "KILLER" : "DETECTIVE"));
+
       const newMatchEntry: MatchHistoryEntry = {
-        id: `match_${Date.now()}`,
+        id: matchId,
+        matchId: matchId,
         mode: matchDetails?.mode || "MANIAC_VS_OPERATIVE",
-        role: role as any,
+        winnerRole: winnerRole,
+        role: role,
         isWinner: isWin,
         mmrDelta: mmrDelta,
         durationSeconds: matchDetails?.durationSeconds || 120,

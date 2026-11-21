@@ -132,7 +132,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     const validation = validatePlayerName(sanitized);
     if (!validation.isValid) {
       soundManager.play('deny');
-      triggerHaptic('warning');
+      triggerHaptic('error');
       setNicknameError(validation.error || 'Недопустимый позывной');
       return;
     }

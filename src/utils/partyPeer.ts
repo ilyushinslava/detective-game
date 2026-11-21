@@ -2,6 +2,7 @@ import type { Role } from "../types/game";
 import type { GameAction, MorseCandidate } from "../types/multiplayer";
 import { GAME_CONFIG } from "../config/gameConfig";
 import { DEFAULT_BET } from "../constants/gameRules";
+import { normalizeMorse } from "./morse";
 import { safeSessionStorage } from "./storage";
 
 export type { MorseCandidate };
@@ -15,6 +16,8 @@ export interface ResolveRoomResponse {
   hostName?: string;
   status?: string;
   mode?: string;
+  playersCount?: number;
+  maxPlayers?: number;
   error?: string;
   message?: string;
 }
@@ -728,13 +731,13 @@ class PartyService {
       this.socket.readyState === WebSocket.CLOSING
     ) {
       console.log("[PartyService] Reconnecting due to visibility resume...");
-      this.connect(this.roomCode, this.nick, this.isHost, this.mode, this.myClientId, this.clientType);
+      this.connect(this.roomCode, this.nick, this.isHost, this.mode, this.myClientId, this.clientType || undefined);
     } else if (this.socket.readyState === WebSocket.OPEN) {
       try {
         this.socket.send(JSON.stringify({ type: "PING" }));
       } catch (err) {
         console.warn("[PartyService] Ping failed on ensureConnection, reconnecting...", err);
-        this.connect(this.roomCode, this.nick, this.isHost, this.mode, this.myClientId, this.clientType);
+        this.connect(this.roomCode, this.nick, this.isHost, this.mode, this.myClientId, this.clientType || undefined);
       }
     }
   }
@@ -796,7 +799,6 @@ class PartyService {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       try {
         const payload = {
-          type: "DISPATCH_ACTION",
           action,
           ...action,
           senderClientId: this.myClientId,

@@ -175,7 +175,7 @@ const CharacterCardComponent = ({
           {isMyCharacter && !isDead && (() => {
             const isRed = myRoleColor
               ? myRoleColor === "red"
-              : mode === "SKHVATKA" || mode === "MANIAC_VS_OPERATIVE" || mode === "THIEF_HUNT";
+              : mode === "MANIAC_VS_OPERATIVE" || mode === "THIEF_HUNT";
             return (
               <span
                 data-testid="my-character-badge"

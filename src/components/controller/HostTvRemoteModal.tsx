@@ -87,7 +87,6 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <Button
                   variant="secondary"
-                  size="sm"
                   onClick={() => setConfirmState('NONE')}
                   className="text-xs font-sans font-bold uppercase tracking-wider"
                 >
@@ -95,7 +94,6 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
                 </Button>
                 <Button
                   variant="primary"
-                  size="sm"
                   onClick={handleConfirmRestart}
                   className="text-xs font-sans font-bold uppercase tracking-wider"
                 >
@@ -111,7 +109,6 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <Button
                   variant="secondary"
-                  size="sm"
                   onClick={() => setConfirmState('NONE')}
                   className="text-xs font-sans font-bold uppercase tracking-wider"
                 >
@@ -119,7 +116,6 @@ export const HostTvRemoteModal: React.FC<HostTvRemoteModalProps> = ({
                 </Button>
                 <Button
                   variant="danger"
-                  size="sm"
                   onClick={handleConfirmLobby}
                   className="text-xs font-sans font-bold uppercase tracking-wider"
                 >

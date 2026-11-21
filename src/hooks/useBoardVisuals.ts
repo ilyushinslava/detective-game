@@ -64,13 +64,7 @@ export function useBoardVisuals({
     [gameState.board, gameState.winner]
   );
 
-  const isFirstTurnKiller = useMemo(
-    () =>
-      gameState.mode === "SKHVATKA" &&
-      gameState.killCount === 0 &&
-      gameState.currentTurn === "KILLER",
-    [gameState.mode, gameState.killCount, gameState.currentTurn]
-  );
+  const isFirstTurnKiller = false;
 
   const spy1Id = useMemo(
     () =>
@@ -147,11 +141,6 @@ export function useBoardVisuals({
     if (gameState.mode === "SECRET_SERVICE") {
       return `${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].border} ring-2 ${SPY_COLORS[gameState.interrogationRadar.interrogatorIndex % SPY_COLORS.length].ring}`;
     }
-    if (gameState.mode === "SKHVATKA") {
-      return gameState.lastInterrogation?.interrogator === "KILLER"
-        ? "border-red-500 ring-2 ring-red-500/70 text-red-500"
-        : "border-blue-500 ring-2 ring-blue-500/70";
-    }
     return "border-blue-500 ring-2 ring-blue-500/70";
   }, [gameState.interrogationRadar, gameState.mode]);
 
@@ -181,15 +170,9 @@ export function useBoardVisuals({
         return gameState.spies[0].secretId;
       }
     } else {
-      const isInspectorPending =
-        gameState.mode === "SKHVATKA" &&
-        gameState.playerRole === "DETECTIVE" &&
-        Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0);
-      if (!isInspectorPending) {
-        return gameState.playerRole === "KILLER"
-          ? gameState.killerSecretId
-          : gameState.detectiveSecretId;
-      }
+      return gameState.playerRole === "KILLER"
+        ? gameState.killerSecretId
+        : gameState.detectiveSecretId;
     }
     return null;
   }, [isPVP, gameState]);
@@ -279,10 +262,7 @@ export function useBoardVisuals({
       return false;
     }
 
-    if (
-      gameState.mode === "SKHVATKA" &&
-      Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0)
-    ) {
+    if (Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0)) {
       return false;
     }
 
@@ -310,12 +290,7 @@ export function useBoardVisuals({
     return "••••••••";
   }, [showKillerRole, showSpyP1Role, gameState.mode, allChars, gameState.spies, killerChar]);
 
-  const isInspectorPending =
-    gameState.mode === "SKHVATKA" &&
-    Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) &&
-    isDetectiveView &&
-    isDetectiveTurn &&
-    !gameState.winner;
+  const isInspectorPending = false;
 
   const detectiveNameText = useMemo(() => {
     if (isInspectorPending) return "Не выбрана";

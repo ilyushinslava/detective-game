@@ -188,7 +188,6 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
               <div className="space-y-2.5 pt-2">
                 <Button
                   variant="primary"
-                  size="lg"
                   fullWidth
                   onClick={handleResume}
                   className="font-sans font-bold tracking-wider uppercase text-sm"
@@ -199,7 +198,6 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
                   {onRestart && (
                     <Button
                       variant="secondary"
-                      size="md"
                       onClick={onRestart}
                       data-testid="tv-restart-btn"
                       className="font-sans font-bold text-xs tracking-wider uppercase"
@@ -210,7 +208,6 @@ export const TvPauseModal: React.FC<TvPauseModalProps> = ({
                   {!hideExit && onExit && (
                     <Button
                       variant="danger"
-                      size="md"
                       onClick={onExit}
                       data-testid="tv-exit-btn"
                       className="font-sans font-bold text-xs tracking-wider uppercase"

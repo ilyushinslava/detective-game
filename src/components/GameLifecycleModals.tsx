@@ -141,7 +141,7 @@ export const GameLifecycleModals: React.FC<GameLifecycleModalsProps> = memo(({
       )}
 
       <InspectorChoiceModal
-        isOpen={!isLobbyOpen && hasStartedEver && gameState.mode === "SKHVATKA" && Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) && isDetectiveView && isDetectiveTurn && !gameState.winner && !isIntroPhase}
+        isOpen={false}
         isPVP={gameState.opponent === "PVP"}
         inspectorChoices={inspectorChoices}
         characterImages={characterImages}

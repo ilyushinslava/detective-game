@@ -13,7 +13,7 @@ import {
 } from './gameOver';
 
 export interface GameOverModalProps {
-  winner: Role;
+  winner: Role | "DRAW";
   playerRole?: Role;
   mode?: GameModeType;
   killer?: Character;

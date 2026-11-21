@@ -11,7 +11,7 @@ import { filterCandidates } from "../utils/duelLogic";
 export interface ActionDescriptor {
   id: string;
   label: string;
-  icon: string;
+  icon?: string;
   isRed?: boolean;
   requiresTarget?: boolean;
 }
@@ -255,7 +255,7 @@ export function useGameActions({
     if (!targetChar || !targetChar.isAlive || targetChar.isExonerated) return;
 
     const isOnline = gameState.opponent === "ONLINE";
-    const isMiss = !isOnline && selectedId !== gameState.killerSecretId && !targetChar.hasBomb;
+    const isMiss = !isOnline && selectedId !== gameState.killerSecretId;
     if (isOnline) {
       soundManager.play("arrest");
       triggerHaptic("medium");
@@ -296,7 +296,6 @@ export function useGameActions({
 
   const handleExonerateFromHand = (id: string) => {
     if (gameState.currentTurn !== "DETECTIVE" || !isHumanTurn) return;
-    if (gameState.mode === "SKHVATKA" && gameState.inspectorChoices && gameState.inspectorChoices.length > 0) return;
     soundManager.play("radar");
     triggerHaptic("medium");
     dispatchAction({
@@ -543,20 +542,6 @@ export function useGameActions({
           });
         }
 
-        if (gameState.mode === "SKHVATKA") {
-          actions.push({
-            id: "disguise_skhvatka",
-            label: "Конспирация",
-                          onClick: handleDisguise,
-              disabled:
-                !isHumanTurn ||
-                isFirstTurnKiller ||
-                gameState.evidenceDeck.length === 0 ||
-                isGameOver,
-              className:
-                "py-2 sm:py-2.5 md:py-3.5 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-950 hover:from-zinc-800 hover:via-zinc-700 hover:to-zinc-900 text-zinc-100 shadow-[0_8px_20px_rgba(0,0,0,0.5)] border border-zinc-600/70 disabled:opacity-40 disabled:shadow-none text-[10px] sm:text-[11px] md:text-sm font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]",
-          });
-        }
         if (gameState.mode === "MANIAC_VS_OPERATIVE") {
           actions.push({
             id: "escape_maniac",

@@ -1,4 +1,4 @@
-import { useEffect, MutableRefObject } from "react";
+import { useEffect, type MutableRefObject } from "react";
 import { soundManager } from "../utils/audio";
 import { triggerHaptic } from "../utils/haptics";
 import { partyService } from "../utils/partyPeer";
@@ -58,7 +58,7 @@ export function useMatchEndHandler({
       }
 
       soundManager.play(isLocalWin ? "win" : "lose");
-      triggerHaptic(isLocalWin ? "success" : "warning");
+      triggerHaptic(isLocalWin ? "success" : "error");
 
       if (gameState.opponent === "ONLINE" && isLocalWin && awardPrize) {
         awardPrize(gameState.matchPot || 0);

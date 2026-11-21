@@ -79,8 +79,7 @@ export const GameSheets: React.FC<GameSheetsProps> = memo(({
               </div>
 
               <div className="overflow-y-auto custom-scrollbar space-y-2 pb-[max(1.5rem,env(safe-area-inset-bottom))] pr-1">
-                {(gameState.mode === "SKHVATKA" ||
-                  gameState.mode === "MANIAC_VS_OPERATIVE") && (
+                {gameState.mode === "MANIAC_VS_OPERATIVE" && (
                   <DetectiveHand
                     handIds={gameState.detectiveHand || []}
                     allCharacters={safeChars}

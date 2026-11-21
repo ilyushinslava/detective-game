@@ -5,7 +5,7 @@ export interface TargetAction {
   id: string;
   label: string;
   disabled?: boolean;
-  className: string;
+  className?: string;
   onClick: () => void;
 }
 
@@ -37,8 +37,7 @@ export const GameActionButtons: React.FC<GameActionButtonsProps> = ({
   layout = "horizontal",
 }) => {
   const showDossier =
-    (gameState.mode === "MANIAC_VS_OPERATIVE" ||
-      gameState.mode === "SKHVATKA") &&
+    gameState.mode === "MANIAC_VS_OPERATIVE" &&
     isDetectiveView;
   const showCleanup = Boolean(cleanupAction && isCleanupAvailable);
   const totalButtons = targetActions.length + (showDossier ? 1 : 0) + (showCleanup ? 1 : 0);
@@ -183,7 +182,7 @@ export const GameActionButtons: React.FC<GameActionButtonsProps> = ({
 
 export interface GameProtocolCardProps {
   log: string[];
-  logContainerRef: React.RefObject<HTMLDivElement | null>;
+  logContainerRef?: React.RefObject<HTMLDivElement>;
   className?: string;
 }
 

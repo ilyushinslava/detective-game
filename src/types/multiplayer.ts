@@ -37,9 +37,16 @@ export type GameAction = BaseGameAction & (
   | { type: "CLEANUP" }
   | { type: "RESTART_GAME"; payload?: any }
   | { type: "MATCH_STARTED"; payload: { state: any } }
-  | { type: "REQUEST_RESTART"; payload: { requestedBy: "HOST" | "GUEST" } }
+  | { type: "REQUEST_RESTART"; payload: { requestedBy: "HOST" | "GUEST"; rematchMode?: "SWAP" | "SAME" | "RANDOM" } }
   | { type: "CONFIRM_RESTART" }
   | { type: "REJECT_RESTART" }
+  | { type: "CLEAR_DISGUISE_NOTIFICATION" }
+  | { type: "ASK_QUESTION"; payload: any }
+  | { type: "TURN_TIMEOUT" }
+  | { type: "TIMEOUT_PASS" }
+  | { type: "DUEL_TIMEOUT_PASS" }
+  | { type: "RESTART_DUEL"; payload?: any }
+  | { type: "RESOLVE_DUEL_TIE_BREAK"; payload?: any }
   | { type: "SET_MATCH_POT"; payload: { pot: number; bet: number } }
   | { type: "PLAYER_READY" }
   | { type: "PLAYER_UNREADY" }

@@ -882,7 +882,6 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
           {onExit && (
             <Button
               variant="ghost"
-              size="sm"
               onClick={() => {
                 triggerHaptic('light');
                 onExit();
@@ -1464,6 +1463,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                     isSelected={selectedTargetId === char.id}
                     isError={char.id === errorTargetId}
                     isPVP={true}
+                    onClick={() => {}}
                   />
                 </div>
               </div>
@@ -1641,6 +1641,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                     isSelected={false}
                     isError={pendingTargetCharacter.id === errorTargetId}
                     isPVP={true}
+                    onClick={() => {}}
                   />
                 </div>
                 <div className="min-w-0 flex-1">

@@ -616,7 +616,7 @@ export default class GameRoomServer {
       if (disconnectedEntry) {
         existingPlayerId = disconnectedEntry[0];
         // Подставляем токен сессии, чтобы разрешить перенос слота на новое устройство гостя ТВ
-        incomingAuthToken = this.state.players[existingPlayerId].authToken;
+        incomingAuthToken = this.state.players[existingPlayerId].authToken || null;
       }
     }
 
@@ -1454,7 +1454,11 @@ export default class GameRoomServer {
           return;
         }
 
-        const isParticipant = Boolean(player && player.role !== "SPECTATOR");
+        const isParticipant = Boolean(
+          player &&
+          (player.clientType as string) !== "TV_DISPLAY" &&
+          (player.role as string) !== "SPECTATOR"
+        );
 
         let isAuthorizedToConfirm = false;
         if (restartRequestedBy) {
@@ -1706,7 +1710,7 @@ export default class GameRoomServer {
       if (action.type === "CAPTURE_SPY" && this.state.mode === "SECRET_SERVICE") {
         const payload = action.payload || {};
         const targetId = payload.targetId || payload.targetCardId;
-        const playerIndex = Object.keys(this.state.players).indexOf(senderClientId);
+        const playerIndex = Object.keys(this.state.players).indexOf(senderClientId || "");
         const attackerSpyIndex = this.state.gameState.activeSpyIndex ?? (playerIndex !== -1 ? playerIndex : (player?.isHost ? 0 : 1));
         const spies = this.state.gameState.spies || [];
         const attackerSpy = spies[attackerSpyIndex];

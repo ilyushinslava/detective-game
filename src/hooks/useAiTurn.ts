@@ -1,4 +1,4 @@
-import { useState, useEffect, Dispatch, SetStateAction } from "react";
+import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
 import type { GameState } from "../types/game";
 import { partyService } from "../utils/partyPeer";
 import { soundManager } from "../utils/audio";

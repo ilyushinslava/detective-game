@@ -120,7 +120,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         : a.errors.invalidChars;
       setError(msg);
       soundManager.play("error");
-      triggerHaptic("warning");
+      triggerHaptic("error");
       return;
     }
 
@@ -129,7 +129,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       const msg = !password ? a.errors.enterPassword : a.errors.passwordLength;
       setError(msg);
       soundManager.play("error");
-      triggerHaptic("warning");
+      triggerHaptic("error");
       return;
     }
 
@@ -151,7 +151,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         } else {
           setError(res.error || "Ошибка привязки аккаунта");
           soundManager.play("error");
-          triggerHaptic("warning");
+          triggerHaptic("error");
         }
       } else {
         // Вход в существующий аккаунт
@@ -164,13 +164,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         } else {
           setError(res.error || a.errors.invalidCredentials);
           soundManager.play("error");
-          triggerHaptic("warning");
+          triggerHaptic("error");
         }
       }
     } catch (err: any) {
       setError(err?.message || a.errors.networkError);
       soundManager.play("error");
-      triggerHaptic("warning");
+      triggerHaptic("error");
     } finally {
       setIsLoading(false);
     }

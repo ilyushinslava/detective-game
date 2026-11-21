@@ -95,7 +95,7 @@ export default function App() {
   const matchResultRecordedRef = useRef(false);
   const [matchRatingInfo, setMatchRatingInfo] = useState<{ rating: number; ratingDelta: number } | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "LOBBY" | "TABLES" | "TOP" | "SHOP"
+    "LOBBY" | "TABLES" | "TOP"
   >("LOBBY");
 
   const [gameState, setGameState] = useState(() =>
@@ -828,8 +828,8 @@ export default function App() {
         characterImages={characterImages}
         toastMessage={toastMessage}
         onCloseToast={() => setToastMessage(null)}
-        restartRequestedBy={gameState.restartRequestedBy}
-          pendingRematchMode={gameState.pendingRematchMode}
+        restartRequestedBy={gameState.restartRequestedBy || undefined}
+        pendingRematchMode={gameState.pendingRematchMode}
         matchBet={gameState.matchBet || DEFAULT_BET}
         rematchTimer={rematchTimer}
         onAcceptRestart={acceptRestart}
@@ -874,31 +874,16 @@ export default function App() {
           setIsIntroPhase(false);
           setIsPauseOpen(false);
           setIsChoiceSheetMinimized(false);
-          setGameState((prev) => {
-            const b5 = generateBoard5x5({ proceduralDistribution: true, clueCount: 5 });
-            let cluesFound = 0;
-            const revealedBoard = b5.map((row) =>
-              row.map((cell) => {
-                if (cell.cellType === "CLUE" && cluesFound < 4) {
-                  cluesFound++;
-                  return { ...cell, status: "REVEALED" as const };
-                }
-                return cell;
-              })
-            );
-
-            return {
-              ...prev,
-              board: revealedBoard,
-              trophiesDetective: 4,
-              winner: "DETECTIVE",
-              log: [
-                ...prev.log,
-                "🔍 Найдена 4-я ключевая улика!",
-                "🏆 Сыщик собрал все ключевые улики (4/4) и раскрыл дело! Победа Закона!",
-              ],
-            };
-          });
+          setGameState((prev) => ({
+            ...prev,
+            trophiesDetective: 4,
+            winner: "DETECTIVE",
+            log: [
+              ...prev.log,
+              "🔍 Найдена 4-я ключевая улика!",
+              "🏆 Сыщик собрал все ключевые улики (4/4) и раскрыл дело! Победа Закона!",
+            ],
+          }));
         }}
         onForceWin={(winner, forcedMode) => {
           setIsIntroPhase(false);
@@ -1100,7 +1085,6 @@ export default function App() {
                   logContainerRef={logContainerRef}
                   allChars={allChars}
                   characterImages={characterImages}
-                  selectedCharacter={selectedCharacter}
                   handleReset={handleReset}
                   handleShift={handleShift}
                   handleExonerateFromHand={handleExonerateFromHand}
@@ -1243,7 +1227,7 @@ export default function App() {
                       : controllerRole
                   }
                   isPassAndPlay={isTvPassAndPlay}
-                  isTvParty={tvPartyState === "NONE" && Boolean(controllerRoomStatus)}
+                  isTvParty={Boolean(controllerRoomStatus)}
                   isHost={isHostController}
                   roomStatus={controllerRoomStatus}
                   isAIThinking={isAIThinking}

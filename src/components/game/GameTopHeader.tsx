@@ -13,7 +13,7 @@ export interface GameTopHeaderProps {
   unreadLogCount: number;
   setIsLogOpen: (open: boolean) => void;
   setUnreadLogCount: (count: number) => void;
-  setIsNotebookOpen: (open: boolean) => void;
+  setIsNotebookOpen?: (open: boolean) => void;
   setIsMenuOpen: (open: boolean) => void;
   onReset: () => void;
 }
@@ -49,7 +49,8 @@ export const GameTopHeader: React.FC<GameTopHeaderProps> = ({
           </svg>
         </button>
         <button
-          onClick={() => setIsNotebookOpen(true)}
+          type="button"
+          onClick={() => setIsNotebookOpen?.(true)}
           className="w-11 h-11 neo-card-interactive rounded-xl flex items-center justify-center font-bold text-xs md:text-sm shrink-0 cursor-pointer text-zinc-300 hover:text-white border-t-white/25 active:scale-95 shadow-md touch-manipulation"
           title="Блокнот подозреваемых"
         >

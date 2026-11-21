@@ -58,7 +58,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
   });
 
   const markModuleCompleted = (mod: TutorialModule) => {
-    soundManager.play("victory");
+    soundManager.play("win");
     triggerHaptic("success");
     setCompletedModules((prev) => {
       if (prev.includes(mod)) return prev;
@@ -92,9 +92,6 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   // Вычисляем активного персонажа игрока для подсветки сектора 3x3
   const activeAgentId = useMemo(() => {
-    if (currentModule === "MANIAC_KILLER" || currentModule === "THIEF_ROBBER") {
-      return maniacSecretId;
-    }
     if (currentModule === "BASICS") return board[2]?.[2]?.id || null;
     if (currentModule === "MANIAC_KILLER") return maniacSecretId || board[2]?.[1]?.id;
     if (currentModule === "MANIAC_DETECTIVE") return board[2]?.[2]?.id;
@@ -225,7 +222,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       const nextBoard = shiftBoard(board, type, index, direction);
       setBoard(nextBoard);
       setLastShift({ type, index, direction });
-      soundManager.play("shift");
+      soundManager.play("slide");
       triggerHaptic("medium");
       setStep(2);
       return;
@@ -242,7 +239,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       const nextBoard = shiftBoard(board, type, index, direction);
       setBoard(nextBoard);
       setLastShift({ type, index, direction });
-      soundManager.play("shift");
+      soundManager.play("slide");
       triggerHaptic("medium");
       setStep(2);
       return;
@@ -251,7 +248,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   const handleKill = () => {
     if (currentModule === "MANIAC_KILLER" && step === 3 && selectedId === targetVictimId) {
-      soundManager.play("eliminate");
+      soundManager.play("kill");
       triggerHaptic("heavy");
       setBoard((prev) =>
         prev.map((row) =>
@@ -302,7 +299,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   const handleCleanup = () => {
     if (currentModule === "MANIAC_DETECTIVE" && step === 3) {
-      soundManager.play("shift");
+      soundManager.play("slide");
       triggerHaptic("medium");
       const flat = board.flat();
       const alive = flat.filter((c) => c.isAlive);
@@ -386,7 +383,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   const handleEliminateDuel = () => {
     if (currentModule === "LINE_UP" && step === 2) {
-      soundManager.play("shift");
+      soundManager.play("slide");
       triggerHaptic("medium");
       setBoard((prev) =>
         prev.map((row) =>

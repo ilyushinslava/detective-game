@@ -676,7 +676,16 @@ export default class GameRoomServer {
       }
 
       try {
-        const maskedSnapshot = this.state.gameState ? this.maskStateForPlayer(this.state.gameState, existingPlayer.role) : null;
+        const playerIndex = Object.keys(this.state.players).indexOf(existingPlayerId);
+        const maskedSnapshot = this.state.gameState
+          ? this.maskStateForPlayer(
+              this.state.gameState,
+              existingPlayer.role,
+              existingPlayer.isHost,
+              this.state.isPassAndPlay,
+              playerIndex
+            )
+          : null;
         conn.send(
           JSON.stringify({
             type: "AUTH_TOKEN",
@@ -1302,9 +1311,16 @@ export default class GameRoomServer {
         this.broadcastStatus();
         this.broadcastState();
         try {
+          const playerIndex = senderClientId ? Object.keys(this.state.players).indexOf(senderClientId) : -1;
           const masked = isTvSender
             ? this.maskStateForTv(this.state.gameState)
-            : this.maskStateForPlayer(this.state.gameState, player?.role);
+            : this.maskStateForPlayer(
+                this.state.gameState,
+                player?.role,
+                player?.isHost,
+                this.state.isPassAndPlay,
+                playerIndex
+              );
           sender?.send(
             JSON.stringify({
               type: "STATE_SNAPSHOT",

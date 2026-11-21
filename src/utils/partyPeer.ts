@@ -872,6 +872,18 @@ class PartyService {
     const { httpProtocol, host } = this.resolveEndpoints();
 
     try {
+      const res = await fetch(`${httpProtocol}//${host}/party/main?action=list`, {
+        signal: AbortSignal.timeout(2000),
+      });
+      if (res.ok) {
+        const rooms = await res.json();
+        if (Array.isArray(rooms) && rooms.length > 0) {
+          return rooms;
+        }
+      }
+    } catch (_) {}
+
+    try {
       const res = await fetch(`${httpProtocol}//${host}/parties/lobby/main?action=list`, {
         signal: AbortSignal.timeout(2000),
       });

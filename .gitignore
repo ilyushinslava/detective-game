@@ -44,3 +44,4 @@ vitest_conf.txt
 
 coverage/
 screenshots/
+tmp-*/

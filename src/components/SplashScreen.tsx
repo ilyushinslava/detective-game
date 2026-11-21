@@ -19,7 +19,6 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
   const splashPcUrl = `${base}/splash-bg-PC.webp`;
   const splashMobileUrl = `${base}/splash-bg.webp`;
-  const bgMainUrl = `${base}/bg-main.webp`;
 
   const handleStart = () => {
     if (isTriggered) return;
@@ -81,7 +80,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
             className="w-full h-full object-cover object-center opacity-95 shadow-[0_0_80px_rgba(0,0,0,0.9)]"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              if (target.src !== bgMainUrl) target.src = bgMainUrl;
+              if (target.src !== splashMobileUrl) target.src = splashMobileUrl;
             }}
           />
         </picture>

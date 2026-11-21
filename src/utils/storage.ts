@@ -61,7 +61,12 @@ class StorageService {
   }
 
   private async migrateFromLocalStorage(db: IDBDatabase): Promise<void> {
-    if (this.isMigrated || typeof window === "undefined" || !window.localStorage) {
+    if (this.isMigrated || typeof window === "undefined") {
+      return;
+    }
+    try {
+      if (!window.localStorage) return;
+    } catch {
       return;
     }
     this.isMigrated = true;

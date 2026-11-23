@@ -24,6 +24,7 @@ import type { GameAction } from "./types/multiplayer";
 import { Button } from "./components/ui/Button";
 import { LiquidBackground } from "./components/ui/LiquidBackground";
 import { AchievementToast } from "./components/ui/AchievementToast";
+import { PwaUpdateToast } from "./components/pwa/PwaUpdateToast";
 import type { ShiftPayload } from "./types/game";
 import { gameReducer } from "./utils/gameReducer";
 import { BannerViewerProvider } from "./contexts/BannerViewerContext";
@@ -31,7 +32,7 @@ import { useRulesModal } from "./hooks/useRulesModal";
 import { characterImages } from "./constants/characterImages";
 import { DEFAULT_BET, TIMINGS } from "./constants/gameRules";
 import { safeLocalStorage, safeSessionStorage } from "./utils/storage";
-import { ControllerLobbyView } from "./components/controller/ControllerLobbyView";
+import { ScreenFallback } from "./components/ui/ScreenFallback";
 // Асинхронные динамические чанки второстепенных экранов (TASK-ARCH-001)
 const DuelScreen = lazy(() => import("./components/duel/DuelScreen").then((m) => ({ default: m.DuelScreen })));
 const TvHomeView = lazy(() => import("./components/tv/TvHomeView").then((m) => ({ default: m.TvHomeView })));
@@ -41,17 +42,7 @@ const TvScreensaver = lazy(() => import("./components/tv/TvScreensaver").then((m
 const TvNetworkDisconnectModal = lazy(() => import("./components/tv/TvNetworkDisconnectModal").then((m) => ({ default: m.TvNetworkDisconnectModal })));
 const MobileControllerView = lazy(() => import("./components/controller/MobileControllerView").then((m) => ({ default: m.MobileControllerView })));
 const ControllerConnectView = lazy(() => import("./components/controller/ControllerConnectView").then((m) => ({ default: m.ControllerConnectView })));
-
-const ScreenFallback = () => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-background-main text-zinc-300 select-none">
-    <div className="flex flex-col items-center gap-3">
-      <div className="w-10 h-10 border-2 border-white/10 border-t-blue-500 rounded-full animate-spin" />
-      <span className="text-xs font-mono tracking-widest text-zinc-400 uppercase">
-        Загрузка модуля...
-      </span>
-    </div>
-  </div>
-);
+const ControllerLobbyView = lazy(() => import("./components/controller/ControllerLobbyView").then((m) => ({ default: m.ControllerLobbyView })));
 
 
 
@@ -1408,6 +1399,9 @@ export default function App() {
         achievement={latestUnlockedAchievement}
         onClose={clearLatestUnlockedAchievement}
       />
+
+      {/* Уведомление об обновлении Service Worker (PWA) */}
+      <PwaUpdateToast />
     </div>
   </BannerViewerProvider>
   );

@@ -6,12 +6,12 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       injectRegister: "auto",
       manifest: {
         name: "Под подозрением (Prime Suspect)",
         short_name: "Под подозрением",
-        description: "Детективная пошаговая киберпанк-стратегия",
+        description: "Детективная пошаговая стратегия в стиле Neo-Noir",
         theme_color: "#080a0f",
         background_color: "#080a0f",
         display: "standalone",
@@ -45,6 +45,18 @@ export default defineConfig({
     ),
   },
   build: {
+    modulePreload: {
+      resolveDependencies: (filename, deps, { hostType }) => {
+        return deps.filter(
+          (dep) =>
+            !dep.includes('tv-party') &&
+            !dep.includes('vendor-qr-scanner') &&
+            !dep.includes('RulesModal') &&
+            !dep.includes('TutorialScreen') &&
+            !dep.includes('DuelScreen')
+        );
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks: (id) => {
@@ -70,14 +82,18 @@ export default defineConfig({
           if (
             id.includes('node_modules/qrcode.react') ||
             id.includes('src/components/tv/') ||
-            id.includes('src/components/controller/')
+            (id.includes('src/components/controller/') && !id.includes('DetectiveNotebookModal'))
           ) {
             return 'tv-party';
           }
           if (id.includes('src/components/ui/Icons') || id.includes('src/components/ui/ActionIcons')) {
             return 'icons';
           }
-          if (id.includes('src/components/CharacterCard') || id.includes('src/constants/characterImages')) {
+          if (
+            id.includes('src/components/CharacterCard') ||
+            id.includes('src/constants/') ||
+            id.includes('src/utils/')
+          ) {
             return 'game-core';
           }
         },

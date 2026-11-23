@@ -1,6 +1,7 @@
 {
   "name": "Под подозрением (Prime Suspect)",
   "short_name": "Под подозрением",
+  "description": "Детективная пошаговая стратегия в стиле Neo-Noir",
   "display": "standalone",
   "orientation": "portrait",
   "start_url": "./",

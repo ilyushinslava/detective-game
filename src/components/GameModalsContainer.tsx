@@ -1,19 +1,28 @@
 ﻿import React from "react";
 import type { GameModeType, Role, Character } from "../types/game";
-import { DetectiveNotebookModal } from "./controller/DetectiveNotebookModal";
 import { DuelQuestionCatalogModal } from "./duel/DuelQuestionCatalogModal";
 import { DuelCandidatesSheet } from "./duel/DuelCandidatesSheet";
 import { DuelAccuseModal } from "./duel/DuelAccuseModal";
 import { DUEL_CHARACTERS } from "../constants/duelCharacters";
 import { Toast } from "./Toast";
 import { PauseModal } from "./PauseModal";
-import { RulesModal } from "./RulesModal";
 import { FullscreenCardModal } from "./FullscreenCardModal";
 import { DeviceOrientationOverlay } from "./DeviceOrientationOverlay";
-import { DevPanel } from "./DevPanel";
 import { RematchModal } from "./RematchModal";
 import { DisconnectModal } from "./DisconnectModal";
 import { partyService } from "../utils/partyPeer";
+
+// Ленивая загрузка вторичных модальных окон (TASK-ARCH-001)
+const DetectiveNotebookModal = React.lazy(() =>
+  import("./controller/DetectiveNotebookModal").then((m) => ({ default: m.DetectiveNotebookModal }))
+);
+const RulesModal = React.lazy(() =>
+  import("./RulesModal").then((m) => ({ default: m.RulesModal }))
+);
+// DevPanel полностью исключается из production сборки (0 байт в бандле)
+const DevPanel = import.meta.env.DEV
+  ? React.lazy(() => import("./DevPanel").then((m) => ({ default: m.DevPanel })))
+  : null;
 
 export interface GameModalsContainerProps {
   // Duel Modals
@@ -194,14 +203,18 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
         onConfirmAccusation={onConfirmDuelAccusation}
       />
 
-      <DetectiveNotebookModal
-        isOpen={Boolean(isNotebookOpen)}
-        onClose={onCloseNotebook || (() => {})}
-        characters={allCharacters || []}
-        characterImages={characterImages}
-        sessionKey={notebookSessionKey}
-        role={notebookRole}
-      />
+      {isNotebookOpen && (
+        <React.Suspense fallback={null}>
+          <DetectiveNotebookModal
+            isOpen={Boolean(isNotebookOpen)}
+            onClose={onCloseNotebook || (() => {})}
+            characters={allCharacters || []}
+            characterImages={characterImages}
+            sessionKey={notebookSessionKey}
+            role={notebookRole}
+          />
+        </React.Suspense>
+      )}
 
       <Toast message={toastMessage} type="info" onClose={onCloseToast} />
 
@@ -241,7 +254,11 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
         onToggleHaptics={onToggleHaptics}
       />
 
-      <RulesModal isOpen={isRulesOpen} onClose={onCloseRules} initialTab={activeRulesTab} />
+      {isRulesOpen && (
+        <React.Suspense fallback={null}>
+          <RulesModal isOpen={isRulesOpen} onClose={onCloseRules} initialTab={activeRulesTab} />
+        </React.Suspense>
+      )}
 
       <FullscreenCardModal
         card={fullscreenCard}
@@ -250,27 +267,29 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
 
       <DeviceOrientationOverlay />
 
-      {import.meta.env.DEV && (
-        <DevPanel
-          isOpen={isDevPanelOpen}
-          onClose={onCloseDevPanel}
-          onTriggerCluesWin={onTriggerCluesWin}
-          onForceWin={onForceWin}
-          onTriggerInspectorChoice={onTriggerInspectorChoice}
-          onResetToMenu={onResetToMenu}
-          onAddCash={onAddCash}
-          onResetCash={onResetCash}
-          onToggleTurn={onToggleTurn}
-          onTogglePlayerRole={onTogglePlayerRole}
-          onAddKill={onAddKill}
-          onTriggerIntro={onTriggerIntro}
-          onTriggerRestartRequest={onTriggerRestartRequest}
-          onTriggerOpponentLeft={onTriggerOpponentLeft}
-          onTriggerDisguiseModal={onTriggerDisguiseModal}
-          onTriggerCaughtSpyModal={onTriggerCaughtSpyModal}
-          onTriggerGameOver={onTriggerGameOver}
-          onClearSession={onClearSession}
-        />
+      {import.meta.env.DEV && DevPanel && isDevPanelOpen && (
+        <React.Suspense fallback={null}>
+          <DevPanel
+            isOpen={isDevPanelOpen}
+            onClose={onCloseDevPanel}
+            onTriggerCluesWin={onTriggerCluesWin}
+            onForceWin={onForceWin}
+            onTriggerInspectorChoice={onTriggerInspectorChoice}
+            onResetToMenu={onResetToMenu}
+            onAddCash={onAddCash}
+            onResetCash={onResetCash}
+            onToggleTurn={onToggleTurn}
+            onTogglePlayerRole={onTogglePlayerRole}
+            onAddKill={onAddKill}
+            onTriggerIntro={onTriggerIntro}
+            onTriggerRestartRequest={onTriggerRestartRequest}
+            onTriggerOpponentLeft={onTriggerOpponentLeft}
+            onTriggerDisguiseModal={onTriggerDisguiseModal}
+            onTriggerCaughtSpyModal={onTriggerCaughtSpyModal}
+            onTriggerGameOver={onTriggerGameOver}
+            onClearSession={onClearSession}
+          />
+        </React.Suspense>
       )}
     </>
   );

@@ -81,9 +81,9 @@ export const GameTopHeader: React.FC<GameTopHeaderProps> = ({
         </button>
       </div>
 
-      <div className="flex-1 min-w-0 flex justify-center items-center px-1 z-0 overflow-hidden">
+      <div className="flex-1 min-w-0 flex justify-center items-center px-0.5 sm:px-1 z-0">
         <div
-          className={`flex items-center gap-1.5 px-2.5 py-1 md:px-5 md:py-2.5 rounded-full border text-[10px] md:text-xs font-black tracking-wider uppercase transition-all shadow-lg backdrop-blur-xl max-w-[120px] sm:max-w-[180px] md:max-w-[220px] truncate ${
+          className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 md:px-5 py-1 md:py-2.5 rounded-full border text-[10px] sm:text-[11px] md:text-xs font-black tracking-wider uppercase transition-all shadow-lg backdrop-blur-xl shrink-0 whitespace-nowrap ${
             gameState.winner === "KILLER"
               ? "bg-rose-950/80 border-rose-500/50 border-t-rose-400/80 text-rose-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]"
               : gameState.winner === "DETECTIVE"
@@ -100,7 +100,7 @@ export const GameTopHeader: React.FC<GameTopHeaderProps> = ({
               <span className={`relative inline-flex rounded-full h-1.5 w-1.5 md:h-2 md:w-2 ${dotClasses}`} />
             </span>
           )}
-          <span className="whitespace-nowrap truncate">
+          <span className="whitespace-nowrap">
             {gameState.winner !== null
               ? gameState.winner === "KILLER"
                 ? "ПОБЕДА КРИМИНАЛА"

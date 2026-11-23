@@ -235,7 +235,7 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
               if (soundManager?.play) soundManager.play("tapMenu");
               setIsDropdownOpen((prev) => !prev);
             }}
-            className="w-full flex items-center justify-between px-3.5 h-9 rounded-xl text-xs font-mono font-bold uppercase tracking-wider neo-button-primary transition-all duration-150 active:scale-[0.98] cursor-pointer"
+            className="w-full flex items-center justify-between px-3.5 h-9 rounded-xl text-xs font-sans font-bold uppercase tracking-wider neo-button-primary transition-all duration-150 active:scale-[0.98] cursor-pointer"
           >
             <div className="flex items-center gap-2 min-w-0">
               <Icons.Filter className="text-zinc-400" />
@@ -259,7 +259,7 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
                       onFilterChange(filter.id);
                       setIsDropdownOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all duration-100 cursor-pointer text-left ${
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-sans font-bold uppercase tracking-wider transition-all duration-100 cursor-pointer text-left ${
                       isSelected
                         ? "bg-white/15 text-white border border-white/20 shadow-xs"
                         : "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.05] border border-transparent"
@@ -290,7 +290,7 @@ export const TablesHeader: React.FC<TablesHeaderProps> = ({
                   if (soundManager?.play) soundManager.play("tapMenu");
                   onFilterChange(filter.id);
                 }}
-                className={`h-7 px-3.5 text-[11px] font-mono font-bold uppercase tracking-wider rounded-lg transition-all duration-150 cursor-pointer select-none shrink-0 border focus:outline-none active:scale-95 ${
+                className={`h-7 px-3.5 text-[11px] font-sans font-bold uppercase tracking-wider rounded-lg transition-all duration-150 cursor-pointer select-none shrink-0 border focus:outline-none active:scale-95 ${
                   isActive
                     ? "bg-white/15 text-white border-white/25 shadow-xs"
                     : "bg-white/[0.03] text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.07] border-white/5"

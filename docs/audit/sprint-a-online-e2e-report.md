@@ -1,9 +1,9 @@
 # Спринт A: Отчёт по боевому E2E-аудиту и стабилизации онлайн-мультиплеера (Телефон ↔ Телефон)
 
-> Дата: 21 ноября 2026  
+> Дата: 23 ноября 2026  
 > Ветка: `feat/sprint-a-online-multiplayer-hardening`  
 > Стек: PartyKit WebSocket, Vite + React 18, Playwright (Chromium / msedge), Vitest  
-> Результаты тестов: **90 сьютов, 582 теста (100% PASS)**, TypeScript `noImplicitAny: true` & `strictNullChecks: true` (0 ошибок)
+> Результаты тестов: **90 сьютов, 584 теста (100% PASS)**, TypeScript `noImplicitAny: true` & `strictNullChecks: true` (0 ошибок)
 
 ---
 
@@ -17,23 +17,27 @@
 1. **Лобби и каталог столов (`TablesScreen`):**
    - Хост успешно открывает вкладку «Сеть» и открывает модалку создания `CreateRoomModal`.
    - Создаёт открытую партию со ставкой 250 CR.
+   - Устранено дублирование кнопок создания: отображается ровно одна кнопка создания, `font-mono` заменен на `font-sans`.
    - Гость видит свежесозданную комнату через HTTP API лобби и подключается к ней по нажатию «Войти ➔».
 2. **Ожидание и старт (`LobbyWaitingModal` → `RoleRevealModal`):**
    - У Хоста отображается экран ожидания с индикатором поиска агента.
    - При подключении Гостя сервер переводит комнату в статус `READY_TO_START` / `PLAYING`.
-   - Банк матча (`matchPot`) рассчитывается авторитетным сервером как `currentBet * 2` (500 CR).
-3. **Безопасность и маскирование секретов (Zero Data Leak):**
-   - Проверено по DOM и стейту: у Гостя **отсутствуют** бейджи и секретные идентификаторы Хоста (`hasKillerBadge: false`).
-   - В режиме `SECRET_SERVICE` секретный ID шпиона оппонента маскируется как `null`.
-   - Колода улик `evidenceDeck` полностью очищена для клиентов.
+   - Роли распределяются сервером авторитетно и строго противоположно: Хост и Гость получают разные роли (`KILLER` и `DETECTIVE`).
+   - Банк матча (`matchPot`) рассчитывается сервером как `currentBet * 2` (500 CR).
+3. **Безопасность, маскирование секретов и поочередные ходы:**
+   - У активного игрока горит «ВАШ ХОД», подсвечена карточка секретного персонажа с бейджем «ВЫ» и активны кнопки ходов.
+   - У второго игрока горит «ХОД ВРАГА» (без обрезки текста на 375px), кнопки действий отключены.
+   - Активный игрок делает ход (сдвиг доски) — ход корректно и синхронно переходит к сопернику.
+   - Проверено по DOM и стейту: у Гостя отсутствуют секретные идентификаторы Хоста.
    - Будущие жертвы маньяка (после текущей) скрыты как `"UNKNOWN"`.
 4. **Отказоустойчивость при обрыве связи (Disconnect & Reconnect):**
-   - Закрытие вкладки Гостя во время матча не приводит к крашу у Хоста.
-   - У Хоста появляется информативный баннер ожидания переподключения соперника.
-   - Повторный вход Гостя по сохранённой сессии восстанавливает WebSocket-соединение с тем же `authToken` и точным состоянием доски.
+   - При закрытии вкладки или потере сокета матч НЕ убивается мгновенно.
+   - У оставшегося игрока на `GameScreen` отображается нефатальный аккуратный баннер ожидания переподключения с таймером grace period (`PLAYER_DISCONNECTED`).
+   - Модалка «СОПЕРНИК ПОКИНУЛ ИГРУ / Партия завершена» заблокирована на время grace period и появляется только при окончательном уходе (`OPPONENT_LEFT`).
+   - Повторный вход Гостя по сохранённой сессии восстанавливает соединение: баннер исчезает, матч продолжается.
 5. **Финал и реванш (`GameOverModal`):**
    - Завершение матча отображает победителя, начисление выигрыша из банка и рейтинг MMR.
-   - Двусторонний запрос на реванш (`REQUEST_RESTART` -> `CONFIRM_RESTART`) создает чистую новую сессию с пересчётом банка без дублирования сокетов.
+   - Кнопка реванша работает штатно (`REQUEST_RESTART` -> `CONFIRM_RESTART`).
 
 ---
 
@@ -43,13 +47,17 @@
 - **Проблема:** PartyKit CLI в dev-режиме запускает парти-серверы `main` (комнаты) и `lobby` (каталог) в изолированных воркерах. Из-за этого `publicRoomsRegistry` в воркере `lobby` оставался пустым, и метод `fetchPublicRooms()` не видел комнаты, созданные в воркере `main`.
 - **Решение:** В [src/utils/partyPeer.ts](file:///c:/Projects/detective-game/src/utils/partyPeer.ts) добавлен приоритетный опрос `/party/main?action=list` перед фоллбэком на `/parties/lobby/main`. Сервер [src/server/index.ts](file:///c:/Projects/detective-game/src/server/index.ts) теперь напрямую отдаёт список актуальных ожидающих комнат.
 
-### Баг 2: Неполные аргументы `maskStateForPlayer` при реконнекте и снимке состояния (HIGH)
-- **Проблема:** В [src/server/index.ts](file:///c:/Projects/detective-game/src/server/index.ts) в строках 679 (восстановление сессии) и 1307 (запрос снимка `STATE_SNAPSHOT`) метод `maskStateForPlayer` вызывался только с 2 аргументами `(state, role)`, без передачи `isHost`, `isPassAndPlay` и `playerIndex`. В режиме `SECRET_SERVICE` это приводило к невозможности точно определить, чей секрет нужно скрыть.
-- **Решение:** Добавлен корректный расчет `playerIndex = Object.keys(this.state.players).indexOf(...)` и полная передача `(state, role, isHost, isPassAndPlay, playerIndex)` в обоих методах.
+### Баг 2: Дедлок ролей Хоста и Гостя (P0)
+- **Проблема:** Клиенты в `useLobbyNetwork.ts` и `App.tsx` самовольно вычисляли роль как `isHost ? "KILLER" : "DETECTIVE"`, игнорируя серверное распределение ролей, а `partyService` не сохранял назначенную сервером роль. При несовпадении с серверной раздачей оба клиента считали себя детективами, ни у одного не было своего секрета, и у обоих висел дедлок «ХОД ВРАГА».
+- **Решение:** В [partyPeer.ts](file:///c:/Projects/detective-game/src/utils/partyPeer.ts) добавлено сохранение `myRole` из серверных пакетов (`ROOM_STATUS`, `SYNC_STATE`, `SESSION_RESTORED`). В [useLobbyNetwork.ts](file:///c:/Projects/detective-game/src/hooks/useLobbyNetwork.ts) и [App.tsx](file:///c:/Projects/detective-game/src/App.tsx) клиент принимает серверную роль как единый источник истины. В [server/index.ts](file:///c:/Projects/detective-game/src/server/index.ts) гарантировано строгое разведение ролей и запись `copy.playerRole = role` в `maskStateForPlayer`.
 
-### Баг 3: Перехват селектора кнопки создания в модалке
-- **Проблема:** Селектор `button:has-text("Создать")` мог матчить кнопку на нижнем слое столов `+ Создать партию`.
-- **Решение:** В E2E-сценарии уточнён селектор `.modal-backdrop button:has-text("Создать")`.
+### Баг 3: Мгновенное завершение матча вместо ожидания переподключения (P0)
+- **Проблема:** В `GameModalsContainer` модальное окно `DisconnectModal` («СОПЕРНИК ПОКИНУЛ ИГРУ / Партия завершена») открывалось по флагу временного дисконнекта `isOpponentDisconnectedNotice`, перекрывая баннер ожидания на `GameScreen`.
+- **Решение:** В [useMultiplayer.ts](file:///c:/Projects/detective-game/src/utils/useMultiplayer.ts) разделены состояния временного дисконнекта (`opponentDisconnectedNotice`) и окончательного выхода (`isOpponentPermanentlyLeft`). На время grace period отображается только аккуратный баннер ожидания на `GameScreen`, а фатальное окно открывается только по истечении таймаута или при явном `OPPONENT_LEFT`.
+
+### Баг 4: Обрезка статуса хода на 375px и дублирование кнопок создания (P1/P2)
+- **Проблема:** В [GameTopHeader.tsx](file:///c:/Projects/detective-game/src/components/game/GameTopHeader.tsx) класс `max-w-[120px] truncate` на экранах 375px обрезал текст «ХОД ВРАГА» в «ХОД ВРА...». В [TablesEmptyState.tsx](file:///c:/Projects/detective-game/src/components/tables/TablesEmptyState.tsx) дублировалась кнопка создания («+ Создать первый стол» и нижняя «+ Создать партию»).
+- **Решение:** В `GameTopHeader` убран жесткий ограничитель ширины, текст выводится без обрезки. В `TablesEmptyState` устранена вторая кнопка создания, а `font-mono` в текстовых метках заменен на `font-sans`.
 
 ---
 
@@ -69,5 +77,5 @@
 ## 4. Сводка проверок качества
 
 - **TypeScript:** `npx tsc --noEmit` — 0 ошибок.
-- **Vitest:** `npx vitest run` — **90 файлов, 582 теста (100% PASS)**, включая новый регрессионный сьют [sprintAOnlineHardening.test.ts](file:///c:/Projects/detective-game/src/utils/__tests__/sprintAOnlineHardening.test.ts).
+- **Vitest:** `npx vitest run` — **90 файлов, 584 теста (100% PASS)**, включая новый регрессионный сьют [sprintAOnlineHardening.test.ts](file:///c:/Projects/detective-game/src/utils/__tests__/sprintAOnlineHardening.test.ts).
 - **Сборка PWA:** `npm run build` — успешно за 7.77s.

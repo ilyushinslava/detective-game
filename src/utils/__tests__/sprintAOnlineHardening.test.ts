@@ -47,4 +47,52 @@ describe("Sprint A: Online Multiplayer Hardening & Security Invariants", () => {
     expect(endpoints.httpProtocol).toMatch(/^https?:$/);
     expect(endpoints.host).toBeTruthy();
   });
+
+  it("strictly distributes opposite roles and maintains valid secret assignments for Host and Guest", () => {
+    // Симулируем создание игры MANIAC_VS_OPERATIVE на сервере
+    const rawState = createInitialState("MANIAC_VS_OPERATIVE", "ONLINE", "KILLER", 2, 3, 16);
+    expect(rawState.killerSecretId).toBeTruthy();
+    expect(rawState.detectiveSecretId).toBeTruthy();
+    expect(rawState.killerSecretId).not.toBe(rawState.detectiveSecretId);
+    expect(rawState.currentTurn).toBe("KILLER"); // Первый ход всегда делает Маньяк
+
+    // 1. Состояние для Хоста (Маньяк)
+    const hostRole = "KILLER";
+    const hostState = maskStateForPlayer(rawState, hostRole, true, false, 0);
+    expect(hostState.playerRole).toBe("KILLER");
+    expect(hostState.killerSecretId).toBe(rawState.killerSecretId); // Своя личность видна!
+    expect(hostState.detectiveSecretId).toBeNull(); // Чужая личность скрыта!
+    expect(hostState.currentTurn).toBe("KILLER");
+
+    // Для хоста (KILLER) сейчас его ход:
+    const isHostTurn = hostState.currentTurn === hostState.playerRole;
+    expect(isHostTurn).toBe(true);
+
+    // 2. Состояние для Гостя (Оперативник / Детектив)
+    const guestRole = "DETECTIVE";
+    const guestState = maskStateForPlayer(rawState, guestRole, false, false, 1);
+    expect(guestState.playerRole).toBe("DETECTIVE");
+    expect(guestState.detectiveSecretId).toBe(rawState.detectiveSecretId); // Своя личность видна!
+    expect(guestState.killerSecretId).toBeNull(); // Чужая личность скрыта!
+    expect(guestState.detectiveHand.length).toBeGreaterThan(0); // Досье алиби доступно!
+
+    // Для гостя (DETECTIVE) сейчас ход врага:
+    const isGuestTurn = guestState.currentTurn === guestState.playerRole;
+    expect(isGuestTurn).toBe(false);
+
+    // Роли строго противоположны
+    expect(hostState.playerRole).not.toBe(guestState.playerRole);
+  });
+
+  it("updates partyService.role and preserves server-assigned role", () => {
+    partyService.role = null;
+    expect(partyService.role).toBeNull();
+
+    partyService.role = "KILLER";
+    expect(partyService.role).toBe("KILLER");
+
+    // Имитация сброса при disconnect
+    partyService.disconnect();
+    expect(partyService.role).toBeNull();
+  });
 });

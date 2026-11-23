@@ -39,7 +39,8 @@ export function useMultiplayer({
   setIsPauseOpen,
 }: UseMultiplayerParams) {
   const [isOpponentConnected, setIsOpponentConnected] = useState(true);
-  const [opponentDisconnectedNotice, setOpponentDisconnectedNotice] = useState(false);
+  const [opponentDisconnectedNotice, setOpponentDisconnectedNotice] = useState<boolean | string>(false);
+  const [isOpponentPermanentlyLeft, setIsOpponentPermanentlyLeft] = useState(false);
   const [rematchTimer, setRematchTimer] = useState(15);
   const rematchIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -94,7 +95,7 @@ export function useMultiplayer({
           return {
             ...state,
             opponent: "ONLINE",
-            playerRole: role || prev.playerRole,
+            playerRole: role || state.playerRole || partyService.myRole || prev.playerRole,
           };
         });
       }
@@ -176,11 +177,16 @@ export function useMultiplayer({
         dispatchAction({ ...action, senderId: "remote" });
         setToastMessage("Соперник отклонил предложение о реванше");
       } else if (action.type === "PLAYER_DISCONNECTED") {
+        setIsOpponentConnected(false);
         setOpponentDisconnectedNotice(true);
       } else if (action.type === "PLAYER_RECONNECTED") {
+        setIsOpponentConnected(true);
         setOpponentDisconnectedNotice(false);
       } else if (action.type === "MATCH_OVER") {
         if (action.reason === "OPPONENT_ABANDONED") {
+          setIsOpponentConnected(false);
+          setIsOpponentPermanentlyLeft(true);
+          setOpponentDisconnectedNotice(false);
           setToastMessage(action.message || "Соперник отключился. Техническая победа.");
           setGameState((prev) => ({
             ...prev,
@@ -189,7 +195,9 @@ export function useMultiplayer({
           }));
         }
       } else if (action.type === "OPPONENT_LEFT") {
-        setOpponentDisconnectedNotice(true);
+        setIsOpponentConnected(false);
+        setIsOpponentPermanentlyLeft(true);
+        setOpponentDisconnectedNotice(false);
       }
     });
 
@@ -250,6 +258,7 @@ export function useMultiplayer({
 
   const handleExitToMenu = () => {
     setOpponentDisconnectedNotice(false);
+    setIsOpponentPermanentlyLeft(false);
     partyService.disconnect();
     safeSessionStorage.removeItem("mp_session");
     setIsLobbyOpen(true);
@@ -268,10 +277,11 @@ export function useMultiplayer({
     isOpponentConnected,
     opponentDisconnectedNotice,
     setOpponentDisconnectedNotice,
-          rematchTimer,
-      acceptRestart,
-      rejectRestart,
-      requestRematch,
-      handleExitToMenu,
+    isOpponentPermanentlyLeft,
+    rematchTimer,
+    acceptRestart,
+    rejectRestart,
+    requestRematch,
+    handleExitToMenu,
   };
 }

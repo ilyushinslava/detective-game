@@ -148,7 +148,11 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
       if (status === "READY_TO_START" || status === "PLAYING") {
         soundManager.play("confirm");
         setIsWaitingForOpponent(false);
-        const targetRole = partyService.isHost ? "KILLER" : "DETECTIVE";
+        const serverRole =
+          partyService.myRole ||
+          (data?.players && partyService.myClientId ? data.players[partyService.myClientId]?.role : null);
+        const targetRole = serverRole || (partyService.isHost ? "KILLER" : "DETECTIVE");
+        partyService.myRole = targetRole;
         onStartGame(activeRoomMode, "ONLINE", targetRole, 2, 3, 0, activeRoomBet);
       }
     });
@@ -157,7 +161,8 @@ export function useLobbyNetwork({ profile, screen, onStartGame }: UseLobbyNetwor
       if (status === "READY_TO_START" || status === "PLAYING") {
         soundManager.play("confirm");
         setIsWaitingForOpponent(false);
-        const targetRole = role || (partyService.isHost ? "KILLER" : "DETECTIVE");
+        const targetRole = role || partyService.myRole || (partyService.isHost ? "KILLER" : "DETECTIVE");
+        partyService.myRole = targetRole;
         onStartGame(activeRoomMode, "ONLINE", targetRole, 2, 3, 0, activeRoomBet);
       }
     });

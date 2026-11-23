@@ -6,6 +6,7 @@ interface TablesEmptyStateProps {
   onCreateRoom: () => void;
   onToggleMockRooms?: () => void;
   useMockRooms?: boolean;
+  showCreateButton?: boolean;
 }
 
 export const TablesEmptyState: React.FC<TablesEmptyStateProps> = ({
@@ -13,6 +14,7 @@ export const TablesEmptyState: React.FC<TablesEmptyStateProps> = ({
   onCreateRoom,
   onToggleMockRooms,
   useMockRooms: _useMockRooms,
+  showCreateButton = false,
 }) => {
   return (
     <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-border-subtle border-t border-t-border-strong rounded-2xl bg-gradient-to-br from-background-surface/80 to-background-main/80 shadow-[inset_0_2px_25px_rgba(0,0,0,0.9)] backdrop-blur-2xl my-auto max-w-lg mx-auto w-full">
@@ -50,7 +52,7 @@ export const TablesEmptyState: React.FC<TablesEmptyStateProps> = ({
         </div>
 
         {/* Статус поиска столов */}
-        <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-mono tracking-widest text-blue-400 uppercase">
+        <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-sans tracking-widest text-blue-400 uppercase">
           <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
           <span>СВОБОДНЫХ СТОЛОВ НЕ НАЙДЕНО</span>
         </div>
@@ -63,13 +65,15 @@ export const TablesEmptyState: React.FC<TablesEmptyStateProps> = ({
           ? "В списке комнат нет активных открытых игр. Создайте партию для подключения игроков."
           : "В списке комнат нет активных приватных игр. Создайте партию с паролем."}
       </p>
-      <Button
-        variant="primary"
-        onClick={onCreateRoom}
-        className="px-6 h-10 text-xs font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all active:scale-95"
-      >
-        + Создать первый стол
-      </Button>
+      {showCreateButton && (
+        <Button
+          variant="primary"
+          onClick={onCreateRoom}
+          className="px-6 h-10 text-xs font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all active:scale-95"
+        >
+          + Создать первый стол
+        </Button>
+      )}
       {import.meta.env.DEV && onToggleMockRooms && (
         <button
           type="button"

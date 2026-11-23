@@ -2001,6 +2001,9 @@ export function maskStateForPlayer(
   if (state.winner) return state;
 
   const copy: any = { ...state };
+  if (role && role !== "SPECTATOR") {
+    copy.playerRole = role;
+  }
   copy.evidenceDeck = [];
   if (copy.victimList && copy.victimList.length > 0) {
     copy.victimList = [copy.victimList[0], ...copy.victimList.slice(1).map(() => "UNKNOWN")];

@@ -476,6 +476,7 @@ export default function App() {
     isOpponentConnected,
     opponentDisconnectedNotice,
     setOpponentDisconnectedNotice,
+    isOpponentPermanentlyLeft,
     rematchTimer,
     acceptRestart,
     rejectRestart,
@@ -601,7 +602,7 @@ export default function App() {
 
     const actualPlayerRole =
       opponent === "ONLINE"
-        ? (partyService as any).role || (partyService.isHost ? "KILLER" : "DETECTIVE")
+        ? partyService.role || playerRole || (partyService.isHost ? "KILLER" : "DETECTIVE")
         : playerRole;
 
     let newState: GameState;
@@ -838,7 +839,7 @@ export default function App() {
           dispatchAction({ type: "REJECT_RESTART", senderId: "local" });
           setGameState((prev) => ({ ...prev, restartRequestedBy: undefined }));
         }}
-        isOpponentDisconnectedNotice={Boolean(opponentDisconnectedNotice && gameState.opponent === "ONLINE")}
+        isOpponentDisconnectedNotice={Boolean(isOpponentPermanentlyLeft && gameState.opponent === "ONLINE")}
         onExitToMenu={handleExitToMenu}
         isPauseOpen={isPauseOpen}
         onClosePause={() => setIsPauseOpen(false)}
@@ -1092,7 +1093,7 @@ export default function App() {
                   setIsMenuOpen={setIsPauseOpen}
                   setIsNotebookOpen={setIsNotebookOpen}
                   isOpponentConnected={isOpponentConnected}
-                  opponentDisconnectedNotice={opponentDisconnectedNotice}
+                  opponentDisconnectedNotice={isOpponentConnected === false ? (opponentDisconnectedNotice || "Соперник переподключается... (ожидание)") : false}
                   isInspectorPending={isInspectorPending}
                   onConfirmTurnReady={() => dispatchAction({ type: "CONFIRM_TURN_READY" })}
                 />

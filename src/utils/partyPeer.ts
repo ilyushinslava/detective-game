@@ -87,6 +87,7 @@ class PartyService {
   myClientId: string = "local-stub";
   authToken: string | null = null;
   isHost: boolean = true;
+  myRole: Role | null = null;
   lastSyncedState: any = null;
   socket: WebSocket | null = null;
   private nick: string = "Агент";
@@ -283,6 +284,13 @@ class PartyService {
   clearAllListeners(): void {
     this.listeners = {};
     this.legacyHandlers = {};
+  }
+
+  get role(): Role | null {
+    return this.myRole;
+  }
+  set role(r: Role | null) {
+    this.myRole = r;
   }
 
   // Legacy геттеры и сеттеры для 100% обратной совместимости
@@ -612,6 +620,9 @@ class PartyService {
           }
 
           if (data.type === "SESSION_RESTORED") {
+            if (data.role && data.role !== "SPECTATOR") {
+              this.myRole = data.role;
+            }
             this.onSessionRestored?.(data);
             if (data.gameState) {
               this.onSyncState?.(data.gameState, data.role, data.status);
@@ -621,6 +632,9 @@ class PartyService {
           }
 
           if (data.type === "STATE_UPDATE" || data.type === "STATE_SNAPSHOT" || data.type === "SYNC_STATE") {
+            if (data.role && data.role !== "SPECTATOR") {
+              this.myRole = data.role;
+            }
             const nextState = data.state || data.gameState;
             this.lastSyncedState = nextState;
             if (data.morseCode) {
@@ -638,6 +652,10 @@ class PartyService {
             }
             if (data.players && this.myClientId && data.players[this.myClientId]) {
               this.isHost = Boolean(data.players[this.myClientId].isHost);
+              const assignedRole = data.players[this.myClientId].role;
+              if (assignedRole && assignedRole !== "SPECTATOR") {
+                this.myRole = assignedRole;
+              }
             }
             this.onRoomStatus?.(data);
             return;
@@ -753,6 +771,7 @@ class PartyService {
     this.isExplicitDisconnect = true;
     this.reconnectAttempts = 0;
     this.failedAttempts = 0;
+    this.myRole = null;
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;

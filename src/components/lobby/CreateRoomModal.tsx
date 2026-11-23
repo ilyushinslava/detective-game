@@ -56,7 +56,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
         <div className="p-3.5 rounded-xl bg-zinc-950/60 border border-white/10 flex items-center justify-between shadow-inner">
           <div className="flex flex-col">
             <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Финансирование</span>
-            <span className="text-[10px] text-zinc-300 font-mono mt-0.5">Без списания средств</span>
+            <span className="text-[10px] text-zinc-300 font-sans mt-0.5">Без списания средств</span>
           </div>
           <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 border border-zinc-700 rounded px-2 py-0.5">Free</span>
         </div>

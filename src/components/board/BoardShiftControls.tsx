@@ -8,6 +8,7 @@ interface ColShiftControlsProps {
   blockedShift?: { type: "ROW" | "COL"; index: number } | null;
   lastShift: LastShift | null;
   activeButtonId: string | null;
+  highlightedArrowId?: string | null;
   onArrowClick: (buttonId: string, shiftAction: () => void) => void;
   onShiftCol: (colIdx: number, direction: "up" | "down") => void;
 }
@@ -18,6 +19,7 @@ interface RowShiftControlsProps {
   blockedShift?: { type: "ROW" | "COL"; index: number } | null;
   lastShift: LastShift | null;
   activeButtonId: string | null;
+  highlightedArrowId?: string | null;
   onArrowClick: (buttonId: string, shiftAction: () => void) => void;
   onShiftRow: (rowIdx: number, direction: "left" | "right") => void;
 }
@@ -26,15 +28,21 @@ function getArrowClassName(
   isBlocked: boolean,
   isOpposite: boolean,
   isActive: boolean,
+  isHighlighted: boolean,
+  hasAnyHighlight: boolean,
   baseSize: string
 ) {
   if (isBlocked || isOpposite) {
-    return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-950/40 text-zinc-600 border-zinc-800/40 cursor-not-allowed opacity-30 select-none`;
+    return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-950/40 text-zinc-600 border-zinc-800/40 cursor-not-allowed opacity-30 select-none outline-none focus:outline-none`;
+  }
+  if (isHighlighted) {
+    return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border-2 p-0 bg-blue-600/30 border-blue-400 text-blue-200 shadow-[0_0_15px_rgba(37,99,235,0.6)] ring-2 ring-blue-400/80 cursor-pointer select-none active:scale-95 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400`;
   }
   if (isActive) {
-    return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-800 border-white/80 text-white shadow-[0_0_12px_rgba(255,255,255,0.5)] ring-1 ring-white/40 cursor-pointer select-none active:scale-95 outline-none focus:outline-none`;
+    return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-800 border-white/80 text-white shadow-[0_0_12px_rgba(255,255,255,0.5)] ring-1 ring-white/40 cursor-pointer select-none active:scale-95 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60`;
   }
-  return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-950/70 hover:bg-zinc-900/80 active:bg-zinc-800 border border-white/10 hover:border-white/30 text-zinc-400 group-hover:text-white hover:text-white active:text-white cursor-pointer shadow-sm active:scale-95 select-none touch-manipulation outline-none focus:outline-none group`;
+  const dimmedClass = hasAnyHighlight ? "opacity-35" : "";
+  return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-950/70 hover:bg-zinc-900/80 active:bg-zinc-800 border-white/10 hover:border-white/30 text-zinc-400 group-hover:text-white hover:text-white active:text-white cursor-pointer shadow-sm active:scale-95 select-none touch-manipulation outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 group ${dimmedClass}`;
 }
 
 export const ColShiftBar: React.FC<ColShiftControlsProps> = ({
@@ -43,6 +51,7 @@ export const ColShiftBar: React.FC<ColShiftControlsProps> = ({
   blockedShift,
   lastShift,
   activeButtonId,
+  highlightedArrowId,
   onArrowClick,
   onShiftCol,
 }) => {
@@ -53,6 +62,7 @@ export const ColShiftBar: React.FC<ColShiftControlsProps> = ({
   const titleText = isUp ? "Маневр вверх" : "Маневр вниз";
 
   const colsArray = Array.from({ length: numCols }, (_, i) => i);
+  const hasAnyHighlight = Boolean(highlightedArrowId);
 
   return (
     <div className={`w-full h-4 sm:h-5 md:h-7 lg:h-8 xl:h-9 min-h-[16px] sm:min-h-[20px] lg:min-h-[32px] xl:min-h-[36px] flex items-center gap-0.5 sm:gap-1 ${isUp ? "mb-0.5" : "mt-0.5"} shrink-0`}>
@@ -66,12 +76,14 @@ export const ColShiftBar: React.FC<ColShiftControlsProps> = ({
           const isBlocked = blockedShift?.type === "COL" && blockedShift.index === colIdx;
           const isOpposite = isOppositeShift(lastShift, "COL", colIdx, canonicalDir);
           const isActive = activeButtonId === buttonId;
+          const isHighlighted = highlightedArrowId === buttonId;
 
           return (
             <button
               key={buttonId}
               data-testid={buttonId}
               data-active-shift={isActive ? "true" : undefined}
+              data-tutorial-highlight={isHighlighted ? "true" : undefined}
               disabled={isBlocked || isOpposite}
               onClick={(e) => {
                 e.currentTarget.blur();
@@ -81,6 +93,8 @@ export const ColShiftBar: React.FC<ColShiftControlsProps> = ({
                 isBlocked,
                 isOpposite,
                 isActive,
+                isHighlighted,
+                hasAnyHighlight,
                 "w-full h-4 sm:h-5 md:h-7 lg:h-8 xl:h-9 min-h-[16px] sm:min-h-[20px] lg:min-h-[32px] xl:min-h-[36px]"
               )}
               title={
@@ -119,6 +133,7 @@ export const RowShiftBar: React.FC<RowShiftControlsProps> = ({
   blockedShift,
   lastShift,
   activeButtonId,
+  highlightedArrowId,
   onArrowClick,
   onShiftRow,
 }) => {
@@ -129,6 +144,7 @@ export const RowShiftBar: React.FC<RowShiftControlsProps> = ({
   const titleText = isLeft ? "Маневр влево" : "Маневр вправо";
 
   const rowsArray = Array.from({ length: numRows }, (_, i) => i);
+  const hasAnyHighlight = Boolean(highlightedArrowId);
 
   return (
     <div
@@ -140,12 +156,14 @@ export const RowShiftBar: React.FC<RowShiftControlsProps> = ({
         const isRowBlocked = blockedShift?.type === "ROW" && blockedShift.index === rIdx;
         const isOpposite = isOppositeShift(lastShift, "ROW", rIdx, canonicalDir);
         const isActive = activeButtonId === buttonId;
+        const isHighlighted = highlightedArrowId === buttonId;
 
         return (
           <button
             key={buttonId}
             data-testid={buttonId}
             data-active-shift={isActive ? "true" : undefined}
+            data-tutorial-highlight={isHighlighted ? "true" : undefined}
             disabled={isRowBlocked || isOpposite}
             onClick={(e) => {
               e.currentTarget.blur();
@@ -155,6 +173,8 @@ export const RowShiftBar: React.FC<RowShiftControlsProps> = ({
               isRowBlocked,
               isOpposite,
               isActive,
+              isHighlighted,
+              hasAnyHighlight,
               "w-full h-full"
             )}
             title={

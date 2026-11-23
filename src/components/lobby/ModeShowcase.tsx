@@ -158,6 +158,7 @@ export const ModeShowcase: React.FC<ModeShowcaseProps> = ({
 
             <button
               onClick={onOpenTutorial}
+              data-testid="open-tutorial-btn"
               onPointerEnter={() => import("../TutorialScreen")}
               className="h-10 sm:h-11 rounded-2xl neo-card-interactive transition-all flex items-center justify-center gap-2 px-3 text-zinc-300 hover:text-white cursor-pointer active:scale-[0.99] group focus:outline-none"
             >

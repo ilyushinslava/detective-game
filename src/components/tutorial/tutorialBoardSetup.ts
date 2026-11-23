@@ -1,15 +1,17 @@
 import { ALL_CHARACTERS } from "../../constants/characters";
 import type { Character } from "../../types/game";
+import type { TutorialModule, CanonicalTutorialModule } from "./tutorialTypes";
 
-export type TutorialModule =
-  | "MENU"
-  | "BASICS"
-  | "MANIAC_KILLER"
-  | "MANIAC_DETECTIVE"
-  | "THIEF_ROBBER"
-  | "THIEF_POLICE"
-  | "SECRET_SERVICE"
-  | "LINE_UP";
+export { type TutorialModule, type CanonicalTutorialModule };
+
+function swapInArray(arr: Character[], id: string, targetIdx: number) {
+  const curIdx = arr.findIndex((c) => c.id === id);
+  if (curIdx !== -1 && curIdx !== targetIdx) {
+    const temp = arr[targetIdx];
+    arr[targetIdx] = arr[curIdx];
+    arr[curIdx] = temp;
+  }
+}
 
 export const getInitialBoard = (module: TutorialModule): Character[][] => {
   const chars = ALL_CHARACTERS.slice(0, 25).map((c) => ({
@@ -19,36 +21,27 @@ export const getInitialBoard = (module: TutorialModule): Character[][] => {
     isRobbed: false,
   }));
 
-  if (module === "LINE_UP") {
-    // Гарантируем, что Руслан Громов (c1) находится в центре [2][2] (индекс 12)
-    const c1Index = chars.findIndex((c) => c.id === "c1");
-    if (c1Index !== -1 && c1Index !== 12) {
-      const temp = chars[12];
-      chars[12] = chars[c1Index];
-      chars[c1Index] = temp;
-    }
-  } else if (module === "MANIAC_KILLER") {
-    // Елена Соколова (c3) ставится в [0][2] (индекс 2), а Убийца (c4) в [2][1] (индекс 11).
-    // До сдвига они не соседствуют. При сдвиге колонки 2 вниз Елена переходит в [1][2] и входит в зону 3×3 Убийцы!
-    const elenaIndex = chars.findIndex((c) => c.id === "c3");
-    if (elenaIndex !== -1 && elenaIndex !== 2) {
-      const temp = chars[2];
-      chars[2] = chars[elenaIndex];
-      chars[elenaIndex] = temp;
-    }
-    const killerIndex = chars.findIndex((c) => c.id === "c4");
-    if (killerIndex !== -1 && killerIndex !== 11) {
-      const temp = chars[11];
-      chars[11] = chars[killerIndex];
-      chars[killerIndex] = temp;
-    }
-  } else if (module === "MANIAC_DETECTIVE") {
-    // В [3][3] жертва, соседи со щитом (алиби), подозреваемый без щита в [1][1] (индекс 6)
-    chars[7].isExonerated = true;
-    chars[11].isExonerated = true;
-    chars[18].isAlive = false;
-  } else if (module === "THIEF_POLICE") {
-    chars[7].isRobbed = true;
+  if (module === "MANIAC") {
+    // Жертва Елена Соколова (c3) в [0][2] (индекс 2)
+    swapInArray(chars, "c3", 2);
+    // Убийца Артём Воронов (c4) в [2][1] (индекс 11)
+    swapInArray(chars, "c4", 11);
+    // София Романова (c7) в [1][1] (индекс 6)
+    swapInArray(chars, "c7", 6);
+  } else if (module === "THIEF") {
+    // Вор Артём Воронов (c4) в [2][2] (индекс 12)
+    swapInArray(chars, "c4", 12);
+    // Анна Мороз (c5) в [2][3] (индекс 13, сосед справа с ценностями)
+    swapInArray(chars, "c5", 13);
+    // София Романова (c7) в [1][2] (индекс 7)
+    swapInArray(chars, "c7", 7);
+  } else if (module === "SECRET_SERVICE") {
+    // Наш агент Руслан Громов (c1) в [2][2] (индекс 12)
+    swapInArray(chars, "c1", 12);
+    // Информатор София Романова (c7) в [1][2] (индекс 7)
+    swapInArray(chars, "c7", 7);
+    // Вражеский шпион Марк Воронов (c2) в [0][2] (индекс 2, в радиусе 3x3 информатора)
+    swapInArray(chars, "c2", 2);
   }
 
   const grid: Character[][] = [];

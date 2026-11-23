@@ -159,10 +159,10 @@ const CharacterCardComponent = ({
         );
       })()}
 
-      <div className="flex items-center justify-between gap-1 z-10 w-full leading-none px-1 pt-1">
-        <div className="flex items-center gap-1 shrink-0 min-w-0">
+      <div className="flex items-center justify-between gap-0.5 z-10 w-full leading-none px-0.5 sm:px-1 pt-0.5 sm:pt-1">
+        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0 min-w-0">
           <span
-            className={`text-[9px] sm:text-[10px] md:text-xs font-mono font-bold drop-shadow shrink-0 ${
+            className={`text-[8.5px] sm:text-[10px] md:text-xs font-mono font-bold drop-shadow shrink-0 ${
               isDead
                 ? "text-zinc-600 line-through"
                 : isExonerated
@@ -179,7 +179,7 @@ const CharacterCardComponent = ({
             return (
               <span
                 data-testid="my-character-badge"
-                className={`text-[7.5px] md:text-[9px] font-black uppercase px-1 md:px-1.5 py-[1px] md:py-0.5 rounded tracking-wider shadow-sm shrink-0 ${
+                className={`text-[7px] sm:text-[7.5px] md:text-[9px] font-black uppercase px-0.5 sm:px-1 md:px-1.5 py-[0.5px] md:py-0.5 rounded tracking-tight sm:tracking-wider shadow-sm shrink-0 ${
                   isRed
                     ? "text-red-400 bg-red-950/90 border border-red-500/70 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
                     : "text-blue-300 bg-blue-950/90 border border-blue-500/70 shadow-[0_0_8px_rgba(59,130,246,0.5)]"
@@ -191,7 +191,7 @@ const CharacterCardComponent = ({
           })()}
         </div>
 
-        <div className="flex items-center gap-1 leading-none shrink-0">
+        <div className="flex items-center gap-0.5 sm:gap-1 leading-none shrink-0">
           {hasCoin && !isDead && <CoinIndicator />}
           {isTargetVictim && !isDead && (
             <svg

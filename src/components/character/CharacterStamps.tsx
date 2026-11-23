@@ -102,7 +102,7 @@ export const CoinIndicator: React.FC = () => (
   >
     <svg
       viewBox="0 0 24 24"
-      className="w-3.5 h-3.5 sm:w-4 sm:h-4 drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)] filter"
+      className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)] filter"
       fill="none"
     >
       <circle cx="12" cy="12" r="9" fill="#EAB308" stroke="#FEF08A" strokeWidth="1.5" />

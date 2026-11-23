@@ -29,24 +29,30 @@ export const TutorialMenuView: React.FC<TutorialMenuViewProps> = ({
     >
       <div className="w-full max-w-lg md:max-w-2xl mx-auto h-full flex flex-col justify-between relative overflow-hidden bg-zinc-950 md:border-x md:border-white/10 shadow-2xl">
         {/* Шапка */}
-        <div className="flex items-center justify-between px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-zinc-950">
+        <div className="flex items-center justify-between gap-2 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 shrink-0 border-b border-white/10 bg-zinc-950">
           <button
             onClick={onExit}
-            className="text-zinc-400 hover:text-white transition cursor-pointer text-xs font-semibold uppercase tracking-wider bg-zinc-900/80 px-3.5 py-2 min-h-[44px] rounded-lg border border-white/10 hover:border-white/20 active:scale-95 flex items-center justify-center touch-manipulation"
+            aria-label="В главное меню"
+            className="w-11 h-11 shrink-0 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-white/10 hover:border-white/20 active:scale-95 flex items-center justify-center transition cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
           >
-            ✕ В меню
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
-          <div className="flex flex-col items-center">
-            <span className="text-[10px] font-mono text-blue-400 uppercase tracking-widest font-semibold">
+
+          <div className="flex-1 min-w-0 text-center flex flex-col items-center">
+            <span className="text-[10px] font-sans text-blue-400 uppercase tracking-widest font-semibold truncate max-w-full">
               Обучение
             </span>
-            <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase">
+            <h2 className="text-xs sm:text-sm font-black tracking-wider text-zinc-100 uppercase truncate max-w-full">
               Академия детективов
             </h2>
           </div>
-          <div className="text-right">
-            <span className="text-[10px] font-mono text-zinc-400">
-              Пройдено: <b className="text-blue-400 font-bold">{completedModules.length}</b>/3
+
+          <div className="shrink-0 flex items-center justify-end">
+            <span className="text-[10px] font-sans text-zinc-400 whitespace-nowrap bg-zinc-900/80 px-2 py-1 rounded border border-white/10">
+              Пройдено: <b className="text-blue-400 font-mono font-bold">{completedModules.length}</b><span className="font-mono text-zinc-500">/3</span>
             </span>
           </div>
         </div>
@@ -71,11 +77,11 @@ export const TutorialMenuView: React.FC<TutorialMenuViewProps> = ({
                     {mod.title}
                   </h3>
                   {isCompleted ? (
-                    <span className="text-[11px] font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
+                    <span className="text-[11px] font-sans text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
                       Сдано
                     </span>
                   ) : (
-                    <span className="text-[11px] font-mono text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/30">
+                    <span className="text-[11px] font-sans text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/30">
                       Начать
                     </span>
                   )}

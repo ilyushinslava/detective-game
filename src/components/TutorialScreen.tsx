@@ -267,26 +267,31 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
   return (
     <div className="fixed inset-0 z-[100] h-[100dvh] w-full bg-[#080a0f] flex flex-col justify-between overflow-hidden select-none font-sans text-zinc-100">
       {/* Шапка урока */}
-      <div className="flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 border-b border-white/10 bg-zinc-950/80 backdrop-blur-md shrink-0 z-20">
+      <div className="flex items-center justify-between gap-2 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 border-b border-white/10 bg-zinc-950/80 backdrop-blur-md shrink-0 z-20">
         <button
           onClick={() => setCurrentModule("MENU")}
-          className="text-zinc-400 hover:text-white transition cursor-pointer text-xs font-semibold uppercase tracking-wider bg-zinc-900/80 px-3 py-1.5 min-h-[44px] rounded-lg border border-white/10 hover:border-white/20 active:scale-95 flex items-center justify-center touch-manipulation"
+          aria-label="В главное меню"
+          className="w-11 h-11 shrink-0 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-white/10 hover:border-white/20 active:scale-95 flex items-center justify-center transition cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
         >
-          ← В меню
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
         </button>
 
-        <div className="flex flex-col items-center">
-          <span className="text-[10px] font-mono text-blue-400 uppercase tracking-widest font-semibold">
+        <div className="flex-1 min-w-0 text-center flex flex-col items-center">
+          <span className="text-[10px] font-sans text-blue-400 uppercase tracking-widest font-semibold truncate max-w-full">
             {moduleTitles[currentModule]}
           </span>
-          <h2 className="text-sm font-black tracking-widest text-zinc-100 uppercase">
+          <h2 className="text-xs sm:text-sm font-black tracking-wider text-zinc-100 uppercase truncate max-w-full">
             {currentStepConfig?.title || "Обучение"}
           </h2>
         </div>
 
-        <div className="text-right">
-          <span className="text-[11px] font-mono text-zinc-400 font-bold bg-zinc-900 px-2 py-1 rounded border border-white/10">
-            {step}/{currentStepConfig?.totalSteps || 1}
+        <div className="shrink-0 flex items-center justify-end">
+          <span className="text-[11px] font-sans text-zinc-400 font-bold bg-zinc-900 px-2 py-1 rounded border border-white/10 whitespace-nowrap">
+            <span className="font-mono text-zinc-200">{step}</span>
+            <span className="font-mono text-zinc-500">/{currentStepConfig?.totalSteps || 1}</span>
           </span>
         </div>
       </div>

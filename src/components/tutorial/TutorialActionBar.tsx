@@ -37,7 +37,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
     return (
       <div className="min-h-[56px] py-2 shrink-0 w-full flex items-center justify-center px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 bg-[#080a0f] border-t border-white/5 z-20">
         <div className="w-full max-w-sm flex justify-center">
-          <div className="text-[11px] font-mono text-zinc-500 uppercase tracking-widest text-center py-2">
+          <div className="text-[11px] font-sans text-zinc-500 uppercase tracking-widest text-center py-2">
             Выполните действие на доске города
           </div>
         </div>

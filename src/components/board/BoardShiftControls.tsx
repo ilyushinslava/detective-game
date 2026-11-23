@@ -33,16 +33,16 @@ function getArrowClassName(
   baseSize: string
 ) {
   if (isBlocked || isOpposite) {
-    return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-950/40 text-zinc-600 border-zinc-800/40 cursor-not-allowed opacity-30 select-none`;
+    return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-950/40 text-zinc-600 border-zinc-800/40 cursor-not-allowed opacity-30 select-none outline-none focus:outline-none`;
   }
   if (isHighlighted) {
-    return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border-2 p-0 bg-blue-600/30 border-blue-400 text-blue-200 shadow-[0_0_15px_rgba(37,99,235,0.6)] ring-2 ring-blue-400/80 cursor-pointer select-none active:scale-95 outline-none`;
+    return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border-2 p-0 bg-blue-600/30 border-blue-400 text-blue-200 shadow-[0_0_15px_rgba(37,99,235,0.6)] ring-2 ring-blue-400/80 cursor-pointer select-none active:scale-95 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400`;
   }
   if (isActive) {
-    return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-800 border-white/80 text-white shadow-[0_0_12px_rgba(255,255,255,0.5)] ring-1 ring-white/40 cursor-pointer select-none active:scale-95 outline-none focus:outline-none`;
+    return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-800 border-white/80 text-white shadow-[0_0_12px_rgba(255,255,255,0.5)] ring-1 ring-white/40 cursor-pointer select-none active:scale-95 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60`;
   }
   const dimmedClass = hasAnyHighlight ? "opacity-35" : "";
-  return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-950/70 hover:bg-zinc-900/80 active:bg-zinc-800 border-white/10 hover:border-white/30 text-zinc-400 group-hover:text-white hover:text-white active:text-white cursor-pointer shadow-sm active:scale-95 select-none touch-manipulation outline-none focus:outline-none group ${dimmedClass}`;
+  return `${baseSize} shrink-0 rounded text-[8px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold flex items-center justify-center border p-0 bg-zinc-950/70 hover:bg-zinc-900/80 active:bg-zinc-800 border-white/10 hover:border-white/30 text-zinc-400 group-hover:text-white hover:text-white active:text-white cursor-pointer shadow-sm active:scale-95 select-none touch-manipulation outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 group ${dimmedClass}`;
 }
 
 export const ColShiftBar: React.FC<ColShiftControlsProps> = ({

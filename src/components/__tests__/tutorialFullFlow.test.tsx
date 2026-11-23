@@ -253,4 +253,15 @@ describe("Интерактивное обучение Академии — 3 к�
     expect(onExit).toHaveBeenCalledTimes(1);
     expect(onFinish).not.toHaveBeenCalled();
   });
+
+  it("8. Кнопка-иконка «В главное меню» (aria-label) закрывает меню или возвращает из урока в меню", () => {
+    const onExit = vi.fn();
+    render(<TutorialScreen onExit={onExit} onFinish={vi.fn()} />);
+
+    // Клик по кнопке-иконке в шапке меню
+    const exitBtn = screen.getByLabelText("В главное меню");
+    expect(exitBtn).toBeDefined();
+    fireEvent.click(exitBtn);
+    expect(onExit).toHaveBeenCalledTimes(1);
+  });
 });

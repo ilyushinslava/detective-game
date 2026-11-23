@@ -10,6 +10,10 @@ export interface MatchDetails {
   role?: string;
   durationSeconds?: number;
   mmrDelta?: number;
+  isOnline?: boolean;
+  isTvParty?: boolean;
+  isFlawless?: boolean;
+  shiftsCount?: number;
 }
 
 export interface UseMatchEndHandlerParams {
@@ -73,6 +77,10 @@ export function useMatchEndHandler({
         role: localRole,
         durationSeconds: secondsElapsed || 120,
         mmrDelta,
+        isOnline: gameState.opponent === "ONLINE",
+        isTvParty: false,
+        isFlawless: isLocalWin && (gameState.playerRole === "DETECTIVE" ? (gameState.killCount || 0) === 0 : true),
+        shiftsCount: gameState.turnCount || 0,
       };
 
       // Фиксация результатов матча (Supabase + локальный офлайн-кэш)

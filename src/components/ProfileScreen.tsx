@@ -16,6 +16,8 @@ import {
   AccountSecurityCard,
   ProfileStatsGrid,
   MatchHistorySection,
+  ModeStatsSection,
+  AchievementsSection,
   AGENT_AVATARS,
 } from './profile';
 
@@ -82,6 +84,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
   const [isMatchHistoryOpen, setIsMatchHistoryOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'modes' | 'achievements'>('overview');
 
   // Логика аутентификации и защиты аккаунта
   const { isAnonymous } = useAuthSafe();
@@ -343,57 +346,126 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
         </div>
 
-        {/* Защита аккаунта / Сохранение прогресса */}
-        <AccountSecurityCard
-          isAnonymous={isAnonymous}
-          isAccountProtectedSuccess={isAccountProtectedSuccess}
-          onOpenAuthModal={() => {
-            setAuthModalTab("CREATE_PROFILE");
-            setIsLoginModalOpen(true);
-          }}
-          onOpenLoginModal={() => {
-            setAuthModalTab("SIGN_IN");
-            setIsLoginModalOpen(true);
-          }}
-          translations={p}
-        />
+        {/* Переключатель разделов профиля (Neo-Noir Segmented Control) */}
+        <div className="bg-zinc-900/90 border border-white/10 rounded-2xl p-1 grid grid-cols-3 gap-1 shrink-0 h-11 min-h-[44px]">
+          <button
+            type="button"
+            onClick={() => {
+              soundManager.play('tapMenu');
+              triggerHaptic('light');
+              setActiveTab('overview');
+            }}
+            className={`flex items-center justify-center gap-1.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer touch-manipulation ${
+              activeTab === 'overview'
+                ? 'bg-white/15 border border-white/20 text-white shadow-sm'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            <ProfileIcons.User className="w-3.5 h-3.5" />
+            <span>Сводка</span>
+          </button>
 
-        {/* Статистика (4 карточки 2x2) */}
-        <ProfileStatsGrid
-          currentMmr={currentMmr}
-          winRate={winRate}
-          totalWins={totalWins}
-          totalGames={totalGames}
-          winsDet={winsDet}
-          winsMan={winsMan}
-          lawRatio={lawRatio}
-          translations={p}
-        />
+          <button
+            type="button"
+            onClick={() => {
+              soundManager.play('tapMenu');
+              triggerHaptic('light');
+              setActiveTab('modes');
+            }}
+            className={`flex items-center justify-center gap-1.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer touch-manipulation ${
+              activeTab === 'modes'
+                ? 'bg-white/15 border border-white/20 text-white shadow-sm'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            <ProfileIcons.Activity className="w-3.5 h-3.5" />
+            <span>Режимы</span>
+          </button>
 
-        {/* Кнопка-строка «Последние матчи» для открытия модального окна */}
-        <button
-          type="button"
-          onClick={() => {
-            soundManager.play('tapMenu');
-            triggerHaptic('light');
-            setIsMatchHistoryOpen(true);
-          }}
-          className="neo-card border-t-white/20 rounded-2xl p-3 sm:p-3.5 flex items-center justify-between shadow-lg hover:border-t-white/40 active:scale-[0.99] transition-all cursor-pointer group shrink-0"
-        >
-          <div className="flex items-center gap-2.5">
-            <span className="p-1.5 rounded-lg bg-zinc-900 border border-white/10 text-zinc-400 group-hover:text-white transition-colors">
-              <ProfileIcons.Activity className="w-4 h-4" />
-            </span>
-            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
-              {p.recentMatches} {profile.recentMatches && profile.recentMatches.length > 0 ? `(${profile.recentMatches.length})` : ''}
-            </span>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              soundManager.play('tapMenu');
+              triggerHaptic('light');
+              setActiveTab('achievements');
+            }}
+            className={`flex items-center justify-center gap-1.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer touch-manipulation ${
+              activeTab === 'achievements'
+                ? 'bg-white/15 border border-white/20 text-white shadow-sm'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            <ProfileIcons.Award className="w-3.5 h-3.5" />
+            <span>Награды</span>
+          </button>
+        </div>
 
-          <div className="flex items-center gap-1.5 text-zinc-400 group-hover:text-white transition-colors">
-            <span className="text-[10px] font-mono uppercase tracking-wider hidden xs:inline">Смотреть</span>
-            <ProfileIcons.ChevronRight className="w-4 h-4" />
-          </div>
-        </button>
+        {activeTab === 'overview' && (
+          <>
+            {/* Защита аккаунта / Сохранение прогресса */}
+            <AccountSecurityCard
+              isAnonymous={isAnonymous}
+              isAccountProtectedSuccess={isAccountProtectedSuccess}
+              onOpenAuthModal={() => {
+                setAuthModalTab("CREATE_PROFILE");
+                setIsLoginModalOpen(true);
+              }}
+              onOpenLoginModal={() => {
+                setAuthModalTab("SIGN_IN");
+                setIsLoginModalOpen(true);
+              }}
+              translations={p}
+            />
+
+            {/* Статистика (4 карточки 2x2) */}
+            <ProfileStatsGrid
+              currentMmr={currentMmr}
+              winRate={winRate}
+              totalWins={totalWins}
+              totalGames={totalGames}
+              winsDet={winsDet}
+              winsMan={winsMan}
+              lawRatio={lawRatio}
+              translations={p}
+            />
+
+            {/* Кнопка-строка «Последние матчи» для открытия модального окна */}
+            <button
+              type="button"
+              onClick={() => {
+                soundManager.play('tapMenu');
+                triggerHaptic('light');
+                setIsMatchHistoryOpen(true);
+              }}
+              className="neo-card border-t-white/20 rounded-2xl p-3 sm:p-3.5 flex items-center justify-between shadow-lg hover:border-t-white/40 active:scale-[0.99] transition-all cursor-pointer group shrink-0"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="p-1.5 rounded-lg bg-zinc-900 border border-white/10 text-zinc-400 group-hover:text-white transition-colors">
+                  <ProfileIcons.Activity className="w-4 h-4" />
+                </span>
+                <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+                  {p.recentMatches} {profile.recentMatches && profile.recentMatches.length > 0 ? `(${profile.recentMatches.length})` : ''}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-zinc-400 group-hover:text-white transition-colors">
+                <span className="text-[10px] font-mono uppercase tracking-wider hidden xs:inline">Смотреть</span>
+                <ProfileIcons.ChevronRight className="w-4 h-4" />
+              </div>
+            </button>
+          </>
+        )}
+
+        {activeTab === 'modes' && (
+          <ModeStatsSection stats={profile.detailedStats} />
+        )}
+
+        {activeTab === 'achievements' && (
+          <AchievementsSection
+            unlockedAchievements={profile.unlockedAchievements}
+            achievementProgress={profile.achievementProgress}
+          />
+        )}
 
       </div>
 

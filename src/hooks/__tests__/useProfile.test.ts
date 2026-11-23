@@ -2,9 +2,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useProfile } from "../useProfile";
+import { safeLocalStorage, safeSessionStorage } from "../../utils/storage";
 
 describe("useProfile Hook (Supabase & Offline-First)", () => {
   beforeEach(() => {
+    safeLocalStorage.clear();
+    safeSessionStorage.clear();
     localStorage.clear();
     sessionStorage.clear();
   });
@@ -49,6 +52,8 @@ describe("useProfile Hook (Supabase & Offline-First)", () => {
     expect(result.current.profile.winsDetective).toBe(1);
     expect(result.current.profile.mmr).toBe(1025);
     expect(result.current.profile.xp).toBe(50);
+    expect(result.current.profile.unlockedAchievements).toContain("operative_case_closed");
+    expect(result.current.profile.cash).toBe(1650);
   });
 
   it("корректно списывает и возвращает ставку", () => {

@@ -8,6 +8,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { storage, safeLocalStorage } from "../utils/storage";
 import { guestRegistry } from "../utils/guestManager";
 import { sanitizePlayerName, validatePlayerName } from "../utils/nameFilter";
+import { migrateProfileStats, evaluateAchievements, type MatchOutcomeContext } from "../utils/achievementEngine";
+import type { Achievement } from "../data/achievements";
 
 const DEFAULT_AVATAR = "c1";
 const DEFAULT_AVATAR_ID = "c1";
@@ -26,7 +28,7 @@ function generateLocalId(): string {
   return "id_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9);
 }
 
-const DEFAULT_LOCAL_PROFILE: UserProfile = {
+const DEFAULT_LOCAL_PROFILE: UserProfile = migrateProfileStats({
   id: generateLocalId(),
   nickname: getInitialCallsign(),
   agentName: getInitialCallsign(),
@@ -46,7 +48,7 @@ const DEFAULT_LOCAL_PROFILE: UserProfile = {
     losses: 0,
   },
   recentMatches: [],
-};
+});
 
 export function useProfile() {
   let authContext: any = null;
@@ -64,19 +66,24 @@ export function useProfile() {
         saved.nickname || saved.agentName || "",
         guestRegistry.generateCallsign()
       );
-      return {
+      return migrateProfileStats({
         ...DEFAULT_LOCAL_PROFILE,
         ...saved,
         nickname: validCallsign,
         agentName: validCallsign,
         stats: saved.stats || DEFAULT_LOCAL_PROFILE.stats,
-      };
+      });
     }
     return DEFAULT_LOCAL_PROFILE;
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [latestUnlockedAchievement, setLatestUnlockedAchievement] = useState<Achievement | null>(null);
+
+  const clearLatestUnlockedAchievement = useCallback(() => {
+    setLatestUnlockedAchievement(null);
+  }, []);
 
   // Синхронизация с Supabase при наличии авторизованного пользователя
   const syncWithCloud = useCallback(async (userId: string) => {
@@ -252,6 +259,10 @@ export function useProfile() {
       role?: string;
       durationSeconds?: number;
       mmrDelta?: number;
+      isOnline?: boolean;
+      isTvParty?: boolean;
+      isFlawless?: boolean;
+      shiftsCount?: number;
     }
   ) => {
     const role = matchDetails?.role || (profile.rank.includes("Маньяк") ? "KILLER" : "DETECTIVE");
@@ -259,6 +270,7 @@ export function useProfile() {
     const isManWin = isWin && role === "KILLER";
     const mmrDelta = matchDetails?.mmrDelta ?? (isWin ? 25 : -20);
     let finalMmr = profile.mmr + mmrDelta;
+    let newlyUnlockedList: Achievement[] = [];
 
     setProfile((prev) => {
       const newWins = (prev.stats?.wins || 0) + (isWin ? 1 : 0);
@@ -291,7 +303,7 @@ export function useProfile() {
       };
       const recentMatches = [newMatchEntry, ...(prev.recentMatches || [])].slice(0, 10);
 
-      const next: UserProfile = {
+      const nextBase: UserProfile = {
         ...prev,
         xp: newXp,
         level: newLevel,
@@ -303,8 +315,26 @@ export function useProfile() {
         stats: { wins: newWins, losses: newLosses },
         recentMatches,
       };
-      storage.setSyncAndPersist("crime_city_profile", next);
-      return next;
+
+      const outcomeContext: MatchOutcomeContext = {
+        mode: matchDetails?.mode || "MANIAC_VS_OPERATIVE",
+        role: role,
+        isWin: isWin,
+        durationSeconds: matchDetails?.durationSeconds || 120,
+        isOnline: matchDetails?.isOnline,
+        isTvParty: matchDetails?.isTvParty,
+        isFlawless: matchDetails?.isFlawless,
+        shiftsCount: matchDetails?.shiftsCount,
+      };
+
+      const evalRes = evaluateAchievements(nextBase, outcomeContext);
+      newlyUnlockedList = evalRes.newlyUnlocked;
+      if (evalRes.newlyUnlocked.length > 0) {
+        setLatestUnlockedAchievement(evalRes.newlyUnlocked[0]);
+      }
+
+      storage.setSyncAndPersist("crime_city_profile", evalRes.updatedProfile);
+      return evalRes.updatedProfile;
     });
 
     // Облачная запись через защищенную RPC функцию
@@ -324,7 +354,7 @@ export function useProfile() {
       }
     }
 
-    return { newMmr: finalMmr, mmrDelta };
+    return { newMmr: finalMmr, mmrDelta, newlyUnlocked: newlyUnlockedList };
   }, [user?.id, isCloudConnected, profile.rank, profile.mmr]);
 
   const awardPrize = useCallback((pot: number) => {
@@ -358,6 +388,8 @@ export function useProfile() {
     profile,
     isLoading,
     error,
+    latestUnlockedAchievement,
+    clearLatestUnlockedAchievement,
     updateProfile,
     recordMatchResult,
     awardPrize,

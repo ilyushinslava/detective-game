@@ -23,6 +23,7 @@ import { triggerHaptic } from "./utils/haptics";
 import type { GameAction } from "./types/multiplayer";
 import { Button } from "./components/ui/Button";
 import { LiquidBackground } from "./components/ui/LiquidBackground";
+import { AchievementToast } from "./components/ui/AchievementToast";
 import type { ShiftPayload } from "./types/game";
 import { gameReducer } from "./utils/gameReducer";
 import { BannerViewerProvider } from "./contexts/BannerViewerContext";
@@ -91,6 +92,8 @@ export default function App() {
     updateProfile,
     awardPrize,
     recordMatchResult,
+    latestUnlockedAchievement,
+    clearLatestUnlockedAchievement,
   } = useProfile();
   const matchResultRecordedRef = useRef(false);
   const [matchRatingInfo, setMatchRatingInfo] = useState<{ rating: number; ratingDelta: number } | null>(null);
@@ -1378,6 +1381,12 @@ export default function App() {
           onCancel={handleEmergencyDisconnectCancel}
         />
       </Suspense>
+
+      {/* Всплывающее уведомление о получении достижения */}
+      <AchievementToast
+        achievement={latestUnlockedAchievement}
+        onClose={clearLatestUnlockedAchievement}
+      />
     </div>
   </BannerViewerProvider>
   );

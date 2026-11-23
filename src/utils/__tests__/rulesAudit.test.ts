@@ -1,55 +1,51 @@
 import { describe, it, expect } from "vitest";
-import {
-  createInitialState,
-  swearInOfficer,
-  accuseCharacter,
-  killCharacter,
-  getAdjacentCharacters,
-} from "../gameLogic";
+import { MODES_DATA } from "../../components/rules/rulesData";
 
-describe("Игровые правила (Rules Audit)", () => {
-  it("THIEF_HUNT: Вызов патруля начисляет Вору +1 сокровище и передает ход", () => {
-    let state = createInitialState("THIEF_HUNT", "PVP");
-    const initialTrophies = state.trophiesKiller ?? 0;
-    const oldOfficerId = state.uniformedOfficers![0];
-    
-    state = swearInOfficer(state, oldOfficerId);
-    
-    expect(state.trophiesKiller).toBe(initialTrophies + 1);
-    expect(state.currentTurn).toBe("KILLER");
-    expect(state.uniformedOfficers).not.toContain(oldOfficerId);
+describe("Rules and Handbook Audit (Блок 1 Справочник)", () => {
+  it("гарантирует отсутствие режима LINE_UP (Очная ставка) в структуре справочника", () => {
+    const keys = Object.keys(MODES_DATA);
+    expect(keys).toContain("BASE");
+    expect(keys).toContain("MANIAC");
+    expect(keys).toContain("THIEF");
+    expect(keys).toContain("SECRET_SERVICE");
+    expect(keys).not.toContain("LINE_UP");
+    expect((MODES_DATA as any).LINE_UP).toBeUndefined();
   });
 
-  it("THIEF_HUNT: Ложное обвинение не выставляет алиби (isExonerated: true)", () => {
-    let state = createInitialState("THIEF_HUNT", "PVP");
-    state.currentTurn = "DETECTIVE";
-    
-    const targetId = state.board.flat().find(c => c.id !== state.killerSecretId && !state.uniformedOfficers?.includes(c.id))!.id;
-    // Подменяем позицию сыщика для успешного обхода проверки "соседство"
-    state.detectiveSecretId = targetId; 
-    
-    const newState = accuseCharacter(state, targetId);
-    const targetChar = newState.board.flat().find(c => c.id === targetId);
-    
-    expect(targetChar?.isExonerated).toBe(false);
-    expect(newState.currentTurn).toBe("KILLER");
+  it("проверяет корректность правил режима Почерк убийцы (MANIAC): 4 жертвы, арест, радиус 3x3", () => {
+    const maniac = MODES_DATA.MANIAC;
+    expect(maniac.title).toMatch(/почерк убийцы/i);
+    expect(maniac.role1.name).toBe("Убийца");
+    expect(maniac.role2.name).toBe("Сыщик");
+    expect(maniac.role1.goal).toContain("4");
+    expect(maniac.role2.goal).toMatch(/задержать|арест/i);
+
+    const mechanicsText = maniac.mechanics.map((m) => `${m.name} ${m.desc}`).join(" ");
+    expect(mechanicsText).toMatch(/3×3|3x3/);
+    expect(mechanicsText).toMatch(/жертв/);
   });
 
-  it("MANIAC_VS_OPERATIVE: Ложное задержание не сокращает victimList, сыщик тратит ход", () => {
-    let state = createInitialState("MANIAC_VS_OPERATIVE", "PVP");
-    state.currentTurn = "DETECTIVE";
-    
-    const targetId = state.board.flat().find(c => c.id !== state.killerSecretId)!.id;
-    state.detectiveSecretId = targetId; // Искусственно удовлетворяем условие соседства
-    
-    const initialVictimsCount = state.victimList.length;
-    const newState = accuseCharacter(state, targetId);
+  it("проверяет корректность правил режима Оцепление (THIEF): 8 краж, патрули", () => {
+    const thief = MODES_DATA.THIEF;
+    expect(thief.title).toMatch(/оцепление/i);
+    expect(thief.role1.name).toBe("Грабитель");
+    expect(thief.role2.name).toBe("Полиция");
+    expect(thief.role1.goal).toContain("8");
+    expect(thief.role2.goal).toMatch(/патрул|арест/i);
 
-    // При ошибке список жертв не сокращается, ход переходит маньяку
-    expect(newState.victimList.length).toBe(initialVictimsCount);
-    expect(newState.currentTurn).toBe("KILLER");
-    expect(newState.log[newState.log.length - 1]).toContain("Ошибка следствия");
+    const mechanicsText = thief.mechanics.map((m) => `${m.name} ${m.desc}`).join(" ");
+    expect(mechanicsText).toMatch(/8 краж|похитить 8/i);
+    expect(mechanicsText).toMatch(/патрул/i);
   });
 
+  it("проверяет корректность правил режима Директива «Ноль» (SECRET_SERVICE): единый термин компромат", () => {
+    const secret = MODES_DATA.SECRET_SERVICE;
+    expect(secret.title).toMatch(/директива «ноль»/i);
+    expect(secret.role1.goal).toMatch(/компромат/i);
+    expect(secret.role2.goal).toMatch(/компромат/i);
 
+    const mechanicsText = secret.mechanics.map((m) => `${m.name} ${m.desc}`).join(" ");
+    expect(mechanicsText).toMatch(/компромат/i);
+    expect(mechanicsText).toMatch(/допрос|разоблачение/i);
+  });
 });

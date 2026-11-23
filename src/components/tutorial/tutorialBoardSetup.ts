@@ -28,12 +28,19 @@ export const getInitialBoard = (module: TutorialModule): Character[][] => {
       chars[c1Index] = temp;
     }
   } else if (module === "MANIAC_KILLER") {
-    // Елена Соколова (c3) ставится в верхний ряд [0][2] (индекс 2), чтобы при маневре колонки 2 вниз войти в сектор убийцы
+    // Елена Соколова (c3) ставится в [0][2] (индекс 2), а Убийца (c4) в [2][1] (индекс 11).
+    // До сдвига они не соседствуют. При сдвиге колонки 2 вниз Елена переходит в [1][2] и входит в зону 3×3 Убийцы!
     const elenaIndex = chars.findIndex((c) => c.id === "c3");
     if (elenaIndex !== -1 && elenaIndex !== 2) {
       const temp = chars[2];
       chars[2] = chars[elenaIndex];
       chars[elenaIndex] = temp;
+    }
+    const killerIndex = chars.findIndex((c) => c.id === "c4");
+    if (killerIndex !== -1 && killerIndex !== 11) {
+      const temp = chars[11];
+      chars[11] = chars[killerIndex];
+      chars[killerIndex] = temp;
     }
   } else if (module === "MANIAC_DETECTIVE") {
     // В [3][3] жертва, соседи со щитом (алиби), подозреваемый без щита в [1][1] (индекс 6)

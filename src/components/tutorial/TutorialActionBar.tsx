@@ -42,7 +42,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
   onCompleteModule,
 }) => {
   return (
-    <div className="h-14 md:h-16 shrink-0 w-full flex items-center justify-center px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[#080a0f] border-t border-white/5 z-20">
+    <div className="min-h-[56px] py-2 shrink-0 w-full flex items-center justify-center px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 bg-[#080a0f] border-t border-white/5 z-20">
       <div className="w-full max-w-sm flex justify-center">
         {/* 1. BASICS */}
         {currentModule === "BASICS" && step === 3 && (
@@ -50,7 +50,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary"
             fullWidth
             onClick={() => onCompleteModule("BASICS")}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Завершить урок ➔
           </Button>
@@ -62,7 +62,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary-danger"
             fullWidth
             onClick={onKill}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Ликвидировать цель
           </Button>
@@ -72,7 +72,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary"
             fullWidth
             onClick={onEscape}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Сменить маску
           </Button>
@@ -82,7 +82,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary"
             fullWidth
             onClick={() => onCompleteModule("MANIAC_KILLER")}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Завершить урок ➔
           </Button>
@@ -94,7 +94,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary"
             fullWidth
             onClick={onArrest}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Задержать подозреваемого
           </Button>
@@ -104,7 +104,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary"
             fullWidth
             onClick={onCleanup}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Зачистка поля
           </Button>
@@ -114,7 +114,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary"
             fullWidth
             onClick={() => onCompleteModule("MANIAC_DETECTIVE")}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Завершить урок ➔
           </Button>
@@ -126,7 +126,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary-danger"
             fullWidth
             onClick={onRob}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Украсть сокровище
           </Button>
@@ -136,7 +136,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary"
             fullWidth
             onClick={onThiefDisguise}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Сменить маску
           </Button>
@@ -146,7 +146,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary"
             fullWidth
             onClick={() => onCompleteModule("THIEF_ROBBER")}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Завершить урок ➔
           </Button>
@@ -158,7 +158,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary"
             fullWidth
             onClick={onPoliceBlock}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Выставить патруль
           </Button>
@@ -168,7 +168,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary"
             fullWidth
             onClick={onPoliceArrest}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Задержать вора
           </Button>
@@ -180,7 +180,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary"
             fullWidth
             onClick={onInterrogate}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Опрос свидетелей
           </Button>
@@ -190,7 +190,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary-danger"
             fullWidth
             onClick={onCaptureSpy}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Разоблачение шпиона
           </Button>
@@ -202,7 +202,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary"
             fullWidth
             onClick={onAskQuestionDuel}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Спросить: есть ли головной убор?
           </Button>
@@ -212,7 +212,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary"
             fullWidth
             onClick={onEliminateDuel}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Исключить невиновных ➔
           </Button>
@@ -222,7 +222,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary-danger"
             fullWidth
             onClick={onAccuseDuel}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Предъявить обвинение
           </Button>
@@ -232,7 +232,7 @@ export const TutorialActionBar: React.FC<TutorialActionBarProps> = ({
             variant="primary"
             fullWidth
             onClick={() => onCompleteModule("LINE_UP")}
-            className="!h-11 md:!h-12 text-xs font-bold uppercase tracking-wider"
+            className="!min-h-[44px] !h-11 md:!h-12 text-xs font-bold uppercase tracking-wider touch-manipulation"
           >
             Завершить обучение ➔
           </Button>

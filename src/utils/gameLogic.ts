@@ -1202,22 +1202,28 @@ export function isRoleChangeTrigger(
     return true;
   }
 
-  // 2. Арест / задержание
-  if (action.type === "ARREST") {
+  // 2. Арест / задержание / обвинение
+  if (action.type === "ARREST" || action.type === "ACCUSE" || action.type === "DUEL_ACCUSE") {
     return true;
   }
   if (action.type === "CAPTURE_SPY") {
-    const trophyIncreased = (next.spies ?? []).some(
-      (s, idx) => s.trophies > (prev.spies?.[idx]?.trophies ?? 0)
-    );
-    if (trophyIncreased || next.justCaughtSpyId) {
-      return true;
-    }
+    return true;
   }
 
-  // 3. Конспирация / смена личности
+  // 3. Кража и патрулирование (Оцепление)
+  if (action.type === "ROB_NEIGHBOR" || action.type === "SWEAR_IN_OFFICER") {
+    return true;
+  }
+
+  // 4. Опрос свидетелей и алиби (Детектив / Директива «Ноль»)
+  if (action.type === "EXONERATE" || action.type === "INTERROGATE" || action.type === "CLEANUP") {
+    return true;
+  }
+
+  // 5. Конспирация / смена личности
   if (
     action.type === "ESCAPE_MANIAC" ||
+    action.type === "FAST_DISGUISE" ||
     action.type === "DISGUISE" ||
     action.type === "CHANGE_IDENTITY"
   ) {

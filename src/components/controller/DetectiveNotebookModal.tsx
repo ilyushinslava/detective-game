@@ -12,6 +12,8 @@ export interface DetectiveNotebookModalProps {
   characters: Character[];
   marks?: Record<string, CharacterNoteStatus>;
   notes?: string;
+  sessionKey?: string;
+  role?: string;
   onCycleMark?: (characterId: string) => void;
   onSetMark?: (characterId: string, status: CharacterNoteStatus) => void;
   onSetNotesText?: (notes: string) => void;
@@ -53,6 +55,8 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
   characters,
   marks,
   notes,
+  sessionKey,
+  role,
   onCycleMark,
   onSetNotesText,
   onUpdateNote,
@@ -69,7 +73,7 @@ export const DetectiveNotebookModal: React.FC<DetectiveNotebookModalProps> = ({
       : 'default';
   }, [characters]);
 
-  const internalNotebook = useDetectiveNotebook(fallbackSessionKey);
+  const internalNotebook = useDetectiveNotebook(sessionKey || fallbackSessionKey, role);
 
   if (!isOpen) return null;
 

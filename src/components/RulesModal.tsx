@@ -12,10 +12,11 @@ import {
 export interface RulesModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialTab?: ModeTab;
 }
 
-export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
-  const [activeTab, setActiveTab] = useState<ModeTab>("BASE");
+export const RulesModal = ({ isOpen, onClose, initialTab }: RulesModalProps) => {
+  const [activeTab, setActiveTab] = useState<ModeTab>(initialTab || "BASE");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const tabListRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -26,11 +27,11 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
 
   useEffect(() => {
     if (isOpen) {
-      setActiveTab("BASE");
+      setActiveTab(initialTab || "BASE");
       setIsDropdownOpen(false);
       setImgErrors({});
     }
-  }, [isOpen]);
+  }, [isOpen, initialTab]);
 
   // Закрытие дропдауна при клике вне его
   useEffect(() => {
@@ -66,7 +67,6 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
     { id: "MANIAC", label: "Почерк убийцы" },
     { id: "THIEF", label: "Оцепление" },
     { id: "SECRET_SERVICE", label: "Директива «Ноль»" },
-    { id: "LINE_UP", label: "Очная ставка" },
   ];
 
   const currentMode = MODES_DATA[activeTab];
@@ -146,7 +146,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
             <Button
               variant="ghost"
               onClick={onClose}
-              className="!h-8 !w-8 !p-0 text-zinc-400 hover:text-white"
+              className="!min-h-[44px] !min-w-[44px] !p-0 text-zinc-400 hover:text-white flex items-center justify-center cursor-pointer touch-manipulation"
               title="Закрыть"
             >
               ✕
@@ -162,7 +162,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
               triggerHaptic("light");
               setIsDropdownOpen(!isDropdownOpen);
             }}
-            className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-900/80 border border-white/10 border-t-white/20 text-xs font-black uppercase tracking-wider text-zinc-200 transition-all active:scale-[0.99] cursor-pointer"
+            className="w-full h-11 min-h-[44px] flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-900/80 border border-white/10 border-t-white/20 text-xs font-black uppercase tracking-wider text-zinc-200 transition-all active:scale-[0.99] cursor-pointer touch-manipulation"
           >
             <div className="flex items-center gap-2">
               <span className="text-zinc-500 font-mono text-[10px]">РАЗДЕЛ:</span>
@@ -193,7 +193,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
                       setActiveTab(tab.id);
                       setIsDropdownOpen(false);
                     }}
-                    className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all text-left cursor-pointer ${
+                    className={`flex items-center justify-between px-3 py-2.5 min-h-[44px] rounded-lg text-xs font-bold uppercase tracking-wider transition-all text-left cursor-pointer touch-manipulation ${
                       isSelected
                         ? "bg-slate-800/80 text-white border border-white/15"
                         : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
@@ -271,7 +271,7 @@ export const RulesModal = ({ isOpen, onClose }: RulesModalProps) => {
             variant="secondary"
             fullWidth
             onClick={onClose}
-            className="uppercase tracking-widest text-xs"
+            className="uppercase tracking-widest text-xs h-11 min-h-[44px]"
           >
             Закрыть справочник
           </Button>

@@ -22,18 +22,18 @@ export function useDetectiveNotebook(
   role?: string
 ) {
   const storageKey = useMemo(() => {
-    let key = 'default';
+    let baseKey = 'default';
     if (typeof sessionKeyOrState === 'string') {
-      key = sessionKeyOrState;
+      baseKey = sessionKeyOrState;
     } else if (sessionKeyOrState && typeof sessionKeyOrState === 'object') {
       const state = sessionKeyOrState;
-      const baseKey =
+      baseKey =
         state.roomId ||
         state.sessionId ||
         `${state.gameMode || 'game'}_${state.board?.[0]?.[0]?.id || 'session'}`;
-      key = role ? `${baseKey}_${role}` : baseKey;
     }
-    return `requiem_notebook_${key}`;
+    const roleKey = role ? `_${role}` : '';
+    return `requiem_notebook_${baseKey}${roleKey}`;
   }, [sessionKeyOrState, role]);
 
   const [notebook, setNotebook] = useState<DetectiveNotebookData>(() => {

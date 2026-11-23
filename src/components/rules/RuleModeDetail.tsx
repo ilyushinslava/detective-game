@@ -22,7 +22,7 @@ export const RuleModeDetail: React.FC<RuleModeDetailProps> = ({
             onOpenBanner(e, bannerSrc, currentMode.title);
           }
         }}
-        className={`relative w-full h-[120px] sm:h-[140px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border border-white/15 border-t-white/35 shadow-xl cursor-pointer group select-none bg-zinc-950`}
+        className={`relative w-full h-[100px] sm:h-[130px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border border-white/15 border-t-white/35 shadow-xl cursor-pointer group select-none bg-zinc-950`}
         title="Нажмите для просмотра полного фото"
       >
         {bannerSrc && (

@@ -2,11 +2,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { TutorialScreen } from "../TutorialScreen";
+import { safeLocalStorage, safeSessionStorage } from "../../utils/storage";
 
 describe("Интерактивное обучение (tutorialFullFlow)", () => {
   beforeEach(() => {
     cleanup();
     localStorage.clear();
+    sessionStorage.clear();
+    safeLocalStorage.clear();
+    safeSessionStorage.clear();
     window.HTMLMediaElement.prototype.play = vi.fn().mockImplementation(() => Promise.resolve());
     window.HTMLMediaElement.prototype.pause = vi.fn();
     window.HTMLMediaElement.prototype.load = vi.fn();
@@ -16,9 +20,9 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
     render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
 
     expect(screen.getByText(/1. Основы игры/i)).toBeDefined();
-    expect(screen.getByText(/2. Почерк убийцы: Маньяк/i)).toBeDefined();
-    expect(screen.getByText(/3. Почерк убийцы: Оперативник/i)).toBeDefined();
-    expect(screen.getByText(/4. Оцепление: Вор/i)).toBeDefined();
+    expect(screen.getByText(/2. Почерк убийцы: Убийца/i)).toBeDefined();
+    expect(screen.getByText(/3. Почерк убийцы: Сыщик/i)).toBeDefined();
+    expect(screen.getByText(/4. Оцепление: Грабитель/i)).toBeDefined();
     expect(screen.getByText(/5. Оцепление: Полиция/i)).toBeDefined();
     expect(screen.getByText(/6. Директива «Ноль»: Контрразведка/i)).toBeDefined();
     expect(screen.getByText(/7. Очная ставка: Допрос/i)).toBeDefined();
@@ -26,8 +30,8 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
     expect(screen.getByText(/Пройдено:/i)).toBeDefined();
 
     // Вход в модуль Убийцы и возврат в архив
-    fireEvent.click(screen.getByText(/2. Почерк убийцы: Маньяк/i));
-    expect(screen.getByText(/УРОК 2: ИГРА ЗА МАНЬЯКА/i)).toBeDefined();
+    fireEvent.click(screen.getByText(/2. Почерк убийцы: Убийца/i));
+    expect(screen.getByText(/УРОК 2: ПОЧЕРК УБИЙЦЫ \(УБИЙЦА\)/i)).toBeDefined();
 
     fireEvent.click(screen.getByText(/← В архив/i));
     expect(screen.getByText(/Академия детективов/i)).toBeDefined();
@@ -37,7 +41,7 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
     render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
 
     // 1. Вход в модуль
-    fireEvent.click(screen.getByText(/2. Почерк убийцы: Маньяк/i));
+    fireEvent.click(screen.getByText(/2. Почерк убийцы: Убийца/i));
     expect(screen.getAllByText(/Подвод жертвы/i).length).toBeGreaterThan(0);
 
     // Нецелевое действие: клик по карточке на шаге маневра заблокирован и не меняет шаг
@@ -83,7 +87,7 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
     render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
 
     // Вход в модуль Детектива
-    fireEvent.click(screen.getByText(/3. Почерк убийцы: Оперативник/i));
+    fireEvent.click(screen.getByText(/3. Почерк убийцы: Сыщик/i));
     expect(screen.getAllByText(/Проверка алиби/i).length).toBeGreaterThan(0);
 
     // Шаг 1: Подозреваемый без щита в [1][1] (София Романова, #07)
@@ -91,7 +95,7 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
     fireEvent.click(suspectCard);
 
     // Шаг 2: Задержание
-    expect(screen.getAllByText(/Задержание маньяка/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Задержание/i).length).toBeGreaterThan(0);
     const arrestBtn = screen.getByRole("button", { name: /Задержать подозреваемого/i });
     fireEvent.click(arrestBtn);
 
@@ -107,6 +111,118 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
 
     const saved = JSON.parse(localStorage.getItem("crime_city_completed_modules") || "[]");
     expect(saved).toContain("MANIAC_DETECTIVE");
+  });
+
+  it("Сценарий 'Основы игры' (BASICS): сдвиг ряда, радиус 3x3 и правило Anti-Undo", () => {
+    render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
+
+    // 1. Вход в модуль
+    fireEvent.click(screen.getByText(/1. Основы игры/i));
+    expect(screen.getByText(/Маневр поля/i)).toBeDefined();
+
+    // Шаг 1: сдвиг 3-го ряда влево (row index 2, backward)
+    const rowLeftBtn = screen.getByTestId("row-left-2");
+    fireEvent.click(rowLeftBtn);
+
+    // Шаг 2: Радиус действия 3x3 — кликаем по соседу центра [2][2] (например, Максим Лебедев в [1][2])
+    expect(screen.getByText(/Радиус действия 3×3/i)).toBeDefined();
+    const neighborCard = screen.getByTitle("Максим Лебедев");
+    fireEvent.click(neighborCard);
+
+    // Шаг 3: Anti-Undo -> Завершить урок
+    expect(screen.getByText(/Правило Anti-Undo/i)).toBeDefined();
+    const finishBtn = screen.getByRole("button", { name: /Завершить урок/i });
+    fireEvent.click(finishBtn);
+
+    expect(screen.getByText(/Академия детективов/i)).toBeDefined();
+    const saved = JSON.parse(localStorage.getItem("crime_city_completed_modules") || "[]");
+    expect(saved).toContain("BASICS");
+  });
+
+  it("Сценарий 'Оцепление: Грабитель' (THIEF_ROBBER): взлом сейфа, кража и смена маски", () => {
+    render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
+
+    fireEvent.click(screen.getByText(/4. Оцепление: Грабитель/i));
+    expect(screen.getByText(/Выбор жертвы кражи/i)).toBeDefined();
+
+    // Шаг 1: Выбор соседа рядом с вором (вор c4 в [0][3], сосед Анна Мороз c5 в [0][4])
+    const victimCard = screen.getByTitle("Анна Мороз");
+    fireEvent.click(victimCard);
+
+    // Шаг 2: Кража сокровища
+    expect(screen.getByText(/Кража сокровища/i)).toBeDefined();
+    const robBtn = screen.getByRole("button", { name: /Украсть сокровище/i });
+    fireEvent.click(robBtn);
+
+    // Шаг 3: Смена маски
+    expect(screen.getByText(/Смена маски грабителя/i)).toBeDefined();
+    const disguiseBtn = screen.getByRole("button", { name: /Сменить маску/i });
+    fireEvent.click(disguiseBtn);
+
+    // Шаг 4: Искусство кражи -> Завершить урок
+    expect(screen.getByText(/Искусство кражи/i)).toBeDefined();
+    const finishBtn = screen.getByRole("button", { name: /Завершить урок/i });
+    fireEvent.click(finishBtn);
+
+    expect(screen.getByText(/Академия детективов/i)).toBeDefined();
+    const saved = JSON.parse(localStorage.getItem("crime_city_completed_modules") || "[]");
+    expect(saved).toContain("THIEF_ROBBER");
+  });
+
+  it("Сценарий 'Оцепление: Полиция' (THIEF_POLICE): выставление патрульного поста и арест вора", () => {
+    render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
+
+    fireEvent.click(screen.getByText(/5. Оцепление: Полиция/i));
+    expect(screen.getByText(/Патрулирование/i)).toBeDefined();
+
+    // Шаг 1: Выбор персонажа для выставления патруля
+    const postCard = screen.getByTitle("София Романова");
+    fireEvent.click(postCard);
+
+    // Шаг 2: Выставление поста
+    expect(screen.getByText(/Выставление поста/i)).toBeDefined();
+    const patrolBtn = screen.getByRole("button", { name: /Выставить патруль/i });
+    fireEvent.click(patrolBtn);
+
+    // Шаг 3: Задержание вора
+    expect(screen.getByText(/Арест грабителя/i)).toBeDefined();
+    const arrestBtn = screen.getByRole("button", { name: /Задержать вора/i });
+    fireEvent.click(arrestBtn);
+
+    expect(screen.getByText(/Академия детективов/i)).toBeDefined();
+    const saved = JSON.parse(localStorage.getItem("crime_city_completed_modules") || "[]");
+    expect(saved).toContain("THIEF_POLICE");
+  });
+
+  it("Сценарий 'Директива «Ноль»' (SECRET_SERVICE): опрос свидетелей радаром и разоблачение Марка Воронова", () => {
+    render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
+
+    fireEvent.click(screen.getByText(/6. Директива «Ноль»: Контрразведка/i));
+    expect(screen.getByText(/Выбор цели опроса/i)).toBeDefined();
+
+    // Шаг 1: Выбор цели опроса радаром
+    const targetCard = screen.getByTitle("София Романова");
+    fireEvent.click(targetCard);
+
+    // Шаг 2: Опрос свидетелей радаром
+    expect(screen.getByText(/Опрос радаром/i)).toBeDefined();
+    const interrogateBtn = screen.getByRole("button", { name: /Опрос свидетелей/i });
+    fireEvent.click(interrogateBtn);
+
+    // Шаг 3: Локализация шпиона (Марк Воронов, c2)
+    expect(screen.getByText(/Локализация шпиона/i)).toBeDefined();
+    expect(screen.getAllByText(/Марк Воронов/i).length).toBeGreaterThan(0);
+    const spyCard = screen.getByTitle("Марк Воронов");
+    fireEvent.click(spyCard);
+
+    // Шаг 4: Разоблачение шпиона
+    expect(screen.getAllByText(/Разоблачение шпиона/i).length).toBeGreaterThan(0);
+    const captureBtn = screen.getByRole("button", { name: /Разоблачение шпиона/i });
+    fireEvent.click(captureBtn);
+
+    expect(screen.getByText(/Академия детективов/i)).toBeDefined();
+    const saved = JSON.parse(localStorage.getItem("crime_city_completed_modules") || "[]");
+    expect(saved).toContain("SECRET_SERVICE");
   });
 
   it("Сценарий 'Очная ставка' (LINE_UP): опрос свидетеля, отсечение по алиби и финальное обвинение", () => {
@@ -162,7 +278,7 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
     cleanup();
 
     // 2. Все модули пройдены -> вызывается onFinish
-    localStorage.setItem(
+    safeLocalStorage.setItem(
       "crime_city_completed_modules",
       JSON.stringify(["BASICS", "MANIAC_KILLER", "MANIAC_DETECTIVE", "THIEF_ROBBER", "THIEF_POLICE", "SECRET_SERVICE", "LINE_UP"])
     );
@@ -173,6 +289,7 @@ describe("Интерактивное обучение (tutorialFullFlow)", () =>
     expect(onFinishCompleted).toHaveBeenCalledTimes(1);
     view2.unmount();
     cleanup();
-    localStorage.clear();
+    safeLocalStorage.clear();
+    safeSessionStorage.clear();
   });
 });

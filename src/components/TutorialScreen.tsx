@@ -264,7 +264,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
     if (currentModule === "MANIAC_KILLER" && step === 4) {
       soundManager.play("disguise");
       triggerHaptic("success");
-      const targetMaskChar = board[3]?.[3] || { id: "c7", name: "Виктор Смирнов" };
+      const targetMaskChar = board[3]?.[3] || { id: "c7", name: "София Романова" };
       setNewDisguiseChar(targetMaskChar as any);
       setIsDisguiseModalOpen(true);
     }
@@ -316,7 +316,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   const handleRob = () => {
     if (currentModule === "THIEF_ROBBER" && step === 2 && selectedId) {
-      soundManager.play("confirm");
+      soundManager.play("steal");
       triggerHaptic("heavy");
       setBoard((prev) =>
         prev.map((row) =>
@@ -330,7 +330,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   const handleThiefDisguise = () => {
     if (currentModule === "THIEF_ROBBER" && step === 3) {
-      soundManager.play("confirm");
+      soundManager.play("disguise");
       triggerHaptic("success");
       setThiefSecretId("c9");
       setStep(4);
@@ -339,7 +339,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
 
   const handlePoliceBlock = () => {
     if (currentModule === "THIEF_POLICE" && step === 2) {
-      soundManager.play("confirm");
+      soundManager.play("patrol");
       triggerHaptic("medium");
       setStep(3);
     }
@@ -412,13 +412,13 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       case "BASICS":
         return "УРОК 1: ОСНОВЫ ИГРЫ";
       case "MANIAC_KILLER":
-        return "УРОК 2: ИГРА ЗА МАНЬЯКА";
+        return "УРОК 2: ПОЧЕРК УБИЙЦЫ (УБИЙЦА)";
       case "MANIAC_DETECTIVE":
-        return "УРОК 3: ИГРА ЗА СЫЩИКА";
+        return "УРОК 3: ПОЧЕРК УБИЙЦЫ (СЫЩИК)";
       case "THIEF_ROBBER":
-        return "УРОК 4: ИГРА ЗА ГРАБИТЕЛЯ";
+        return "УРОК 4: ОЦЕПЛЕНИЕ (ГРАБИТЕЛЬ)";
       case "THIEF_POLICE":
-        return "УРОК 5: ПЛАН «ПЕРЕХВАТ»";
+        return "УРОК 5: ОЦЕПЛЕНИЕ (ПОЛИЦИЯ)";
       case "SECRET_SERVICE":
         return "УРОК 6: ДИРЕКТИВА «НОЛЬ»";
       case "LINE_UP":
@@ -445,7 +445,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-[100] bg-background-main flex justify-center overflow-hidden font-sans select-none text-zinc-100 h-full w-full"
+      className="fixed inset-0 z-[100] bg-background-main flex justify-center overflow-hidden font-sans select-none text-zinc-100 h-[100dvh] w-full"
     >
       <style>{`
         .tutorial-highlight-l1s2 button[title*="Маневр влево"]:nth-of-type(3),
@@ -462,7 +462,7 @@ export const TutorialScreen = ({ onExit, onFinish }: TutorialScreenProps) => {
         <div className="w-full flex items-center justify-between px-6 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2.5 shrink-0 border-b border-border-subtle bg-background-main z-20">
           <button
             onClick={() => setCurrentModule("MENU")}
-            className="text-zinc-400 hover:text-white transition cursor-pointer text-xs font-black uppercase tracking-widest bg-zinc-900 px-3 py-1.5 rounded-lg border border-white/10"
+            className="text-zinc-400 hover:text-white transition cursor-pointer text-xs font-black uppercase tracking-widest bg-zinc-900 px-3.5 py-2 min-h-[44px] rounded-lg border border-white/10 hover:border-white/20 active:scale-95 flex items-center justify-center touch-manipulation"
           >
             ← В архив
           </button>

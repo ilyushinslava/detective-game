@@ -67,6 +67,63 @@ describe("Privacy Screen (Шторка тайны личности) SSOT & Blind
       expect(next.currentTurn).toBe("DETECTIVE");
     });
 
+    it("активирует шторку при краже вора (ROB_NEIGHBOR) в режиме Оцепление (THIEF_HUNT)", () => {
+      const state = createInitialState("THIEF_HUNT", "PVP", "KILLER");
+      const adjacent = getAdjacentCharacters(state.board, state.killerSecretId!);
+      expect(adjacent.length).toBeGreaterThan(0);
+      const target = adjacent[0];
+
+      const next = gameReducer(state, {
+        type: "ROB_NEIGHBOR",
+        payload: { targetId: target.id },
+      });
+
+      expect(next.isPrivacyScreenActive).toBe(true);
+      expect(next.trophiesKiller).toBe(1);
+      expect(next.currentTurn).toBe("DETECTIVE");
+    });
+
+    it("активирует шторку при вызове патрульного (SWEAR_IN_OFFICER) в режиме Оцепление (THIEF_HUNT)", () => {
+      const baseState = createInitialState("THIEF_HUNT", "PVP", "DETECTIVE");
+      const state = { ...baseState, currentTurn: "DETECTIVE" as const };
+      const officerToReplace = state.uniformedOfficers![0];
+
+      const next = gameReducer(state, {
+        type: "SWEAR_IN_OFFICER",
+        payload: { targetId: officerToReplace },
+      });
+
+      expect(next.isPrivacyScreenActive).toBe(true);
+      expect(next.currentTurn).toBe("KILLER");
+    });
+
+    it("активирует шторку при опросе свидетелей / проверке алиби (EXONERATE) в режиме Почерк убийцы", () => {
+      const baseState = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
+      const state = { ...baseState, currentTurn: "DETECTIVE" as const };
+      const cardToExonerate = state.detectiveHand[0];
+
+      const next = gameReducer(state, {
+        type: "EXONERATE",
+        payload: { targetId: cardToExonerate },
+      });
+
+      expect(next.isPrivacyScreenActive).toBe(true);
+      expect(next.currentTurn).toBe("KILLER");
+    });
+
+    it("активирует шторку при разоблачении шпиона (CAPTURE_SPY) в Директиве «Ноль»", () => {
+      const state = createInitialState("SECRET_SERVICE", "PVP", "KILLER", 3);
+      expect(state.activeSpyIndex).toBe(0);
+
+      const next = gameReducer(state, {
+        type: "CAPTURE_SPY",
+        payload: { targetId: state.board[0][0].id },
+      });
+
+      expect(next.isPrivacyScreenActive).toBe(true);
+      expect(next.activeSpyIndex).toBe(1);
+    });
+
     it("не активирует шторку при победе одного из игроков", () => {
       const state = createInitialState("MANIAC_VS_OPERATIVE", "PVP", "DETECTIVE");
       // Задаем убийцу рядом со следователем, чтобы арест был легитимным

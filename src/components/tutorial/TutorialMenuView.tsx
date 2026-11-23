@@ -30,7 +30,7 @@ export const TutorialMenuView: React.FC<TutorialMenuViewProps> = ({
         <div className="flex items-center justify-between px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-3 shrink-0 border-b border-white/10 bg-zinc-950">
           <button
             onClick={onExit}
-            className="text-zinc-400 hover:text-white transition cursor-pointer text-xs font-black uppercase tracking-widest bg-zinc-900/80 px-3 py-1.5 rounded-lg border border-white/10 hover:border-white/20 active:scale-95"
+            className="text-zinc-400 hover:text-white transition cursor-pointer text-xs font-black uppercase tracking-widest bg-zinc-900/80 px-3.5 py-2 min-h-[44px] rounded-lg border border-white/10 hover:border-white/20 active:scale-95 flex items-center justify-center touch-manipulation"
           >
             ✕ В меню
           </button>
@@ -68,7 +68,7 @@ export const TutorialMenuView: React.FC<TutorialMenuViewProps> = ({
                 </span>
               )}
             </div>
-            <p className="text-xs text-zinc-400 leading-relaxed">
+            <p className="text-xs text-zinc-400 leading-relaxed font-sans">
               Как устроен город: маневры рядов и колонок, радиус соседства 3×3 и правило Anti-Undo.
             </p>
           </div>
@@ -80,7 +80,7 @@ export const TutorialMenuView: React.FC<TutorialMenuViewProps> = ({
           >
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-base font-black text-white uppercase tracking-wider">
-                2. Почерк убийцы: Маньяк
+                2. Почерк убийцы: Убийца
               </h3>
               {completedModules.includes("MANIAC_KILLER") && (
                 <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-slate-300 uppercase bg-slate-800/80 px-2 py-0.5 rounded border border-white/10">
@@ -91,7 +91,7 @@ export const TutorialMenuView: React.FC<TutorialMenuViewProps> = ({
                 </span>
               )}
             </div>
-            <p className="text-xs text-zinc-400 leading-relaxed">
+            <p className="text-xs text-zinc-400 leading-relaxed font-sans">
               Как охотиться за жертвами из списка, делать выстрел и скрываться, меняя маску.
             </p>
           </div>
@@ -103,7 +103,7 @@ export const TutorialMenuView: React.FC<TutorialMenuViewProps> = ({
           >
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-base font-black text-white uppercase tracking-wider">
-                3. Почерк убийцы: Оперативник
+                3. Почерк убийцы: Сыщик
               </h3>
               {completedModules.includes("MANIAC_DETECTIVE") && (
                 <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-slate-300 uppercase bg-slate-800/80 px-2 py-0.5 rounded border border-white/10">
@@ -114,8 +114,8 @@ export const TutorialMenuView: React.FC<TutorialMenuViewProps> = ({
                 </span>
               )}
             </div>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Как задерживать маньяка, выкладывать алиби из руки и допрашивать подозреваемых.
+            <p className="text-xs text-zinc-400 leading-relaxed font-sans">
+              Как задерживать убийцу, выкладывать алиби из руки и допрашивать подозреваемых.
             </p>
           </div>
 
@@ -126,7 +126,7 @@ export const TutorialMenuView: React.FC<TutorialMenuViewProps> = ({
           >
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-base font-black text-white uppercase tracking-wider">
-                4. Оцепление: Вор
+                4. Оцепление: Грабитель
               </h3>
               {completedModules.includes("THIEF_ROBBER") && (
                 <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-slate-300 uppercase bg-slate-800/80 px-2 py-0.5 rounded border border-white/10">
@@ -137,7 +137,7 @@ export const TutorialMenuView: React.FC<TutorialMenuViewProps> = ({
                 </span>
               )}
             </div>
-            <p className="text-xs text-zinc-400 leading-relaxed">
+            <p className="text-xs text-zinc-400 leading-relaxed font-sans">
               Как вскрывать сейфы, уходить от патрулей и копить 8 сокровищ для победы.
             </p>
           </div>
@@ -160,8 +160,8 @@ export const TutorialMenuView: React.FC<TutorialMenuViewProps> = ({
                 </span>
               )}
             </div>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Как расставлять патрульных на поле, перекрывать пути отхода и задерживать вора.
+            <p className="text-xs text-zinc-400 leading-relaxed font-sans">
+              Как расставлять патрульных на поле, перекрывать пути отхода и задерживать грабителя.
             </p>
           </div>
 
@@ -183,7 +183,7 @@ export const TutorialMenuView: React.FC<TutorialMenuViewProps> = ({
                 </span>
               )}
             </div>
-            <p className="text-xs text-zinc-400 leading-relaxed">
+            <p className="text-xs text-zinc-400 leading-relaxed font-sans">
               Как опрашивать свидетелей, использовать радар и разоблачать вражеских агентов.
             </p>
           </div>
@@ -206,7 +206,7 @@ export const TutorialMenuView: React.FC<TutorialMenuViewProps> = ({
                 </span>
               )}
             </div>
-            <p className="text-xs text-zinc-400 leading-relaxed">
+            <p className="text-xs text-zinc-400 leading-relaxed font-sans">
               Как задавать вопросы по приметам, отсекать невиновных и предъявлять вердикт.
             </p>
           </div>
@@ -216,7 +216,7 @@ export const TutorialMenuView: React.FC<TutorialMenuViewProps> = ({
           {isRewardClaimed ? (
             <button
               onClick={onExit}
-              className="w-full h-12 rounded-xl bg-slate-900/80 border border-white/10 text-zinc-300 font-black tracking-widest uppercase text-xs transition active:scale-98 cursor-pointer hover:bg-slate-800"
+              className="w-full h-12 min-h-[44px] rounded-xl bg-slate-900/80 border border-white/10 text-zinc-300 font-black tracking-widest uppercase text-xs transition active:scale-98 cursor-pointer hover:bg-slate-800 touch-manipulation"
             >
               Курс пройден (В меню)
             </button>
@@ -224,13 +224,13 @@ export const TutorialMenuView: React.FC<TutorialMenuViewProps> = ({
             <button
               data-testid="tutorial-main-action-btn"
               onClick={allModulesCompleted ? onFinish : onExit}
-              className={`w-full h-12 rounded-xl font-black tracking-widest uppercase text-xs transition active:scale-98 cursor-pointer ${
+              className={`w-full h-12 min-h-[44px] rounded-xl font-black tracking-widest uppercase text-xs transition active:scale-98 cursor-pointer touch-manipulation ${
                 allModulesCompleted
                   ? "neo-button-primary text-white"
                   : "bg-slate-900/90 text-zinc-300 border border-white/10 border-t-white/20 hover:bg-slate-800"
               }`}
             >
-              {allModulesCompleted ? "Завершить курс (+250 CR)" : "В главное меню"}
+              {allModulesCompleted ? "Завершить курс (+500 монет)" : "В главное меню"}
             </button>
           )}
         </div>

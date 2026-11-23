@@ -62,4 +62,33 @@ describe('useDetectiveNotebook Hook (Client-Only Isolation)', () => {
     expect(sessionB.current.marks['c7']).toBeUndefined();
     expect(sessionB.current.notes).toBe('');
   });
+
+  it('строго изолирует блокноты между игроками разных ролей в одной сессии Pass & Play', () => {
+    const sessionMatchId = 'pvp_match_123';
+    const { result: player1Killer } = renderHook(() => useDetectiveNotebook(sessionMatchId, 'KILLER'));
+    const { result: player2Detective } = renderHook(() => useDetectiveNotebook(sessionMatchId, 'DETECTIVE'));
+
+    act(() => {
+      player1Killer.current.setMark('c3', 'SUSPECT');
+      player1Killer.current.setNotesText('План ликвидации: цель Елена Соколова');
+    });
+
+    // У Игрока 1 (Маньяк) данные сохранены
+    expect(player1Killer.current.marks['c3']).toBe('SUSPECT');
+    expect(player1Killer.current.notes).toBe('План ликвидации: цель Елена Соколова');
+
+    // У Игрока 2 (Сыщик) блокнот абсолютно чист и не содержит записей оппонента
+    expect(player2Detective.current.marks['c3']).toBeUndefined();
+    expect(player2Detective.current.notes).toBe('');
+
+    // Игрок 2 делает свои пометки
+    act(() => {
+      player2Detective.current.setMark('c1', 'CLEARED');
+      player2Detective.current.setNotesText('Проверено алиби Руслана Громова');
+    });
+
+    expect(player2Detective.current.marks['c1']).toBe('CLEARED');
+    expect(player2Detective.current.notes).toBe('Проверено алиби Руслана Громова');
+    expect(player1Killer.current.marks['c1']).toBeUndefined();
+  });
 });

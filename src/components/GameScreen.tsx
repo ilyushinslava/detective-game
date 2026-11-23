@@ -203,6 +203,8 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
     setSelectedId((prev) => (prev === id ? null : id));
   }, [isInspectorChoosing, setErrorCardId, setSelectedId]);
 
+  const isCurtainVisible = Boolean(isCurtainActive ?? gameState.isPrivacyScreenActive);
+
   return (
     <div className="relative w-screen h-[100dvh] flex flex-col justify-between overflow-hidden bg-background-main text-zinc-100 select-none">
       {/* Шапка экрана */}
@@ -254,14 +256,18 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
               detectiveAdjacentIds={detectiveAdjacentIds}
               activeAgentAdjacentIds={activeAgentAdjacentIds}
               showKillerHints={
-                gameState.mode === "SECRET_SERVICE"
-                  ? (showSpyP1Role || showKillerRole)
-                  : showKillerRole
+                !isCurtainVisible && (
+                  gameState.mode === "SECRET_SERVICE"
+                    ? (showSpyP1Role || showKillerRole)
+                    : showKillerRole
+                )
               }
               showDetectiveHints={
-                gameState.mode === "SECRET_SERVICE"
-                  ? (showSpyP2Role || showDetectiveRole)
-                  : showDetectiveRole
+                !isCurtainVisible && (
+                  gameState.mode === "SECRET_SERVICE"
+                    ? (showSpyP2Role || showDetectiveRole)
+                    : showDetectiveRole
+                )
               }
               killerSecretId={
                 gameState.mode === "SECRET_SERVICE"
@@ -284,7 +290,7 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
               isHumanTurn={isHumanTurn}
               evidenceDeck={gameState.evidenceDeck}
               highlightedSpyId={
-                gameState.mode === "SECRET_SERVICE" && myCharacterId
+                !isCurtainVisible && gameState.mode === "SECRET_SERVICE" && myCharacterId
                   ? myCharacterId
                   : undefined
               }
@@ -313,16 +319,16 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
             role2Name={role2Name}
             killerNameText={killerNameText}
             detectiveNameText={detectiveNameText}
-            showKillerRole={showKillerRole}
+            showKillerRole={!isCurtainVisible && showKillerRole}
             setShowKillerRole={setShowKillerRole}
-            showDetectiveRole={showDetectiveRole}
+            showDetectiveRole={!isCurtainVisible && showDetectiveRole}
             setShowDetectiveRole={setShowDetectiveRole}
-            showSpyP1Role={showSpyP1Role}
+            showSpyP1Role={!isCurtainVisible && showSpyP1Role}
             setShowSpyP1Role={setShowSpyP1Role}
-            showSpyP2Role={showSpyP2Role}
+            showSpyP2Role={!isCurtainVisible && showSpyP2Role}
             setShowSpyP2Role={setShowSpyP2Role}
-            canPeekKiller={canPeekKiller}
-            canPeekDetective={canPeekDetective}
+            canPeekKiller={!isCurtainVisible && canPeekKiller}
+            canPeekDetective={!isCurtainVisible && canPeekDetective}
             isPVP={isPVP}
           />
         </div>
@@ -341,16 +347,16 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
               role2Name={role2Name}
               killerNameText={killerNameText}
               detectiveNameText={detectiveNameText}
-              showKillerRole={showKillerRole}
+              showKillerRole={!isCurtainVisible && showKillerRole}
               setShowKillerRole={setShowKillerRole}
-              showDetectiveRole={showDetectiveRole}
+              showDetectiveRole={!isCurtainVisible && showDetectiveRole}
               setShowDetectiveRole={setShowDetectiveRole}
-              showSpyP1Role={showSpyP1Role}
+              showSpyP1Role={!isCurtainVisible && showSpyP1Role}
               setShowSpyP1Role={setShowSpyP1Role}
-              showSpyP2Role={showSpyP2Role}
+              showSpyP2Role={!isCurtainVisible && showSpyP2Role}
               setShowSpyP2Role={setShowSpyP2Role}
-              canPeekKiller={canPeekKiller}
-              canPeekDetective={canPeekDetective}
+              canPeekKiller={!isCurtainVisible && canPeekKiller}
+              canPeekDetective={!isCurtainVisible && canPeekDetective}
               isPVP={isPVP}
             />
           </div>

@@ -38,6 +38,8 @@ export interface GameModalsContainerProps {
   onCloseNotebook?: () => void;
   allCharacters?: Character[];
   characterImages?: Record<string, { default: string }>;
+  notebookSessionKey?: string;
+  notebookRole?: string;
 
   // Toast
   toastMessage: string | null;
@@ -61,6 +63,7 @@ export interface GameModalsContainerProps {
   onOpenRules: () => void;
   onOpenDevPanel?: () => void;
   isRulesOpen: boolean;
+  activeRulesTab?: import("./rules").ModeTab;
   onCloseRules: () => void;
   isSfxEnabled: boolean;
   isAmbientEnabled: boolean;
@@ -114,6 +117,8 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
   onCloseNotebook,
   allCharacters,
   characterImages,
+  notebookSessionKey,
+  notebookRole,
   toastMessage,
   onCloseToast,
   restartRequestedBy,
@@ -131,6 +136,7 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
   onOpenRules,
   onOpenDevPanel,
   isRulesOpen,
+  activeRulesTab,
   onCloseRules,
   isSfxEnabled,
   isAmbientEnabled,
@@ -193,6 +199,8 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
         onClose={onCloseNotebook || (() => {})}
         characters={allCharacters || []}
         characterImages={characterImages}
+        sessionKey={notebookSessionKey}
+        role={notebookRole}
       />
 
       <Toast message={toastMessage} type="info" onClose={onCloseToast} />
@@ -233,7 +241,7 @@ export const GameModalsContainer: React.FC<GameModalsContainerProps> = ({
         onToggleHaptics={onToggleHaptics}
       />
 
-      <RulesModal isOpen={isRulesOpen} onClose={onCloseRules} />
+      <RulesModal isOpen={isRulesOpen} onClose={onCloseRules} initialTab={activeRulesTab} />
 
       <FullscreenCardModal
         card={fullscreenCard}

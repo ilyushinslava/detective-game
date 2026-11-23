@@ -437,7 +437,7 @@ export default function App() {
 
   const [isPauseOpen, setIsPauseOpen] = useState(false);
   const [isDevPanelOpen, setIsDevPanelOpen] = useState(false);
-  const { isRulesOpen, openRules, closeRules } = useRulesModal();
+  const { isRulesOpen, activeRulesTab, openRules, closeRules } = useRulesModal();
   const [isHandSheetOpen, setIsHandSheetOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isChoiceSheetMinimized, setIsChoiceSheetMinimized] = useState(false);
@@ -456,6 +456,14 @@ export default function App() {
   useEffect(() => {
     gameStateRef.current = gameState;
   }, [gameState]);
+
+  // Сброс подглядывания ролей и подсветки 3x3 при смене хода или шторке передачи телефона (Pass & Play)
+  useEffect(() => {
+    setShowKillerRole(false);
+    setShowDetectiveRole(false);
+    setShowSpyP1Role(false);
+    setShowSpyP2Role(false);
+  }, [gameState.currentTurn, gameState.activeSpyIndex, gameState.isPrivacyScreenActive]);
 
   const dispatchAction = (action: GameAction) => {
     if ((tvPartyState === "TV_LOBBY" || tvPartyState === "TV_BOARD") && action.type !== "START_MATCH") {
@@ -782,15 +790,17 @@ export default function App() {
   });
 
   const myRoleColor: "red" | "blue" =
-    gameState.mode === "SECRET_SERVICE"
-      ? (gameState.opponent === "PVP"
+    gameState.opponent === "PVP"
+      ? (gameState.mode === "SECRET_SERVICE"
           ? (gameState.activeSpyIndex === 0 ? "red" : "blue")
-          : (gameState.opponent === "ONLINE"
-              ? (partyService.isHost ? "red" : "blue")
-              : "red"))
-      : gameState.playerRole === "KILLER"
-        ? "red"
-        : "blue";
+          : (gameState.currentTurn === "KILLER" ? "red" : "blue"))
+      : gameState.mode === "SECRET_SERVICE"
+        ? (gameState.opponent === "ONLINE"
+            ? (partyService.isHost ? "red" : "blue")
+            : "red")
+        : gameState.playerRole === "KILLER"
+          ? "red"
+          : "blue";
 
   return (
     <BannerViewerProvider>
@@ -830,6 +840,16 @@ export default function App() {
         onCloseNotebook={() => setIsNotebookOpen(false)}
         allCharacters={allChars}
         characterImages={characterImages}
+        notebookSessionKey={
+          gameState.opponent === "PVP"
+            ? (gameState.sessionId || `pvp_${gameState.mode}_${gameState.board?.[0]?.[0]?.id || "match"}`)
+            : (gameState.sessionId || gameState.roomId || "single_match")
+        }
+        notebookRole={
+          gameState.opponent === "PVP"
+            ? (gameState.mode === "SECRET_SERVICE" ? `spy_${gameState.activeSpyIndex ?? 0}` : gameState.currentTurn)
+            : (gameState.playerRole || gameState.currentTurn)
+        }
         toastMessage={toastMessage}
         onCloseToast={() => setToastMessage(null)}
         restartRequestedBy={gameState.restartRequestedBy || undefined}
@@ -847,9 +867,10 @@ export default function App() {
         isPauseOpen={isPauseOpen}
         onClosePause={() => setIsPauseOpen(false)}
         onResumeGame={() => setIsPauseOpen(false)}
-        onOpenRules={() => openRules()}
+        onOpenRules={() => openRules(gameState.mode)}
         onOpenDevPanel={import.meta.env.DEV ? () => setIsDevPanelOpen(true) : undefined}
         isRulesOpen={isRulesOpen}
+        activeRulesTab={activeRulesTab}
         onCloseRules={closeRules}
         isSfxEnabled={isSfxEnabled}
         isAmbientEnabled={isAmbientEnabled}

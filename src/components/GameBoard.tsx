@@ -49,6 +49,7 @@ interface GameBoardProps {
   alibiIds?: string[];
   radarPingIds?: string[];
   activeAgentId?: string | null;
+  highlightedArrowId?: string | null;
   onShift: (
     type: "ROW" | "COL",
     index: number,
@@ -73,6 +74,7 @@ export const GameBoard: React.FC<GameBoardProps> = React.memo((props) => {
     myCharacterId = null,
     isPVP = false,
     myRoleColor,
+    highlightedArrowId = null,
     isModalOpen = false,
     onShift,
   } = props;
@@ -81,6 +83,7 @@ export const GameBoard: React.FC<GameBoardProps> = React.memo((props) => {
   const onSelectCharacter = props.onSelectCharacter ?? props.onCardClick ?? (() => {});
   const killerAdjacentIds = props.killerAdjacentIds ?? props.adjacentIds ?? [];
   const detectiveAdjacentIds = props.detectiveAdjacentIds ?? [];
+  const alibiIds = props.alibiIds ?? [];
   const showKillerHints = props.showKillerHints ?? Boolean(props.adjacentIds);
   const showDetectiveHints = props.showDetectiveHints ?? false;
   const radarCellIds = props.radarCellIds ?? props.radarPingIds ?? [];
@@ -264,6 +267,7 @@ export const GameBoard: React.FC<GameBoardProps> = React.memo((props) => {
           blockedShift={blockedShift}
           lastShift={lastShift}
           activeButtonId={activeButtonId}
+          highlightedArrowId={highlightedArrowId}
           onArrowClick={handleArrowClick}
           onShiftCol={handleShiftCol}
         />
@@ -278,6 +282,7 @@ export const GameBoard: React.FC<GameBoardProps> = React.memo((props) => {
             blockedShift={blockedShift}
             lastShift={lastShift}
             activeButtonId={activeButtonId}
+            highlightedArrowId={highlightedArrowId}
             onArrowClick={handleArrowClick}
             onShiftRow={handleShiftRow}
           />
@@ -360,7 +365,7 @@ export const GameBoard: React.FC<GameBoardProps> = React.memo((props) => {
                   >
                     <CharacterCard
                       mode={mode}
-                      character={character}
+                      character={alibiIds && alibiIds.includes(character.id) ? { ...character, isExonerated: true } : character}
                       isSelected={isSelected}
                       neighborRole={neighborRole}
                       neighborHighlightColor={neighborRole ? `border-2 border-${neighborRole}-500` : null}
@@ -397,6 +402,7 @@ export const GameBoard: React.FC<GameBoardProps> = React.memo((props) => {
             blockedShift={blockedShift}
             lastShift={lastShift}
             activeButtonId={activeButtonId}
+            highlightedArrowId={highlightedArrowId}
             onArrowClick={handleArrowClick}
             onShiftRow={handleShiftRow}
           />
@@ -411,6 +417,7 @@ export const GameBoard: React.FC<GameBoardProps> = React.memo((props) => {
           blockedShift={blockedShift}
           lastShift={lastShift}
           activeButtonId={activeButtonId}
+          highlightedArrowId={highlightedArrowId}
           onArrowClick={handleArrowClick}
           onShiftCol={handleShiftCol}
         />

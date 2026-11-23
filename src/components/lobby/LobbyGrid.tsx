@@ -33,6 +33,7 @@ export const LobbyGrid: React.FC<LobbyGridProps> = ({
       <div className="flex items-center gap-2 mb-2 xl:mb-2.5 shrink-0">
         <button
           onClick={onOpenTutorial}
+          data-testid="open-tutorial-btn"
           onPointerEnter={() => import("../TutorialScreen")}
           className="h-7 xl:h-8 px-2.5 xl:px-3 rounded-xl neo-card-interactive border border-white/10 hover:border-white/25 text-zinc-300 hover:text-white flex items-center gap-2 text-[10px] xl:text-[11px] font-sans font-bold tracking-wider uppercase transition-all cursor-pointer group active:scale-[0.98]"
           title="Интерактивный обучающий курс"

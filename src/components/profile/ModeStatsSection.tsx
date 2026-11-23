@@ -24,21 +24,21 @@ export const ModeStatsSection: React.FC<ModeStatsSectionProps> = ({ stats }) => 
   const modeCards: ModeCardData[] = [
     {
       id: "MANIAC_VS_OPERATIVE",
-      title: "МАНЬЯК ПРОТИВ ОПЕРАТИВНИКА",
+      title: "ПОЧЕРК УБИЙЦЫ",
       subtitle: "Классическая дуэль на вычисление и блеф",
       modeStats: modes.MANIAC_VS_OPERATIVE,
       themeColor: "ruby",
     },
     {
       id: "THIEF_HUNT",
-      title: "ОХОТА НА ВОРА",
-      subtitle: "Ограбление сейфа и облава полиции",
+      title: "ОЦЕПЛЕНИЕ",
+      subtitle: "Серия дерзких краж и облава патрулей",
       modeStats: modes.THIEF_HUNT,
       themeColor: "sapphire",
     },
     {
       id: "SECRET_SERVICE",
-      title: "СПЕЦСЛУЖБЫ: ДИРЕКТИВА «НОЛЬ»",
+      title: "ДИРЕКТИВА «НОЛЬ»",
       subtitle: "Перехват компромата и шпионская охота",
       modeStats: modes.SECRET_SERVICE,
       themeColor: "slate",

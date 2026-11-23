@@ -21,9 +21,9 @@ interface CategoryFilterOption {
 
 const CATEGORY_FILTERS: CategoryFilterOption[] = [
   { id: "ALL", label: "ВСЕ" },
-  { id: "MANIAC", label: "МАНЬЯК" },
-  { id: "THIEF_HUNT", label: "ВОР" },
-  { id: "SECRET_SERVICE", label: "СПЕЦСЛУЖБЫ" },
+  { id: "MANIAC", label: "УБИЙЦА" },
+  { id: "THIEF_HUNT", label: "ОЦЕПЛЕНИЕ" },
+  { id: "SECRET_SERVICE", label: "ДИРЕКТИВА «НОЛЬ»" },
   { id: "STREAK", label: "СЕРИИ" },
   { id: "MASTERY", label: "МАСТЕРСТВО" },
   { id: "SPECIAL", label: "ОСОБЫЕ" },

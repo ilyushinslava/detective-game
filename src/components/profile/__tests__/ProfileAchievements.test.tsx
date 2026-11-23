@@ -82,9 +82,9 @@ describe("Profile Achievements and Progression UI", () => {
   it("ModeStatsSection рендерит все 3 режима игры и показатели мастерства", () => {
     render(<ModeStatsSection stats={sampleProfile.detailedStats} />);
 
-    expect(screen.getByText("МАНЬЯК ПРОТИВ ОПЕРАТИВНИКА")).toBeDefined();
-    expect(screen.getByText("ОХОТА НА ВОРА")).toBeDefined();
-    expect(screen.getByText("СПЕЦСЛУЖБЫ: ДИРЕКТИВА «НОЛЬ»")).toBeDefined();
+    expect(screen.getByText("ПОЧЕРК УБИЙЦЫ")).toBeDefined();
+    expect(screen.getByText("ОЦЕПЛЕНИЕ")).toBeDefined();
+    expect(screen.getByText("ДИРЕКТИВА «НОЛЬ»")).toBeDefined();
     expect(screen.getByText("ОНЛАЙН СЕТЬ")).toBeDefined();
     expect(screen.getByText("ТВ ВЕЧЕРИНКА")).toBeDefined();
     expect(screen.getByText("ЧИСТАЯ РАБОТА")).toBeDefined();
@@ -105,7 +105,7 @@ describe("Profile Achievements and Progression UI", () => {
     expect(screen.getByText("+300 CR")).toBeDefined(); // 150 + 150
 
     // Проверяем фильтры
-    const thiefTab = screen.getByRole("button", { name: "ВОР" });
+    const thiefTab = screen.getByRole("button", { name: "ОЦЕПЛЕНИЕ" });
     expect(thiefTab).toBeDefined();
     fireEvent.click(thiefTab);
 
@@ -123,7 +123,7 @@ describe("Profile Achievements and Progression UI", () => {
     // Переключаемся на Режимы
     const modesTabBtn = screen.getByRole("button", { name: /Режимы/i });
     fireEvent.click(modesTabBtn);
-    expect(screen.getByText("МАНЬЯК ПРОТИВ ОПЕРАТИВНИКА")).toBeDefined();
+    expect(screen.getByText("ПОЧЕРК УБИЙЦЫ")).toBeDefined();
     expect(screen.getByText("ОНЛАЙН СЕТЬ")).toBeDefined();
 
     // Переключаемся на Награды (Достижения)

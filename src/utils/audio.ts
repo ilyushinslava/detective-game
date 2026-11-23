@@ -52,6 +52,10 @@ class SoundController {
   private lastPlayTime: Map<string, number> = new Map();
   private lastActionSoundTime = 0;
   
+  // SFX каналы для предотвращения наложения звуков
+  private activeUiSource: AudioBufferSourceNode | null = null;
+  private activeActionSource: AudioBufferSourceNode | null = null;
+  
   // Web Audio API
   private ctx: AudioContext | null = null;
   private bufferCache: Map<string, AudioBuffer> = new Map();
@@ -179,19 +183,46 @@ class SoundController {
     if (!this.isSfxEnabled) return;
 
     const now = Date.now();
-    // Защита от наложения общего клика на звук действия на игровом поле
-    const isActionSound = ['slide', 'kill', 'arrest', 'disguise', 'radar', 'steal', 'patrol'].includes(type);
+    // Разделение SFX на каналы
+    const UI_SOUNDS: SoundType[] = ['click', 'confirm', 'error'];
+    const ACTION_SOUNDS: SoundType[] = [
+      'slide',
+      'kill',
+      'arrest',
+      'steal',
+      'patrol',
+      'disguise',
+      'radar',
+      'win',
+    ];
+
+    const isActionSound = ACTION_SOUNDS.includes(type);
+    const isUiSound = UI_SOUNDS.includes(type);
+
+    // Защита от наложения: при запуске Action-звука принудительно гасим UI и предыдущий Action
     if (isActionSound) {
       this.lastActionSoundTime = now;
+      if (this.activeUiSource) {
+        try {
+          this.activeUiSource.stop();
+        } catch (_) {}
+        this.activeUiSource = null;
+      }
+      if (this.activeActionSource) {
+        try {
+          this.activeActionSource.stop();
+        } catch (_) {}
+        this.activeActionSource = null;
+      }
     } else if (type === 'click' || type === 'tapMenu') {
       if (now - this.lastActionSoundTime < 120) {
         return; // Подавляем общий клик кнопки при выполнении действия
       }
     }
 
-    // Анти-дребезг: предотвращение наложения и повторного вызова звука на одно действие (pointerdown + click)
+    // Анти-дребезг: микро-дебаунс 70мс на одинаковые подряд вызовы одного звука
     const last = this.lastPlayTime.get(type) || 0;
-    const minInterval = ['kill', 'arrest', 'error', 'deny', 'steal'].includes(type) ? 250 : 80;
+    const minInterval = ['kill', 'arrest', 'error', 'deny', 'steal'].includes(type) ? 250 : 70;
     if (now - last < minInterval) return;
     this.lastPlayTime.set(type, now);
 
@@ -218,6 +249,23 @@ class SoundController {
 
           source.connect(gainNode);
           gainNode.connect(this.ctx.destination);
+
+          // Привязываем активный источник к соответствующему каналу
+          if (isActionSound) {
+            this.activeActionSource = source;
+            source.onended = () => {
+              if (this.activeActionSource === source) {
+                this.activeActionSource = null;
+              }
+            };
+          } else if (isUiSound) {
+            this.activeUiSource = source;
+            source.onended = () => {
+              if (this.activeUiSource === source) {
+                this.activeUiSource = null;
+              }
+            };
+          }
 
           source.start(0);
           return;
@@ -313,6 +361,18 @@ class SoundController {
     this.stopMorseTone();
     this.stopTvAmbient();
     this.stopAmbient();
+    if (this.activeUiSource) {
+      try {
+        this.activeUiSource.stop();
+      } catch (_) {}
+      this.activeUiSource = null;
+    }
+    if (this.activeActionSource) {
+      try {
+        this.activeActionSource.stop();
+      } catch (_) {}
+      this.activeActionSource = null;
+    }
     if (this.audioPool && (typeof process === 'undefined' || !process.env?.VITEST)) {
       for (const pool of this.audioPool.values()) {
         for (const audio of pool) {

@@ -4,7 +4,7 @@ import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { TutorialScreen } from "../TutorialScreen";
 import { safeLocalStorage, safeSessionStorage } from "../../utils/storage";
 
-describe("Интерактивное обучение Академии — 3 канонических модуля (tutorialFullFlow)", () => {
+describe("Интерактивное обучение Академии — 3 канонических модуля, 11 шагов (tutorialFullFlow)", () => {
   beforeEach(() => {
     cleanup();
     localStorage.clear();
@@ -38,7 +38,7 @@ describe("Интерактивное обучение Академии — 3 к�
     expect(mainBtn.textContent).toContain("В главное меню");
   });
 
-  it("2. Модуль 1 «Почерк убийцы»: прохождение всех 7 шагов с Anti-Undo, ликвидацией, маскировкой и арестом", () => {
+  it("2. Модуль 1 «Почерк убийцы»: прохождение всех 5 логичных шагов (Сдвиг -> Ликвидация -> Зачистка -> Проверка алиби -> Задержание)", () => {
     render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
 
     // Вход в модуль
@@ -48,43 +48,40 @@ describe("Интерактивное обучение Академии — 3 к�
     // Нецелевое действие: случайный клик не продвигает шаг
     const nonTargetCard = screen.getAllByRole("img")[0];
     fireEvent.click(nonTargetCard);
-    expect(screen.getAllByText(/1\/7/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/1\/5/).length).toBeGreaterThan(0);
 
     // Шаг 1: Сдвиг колонки 2 вниз
     const colDownBtn = screen.getByTestId("col-down-2");
     fireEvent.click(colDownBtn);
 
-    // Шаг 2: Выбор Елены Соколовой (c3) в радиусе 3x3
-    expect(screen.getAllByText(/2\/7/).length).toBeGreaterThan(0);
+    // Шаг 2: Ликвидация (выбор Елены Соколовой c3 + клик по кнопке Ликвидация)
+    expect(screen.getAllByText(/2\/5/).length).toBeGreaterThan(0);
     const elenaCard = screen.getByAltText("Елена Соколова");
     fireEvent.click(elenaCard);
 
-    // Шаг 3: Ликвидация цели
-    expect(screen.getAllByText(/3\/7/).length).toBeGreaterThan(0);
-    const killBtn = screen.getByRole("button", { name: /Ликвидировать цель/i });
+    const killBtn = screen.getByRole("button", { name: /Ликвидация/i });
     fireEvent.click(killBtn);
 
-    // Шаг 4: Смена маски
-    expect(screen.getAllByText(/4\/7/).length).toBeGreaterThan(0);
-    const disguiseBtn = screen.getByRole("button", { name: /Сменить маску/i });
-    fireEvent.click(disguiseBtn);
-    const confirmMaskBtn = screen.getByRole("button", { name: /Подтвердить маску/i });
-    fireEvent.click(confirmMaskBtn);
+    // Шаг 3: Зачистка поля
+    expect(screen.getAllByText(/3\/5/).length).toBeGreaterThan(0);
+    const cleanupBtn = screen.getByRole("button", { name: /Зачистка/i });
+    fireEvent.click(cleanupBtn);
 
-    // Шаг 5: Проверка алиби — выбор Софии Романовой (c7)
-    expect(screen.getAllByText(/5\/7/).length).toBeGreaterThan(0);
+    // Шаг 4: Акт II — Проверка алиби (выбор Марии Климовой c13 + клик по кнопке Проверка алиби)
+    expect(screen.getAllByText(/4\/5/).length).toBeGreaterThan(0);
+    const mariaCard = screen.getAllByAltText("Мария Климова")[0];
+    fireEvent.click(mariaCard);
+
+    const alibiBtn = screen.getByRole("button", { name: /Проверка алиби/i });
+    fireEvent.click(alibiBtn);
+
+    // Шаг 5: Акт II — Задержание (выбор Софии Романовой c7 + клик по кнопке Задержание)
+    expect(screen.getAllByText(/5\/5/).length).toBeGreaterThan(0);
     const sofiaCard = screen.getAllByAltText("София Романова")[0];
     fireEvent.click(sofiaCard);
 
-    // Шаг 6: Задержание подозреваемого
-    expect(screen.getAllByText(/6\/7/).length).toBeGreaterThan(0);
-    const arrestBtn = screen.getByRole("button", { name: /Задержать подозреваемого/i });
+    const arrestBtn = screen.getByRole("button", { name: /Задержание/i });
     fireEvent.click(arrestBtn);
-
-    // Шаг 7: Зачистка поля
-    expect(screen.getAllByText(/7\/7/).length).toBeGreaterThan(0);
-    const cleanupBtn = screen.getByRole("button", { name: /Зачистить поле/i });
-    fireEvent.click(cleanupBtn);
 
     // Финал урока — кнопка «Завершить урок»
     const finishLessonBtn = screen.getByRole("button", { name: /Завершить урок/i });
@@ -101,41 +98,37 @@ describe("Интерактивное обучение Академии — 3 к�
     expect(saved).toContain("MANIAC");
   });
 
-  it("3. Модуль 2 «Оцепление»: прохождение всех 6 шагов (Кража -> Конспирация -> Кордон -> Патруль -> Арест)", () => {
+  it("3. Модуль 2 «Оцепление»: прохождение всех 4 шагов (Кража -> Конспирация -> Вызов патруля -> Задержание через патруль)", () => {
     render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
 
     fireEvent.click(screen.getByText(/2\. Оцепление/i));
-    expect(screen.getAllByText(/1\/6/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/1\/4/).length).toBeGreaterThan(0);
 
-    // Шаг 1: Выбор жертвы кражи (Анна Мороз c5)
+    // Шаг 1: Кража (выбор Анны Мороз c5 + кнопка Кража)
     const annaCard = screen.getByAltText("Анна Мороз");
     fireEvent.click(annaCard);
 
-    // Шаг 2: Украсть сокровище
-    expect(screen.getAllByText(/2\/6/).length).toBeGreaterThan(0);
-    const robBtn = screen.getByRole("button", { name: /Украсть сокровище/i });
+    const robBtn = screen.getByRole("button", { name: /Кража/i });
     fireEvent.click(robBtn);
 
-    // Шаг 3: Экстренная маскировка
-    expect(screen.getAllByText(/3\/6/).length).toBeGreaterThan(0);
-    const disguiseBtn = screen.getByRole("button", { name: /Сменить маску/i });
+    // Шаг 2: Конспирация
+    expect(screen.getAllByText(/2\/4/).length).toBeGreaterThan(0);
+    const disguiseBtn = screen.getByRole("button", { name: /Конспирация/i });
     fireEvent.click(disguiseBtn);
     const confirmMaskBtn = screen.getByRole("button", { name: /Подтвердить маску/i });
     fireEvent.click(confirmMaskBtn);
 
-    // Шаг 4: Выбор перекрёстка для патруля (София Романова c7)
-    expect(screen.getAllByText(/4\/6/).length).toBeGreaterThan(0);
+    // Шаг 3: Акт II — Вызов патруля
+    expect(screen.getAllByText(/3\/4/).length).toBeGreaterThan(0);
+    const patrolBtn = screen.getByRole("button", { name: /Вызов патруля/i });
+    fireEvent.click(patrolBtn);
+
+    // Шаг 4: Задержание через патруль (выбор Софии Романовой c7 + кнопка Задержание)
+    expect(screen.getAllByText(/4\/4/).length).toBeGreaterThan(0);
     const sofiaCard = screen.getAllByAltText("София Романова")[0];
     fireEvent.click(sofiaCard);
 
-    // Шаг 5: Выставить патруль
-    expect(screen.getAllByText(/5\/6/).length).toBeGreaterThan(0);
-    const patrolBtn = screen.getByRole("button", { name: /Выставить патруль/i });
-    fireEvent.click(patrolBtn);
-
-    // Шаг 6: Задержать вора
-    expect(screen.getAllByText(/6\/6/).length).toBeGreaterThan(0);
-    const arrestThiefBtn = screen.getByRole("button", { name: /Задержать вора/i });
+    const arrestThiefBtn = screen.getByRole("button", { name: /Задержание/i });
     fireEvent.click(arrestThiefBtn);
 
     // Завершить урок
@@ -149,29 +142,25 @@ describe("Интерактивное обучение Академии — 3 к�
     expect(saved).toContain("THIEF");
   });
 
-  it("4. Модуль 3 «Директива «Ноль»»: прохождение всех 4 шагов (Связной -> Радар 3x3 -> Шпион -> Разоблачение)", () => {
+  it("4. Модуль 3 «Директива «Ноль»»: прохождение 2 боевых шагов (Опрос свидетелей -> Разоблачение)", () => {
     render(<TutorialScreen onExit={vi.fn()} onFinish={vi.fn()} />);
 
     fireEvent.click(screen.getByText(/3\. Директива «Ноль»/i));
-    expect(screen.getAllByText(/1\/4/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/1\/2/).length).toBeGreaterThan(0);
 
-    // Шаг 1: Выбор связного для опроса (София Романова c7)
+    // Шаг 1: Опрос свидетелей (выбор Софии Романовой c7 + кнопка Опрос свидетелей)
     const sofiaCard = screen.getAllByAltText("София Романова")[0];
     fireEvent.click(sofiaCard);
 
-    // Шаг 2: Опрос свидетелей
-    expect(screen.getAllByText(/2\/4/).length).toBeGreaterThan(0);
     const interrogateBtn = screen.getByRole("button", { name: /Опрос свидетелей/i });
     fireEvent.click(interrogateBtn);
 
-    // Шаг 3: Локализация шпиона (Марк Воронов c2)
-    expect(screen.getAllByText(/3\/4/).length).toBeGreaterThan(0);
+    // Шаг 2: Разоблачение шпиона (выбор Марка Воронова c2 + кнопка Разоблачение)
+    expect(screen.getAllByText(/2\/2/).length).toBeGreaterThan(0);
     const markCard = screen.getByAltText("Марк Воронов");
     fireEvent.click(markCard);
 
-    // Шаг 4: Разоблачение шпиона
-    expect(screen.getAllByText(/4\/4/).length).toBeGreaterThan(0);
-    const exposeBtn = screen.getByRole("button", { name: /Разоблачение шпиона/i });
+    const exposeBtn = screen.getByRole("button", { name: /Разоблачение/i });
     fireEvent.click(exposeBtn);
 
     // Завершить урок

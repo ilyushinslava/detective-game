@@ -112,16 +112,16 @@ const CharacterCardComponent = ({
       {/* Тонкий стеклянный блик на верхней кромке карточки (Glassmorphism Neo-Noir) */}
       <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-white/[0.1] to-transparent pointer-events-none rounded-t-md sm:rounded-t-xl z-[1]" />
 
-      {/* Подсветка зоны 3x3: соседи персонажа */}
-      {neighborRole && (
+      {/* Подсветка зоны 3x3: соседи персонажа (тонкий пунктир без жирного свечения, не перекрывает центр) */}
+      {neighborRole && !isMyCharacter && (
         <div
           data-testid="neighbor-highlight"
-          className={`absolute inset-0 rounded-md sm:rounded-xl pointer-events-none z-10 border-2 ${
+          className={`absolute inset-0 rounded-md sm:rounded-xl pointer-events-none z-10 border-2 border-dashed ${
             neighborRole === "red"
-              ? "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"
+              ? "border-red-500/80"
               : neighborRole === "blue"
-                ? "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-                : "border-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+                ? "border-blue-500/80"
+                : "border-purple-500/80"
           }`}
         />
       )}
@@ -132,8 +132,8 @@ const CharacterCardComponent = ({
           data-testid="my-character-highlight"
           className={`absolute inset-0 rounded-md sm:rounded-xl pointer-events-none z-20 border-2 ${
             myRoleColor === "red"
-              ? "border-red-400 ring-2 ring-red-500/70 shadow-[0_0_15px_rgba(239,68,68,0.7)]"
-              : "border-blue-400 ring-2 ring-blue-500/70 shadow-[0_0_15px_rgba(59,130,246,0.7)]"
+              ? "border-red-400 ring-1 ring-red-500/70 shadow-[0_0_10px_rgba(239,68,68,0.5)]"
+              : "border-blue-400 ring-1 ring-blue-500/70 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
           }`}
         />
       )}
@@ -163,6 +163,8 @@ const CharacterCardComponent = ({
         <div className="flex items-center gap-0.5 sm:gap-1 shrink-0 min-w-0">
           <span
             className={`text-[8.5px] sm:text-[10px] md:text-xs font-mono font-bold drop-shadow shrink-0 ${
+              isMyCharacter && !isDead ? "hidden sm:inline" : "inline"
+            } ${
               isDead
                 ? "text-zinc-600 line-through"
                 : isExonerated

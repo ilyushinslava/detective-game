@@ -27,47 +27,51 @@ export const CharacterStamps: React.FC<CharacterStampsProps> = ({
   return (
     <AnimatePresence>
       {isDead && (
-        <div className="absolute top-[34%] inset-x-0 -translate-y-1/2 flex items-center justify-center z-20 pointer-events-none px-1">
+        <div className="absolute bottom-[18px] sm:bottom-[22px] inset-x-0.5 flex items-center justify-center z-20 pointer-events-none">
           <motion.div
             key={`dead_stamp_${characterId}`}
             style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
-            initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
-            animate={{ opacity: 1, scale: 1, rotate: -12 }}
-            exit={{ opacity: 0, scale: 0.6 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.85 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            <div
-              className={`border whitespace-nowrap font-display font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none backdrop-blur-sm text-center ${
-                spyMeta
-                  ? `${spyMeta.border} bg-zinc-950/95 ${spyMeta.text} shadow-[0_0_15px_rgba(244,63,94,0.3)]`
-                  : isSecretService || unmaskedSpyIndex !== undefined
-                    ? "border-rose-600 bg-rose-950/90 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.3)]"
-                    : isArrested
-                      ? "border border-blue-500/80 bg-blue-950/95 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.4)]"
-                      : "border-rose-600 bg-rose-950/90 text-rose-500 shadow-[0_0_15px_rgba(225,29,72,0.4)]"
-              }`}
-            >
-              {isSecretService || unmaskedSpyIndex !== undefined
-                ? spyMeta?.name ? `РАСКРЫТ: ${spyMeta.name.toUpperCase()}` : "РАСКРЫТ"
-                : isArrested
-                  ? "АРЕСТОВАН"
-                  : "УБИТ"}
-            </div>
+            {spyMeta ? (
+              <div
+                className={`border ${spyMeta.border} bg-black/80 ${spyMeta.text} whitespace-nowrap font-display font-bold uppercase tracking-wider text-[8px] sm:text-[9px] px-1 py-[1px] rounded-sm select-none backdrop-blur-sm text-center flex items-center gap-1 shadow-sm`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${spyMeta.bg || "bg-rose-500"}`} />
+                <span>РАСКРЫТ</span>
+                <span className="sr-only">{spyMeta.name.toUpperCase()}</span>
+              </div>
+            ) : isSecretService || unmaskedSpyIndex !== undefined ? (
+              <div className="border border-rose-600/80 bg-black/80 text-rose-400 whitespace-nowrap font-display font-bold uppercase tracking-wider text-[8px] sm:text-[9px] px-1 py-[1px] rounded-sm select-none backdrop-blur-sm text-center">
+                РАСКРЫТ
+              </div>
+            ) : isArrested ? (
+              <div className="border border-blue-500/80 bg-black/80 text-blue-300 whitespace-nowrap font-display font-bold uppercase tracking-wider text-[8px] sm:text-[9px] px-1 py-[1px] rounded-sm select-none backdrop-blur-sm text-center">
+                АРЕСТОВАН
+              </div>
+            ) : (
+              <div className="border border-rose-600/80 bg-black/80 text-rose-500 whitespace-nowrap font-display font-bold uppercase tracking-wider text-[8px] sm:text-[9px] px-1 py-[1px] rounded-sm select-none backdrop-blur-sm text-center">
+                УБИТ
+              </div>
+            )}
           </motion.div>
         </div>
       )}
 
       {isExonerated && !isDead && !isArrested && (
-        <div className="absolute top-[34%] inset-x-0 -translate-y-1/2 flex items-center justify-center z-20 pointer-events-none px-1">
+        <div className="absolute bottom-[18px] sm:bottom-[22px] inset-x-0.5 flex items-center justify-center z-20 pointer-events-none">
           <motion.div
             key={`alibi_stamp_${characterId}`}
             style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
-            initial={{ opacity: 0, scale: 0.6, rotate: 18 }}
-            animate={{ opacity: 1, scale: 1, rotate: 6 }}
-            exit={{ opacity: 0, scale: 0.6 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.85 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            <div className="border border-blue-500/80 bg-zinc-900/95 text-blue-400 whitespace-nowrap font-display font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.3)] backdrop-blur-sm text-center">
+            <div className="border border-blue-500/80 bg-black/80 text-blue-400 whitespace-nowrap font-display font-bold uppercase tracking-wider text-[8px] sm:text-[9px] px-1 py-[1px] rounded-sm select-none backdrop-blur-sm text-center">
               АЛИБИ
             </div>
           </motion.div>
@@ -75,16 +79,16 @@ export const CharacterStamps: React.FC<CharacterStampsProps> = ({
       )}
 
       {isArrested && !isDead && (
-        <div className="absolute top-[34%] inset-x-0 -translate-y-1/2 flex items-center justify-center z-20 pointer-events-none px-1">
+        <div className="absolute bottom-[18px] sm:bottom-[22px] inset-x-0.5 flex items-center justify-center z-20 pointer-events-none">
           <motion.div
             key={`arrest_stamp_${characterId}`}
             style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
-            initial={{ opacity: 0, scale: 0.6, rotate: -25 }}
-            animate={{ opacity: 1, scale: 1, rotate: -12 }}
-            exit={{ opacity: 0, scale: 0.6 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.85 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            <div className="border border-blue-500/80 bg-blue-950/95 text-blue-300 whitespace-nowrap font-display font-black uppercase tracking-wider text-[8px] sm:text-[9px] md:text-xs px-1.5 py-0.5 rounded-sm select-none shadow-[0_0_12px_rgba(59,130,246,0.4)] backdrop-blur-sm text-center">
+            <div className="border border-blue-500/80 bg-black/80 text-blue-300 whitespace-nowrap font-display font-bold uppercase tracking-wider text-[8px] sm:text-[9px] px-1 py-[1px] rounded-sm select-none backdrop-blur-sm text-center">
               АРЕСТОВАН
             </div>
           </motion.div>

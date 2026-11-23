@@ -5,14 +5,13 @@ export const TUTORIAL_STEPS_CONFIG: Record<
   TutorialStepConfig[]
 > = {
   MANIAC: [
-    // Шаг 1: Сдвиг колонки вниз
+    // Шаг 1: Сдвиг колонки 2 вниз
     {
       step: 1,
-      totalSteps: 7,
-      title: "СДВИГ УЛИЦЫ",
+      totalSteps: 5,
+      title: "Сдвиг улицы",
       instruction:
-        "Жертва вне зоны досягаемости. Сдвиньте 3-ю колонку вниз, чтобы подвести Елену Соколову в радиус 3×3.",
-      targetPosition: "bottom", // Цель вверху (стрелка col-down-2 в ряду 0-1)
+        "Акт I — ты Маньяк. Цель Елена Соколова вне радиуса 3×3. Сдвинь 3-ю колонку вниз, чтобы подтянуть её ближе.",
       actionType: "SHIFT",
       targetShift: {
         type: "COL",
@@ -21,251 +20,185 @@ export const TUTORIAL_STEPS_CONFIG: Record<
         arrowId: "col-down-2",
       },
       highlightedArrowId: "col-down-2",
-      myCharacterId: "c4", // Артём Воронов
+      myCharacterId: "c4", // Артур Блэк на [2][1]
       highlightNeighborCenterId: "c4",
       neighborRole: "red",
+      hintMessage: "Нажмите на подсвеченную стрелку",
     },
-    // Шаг 2: Выбор цели в зоне 3x3
+    // Шаг 2: Ликвидация цели (выбор Елены c3 + кнопка Ликвидация)
     {
       step: 2,
-      totalSteps: 7,
-      title: "ЗОНА ПОРАЖЕНИЯ",
+      totalSteps: 5,
+      title: "Ликвидация",
       instruction:
-        "Жертва вошла в радиус 3×3. Обратный сдвиг заблокирован правилом Anti-Undo. Нажмите на Елену Соколову.",
-      targetPosition: "top", // Цель карточка c3 на [1][2]
-      actionType: "SELECT_CARD",
+        "Обратный сдвиг заблокирован (⊘ Anti-Undo). Елена в радиусе 3×3 — выбери её и нажми «Ликвидация».",
+      actionType: "CARD_ACTION",
       allowedCardIds: ["c3"],
       targetCardId: "c3",
-      myCharacterId: "c4",
-      highlightNeighborCenterId: "c4",
-      neighborRole: "red",
-    },
-    // Шаг 3: Ликвидация цели
-    {
-      step: 3,
-      totalSteps: 7,
-      title: "ЛИКВИДАЦИЯ",
-      instruction:
-        "Цель на мушке. Выстрел выдаст ваш сектор сопернику. Нажмите «Ликвидировать цель» для исполнения контракта.",
-      targetPosition: "top", // Кнопка действия внизу
-      actionType: "ACTION_BUTTON",
       buttonActionKey: "KILL",
-      buttonLabel: "Ликвидировать цель",
+      buttonLabel: "Ликвидация",
       buttonVariant: "danger",
       myCharacterId: "c4",
-      targetCardId: "c3",
       highlightNeighborCenterId: "c4",
       neighborRole: "red",
+      hintMessage: "Выберите Елену Соколову на доске",
     },
-    // Шаг 4: Смена маски
+    // Шаг 3: Зачистка поля
     {
-      step: 4,
-      totalSteps: 7,
-      title: "СМЕНА МАСКИ",
+      step: 3,
+      totalSteps: 5,
+      title: "Зачистка",
       instruction:
-        "Сыщик уже прочесывает сектор. Смените тайную личность, чтобы полиция потеряла ваш след в городе.",
-      targetPosition: "top",
-      actionType: "ACTION_BUTTON",
-      buttonActionKey: "DISGUISE",
-      buttonLabel: "Сменить маску",
-      buttonVariant: "primary",
-      myCharacterId: "c4",
-    },
-    // Шаг 5: Проверка алиби (Роль Сыщика)
-    {
-      step: 5,
-      totalSteps: 7,
-      title: "ПРОВЕРКА АЛИБИ",
-      instruction:
-        "Вы перехватили роль Сыщика. Все свидетели подтвердили алиби щитом. Найдите Софию Романову без алиби.",
-      targetPosition: "bottom", // София на [1][1]
-      actionType: "SELECT_CARD",
-      allowedCardIds: ["c7"],
-      targetCardId: "c7",
-      myCharacterId: "c1", // Сыщик
-      highlightNeighborCenterId: "c3", // Вокруг места преступления
-      neighborRole: "blue",
-      alibiCardIds: ["c1", "c2", "c6", "c8", "c11", "c12", "c13"],
-    },
-    // Шаг 6: Задержание подозреваемого
-    {
-      step: 6,
-      totalSteps: 7,
-      title: "ЗАДЕРЖАНИЕ",
-      instruction:
-        "Подозреваемый зажат и путается в показаниях. Нажмите «Задержать подозреваемого», чтобы завершить охоту.",
-      targetPosition: "top",
-      actionType: "ACTION_BUTTON",
-      buttonActionKey: "ARREST",
-      buttonLabel: "Задержать подозреваемого",
-      buttonVariant: "primary",
-      targetCardId: "c7",
-      myCharacterId: "c1",
-    },
-    // Шаг 7: Зачистка поля
-    {
-      step: 7,
-      totalSteps: 7,
-      title: "ЗАЧИСТКА ПОЛЯ",
-      instruction:
-        "Тела выбывших мешают расследованию. Зачистка сдвигает тела вниз поля, сжимая живых горожан наверху.",
-      targetPosition: "top",
+        "Выбывшие жители мешают сдвигам. Нажми «Зачистка» — выбывшие уедут вниз, а живые уплотнятся сверху.",
       actionType: "ACTION_BUTTON",
       buttonActionKey: "CLEANUP",
-      buttonLabel: "Зачистить поле",
+      buttonLabel: "Зачистка",
       buttonVariant: "secondary",
+      myCharacterId: "c4",
+      hintMessage: "Нажмите «Зачистка»",
+    },
+    // Шаг 4: Акт II • Проверка алиби (выбор Марии Климовой c13 + кнопка Проверка алиби)
+    {
+      step: 4,
+      totalSteps: 5,
+      title: "Акт II • Теперь ты — Оперативник",
+      instruction:
+        "Акт II — ты Оперативник. Выбери Марию Климову рядом с сектором удара и нажми «Проверка алиби», чтобы просканировать 3×3.",
+      actionType: "CARD_ACTION",
+      allowedCardIds: ["c13"],
+      targetCardId: "c13",
+      buttonActionKey: "EXONERATE",
+      buttonLabel: "Проверка алиби",
+      buttonVariant: "primary",
+      myCharacterId: "c1", // Руслан Громов
+      highlightNeighborCenterId: "c1",
+      neighborRole: "blue",
+      alibiCardIds: ["c2", "c6", "c8", "c9", "c10", "c11", "c12"],
+      hintMessage: "Выберите Марию Климову на доске",
+    },
+    // Шаг 5: Акт II • Задержание (выбор Софии Романовой c7 + кнопка Задержание)
+    {
+      step: 5,
+      totalSteps: 5,
+      title: "Акт II • Задержание",
+      instruction:
+        "Все остальные соседи проверены. В секторе остался один подозреваемый — София Романова. Выбери её и нажми «Задержание»!",
+      actionType: "CARD_ACTION",
+      allowedCardIds: ["c7"],
+      targetCardId: "c7",
+      buttonActionKey: "ARREST",
+      buttonLabel: "Задержание",
+      buttonVariant: "primary",
+      myCharacterId: "c1",
+      highlightNeighborCenterId: "c1",
+      neighborRole: "blue",
+      alibiCardIds: ["c2", "c6", "c8", "c9", "c10", "c11", "c12", "c13"],
+      hintMessage: "Выберите Софию Романову на доске",
     },
   ],
 
   THIEF: [
-    // Шаг 1: Выбор жертвы кражи
+    // Шаг 1: Кража (выбор Анны Мороз c5 + кнопка Кража)
     {
       step: 1,
-      totalSteps: 6,
-      title: "ТИХИЙ КАРМАННИК",
+      totalSteps: 4,
+      title: "Кража",
       instruction:
-        "Грабитель охотится в радиусе 3×3. Для триумфа нужно 8 краж. Выберите соседку с ценностями (Анна Мороз).",
-      targetPosition: "top",
-      actionType: "SELECT_CARD",
+        "Акт I — ты Грабитель, цель — 8 сокровищ. Выбери соседку с монетой (Анна Мороз) и нажми «Кража».",
+      actionType: "CARD_ACTION",
       allowedCardIds: ["c5"],
       targetCardId: "c5",
+      buttonActionKey: "ROB",
+      buttonLabel: "Кража",
+      buttonVariant: "danger",
       myCharacterId: "c4",
       highlightNeighborCenterId: "c4",
       neighborRole: "red",
+      hintMessage: "Выберите Анну Мороз на доске",
     },
-    // Шаг 2: Кража сокровища
+    // Шаг 2: Конспирация (кнопка Конспирация -> смена маски)
     {
       step: 2,
-      totalSteps: 6,
-      title: "КРАЖА СОКРОВИЩА",
+      totalSteps: 4,
+      title: "Конспирация",
       instruction:
-        "Замок взломан без лишнего шума. Нажмите «Украсть сокровище», чтобы забрать трофей в свой банк.",
-      targetPosition: "top",
-      actionType: "ACTION_BUTTON",
-      buttonActionKey: "ROB",
-      buttonLabel: "Украсть сокровище",
-      buttonVariant: "danger",
-      myCharacterId: "c4",
-      targetCardId: "c5",
-      highlightNeighborCenterId: "c4",
-      neighborRole: "red",
-    },
-    // Шаг 3: Экстренная маскировка
-    {
-      step: 3,
-      totalSteps: 6,
-      title: "СБРОС ХВОСТА",
-      instruction:
-        "Сигнализация сработала! Смените маску на ходу, чтобы патрули шерифа потеряли ваши приметы.",
-      targetPosition: "top",
+        "Полиция вышла на след. Нажми «Конспирация» и смени личность на запасную маску из руки (София Романова).",
       actionType: "ACTION_BUTTON",
       buttonActionKey: "DISGUISE",
-      buttonLabel: "Сменить маску",
+      buttonLabel: "Конспирация",
       buttonVariant: "primary",
       myCharacterId: "c4",
+      hintMessage: "Нажмите «Конспирация»",
     },
-    // Шаг 4: Выбор перекрёстка для патруля (Роль Полиции)
+    // Шаг 3: Акт II • Вызов патруля
+    {
+      step: 3,
+      totalSteps: 4,
+      title: "Акт II • Теперь ты — Полиция",
+      instruction:
+        "Акт II — ты Полиция. Шеф далеко, но арестовывать можно рядом с патрульным. Нажми «Вызов патруля» (вор получит +1 монету в суматохе).",
+      actionType: "ACTION_BUTTON",
+      buttonActionKey: "PATROL_CALL",
+      buttonLabel: "Вызов патруля",
+      buttonVariant: "secondary",
+      myCharacterId: "c1", // Шеф Руслан Громов
+      hintMessage: "Нажмите «Вызов патруля»",
+    },
+    // Шаг 4: Задержание через патруль (выбор Софии Романовой c7 + кнопка Задержание)
     {
       step: 4,
-      totalSteps: 6,
-      title: "ПОЛИЦЕЙСКИЙ КОРДОН",
+      totalSteps: 4,
+      title: "Задержание через патруль",
       instruction:
-        "Вы играете за Полицию. Патрульный жетон блокирует сектор 3×3. Выберите Софию Романову на перекрёстке.",
-      targetPosition: "bottom",
-      actionType: "SELECT_CARD",
+        "София Романова теперь в радиусе 3×3 твоего патрульного. Выбери её и нажми «Задержание»!",
+      actionType: "CARD_ACTION",
       allowedCardIds: ["c7"],
       targetCardId: "c7",
-      myCharacterId: "c1",
-    },
-    // Шаг 5: Выставление патруля
-    {
-      step: 5,
-      totalSteps: 6,
-      title: "ВЫСТАВЛЕНИЕ ПОСТА",
-      instruction:
-        "Офицеры перекрывают пути отхода. Нажмите «Выставить патруль», чтобы активировать защитный жетон.",
-      targetPosition: "top",
-      actionType: "ACTION_BUTTON",
-      buttonActionKey: "PATROL",
-      buttonLabel: "Выставить патруль",
-      buttonVariant: "primary",
-      myCharacterId: "c1",
-      targetCardId: "c7",
-    },
-    // Шаг 6: Арест грабителя
-    {
-      step: 6,
-      totalSteps: 6,
-      title: "АРЕСТ С ПОЛИЧНЫМ",
-      instruction:
-        "Вор зажат в патрульном оцеплении и не может сделать маневр. Нажмите «Задержать вора».",
-      targetPosition: "top",
-      actionType: "ACTION_BUTTON",
       buttonActionKey: "ARREST",
-      buttonLabel: "Задержать вора",
+      buttonLabel: "Задержание",
       buttonVariant: "danger",
       myCharacterId: "c1",
+      hintMessage: "Выберите Софию Романову на доске",
     },
   ],
 
   SECRET_SERVICE: [
-    // Шаг 1: Наведение радара
+    // Шаг 1: Опрос свидетелей (выбор Софии c7 + кнопка Опрос свидетелей)
     {
       step: 1,
-      totalSteps: 4,
-      title: "НАВЕДЕНИЕ РАДАРА",
+      totalSteps: 2,
+      title: "Опрос свидетелей",
       instruction:
-        "В контрразведке все агенты скрыты. Выберите связного (София Романова), чтобы направить луч сканера 3×3.",
-      targetPosition: "bottom",
-      actionType: "SELECT_CARD",
+        "Все агенты скрыты, цель в дуэли — 3 компромата. Выбери Софию Романову и нажми «Опрос свидетелей», чтобы просканировать 3×3.",
+      actionType: "CARD_ACTION",
       allowedCardIds: ["c7"],
       targetCardId: "c7",
-      myCharacterId: "c1",
-    },
-    // Шаг 2: Сканирование радаром
-    {
-      step: 2,
-      totalSteps: 4,
-      title: "ОПРОС СВИДЕТЕЛЕЙ",
-      instruction:
-        "Запустите импульс опроса. Радар покажет, скрывается ли вражеский агент среди 8 соседних клеток.",
-      targetPosition: "top",
-      actionType: "ACTION_BUTTON",
       buttonActionKey: "INTERROGATE",
       buttonLabel: "Опрос свидетелей",
       buttonVariant: "primary",
-      myCharacterId: "c1",
-      targetCardId: "c7",
-      radarTargetId: "c7",
+      myCharacterId: "c1", // Агент «Зенит» Руслан Громов
+      highlightNeighborCenterId: "c1",
+      neighborRole: "blue",
+      hintMessage: "Выберите Софию Романову на доске",
     },
-    // Шаг 3: Локализация шпиона
+    // Шаг 2: Разоблачение (выбор Марка Воронова c2 + кнопка Разоблачение)
     {
-      step: 3,
-      totalSteps: 4,
-      title: "ЛОКАЛИЗАЦИЯ ШПИОНА",
+      step: 2,
+      totalSteps: 2,
+      title: "Разоблачение",
       instruction:
-        "Пеленгатор подтвердил чужой радиосигнал. Под подозрение попал Марк Воронов. Нажмите на его карточку.",
-      targetPosition: "bottom",
-      actionType: "SELECT_CARD",
+        "Сигнал подтверждён! Непроверенным в секторе и рядом с тобой остался Марк Воронов. Выбери его и нажми «Разоблачение».",
+      actionType: "CARD_ACTION",
       allowedCardIds: ["c2"],
       targetCardId: "c2",
-      myCharacterId: "c1",
-      radarTargetId: "c7",
-    },
-    // Шаг 4: Разоблачение резидента
-    {
-      step: 4,
-      totalSteps: 4,
-      title: "РАЗОБЛАЧЕНИЕ",
-      instruction:
-        "Прикрытие синдиката сорвано. Нажмите «Разоблачение шпиона», чтобы перехватить компромат и победить.",
-      targetPosition: "top",
-      actionType: "ACTION_BUTTON",
       buttonActionKey: "EXPOSE_SPY",
-      buttonLabel: "Разоблачение шпиона",
+      buttonLabel: "Разоблачение",
       buttonVariant: "danger",
       myCharacterId: "c1",
-      targetCardId: "c2",
+      highlightNeighborCenterId: "c1",
+      neighborRole: "blue",
+      radarTargetId: "c7",
+      hintMessage: "Выберите Марка Воронова на доске",
     },
   ],
 };

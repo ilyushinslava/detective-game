@@ -5,9 +5,9 @@ export type TutorialModule = "MENU" | CanonicalTutorialModule;
 
 export type TutorialActionType =
   | "SHIFT"
-  | "SELECT_CARD"
+  | "CARD_ACTION"
   | "ACTION_BUTTON"
-  | "FINISH_MODULE";
+  | "SELECT_CARD";
 
 export interface TutorialShiftTarget {
   type: "ROW" | "COL";
@@ -23,6 +23,8 @@ export type TutorialButtonActionKey =
   | "CLEANUP"
   | "ROB"
   | "PATROL"
+  | "PATROL_CALL"
+  | "EXONERATE"
   | "INTERROGATE"
   | "EXPOSE_SPY"
   | "FINISH";
@@ -32,7 +34,7 @@ export interface TutorialStepConfig {
   totalSteps: number;
   title: string;
   instruction: string;
-  targetPosition: "top" | "bottom";
+  targetPosition?: "top" | "bottom";
 
   // Валидация и целевое действие
   actionType: TutorialActionType;
@@ -41,6 +43,7 @@ export interface TutorialStepConfig {
   buttonActionKey?: TutorialButtonActionKey;
   buttonLabel?: string;
   buttonVariant?: "primary" | "danger" | "secondary";
+  hintMessage?: string;
 
   // Подсветка поля
   highlightedArrowId?: string | null;

@@ -37,6 +37,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
   const [lastShift, setLastShift] = useState<LastShift | null>(null);
   const [isModuleFinished, setIsModuleFinished] = useState<boolean>(false);
   const [isDisguiseModalOpen, setIsDisguiseModalOpen] = useState<boolean>(false);
+  const [patrolId, setPatrolId] = useState<string | null>(null);
 
   const [completedModules, setCompletedModules] = useState<CanonicalTutorialModule[]>(
     () => loadAndMigrateTutorialProgress()
@@ -79,6 +80,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
     setLastShift(null);
     setIsModuleFinished(false);
     setIsDisguiseModalOpen(false);
+    setPatrolId(null);
     setBoard(getInitialBoard(mod));
   };
 
@@ -126,27 +128,32 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
 
   const handleCardClick = (id: string) => {
     if (!currentStepConfig) return;
-    if (currentStepConfig.actionType !== "SELECT_CARD") return;
-
-    const allowed = currentStepConfig.allowedCardIds || [];
-    if (allowed.includes(id)) {
-      setSelectedId(id);
-      soundManager.play("confirm");
-      triggerHaptic("success");
-      advanceStep();
-    } else {
-      soundManager.play("error");
-      triggerHaptic("warning");
+    if (
+      currentStepConfig.actionType === "CARD_ACTION" ||
+      currentStepConfig.actionType === "SELECT_CARD"
+    ) {
+      const allowed = currentStepConfig.allowedCardIds || [];
+      if (allowed.includes(id)) {
+        setSelectedId(id);
+        soundManager.play("confirm");
+        triggerHaptic("success");
+        if (currentStepConfig.actionType === "SELECT_CARD") {
+          advanceStep();
+        }
+      } else {
+        soundManager.play("error");
+        triggerHaptic("warning");
+      }
     }
   };
 
   const handleActionButtonClick = () => {
-    if (!currentStepConfig || currentStepConfig.actionType !== "ACTION_BUTTON") return;
+    if (!currentStepConfig) return;
     const actionKey = currentStepConfig.buttonActionKey;
 
     switch (actionKey) {
       case "KILL": {
-        // Убиваем жертву c3
+        // Убиваем Елену Соколову c3
         setBoard((prev) =>
           prev.map((row) =>
             row.map((c) => (c.id === "c3" ? { ...c, isAlive: false } : c))
@@ -157,18 +164,8 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
         advanceStep();
         break;
       }
-      case "DISGUISE": {
-        setIsDisguiseModalOpen(true);
-        break;
-      }
-      case "ARREST": {
-        soundManager.play("arrest");
-        triggerHaptic("success");
-        advanceStep();
-        break;
-      }
       case "CLEANUP": {
-        // Сдвигаем погибших вниз поля
+        // Зачистка: уплотняем живых наверх, выбывших вниз
         const allChars = board.flat();
         const alive = allChars.filter((c) => c.isAlive);
         const dead = allChars.filter((c) => !c.isAlive);
@@ -183,8 +180,26 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
         advanceStep();
         break;
       }
+      case "EXONERATE": {
+        // Проверка алиби Марии Климовой c13
+        setBoard((prev) =>
+          prev.map((row) =>
+            row.map((c) => (c.id === "c13" ? { ...c, isExonerated: true } : c))
+          )
+        );
+        soundManager.play("radar");
+        triggerHaptic("medium");
+        advanceStep();
+        break;
+      }
+      case "ARREST": {
+        soundManager.play("arrest");
+        triggerHaptic("success");
+        advanceStep();
+        break;
+      }
       case "ROB": {
-        // Метим ограбленным c5
+        // Кража у Анны Мороз c5
         setBoard((prev) =>
           prev.map((row) =>
             row.map((c) => (c.id === "c5" ? { ...c, isRobbed: true } : c))
@@ -195,13 +210,26 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
         advanceStep();
         break;
       }
-      case "PATROL": {
-        // Метим патрулем c7
-        setBoard((prev) =>
-          prev.map((row) =>
-            row.map((c) => (c.id === "c7" ? { ...c, isExonerated: true } : c))
-          )
-        );
+      case "DISGUISE": {
+        setIsDisguiseModalOpen(true);
+        break;
+      }
+      case "PATROL_CALL": {
+        // Патрульный выставляется на клетку рядом с Софией Романовой
+        setPatrolId("c16");
+        // Переставляем c16 на [1][3] (индекс 8)
+        setBoard((prev) => {
+          const flat = prev.flat();
+          const pIdx = flat.findIndex((c) => c.id === "c16");
+          if (pIdx !== -1 && pIdx !== 8) {
+            const temp = flat[8];
+            flat[8] = { ...flat[pIdx], isExonerated: true };
+            flat[pIdx] = temp;
+          }
+          const res: Character[][] = [];
+          for (let r = 0; r < 5; r++) res.push(flat.slice(r * 5, r * 5 + 5));
+          return res;
+        });
         soundManager.play("patrol");
         triggerHaptic("medium");
         advanceStep();
@@ -225,7 +253,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
     }
   };
 
-  const handleConfirmDisguise = (chosenChar: Character) => {
+  const handleConfirmDisguise = (_chosenChar: Character) => {
     soundManager.play("disguise");
     triggerHaptic("success");
     setIsDisguiseModalOpen(false);
@@ -240,11 +268,19 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
     setSelectedId(null);
   };
 
-  // Вычисляем соседей для подсветки 3x3 зоны
-  const adjacentIds = useMemo(() => {
-    if (!currentStepConfig?.highlightNeighborCenterId) return [];
-    return getAdjacentCharacters(board, currentStepConfig.highlightNeighborCenterId);
-  }, [board, currentStepConfig]);
+  // Кнопка действия активна, если ACTION_BUTTON или если для CARD_ACTION выбрана целевая карта
+  const isActionEnabled = useMemo(() => {
+    if (!currentStepConfig) return false;
+    if (currentStepConfig.actionType === "ACTION_BUTTON") return true;
+    if (currentStepConfig.actionType === "CARD_ACTION") {
+      return Boolean(
+        selectedId &&
+        currentStepConfig.allowedCardIds &&
+        currentStepConfig.allowedCardIds.includes(selectedId)
+      );
+    }
+    return false;
+  }, [currentStepConfig, selectedId]);
 
   if (currentModule === "MENU") {
     return (
@@ -266,8 +302,8 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
 
   return (
     <div className="fixed inset-0 z-[100] h-[100dvh] w-full bg-[#080a0f] flex flex-col justify-between overflow-hidden select-none font-sans text-zinc-100">
-      {/* Шапка урока */}
-      <div className="flex items-center justify-between gap-2 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 border-b border-white/10 bg-zinc-950/80 backdrop-blur-md shrink-0 z-20">
+      {/* Слот 1: Шапка урока (фиксированная высота h-14 + pt-safe) */}
+      <div className="h-14 shrink-0 flex items-center justify-between gap-2 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 border-b border-white/10 bg-zinc-950/80 backdrop-blur-md z-20 box-content">
         <button
           onClick={() => setCurrentModule("MENU")}
           aria-label="В главное меню"
@@ -296,12 +332,12 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
         </div>
       </div>
 
-      {/* Верхний слот подсказки (если цель внизу или в центре) */}
-      {currentStepConfig && currentStepConfig.targetPosition === "top" && (
+      {/* Слот 2: Панель брифинга (ВСЕГДА сверху под шапкой, фиксированная высота h-[84px] shrink-0) */}
+      {currentStepConfig && (
         <TutorialGuidePanel stepConfig={currentStepConfig} />
       )}
 
-      {/* Контейнер доски 5×5 */}
+      {/* Слот 3: Контейнер доски 5×5 (flex-1 min-h-0, абсолютно неподвижный) */}
       <div className="flex-1 min-h-0 flex items-center justify-center p-1 sm:p-2 relative overflow-hidden">
         <GameBoard
           mode={
@@ -314,7 +350,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
           board={board}
           lastShift={lastShift}
           blockedShift={
-            currentStepConfig?.actionType === "SELECT_CARD" && lastShift
+            currentStepConfig?.step === 2 && lastShift
               ? { type: lastShift.type, index: lastShift.index }
               : null
           }
@@ -336,16 +372,11 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
         />
       </div>
 
-      {/* Нижний слот подсказки (если цель вверху) */}
-      {currentStepConfig && currentStepConfig.targetPosition === "bottom" && (
-        <TutorialGuidePanel stepConfig={currentStepConfig} />
-      )}
-
-      {/* Нижняя панель действий */}
+      {/* Слот 4: Нижняя панель действий (ВСЕГДА фиксированная высота h-[64px] shrink-0 + pb-safe) */}
       {currentStepConfig && (
         <TutorialActionBar
           stepConfig={currentStepConfig}
-          isActionEnabled={currentStepConfig.actionType === "ACTION_BUTTON"}
+          isActionEnabled={isActionEnabled}
           isModuleFinished={isModuleFinished}
           onActionButtonClick={handleActionButtonClick}
           onFinishModuleClick={handleFinishCurrentModule}

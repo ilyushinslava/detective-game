@@ -76,7 +76,8 @@ export const RulesModal = ({ isOpen, onClose, initialTab }: RulesModalProps) => 
   const resolveBannerPath = (path?: string) => {
     if (!path) return undefined;
     if (path.startsWith("http") || path.startsWith("data:")) return path;
-    return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
+    const cleanPath = path.startsWith("/") ? path : `/${path}`;
+    return `${base}${cleanPath}`;
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {

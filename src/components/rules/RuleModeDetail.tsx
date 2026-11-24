@@ -22,14 +22,14 @@ export const RuleModeDetail: React.FC<RuleModeDetailProps> = ({
             onOpenBanner(e, bannerSrc, currentMode.title);
           }
         }}
-        className={`relative w-full h-[100px] sm:h-[130px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border border-white/15 border-t-white/35 shadow-xl cursor-pointer group select-none bg-zinc-950`}
+        className={`relative w-full h-[100px] sm:h-[130px] rounded-2xl overflow-hidden mb-3.5 shrink-0 border ${currentMode.borderColor || "border-white/15"} border-t-white/35 shadow-xl cursor-pointer group select-none bg-zinc-950 bg-gradient-to-r ${currentMode.bannerGradient || "from-blue-950 via-zinc-950/70 to-transparent"}`}
         title="Нажмите для просмотра полного фото"
       >
         {bannerSrc && (
           <img
             src={bannerSrc}
             alt={currentMode.title}
-            className="absolute inset-0 w-full h-full object-cover object-center opacity-95 group-hover:scale-105 transition-transform duration-500 pointer-events-none"
+            className="absolute inset-0 w-full h-full object-cover object-center opacity-85 group-hover:scale-105 transition-transform duration-500 pointer-events-none"
             onError={onBannerError}
           />
         )}
@@ -53,10 +53,15 @@ export const RuleModeDetail: React.FC<RuleModeDetailProps> = ({
           </div>
         )}
 
-        <div className="absolute bottom-2.5 left-3.5 right-3.5 z-10 flex items-end pointer-events-none">
-          <h3 className="text-base sm:text-lg font-black uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-            {currentMode.title}
-          </h3>
+        <div className="absolute bottom-2.5 left-3.5 right-3.5 z-10 flex items-end justify-between pointer-events-none">
+          <div>
+            <span className={`text-[9px] font-mono font-bold tracking-widest uppercase block mb-0.5 ${currentMode.badgeColor}`}>
+              {currentMode.badge}
+            </span>
+            <h3 className="text-base sm:text-lg font-black uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+              {currentMode.title}
+            </h3>
+          </div>
         </div>
       </div>
 

@@ -178,21 +178,19 @@ export function useBoardVisuals({
   }, [isPVP, gameState]);
 
   const role1Name = useMemo(() => {
-    if (gameState.mode === "MANIAC_VS_OPERATIVE") return "МАНЬЯК";
     if (gameState.mode === "SECRET_SERVICE")
       return gameState.spies?.[0]?.name ?? "Агент 1";
     if (gameState.mode === "THIEF_HUNT") return "ГРАБИТЕЛЬ";
     if (gameState.mode === "LINE_UP") return "ПОДОЗРЕВАЕМЫЙ";
-    return "БАНДИТ";
+    return "МАНЬЯК";
   }, [gameState.mode, gameState.spies]);
 
   const role2Name = useMemo(() => {
-    if (gameState.mode === "MANIAC_VS_OPERATIVE") return "ОПЕРАТИВНИК";
     if (gameState.mode === "SECRET_SERVICE")
       return gameState.spies?.[1]?.name ?? "Агент 2";
     if (gameState.mode === "THIEF_HUNT") return "ПОЛИЦИЯ";
     if (gameState.mode === "LINE_UP") return "СЛЕДОВАТЕЛЬ";
-    return "ИНСПЕКТОР";
+    return "ОПЕРАТИВНИК";
   }, [gameState.mode, gameState.spies]);
 
   const currentRoleName = useMemo(() => {

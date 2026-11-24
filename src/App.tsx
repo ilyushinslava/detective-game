@@ -930,7 +930,7 @@ export default function App() {
               playerRole: "DETECTIVE",
               killCount: Math.max(prev.killCount, 1),
               inspectorChoices: choices,
-              log: [...prev.log, "[DEV] Принудительный выбор личности Инспектора"],
+              log: [...prev.log, "[DEV] Принудительный выбор личности Оперативника"],
             };
           });
           setIsChoiceSheetMinimized(false);
@@ -970,7 +970,7 @@ export default function App() {
           setOpponentDisconnectedNotice(true);
         }}
         onTriggerDisguiseModal={() => {
-          setGameState((prev) => ({ ...prev, disguisedNotification: { roleName: "Бандит", newSecretId: prev.board[0][0].id } }));
+          setGameState((prev) => ({ ...prev, disguisedNotification: { roleName: "Маньяк", newSecretId: prev.board[0][0].id } }));
         }}
         onTriggerCaughtSpyModal={() => {
           setGameState((prev) => ({ ...prev, justCaughtSpyId: prev.spies?.[0]?.id || "p1" }));

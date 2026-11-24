@@ -351,7 +351,7 @@ export function setInspectorRole(
     detectiveSecretId: chosenId,
     detectiveHand: remainingHand,
     inspectorChoices: [],
-    log: [...state.log, "Инспектор выбрал тайную личность. Карты сформировали досье алиби."],
+    log: [...state.log, "Оперативник выбрал тайную личность. Карты сформировали досье алиби."],
   };
 }
 
@@ -556,7 +556,7 @@ export function killCharacter(state: GameState, targetId: string): GameState {
       targetName: killedName,
       isNear,
     };
-    interrogationLog = ` Опрос свидетелей: Инспектор ${isNear ? "находился" : "НЕ находился"} рядом с убитым.`;
+    interrogationLog = ` Опрос свидетелей: Оперативник ${isNear ? "находился" : "НЕ находился"} рядом с убитым.`;
   }
 
   const interrogationRadar = (state.mode === "MANIAC_VS_OPERATIVE" && !winner) 
@@ -751,7 +751,7 @@ export function exonerateFromHand(state: GameState, id: string): GameState {
     log: [
       ...state.log,
       `Проверка алиби: с подозреваемого ${name} сняты обвинения.`,
-      `Опрос свидетелей: Бандит ${isNear ? "находится" : "НЕ находится"} рядом.`,
+      `Опрос свидетелей: Маньяк ${isNear ? "находится" : "НЕ находится"} рядом.`,
     ],
   };
 }
@@ -791,7 +791,7 @@ export function disguiseKiller(state: GameState): GameState {
       blockedShift: null,
       lastInterrogation: null,
       interrogationRadar: null,
-      disguisedNotification: { roleName: "Бандит", newSecretId: drawnId },
+      disguisedNotification: { roleName: "Маньяк", newSecretId: drawnId },
       log: [...state.log, "Преступник успешно сменил облик и ушел в тень."],
     };
   }
@@ -1302,7 +1302,7 @@ export function resolveNextPlayerInfo(
 
   return {
     nextRole: currentRole,
-    nextPlayerName: currentRole === "KILLER" ? "Бандит" : "Инспектор",
+    nextPlayerName: currentRole === "KILLER" ? "Маньяк" : "Оперативник",
     nextPlayerColor: currentRole === "KILLER" ? "text-red-400" : "text-blue-400",
   };
 }

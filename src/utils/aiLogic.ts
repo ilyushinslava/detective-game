@@ -506,7 +506,7 @@ export function getDetectiveAIMove(state: GameState): GameState {
     ...state,
     currentTurn: "KILLER",
     interrogationRadar: null,
-    log: [...state.log, "Бот-инспектор пропустил ход."],
+    log: [...state.log, "Бот-оперативник пропустил ход."],
   };
 }
 

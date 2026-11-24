@@ -34,7 +34,7 @@ describe("BlindfoldCurtain Component", () => {
     expect(overlay?.className).toContain("bg-black");
   });
 
-  it("отображает дефолтное имя следующей роли 'Инспектор', подсказку и слоган передачи устройства", () => {
+  it("отображает дефолтное имя следующей роли 'Оперативник', подсказку и слоган передачи устройства", () => {
     render(
       <BlindfoldCurtain
         isOpen={true}
@@ -45,7 +45,7 @@ describe("BlindfoldCurtain Component", () => {
 
     expect(screen.getByText(/ПЕРЕДАЙТЕ УСТРОЙСТВО/i)).toBeDefined();
     expect(screen.getByText(/НАЖМИТЕ НА ЭКРАН ДЛЯ ПРОДОЛЖЕНИЯ/i)).toBeDefined();
-    expect(screen.getByText("Инспектор")).toBeDefined();
+    expect(screen.getByText("Оперативник")).toBeDefined();
   });
 
   it("отображает кастомное имя игрока, если оно передано", () => {

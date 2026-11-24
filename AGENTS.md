@@ -38,7 +38,7 @@
 2. **План и риски:** Сформируй понятный план, перечисли конкретные файлы для изменения и оцени риски регрессий для соседних игровых режимов.
 3. **Согласование:** **Не начинай реализацию, пока владелец проекта не подтвердит план.** (Для очевидных безопасных правок, не меняющих логику, допускается прямое выполнение).
 4. **Последовательная реализация:** Выполняй изменения небольшими аккуратными шагами в выделенной Git-ветке (`feature/*` или `fix/*`). Не переписывай работающие модули «с нуля». Запрещён прямой коммит и push в `main`.
-5. **Контроль качества:** Запусти тесты Vitest (`504+ passed`), проверку TypeScript и production-сборку (`npm run build`).
+5. **Контроль качества:** Запусти тесты Vitest (`618 passed`), проверку TypeScript и production-сборку (`npm run build`).
 6. **Честный отчёт:** Покажи список изменённых файлов, объясни простыми словами, что изменилось, и честно укажи статус проверок.
 
 ---
@@ -118,7 +118,7 @@
   - Фронтенд: React 18, TypeScript, Tailwind CSS, Framer Motion, Vite (с гранулярным код-сплиттингом `manualChunks`: `vendor-react`, `vendor-supabase`, `vendor-ui`, `vendor-network`, `vendor-qr-scanner`, `tv-party`).
   - Сеть и мультиплеер: PartyKit (WebSocket PartyServer в `src/server/index.ts`, клиент `src/utils/partyPeer.ts`).
   - Персистентность и лидерборд: Supabase (PostgreSQL, RPC `record_match_result`, Offline-First fallback).
-  - Тестирование: Vitest (78 тест-сьютов, **504+ теста**).
+  - Тестирование: Vitest (95 тест-сьютов, **618 тестов**).
 - **Правило запуска тестов и сборки (Борьба с зависаниями):**
   - **Запускать напрямую:** Команды проверки тестов `npx vitest run` и сборки `npm run build` следует запускать в основном синхронном потоке инструмента (с достаточным `WaitMsBeforeAsync`).
   - **Избегать брошенных фоновых процессов:** При переходе длинных команд в фон — всегда отслеживать их статус через `manage_task` и корректно снимать завершённые задачи.
@@ -132,9 +132,9 @@
 - **База знаний и актуальный техдолг:**
   - Полный сводный отчёт и приоритизированный бэклог зафиксированы в [docs/audit/SUMMARY.md](file:///c:/Projects/detective-game/docs/audit/SUMMARY.md).
   - Детальные аудиты:
-    - [01-security-and-network.md](file:///c:/Projects/detective-game/docs/audit/01-security-and-network.md)
-    - [02-code-quality-and-perf.md](file:///c:/Projects/detective-game/docs/audit/02-code-quality-and-perf.md)
-    - [03-ui-ux-consistency.md](file:///c:/Projects/detective-game/docs/audit/03-ui-ux-consistency.md)
+    - [01-security-and-network.md](file:///c:/Projects/detective-game/docs/archive/audit/01-security-and-network.md)
+    - [02-code-quality-and-perf.md](file:///c:/Projects/detective-game/docs/archive/audit/02-code-quality-and-perf.md)
+    - [03-ui-ux-consistency.md](file:///c:/Projects/detective-game/docs/archive/audit/03-ui-ux-consistency.md)
     - [04-architecture-and-lineup.md](file:///c:/Projects/detective-game/docs/audit/04-architecture-and-lineup.md)
 
 ---
@@ -152,7 +152,7 @@
 - [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md) — концепция игры, платформы и сеттинг.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — детальная техническая архитектура.
 - [`docs/GAME_MODES.md`](docs/GAME_MODES.md) — правила 4 игровых режимов и спецификация TV Party.
-- [`docs/TECHNICAL_DEBT.md`](docs/TECHNICAL_DEBT.md) — реестр технического долга и проверок на устройствах.
+- [`docs/archive/TECHNICAL_DEBT.md`](docs/archive/TECHNICAL_DEBT.md) — реестр технического долга и проверок на устройствах.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — журнал ключевых архитектурных решений (ADR).
 
 ---

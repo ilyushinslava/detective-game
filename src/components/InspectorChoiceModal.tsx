@@ -56,10 +56,10 @@ export const InspectorChoiceModal: React.FC<InspectorChoiceModalProps> = ({
               Секретные данные
             </span>
             <h2 className="text-xl font-black text-zinc-100 uppercase tracking-wider mb-2">
-              Передайте экран Инспектору
+              Передайте экран Оперативнику
             </h2>
             <p className="text-[10px] font-medium tracking-normal text-zinc-400 mb-6 uppercase leading-relaxed">
-              Убедитесь, что Бандит не смотрит на экран перед выбором личности.
+              Убедитесь, что Маньяк не смотрит на экран перед выбором личности.
             </p>
             <button
               onClick={() => setIsPassConfirmed(true)}

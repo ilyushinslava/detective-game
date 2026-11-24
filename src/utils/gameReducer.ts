@@ -61,7 +61,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case "SHIFT_BOARD": {
-      // В "Схватке" первый ход Бандита обязан быть ликвидацией (сдвиг запрещен для локального игрока)
+      // В режиме "Почерк убийцы" первый ход Маньяка обязан быть ликвидацией (сдвиг запрещен для локального игрока)
 
       const { shiftType, index, direction } = action.payload;
 
@@ -81,12 +81,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       let nextSpyIndex = state.activeSpyIndex;
       let currentRoleName =
-        state.currentTurn === "KILLER" ? "БАНДИТ" : "ИНСПЕКТОР";
+        state.currentTurn === "KILLER" ? "МАНЬЯК" : "ОПЕРАТИВНИК";
 
-      if (state.mode === "MANIAC_VS_OPERATIVE") {
-        currentRoleName =
-          state.currentTurn === "KILLER" ? "МАНЬЯК" : "ОПЕРАТИВНИК";
-      } else if (state.mode === "THIEF_HUNT") {
+      if (state.mode === "THIEF_HUNT") {
         currentRoleName = state.currentTurn === "KILLER" ? "ГРАБИТЕЛЬ" : "ПОЛИЦИЯ";
       }
 
@@ -280,12 +277,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const nextTurn = state.currentTurn === "KILLER" ? "DETECTIVE" : "KILLER";
       let nextSpyIndex = state.activeSpyIndex;
       let currentRoleName =
-        state.currentTurn === "KILLER" ? "БАНДИТ" : "ИНСПЕКТОР";
+        state.currentTurn === "KILLER" ? "МАНЬЯК" : "ОПЕРАТИВНИК";
 
-      if (state.mode === "MANIAC_VS_OPERATIVE") {
-        currentRoleName =
-          state.currentTurn === "KILLER" ? "МАНЬЯК" : "ОПЕРАТИВНИК";
-      } else if (state.mode === "THIEF_HUNT") {
+      if (state.mode === "THIEF_HUNT") {
         currentRoleName = state.currentTurn === "KILLER" ? "ГРАБИТЕЛЬ" : "ПОЛИЦИЯ";
       }
 

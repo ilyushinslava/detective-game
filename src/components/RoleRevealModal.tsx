@@ -76,10 +76,10 @@ export const RoleRevealModal = ({
     }
   }, [opponent, onComplete]);
 
-  let role1Name = propRole1Name || "Бандит";
-  let role2Name = propRole2Name || "Инспектор";
-  let role1Goal = "Ликвидация Инспектора или 14 жертв";
-  let role2Goal = "Вычислить Бандита через допросы алиби";
+  let role1Name = propRole1Name || "Маньяк";
+  let role2Name = propRole2Name || "Оперативник";
+  let role1Goal = "Ликвидация Оперативника или 4 жертвы";
+  let role2Goal = "Вычислить Маньяка через проверку алиби";
 
   if (mode === "MANIAC_VS_OPERATIVE") {
     role1Name = propRole1Name || "Маньяк";

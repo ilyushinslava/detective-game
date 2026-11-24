@@ -68,7 +68,7 @@ export const BlindfoldCurtain: React.FC<BlindfoldCurtainProps> = ({
   // Определение параметров следующего игрока
   const fallbackInfo = gameState ? resolveNextPlayerInfo(gameState) : null;
   const effectiveRole = nextRole ?? fallbackInfo?.nextRole ?? "DETECTIVE";
-  const defaultRoleName = effectiveRole === "KILLER" ? "Бандит" : "Инспектор";
+  const defaultRoleName = effectiveRole === "KILLER" ? "Маньяк" : "Оперативник";
   const defaultRoleColor = effectiveRole === "KILLER" ? "text-rose-400" : "text-blue-400";
   const defaultBorderColor = effectiveRole === "KILLER" ? "border-rose-500/40" : "border-blue-500/40";
   const defaultBgGlow = effectiveRole === "KILLER"

@@ -45,7 +45,7 @@ export const DevStateSection: React.FC<DevStateSectionProps> = ({
         onClick={() => { onTriggerInspectorChoice(); onClose(); }}
         className="w-full py-2 px-3 bg-blue-950/60 hover:bg-blue-900/80 border border-blue-700/50 rounded-xl text-blue-200 font-bold text-left transition cursor-pointer"
       >
-        🔍 Открыть выбор роли Инспектора (4 карты)
+        🔍 Открыть выбор роли Оперативника (4 карты)
       </button>
     </div>
   );

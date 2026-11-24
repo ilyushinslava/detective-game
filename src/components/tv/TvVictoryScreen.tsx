@@ -70,7 +70,7 @@ export const TvVictoryScreen: React.FC<TvVictoryScreenProps> = ({
   const detectivePortraitUrl = detective?.id ? getCharacterPortraitPath(detective.id) : '';
 
   return (
-    <div className="relative h-screen w-screen bg-[#07080c] text-white select-none overflow-hidden font-sans flex flex-col justify-between p-4 sm:p-6 lg:p-8 box-border">
+    <div className="relative h-[100dvh] w-full bg-[#07080c] text-white select-none overflow-hidden font-sans flex flex-col justify-between p-4 sm:p-6 lg:p-8 box-border">
       {/* Драматический нео-нуар градиент победы */}
       <div
         className={`absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,${

@@ -16,7 +16,8 @@ export default defineConfig({
         background_color: "#080a0f",
         display: "standalone",
         orientation: "portrait",
-        start_url: "./",
+        scope: "/detective-game/",
+        start_url: "/detective-game/",
         icons: [
           {
             src: "favicon.png",

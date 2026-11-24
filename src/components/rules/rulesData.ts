@@ -39,7 +39,7 @@ export const MODES_DATA: Record<ModeTab, ModeInfo> = {
     bannerGradient: "from-blue-950 via-zinc-950/70 to-transparent",
     borderColor: "border-blue-500/40",
     badgeColor: "text-blue-400",
-    bannerImage: "/assets/modes/base-banner.webp",
+    bannerImage: "/splash-bg.webp",
     role1: {
       name: "Криминал",
       badgeColor: "bg-red-950/80 text-red-400 border border-red-700/60",

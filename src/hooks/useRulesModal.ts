@@ -18,9 +18,9 @@ export function useRulesModal(initialTab: RulesModeTab = "BASE"): UseRulesModalR
 
   const openRules = useCallback((tab?: RulesModeTab | GameModeType) => {
     if (tab) {
-      if (tab === "MANIAC_VS_OPERATIVE") {
+      if (tab === "MANIAC_VS_OPERATIVE" || tab === "MANIAC") {
         setActiveRulesTab("MANIAC");
-      } else if (tab === "THIEF_HUNT") {
+      } else if (tab === "THIEF_HUNT" || tab === "THIEF") {
         setActiveRulesTab("THIEF");
       } else if (tab === "SECRET_SERVICE") {
         setActiveRulesTab("SECRET_SERVICE");

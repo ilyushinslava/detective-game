@@ -13,9 +13,9 @@
 
 | Документ | Направление аудита | Ключевой фокус | Статус реализации |
 | :--- | :--- | :--- | :--- |
-| [01-security-and-network.md](file:///c:/Projects/detective-game/docs/audit/01-security-and-network.md) | **Безопасность, сеть и память** | PartyKit WebSocket, маскирование ролей, античит, токены, гонки, устранение утечек памяти | ✅ Выполнен (Спринт 1 / Спринт A) |
-| [02-code-quality-and-perf.md](file:///c:/Projects/detective-game/docs/audit/02-code-quality-and-perf.md) | **Качество кода и производительность** | Мёртвый код, строгая типизация (`noImplicitAny`, `strictNullChecks`), устранение 1-сек ререндера доски | ✅ Выполнен (Спринт 4 / Спринт B) |
-| [03-ui-ux-consistency.md](file:///c:/Projects/detective-game/docs/audit/03-ui-ux-consistency.md) | **Neo-Noir дизайн и мобильный UX** | Чистка циана/эмодзи, терминология («Главное меню», «Код»), iOS Safe Area, `100dvh`, Touch Targets $\ge 44$px | ✅ Выполнен (Спринт 3 / Спринт C) |
+| [01-security-and-network.md](file:///c:/Projects/detective-game/docs/archive/audit/01-security-and-network.md) | **Безопасность, сеть и память** | PartyKit WebSocket, маскирование ролей, античит, токены, гонки, устранение утечек памяти | ✅ Выполнен (Архив) |
+| [02-code-quality-and-perf.md](file:///c:/Projects/detective-game/docs/archive/audit/02-code-quality-and-perf.md) | **Качество кода и производительность** | Мёртвый код, строгая типизация (`noImplicitAny`, `strictNullChecks`), устранение 1-сек ререндера доски | ✅ Выполнен (Архив) |
+| [03-ui-ux-consistency.md](file:///c:/Projects/detective-game/docs/archive/audit/03-ui-ux-consistency.md) | **Neo-Noir дизайн и мобильный UX** | Чистка циана/эмодзи, терминология («Главное меню», «Код»), iOS Safe Area, `100dvh`, Touch Targets $\ge 44$px | ✅ Выполнен (Архив) |
 | [04-architecture-and-lineup.md](file:///c:/Projects/detective-game/docs/audit/04-architecture-and-lineup.md) | **Архитектура и режим «Очная ставка»** | Разбор LINE_UP (рассинхрон стейта, бот) и реструктуризация Академии v2 | 🟡 В работе (Академия v2 закрыта, LINE_UP заморожен) |
 
 ---
@@ -68,8 +68,7 @@
 | ID | Задача | Зона | Описание |
 | :--- | :--- | :--- | :--- |
 | **DEBT-01** | Редизайн «Очной ставки» (`LINE_UP`) | Game Core / UI | Полная пересборка замороженного режима: унификация с `gameReducer`, ИИ-бот, атрибутивные карточки. |
-| **DEBT-02** | CSP метатег | Security | Тонкая настройка директив Content Security Policy в `index.html` для продакшен-домена. |
-| **DEBT-03** | Стресс-тестирование ТВ-режима на слабом Android TV железе | TV Party | Профилирование FPS Framer Motion анимаций на бюджетных ТВ-приставках с 1 ГБ RAM. |
+| **DEBT-02** | Стресс-тестирование ТВ-режима на слабом Android TV железе | TV Party | Профилирование FPS Framer Motion анимаций на бюджетных ТВ-приставках с 1 ГБ RAM. |
 
 ---
 

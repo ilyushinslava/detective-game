@@ -1,10 +1,12 @@
+import { TURN_TIME_LIMIT_SECONDS } from "../constants/gameRules";
+
 export const GAME_CONFIG = {
   APP_NAME: "Под подозрением",
   APP_SUBTITLE: "Последний выстрел",
   APP_FULL_TITLE: "Под подозрением: Последний выстрел",
   VERSION: "0.9.0",
   TIMERS: {
-    TURN_TIME_LIMIT_SEC: 60,
+    TURN_TIME_LIMIT_SEC: TURN_TIME_LIMIT_SECONDS,
     DUEL_MATCH_LIMIT_SEC: 480,
   },
   STORAGE_KEYS: {

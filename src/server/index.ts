@@ -4,6 +4,7 @@ import { guestRegistry } from "../utils/guestManager";
 import { sanitizePlayerName } from "../utils/nameFilter";
 import type { GameState, Role, GameModeType } from "../types/game";
 import type { ClientDeviceType } from "../types/multiplayer";
+import { TURN_TIME_LIMIT_MS, TURN_GRACE_PERIOD_SECONDS } from "../constants/gameRules";
 
 export type { ClientDeviceType };
 
@@ -74,7 +75,7 @@ const defer = (fn: () => void) => {
   } catch (_) {}
 };
 
-export const DISCONNECT_GRACE_PERIOD_MS = 60000;
+export const DISCONNECT_GRACE_PERIOD_MS = TURN_GRACE_PERIOD_SECONDS * 1000;
 
 /**
  * P0-3: Карта режимных ограничений для игровых действий.
@@ -122,7 +123,7 @@ export default class GameRoomServer {
     remainingMs: 0,
     timer: null,
     startedAt: 0,
-    totalDurationMs: 30000,
+    totalDurationMs: TURN_TIME_LIMIT_MS,
     isPaused: false,
   };
 
@@ -131,7 +132,7 @@ export default class GameRoomServer {
     return 2;
   }
 
-  startTurnTimer(role: Role, durationMs: number = 30000): void {
+  startTurnTimer(role: Role, durationMs: number = TURN_TIME_LIMIT_MS): void {
     if (this.turnTimerState.timer) {
       clearTimeout(this.turnTimerState.timer);
       this.turnTimerState.timer = null;
@@ -204,7 +205,7 @@ export default class GameRoomServer {
         this.broadcastStatus();
       } else {
         const nextRole = nextState.currentTurn || "DETECTIVE";
-        this.startTurnTimer(nextRole, this.turnTimerState.totalDurationMs || 30000);
+        this.startTurnTimer(nextRole, this.turnTimerState.totalDurationMs || TURN_TIME_LIMIT_MS);
       }
       this.broadcastRaw(JSON.stringify({ type: "TURN_TIMEOUT" }));
       this.broadcastState();
@@ -1657,7 +1658,7 @@ export default class GameRoomServer {
         this.state.gameState.matchPot = currentBet * playersCount;
         this.state.status = "PLAYING";
         this.matchStartedAt = Date.now();
-        this.startTurnTimer(this.state.gameState.currentTurn || "KILLER", 30000);
+        this.startTurnTimer(this.state.gameState.currentTurn || "KILLER", TURN_TIME_LIMIT_MS);
         this.broadcastStatus();
         this.broadcastState();
         return;
@@ -1712,6 +1713,9 @@ export default class GameRoomServer {
         this.state.gameState.matchBet = currentBet;
         this.state.gameState.matchPot = currentBet * playersCount;
         publicRoomsRegistry.delete(this.getRoomCode());
+        // Запускаем серверный таймер хода при старте матча (START_MATCH),
+        // а не только при рестарте ТВ.
+        this.startTurnTimer(this.state.gameState.currentTurn || "KILLER", TURN_TIME_LIMIT_MS);
         this.broadcastStatus();
         this.broadcastState();
         return;
@@ -1727,7 +1731,13 @@ export default class GameRoomServer {
             this.state.status = "READY_TO_START";
           } else {
             this.state.status = "PLAYING";
+            this.matchStartedAt = Date.now();
             publicRoomsRegistry.delete(this.getRoomCode());
+            // Запускаем серверный таймер хода при переходе в PLAYING по готовности
+            // обоих игроков (PLAYER_READY), без ТВ-экрана.
+            if (this.state.gameState) {
+              this.startTurnTimer(this.state.gameState.currentTurn || "KILLER", TURN_TIME_LIMIT_MS);
+            }
             this.broadcastRaw(JSON.stringify({ type: "ALL_PLAYERS_READY" }));
           }
           this.broadcastStatus();

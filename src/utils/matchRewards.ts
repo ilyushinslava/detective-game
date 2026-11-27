@@ -9,11 +9,23 @@
 
 export type MatchRole = "DETECTIVE" | "KILLER" | "SPY" | string;
 
-export const MATCH_MIN_DURATION_SECONDS = 11;
-export const MATCH_DEFAULT_DURATION_SECONDS = 120;
-export const MATCH_MAX_DURATION_SECONDS = 3600;
-export const MATCH_SECRET_SERVICE_MAX_DURATION_SECONDS = 7200;
-export const MATCH_LINE_UP_MAX_DURATION_SECONDS = 1800;
+// Лимиты длительности матча берутся из единого источника истины (gameRules.ts)
+// и реэкспортируются для обратной совместимости существующих импортов.
+import {
+  MATCH_MIN_DURATION_SECONDS,
+  MATCH_DEFAULT_DURATION_SECONDS,
+  MATCH_MAX_DURATION_SECONDS,
+  MATCH_SECRET_SERVICE_MAX_DURATION_SECONDS,
+  MATCH_LINE_UP_MAX_DURATION_SECONDS,
+} from "../constants/gameRules";
+
+export {
+  MATCH_MIN_DURATION_SECONDS,
+  MATCH_DEFAULT_DURATION_SECONDS,
+  MATCH_MAX_DURATION_SECONDS,
+  MATCH_SECRET_SERVICE_MAX_DURATION_SECONDS,
+  MATCH_LINE_UP_MAX_DURATION_SECONDS,
+};
 
 export const MMR_WIN_DELTA = 25;
 export const MMR_LOSS_DELTA = -20;

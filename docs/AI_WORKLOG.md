@@ -273,10 +273,10 @@
 
 **Фактический прогон `npx vitest run` (2026-11-27):**
 
-- Test Files: **114** (113 passed / 1 failed).
-- Tests: **801** (800 passed / 1 failed).
-- Duration: **50.46 s**.
-- Единственное падение: [TvRejectEdgeCases.test.tsx](file:///c:/Projects/detective-game/src/components/tv/__tests__/TvRejectEdgeCases.test.tsx) — тест «в) отказ на экране победы» ожидает отсутствие `console.error`, но jsdom пишет `Not implemented: HTMLMediaElement's play() method`. Падение стабильно воспроизводится при изолированном прогоне файла; это дефект теста, а не логики приложения. Код по условиям задачи не правился.
+- Test Files: **114** (114 passed / 0 failed).
+- Tests: **801** (801 passed / 0 failed).
+- Duration: **42.09 s**.
+- Ранее единственное падение [TvRejectEdgeCases.test.tsx](file:///c:/Projects/detective-game/src/components/tv/__tests__/TvRejectEdgeCases.test.tsx) («в) отказ на экране победы») устранено: тест ловил jsdom-шум `Not implemented: HTMLMediaElement's play() method` от `soundManager.play("deny")`. Продовый код не менялся — в `beforeEach` теста добавлен мок `vi.spyOn(soundManager, "play").mockImplementation(() => {})`, поэтому `console.error` теперь фиксирует только реальные ошибки приложения. Итог: полный сьют **801/801 passed**. `npx tsc --noEmit` — exit 0.
 
 `[ПРОВЕРИТЬ]` Реальные устройства не проверялись: ТВ 1280×720 / 1920×1080 и Android TV, мобильный контроллер 375×667 (геометрия инлайн-плашки отказа), CSP и `frame-ancestors`/`X-Frame-Options` на хостинге, `SESSION_SUPERSEDED` и ротация `authToken` в бою. Перечень продублирован в [SUMMARY.md](file:///c:/Projects/detective-game/docs/audit/SUMMARY.md).
 
@@ -366,7 +366,7 @@
 
 `[НЕ ПОДТВЕРЖДЕНО]`:
 
-1. ~~Фактический результат текущего прогона тестов~~ — **подтверждено 2026-11-27:** 114 тест-файлов, 801 тест, 800 passed / 1 failed (см. раздел 2.16).
+1. ~~Фактический результат текущего прогона тестов~~ — **подтверждено 2026-11-27:** 114 тест-файлов, 801 тест, 100% passed (0 failed) после фикса jsdom-шума в ТВ-тесте (см. раздел 2.16).
 2. Успешность текущей production-сборки.
 3. Работоспособность APK на реальном Android/Android TV.
 4. Реальные замеры производительности после оптимизаций.

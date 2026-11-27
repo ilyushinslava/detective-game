@@ -2,7 +2,7 @@
 
 > Проект: **«Под подозрением» (Prime Suspect)**  
 > Статус системы: **Релиз v2.0.0**  
-> Актуальное состояние тестов (прогон 2026-11-27): **114 тест-файлов, 801 тест — 800 passed / 1 failed** (единственное падение — дефект граничного ТВ-теста [TvRejectEdgeCases.test.tsx](file:///c:/Projects/detective-game/src/components/tv/__tests__/TvRejectEdgeCases.test.tsx) на jsdom-заглушке `HTMLMediaElement.play()`, не логика приложения)
+> Актуальное состояние тестов (прогон 2026-11-27): **114 тест-файлов, 801 тест — 100% passed** (зелёный полный сьют; jsdom-шум `HTMLMediaElement.play()` в [TvRejectEdgeCases.test.tsx](file:///c:/Projects/detective-game/src/components/tv/__tests__/TvRejectEdgeCases.test.tsx) устранён моком `soundManager.play` в тесте)
 > Статус сборки: **✓ built (0 ошибок TypeScript, строгий режим, PWA precache: 105 ассетов, ~5.0 МБ)**
 
 ---
@@ -111,7 +111,7 @@
 
 Проект полностью стабилизирован:
 
-- **801 тест Vitest: 800 passed / 1 failed** (единственное падение — дефект jsdom-теста ТВ-плашки, не логика приложения).
+- **801 тест Vitest: 100% passed** (114 тест-файлов, 0 failed; jsdom-шум `HTMLMediaElement.play()` в ТВ-тесте плашки устранён моком звука, проверка отсутствия реальных ошибок сохранена).
 - Сборка чистая и быстрая.
 - Безопасность авторитетного сервера PartyKit подтверждена.
 - Все 3 активных режима игры согласованы с официальными правилами.

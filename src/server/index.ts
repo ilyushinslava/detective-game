@@ -5,6 +5,7 @@ import { sanitizePlayerName } from "../utils/nameFilter";
 import type { GameState, Role, GameModeType } from "../types/game";
 import type { ClientDeviceType } from "../types/multiplayer";
 import { TURN_TIME_LIMIT_MS, TURN_GRACE_PERIOD_SECONDS } from "../constants/gameRules";
+import { buildCorsHeaders, buildPreflightResponse, resolveAllowedOrigins } from "./cors";
 
 /**
  * Пространственные действия, которые обязаны изменить состояние игры.
@@ -408,16 +409,14 @@ export default class GameRoomServer {
   }
 
   async onRequest(req: Request): Promise<Response> {
-    if (req.method === "OPTIONS") {
-      return new Response(null, {
-        status: 204,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
-        },
-      });
-    }
+    // SEC-ENV-02: cross-origin разрешён только доверенным origins (ALLOWED_ORIGINS).
+    const allowedOrigins = resolveAllowedOrigins(
+      ((this as any).env ?? this.room?.env ?? null) as Record<string, unknown> | null
+    );
+    const preflightResponse = buildPreflightResponse(req, allowedOrigins);
+    if (preflightResponse) return preflightResponse;
+
+    const corsHeaders = buildCorsHeaders(req.headers.get("origin"), allowedOrigins);
     const url = new URL(req.url);
 
     if (url.searchParams.get("action") === "verify_morse") {
@@ -432,7 +431,7 @@ export default class GameRoomServer {
         return new Response(JSON.stringify({ ok: true, roomCode: targetRoomCode }), {
           headers: {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
+            ...corsHeaders,
           },
         });
       }
@@ -440,7 +439,7 @@ export default class GameRoomServer {
         status: 400,
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
+          ...corsHeaders,
         },
       });
     }
@@ -479,7 +478,7 @@ export default class GameRoomServer {
           return new Response(JSON.stringify(payload), {
             headers: {
               "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
+              ...corsHeaders,
             },
           });
         }
@@ -497,7 +496,7 @@ export default class GameRoomServer {
             {
               headers: {
                 "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*",
+                ...corsHeaders,
               },
             }
           );
@@ -526,7 +525,7 @@ export default class GameRoomServer {
           return new Response(JSON.stringify(payload), {
             headers: {
               "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
+              ...corsHeaders,
             },
           });
         }
@@ -542,7 +541,7 @@ export default class GameRoomServer {
           status: 404,
           headers: {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
+            ...corsHeaders,
           },
         }
       );
@@ -561,7 +560,7 @@ export default class GameRoomServer {
       return new Response(JSON.stringify(waitingRooms), {
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
+          ...corsHeaders,
         },
       });
     }
@@ -569,7 +568,7 @@ export default class GameRoomServer {
     return new Response(JSON.stringify(allRooms), {
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
+        ...corsHeaders,
       },
     });
   }

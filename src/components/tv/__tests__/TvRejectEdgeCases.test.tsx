@@ -4,6 +4,7 @@ import { render, screen, act, cleanup } from "@testing-library/react";
 import { TvBoardView } from "../TvBoardView";
 import { createInitialState } from "../../../utils/gameLogic";
 import { partyService } from "../../../utils/partyPeer";
+import { soundManager } from "../../../utils/audio";
 
 // Лёгкий мок framer-motion: AnimatePresence не держит элемент до конца
 // exit-анимации, поэтому авто-скрытие плашки проверяется детерминированно.
@@ -78,6 +79,11 @@ function emitAction(action: any) {
 describe("TvBoardView: граничные случаи плашки отказа", () => {
   beforeEach(() => {
     partyService.clearAllListeners();
+    // jsdom не реализует HTMLMediaElement.play(): реальный soundManager пишет в
+    // console.error шум "Not implemented: HTMLMediaElement's play()". Мокаем
+    // воспроизведение звука, чтобы шпион console.error ловил только реальные
+    // ошибки приложения, а не заглушку браузерного окружения.
+    vi.spyOn(soundManager, "play").mockImplementation(() => {});
     vi.clearAllMocks();
   });
 

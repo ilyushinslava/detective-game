@@ -350,7 +350,15 @@ describe("GameRoomServer Security (SEC-01 & SEC-02)", () => {
       // Session must be rebound to the new clientId
       expect(server.state.players["brand_new_client_id"]).toBeDefined();
       expect(server.state.players["initial_client_id"]).toBeUndefined();
-      expect(server.state.players["brand_new_client_id"].authToken).toBe(validToken);
+      // Кластер 3: при успешном (re)bind сервер ротирует authToken и выдаёт новый.
+      const rotatedToken = p1NewConn.sent
+        .map((s) => JSON.parse(s))
+        .find((m) => m.type === "AUTH_TOKEN")?.authToken;
+      expect(rotatedToken).toBeDefined();
+      expect(rotatedToken).not.toBe(validToken);
+      expect(server.state.players["brand_new_client_id"].authToken).toBe(rotatedToken);
+      // Прежний токен сохраняется как предыдущий для окна совместимости.
+      expect(server.state.players["brand_new_client_id"].previousAuthToken).toBe(validToken);
       expect(server.state.players["brand_new_client_id"].connectionId).toBe("conn_p1_reloaded");
     });
   });

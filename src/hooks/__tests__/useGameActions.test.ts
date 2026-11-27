@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useGameActions, type UseGameActionsParams } from "../useGameActions";
 import { createInitialState } from "../../utils/gameLogic";
@@ -216,6 +216,93 @@ describe("useGameActions Hook", () => {
           payload: { targetId: chosenOfficerId },
         })
       );
+    });
+  });
+
+  describe("MEM-RES-03: таймер подсветки ошибки", () => {
+    const setupMissAccuse = () => {
+      const state = createInitialState("MANIAC_VS_OPERATIVE", "AI", "KILLER");
+      state.currentTurn = "DETECTIVE";
+      const board = state.board.flat();
+      const missTarget = board.find((c) => c.id !== state.killerSecretId)!.id;
+      const secondMissTarget = board.find(
+        (c) => c.id !== state.killerSecretId && c.id !== missTarget
+      )!.id;
+      mockParams.gameState = state;
+      mockParams.isHumanTurn = true;
+      mockParams.selectedId = missTarget;
+      return { missTarget, secondMissTarget };
+    };
+
+    const nullCalls = () =>
+      (mockParams.setErrorCardId as unknown as ReturnType<typeof vi.fn>).mock.calls.filter(
+        (call: any[]) => call[0] === null
+      );
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("очищает таймер подсветки при размонтировании (нет setState после unmount)", () => {
+      setupMissAccuse();
+      const { result, unmount } = renderHook(() => useGameActions(mockParams));
+
+      act(() => {
+        result.current.handleAccuse();
+      });
+
+      expect(mockParams.setErrorCardId).toHaveBeenCalledTimes(1);
+      expect(nullCalls()).toHaveLength(0);
+
+      unmount();
+
+      act(() => {
+        vi.advanceTimersByTime(600);
+      });
+
+      // Таймер должен быть снят в cleanup-эффекте: сброса в null после unmount нет.
+      expect(nullCalls()).toHaveLength(0);
+    });
+
+    it("при повторном отказе старый таймер не сбрасывает новую подсветку раньше времени", () => {
+      const { missTarget, secondMissTarget } = setupMissAccuse();
+      const { result, rerender } = renderHook(
+        (params: UseGameActionsParams) => useGameActions(params),
+        { initialProps: mockParams }
+      );
+
+      act(() => {
+        result.current.handleAccuse();
+      });
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+
+      mockParams = { ...mockParams, selectedId: secondMissTarget };
+      rerender(mockParams);
+
+      act(() => {
+        result.current.handleAccuse();
+      });
+
+      // t = 500 мс от первого отказа: старый таймер уже очищен новым вызовом.
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+      expect(nullCalls()).toHaveLength(0);
+
+      // Новый таймер отрабатывает ровно один раз через 500 мс после второго отказа.
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+      expect(nullCalls()).toHaveLength(1);
+
+      expect(mockParams.setErrorCardId).toHaveBeenNthCalledWith(1, missTarget);
+      expect(mockParams.setErrorCardId).toHaveBeenNthCalledWith(2, secondMissTarget);
     });
   });
 });

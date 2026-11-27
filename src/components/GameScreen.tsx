@@ -185,6 +185,19 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
     [allChars, selectedId]
   );
 
+  // MEM-RES-03: id таймера подсветки ошибки для очистки при размонтировании
+  // и при повторном неверном выборе.
+  const errorCardTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (errorCardTimeoutRef.current) {
+        clearTimeout(errorCardTimeoutRef.current);
+        errorCardTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
   const isInspectorChoosing =
     Boolean(gameState.inspectorChoices && gameState.inspectorChoices.length > 0) &&
     isDetectiveTurn &&
@@ -194,8 +207,15 @@ export const GameScreen: React.FC<GameScreenProps> = memo(({
     if (isInspectorChoosing) {
       soundManager.play("error");
       if (setErrorCardId) {
+        if (errorCardTimeoutRef.current) {
+          clearTimeout(errorCardTimeoutRef.current);
+          errorCardTimeoutRef.current = null;
+        }
         setErrorCardId(id);
-        setTimeout(() => setErrorCardId(null), 500);
+        errorCardTimeoutRef.current = setTimeout(() => {
+          setErrorCardId(null);
+          errorCardTimeoutRef.current = null;
+        }, 500);
       }
       return;
     }

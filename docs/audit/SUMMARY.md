@@ -11,32 +11,46 @@
 
 Комплексный аудит кодовой базы проведён по 4 ключевым направлениям:
 
-| Документ | Направление аудита | Ключевой фокус | Статус реализации |
-| :--- | :--- | :--- | :--- |
-| [01-security-and-network.md](file:///c:/Projects/detective-game/docs/archive/audit/01-security-and-network.md) | **Безопасность, сеть и память** | PartyKit WebSocket, маскирование ролей, античит, токены, гонки, устранение утечек памяти | ✅ Выполнен (Архив) |
-| [02-code-quality-and-perf.md](file:///c:/Projects/detective-game/docs/archive/audit/02-code-quality-and-perf.md) | **Качество кода и производительность** | Мёртвый код, строгая типизация (`noImplicitAny`, `strictNullChecks`), устранение 1-сек ререндера доски | ✅ Выполнен (Архив) |
-| [03-ui-ux-consistency.md](file:///c:/Projects/detective-game/docs/archive/audit/03-ui-ux-consistency.md) | **Neo-Noir дизайн и мобильный UX** | Чистка циана/эмодзи, терминология («Главное меню», «Код»), iOS Safe Area, `100dvh`, Touch Targets $\ge 44$px | ✅ Выполнен (Архив) |
-| [04-architecture-and-lineup.md](file:///c:/Projects/detective-game/docs/audit/04-architecture-and-lineup.md) | **Архитектура и режим «Очная ставка»** | Разбор LINE_UP (рассинхрон стейта, бот) и реструктуризация Академии v2 | 🟡 В работе (Академия v2 закрыта, LINE_UP заморожен) |
+| Документ                                                                                                         | Направление аудита                     | Ключевой фокус                                                                                               | Статус реализации                                    |
+| :--------------------------------------------------------------------------------------------------------------- | :------------------------------------- | :----------------------------------------------------------------------------------------------------------- | :--------------------------------------------------- |
+| [01-security-and-network.md](file:///c:/Projects/detective-game/docs/archive/audit/01-security-and-network.md)   | **Безопасность, сеть и память**        | PartyKit WebSocket, маскирование ролей, античит, токены, гонки, устранение утечек памяти                     | ✅ Выполнен (Архив)                                  |
+| [02-code-quality-and-perf.md](file:///c:/Projects/detective-game/docs/archive/audit/02-code-quality-and-perf.md) | **Качество кода и производительность** | Мёртвый код, строгая типизация (`noImplicitAny`, `strictNullChecks`), устранение 1-сек ререндера доски       | ✅ Выполнен (Архив)                                  |
+| [03-ui-ux-consistency.md](file:///c:/Projects/detective-game/docs/archive/audit/03-ui-ux-consistency.md)         | **Neo-Noir дизайн и мобильный UX**     | Чистка циана/эмодзи, терминология («Главное меню», «Код»), iOS Safe Area, `100dvh`, Touch Targets $\ge 44$px | ✅ Выполнен (Архив)                                  |
+| [04-architecture-and-lineup.md](file:///c:/Projects/detective-game/docs/audit/04-architecture-and-lineup.md)     | **Архитектура и режим «Очная ставка»** | Разбор LINE_UP (рассинхрон стейта, бот) и реструктуризация Академии v2                                       | 🟡 В работе (Академия v2 закрыта, LINE_UP заморожен) |
 
 ---
 
 ## 2. Статус выполнения спринтов
 
 ### ✅ Спринт 1: Безопасность и Стабильность Ядра (P0 Critical) — ВЫПОЛНЕН
+
 - [x] **CRIT-01:** Серверная защита от фейк-победы `CAPTURE_SPY` (проверка режима `SECRET_SERVICE`, авторитетный сервер).
 - [x] **CRIT-04:** Устранение 1-секундного ре-рендера доски 5×5 (мемоизация `GameBoard`, изоляция тикания таймера).
 - [x] **CRIT-05:** Устранение утечки памяти в `partyService` (типизированная шина событий).
 - [x] **HIGH-01:** Маскирование скрытых полей дуэли и руки грабителя в `maskStateForPlayer` и `maskStateForTv`.
 - [x] **HIGH-02:** Серверный расчет банка матча `matchPot` и блокировка клиентских вызовов `SET_MATCH_POT`.
 
+### ✅ Спринт 2: Целостность матча (SEC-NET) — ВЫПОЛНЕН ЧАСТИЧНО (2026-11-27)
+
+> Отдельный сетевой спринт по архивному аудиту [01-security-and-network.md](file:///c:/Projects/detective-game/docs/archive/audit/01-security-and-network.md). Не путать с замороженным спринтом «Очная ставка» ниже.
+
+- [x] **SEC-NET-05 (P2):** серверная проверка соседства 3×3 в [`validateActionLogic()`](file:///c:/Projects/detective-game/src/server/index.ts#L1079) для `KILL_CHARACTER`/`TARGET_KILL`, `ROB_NEIGHBOR`/`ROB`/`STEAL`, `ACCUSE`/`ARREST`, `CAPTURE_SPY`/`INTERROGATE`; новый код `TARGET_NOT_IN_RADIUS` и страховка от «тихого» no-op → `ACTION_NOT_APPLIED`. Тест-сьют [spatialValidation.test.ts](file:///c:/Projects/detective-game/src/server/__tests__/spatialValidation.test.ts) — 16 тестов. Merge `b72fa74`, коммит `94447be`.
+- [x] **Клиентская обработка отказов (задача 2.4):** `isActionRejectReason()` в [serverEvents.ts](file:///c:/Projects/detective-game/src/utils/serverEvents.ts), дедупликация `SYNC_ERROR` + `ACTION_REJECTED`, авто-скрытие через 5 с в [useMultiplayer.ts](file:///c:/Projects/detective-game/src/utils/useMultiplayer.ts), неблокирующая плашка [MatchStatusBanner.tsx](file:///c:/Projects/detective-game/src/components/MatchStatusBanner.tsx); `ServerMessageModal` остаётся только для настоящего десинка. Merge `a2ae60a`, коммит `6a0d143`.
+- [x] **SEC-NET-04 (HIGH):** блокировка `RESTART_DUEL` / `RESOLVE_DUEL_TIE_BREAK` закрыта в коде двумя слоями: ранний фильтр в [`onMessage`](file:///c:/Projects/detective-game/src/server/index.ts#L1376-L1385) и код `PROHIBITED_ACTION` в [`validateActionLogic`](file:///c:/Projects/detective-game/src/server/index.ts#L1141-L1147). Тестами покрыто частично (см. бэклог `SEC-NET-04-T`).
+- [ ] **SEC-NET-06 (P2):** гонка состояния при реконнекте сокетов с `authToken` — не закрыта.
+- [ ] **TV-REJECT:** текст отказа на ТВ-экране в 10-foot UI — не реализован (на ТВ отказ сейчас не выводится).
+- [ ] **TOOL-VITEST:** апгрейд `vitest` — отложен.
+
 ### 🟡 Спринт 2: Режим «Очная ставка» (`LINE_UP`) — [ЗАМОРОЖЕН / В РАЗРАБОТКЕ]
+
 - [ ] **CRIT-02:** Устранение State Split-Brain между `duelReducer` и `gameReducer`.
 - [ ] **CRIT-03:** Фикс сломанного `questionId` в мобильном контроллере ТВ-режима.
 - [ ] **ARC-LU-02:** Подключение энтропийного ИИ-бота в оффлайн-дуэли.
 - [ ] **ARC-LU-05:** Отображение атрибутов внешности на карточках поля в режиме `LINE_UP`.
-> *Решение:* Режим временно скрыт из главного меню, турнирной ротации и Академии. Задачи перенесены в изолированный бэклог будущего редизайна.
+  > _Решение:_ Режим временно скрыт из главного меню, турнирной ротации и Академии. Задачи перенесены в изолированный бэклог будущего редизайна.
 
 ### ✅ Спринт 3: Мобильный UX, Safe Area и Neo-Noir гармонизация — ВЫПОЛНЕН
+
 - [x] **HIGH-03:** Внедрение iOS Safe Area (`pt-[max(0.75rem,env(safe-area-inset-top))]`, `pb-[max(0.75rem,env(safe-area-inset-bottom))]`) и `100dvh` во всех экранах.
 - [x] **HIGH-04:** Полная зачистка остатков циана (`cyan-*`, `#06b6d4`, `accent-neon`) и теней `shadow-neon-*`.
 - [x] **MED-01:** Чистка пафосной терминологии: «Штаб» ➔ «Главное меню», «Шифр» ➔ «Код комнаты», «Связной» ➔ «Игрок».
@@ -44,6 +58,7 @@
 - [x] Запрет системных цветных эмодзи в UI (переход строго на монохромные SVG из UI Kit).
 
 ### ✅ Спринт 4: Чистка кода, Типизация и Подготовка к Релизу — ВЫПОЛНЕН
+
 - [x] **HIGH-06:** Добавление свойства `isArrested?: boolean` в базовый контракт `Character`.
 - [x] **HIGH-07:** Замена прямых вызовов `localStorage` на безопасный фасад `safeLocalStorage` / `storage.ts`.
 - [x] **HIGH-08:** Устранение дублирующих импортов 50 портретов (единый модуль `characterImages.ts`).
@@ -52,6 +67,7 @@
 - [x] Настройка автоматического CI на GitHub Actions (`.github/workflows/ci.yml`).
 
 ### ✅ Спринт: Академия v2 (Zero-Jump & Сюжет) — ВЫПОЛНЕН
+
 - [x] Переработка сюжета: 3 канонических дела строго по [GAME_RULES.md](file:///c:/Projects/detective-game/docs/GAME_RULES.md) (11 шагов вместо 28 раздробленных).
 - [x] Объединённый шаг `CARD_ACTION`: клик по карте сразу активирует кнопку действия внизу без дробления на два экрана.
 - [x] Жёсткая неподвижная 4-слотовая вёрстка `100dvh` (шапка `h-14`, брифинг `h-[84px]`, доска `flex-1`, панель действий `h-[64px]`).
@@ -65,16 +81,21 @@
 
 В открытом бэклоге оставлены только задачи, не блокирующие релиз v2.0.0:
 
-| ID | Задача | Зона | Описание |
-| :--- | :--- | :--- | :--- |
-| **DEBT-01** | Редизайн «Очной ставки» (`LINE_UP`) | Game Core / UI | Полная пересборка замороженного режима: унификация с `gameReducer`, ИИ-бот, атрибутивные карточки. |
-| **DEBT-02** | Стресс-тестирование ТВ-режима на слабом Android TV железе | TV Party | Профилирование FPS Framer Motion анимаций на бюджетных ТВ-приставках с 1 ГБ RAM. |
+| ID               | Задача                                                    | Зона               | Описание                                                                                                                                                                                                                                                             |
+| :--------------- | :-------------------------------------------------------- | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **DEBT-01**      | Редизайн «Очной ставки» (`LINE_UP`)                       | Game Core / UI     | Полная пересборка замороженного режима: унификация с `gameReducer`, ИИ-бот, атрибутивные карточки.                                                                                                                                                                   |
+| **DEBT-02**      | Стресс-тестирование ТВ-режима на слабом Android TV железе | TV Party           | Профилирование FPS Framer Motion анимаций на бюджетных ТВ-приставках с 1 ГБ RAM.                                                                                                                                                                                     |
+| **SEC-NET-04-T** | Тестовое покрытие блокировки `RESTART_DUEL`               | Security / QA      | Тест [authoritativeSync.test.ts](file:///c:/Projects/detective-game/src/server/__tests__/authoritativeSync.test.ts#L420) проверяет только `SET_MATCH_POT` и `RESOLVE_DUEL_TIE_BREAK`; реальная отправка `RESTART_DUEL` и код `PROHIBITED_ACTION` тестами не покрыты. |
+| **SEC-NET-06**   | Гонка состояния при реконнекте сокетов                    | Security / Network | Привязка сессии к `authToken` вместо динамического `connectionId`/`clientId`, блокировка смены состояния во время дисконнекта.                                                                                                                                       |
+| **TV-REJECT**    | Отображение отказа действия на ТВ                         | TV Party / UI      | Плашка отказа реализована на мобильном контроллере; на ТВ-экране причина отказа не выводится.                                                                                                                                                                        |
+| **TOOL-VITEST**  | Апгрейд `vitest`                                          | Tooling            | Плановое обновление тест-раннера; отложено, чтобы не ломать текущий прогон.                                                                                                                                                                                          |
 
 ---
 
 ## 4. Заключение
 
 Проект полностью стабилизирован:
+
 - **618 тестов Vitest (100% pass)**.
 - Сборка чистая и быстрая.
 - Безопасность авторитетного сервера PartyKit подтверждена.

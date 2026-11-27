@@ -364,18 +364,28 @@ describe("useMultiplayer Hook", () => {
       expect(mockParams.matchResultRecordedRef.current).toBe(true);
     });
 
-    it("SYNC_ERROR выставляет сообщение с причиной, clearSyncError очищает", () => {
+    it("SYNC_ERROR с настоящей причиной десинка выставляет сообщение, clearSyncError очищает", () => {
       const { result } = renderHook(() => useMultiplayer(mockParams));
 
       act(() => {
-        partyService.onAction?.({ type: "SYNC_ERROR", reason: "NOT_YOUR_TURN" });
+        partyService.onAction?.({ type: "SYNC_ERROR", reason: "STATE_HASH_MISMATCH" });
       });
 
       expect(result.current.syncErrorMessage).toContain("Переподключитесь");
-      expect(result.current.syncErrorMessage).toContain("Сейчас ход соперника");
+      expect(result.current.syncErrorMessage).toContain("STATE_HASH_MISMATCH");
 
       act(() => {
         result.current.clearSyncError();
+      });
+
+      expect(result.current.syncErrorMessage).toBeNull();
+    });
+
+    it("SYNC_ERROR с обычной причиной отказа действия не показывает модалку десинка", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({ type: "SYNC_ERROR", reason: "TARGET_NOT_IN_RADIUS" });
       });
 
       expect(result.current.syncErrorMessage).toBeNull();
@@ -397,13 +407,76 @@ describe("useMultiplayer Hook", () => {
       expect(result.current.actionRejectedMessage).toBeNull();
     });
 
-    it("новый syncState снимает залипшее сообщение об отклонённом действии", () => {
+    it("ACTION_REJECTED TARGET_NOT_IN_RADIUS показывает понятную причину про радиус 3×3", () => {
       const { result } = renderHook(() => useMultiplayer(mockParams));
 
       act(() => {
-        partyService.onAction?.({ type: "ACTION_REJECTED", reason: "NOT_HOST" });
+        partyService.onAction?.({ type: "ACTION_REJECTED", reason: "TARGET_NOT_IN_RADIUS" });
+      });
+
+      expect(result.current.actionRejectedMessage).toContain("3×3");
+      expect(result.current.actionRejectedReason).toBe("TARGET_NOT_IN_RADIUS");
+    });
+
+    it("ACTION_REJECTED ACTION_NOT_APPLIED показывает текст о неприменённом действии", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({ type: "ACTION_REJECTED", reason: "ACTION_NOT_APPLIED" });
+      });
+
+      expect(result.current.actionRejectedMessage).toContain("не было применено");
+    });
+
+    it("ACTION_REJECTED с неизвестным кодом показывает generic-текст с самим кодом", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({ type: "ACTION_REJECTED", reason: "SOME_UNKNOWN_CODE" });
+      });
+
+      expect(result.current.actionRejectedMessage).toContain("SOME_UNKNOWN_CODE");
+    });
+
+    it("сообщение об отказе автоматически скрывается через 5 секунд", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({ type: "ACTION_REJECTED", reason: "TARGET_NOT_IN_RADIUS" });
       });
       expect(result.current.actionRejectedMessage).not.toBeNull();
+
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+
+      expect(result.current.actionRejectedMessage).toBeNull();
+      expect(result.current.actionRejectedReason).toBeNull();
+    });
+
+    it("звук deny проигрывается только на основном экране (isPrimaryDisplay)", () => {
+      renderHook(() => useMultiplayer(mockParams));
+      act(() => {
+        partyService.onAction?.({ type: "ACTION_REJECTED", reason: "TARGET_NOT_IN_RADIUS" });
+      });
+      expect(soundManager.play).toHaveBeenCalledWith("deny");
+    });
+
+    it("на мобильном контроллере (isPrimaryDisplay=false) хук не дублирует звук deny", () => {
+      renderHook(() => useMultiplayer({ ...mockParams, isPrimaryDisplay: false }));
+      act(() => {
+        partyService.onAction?.({ type: "ACTION_REJECTED", reason: "TARGET_NOT_IN_RADIUS" });
+      });
+      expect(soundManager.play).not.toHaveBeenCalledWith("deny");
+    });
+
+    it("новый syncState НЕ перетирает сообщение об отклонённом действии", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({ type: "ACTION_REJECTED", reason: "TARGET_NOT_IN_RADIUS" });
+      });
+      expect(result.current.actionRejectedMessage).toContain("3×3");
 
       act(() => {
         partyService.onSyncState?.(
@@ -413,7 +486,7 @@ describe("useMultiplayer Hook", () => {
         );
       });
 
-      expect(result.current.actionRejectedMessage).toBeNull();
+      expect(result.current.actionRejectedMessage).toContain("3×3");
     });
 
     it("reconnectToRoom вызывает partyService.ensureConnection", () => {

@@ -505,6 +505,9 @@ export default function App() {
     setSelectedId,
     setSelectedInspectorChoiceId,
     setIsPauseOpen,
+    // Звук отказа действия проигрывает только основной экран.
+    // Мобильный контроллер реагирует инлайн (deny + haptics), ТВ не подписан на события.
+    isPrimaryDisplay: !isControllerMode,
   });
 
   // Игровой таймер замирает на время серверных пауз (пауза хода / двойной дисконнект),
@@ -1000,12 +1003,14 @@ export default function App() {
         }}
       />
 
-      {/* Баннер паузы матча: пауза таймера хода или двойной дисконнект */}
+      {/* Неблокирующий баннер: пауза таймера/двойной дисконнект или краткий отказ действия */}
       <MatchStatusBanner
         isTurnTimerPaused={isTurnTimerPaused}
         turnTimerRemainingMs={turnTimerRemainingMs}
         isDualDisconnectPaused={isDualDisconnectPaused}
         dualDisconnectGraceMs={dualDisconnectGraceMs}
+        rejectMessage={isControllerMode ? null : actionRejectedMessage}
+        onDismissReject={clearActionRejected}
       />
 
       {/* Финальный экран аннулированного матча: нейтральный, без победы/поражения */}
@@ -1033,16 +1038,6 @@ export default function App() {
         }}
         secondaryLabel="Продолжить"
         onSecondary={clearSyncError}
-      />
-
-      {/* Отклонённое сервером действие: причина видна полностью */}
-      <ServerMessageModal
-        isOpen={Boolean(actionRejectedMessage)}
-        variant="warning"
-        title="Действие отклонено"
-        message={actionRejectedMessage || ""}
-        primaryLabel="Понятно"
-        onPrimary={clearActionRejected}
       />
 
       {/* Анимированный Liquid-фон для всех игровых экранов и режимов (вне Главного меню) */}

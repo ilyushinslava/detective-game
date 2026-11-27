@@ -20,6 +20,7 @@ import { HostTvRemoteModal } from './HostTvRemoteModal';
 import { safeLocalStorage } from '../../utils/storage';
 import { Icons as UiIcons } from '../ui/Icons';
 import { partyService } from '../../utils/partyPeer';
+import { getServerRejectReasonText, isActionRejectReason } from '../../utils/serverEvents';
 import { characterImages, getCharacterPortraitPath } from '../../constants/characterImages';
 import { Button } from '../ui/Button';
 import { BOARD_GRID_SIZE, TURN_GRACE_PERIOD_SECONDS } from '../../constants/gameRules';
@@ -61,6 +62,9 @@ export type ShiftWizardStep =
   | 'CONFIRM';      // Совместимость: подтверждение
 
 type ActionDef = ActionDescriptor;
+
+// Время авто-скрытия инлайн-плашки причины отказа действия (мс).
+const CONTROLLER_REJECT_NOTICE_MS = 4500;
 
 const Icons = {
   Clock: () => (
@@ -226,6 +230,10 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   const [errorTargetId, setErrorTargetId] = useState<string | null>(null);
   const [isAwaitingTurnEnd, setIsAwaitingTurnEnd] = useState<boolean>(false);
 
+  // Понятная причина отказа сервера (инлайн-плашка, без блокирующих модалок)
+  const [rejectMessage, setRejectMessage] = useState<string | null>(null);
+  const rejectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Сетевые состояния потери связи и грейс-периода
   const [internalLocalDisconnected, setInternalLocalDisconnected] = useState(false);
   const [internalReconnectAttempt, setInternalReconnectAttempt] = useState(0);
@@ -266,7 +274,16 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     const unsubRec = partyService.subscribe("playerReconnected", handleRec);
     const unsubRestored = partyService.subscribe("sessionRestored", handleRestored);
     const unsubAction = partyService.subscribe("action", (action: any) => {
-      if (action?.type === 'ACTION_REJECTED' || action?.type === 'ERROR' || action?.type === 'SYNC_ERROR') {
+      const actionType = action?.type;
+
+      // Сервер присылает SYNC_ERROR парой с ACTION_REJECTED на один обычный отказ.
+      // Для известных причин отказа плашку и звук обрабатывает ACTION_REJECTED,
+      // иначе отказ прозвучал бы и отобразился дважды (дедупликация).
+      if (actionType === 'SYNC_ERROR' && isActionRejectReason(action?.reason)) {
+        return;
+      }
+
+      if (actionType === 'ACTION_REJECTED' || actionType === 'ERROR' || actionType === 'SYNC_ERROR') {
         setIsAwaitingTurnEnd(false);
         playLocalSound('deny');
         triggerHaptic('error');
@@ -274,6 +291,19 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         if (errId) {
           setErrorTargetId(errId);
           setTimeout(() => setErrorTargetId(null), 500);
+        }
+
+        if (actionType === 'ACTION_REJECTED') {
+          const reason = typeof action?.reason === 'string' ? action.reason : undefined;
+          if (rejectTimerRef.current) {
+            clearTimeout(rejectTimerRef.current);
+            rejectTimerRef.current = null;
+          }
+          setRejectMessage(getServerRejectReasonText(reason));
+          rejectTimerRef.current = setTimeout(() => {
+            setRejectMessage(null);
+            rejectTimerRef.current = null;
+          }, CONTROLLER_REJECT_NOTICE_MS);
         }
       } else if (action?.type === 'TV_PAUSE_CHANGED') {
         setIsTvPaused(Boolean(action.isPaused));
@@ -288,6 +318,16 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
       unsubRec();
       unsubRestored();
       unsubAction();
+    };
+  }, []);
+
+  // Снятие таймера авто-скрытия плашки отказа при размонтировании.
+  useEffect(() => {
+    return () => {
+      if (rejectTimerRef.current) {
+        clearTimeout(rejectTimerRef.current);
+        rejectTimerRef.current = null;
+      }
     };
   }, []);
 
@@ -1582,6 +1622,42 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
             onClick: () => handleExecuteAction(act),
           }))}
         />
+
+        {/* Инлайн-плашка причины отказа сервера (без блокирующих модалок).
+            Абсолютный слой над доком действий: не участвует в потоке раскладки,
+            поэтому не создаёт вертикального скролла на 375×667. */}
+        <AnimatePresence>
+          {rejectMessage && (
+            <motion.div
+              key="controller-reject-banner"
+              data-testid="controller-reject-banner"
+              role="status"
+              aria-live="polite"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="absolute bottom-full mb-2 inset-x-0 z-30 pointer-events-none"
+            >
+              <div className="neo-card flex items-start gap-2.5 bg-rose-950/95 border border-rose-500/70 text-rose-100 rounded-xl px-3 py-2 shadow-2xl">
+                <span className="shrink-0 text-rose-300 mt-0.5" aria-hidden="true">
+                  <UiIcons.AlertCircle className="w-4 h-4" />
+                </span>
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="font-display text-[10px] uppercase tracking-wider text-rose-300">
+                    ДЕЙСТВИЕ ОТКЛОНЕНО
+                  </span>
+                  <span
+                    data-testid="controller-reject-reason"
+                    className="font-sans text-sm leading-snug whitespace-normal break-words"
+                  >
+                    {rejectMessage}
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Шторка Pass-and-Play */}

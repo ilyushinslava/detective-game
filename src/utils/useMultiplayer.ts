@@ -67,8 +67,11 @@ export function useMultiplayer({
   const [syncErrorMessage, setSyncErrorMessage] = useState<string | null>(null);
   const [actionRejectedMessage, setActionRejectedMessage] = useState<string | null>(null);
   const [actionRejectedReason, setActionRejectedReason] = useState<string | null>(null);
+  /** Сессия замещена новой вкладкой: показываем блокирующее сообщение без реконнекта. */
+  const [sessionSupersededMessage, setSessionSupersededMessage] = useState<string | null>(null);
   const rejectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const matchAnnulledRef = useRef(false);
+  const sessionSupersededRef = useRef(false);
   const isTurnTimerPausedRef = useRef(false);
   const hasTurnTimerRef = useRef(false);
 
@@ -331,12 +334,27 @@ export function useMultiplayer({
       }
     });
 
+    // Сессия замещена новой вкладкой: автопереподключение уже остановлено в partyPeer,
+    // здесь только показываем игроку понятное сообщение (без дублей).
+    const unsubSessionSuperseded = subscribeOrAssign(
+      "sessionSuperseded",
+      "onSessionSuperseded",
+      (_info: { reason?: string }) => {
+        if (sessionSupersededRef.current) return;
+        sessionSupersededRef.current = true;
+        setSessionSupersededMessage(
+          "Сессия открыта в другой вкладке. Это окно больше не управляет игрой."
+        );
+      }
+    );
+
     return () => {
       unsubSyncState();
       unsubRoomStatus();
       unsubAllPlayersReady();
       unsubPresenceChanged();
       unsubAction();
+      unsubSessionSuperseded();
     };
   }, [gameState.opponent, setGameState, setToastMessage, setIsLobbyOpen, setHasStartedEver, setIsIntroPhase, isPrimaryDisplay]);
 
@@ -418,6 +436,8 @@ export function useMultiplayer({
 
     // Полный сброс серверных состояний, чтобы новый матч стартовал «с чистого листа».
     matchAnnulledRef.current = false;
+    sessionSupersededRef.current = false;
+    setSessionSupersededMessage(null);
     isTurnTimerPausedRef.current = false;
     hasTurnTimerRef.current = false;
     setIsMatchAnnulled(false);
@@ -478,6 +498,7 @@ export function useMultiplayer({
     syncErrorMessage,
     actionRejectedMessage,
     actionRejectedReason,
+    sessionSupersededMessage,
     reconnectToRoom,
     clearSyncError,
     clearActionRejected,

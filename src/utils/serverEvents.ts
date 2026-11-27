@@ -11,6 +11,7 @@ export const SERVER_EVENT_TYPES: readonly ServerEventType[] = [
   "MATCH_ANNULLED",
   "SYNC_ERROR",
   "ACTION_REJECTED",
+  "SESSION_SUPERSEDED",
 ] as const;
 
 const SERVER_EVENT_TYPE_SET = new Set<string>(SERVER_EVENT_TYPES);
@@ -75,7 +76,8 @@ export function parseServerEvent(raw: unknown): ServerEvent | null {
           : undefined;
       return { type: data.type, reason: normalizeReason(data.reason), actionType };
     }
-    case "ACTION_REJECTED": {
+    case "ACTION_REJECTED":
+    case "SESSION_SUPERSEDED": {
       return { type: data.type, reason: normalizeReason(data.reason) };
     }
     default:

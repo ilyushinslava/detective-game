@@ -60,6 +60,13 @@ describe("serverEvents", () => {
       });
     });
 
+    it("разбирает SESSION_SUPERSEDED и сохраняет reason", () => {
+      expect(parseServerEvent({ type: "SESSION_SUPERSEDED", reason: "NEW_SESSION" })).toEqual({
+        type: "SESSION_SUPERSEDED",
+        reason: "NEW_SESSION",
+      });
+    });
+
     it("разбирает ACTION_REJECTED с причиной TARGET_NOT_IN_RADIUS", () => {
       expect(
         parseServerEvent({ type: "ACTION_REJECTED", reason: "TARGET_NOT_IN_RADIUS" })

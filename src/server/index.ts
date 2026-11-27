@@ -1,10 +1,27 @@
-import { createInitialState, isOppositeShift } from "../utils/gameLogic";
+import { areAdjacent, createInitialState, isOppositeShift } from "../utils/gameLogic";
 import { gameReducer } from "../utils/gameReducer";
 import { guestRegistry } from "../utils/guestManager";
 import { sanitizePlayerName } from "../utils/nameFilter";
 import type { GameState, Role, GameModeType } from "../types/game";
 import type { ClientDeviceType } from "../types/multiplayer";
 import { TURN_TIME_LIMIT_MS, TURN_GRACE_PERIOD_SECONDS } from "../constants/gameRules";
+
+/**
+ * Пространственные действия, которые обязаны изменить состояние игры.
+ * Если gameReducer вернул тот же объект состояния — действие фактически не применилось
+ * (например, цель уже помилована или проверка внутри редьюсера не прошла).
+ */
+const SPATIAL_ACTIONS = new Set<string>([
+  "KILL_CHARACTER",
+  "TARGET_KILL",
+  "ROB_NEIGHBOR",
+  "ROB",
+  "STEAL",
+  "ACCUSE",
+  "ARREST",
+  "CAPTURE_SPY",
+  "INTERROGATE",
+]);
 
 export type { ClientDeviceType };
 
@@ -1037,6 +1054,28 @@ export default class GameRoomServer {
     }
   }
 
+  /**
+   * Возвращает secretId активного агента SECRET_SERVICE для проверки радиуса 3x3.
+   * Точно повторяет fallback из spyCatch/spyInterrogate: если тайная личность
+   * отсутствует на доске или мертва — берётся первый живой персонаж.
+   */
+  private resolveSpyActorSecretId(): string {
+    const gameState = this.state.gameState;
+    if (!gameState) return "";
+    const spies = gameState.spies || [];
+    const activeSpyIndex = gameState.activeSpyIndex ?? 0;
+    const activeSpy = spies[activeSpyIndex];
+    let secretId: string | undefined = activeSpy?.secretId;
+    const isOnBoard = secretId
+      ? gameState.board.flat().some((c) => c.id === secretId && c.isAlive)
+      : false;
+    if (!isOnBoard) {
+      const firstAlive = gameState.board.flat().find((c) => c.isAlive);
+      if (firstAlive) secretId = firstAlive.id;
+    }
+    return secretId ?? "";
+  }
+
   validateActionLogic(
     action: any,
     player: PlayerInfo | null,
@@ -1159,6 +1198,48 @@ export default class GameRoomServer {
         if (targetChar.isRobbed) {
           return { valid: false, reason: "TARGET_ALREADY_ROBBED" };
         }
+      }
+    }
+
+    // 4. Серверная проверка радиуса 3x3 для пространственных действий.
+    // Зеркалирует правила gameLogic: соседство по Чебышёву, без замыкания тором.
+    const spatialTargetId = action.payload?.targetId || action.payload?.targetCardId;
+    if (spatialTargetId && typeof spatialTargetId === "string") {
+      const board = this.state.gameState.board;
+      let allowed = true;
+
+      if (action.type === "KILL_CHARACTER" || action.type === "TARGET_KILL") {
+        allowed = areAdjacent(board, this.state.gameState.killerSecretId, spatialTargetId);
+      } else if (
+        action.type === "ROB_NEIGHBOR" ||
+        action.type === "ROB" ||
+        action.type === "STEAL"
+      ) {
+        allowed =
+          areAdjacent(board, this.state.gameState.killerSecretId, spatialTargetId) ||
+          spatialTargetId === this.state.gameState.killerSecretId;
+      } else if (action.type === "ACCUSE" || action.type === "ARREST") {
+        const detectiveSecretId = this.state.gameState.detectiveSecretId;
+        allowed =
+          areAdjacent(board, detectiveSecretId, spatialTargetId) ||
+          spatialTargetId === detectiveSecretId;
+        if (!allowed && this.state.mode === "THIEF_HUNT") {
+          const officers = this.state.gameState.uniformedOfficers || [];
+          allowed =
+            officers.includes(spatialTargetId) ||
+            officers.some((offId) => areAdjacent(board, offId, spatialTargetId));
+        }
+      } else if (action.type === "CAPTURE_SPY" || action.type === "INTERROGATE") {
+        const actorSecretId = this.resolveSpyActorSecretId();
+        allowed =
+          areAdjacent(board, actorSecretId, spatialTargetId) ||
+          spatialTargetId === actorSecretId;
+      }
+      // EXONERATE (цель из detectiveHand), LINE_UP (DUEL_*) и прочие
+      // не пространственные действия радиус не проверяют.
+
+      if (!allowed) {
+        return { valid: false, reason: "TARGET_NOT_IN_RADIUS" };
       }
     }
 
@@ -1855,6 +1936,24 @@ export default class GameRoomServer {
           this.broadcastStatus();
         }
         this.broadcastState();
+      } else if (SPATIAL_ACTIONS.has(action.type)) {
+        // Страховка от «тихого» no-op: пространственное действие не изменило состояние.
+        // Сообщаем только отправителю, не рассылая отказ всем игрокам.
+        try {
+          sender.send(
+            JSON.stringify({
+              type: "SYNC_ERROR",
+              reason: "ACTION_NOT_APPLIED",
+              actionType: action.type,
+            })
+          );
+          sender.send(
+            JSON.stringify({
+              type: "ACTION_REJECTED",
+              reason: "ACTION_NOT_APPLIED",
+            })
+          );
+        } catch (_err) {}
       }
     } catch (e) {
       console.error("Failed to handle message in GameRoomServer:", e);

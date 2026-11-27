@@ -59,6 +59,29 @@ describe("serverEvents", () => {
       });
     });
 
+    it("разбирает ACTION_REJECTED с причиной TARGET_NOT_IN_RADIUS", () => {
+      expect(
+        parseServerEvent({ type: "ACTION_REJECTED", reason: "TARGET_NOT_IN_RADIUS" })
+      ).toEqual({
+        type: "ACTION_REJECTED",
+        reason: "TARGET_NOT_IN_RADIUS",
+      });
+    });
+
+    it("сохраняет actionType у SYNC_ERROR с причиной TARGET_NOT_IN_RADIUS", () => {
+      expect(
+        parseServerEvent({
+          type: "SYNC_ERROR",
+          reason: "TARGET_NOT_IN_RADIUS",
+          actionType: "KILL_CHARACTER",
+        })
+      ).toEqual({
+        type: "SYNC_ERROR",
+        reason: "TARGET_NOT_IN_RADIUS",
+        actionType: "KILL_CHARACTER",
+      });
+    });
+
     it("округляет дробные числовые значения", () => {
       expect(parseServerEvent({ type: "TURN_TIMER_PAUSED", remainingMs: 1234.6 })).toEqual({
         type: "TURN_TIMER_PAUSED",
@@ -122,6 +145,12 @@ describe("serverEvents", () => {
       expect(getServerRejectReasonText("INVALID_ACTION_FOR_MODE")).toContain("выбранном режиме");
       expect(getServerRejectReasonText("INVALID_PHASE")).toContain("текущем этапе");
       expect(getServerRejectReasonText("GAME_NOT_FOUND")).toContain("Матч не найден");
+    });
+
+    it("возвращает понятный не-generic текст для TARGET_NOT_IN_RADIUS", () => {
+      const text = getServerRejectReasonText("TARGET_NOT_IN_RADIUS");
+      expect(text).toContain("3×3");
+      expect(text).not.toContain("TARGET_NOT_IN_RADIUS");
     });
 
     it("для неизвестного кода возвращает общий текст с указанием кода", () => {

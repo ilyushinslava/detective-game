@@ -289,6 +289,12 @@ describe("РЎРєРІРѕР·РЅРѕРµ С‚РµСЃС‚РёСЂРѕРІР�
     const rawGuestSecretId = server.state.gameState!.spies![1].secretId;
     expect(rawGuestSecretId).toBeTruthy();
 
+    // Серверная проверка радиуса 3x3: тайная личность активного агента (хост)
+    // обязана быть соседней с целью захвата. Выставляем детерминированно.
+    const captureNeighbors = getAdjacentCharacters(server.state.gameState!.board, rawGuestSecretId);
+    expect(captureNeighbors.length).toBeGreaterThan(0);
+    server.state.gameState!.spies![0].secretId = captureNeighbors[0].id;
+
     server.onMessage(
       JSON.stringify({
         type: "CAPTURE_SPY",

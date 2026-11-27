@@ -244,4 +244,216 @@ describe("useMultiplayer Hook", () => {
       expect(mockParams.gameState.opponent).toBe("AI");
     });
   });
+
+  describe("Серверные события: пауза таймера, дисконнект и аннулирование", () => {
+    it("TURN_TIMER_PAUSED выставляет паузу и не уменьшает остаток времени", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({ type: "TURN_TIMER_PAUSED", remainingMs: 5000 });
+      });
+
+      expect(result.current.isTurnTimerPaused).toBe(true);
+      expect(result.current.turnTimerRemainingMs).toBe(5000);
+
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+
+      expect(result.current.turnTimerRemainingMs).toBe(5000);
+    });
+
+    it("TURN_TIMER_RESUMED снимает паузу и продолжает отсчёт с остатка", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({ type: "TURN_TIMER_PAUSED", remainingMs: 5000 });
+      });
+      act(() => {
+        partyService.onAction?.({ type: "TURN_TIMER_RESUMED", remainingMs: 5000 });
+      });
+
+      expect(result.current.isTurnTimerPaused).toBe(false);
+      expect(result.current.turnTimerRemainingMs).toBe(5000);
+
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+
+      expect(result.current.turnTimerRemainingMs).toBe(4000);
+    });
+
+    it("DUAL_DISCONNECT_PAUSE выставляет флаги и скрывает уведомление о дисконнекте", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({ type: "DUAL_DISCONNECT_PAUSE", gracePeriodMs: 20000 });
+      });
+
+      expect(result.current.isDualDisconnectPaused).toBe(true);
+      expect(result.current.dualDisconnectGraceMs).toBe(20000);
+      expect(result.current.opponentDisconnectedNotice).toBe(false);
+    });
+
+    it("пауза двойного дисконнекта снимается при восстановлении присутствия", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({ type: "DUAL_DISCONNECT_PAUSE", gracePeriodMs: 20000 });
+      });
+      act(() => {
+        partyService.onPresenceChanged?.(true);
+      });
+
+      expect(result.current.isDualDisconnectPaused).toBe(false);
+      expect(result.current.dualDisconnectGraceMs).toBeNull();
+    });
+
+    it("пауза двойного дисконнекта снимается при статусе PLAYING", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({ type: "DUAL_DISCONNECT_PAUSE", gracePeriodMs: 20000 });
+      });
+      act(() => {
+        partyService.onRoomStatus?.({ status: "PLAYING" });
+      });
+
+      expect(result.current.isDualDisconnectPaused).toBe(false);
+      expect(result.current.dualDisconnectGraceMs).toBeNull();
+    });
+
+    it("MATCH_ANNULLED фиксирует аннулирование, победителя нет и результат записан как обработанный", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({
+          type: "MATCH_ANNULLED",
+          reason: "DRAW_DISCONNECT",
+          message: "Оба игрока не вернулись. Матч аннулирован.",
+        });
+      });
+
+      expect(result.current.isMatchAnnulled).toBe(true);
+      expect(result.current.matchAnnulledMessage).toBe("Оба игрока не вернулись. Матч аннулирован.");
+      expect(mockParams.gameState.winner).toBeNull();
+      expect(mockParams.gameState.gameEndReason).toBe("MATCH_ANNULLED");
+      expect(mockParams.gameState.gameResult.reason).toBe("DRAW_DISCONNECT");
+      expect(mockParams.matchResultRecordedRef.current).toBe(true);
+    });
+
+    it("повторный MATCH_ANNULLED идемпотентен и не перезаписывает сообщение", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({
+          type: "MATCH_ANNULLED",
+          reason: "DRAW_DISCONNECT",
+          message: "Первое сообщение.",
+        });
+      });
+      act(() => {
+        partyService.onAction?.({
+          type: "MATCH_ANNULLED",
+          reason: "DRAW_DISCONNECT",
+          message: "Второе сообщение.",
+        });
+      });
+
+      expect(result.current.matchAnnulledMessage).toBe("Первое сообщение.");
+      expect(mockParams.matchResultRecordedRef.current).toBe(true);
+    });
+
+    it("SYNC_ERROR выставляет сообщение с причиной, clearSyncError очищает", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({ type: "SYNC_ERROR", reason: "NOT_YOUR_TURN" });
+      });
+
+      expect(result.current.syncErrorMessage).toContain("Переподключитесь");
+      expect(result.current.syncErrorMessage).toContain("Сейчас ход соперника");
+
+      act(() => {
+        result.current.clearSyncError();
+      });
+
+      expect(result.current.syncErrorMessage).toBeNull();
+    });
+
+    it("ACTION_REJECTED показывает русский текст по коду, clearActionRejected очищает", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({ type: "ACTION_REJECTED", reason: "NOT_HOST" });
+      });
+
+      expect(result.current.actionRejectedMessage).toContain("только хосту");
+
+      act(() => {
+        result.current.clearActionRejected();
+      });
+
+      expect(result.current.actionRejectedMessage).toBeNull();
+    });
+
+    it("новый syncState снимает залипшее сообщение об отклонённом действии", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({ type: "ACTION_REJECTED", reason: "NOT_HOST" });
+      });
+      expect(result.current.actionRejectedMessage).not.toBeNull();
+
+      act(() => {
+        partyService.onSyncState?.(
+          { ...mockParams.gameState, killCount: 0 },
+          "KILLER",
+          "PLAYING"
+        );
+      });
+
+      expect(result.current.actionRejectedMessage).toBeNull();
+    });
+
+    it("reconnectToRoom вызывает partyService.ensureConnection", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+      vi.clearAllMocks();
+
+      act(() => {
+        result.current.reconnectToRoom();
+      });
+
+      expect(partyService.ensureConnection).toHaveBeenCalledTimes(1);
+    });
+
+    it("handleExitToMenu сбрасывает серверные состояния, gameEndReason и gameResult", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        partyService.onAction?.({ type: "TURN_TIMER_PAUSED", remainingMs: 5000 });
+        partyService.onAction?.({ type: "DUAL_DISCONNECT_PAUSE", gracePeriodMs: 20000 });
+        partyService.onAction?.({ type: "SYNC_ERROR", reason: "NOT_YOUR_TURN" });
+        partyService.onAction?.({ type: "ACTION_REJECTED", reason: "NOT_HOST" });
+        partyService.onAction?.({ type: "MATCH_ANNULLED", reason: "DRAW_DISCONNECT" });
+      });
+
+      expect(result.current.isMatchAnnulled).toBe(true);
+
+      act(() => {
+        result.current.handleExitToMenu();
+      });
+
+      expect(result.current.isMatchAnnulled).toBe(false);
+      expect(result.current.matchAnnulledMessage).toBeNull();
+      expect(result.current.isTurnTimerPaused).toBe(false);
+      expect(result.current.turnTimerRemainingMs).toBeNull();
+      expect(result.current.isDualDisconnectPaused).toBe(false);
+      expect(result.current.dualDisconnectGraceMs).toBeNull();
+      expect(result.current.syncErrorMessage).toBeNull();
+      expect(result.current.actionRejectedMessage).toBeNull();
+      expect(mockParams.gameState.gameEndReason).toBeUndefined();
+      expect(mockParams.gameState.gameResult).toBeUndefined();
+    });
+  });
 });

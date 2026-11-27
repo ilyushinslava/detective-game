@@ -411,4 +411,48 @@ describe("PartyService Network Client", () => {
       expect(partyService.lastServerEvent).toBeNull();
     });
   });
+
+  describe("SESSION_SUPERSEDED: остановка автопереподключения", () => {
+    it("эмитит канал sessionSuperseded, помечает сессию и не переподключается после закрытия сокета", () => {
+      const supersededSpy = vi.fn();
+      partyService.onSessionSuperseded = supersededSpy;
+
+      partyService.connect("ROOM_SUPERSEDED", "Агент", false, "SKHVATKA", "client_1");
+      const ws = MockWebSocket.instances[0];
+      ws.simulateOpen();
+
+      ws.simulateMessage({ type: "SESSION_SUPERSEDED", reason: "NEW_SESSION" });
+
+      expect(supersededSpy).toHaveBeenCalledTimes(1);
+      expect(supersededSpy).toHaveBeenCalledWith({ reason: "NEW_SESSION" });
+      expect(partyService.sessionSuperseded).toBe(true);
+      expect(partyService.lastServerEvent).toEqual({
+        type: "SESSION_SUPERSEDED",
+        reason: "NEW_SESSION",
+      });
+
+      // Сервер закрывает замещённый сокет — новый WebSocket создаваться не должен.
+      ws.close();
+      vi.advanceTimersByTime(60000);
+      expect(MockWebSocket.instances.length).toBe(1);
+
+      // Возврат вкладки в фокус (ensureConnection) тоже не восстанавливает сессию.
+      partyService.ensureConnection();
+      vi.advanceTimersByTime(60000);
+      expect(MockWebSocket.instances.length).toBe(1);
+    });
+
+    it("явный connect() сбрасывает флаг замещения — новая сессия возможна", () => {
+      partyService.connect("ROOM_SUPERSEDED_RESET", "Агент", false, "SKHVATKA", "client_1");
+      const ws = MockWebSocket.instances[0];
+      ws.simulateOpen();
+      ws.simulateMessage({ type: "SESSION_SUPERSEDED", reason: "NEW_SESSION" });
+      expect(partyService.sessionSuperseded).toBe(true);
+
+      partyService.connect("ROOM_SUPERSEDED_RESET", "Агент", false, "SKHVATKA", "client_2");
+
+      expect(partyService.sessionSuperseded).toBe(false);
+      expect(MockWebSocket.instances.length).toBe(2);
+    });
+  });
 });

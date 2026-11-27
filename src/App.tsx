@@ -488,6 +488,7 @@ export default function App() {
     matchAnnulledMessage,
     syncErrorMessage,
     actionRejectedMessage,
+    sessionSupersededMessage,
     reconnectToRoom,
     clearSyncError,
     clearActionRejected,
@@ -1038,6 +1039,17 @@ export default function App() {
         }}
         secondaryLabel="Продолжить"
         onSecondary={clearSyncError}
+      />
+
+      {/* Сессия замещена новой вкладкой: автопереподключение остановлено, доска недоступна */}
+      <ServerMessageModal
+        isOpen={Boolean(sessionSupersededMessage)}
+        variant="warning"
+        title="Сессия открыта в другой вкладке"
+        message={sessionSupersededMessage || ""}
+        hint="Управление игрой перешло в другое окно. Вернитесь в главное меню, чтобы начать заново."
+        primaryLabel="В главное меню"
+        onPrimary={handleExitToMenu}
       />
 
       {/* Анимированный Liquid-фон для всех игровых экранов и режимов (вне Главного меню) */}

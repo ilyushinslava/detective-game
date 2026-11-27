@@ -77,7 +77,8 @@ export type ServerEventType =
   | "DUAL_DISCONNECT_PAUSE"
   | "MATCH_ANNULLED"
   | "SYNC_ERROR"
-  | "ACTION_REJECTED";
+  | "ACTION_REJECTED"
+  | "SESSION_SUPERSEDED";
 
 /** Сервер поставил таймер хода на паузу (например, активный игрок потерял связь). */
 export interface TurnTimerPausedEvent {
@@ -125,10 +126,22 @@ export interface ActionRejectedEvent {
   reason: string;
 }
 
+/**
+ * Сессия этого сокета замещена новым подключением с тем же authToken
+ * (например, игрок открыл игру во второй вкладке). Клиент обязан
+ * прекратить автопереподключение, чтобы вкладки не выбивали друг друга.
+ */
+export interface SessionSupersededEvent {
+  type: "SESSION_SUPERSEDED";
+  /** Машиночитаемая причина замещения (например, NEW_SESSION). */
+  reason: string;
+}
+
 export type ServerEvent =
   | TurnTimerPausedEvent
   | TurnTimerResumedEvent
   | DualDisconnectPauseEvent
   | MatchAnnulledEvent
   | SyncErrorEvent
-  | ActionRejectedEvent;
+  | ActionRejectedEvent
+  | SessionSupersededEvent;

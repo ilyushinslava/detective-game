@@ -500,6 +500,29 @@ describe("useMultiplayer Hook", () => {
       expect(partyService.ensureConnection).toHaveBeenCalledTimes(1);
     });
 
+    it("SESSION_SUPERSEDED показывает сообщение о замещённой сессии и не дублирует его", () => {
+      const { result } = renderHook(() => useMultiplayer(mockParams));
+
+      act(() => {
+        (partyService as any).onSessionSuperseded?.({ reason: "NEW_SESSION" });
+      });
+
+      expect(result.current.sessionSupersededMessage).toContain("Сессия открыта в другой вкладке");
+      expect(result.current.sessionSupersededMessage).toContain("Это окно больше не управляет игрой");
+
+      // Повторное событие не должно пересоздавать/менять сообщение.
+      act(() => {
+        (partyService as any).onSessionSuperseded?.({ reason: "NEW_SESSION" });
+      });
+      expect(result.current.sessionSupersededMessage).toContain("Это окно больше не управляет игрой");
+
+      // Выход в главное меню сбрасывает сообщение.
+      act(() => {
+        result.current.handleExitToMenu();
+      });
+      expect(result.current.sessionSupersededMessage).toBeNull();
+    });
+
     it("handleExitToMenu сбрасывает серверные состояния, gameEndReason и gameResult", () => {
       const { result } = renderHook(() => useMultiplayer(mockParams));
 

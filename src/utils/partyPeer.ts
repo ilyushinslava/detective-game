@@ -99,6 +99,11 @@ class PartyService {
   public bet?: number;
   private pingInterval: ReturnType<typeof setInterval> | null = null;
   private isExplicitDisconnect: boolean = false;
+  /**
+   * Сервер заместил эту сессию новым подключением с тем же authToken
+   * (вторая вкладка). После этого автопереподключение запрещено до явного connect().
+   */
+  private isSessionSuperseded: boolean = false;
   private reconnectAttempts: number = 0;
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   private queuedActions: GameAction[] = [];
@@ -465,6 +470,26 @@ class PartyService {
     }
   }
 
+  /** Legacy-совместимость: канал замещения сессии (SESSION_SUPERSEDED). */
+  get onSessionSuperseded() {
+    return ((...args: any[]) => this.emit("sessionSuperseded", ...args)) as any;
+  }
+  set onSessionSuperseded(fn: ((info: { reason: string }) => void) | null) {
+    if (this.legacyHandlers.sessionSuperseded) {
+      this.off("sessionSuperseded", this.legacyHandlers.sessionSuperseded);
+      this.legacyHandlers.sessionSuperseded = null;
+    }
+    if (fn) {
+      this.legacyHandlers.sessionSuperseded = fn;
+      this.on("sessionSuperseded", fn);
+    }
+  }
+
+  /** true, если сервер заместил сессию и автопереподключение остановлено. */
+  get sessionSuperseded(): boolean {
+    return this.isSessionSuperseded;
+  }
+
   constructor() {
     this.setupVisibilityListener();
   }
@@ -549,6 +574,8 @@ class PartyService {
       safeSessionStorage.setItem(`crime_city_auth_${roomCode}`, this.authToken);
     }
     this.isExplicitDisconnect = false;
+    // Явное подключение открывает новую сессию — снимаем блокировку замещения.
+    this.isSessionSuperseded = false;
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
@@ -612,6 +639,20 @@ class PartyService {
           if (serverEvent) {
             this.lastServerEvent = serverEvent;
             this.emit("serverEvent", serverEvent);
+
+            // Сессия замещена новой вкладкой: останавливаем автопереподключение,
+            // иначе две вкладки будут бесконечно выбивать друг друга.
+            if (serverEvent.type === "SESSION_SUPERSEDED") {
+              this.isSessionSuperseded = true;
+              this.reconnectAttempts = 0;
+              if (this.reconnectTimeout) {
+                clearTimeout(this.reconnectTimeout);
+                this.reconnectTimeout = null;
+              }
+              this.stopHeartbeat();
+              this.emit("sessionSuperseded", { reason: serverEvent.reason });
+              return;
+            }
           }
 
           if (data.type === "PONG") {
@@ -710,7 +751,12 @@ class PartyService {
           this.socket = null;
           this.onPresenceChanged?.(false);
 
-          if (!this.isExplicitDisconnect && this.roomCode && this.reconnectAttempts < GAME_CONFIG.NETWORK.RECONNECT.MAX_ATTEMPTS) {
+          if (
+            !this.isExplicitDisconnect &&
+            !this.isSessionSuperseded &&
+            this.roomCode &&
+            this.reconnectAttempts < GAME_CONFIG.NETWORK.RECONNECT.MAX_ATTEMPTS
+          ) {
             this.reconnectAttempts++;
             this.onConnectionStateChange?.({
               isConnected: false,
@@ -737,6 +783,14 @@ class PartyService {
                 );
               }
             }, delay);
+          } else if (this.isSessionSuperseded) {
+            // Замещённая сессия: сообщаем «не подключены» без попыток реконнекта.
+            this.onConnectionStateChange?.({
+              isConnected: false,
+              isReconnecting: false,
+              attempt: 0,
+              maxAttempts: GAME_CONFIG.NETWORK.RECONNECT.MAX_ATTEMPTS,
+            });
           } else if (!this.isExplicitDisconnect) {
             this.onConnectionStateChange?.({
               isConnected: false,
@@ -767,6 +821,8 @@ class PartyService {
 
   ensureConnection(): void {
     if (!this.roomCode) return;
+    // Замещённую сессию не восстанавливаем автоматически (фокус вкладки, visibility).
+    if (this.isSessionSuperseded) return;
 
     if (
       !this.socket ||
@@ -794,6 +850,7 @@ class PartyService {
 
   disconnect(): void {
     this.isExplicitDisconnect = true;
+    this.isSessionSuperseded = false;
     this.reconnectAttempts = 0;
     this.failedAttempts = 0;
     this.myRole = null;

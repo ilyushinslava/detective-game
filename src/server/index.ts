@@ -35,6 +35,12 @@ export interface PlayerInfo {
   authToken?: string;
   isDisconnected?: boolean;
   isBackground?: boolean;
+  /**
+   * SEC-NET-06: монотонно растущий номер привязки сессии к сокету.
+   * Инкрементируется при каждом (re)bind соединения, чтобы отсечь
+   * устаревшие события onClose от замещённых сокетов.
+   */
+  sessionEpoch?: number;
 }
 
 export interface ServerRoomState {
@@ -235,6 +241,13 @@ export default class GameRoomServer {
     this.dualDisconnectTimer = null;
     this.dualDisconnectStartedAt = null;
 
+    // SEC-NET-06: устаревший таймер не должен аннулировать матч,
+    // если хотя бы один игрок успел вернуться в игру.
+    const players = Object.values(this.state.players);
+    if (players.some((p) => p.isDisconnected !== true)) {
+      return;
+    }
+
     if (this.state.status === "PLAYING") {
       this.state.status = "FINISHED";
       if (this.state.gameState) {
@@ -257,6 +270,12 @@ export default class GameRoomServer {
   }
 
   private handleIndividualGraceTimeout(clientId: string): void {
+    // SEC-NET-06: устаревший таймер не должен удалять вернувшегося игрока
+    // или сессию, перенесённую на новый clientId.
+    if (this.state.players[clientId]?.isDisconnected !== true) {
+      this.disconnectTimers.delete(clientId);
+      return;
+    }
     this.disconnectTimers.delete(clientId);
     const playerWhoLeft = this.state.players[clientId];
     if (playerWhoLeft?.nickname) {
@@ -686,6 +705,24 @@ export default class GameRoomServer {
       }
     }
 
+    // SEC-NET-06: явный конфликт сессий — валидный authToken принадлежит игроку A,
+    // но переданный clientId занят другим существующим игроком B.
+    if (incomingAuthToken && this.state.players[clientId]) {
+      const tokenOwner = Object.values(this.state.players).find(
+        (p) => p.authToken === incomingAuthToken
+      );
+      if (tokenOwner && tokenOwner.clientId !== clientId) {
+        try {
+          conn.send(JSON.stringify({ type: "ERROR", message: "SESSION_CONFLICT" }));
+          conn.close();
+        } catch (_err) {}
+        console.warn(
+          `[GameRoomServer] SESSION_CONFLICT in room ${roomCode}: token owner ${tokenOwner.clientId} != requested clientId ${clientId}.`
+        );
+        return;
+      }
+    }
+
     if (existingPlayerId) {
       const existingPlayer = this.state.players[existingPlayerId];
       const expectedToken = existingPlayer.authToken;
@@ -698,6 +735,10 @@ export default class GameRoomServer {
         } catch (_err) {}
         return;
       }
+
+      // SEC-NET-06: запоминаем прежний сокет ДО перепривязки, чтобы затем
+      // атомарно заместить его новым соединением.
+      const previousConnectionId = existingPlayer.connectionId;
 
       const pendingTimer = this.disconnectTimers.get(existingPlayerId);
       if (pendingTimer) {
@@ -733,16 +774,44 @@ export default class GameRoomServer {
         }
       }
 
+      // SEC-NET-06: инкремент epoch и обновление connectionId делаются ДО закрытия
+      // старого сокета, чтобы его последующий onClose уже видел несовпадение.
       this.state.players[clientId].connectionId = conn.id;
       this.state.players[clientId].clientType = clientType;
       this.state.players[clientId].isDisconnected = false;
+      this.state.players[clientId].sessionEpoch =
+        (this.state.players[clientId].sessionEpoch ?? 0) + 1;
+
+      // SEC-NET-06: замещаем живой старый сокет новым (один authToken = один сокет).
+      if (previousConnectionId && previousConnectionId !== conn.id) {
+        const activeConnections: any[] = this.room?._connectionsMap
+          ? Array.from(this.room._connectionsMap.values())
+          : typeof this.room?.getConnections === "function"
+            ? Array.from(this.room.getConnections())
+            : [];
+        const previousConn = activeConnections.find(
+          (c) => c && c.id === previousConnectionId
+        );
+        if (previousConn) {
+          try {
+            previousConn.send?.(
+              JSON.stringify({ type: "SESSION_SUPERSEDED", reason: "NEW_SESSION" })
+            );
+          } catch (_err) {}
+          try {
+            previousConn.close?.();
+          } catch (_err) {}
+        }
+      }
 
       if (this.state.status === "PLAYING" && this.state.gameState?.currentTurn === this.state.players[clientId]?.role) {
         this.resumeTurnTimer();
       }
 
       try {
-        const playerIndex = Object.keys(this.state.players).indexOf(existingPlayerId);
+        // SEC-NET-06: индекс игрока считаем по НОВОМУ clientId (после переноса сессии),
+        // а не по удалённому existingPlayerId (иначе получаем -1).
+        const playerIndex = Object.keys(this.state.players).indexOf(clientId);
         const maskedSnapshot = this.state.gameState
           ? this.maskStateForPlayer(
               this.state.gameState,
@@ -861,6 +930,7 @@ export default class GameRoomServer {
         connectionId: conn.id,
         clientType,
         authToken,
+        sessionEpoch: 1,
       };
 
       try {
@@ -909,6 +979,7 @@ export default class GameRoomServer {
         connectionId: conn.id,
         clientType,
         authToken,
+        sessionEpoch: 1,
       };
 
       try {
@@ -986,6 +1057,13 @@ export default class GameRoomServer {
 
     const clientId = this.getClientIdByConnId(conn.id);
     if (!clientId) return;
+
+    // SEC-NET-06: строгая защита от stale-close. Если слот уже перепривязан
+    // к новому сокету, закрытие старого считается устаревшим и не должно
+    // менять состояние, слать PRESENCE_CHANGED или запускать таймеры.
+    if (this.state.players[clientId]?.connectionId !== conn.id) {
+      return;
+    }
 
     const existingTimer = this.disconnectTimers.get(clientId);
     if (existingTimer) {
@@ -1278,7 +1356,10 @@ export default class GameRoomServer {
       }
 
       if (action.type === "CLIENT_BACKGROUNDED") {
-        const senderClientId = action.senderClientId || this.getClientIdByConnId(sender?.id);
+        // SEC-NET-06: игрока определяем строго по серверному connectionId,
+        // а не по клиентскому senderClientId — осиротевший сокет не должен
+        // подделывать присутствие другого игрока.
+        const senderClientId = this.getClientIdByConnId(sender?.id);
         if (senderClientId && this.state.players[senderClientId]) {
           this.state.players[senderClientId].isBackground = Boolean(action.payload?.isBackground);
         }

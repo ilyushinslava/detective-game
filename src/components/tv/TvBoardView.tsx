@@ -24,9 +24,14 @@ import { partyService } from '../../utils/partyPeer';
 import { useSpatialNavigation } from '../../hooks/useSpatialNavigation';
 import { playShiftSound, playEliminateSound, playRadarPing, playArrestSound, playStealSound } from '../../utils/tvAudio';
 import { soundManager } from '../../utils/audio';
+import { getServerRejectReasonText, isActionRejectReason } from '../../utils/serverEvents';
 import { useWakeLock } from '../../hooks/useWakeLock';
 import { Button } from '../ui/Button';
 import { TvPauseModal } from './TvPauseModal';
+
+// Длительность показа причины отказа действия на ТВ (10-foot UI).
+// Чуть больше, чем на мобильном (5000 мс), чтобы текст успели прочитать с дивана.
+const TV_REJECT_NOTICE_MS = 5500;
 
 export interface TvBoardViewProps {
   gameState: GameState;
@@ -48,6 +53,13 @@ const Icons = {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
       <circle cx="12" cy="12" r="10" />
       <polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+  AlertCircle: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
     </svg>
   ),
   Radar: () => (
@@ -402,6 +414,11 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
   const [internalDisconnected, setInternalDisconnected] = useState<{ role?: string; graceTimeoutSec: number } | null>(null);
   const [tvGraceLeft, setTvGraceLeft] = useState(60);
 
+  // 10-foot уведомление о причине отказа действия (крупный читаемый текст)
+  const [rejectMessage, setRejectMessage] = useState<string | null>(null);
+  const rejectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const errorCardTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // 10-foot Режиссёрская система событийных баннеров над полем
   const [currentBanner, setCurrentBanner] = useState<{
     id: string;
@@ -618,16 +635,45 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
         action?.type === 'RADAR_SCAN'
       ) {
         playRadarPing();
-      } else if (
-        action?.type === 'ACTION_REJECTED' ||
-        action?.type === 'SYNC_ERROR' ||
-        action?.type === 'ERROR'
-      ) {
+      } else if (action?.type === 'SYNC_ERROR') {
+        // Сервер шлёт SYNC_ERROR вместе с ACTION_REJECTED на один обычный отказ.
+        // Для известных причин отказа плашку и звук обрабатывает ACTION_REJECTED,
+        // иначе отказ прозвучал бы и отобразился дважды (дедупликация).
+        if (isActionRejectReason(action?.reason)) {
+          return;
+        }
         soundManager.play('deny');
         const errId = action.payload?.errorCardId || action.payload?.targetId || action.errorCardId;
         if (errId) {
           setErrorCardId(errId);
-          setTimeout(() => setErrorCardId(null), 500);
+          if (errorCardTimeoutRef.current) clearTimeout(errorCardTimeoutRef.current);
+          errorCardTimeoutRef.current = setTimeout(() => setErrorCardId(null), 500);
+        }
+      } else if (action?.type === 'ACTION_REJECTED') {
+        const reason = typeof action.reason === 'string' ? action.reason : undefined;
+        if (rejectTimerRef.current) {
+          clearTimeout(rejectTimerRef.current);
+          rejectTimerRef.current = null;
+        }
+        setRejectMessage(getServerRejectReasonText(reason));
+        rejectTimerRef.current = setTimeout(() => {
+          setRejectMessage(null);
+          rejectTimerRef.current = null;
+        }, TV_REJECT_NOTICE_MS);
+        soundManager.play('deny');
+        const errId = action.payload?.errorCardId || action.payload?.targetId || action.errorCardId;
+        if (errId) {
+          setErrorCardId(errId);
+          if (errorCardTimeoutRef.current) clearTimeout(errorCardTimeoutRef.current);
+          errorCardTimeoutRef.current = setTimeout(() => setErrorCardId(null), 500);
+        }
+      } else if (action?.type === 'ERROR') {
+        soundManager.play('deny');
+        const errId = action.payload?.errorCardId || action.payload?.targetId || action.errorCardId;
+        if (errId) {
+          setErrorCardId(errId);
+          if (errorCardTimeoutRef.current) clearTimeout(errorCardTimeoutRef.current);
+          errorCardTimeoutRef.current = setTimeout(() => setErrorCardId(null), 500);
         }
       } else if (action?.type === 'TV_PAUSE_CHANGED') {
         setIsPauseOpen(Boolean(action.isPaused));
@@ -645,6 +691,21 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
       }
     };
   }, [onExit]);
+
+  // Снятие таймеров плашки отказа и подсветки ошибки при размонтировании.
+  // Отдельный эффект с пустыми зависимостями, чтобы не зависеть от [onExit].
+  useEffect(() => {
+    return () => {
+      if (rejectTimerRef.current) {
+        clearTimeout(rejectTimerRef.current);
+        rejectTimerRef.current = null;
+      }
+      if (errorCardTimeoutRef.current) {
+        clearTimeout(errorCardTimeoutRef.current);
+        errorCardTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   // Слушатель событий дисконнекта игроков
   useEffect(() => {
@@ -1078,6 +1139,40 @@ export const TvBoardView: React.FC<TvBoardViewProps> = ({
                           {currentBanner.subtitle}
                         </span>
                       )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* 10-foot Плашка текстовой причины отказа действия */}
+            <AnimatePresence>
+              {rejectMessage && (
+                <motion.div
+                  key="tv-reject-banner"
+                  data-testid="tv-reject-banner"
+                  role="status"
+                  aria-live="polite"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 6 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className="absolute bottom-3 left-1/2 -translate-x-1/2 z-40 max-w-[92%] pointer-events-none"
+                >
+                  <div className="neo-card flex items-start gap-3 bg-rose-950/95 border border-rose-500/70 text-rose-100 rounded-2xl px-5 py-3 shadow-2xl">
+                    <span className="shrink-0 text-rose-300 mt-0.5" aria-hidden="true">
+                      <Icons.AlertCircle />
+                    </span>
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span className="font-display text-xs sm:text-sm uppercase tracking-wider text-rose-300">
+                        ДЕЙСТВИЕ ОТКЛОНЕНО
+                      </span>
+                      <span
+                        data-testid="tv-reject-reason"
+                        className="font-sans text-base sm:text-lg 2xl:text-xl leading-snug whitespace-normal break-words"
+                      >
+                        {rejectMessage}
+                      </span>
                     </div>
                   </div>
                 </motion.div>

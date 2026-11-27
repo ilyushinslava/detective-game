@@ -1955,6 +1955,11 @@ export default class GameRoomServer {
             })
           );
         } catch (_err) {}
+        // Текстовая причина отказа — на ТВ-дисплеи (10-foot UI).
+        // Если отправитель сам ТВ, ему ответ уже ушёл выше как sender.
+        if (!isTvSender) {
+          this.notifyTvDisplaysOfRejection(validation.reason, action.type, sender?.id);
+        }
         return;
       }
 
@@ -2035,9 +2040,65 @@ export default class GameRoomServer {
             })
           );
         } catch (_err) {}
+        // Текстовая причина отказа — на ТВ-дисплеи (10-foot UI).
+        if (!isTvSender) {
+          this.notifyTvDisplaysOfRejection("ACTION_NOT_APPLIED", action.type, sender?.id);
+        }
       }
     } catch (e) {
       console.error("Failed to handle message in GameRoomServer:", e);
+    }
+  }
+
+  /**
+   * Пересылает текстовую причину отказа действия на подключённые ТВ-дисплеи.
+   *
+   * Отправляется СТРОГО на ТВ-соединения (не сопернику и не зрителям):
+   * мобильные пульты получают отказ как отправители действия, а ТВ игровых
+   * действий не инициирует и без этой пересылки не узнал бы причину.
+   *
+   * @param reason машиночитаемый код отказа (например, TARGET_NOT_IN_RADIUS)
+   * @param actionType тип отменённого действия (для диагностики/совместимости)
+   * @param senderConnectionId id соединения-отправителя: если это сам ТВ,
+   *        дубль не отправляем — он уже получил ответ как `sender`.
+   */
+  private notifyTvDisplaysOfRejection(
+    reason: string,
+    actionType?: string,
+    senderConnectionId?: string
+  ): void {
+    const tvDisplays = Object.values(this.state.tvDisplays || {});
+    if (tvDisplays.length === 0) return;
+
+    const tvConnectionIds = new Set(
+      tvDisplays
+        .map((tv) => tv?.connectionId)
+        .filter((id): id is string => typeof id === "string")
+    );
+    if (tvConnectionIds.size === 0) return;
+
+    const connections: any[] = this.room?._connectionsMap
+      ? Array.from(this.room._connectionsMap.values())
+      : this.room?.getConnections
+        ? Array.from(this.room.getConnections() as any)
+        : [];
+    if (connections.length === 0) return;
+
+    const payload = JSON.stringify({
+      type: "ACTION_REJECTED",
+      reason,
+      ...(actionType ? { actionType } : {}),
+    });
+
+    for (const conn of connections) {
+      if (!conn || typeof conn.id !== "string") continue;
+      if (!tvConnectionIds.has(conn.id)) continue;
+      if (senderConnectionId && conn.id === senderConnectionId) continue;
+      try {
+        conn.send(payload);
+      } catch (_err) {
+        // Один сломанный ТВ-коннект не должен мешать остальным.
+      }
     }
   }
 

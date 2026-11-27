@@ -156,6 +156,7 @@
 
 ### База знаний проекта (`docs/`):
 
+- [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) — оперативная сводка: что сделано / что впереди, статусы проверок и отложенные задачи.
 - [`docs/audit/SUMMARY.md`](docs/audit/SUMMARY.md) — генеральный отчёт предрелизного аудита и план спринтов.
 - [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md) — концепция игры, платформы и сеттинг.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — детальная техническая архитектура.

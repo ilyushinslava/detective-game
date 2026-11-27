@@ -3,8 +3,16 @@ import type { GameState, GameModeType, Role } from "../types/game";
 import type { UserProfile } from "../types/profile";
 import { partyService } from "./partyPeer";
 import { soundManager } from "./audio";
-import { getMatchAnnulledMessage, getServerRejectReasonText, getSyncErrorMessage } from "./serverEvents";
+import {
+  getMatchAnnulledMessage,
+  getServerRejectReasonText,
+  getSyncErrorMessage,
+  isActionRejectReason,
+} from "./serverEvents";
 import { safeLocalStorage, safeSessionStorage } from "./storage";
+
+/** Сколько миллисекунд показывается неблокирующая плашка об отказе действия. */
+const ACTION_REJECT_NOTICE_MS = 5000;
 
 interface UseMultiplayerParams {
   gameState: GameState;
@@ -20,6 +28,11 @@ interface UseMultiplayerParams {
   setSelectedId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedInspectorChoiceId: React.Dispatch<React.SetStateAction<string | null>>;
   setIsPauseOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  /**
+   * Основной экран (десктоп-онлайн): именно он проигрывает звук отказа.
+   * Мобильный контроллер и ТВ реагируют на отказ инлайн, поэтому им звук не дублируем.
+   */
+  isPrimaryDisplay?: boolean;
 }
 
 export function useMultiplayer({
@@ -36,6 +49,7 @@ export function useMultiplayer({
   setSelectedId,
   setSelectedInspectorChoiceId,
   setIsPauseOpen,
+  isPrimaryDisplay = true,
 }: UseMultiplayerParams) {
   const [isOpponentConnected, setIsOpponentConnected] = useState(true);
   const [opponentDisconnectedNotice, setOpponentDisconnectedNotice] = useState<boolean | string>(false);
@@ -52,6 +66,8 @@ export function useMultiplayer({
   const [matchAnnulledMessage, setMatchAnnulledMessage] = useState<string | null>(null);
   const [syncErrorMessage, setSyncErrorMessage] = useState<string | null>(null);
   const [actionRejectedMessage, setActionRejectedMessage] = useState<string | null>(null);
+  const [actionRejectedReason, setActionRejectedReason] = useState<string | null>(null);
+  const rejectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const matchAnnulledRef = useRef(false);
   const isTurnTimerPausedRef = useRef(false);
   const hasTurnTimerRef = useRef(false);
@@ -92,8 +108,8 @@ export function useMultiplayer({
     };
 
     const unsubSyncState = subscribeOrAssign("syncState", "onSyncState", (state: any, role?: Role, status?: string) => {
-      // Сервер прислал актуальный снапшот — снимаем «залипшие» уведомления об отказах.
-      setActionRejectedMessage(null);
+      // ВАЖНО: снапшот НЕ должен перетирать уведомление об отказе действия —
+      // оно снимается только таймером, новым отказом или выходом в меню.
       if (state) {
         if (state.mode) {
           setActiveMode(state.mode);
@@ -246,11 +262,31 @@ export function useMultiplayer({
         return;
       }
       if (action.type === "SYNC_ERROR") {
-        setSyncErrorMessage(getSyncErrorMessage(action.reason));
+        // Сервер шлёт SYNC_ERROR вместе с ACTION_REJECTED на один и тот же обычный
+        // отказ действия. Для таких причин тяжёлую модалку десинка не показываем.
+        if (!isActionRejectReason(action.reason)) {
+          setSyncErrorMessage(getSyncErrorMessage(action.reason));
+        }
         return;
       }
       if (action.type === "ACTION_REJECTED") {
-        setActionRejectedMessage(getServerRejectReasonText(action.reason));
+        const reason = typeof action.reason === "string" ? action.reason : undefined;
+        if (rejectTimerRef.current !== null) {
+          clearTimeout(rejectTimerRef.current);
+          rejectTimerRef.current = null;
+        }
+        setActionRejectedReason(reason ?? null);
+        setActionRejectedMessage(getServerRejectReasonText(reason));
+        rejectTimerRef.current = setTimeout(() => {
+          setActionRejectedMessage(null);
+          setActionRejectedReason(null);
+          rejectTimerRef.current = null;
+        }, ACTION_REJECT_NOTICE_MS);
+        // Звук отказа — только на основном экране, чтобы не дублировать
+        // инлайн-реакции мобильного контроллера и ТВ.
+        if (isPrimaryDisplay) {
+          soundManager.play("deny");
+        }
         return;
       }
 
@@ -302,7 +338,17 @@ export function useMultiplayer({
       unsubPresenceChanged();
       unsubAction();
     };
-  }, [gameState.opponent, setGameState, setToastMessage, setIsLobbyOpen, setHasStartedEver, setIsIntroPhase]);
+  }, [gameState.opponent, setGameState, setToastMessage, setIsLobbyOpen, setHasStartedEver, setIsIntroPhase, isPrimaryDisplay]);
+
+  // Таймер авто-скрытия отказа обязательно снимаем при размонтировании.
+  useEffect(() => {
+    return () => {
+      if (rejectTimerRef.current !== null) {
+        clearTimeout(rejectTimerRef.current);
+        rejectTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // Локальный отсчёт времени хода: идёт только когда сервер не поставил таймер на паузу.
   // Остаток времени не сбрасывается — пауза просто замораживает значение.
@@ -381,7 +427,12 @@ export function useMultiplayer({
     setIsDualDisconnectPaused(false);
     setDualDisconnectGraceMs(null);
     setSyncErrorMessage(null);
+    if (rejectTimerRef.current !== null) {
+      clearTimeout(rejectTimerRef.current);
+      rejectTimerRef.current = null;
+    }
     setActionRejectedMessage(null);
+    setActionRejectedReason(null);
 
     setGameState((prev) => ({
       ...prev,
@@ -398,7 +449,14 @@ export function useMultiplayer({
   };
 
   const clearSyncError = () => setSyncErrorMessage(null);
-  const clearActionRejected = () => setActionRejectedMessage(null);
+  const clearActionRejected = () => {
+    if (rejectTimerRef.current !== null) {
+      clearTimeout(rejectTimerRef.current);
+      rejectTimerRef.current = null;
+    }
+    setActionRejectedMessage(null);
+    setActionRejectedReason(null);
+  };
 
   return {
     isOpponentConnected,
@@ -419,6 +477,7 @@ export function useMultiplayer({
     matchAnnulledMessage,
     syncErrorMessage,
     actionRejectedMessage,
+    actionRejectedReason,
     reconnectToRoom,
     clearSyncError,
     clearActionRejected,

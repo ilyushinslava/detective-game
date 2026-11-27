@@ -5,6 +5,7 @@ import {
   getSyncErrorMessage,
   getMatchAnnulledMessage,
   formatRemainingMs,
+  isActionRejectReason,
 } from "../serverEvents";
 
 describe("serverEvents", () => {
@@ -183,6 +184,20 @@ describe("serverEvents", () => {
       const text = getSyncErrorMessage();
       expect(text).toContain("Переподключитесь");
       expect(text).not.toContain("Причина:");
+    });
+  });
+
+  describe("isActionRejectReason", () => {
+    it("считает обычным отказом действия известные коды", () => {
+      expect(isActionRejectReason("TARGET_NOT_IN_RADIUS")).toBe(true);
+      expect(isActionRejectReason("ACTION_NOT_APPLIED")).toBe(true);
+      expect(isActionRejectReason("NOT_YOUR_TURN")).toBe(true);
+    });
+
+    it("неизвестный код не считается обычным отказом (потенциальный десинк)", () => {
+      expect(isActionRejectReason("SOME_UNKNOWN_CODE")).toBe(false);
+      expect(isActionRejectReason(undefined)).toBe(false);
+      expect(isActionRejectReason(42)).toBe(false);
     });
   });
 

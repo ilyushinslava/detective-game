@@ -107,6 +107,20 @@ const REJECT_REASON_TEXT: Record<string, string> = {
     "Действие не было применено. Возможно, оно уже выполнено или недоступно. Обновите состояние.",
 };
 
+/**
+ * Проверяет, является ли код причиной ОБЫЧНОГО отказа действия.
+ *
+ * Такие отказы сервер присылает отправителю парой `SYNC_ERROR` + `ACTION_REJECTED`,
+ * но настоящей рассинхронизацией они не являются — показывать тяжёлую модалку
+ * переподключения для них нельзя.
+ *
+ * Неизвестный код считается НЕ обычным отказом (потенциальный реальный десинк).
+ */
+export function isActionRejectReason(reason: unknown): boolean {
+  if (typeof reason !== "string") return false;
+  return Object.prototype.hasOwnProperty.call(REJECT_REASON_TEXT, reason);
+}
+
 /** Превращает машиночитаемый код отказа сервера в понятный текст для игрока. */
 export function getServerRejectReasonText(reason?: string): string {
   if (!reason) return "Действие отклонено сервером. Обновите состояние и попробуйте снова.";

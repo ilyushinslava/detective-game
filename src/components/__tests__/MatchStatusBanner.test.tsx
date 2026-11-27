@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { describe, it, expect, afterEach, vi } from "vitest";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { MatchStatusBanner } from "../MatchStatusBanner";
 
 describe("MatchStatusBanner", () => {
@@ -51,5 +51,49 @@ describe("MatchStatusBanner", () => {
     );
 
     expect((container.firstChild as HTMLElement).className).toContain("pointer-events-none");
+  });
+
+  it("показывает полный текст причины отказа без обрезки", () => {
+    const longReason =
+      "Цель вне радиуса 3×3. Выберите персонажа рядом с вашей тайной личностью и повторите действие.";
+    render(
+      <MatchStatusBanner
+        isTurnTimerPaused={false}
+        isDualDisconnectPaused={false}
+        rejectMessage={longReason}
+      />
+    );
+
+    const status = screen.getByRole("status");
+    expect(status.textContent).toContain(longReason);
+    expect(status.innerHTML).not.toContain("truncate");
+    expect(status.className).toContain("rose");
+  });
+
+  it("не рендерит плашку отказа при пустом сообщении", () => {
+    const { container } = render(
+      <MatchStatusBanner
+        isTurnTimerPaused={false}
+        isDualDisconnectPaused={false}
+        rejectMessage="   "
+      />
+    );
+
+    expect(container.firstChild).toBeNull();
+  });
+
+  it("вызывает onDismissReject по кнопке закрытия", () => {
+    const onDismissReject = vi.fn();
+    render(
+      <MatchStatusBanner
+        isTurnTimerPaused={false}
+        isDualDisconnectPaused={false}
+        rejectMessage="Цель вне радиуса 3×3."
+        onDismissReject={onDismissReject}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Скрыть уведомление" }));
+    expect(onDismissReject).toHaveBeenCalledTimes(1);
   });
 });

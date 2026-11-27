@@ -1,7 +1,7 @@
 // src/hooks/useProfile.ts
 // Реактивный хук работы с профилем агента Supabase (с Offline-First кэшированием)
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { UserProfile, MatchHistoryEntry } from "../types/profile";
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
@@ -9,6 +9,14 @@ import { storage, safeLocalStorage } from "../utils/storage";
 import { guestRegistry } from "../utils/guestManager";
 import { sanitizePlayerName, validatePlayerName } from "../utils/nameFilter";
 import { migrateProfileStats, evaluateAchievements, type MatchOutcomeContext } from "../utils/achievementEngine";
+import {
+  calculateMatchCashReward,
+  calculateMmrDelta,
+  clampMatchDuration,
+  createMatchId,
+  normalizeMode,
+  resolveMatchOutcome,
+} from "../utils/matchRewards";
 import type { Achievement } from "../data/achievements";
 
 const DEFAULT_AVATAR = "c1";
@@ -250,7 +258,24 @@ export function useProfile() {
     }
   }, [user?.id, isCloudConnected]);
 
-  // Запись результатов матча (локально + вызов RPC record_match_result)
+  // Запись результатов матча (локально + вызов RPC record_match_result).
+  // Клиентские isWin/mmrDelta — только подсказки: доверенные значения MMR/cash
+  // приходят из ответа RPC (онлайн) или рассчитываются по тем же серверным
+  // правилам локально (оффлайн / mock-клиент).
+  const processedMatchesRef = useRef<
+    Map<
+      string,
+      {
+        newMmr: number;
+        mmrDelta: number;
+        cashAwarded: number;
+        isWinner: boolean;
+        matchId: string;
+        newlyUnlocked: Achievement[];
+      }
+    >
+  >(new Map());
+
   const recordMatchResult = useCallback(async (
     isWin: boolean,
     matchDetails?: {
@@ -263,19 +288,70 @@ export function useProfile() {
       isTvParty?: boolean;
       isFlawless?: boolean;
       shiftsCount?: number;
+      matchId?: string;
     }
   ) => {
+    const mode = normalizeMode(matchDetails?.mode);
     const role = matchDetails?.role || (profile.rank.includes("Маньяк") ? "KILLER" : "DETECTIVE");
-    const isDetWin = isWin && role === "DETECTIVE";
-    const isManWin = isWin && role === "KILLER";
-    const mmrDelta = matchDetails?.mmrDelta ?? (isWin ? 25 : -20);
-    let finalMmr = profile.mmr + mmrDelta;
+    const winnerRole =
+      matchDetails?.winnerRole ||
+      (isWin ? role : role === "DETECTIVE" ? "KILLER" : "DETECTIVE");
+
+    // match_id — обязательный ключ идемпотентности. Повторная фиксация
+    // того же матча не должна начислять награду дважды.
+    const matchId = matchDetails?.matchId || createMatchId();
+
+    const cached = processedMatchesRef.current.get(matchId);
+    if (cached) {
+      return cached;
+    }
+
+    // Серверные правила: не доверяем клиентским isWin/mmrDelta
+    let isWinner = resolveMatchOutcome({ mode, role, winnerRole, fallbackIsWinner: isWin });
+    let mmrDelta = calculateMmrDelta(isWinner);
+    let cashAwarded = calculateMatchCashReward(isWinner);
+
+    // Реальная длительность матча (без искусственного Math.max(11, ...)),
+    // приведённая к серверным рамкам режима.
+    const durationSeconds = clampMatchDuration(mode, matchDetails?.durationSeconds);
+
+    // Облачная запись через защищённую RPC функцию.
+    // p_is_winner / p_mmr_delta передаются лишь как подсказка: сервер
+    // пересчитывает результат, MMR и cash по своим правилам.
+    if (user?.id && isCloudConnected) {
+      try {
+        const { data, error } = await (supabase.rpc as any)("record_match_result", {
+          p_mode: mode,
+          p_winner_role: winnerRole,
+          p_duration_seconds: durationSeconds,
+          p_role: role,
+          p_is_winner: isWinner,
+          p_mmr_delta: mmrDelta,
+          p_match_id: matchId,
+        });
+
+        if (error) {
+          console.warn("[useProfile] Ошибка записи матча в Supabase RPC:", error.message || error);
+        } else if (data) {
+          // Доверенные значения из ответа RPC имеют приоритет
+          if (typeof data.is_winner === "boolean") isWinner = data.is_winner;
+          if (typeof data.mmr_delta === "number") mmrDelta = data.mmr_delta;
+          if (typeof data.cash_awarded === "number") cashAwarded = data.cash_awarded;
+        }
+      } catch (rpcErr) {
+        console.warn("[useProfile] Ошибка записи матча в Supabase RPC:", rpcErr);
+      }
+    }
+
+    const isDetWin = isWinner && role === "DETECTIVE";
+    const isManWin = isWinner && role === "KILLER";
+    let finalMmr = Math.max(100, profile.mmr + mmrDelta);
     let newlyUnlockedList: Achievement[] = [];
 
     setProfile((prev) => {
-      const newWins = (prev.stats?.wins || 0) + (isWin ? 1 : 0);
-      const newLosses = (prev.stats?.losses || 0) + (isWin ? 0 : 1);
-      const newXp = prev.xp + (isWin ? 50 : 15);
+      const newWins = (prev.stats?.wins || 0) + (isWinner ? 1 : 0);
+      const newLosses = (prev.stats?.losses || 0) + (isWinner ? 0 : 1);
+      const newXp = prev.xp + (isWinner ? 50 : 15);
       const newLevel = Math.floor(newXp / 100) + 1;
       const newMmr = Math.max(100, prev.mmr + mmrDelta);
       finalMmr = newMmr;
@@ -287,24 +363,22 @@ export function useProfile() {
       else if (newMmr >= 1100) newRank = "Сыщик";
       else newRank = "Стажёр";
 
-      const matchId = `match_${Date.now()}`;
-      const winnerRole = matchDetails?.winnerRole || (isWin ? role : (role === "DETECTIVE" ? "KILLER" : "DETECTIVE"));
-
       const newMatchEntry: MatchHistoryEntry = {
         id: matchId,
         matchId: matchId,
-        mode: matchDetails?.mode || "MANIAC_VS_OPERATIVE",
+        mode: mode,
         winnerRole: winnerRole,
         role: role,
-        isWinner: isWin,
+        isWinner: isWinner,
         mmrDelta: mmrDelta,
-        durationSeconds: matchDetails?.durationSeconds || 120,
+        durationSeconds: durationSeconds,
         createdAt: new Date().toISOString(),
       };
       const recentMatches = [newMatchEntry, ...(prev.recentMatches || [])].slice(0, 10);
 
       const nextBase: UserProfile = {
         ...prev,
+        cash: Math.max(0, prev.cash + cashAwarded),
         xp: newXp,
         level: newLevel,
         rank: newRank,
@@ -317,10 +391,10 @@ export function useProfile() {
       };
 
       const outcomeContext: MatchOutcomeContext = {
-        mode: matchDetails?.mode || "MANIAC_VS_OPERATIVE",
+        mode: mode,
         role: role,
-        isWin: isWin,
-        durationSeconds: matchDetails?.durationSeconds || 120,
+        isWin: isWinner,
+        durationSeconds: durationSeconds,
         isOnline: matchDetails?.isOnline,
         isTvParty: matchDetails?.isTvParty,
         isFlawless: matchDetails?.isFlawless,
@@ -337,24 +411,17 @@ export function useProfile() {
       return evalRes.updatedProfile;
     });
 
-    // Облачная запись через защищенную RPC функцию
-    if (user?.id && isCloudConnected) {
-      try {
-        await (supabase.rpc as any)("record_match_result", {
-          p_mode: matchDetails?.mode || "MANIAC_VS_OPERATIVE",
-          p_winner_role: matchDetails?.winnerRole || (isWin ? role : "OPPONENT"),
-          p_duration_seconds: Math.max(11, matchDetails?.durationSeconds || 120),
-          p_role: role,
-          p_is_winner: isWin,
-          p_mmr_delta: mmrDelta,
-          p_match_id: (matchDetails as any)?.matchId || null,
-        });
-      } catch (rpcErr) {
-        console.warn("[useProfile] Ошибка записи матча в Supabase RPC:", rpcErr);
-      }
-    }
+    const result = {
+      newMmr: finalMmr,
+      mmrDelta,
+      cashAwarded,
+      isWinner,
+      matchId,
+      newlyUnlocked: newlyUnlockedList,
+    };
 
-    return { newMmr: finalMmr, mmrDelta, newlyUnlocked: newlyUnlockedList };
+    processedMatchesRef.current.set(matchId, result);
+    return result;
   }, [user?.id, isCloudConnected, profile.rank, profile.mmr]);
 
   const awardPrize = useCallback((pot: number) => {

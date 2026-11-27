@@ -1,7 +1,8 @@
-import { useEffect, type MutableRefObject } from "react";
+import { useEffect, useRef, type MutableRefObject } from "react";
 import { soundManager } from "../utils/audio";
 import { triggerHaptic } from "../utils/haptics";
 import { partyService } from "../utils/partyPeer";
+import { createMatchId } from "../utils/matchRewards";
 import type { GameState } from "../types/game";
 
 export interface MatchDetails {
@@ -14,6 +15,8 @@ export interface MatchDetails {
   isTvParty?: boolean;
   isFlawless?: boolean;
   shiftsCount?: number;
+  /** UUID матча — ключ идемпотентности награды/MMR */
+  matchId?: string;
 }
 
 export interface UseMatchEndHandlerParams {
@@ -36,10 +39,17 @@ export function useMatchEndHandler({
   secondsElapsed,
   onRatingCalculated,
 }: UseMatchEndHandlerParams) {
+  // Стабильный UUID текущего матча: генерируется один раз и служит ключом
+  // идемпотентности для record_match_result (повтор не начислит награду).
+  const matchIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (gameState.winner && !matchResultRecordedRef.current) {
       // Защита от повторной фиксации результата матча
       matchResultRecordedRef.current = true;
+      if (!matchIdRef.current) {
+        matchIdRef.current = createMatchId();
+      }
 
       let isLocalWin = false;
       let localRole = gameState.playerRole || "DETECTIVE";
@@ -75,12 +85,15 @@ export function useMatchEndHandler({
         mode: gameState.mode,
         winnerRole: gameState.winner,
         role: localRole,
-        durationSeconds: secondsElapsed || 120,
+        // Фактическая длительность матча (без искусственного завышения)
+        durationSeconds: secondsElapsed,
         mmrDelta,
         isOnline: gameState.opponent === "ONLINE",
         isTvParty: false,
         isFlawless: isLocalWin && (gameState.playerRole === "DETECTIVE" ? (gameState.killCount || 0) === 0 : true),
-        shiftsCount: gameState.turnCount || 0,
+        // turnCount не входит в GameState, но может приходить из внешнего стора
+        shiftsCount: (gameState as GameState & { turnCount?: number }).turnCount || 0,
+        matchId: matchIdRef.current,
       };
 
       // Фиксация результатов матча (Supabase + локальный офлайн-кэш)

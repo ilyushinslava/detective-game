@@ -170,13 +170,23 @@ export interface Database {
           p_winner_role: string;
           p_duration_seconds: number;
           p_role: string;
-          p_is_winner: boolean;
+          /** Подсказка клиента; сервер пересчитывает результат по role/winnerRole */
+          p_is_winner?: boolean;
+          /** Подсказка клиента; сервер клампит/пересчитывает MMR */
           p_mmr_delta?: number;
+          /** Обязательный ключ идемпотентности (UUID матча) */
+          p_match_id: string;
         };
         Returns: {
           ok: boolean;
+          idempotent: boolean;
           match_id: string;
+          is_winner: boolean;
+          mmr_delta: number;
+          cash_awarded: number;
           new_mmr: number;
+          new_cash: number;
+          duration_seconds: number;
         };
       };
     };

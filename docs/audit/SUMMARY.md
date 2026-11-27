@@ -2,7 +2,7 @@
 
 > Проект: **«Под подозрением» (Prime Suspect)**  
 > Статус системы: **Релиз v2.0.0**  
-> Актуальное состояние тестов: **95 файлов, 618 тестов пройдены успешно (100% PASS)**  
+> Актуальное состояние тестов (прогон 2026-11-27): **114 тест-файлов, 801 тест — 800 passed / 1 failed** (единственное падение — дефект граничного ТВ-теста [TvRejectEdgeCases.test.tsx](file:///c:/Projects/detective-game/src/components/tv/__tests__/TvRejectEdgeCases.test.tsx) на jsdom-заглушке `HTMLMediaElement.play()`, не логика приложения)
 > Статус сборки: **✓ built (0 ошибок TypeScript, строгий режим, PWA precache: 105 ассетов, ~5.0 МБ)**
 
 ---
@@ -30,16 +30,22 @@
 - [x] **HIGH-01:** Маскирование скрытых полей дуэли и руки грабителя в `maskStateForPlayer` и `maskStateForTv`.
 - [x] **HIGH-02:** Серверный расчет банка матча `matchPot` и блокировка клиентских вызовов `SET_MATCH_POT`.
 
-### ✅ Спринт 2: Целостность матча (SEC-NET) — ВЫПОЛНЕН ЧАСТИЧНО (2026-11-27)
+### ✅ Спринт 2: Целостность матча (SEC-NET) — ВЫПОЛНЕН (2026-11-27), кроме `DEBT-01` (отложен по решению владельца)
 
 > Отдельный сетевой спринт по архивному аудиту [01-security-and-network.md](file:///c:/Projects/detective-game/docs/archive/audit/01-security-and-network.md). Не путать с замороженным спринтом «Очная ставка» ниже.
 
 - [x] **SEC-NET-05 (P2):** серверная проверка соседства 3×3 в [`validateActionLogic()`](file:///c:/Projects/detective-game/src/server/index.ts#L1079) для `KILL_CHARACTER`/`TARGET_KILL`, `ROB_NEIGHBOR`/`ROB`/`STEAL`, `ACCUSE`/`ARREST`, `CAPTURE_SPY`/`INTERROGATE`; новый код `TARGET_NOT_IN_RADIUS` и страховка от «тихого» no-op → `ACTION_NOT_APPLIED`. Тест-сьют [spatialValidation.test.ts](file:///c:/Projects/detective-game/src/server/__tests__/spatialValidation.test.ts) — 16 тестов. Merge `b72fa74`, коммит `94447be`.
 - [x] **Клиентская обработка отказов (задача 2.4):** `isActionRejectReason()` в [serverEvents.ts](file:///c:/Projects/detective-game/src/utils/serverEvents.ts), дедупликация `SYNC_ERROR` + `ACTION_REJECTED`, авто-скрытие через 5 с в [useMultiplayer.ts](file:///c:/Projects/detective-game/src/utils/useMultiplayer.ts), неблокирующая плашка [MatchStatusBanner.tsx](file:///c:/Projects/detective-game/src/components/MatchStatusBanner.tsx); `ServerMessageModal` остаётся только для настоящего десинка. Merge `a2ae60a`, коммит `6a0d143`.
 - [x] **SEC-NET-04 (HIGH):** блокировка `RESTART_DUEL` / `RESOLVE_DUEL_TIE_BREAK` закрыта в коде двумя слоями: ранний фильтр в [`onMessage`](file:///c:/Projects/detective-game/src/server/index.ts#L1376-L1385) и код `PROHIBITED_ACTION` в [`validateActionLogic`](file:///c:/Projects/detective-game/src/server/index.ts#L1141-L1147). Тестами покрыто частично (см. бэклог `SEC-NET-04-T`).
-- [ ] **SEC-NET-06 (P2):** гонка состояния при реконнекте сокетов с `authToken` — не закрыта.
-- [ ] **TV-REJECT:** текст отказа на ТВ-экране в 10-foot UI — не реализован (на ТВ отказ сейчас не выводится).
-- [ ] **TOOL-VITEST:** апгрейд `vitest` — отложен.
+- [x] **SEC-NET-06 (P2):** гонка состояния при реконнекте сокетов с `authToken` — закрыта: `sessionEpoch`, stale-close guard, коды `SESSION_SUPERSEDED` / `SESSION_CONFLICT`, защита границ таймеров. Merge `bff0d69` → `afed166`.
+- [x] **SEC-NET-04-T:** тесты дуэльных блокировок `RESTART_DUEL` / `RESOLVE_DUEL_TIE_BREAK` — [duelProhibitedActions.test.ts](file:///c:/Projects/detective-game/src/server/__tests__/duelProhibitedActions.test.ts), 5 тестов. Merge `b6178eb` → `78bb22a`.
+- [x] **TV-REJECT:** плашка причины отказа на ТВ-экране в 10-foot UI + граничные тесты [TvRejectEdgeCases.test.tsx](file:///c:/Projects/detective-game/src/components/tv/__tests__/TvRejectEdgeCases.test.tsx). Merge `84cb630` → `6f155e7`, `de321d7` → `d277ee4`.
+- [x] **Плашка на контроллере:** инлайн-причина отказа на мобильном контроллере. Merge `a41abed` → `b323c63`.
+- [x] **MEM-RES-03 / SEC-NET-07:** устранение утечек памяти и сетевых остатков подписок. Merge `42131a3` → `981327a`.
+- [x] **SEC-ENV-01 / SEC-ENV-02:** CSP для production и CORS-allowlist на сервере. Merge `225dcfb` → `613166d`.
+- [x] **TOOL-VITEST:** `vitest` 1.6.1 → 2.1.9, снят Windows-дефект регистра диска. Merge `ac72d19` → `fcb9d93`.
+- [x] **Клиент `SESSION_SUPERSEDED`:** обработка без автопереподключения. Merge `034524f` → `da28469`.
+- [x] **Ротация `authToken`:** окно совместимости 60 с. Merge `024e82c` → `3e57ff8`.
 
 ### 🟡 Спринт 2: Режим «Очная ставка» (`LINE_UP`) — [ЗАМОРОЖЕН / В РАЗРАБОТКЕ]
 
@@ -81,22 +87,31 @@
 
 В открытом бэклоге оставлены только задачи, не блокирующие релиз v2.0.0:
 
-| ID               | Задача                                                    | Зона               | Описание                                                                                                                                                                                                                                                             |
-| :--------------- | :-------------------------------------------------------- | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **DEBT-01**      | Редизайн «Очной ставки» (`LINE_UP`)                       | Game Core / UI     | Полная пересборка замороженного режима: унификация с `gameReducer`, ИИ-бот, атрибутивные карточки.                                                                                                                                                                   |
-| **DEBT-02**      | Стресс-тестирование ТВ-режима на слабом Android TV железе | TV Party           | Профилирование FPS Framer Motion анимаций на бюджетных ТВ-приставках с 1 ГБ RAM.                                                                                                                                                                                     |
-| **SEC-NET-04-T** | Тестовое покрытие блокировки `RESTART_DUEL`               | Security / QA      | Тест [authoritativeSync.test.ts](file:///c:/Projects/detective-game/src/server/__tests__/authoritativeSync.test.ts#L420) проверяет только `SET_MATCH_POT` и `RESOLVE_DUEL_TIE_BREAK`; реальная отправка `RESTART_DUEL` и код `PROHIBITED_ACTION` тестами не покрыты. |
-| **SEC-NET-06**   | Гонка состояния при реконнекте сокетов                    | Security / Network | Привязка сессии к `authToken` вместо динамического `connectionId`/`clientId`, блокировка смены состояния во время дисконнекта.                                                                                                                                       |
-| **TV-REJECT**    | Отображение отказа действия на ТВ                         | TV Party / UI      | Плашка отказа реализована на мобильном контроллере; на ТВ-экране причина отказа не выводится.                                                                                                                                                                        |
-| **TOOL-VITEST**  | Апгрейд `vitest`                                          | Tooling            | Плановое обновление тест-раннера; отложено, чтобы не ломать текущий прогон.                                                                                                                                                                                          |
+| ID          | Задача                                                    | Зона           | Статус                                                                               |
+| :---------- | :-------------------------------------------------------- | :------------- | :----------------------------------------------------------------------------------- |
+| **DEBT-01** | Редизайн «Очной ставки» (`LINE_UP`)                       | Game Core / UI | Отложено по решению владельца: режим заморожен и скрыт из меню, турниров и Академии. |
+| **DEBT-02** | Стресс-тестирование ТВ-режима на слабом Android TV железе | TV Party       | Открыто: требуется реальное профилирование FPS на бюджетных приставках с 1 ГБ RAM.   |
+
+> Закрыто в спринте 2: `SEC-NET-04-T`, `SEC-NET-06`, `TV-REJECT`, `TOOL-VITEST`, `MEM-RES-03`, `SEC-NET-07`, `SEC-ENV-01`, `SEC-ENV-02`.
 
 ---
 
-## 4. Заключение
+## 4. Не проверено на реальных устройствах
+
+Перечисленные ниже пункты проверены только юнит-тестами (jsdom) и требуют ручной валидации на физических устройствах:
+
+- **ТВ 1280×720 / 1920×1080 и Android TV:** реальный рендер (шрифты, safe area, 10-foot читаемость с дивана), отсутствие скролла, работа D-Pad и отсутствие ловушек фокуса.
+- **Мобильный контроллер 375×667:** реальная геометрия инлайн-плашки отказа, отсутствие визуального наложения на нижний ряд сетки, отсутствие вертикального скролла.
+- **CSP в браузере:** проверка через DevTools → Console на нарушения политики; `frame-ancestors` и `X-Frame-Options` настраиваются только на хостинге и локально не воспроизводятся.
+- **`SESSION_SUPERSEDED` и ротация `authToken`:** поведение на реальных устройствах (мобильный контроллер, ТВ, приватные комнаты) — реконнект, окно совместимости 60 с, отсутствие автопереподключения.
+
+---
+
+## 5. Заключение
 
 Проект полностью стабилизирован:
 
-- **618 тестов Vitest (100% pass)**.
+- **801 тест Vitest: 800 passed / 1 failed** (единственное падение — дефект jsdom-теста ТВ-плашки, не логика приложения).
 - Сборка чистая и быстрая.
 - Безопасность авторитетного сервера PartyKit подтверждена.
 - Все 3 активных режима игры согласованы с официальными правилами.

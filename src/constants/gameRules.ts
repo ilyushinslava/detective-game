@@ -9,6 +9,19 @@ export const DEFAULT_BET = 250;
 // Тайминги ходов и задержек (в секундах)
 export const TURN_GRACE_PERIOD_SECONDS = 60;
 
+// Лимит длительности одного хода — единый источник истины (SSoT) для
+// серверного таймера, клиентского конфига и тестов.
+// 30с соответствует фактическому серверному поведению таймера хода.
+export const TURN_TIME_LIMIT_SECONDS = 30;
+export const TURN_TIME_LIMIT_MS = TURN_TIME_LIMIT_SECONDS * 1000;
+
+// Лимиты длительности матча (античит-кламп в record_match_result / matchRewards).
+export const MATCH_MIN_DURATION_SECONDS = 11;
+export const MATCH_DEFAULT_DURATION_SECONDS = 120;
+export const MATCH_MAX_DURATION_SECONDS = 3600;
+export const MATCH_SECRET_SERVICE_MAX_DURATION_SECONDS = 7200;
+export const MATCH_LINE_UP_MAX_DURATION_SECONDS = 1800;
+
 // Параметры поля
 export const BOARD_GRID_SIZE = 5;
 

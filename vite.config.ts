@@ -1,10 +1,14 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import { createCspPlugin } from "./src/config/cspPolicy.ts";
 
 export default defineConfig({
   plugins: [
     react(),
+    // SEC-ENV-01: CSP добавляется только в production-сборку (apply: "build"),
+    // поэтому dev-сервер и HMR остаются без ограничений.
+    createCspPlugin(),
     VitePWA({
       registerType: "prompt",
       injectRegister: "auto",

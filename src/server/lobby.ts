@@ -1,6 +1,7 @@
 // src/server/lobby.ts
 import { normalizeMorse } from "../utils/morse";
 import type { MorseCandidate } from "../types/multiplayer";
+import { buildCorsHeaders, buildPreflightResponse, resolveAllowedOrigins } from "./cors";
 
 export type { MorseCandidate };
 
@@ -167,15 +168,14 @@ export default class LobbyServer {
     const url = new URL(req.url);
     const action = url.searchParams.get("action");
 
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    };
+    // SEC-ENV-02: cross-origin разрешён только доверенным origins (ALLOWED_ORIGINS).
+    const allowedOrigins = resolveAllowedOrigins(
+      ((this as any).env ?? (this.room as any)?.env ?? null) as Record<string, unknown> | null
+    );
+    const preflightResponse = buildPreflightResponse(req, allowedOrigins);
+    if (preflightResponse) return preflightResponse;
 
-    if (req.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders });
-    }
+    const corsHeaders = buildCorsHeaders(req.headers.get("origin"), allowedOrigins);
 
     if (action === "list" || url.pathname.endsWith("/rooms")) {
       const rooms = Array.from(publicRoomsRegistry.values()).map(maskPrivateRoomMeta);

@@ -33,6 +33,13 @@ export interface PlayerInfo {
   connectionId: string;
   clientType: ClientDeviceType;
   authToken?: string;
+  /**
+   * Кластер 3: предыдущий authToken, который ещё принимается в течение
+   * окна совместимости после ротации (см. AUTH_TOKEN_ROTATION_GRACE_MS).
+   */
+  previousAuthToken?: string;
+  /** Метка (Date.now()) истечения окна совместимости предыдущего токена. */
+  previousAuthTokenExpiresAt?: number;
   isDisconnected?: boolean;
   isBackground?: boolean;
   /**
@@ -99,6 +106,18 @@ const defer = (fn: () => void) => {
 };
 
 export const DISCONNECT_GRACE_PERIOD_MS = TURN_GRACE_PERIOD_SECONDS * 1000;
+
+/**
+ * Кластер 3: окно совместимости, в течение которого после ротации authToken
+ * сервер продолжает принимать предыдущий токен (защита от гонок при реконнекте).
+ */
+export const AUTH_TOKEN_ROTATION_GRACE_MS = 60_000;
+
+/** Генерация криптостойкого токена сессии с fallback для окружений без crypto.randomUUID. */
+const generateAuthToken = (): string =>
+  typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : `auth_${Date.now()}_${Math.random().toString(36).substring(2)}${Math.random().toString(36).substring(2)}`;
 
 /**
  * P0-3: Карта режимных ограничений для игровых действий.
@@ -581,7 +600,9 @@ export default class GameRoomServer {
       const hasValidParticipantToken = Boolean(
         incomingAuthToken &&
           ((this.state.hostToken && incomingAuthToken === this.state.hostToken) ||
-            Object.values(this.state.players).some((p) => p.authToken === incomingAuthToken))
+            Object.values(this.state.players).some((p) =>
+              this.isValidAuthToken(p, incomingAuthToken)
+            ))
       );
       if (!hasValidMorse && !hasValidParticipantToken) {
         try {
@@ -672,18 +693,15 @@ export default class GameRoomServer {
       return;
     }
 
-    const generateToken = () =>
-      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-        ? crypto.randomUUID()
-        : `auth_${Date.now()}_${Math.random().toString(36).substring(2)}${Math.random().toString(36).substring(2)}`;
+    const generateToken = generateAuthToken;
 
     // Повторное подключение игрока: поиск по clientId или по authToken
     let existingPlayerId: string | null = null;
     if (this.state.players[clientId]) {
       existingPlayerId = clientId;
     } else if (incomingAuthToken) {
-      const matchByToken = Object.values(this.state.players).find(
-        (p) => p.authToken === incomingAuthToken
+      const matchByToken = Object.values(this.state.players).find((p) =>
+        this.isValidAuthToken(p, incomingAuthToken)
       );
       if (matchByToken) {
         existingPlayerId = matchByToken.clientId;
@@ -708,8 +726,8 @@ export default class GameRoomServer {
     // SEC-NET-06: явный конфликт сессий — валидный authToken принадлежит игроку A,
     // но переданный clientId занят другим существующим игроком B.
     if (incomingAuthToken && this.state.players[clientId]) {
-      const tokenOwner = Object.values(this.state.players).find(
-        (p) => p.authToken === incomingAuthToken
+      const tokenOwner = Object.values(this.state.players).find((p) =>
+        this.isValidAuthToken(p, incomingAuthToken)
       );
       if (tokenOwner && tokenOwner.clientId !== clientId) {
         try {
@@ -728,7 +746,8 @@ export default class GameRoomServer {
       const expectedToken = existingPlayer.authToken;
 
       // Если у игрока зарегистрирован секретный токен, он обязан совпадать
-      if (expectedToken && incomingAuthToken !== expectedToken) {
+      // (либо быть действующим предыдущим токеном в пределах окна совместимости).
+      if (expectedToken && !this.isValidAuthToken(existingPlayer, incomingAuthToken)) {
         try {
           conn.send(JSON.stringify({ type: "ERROR", message: "UNAUTHORIZED_SESSION" }));
           conn.close();
@@ -782,6 +801,10 @@ export default class GameRoomServer {
       this.state.players[clientId].sessionEpoch =
         (this.state.players[clientId].sessionEpoch ?? 0) + 1;
 
+      // Кластер 3: при каждом успешном (re)bind сессии выдаём новый authToken.
+      // Прежний токен остаётся валидным в течение окна совместимости.
+      const rotatedAuthToken = this.rotateAuthToken(this.state.players[clientId]);
+
       // SEC-NET-06: замещаем живой старый сокет новым (один authToken = один сокет).
       if (previousConnectionId && previousConnectionId !== conn.id) {
         const activeConnections: any[] = this.room?._connectionsMap
@@ -824,7 +847,7 @@ export default class GameRoomServer {
         conn.send(
           JSON.stringify({
             type: "AUTH_TOKEN",
-            authToken: expectedToken,
+            authToken: rotatedAuthToken,
             clientId,
           })
         );
@@ -835,7 +858,7 @@ export default class GameRoomServer {
             status: this.state.status,
             gameState: maskedSnapshot,
             state: maskedSnapshot,
-            authToken: expectedToken,
+            authToken: rotatedAuthToken,
             clientId,
           })
         );
@@ -846,7 +869,7 @@ export default class GameRoomServer {
             status: this.state.status,
             gameState: maskedSnapshot,
             state: maskedSnapshot,
-            authToken: expectedToken,
+            authToken: rotatedAuthToken,
             clientId,
           })
         );
@@ -2103,9 +2126,12 @@ export default class GameRoomServer {
   }
 
   broadcastStatus(): void {
-    const sanitizedPlayers: Record<string, Omit<PlayerInfo, "authToken">> = {};
+    const sanitizedPlayers: Record<
+      string,
+      Omit<PlayerInfo, "authToken" | "previousAuthToken" | "previousAuthTokenExpiresAt">
+    > = {};
     for (const [id, p] of Object.entries(this.state.players)) {
-      const { authToken, ...rest } = p;
+      const { authToken, previousAuthToken, previousAuthTokenExpiresAt, ...rest } = p;
       sanitizedPlayers[id] = rest;
     }
 
@@ -2263,6 +2289,41 @@ export default class GameRoomServer {
     playerIndex?: number
   ): GameState {
     return maskStateForPlayer(state, role, isHost, isPassAndPlay, playerIndex);
+  }
+
+  /**
+   * Кластер 3: токен валиден, если он текущий либо действующий предыдущий
+   * в пределах окна совместимости после ротации. Истёкший предыдущий токен
+   * очищается лениво, чтобы состояние не разрасталось.
+   */
+  private isValidAuthToken(player: PlayerInfo, token: string | null | undefined): boolean {
+    if (!token) return false;
+    if (player.authToken && token === player.authToken) return true;
+    if (player.previousAuthToken && token === player.previousAuthToken) {
+      if (player.previousAuthTokenExpiresAt && player.previousAuthTokenExpiresAt > Date.now()) {
+        return true;
+      }
+      delete player.previousAuthToken;
+      delete player.previousAuthTokenExpiresAt;
+    }
+    return false;
+  }
+
+  /**
+   * Кластер 3: ротация authToken при успешном (re)bind сессии.
+   * Прежний токен сохраняется как previousAuthToken с окном совместимости.
+   */
+  private rotateAuthToken(player: PlayerInfo): string {
+    const nextToken = generateAuthToken();
+    if (player.authToken) {
+      player.previousAuthToken = player.authToken;
+      player.previousAuthTokenExpiresAt = Date.now() + AUTH_TOKEN_ROTATION_GRACE_MS;
+    } else {
+      delete player.previousAuthToken;
+      delete player.previousAuthTokenExpiresAt;
+    }
+    player.authToken = nextToken;
+    return nextToken;
   }
 
   private getClientIdByConnId(connId: string): string | undefined {

@@ -53,7 +53,8 @@ describe("useProfile Hook (Supabase & Offline-First)", () => {
     expect(result.current.profile.mmr).toBe(1025);
     expect(result.current.profile.xp).toBe(50);
     expect(result.current.profile.unlockedAchievements).toContain("operative_case_closed");
-    expect(result.current.profile.cash).toBe(1650);
+    // 1500 стартовых + 100 серверная награда за победу + 150 за достижение
+    expect(result.current.profile.cash).toBe(1750);
   });
 
   it("корректно списывает и возвращает ставку", () => {

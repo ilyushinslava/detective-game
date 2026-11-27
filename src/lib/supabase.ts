@@ -3,6 +3,13 @@
 
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types/database";
+import {
+  calculateMatchCashReward,
+  calculateMmrDelta,
+  clampMatchDuration,
+  isKnownMode,
+  resolveMatchOutcome,
+} from "../utils/matchRewards";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -17,7 +24,13 @@ export const isSupabaseConfigured: boolean = Boolean(
 
 // Fallback Mock-клиент для оффлайн режима или тестового стенда без облачных ключей
 function createMockSupabaseClient(): SupabaseClient<Database> {
-  const recordedMatchIds = new Set<string>();
+  // Оффлайн-зеркало серверного состояния: хранит уже обработанные match_id,
+  // чтобы повторный вызов RPC не начислял награду дважды.
+  const recordedMatches = new Map<
+    string,
+    { is_winner: boolean; mmr_delta: number; cash_awarded: number; duration_seconds: number }
+  >();
+  const mockProfileState = { mmr: 1000, cash: 1500 };
 
   const mockAuth = {
     getSession: async () => ({ data: { session: null }, error: null }),
@@ -101,8 +114,40 @@ function createMockSupabaseClient(): SupabaseClient<Database> {
     from: (table: string) => createQueryBuilder(table),
     rpc: async (fnName: string, params: any) => {
       if (fnName === "record_match_result") {
+        // Античит 0: match_id обязателен (ключ идемпотентности)
+        if (!params?.p_match_id) {
+          return {
+            data: null,
+            error: {
+              message: "Античит: match_id обязателен для фиксации результата матча",
+              code: "22023",
+              status: 400,
+            },
+          };
+        }
+
+        const mode = params?.p_mode;
+        const role = params?.p_role;
+        const winnerRole = params?.p_winner_role;
+
+        // Валидация режима и роли (как в серверной функции)
+        if (!isKnownMode(mode)) {
+          return {
+            data: null,
+            error: {
+              message: `Античит: неизвестный режим матча (${mode})`,
+              code: "22023",
+              status: 400,
+            },
+          };
+        }
+
         // Античит 1: Проверка длительности матча (> 10 секунд)
-        if (params?.p_duration_seconds !== undefined && params.p_duration_seconds <= 10) {
+        if (
+          params?.p_duration_seconds === undefined ||
+          params?.p_duration_seconds === null ||
+          params.p_duration_seconds <= 10
+        ) {
           return {
             data: null,
             error: {
@@ -113,26 +158,57 @@ function createMockSupabaseClient(): SupabaseClient<Database> {
           };
         }
 
-        // Античит 2: Проверка повторной записи того же матча
-        if (params?.p_match_id) {
-          if (recordedMatchIds.has(params.p_match_id)) {
-            return {
-              data: null,
-              error: {
-                message: `Античит: результат матча ${params.p_match_id} уже зафиксирован для данного игрока`,
-                code: "23505",
-                status: 409,
-              },
-            };
-          }
-          recordedMatchIds.add(params.p_match_id);
+        // Античит 2: идемпотентность — повторный match_id не начисляет награду
+        const existing = recordedMatches.get(params.p_match_id);
+        if (existing) {
+          return {
+            data: {
+              ok: true,
+              idempotent: true,
+              match_id: params.p_match_id,
+              is_winner: existing.is_winner,
+              mmr_delta: 0,
+              cash_awarded: 0,
+              new_mmr: mockProfileState.mmr,
+              new_cash: mockProfileState.cash,
+              duration_seconds: existing.duration_seconds,
+            },
+            error: null,
+          };
         }
+
+        const durationSeconds = clampMatchDuration(mode, params.p_duration_seconds);
+        // Клиентские p_is_winner / p_mmr_delta — только подсказки, сервер пересчитывает
+        const isWinner = resolveMatchOutcome({
+          mode,
+          role,
+          winnerRole,
+          fallbackIsWinner: params?.p_is_winner,
+        });
+        const mmrDelta = calculateMmrDelta(isWinner);
+        const cashAwarded = calculateMatchCashReward(isWinner);
+
+        mockProfileState.mmr = Math.max(100, mockProfileState.mmr + mmrDelta);
+        mockProfileState.cash = Math.max(0, mockProfileState.cash + cashAwarded);
+
+        recordedMatches.set(params.p_match_id, {
+          is_winner: isWinner,
+          mmr_delta: mmrDelta,
+          cash_awarded: cashAwarded,
+          duration_seconds: durationSeconds,
+        });
 
         return {
           data: {
             ok: true,
-            match_id: params?.p_match_id || "mock_match_uuid",
-            new_mmr: 1025,
+            idempotent: false,
+            match_id: params.p_match_id,
+            is_winner: isWinner,
+            mmr_delta: mmrDelta,
+            cash_awarded: cashAwarded,
+            new_mmr: mockProfileState.mmr,
+            new_cash: mockProfileState.cash,
+            duration_seconds: durationSeconds,
           },
           error: null,
         };

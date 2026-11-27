@@ -67,5 +67,69 @@ describe("useGameTimer", () => {
     });
     expect(result.current.secondsElapsed).toBe(2);
   });
+
+  it("не тикает при isPaused=true и сохраняет накопленные секунды", () => {
+    let isPaused = true;
+    const { result, rerender } = renderHook(() =>
+      useGameTimer({
+        hasStartedEver: true,
+        isIntroPhase: false,
+        winner: null,
+        isPaused,
+      })
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+    expect(result.current.secondsElapsed).toBe(0);
+
+    isPaused = false;
+    rerender();
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(result.current.secondsElapsed).toBe(2);
+
+    isPaused = true;
+    rerender();
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(result.current.secondsElapsed).toBe(2);
+  });
+
+  it("при снятии паузы продолжает отсчёт с накопленного значения без сброса", () => {
+    let isPaused = false;
+    const { result, rerender } = renderHook(() =>
+      useGameTimer({
+        hasStartedEver: true,
+        isIntroPhase: false,
+        winner: null,
+        isPaused,
+      })
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(result.current.secondsElapsed).toBe(4);
+
+    isPaused = true;
+    rerender();
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+    expect(result.current.secondsElapsed).toBe(4);
+
+    isPaused = false;
+    rerender();
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(result.current.secondsElapsed).toBe(5);
+  });
 });
 

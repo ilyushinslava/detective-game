@@ -44,6 +44,15 @@ export function useMatchEndHandler({
   const matchIdRef = useRef<string | null>(null);
 
   useEffect(() => {
+    // Аннулированный матч (оба игрока оффлайн) не имеет победителя:
+    // победа/поражение и запись результата в Supabase не выполняются.
+    const isAnnulledMatch =
+      gameState.gameEndReason === "MATCH_ANNULLED" ||
+      gameState.gameResult?.reason === "DRAW_DISCONNECT";
+    if (isAnnulledMatch) {
+      return;
+    }
+
     if (gameState.winner && !matchResultRecordedRef.current) {
       // Защита от повторной фиксации результата матча
       matchResultRecordedRef.current = true;
@@ -125,6 +134,8 @@ export function useMatchEndHandler({
     }
   }, [
     gameState.winner,
+    gameState.gameEndReason,
+    gameState.gameResult,
     gameState.opponent,
     gameState.mode,
     gameState.playerRole,

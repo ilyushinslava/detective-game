@@ -3,6 +3,7 @@ import type { GameState, GameModeType, Role } from "../types/game";
 import type { UserProfile } from "../types/profile";
 import { partyService } from "./partyPeer";
 import { soundManager } from "./audio";
+import { getMatchAnnulledMessage, getServerRejectReasonText, getSyncErrorMessage } from "./serverEvents";
 import { safeLocalStorage, safeSessionStorage } from "./storage";
 
 interface UseMultiplayerParams {
@@ -18,7 +19,6 @@ interface UseMultiplayerParams {
   matchResultRecordedRef: React.MutableRefObject<boolean>;
   setSelectedId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedInspectorChoiceId: React.Dispatch<React.SetStateAction<string | null>>;
-  setSecondsElapsed: React.Dispatch<React.SetStateAction<number>>;
   setIsPauseOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -35,7 +35,6 @@ export function useMultiplayer({
   matchResultRecordedRef,
   setSelectedId,
   setSelectedInspectorChoiceId,
-  setSecondsElapsed,
   setIsPauseOpen,
 }: UseMultiplayerParams) {
   const [isOpponentConnected, setIsOpponentConnected] = useState(true);
@@ -43,6 +42,19 @@ export function useMultiplayer({
   const [isOpponentPermanentlyLeft, setIsOpponentPermanentlyLeft] = useState(false);
   const [rematchTimer, setRematchTimer] = useState(15);
   const rematchIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // --- Серверные события (пауза таймера, двойной дисконнект, аннулирование, ошибки) ---
+  const [isTurnTimerPaused, setIsTurnTimerPaused] = useState(false);
+  const [turnTimerRemainingMs, setTurnTimerRemainingMs] = useState<number | null>(null);
+  const [isDualDisconnectPaused, setIsDualDisconnectPaused] = useState(false);
+  const [dualDisconnectGraceMs, setDualDisconnectGraceMs] = useState<number | null>(null);
+  const [isMatchAnnulled, setIsMatchAnnulled] = useState(false);
+  const [matchAnnulledMessage, setMatchAnnulledMessage] = useState<string | null>(null);
+  const [syncErrorMessage, setSyncErrorMessage] = useState<string | null>(null);
+  const [actionRejectedMessage, setActionRejectedMessage] = useState<string | null>(null);
+  const matchAnnulledRef = useRef(false);
+  const isTurnTimerPausedRef = useRef(false);
+  const hasTurnTimerRef = useRef(false);
 
   useEffect(() => {
     const handleResume = () => {
@@ -80,6 +92,8 @@ export function useMultiplayer({
     };
 
     const unsubSyncState = subscribeOrAssign("syncState", "onSyncState", (state: any, role?: Role, status?: string) => {
+      // Сервер прислал актуальный снапшот — снимаем «залипшие» уведомления об отказах.
+      setActionRejectedMessage(null);
       if (state) {
         if (state.mode) {
           setActiveMode(state.mode);
@@ -116,6 +130,11 @@ export function useMultiplayer({
 
     const unsubRoomStatus = subscribeOrAssign("roomStatus", "onRoomStatus", (data: any) => {
       const status = typeof data === "string" ? data : data?.status;
+      if (status === "PLAYING" || status === "READY_TO_START") {
+        // Матч идёт: сервер снял паузу двойного дисконнекта после возврата игрока.
+        setIsDualDisconnectPaused(false);
+        setDualDisconnectGraceMs(null);
+      }
       if (status === "WAITING") {
         setIsOpponentConnected(true);
         setOpponentDisconnectedNotice(false);
@@ -154,12 +173,87 @@ export function useMultiplayer({
       setIsOpponentConnected(connected);
       setOpponentDisconnectedNotice(!connected);
       if (connected) {
+        // Соединение восстановлено — снимаем баннер паузы двойного дисконнекта.
+        setIsDualDisconnectPaused(false);
+        setDualDisconnectGraceMs(null);
         soundManager.play("confirm");
       }
     });
 
     const unsubAction = subscribeOrAssign("action", "onAction", (action: any) => {
       if (!action) return;
+
+      // --- Серверные события пауз и финала ---
+      if (action.type === "TURN_TIMER_PAUSED") {
+        isTurnTimerPausedRef.current = true;
+        hasTurnTimerRef.current = true;
+        setIsTurnTimerPaused(true);
+        setTurnTimerRemainingMs(
+          typeof action.remainingMs === "number" && Number.isFinite(action.remainingMs)
+            ? Math.max(0, action.remainingMs)
+            : null
+        );
+        return;
+      }
+      if (action.type === "TURN_TIMER_RESUMED") {
+        isTurnTimerPausedRef.current = false;
+        hasTurnTimerRef.current = true;
+        setIsTurnTimerPaused(false);
+        setTurnTimerRemainingMs(
+          typeof action.remainingMs === "number" && Number.isFinite(action.remainingMs)
+            ? Math.max(0, action.remainingMs)
+            : null
+        );
+        return;
+      }
+      if (action.type === "DUAL_DISCONNECT_PAUSE") {
+        // Оба игрока оффлайн: показываем паузу матча, не объявляя ложный финал.
+        setIsDualDisconnectPaused(true);
+        setDualDisconnectGraceMs(
+          typeof action.gracePeriodMs === "number" && Number.isFinite(action.gracePeriodMs)
+            ? Math.max(0, action.gracePeriodMs)
+            : null
+        );
+        setOpponentDisconnectedNotice(false);
+        setIsOpponentPermanentlyLeft(false);
+        return;
+      }
+      if (action.type === "MATCH_ANNULLED") {
+        // Идемпотентность: повторное событие не должно дублировать финал или запись результата.
+        if (!matchAnnulledRef.current) {
+          matchAnnulledRef.current = true;
+          matchResultRecordedRef.current = true; // результат не пишем в Supabase
+          setMatchAnnulledMessage(getMatchAnnulledMessage(action.reason, action.message));
+        }
+        setIsMatchAnnulled(true);
+        setIsTurnTimerPaused(false);
+        isTurnTimerPausedRef.current = false;
+        setTurnTimerRemainingMs(null);
+        hasTurnTimerRef.current = false;
+        setIsDualDisconnectPaused(false);
+        setDualDisconnectGraceMs(null);
+        setOpponentDisconnectedNotice(false);
+        setIsOpponentPermanentlyLeft(false);
+        setIsPauseOpen(false);
+        setIsIntroPhase(false);
+        setIsLobbyOpen(false);
+        setGameState((prev) => ({
+          ...prev,
+          winner: null,
+          gameResult: { winner: null, reason: action.reason || "DRAW_DISCONNECT" },
+          gameEndReason: "MATCH_ANNULLED",
+        }));
+        return;
+      }
+      if (action.type === "SYNC_ERROR") {
+        setSyncErrorMessage(getSyncErrorMessage(action.reason));
+        return;
+      }
+      if (action.type === "ACTION_REJECTED") {
+        setActionRejectedMessage(getServerRejectReasonText(action.reason));
+        return;
+      }
+
       if (action.type === "ALL_PLAYERS_READY") {
         setIsLobbyOpen(false);
         setHasStartedEver(true);
@@ -209,6 +303,16 @@ export function useMultiplayer({
       unsubAction();
     };
   }, [gameState.opponent, setGameState, setToastMessage, setIsLobbyOpen, setHasStartedEver, setIsIntroPhase]);
+
+  // Локальный отсчёт времени хода: идёт только когда сервер не поставил таймер на паузу.
+  // Остаток времени не сбрасывается — пауза просто замораживает значение.
+  useEffect(() => {
+    if (!hasTurnTimerRef.current || isTurnTimerPausedRef.current) return;
+    const interval = setInterval(() => {
+      setTurnTimerRemainingMs((prev) => (prev === null ? null : Math.max(0, prev - 1000)));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isTurnTimerPaused, turnTimerRemainingMs !== null]);
 
   useEffect(() => {
     if (gameState.restartRequestedBy) {
@@ -265,13 +369,36 @@ export function useMultiplayer({
     setHasStartedEver(false);
     setIsIntroPhase(false);
     matchResultRecordedRef.current = false;
+
+    // Полный сброс серверных состояний, чтобы новый матч стартовал «с чистого листа».
+    matchAnnulledRef.current = false;
+    isTurnTimerPausedRef.current = false;
+    hasTurnTimerRef.current = false;
+    setIsMatchAnnulled(false);
+    setMatchAnnulledMessage(null);
+    setIsTurnTimerPaused(false);
+    setTurnTimerRemainingMs(null);
+    setIsDualDisconnectPaused(false);
+    setDualDisconnectGraceMs(null);
+    setSyncErrorMessage(null);
+    setActionRejectedMessage(null);
+
     setGameState((prev) => ({
       ...prev,
       opponent: "AI",
       winner: null,
+      gameEndReason: undefined,
+      gameResult: undefined,
       restartRequestedBy: undefined,
     }));
   };
+
+  const reconnectToRoom = () => {
+    partyService.ensureConnection();
+  };
+
+  const clearSyncError = () => setSyncErrorMessage(null);
+  const clearActionRejected = () => setActionRejectedMessage(null);
 
   return {
     isOpponentConnected,
@@ -283,5 +410,17 @@ export function useMultiplayer({
     rejectRestart,
     requestRematch,
     handleExitToMenu,
+    // Серверные события
+    isTurnTimerPaused,
+    turnTimerRemainingMs,
+    isDualDisconnectPaused,
+    dualDisconnectGraceMs,
+    isMatchAnnulled,
+    matchAnnulledMessage,
+    syncErrorMessage,
+    actionRejectedMessage,
+    reconnectToRoom,
+    clearSyncError,
+    clearActionRejected,
   };
 }

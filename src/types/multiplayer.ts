@@ -65,3 +65,70 @@ export type GameAction = BaseGameAction & (
   | { type: "TV_CONFIRM_RESTART"; payload?: { roleAction?: "SWAP" | "SAME" } }
   | { type: "TV_EXIT_TO_LOBBY" }
 );
+
+/**
+ * События, которые авторитетный сервер (PartyKit) отправляет клиенту
+ * вне обычного потока синхронизации состояния (STATE_UPDATE / ROOM_STATUS).
+ * Используются для управления паузами таймера, дисконнектами и отклонёнными действиями.
+ */
+export type ServerEventType =
+  | "TURN_TIMER_PAUSED"
+  | "TURN_TIMER_RESUMED"
+  | "DUAL_DISCONNECT_PAUSE"
+  | "MATCH_ANNULLED"
+  | "SYNC_ERROR"
+  | "ACTION_REJECTED";
+
+/** Сервер поставил таймер хода на паузу (например, активный игрок потерял связь). */
+export interface TurnTimerPausedEvent {
+  type: "TURN_TIMER_PAUSED";
+  /** Оставшееся время хода в миллисекундах на момент паузы. */
+  remainingMs: number;
+}
+
+/** Сервер возобновил таймер хода с сохранённым остатком времени. */
+export interface TurnTimerResumedEvent {
+  type: "TURN_TIMER_RESUMED";
+  /** Оставшееся время хода в миллисекундах, с которого продолжается отсчёт. */
+  remainingMs: number;
+}
+
+/** Оба игрока оффлайн: матч поставлен на паузу до истечения grace period. */
+export interface DualDisconnectPauseEvent {
+  type: "DUAL_DISCONNECT_PAUSE";
+  /** Длительность окна ожидания возвращения игроков в миллисекундах. */
+  gracePeriodMs: number;
+}
+
+/** Матч аннулирован (например, оба игрока не вернулись): победа/поражение не начисляются. */
+export interface MatchAnnulledEvent {
+  type: "MATCH_ANNULLED";
+  /** Машиночитаемая причина аннулирования (например, DRAW_DISCONNECT). */
+  reason: string;
+  /** Готовый текст для игрока (если сервер его прислал). */
+  message?: string;
+}
+
+/** Сервер обнаружил рассинхронизацию состояния с клиентом. */
+export interface SyncErrorEvent {
+  type: "SYNC_ERROR";
+  /** Причина отклонения/рассинхронизации (машиночитаемый код). */
+  reason: string;
+  /** Тип действия, которое вызвало ошибку. */
+  actionType?: string;
+}
+
+/** Действие игрока отклонено авторитетным сервером. */
+export interface ActionRejectedEvent {
+  type: "ACTION_REJECTED";
+  /** Причина отклонения действия (машиночитаемый код). */
+  reason: string;
+}
+
+export type ServerEvent =
+  | TurnTimerPausedEvent
+  | TurnTimerResumedEvent
+  | DualDisconnectPauseEvent
+  | MatchAnnulledEvent
+  | SyncErrorEvent
+  | ActionRejectedEvent;

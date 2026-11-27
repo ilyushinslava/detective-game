@@ -49,6 +49,8 @@ describe("PartyService Network Client", () => {
     vi.stubGlobal("WebSocket", MockWebSocket);
     partyService.disconnect();
     partyService.clearAllListeners();
+    // lastServerEvent — снимок последнего события; сбрасываем для изоляции кейсов.
+    partyService.lastServerEvent = null;
   });
 
   afterEach(() => {
@@ -308,6 +310,105 @@ describe("PartyService Network Client", () => {
 
       unsubError();
       unsubSafe();
+    });
+  });
+
+  describe("Серверные события (serverEvent) и сохранение onAction", () => {
+    it("TURN_TIMER_PAUSED заполняет lastServerEvent, эмитит serverEvent и доходит до onAction", () => {
+      const serverEventSpy = vi.fn();
+      const actionSpy = vi.fn();
+      partyService.onServerEvent = serverEventSpy;
+      partyService.onAction = actionSpy;
+
+      partyService.connect("ROOM_EVENTS", "Агент", false, "SKHVATKA");
+      const ws = MockWebSocket.instances[0];
+      ws.simulateOpen();
+
+      ws.simulateMessage({ type: "TURN_TIMER_PAUSED", remainingMs: 5000 });
+
+      expect(partyService.lastServerEvent).toEqual({ type: "TURN_TIMER_PAUSED", remainingMs: 5000 });
+      expect(serverEventSpy).toHaveBeenCalledWith({ type: "TURN_TIMER_PAUSED", remainingMs: 5000 });
+      expect(actionSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "TURN_TIMER_PAUSED", remainingMs: 5000 })
+      );
+    });
+
+    it("MATCH_ANNULLED эмитит serverEvent и сохраняется в lastServerEvent", () => {
+      const serverEventSpy = vi.fn();
+      const actionSpy = vi.fn();
+      partyService.onServerEvent = serverEventSpy;
+      partyService.onAction = actionSpy;
+
+      partyService.connect("ROOM_ANNULLED", "Агент", false, "SKHVATKA");
+      const ws = MockWebSocket.instances[0];
+      ws.simulateOpen();
+
+      ws.simulateMessage({ type: "MATCH_ANNULLED", reason: "DRAW_DISCONNECT" });
+
+      expect(partyService.lastServerEvent).toEqual({
+        type: "MATCH_ANNULLED",
+        reason: "DRAW_DISCONNECT",
+        message: undefined,
+      });
+      expect(serverEventSpy).toHaveBeenCalledTimes(1);
+      expect(actionSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "MATCH_ANNULLED", reason: "DRAW_DISCONNECT" })
+      );
+    });
+
+    it("DUAL_DISCONNECT_PAUSE и ACTION_REJECTED пробрасываются в оба канала", () => {
+      const serverEventSpy = vi.fn();
+      const actionSpy = vi.fn();
+      partyService.onServerEvent = serverEventSpy;
+      partyService.onAction = actionSpy;
+
+      partyService.connect("ROOM_EVENTS_2", "Агент", false, "SKHVATKA");
+      const ws = MockWebSocket.instances[0];
+      ws.simulateOpen();
+
+      ws.simulateMessage({ type: "DUAL_DISCONNECT_PAUSE", gracePeriodMs: 20000 });
+      ws.simulateMessage({ type: "ACTION_REJECTED", reason: "NOT_YOUR_TURN" });
+
+      expect(serverEventSpy).toHaveBeenCalledTimes(2);
+      expect(actionSpy).toHaveBeenCalledTimes(2);
+      expect(partyService.lastServerEvent).toEqual({
+        type: "ACTION_REJECTED",
+        reason: "NOT_YOUR_TURN",
+      });
+    });
+
+    it("STATE_UPDATE не эмитит serverEvent, но доходит до onAction", () => {
+      const serverEventSpy = vi.fn();
+      const actionSpy = vi.fn();
+      partyService.onServerEvent = serverEventSpy;
+      partyService.onAction = actionSpy;
+
+      partyService.connect("ROOM_STATE", "Агент", false, "SKHVATKA");
+      const ws = MockWebSocket.instances[0];
+      ws.simulateOpen();
+
+      ws.simulateMessage({ type: "STATE_UPDATE", state: { round: 2 }, role: "KILLER", status: "PLAYING" });
+
+      expect(serverEventSpy).not.toHaveBeenCalled();
+      expect(actionSpy).toHaveBeenCalledWith(expect.objectContaining({ type: "STATE_UPDATE" }));
+      expect(partyService.lastServerEvent).toBeNull();
+    });
+
+    it("PONG не эмитит serverEvent и не вызывает onAction", () => {
+      const serverEventSpy = vi.fn();
+      const actionSpy = vi.fn();
+      partyService.onServerEvent = serverEventSpy;
+      partyService.onAction = actionSpy;
+
+      partyService.connect("ROOM_PONG_EVENT", "Агент", false, "SKHVATKA");
+      const ws = MockWebSocket.instances[0];
+      ws.simulateOpen();
+
+      ws.simulateMessage({ type: "PONG" });
+
+      expect(serverEventSpy).not.toHaveBeenCalled();
+      expect(actionSpy).not.toHaveBeenCalled();
+      expect(partyService.lastServerEvent).toBeNull();
     });
   });
 });

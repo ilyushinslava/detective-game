@@ -23,6 +23,8 @@ import { triggerHaptic } from "./utils/haptics";
 import type { GameAction } from "./types/multiplayer";
 import { Button } from "./components/ui/Button";
 import { LiquidBackground } from "./components/ui/LiquidBackground";
+import { MatchStatusBanner } from "./components/MatchStatusBanner";
+import { ServerMessageModal } from "./components/ServerMessageModal";
 import { AchievementToast } from "./components/ui/AchievementToast";
 import { PwaUpdateToast } from "./components/pwa/PwaUpdateToast";
 import type { ShiftPayload } from "./types/game";
@@ -468,12 +470,6 @@ export default function App() {
     setGameState((prev) => gameReducer(prev, action));
   };
 
-  const { getElapsedSeconds, setSecondsElapsed } = useGameTimerController({
-    hasStartedEver,
-    isIntroPhase,
-    winner: gameState.winner,
-  });
-
   const {
     isOpponentConnected,
     opponentDisconnectedNotice,
@@ -484,6 +480,17 @@ export default function App() {
     rejectRestart,
     requestRematch,
     handleExitToMenu: exitToMenuMultiplayer,
+    isTurnTimerPaused,
+    turnTimerRemainingMs,
+    isDualDisconnectPaused,
+    dualDisconnectGraceMs,
+    isMatchAnnulled,
+    matchAnnulledMessage,
+    syncErrorMessage,
+    actionRejectedMessage,
+    reconnectToRoom,
+    clearSyncError,
+    clearActionRejected,
   } = useMultiplayer({
     gameState,
     setGameState,
@@ -497,8 +504,16 @@ export default function App() {
     matchResultRecordedRef,
     setSelectedId,
     setSelectedInspectorChoiceId,
-    setSecondsElapsed,
     setIsPauseOpen,
+  });
+
+  // Игровой таймер замирает на время серверных пауз (пауза хода / двойной дисконнект),
+  // сохраняя накопленное время.
+  const { getElapsedSeconds, setSecondsElapsed } = useGameTimerController({
+    hasStartedEver,
+    isIntroPhase,
+    winner: gameState.winner,
+    isPaused: isTurnTimerPaused || isDualDisconnectPaused,
   });
 
   const {
@@ -983,6 +998,51 @@ export default function App() {
           safeLocalStorage.clear();
           window.location.reload();
         }}
+      />
+
+      {/* Баннер паузы матча: пауза таймера хода или двойной дисконнект */}
+      <MatchStatusBanner
+        isTurnTimerPaused={isTurnTimerPaused}
+        turnTimerRemainingMs={turnTimerRemainingMs}
+        isDualDisconnectPaused={isDualDisconnectPaused}
+        dualDisconnectGraceMs={dualDisconnectGraceMs}
+      />
+
+      {/* Финальный экран аннулированного матча: нейтральный, без победы/поражения */}
+      <ServerMessageModal
+        isOpen={isMatchAnnulled}
+        variant="final"
+        title="Матч аннулирован"
+        message={matchAnnulledMessage || "Матч аннулирован. Результат не засчитан."}
+        hint="Рейтинг и награды за этот матч не начислены."
+        primaryLabel="В главное меню"
+        onPrimary={handleExitToMenu}
+      />
+
+      {/* Рассинхронизация состояния с сервером */}
+      <ServerMessageModal
+        isOpen={Boolean(syncErrorMessage)}
+        variant="warning"
+        title="Рассинхронизация"
+        message={syncErrorMessage || ""}
+        hint="Переподключение восстановит актуальное состояние доски и таймеров."
+        primaryLabel="Переподключиться"
+        onPrimary={() => {
+          reconnectToRoom();
+          clearSyncError();
+        }}
+        secondaryLabel="Продолжить"
+        onSecondary={clearSyncError}
+      />
+
+      {/* Отклонённое сервером действие: причина видна полностью */}
+      <ServerMessageModal
+        isOpen={Boolean(actionRejectedMessage)}
+        variant="warning"
+        title="Действие отклонено"
+        message={actionRejectedMessage || ""}
+        primaryLabel="Понятно"
+        onPrimary={clearActionRejected}
       />
 
       {/* Анимированный Liquid-фон для всех игровых экранов и режимов (вне Главного меню) */}

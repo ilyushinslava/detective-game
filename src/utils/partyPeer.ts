@@ -1,8 +1,9 @@
 import type { Role } from "../types/game";
-import type { GameAction, MorseCandidate } from "../types/multiplayer";
+import type { GameAction, MorseCandidate, ServerEvent } from "../types/multiplayer";
 import { GAME_CONFIG } from "../config/gameConfig";
 import { DEFAULT_BET } from "../constants/gameRules";
 import { normalizeMorse } from "./morse";
+import { parseServerEvent } from "./serverEvents";
 import { safeSessionStorage } from "./storage";
 
 export type { MorseCandidate };
@@ -89,6 +90,8 @@ class PartyService {
   isHost: boolean = true;
   myRole: Role | null = null;
   lastSyncedState: any = null;
+  /** Последнее разобранное серверное событие (пауза таймера, аннулирование, отказ и т.д.). */
+  lastServerEvent: ServerEvent | null = null;
   socket: WebSocket | null = null;
   private nick: string = "Агент";
   private mode: string = "MANIAC_VS_OPERATIVE";
@@ -448,6 +451,20 @@ class PartyService {
     }
   }
 
+  get onServerEvent() {
+    return ((...args: any[]) => this.emit("serverEvent", ...args)) as any;
+  }
+  set onServerEvent(fn: ((event: ServerEvent) => void) | null) {
+    if (this.legacyHandlers.serverEvent) {
+      this.off("serverEvent", this.legacyHandlers.serverEvent);
+      this.legacyHandlers.serverEvent = null;
+    }
+    if (fn) {
+      this.legacyHandlers.serverEvent = fn;
+      this.on("serverEvent", fn);
+    }
+  }
+
   constructor() {
     this.setupVisibilityListener();
   }
@@ -588,6 +605,14 @@ class PartyService {
           const raw = typeof event.data === "string" ? event.data : event.data.toString();
           const data = parseAndValidatePacket(raw);
           if (!data) return;
+
+          // Типизированные серверные события (пауза таймера, дисконнект, отказы и т.д.)
+          // пробрасываются отдельным каналом, не ломая общий поток синхронизации состояния.
+          const serverEvent = parseServerEvent(data);
+          if (serverEvent) {
+            this.lastServerEvent = serverEvent;
+            this.emit("serverEvent", serverEvent);
+          }
 
           if (data.type === "PONG") {
             return;

@@ -180,4 +180,53 @@ describe("useMatchEndHandler", () => {
     expect(mockAwardPrize).toHaveBeenCalledWith(500);
     expect(mockRecord).toHaveBeenCalledWith(true, expect.anything());
   });
+
+  it("не записывает результат и не начисляет приз при gameEndReason MATCH_ANNULLED", () => {
+    const mockAwardPrize = vi.fn();
+    const mockRecord = vi.fn();
+    const matchRecordedRef = { current: false };
+
+    renderHook(() =>
+      useMatchEndHandler({
+        gameState: createMockGameState({
+          winner: "DETECTIVE",
+          playerRole: "DETECTIVE",
+          opponent: "ONLINE",
+          matchPot: 500,
+          gameEndReason: "MATCH_ANNULLED",
+          gameResult: { winner: null, reason: "DRAW_DISCONNECT" },
+        }),
+        matchResultRecordedRef: matchRecordedRef,
+        awardPrize: mockAwardPrize,
+        recordMatchResult: mockRecord,
+      })
+    );
+
+    expect(mockRecord).not.toHaveBeenCalled();
+    expect(mockAwardPrize).not.toHaveBeenCalled();
+  });
+
+  it("не записывает результат при gameResult.reason DRAW_DISCONNECT даже с победителем", () => {
+    const mockAwardPrize = vi.fn();
+    const mockRecord = vi.fn();
+    const matchRecordedRef = { current: false };
+
+    renderHook(() =>
+      useMatchEndHandler({
+        gameState: createMockGameState({
+          winner: "DETECTIVE",
+          playerRole: "DETECTIVE",
+          opponent: "ONLINE",
+          matchPot: 500,
+          gameResult: { winner: "DETECTIVE", reason: "DRAW_DISCONNECT" },
+        }),
+        matchResultRecordedRef: matchRecordedRef,
+        awardPrize: mockAwardPrize,
+        recordMatchResult: mockRecord,
+      })
+    );
+
+    expect(mockRecord).not.toHaveBeenCalled();
+    expect(mockAwardPrize).not.toHaveBeenCalled();
+  });
 });

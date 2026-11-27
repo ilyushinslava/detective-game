@@ -4,6 +4,8 @@ export interface UseGameTimerParams {
   hasStartedEver: boolean;
   isIntroPhase: boolean;
   winner: string | null;
+  /** Матч/ход на паузе (двойной дисконнект или пауза таймера хода): отсчёт замирает. */
+  isPaused?: boolean;
 }
 
 /**
@@ -92,13 +94,15 @@ export function useGameTimerController({
   hasStartedEver,
   isIntroPhase,
   winner,
+  isPaused = false,
 }: UseGameTimerParams) {
   useEffect(() => {
-    const isGameRunning = hasStartedEver && !isIntroPhase && !winner;
+    const isGameRunning = hasStartedEver && !isIntroPhase && !winner && !isPaused;
 
     if (isGameRunning) {
       gameTimerService.start();
     } else {
+      // stop() сохраняет накопленные секунды: пауза не сбрасывает отсчёт.
       gameTimerService.stop();
     }
 
@@ -107,7 +111,7 @@ export function useGameTimerController({
         gameTimerService.stop();
       }
     };
-  }, [hasStartedEver, isIntroPhase, winner]);
+  }, [hasStartedEver, isIntroPhase, winner, isPaused]);
 
   return {
     getElapsedSeconds: () => gameTimerService.getElapsedSeconds(),
@@ -123,12 +127,13 @@ export function useGameTimer({
   hasStartedEver,
   isIntroPhase,
   winner,
+  isPaused = false,
 }: UseGameTimerParams) {
   const [secondsElapsed, setSecondsElapsed] = useState(0);
 
   useEffect(() => {
     let interval: any = null;
-    const isGameRunning = hasStartedEver && !isIntroPhase && !winner;
+    const isGameRunning = hasStartedEver && !isIntroPhase && !winner && !isPaused;
 
     if (isGameRunning) {
       interval = setInterval(() => {
@@ -139,7 +144,7 @@ export function useGameTimer({
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [hasStartedEver, isIntroPhase, winner]);
+  }, [hasStartedEver, isIntroPhase, winner, isPaused]);
 
   return {
     secondsElapsed,

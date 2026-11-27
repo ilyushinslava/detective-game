@@ -15,29 +15,30 @@
 
 ### Таблица найденных уязвимостей и дефектов
 
-| ID | Область | Критичность | Описание дефекта | Файл и строка |
-| :--- | :--- | :--- | :--- | :--- |
-| **SEC-NET-01** | Сетевой слой | **CRITICAL** | Фальсификация победы через экшен `CAPTURE_SPY` вне режима `SECRET_SERVICE` | [src/server/index.ts#L1479-L1532](file:///c:/Projects/detective-game/src/server/index.ts#L1479-L1532) <br> [src/utils/gameReducer.ts#L131-L200](file:///c:/Projects/detective-game/src/utils/gameReducer.ts#L131-L200) |
-| **SEC-NET-02** | Экономика / Сеть | **HIGH** | Несанкционированная накрутка банка матча через клиентский экшен `SET_MATCH_POT` | [src/server/index.ts#L1189-L1215](file:///c:/Projects/detective-game/src/server/index.ts#L1189-L1215) <br> [src/utils/gameReducer.ts#L523-L528](file:///c:/Projects/detective-game/src/utils/gameReducer.ts#L523-L528) |
-| **SEC-NET-03** | Античит / Маскирование | **HIGH** | Утечка карт дуэли (`duelSecretKillerId`, `duelSecretDetectiveId`) и руки грабителя в `maskStateForPlayer` | [src/server/index.ts#L1666-L1737](file:///c:/Projects/detective-game/src/server/index.ts#L1666-L1737) |
-| **SEC-NET-04** | Сетевой слой | **HIGH** | Срыв дуэли и подделка победы по тай-брейку через `RESTART_DUEL` и `RESOLVE_DUEL_TIE_BREAK` | [src/server/index.ts#L1144](file:///c:/Projects/detective-game/src/server/index.ts#L1144) <br> [src/utils/gameReducer.ts#L471-L508](file:///c:/Projects/detective-game/src/utils/gameReducer.ts#L471-L508) |
-| **SEC-NET-05** | Игровая логика | **MEDIUM** | Отсутствие серверной валидации дистанции (3×3) и правил для целевых действий `ACCUSE`, `KILL_CHARACTER`, `ROB_NEIGHBOR` | [src/server/index.ts#L980-L1015](file:///c:/Projects/detective-game/src/server/index.ts#L980-L1015) |
-| **SEC-NET-06** | Сессии / Reconnect | **MEDIUM** | Потенциальное состояние гонки (Race Condition) при переподключении сокетов с `authToken` | [src/server/index.ts#L570-L639](file:///c:/Projects/detective-game/src/server/index.ts#L570-L639) <br> [src/server/index.ts#L855-L917](file:///c:/Projects/detective-game/src/server/index.ts#L855-L917) |
-| **SEC-NET-07** | Сессии / Гости | **LOW** | Зависание занятого номера гостя в реестре `guestRegistry` при нештатном закрытии комнаты хостом | [src/server/index.ts#L870-L873](file:///c:/Projects/detective-game/src/server/index.ts#L870-L873) <br> [src/utils/guestManager.ts#L13-L53](file:///c:/Projects/detective-game/src/utils/guestManager.ts#L13-L53) |
-| **SEC-ENV-01** | Окружение | **HIGH** | Отсутствие политики Content Security Policy (CSP) в `index.html` | [index.html#L1-L23](file:///c:/Projects/detective-game/index.html#L1-L23) |
-| **SEC-ENV-02** | Окружение / CORS | **MEDIUM** | Чрезмерно открытый CORS (`Access-Control-Allow-Origin: *`) на всех эндпоинтах комнат и лобби | [src/server/index.ts#L309](file:///c:/Projects/detective-game/src/server/index.ts#L309) <br> [src/server/lobby.ts#L155](file:///c:/Projects/detective-game/src/server/lobby.ts#L155) |
-| **SEC-ENV-03** | Хранилище / Токены | **MEDIUM** | Незащищенное хранение профиля и сессионных токенов в `localStorage` с риском подделки в офлайн-режиме | [src/contexts/AuthContext.tsx#L75-L115](file:///c:/Projects/detective-game/src/contexts/AuthContext.tsx#L75-L115) <br> [src/utils/storage.ts#L129-L149](file:///c:/Projects/detective-game/src/utils/storage.ts#L129-L149) |
-| **SEC-ENV-04** | Инфраструктура | **LOW** | Риск захвата сторонних доменов (Dangling DNS) через зашитые резервные шлюзы `FALLBACK_GATEWAYS` | [src/config/gameConfig.ts#L18-L21](file:///c:/Projects/detective-game/src/config/gameConfig.ts#L18-L21) |
-| **MEM-RES-01** | React / Утечки | **HIGH** | Утечка памяти и накопление замыканий через антипаттерн monkey-patching коллбэков синглтона `partyService` | [src/utils/partyPeer.ts#L235-L245](file:///c:/Projects/detective-game/src/utils/partyPeer.ts#L235-L245) <br> [src/components/RoleRevealModal.tsx#L51-L81](file:///c:/Projects/detective-game/src/components/RoleRevealModal.tsx#L51-L81) <br> [src/components/controller/MobileControllerView.tsx#L216-L258](file:///c:/Projects/detective-game/src/components/controller/MobileControllerView.tsx#L216-L258) |
-| **MEM-RES-02** | Аудиосистема | **MEDIUM** | Нарушение регламента проекта (запрет `createOscillator`) и утечка аудио-узлов в `audio.ts` | [src/utils/audio.ts#L292-L342](file:///c:/Projects/detective-game/src/utils/audio.ts#L292-L342) <br> [src/utils/audio.ts#L393-L502](file:///c:/Projects/detective-game/src/utils/audio.ts#L393-L502) |
-| **MEM-RES-03** | React / Таймеры | **MEDIUM** | Висящие `setTimeout(500ms)` с вызовом `setState` на размонтированном компоненте | [src/hooks/useGameActions.ts#L268](file:///c:/Projects/detective-game/src/hooks/useGameActions.ts#L268) <br> [src/components/controller/MobileControllerView.tsx#L246](file:///c:/Projects/detective-game/src/components/controller/MobileControllerView.tsx#L246) |
-| **MEM-RES-04** | Event Listeners | **LOW** | Неотменяемый глобальный слушатель `visibilitychange` в конструкторе синглтона `PartyService` | [src/utils/partyPeer.ts#L248-L262](file:///c:/Projects/detective-game/src/utils/partyPeer.ts#L248-L262) |
+| ID             | Область                | Критичность  | Описание дефекта                                                                                                        | Файл и строка                                                                                                                                                                                                                                                                                                                                                                                                 |
+| :------------- | :--------------------- | :----------- | :---------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **SEC-NET-01** | Сетевой слой           | **CRITICAL** | Фальсификация победы через экшен `CAPTURE_SPY` вне режима `SECRET_SERVICE`                                              | [src/server/index.ts#L1479-L1532](file:///c:/Projects/detective-game/src/server/index.ts#L1479-L1532) <br> [src/utils/gameReducer.ts#L131-L200](file:///c:/Projects/detective-game/src/utils/gameReducer.ts#L131-L200)                                                                                                                                                                                        |
+| **SEC-NET-02** | Экономика / Сеть       | **HIGH**     | Несанкционированная накрутка банка матча через клиентский экшен `SET_MATCH_POT`                                         | [src/server/index.ts#L1189-L1215](file:///c:/Projects/detective-game/src/server/index.ts#L1189-L1215) <br> [src/utils/gameReducer.ts#L523-L528](file:///c:/Projects/detective-game/src/utils/gameReducer.ts#L523-L528)                                                                                                                                                                                        |
+| **SEC-NET-03** | Античит / Маскирование | **HIGH**     | Утечка карт дуэли (`duelSecretKillerId`, `duelSecretDetectiveId`) и руки грабителя в `maskStateForPlayer`               | [src/server/index.ts#L1666-L1737](file:///c:/Projects/detective-game/src/server/index.ts#L1666-L1737)                                                                                                                                                                                                                                                                                                         |
+| **SEC-NET-04** | Сетевой слой           | **HIGH**     | Срыв дуэли и подделка победы по тай-брейку через `RESTART_DUEL` и `RESOLVE_DUEL_TIE_BREAK`                              | [src/server/index.ts#L1144](file:///c:/Projects/detective-game/src/server/index.ts#L1144) <br> [src/utils/gameReducer.ts#L471-L508](file:///c:/Projects/detective-game/src/utils/gameReducer.ts#L471-L508)                                                                                                                                                                                                    |
+| **SEC-NET-05** | Игровая логика         | **MEDIUM**   | Отсутствие серверной валидации дистанции (3×3) и правил для целевых действий `ACCUSE`, `KILL_CHARACTER`, `ROB_NEIGHBOR` | [src/server/index.ts#L980-L1015](file:///c:/Projects/detective-game/src/server/index.ts#L980-L1015)                                                                                                                                                                                                                                                                                                           |
+| **SEC-NET-06** | Сессии / Reconnect     | **MEDIUM**   | Потенциальное состояние гонки (Race Condition) при переподключении сокетов с `authToken`                                | [src/server/index.ts#L570-L639](file:///c:/Projects/detective-game/src/server/index.ts#L570-L639) <br> [src/server/index.ts#L855-L917](file:///c:/Projects/detective-game/src/server/index.ts#L855-L917)                                                                                                                                                                                                      |
+| **SEC-NET-07** | Сессии / Гости         | **LOW**      | Зависание занятого номера гостя в реестре `guestRegistry` при нештатном закрытии комнаты хостом                         | [src/server/index.ts#L870-L873](file:///c:/Projects/detective-game/src/server/index.ts#L870-L873) <br> [src/utils/guestManager.ts#L13-L53](file:///c:/Projects/detective-game/src/utils/guestManager.ts#L13-L53)                                                                                                                                                                                              |
+| **SEC-ENV-01** | Окружение              | **HIGH**     | Отсутствие политики Content Security Policy (CSP) в `index.html`                                                        | [index.html#L1-L23](file:///c:/Projects/detective-game/index.html#L1-L23)                                                                                                                                                                                                                                                                                                                                     |
+| **SEC-ENV-02** | Окружение / CORS       | **MEDIUM**   | Чрезмерно открытый CORS (`Access-Control-Allow-Origin: *`) на всех эндпоинтах комнат и лобби                            | [src/server/index.ts#L309](file:///c:/Projects/detective-game/src/server/index.ts#L309) <br> [src/server/lobby.ts#L155](file:///c:/Projects/detective-game/src/server/lobby.ts#L155)                                                                                                                                                                                                                          |
+| **SEC-ENV-03** | Хранилище / Токены     | **MEDIUM**   | Незащищенное хранение профиля и сессионных токенов в `localStorage` с риском подделки в офлайн-режиме                   | [src/contexts/AuthContext.tsx#L75-L115](file:///c:/Projects/detective-game/src/contexts/AuthContext.tsx#L75-L115) <br> [src/utils/storage.ts#L129-L149](file:///c:/Projects/detective-game/src/utils/storage.ts#L129-L149)                                                                                                                                                                                    |
+| **SEC-ENV-04** | Инфраструктура         | **LOW**      | Риск захвата сторонних доменов (Dangling DNS) через зашитые резервные шлюзы `FALLBACK_GATEWAYS`                         | [src/config/gameConfig.ts#L18-L21](file:///c:/Projects/detective-game/src/config/gameConfig.ts#L18-L21)                                                                                                                                                                                                                                                                                                       |
+| **MEM-RES-01** | React / Утечки         | **HIGH**     | Утечка памяти и накопление замыканий через антипаттерн monkey-patching коллбэков синглтона `partyService`               | [src/utils/partyPeer.ts#L235-L245](file:///c:/Projects/detective-game/src/utils/partyPeer.ts#L235-L245) <br> [src/components/RoleRevealModal.tsx#L51-L81](file:///c:/Projects/detective-game/src/components/RoleRevealModal.tsx#L51-L81) <br> [src/components/controller/MobileControllerView.tsx#L216-L258](file:///c:/Projects/detective-game/src/components/controller/MobileControllerView.tsx#L216-L258) |
+| **MEM-RES-02** | Аудиосистема           | **MEDIUM**   | Нарушение регламента проекта (запрет `createOscillator`) и утечка аудио-узлов в `audio.ts`                              | [src/utils/audio.ts#L292-L342](file:///c:/Projects/detective-game/src/utils/audio.ts#L292-L342) <br> [src/utils/audio.ts#L393-L502](file:///c:/Projects/detective-game/src/utils/audio.ts#L393-L502)                                                                                                                                                                                                          |
+| **MEM-RES-03** | React / Таймеры        | **MEDIUM**   | Висящие `setTimeout(500ms)` с вызовом `setState` на размонтированном компоненте                                         | [src/hooks/useGameActions.ts#L268](file:///c:/Projects/detective-game/src/hooks/useGameActions.ts#L268) <br> [src/components/controller/MobileControllerView.tsx#L246](file:///c:/Projects/detective-game/src/components/controller/MobileControllerView.tsx#L246)                                                                                                                                            |
+| **MEM-RES-04** | Event Listeners        | **LOW**      | Неотменяемый глобальный слушатель `visibilitychange` в конструкторе синглтона `PartyService`                            | [src/utils/partyPeer.ts#L248-L262](file:///c:/Projects/detective-game/src/utils/partyPeer.ts#L248-L262)                                                                                                                                                                                                                                                                                                       |
 
 ---
 
 ## 2. Глубокий анализ сетевого слоя и безопасности мультиплеера
 
 ### SEC-NET-01: Фальсификация победы через экшен `CAPTURE_SPY` вне режима `SECRET_SERVICE`
+
 - **Уровень критичности:** `CRITICAL`
 - **Место в коде:**
   - Сервер: [src/server/index.ts:1479-1532](file:///c:/Projects/detective-game/src/server/index.ts#L1479-L1532)
@@ -87,6 +88,7 @@
 ---
 
 ### SEC-NET-02: Эксплойт экономики матча через невалидируемый экшен `SET_MATCH_POT`
+
 - **Уровень критичности:** `HIGH`
 - **Место в коде:**
   - Сервер: [src/server/index.ts:1144, 1189-1215](file:///c:/Projects/detective-game/src/server/index.ts#L1144)
@@ -111,6 +113,7 @@
 ---
 
 ### SEC-NET-03: Утечка карт дуэли и руки грабителя в `maskStateForPlayer`
+
 - **Уровень критичности:** `HIGH`
 - **Место в коде:**
   - Сервер: [src/server/index.ts:1666-1737](file:///c:/Projects/detective-game/src/server/index.ts#L1666-L1737)
@@ -149,14 +152,16 @@
 ---
 
 ### SEC-NET-04: Срыв дуэли и подделка победы по тай-брейку через `RESTART_DUEL` и `RESOLVE_DUEL_TIE_BREAK`
+
 - **Уровень критичности:** `HIGH`
+- **Статус на 2026-11-27:** ✅ Закрыто в коде. Ранний фильтр в [`onMessage`](file:///c:/Projects/detective-game/src/server/index.ts#L1376-L1385) отбрасывает оба экшена, плюс `PROHIBITED_ACTION` в [`validateActionLogic`](file:///c:/Projects/detective-game/src/server/index.ts#L1141-L1147). Тестами покрыто частично: проверяется только `RESOLVE_DUEL_TIE_BREAK` и `SET_MATCH_POT`, реальная отправка `RESTART_DUEL` — нет (остаток `SEC-NET-04-T` в [SUMMARY.md](file:///c:/Projects/detective-game/docs/audit/SUMMARY.md)). Описание ниже сохранено как историческое.
 - **Место в коде:**
   - Сервер: [src/server/index.ts:1144](file:///c:/Projects/detective-game/src/server/index.ts#L1144)
   - Редюсер: [src/utils/gameReducer.ts:471-508](file:///c:/Projects/detective-game/src/utils/gameReducer.ts#L471-L508)
 - **Описание проблемы:**
   На сервере в строке 1144 блокируются только два экшена рестарта:
   `if (action.type === "MATCH_STARTED" || action.type === "RESTART_GAME") return;`
-  Экшены дуэли `RESTART_DUEL` и `RESOLVE_DUEL_TIE_BREAK` не фильтруются. 
+  Экшены дуэли `RESTART_DUEL` и `RESOLVE_DUEL_TIE_BREAK` не фильтруются.
 - **Сценарий атаки:**
   1. Если игрок получил 2 штрафа из 3 возможных, он отправляет `{ "type": "RESTART_DUEL" }`. Редюсер сбрасывает историю опросов, штрафы оппонента и статус поражения, обнуляя матч.
   2. Если у оппонента 1 штраф, а у атакующего 0, атакующий в свой ход отправляет `{ "type": "RESOLVE_DUEL_TIE_BREAK" }`. Редюсер проверяет `penalties.DETECTIVE < penalties.KILLER` и мгновенно присуждает победу атакующему, минуя стадию опросов.
@@ -166,7 +171,9 @@
 ---
 
 ### SEC-NET-05: Отсутствие серверной валидации правил и дистанции (3×3) для действий `ACCUSE`, `KILL_CHARACTER`, `ROB_NEIGHBOR`
+
 - **Уровень критичности:** `MEDIUM`
+- **Статус на 2026-11-27:** ✅ Закрыто (Спринт 2.3, merge `b72fa74`). В `validateActionLogic()` добавлена проверка радиуса 3×3, код причины `TARGET_NOT_IN_RADIUS` и страховка `ACTION_NOT_APPLIED`; сьют [spatialValidation.test.ts](file:///c:/Projects/detective-game/src/server/__tests__/spatialValidation.test.ts) — 16 тестов. Описание ниже сохранено как историческое.
 - **Место в коде:**
   - Сервер: [src/server/index.ts:980-1015](file:///c:/Projects/detective-game/src/server/index.ts#L980-L1015)
 - **Описание проблемы:**
@@ -184,7 +191,9 @@
 ---
 
 ### SEC-NET-06: Потенциальное состояние гонки (Race Condition) при переподключении сокетов с `authToken`
+
 - **Уровень критичности:** `MEDIUM`
+- **Статус на 2026-11-27:** ⏳ Открыто. Перенесено в открытый бэклог [SUMMARY.md](file:///c:/Projects/detective-game/docs/audit/SUMMARY.md) (`SEC-NET-06`), изменений в коде не было.
 - **Место в коде:**
   - Сервер: [src/server/index.ts:570-639, 855-917](file:///c:/Projects/detective-game/src/server/index.ts#L570-L639)
 - **Описание проблемы:**
@@ -200,6 +209,7 @@
 ---
 
 ### SEC-NET-07: Зависание занятого номера гостя в реестре `guestRegistry`
+
 - **Уровень критичности:** `LOW`
 - **Место в коде:**
   - Сервер: [src/server/index.ts:870-873, 1767-1782](file:///c:/Projects/detective-game/src/server/index.ts#L870-L873)
@@ -220,6 +230,7 @@
 ## 3. Безопасность окружения, токенов и данных (Storage & Environment)
 
 ### SEC-ENV-01: Отсутствие Content Security Policy (CSP)
+
 - **Уровень критичности:** `HIGH`
 - **Место в коде:** [index.html:1-23](file:///c:/Projects/detective-game/index.html#L1-L23)
 - **Описание проблемы:**
@@ -229,7 +240,9 @@
 - **Рекомендуемое исправление:**
   Сформировать строгую политику CSP в `index.html`:
   ```html
-  <meta http-equiv="Content-Security-Policy" content="
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="
     default-src 'self';
     connect-src 'self' wss://*.partykit.dev ws://localhost:* https://*.supabase.co;
     script-src 'self' 'unsafe-inline';
@@ -237,12 +250,14 @@
     font-src 'self' https://fonts.gstatic.com;
     img-src 'self' data: blob:;
     media-src 'self' data: blob:;
-  ">
+  "
+  />
   ```
 
 ---
 
 ### SEC-ENV-02: Чрезмерно открытая политика CORS на сервере PartyKit/Lobby
+
 - **Уровень критичности:** `MEDIUM`
 - **Место в коде:**
   - [src/server/index.ts:309-312](file:///c:/Projects/detective-game/src/server/index.ts#L309-L312)
@@ -257,6 +272,7 @@
 ---
 
 ### SEC-ENV-03: Незащищенное хранение профиля и сессионных токенов в `localStorage`
+
 - **Уровень критичности:** `MEDIUM`
 - **Место в коде:**
   - [src/contexts/AuthContext.tsx:75-115, 233-240](file:///c:/Projects/detective-game/src/contexts/AuthContext.tsx#L75-L115)
@@ -279,6 +295,7 @@
 ---
 
 ### SEC-ENV-04: Риск захвата сторонних доменов (Dangling DNS) в `FALLBACK_GATEWAYS`
+
 - **Уровень критичности:** `LOW`
 - **Место в коде:** [src/config/gameConfig.ts:18-21](file:///c:/Projects/detective-game/src/config/gameConfig.ts#L18-L21)
 - **Описание проблемы:**
@@ -291,6 +308,7 @@
 ## 4. Утечки памяти (Memory Leaks) и очистка системных ресурсов
 
 ### MEM-RES-01: Антипаттерн «monkey-patching» одиночных коллбэков на синглтоне `partyService`
+
 - **Уровень критичности:** `HIGH`
 - **Место в коде:**
   - Синглтон: [src/utils/partyPeer.ts:235-245](file:///c:/Projects/detective-game/src/utils/partyPeer.ts#L235-L245)
@@ -326,13 +344,14 @@
 ---
 
 ### MEM-RES-02: Нарушение архитектурного регламента (запрет `createOscillator`) и утечка аудио-узлов в `audio.ts`
+
 - **Уровень критичности:** `MEDIUM`
 - **Место в коде:**
   - Тон Морзе: [src/utils/audio.ts:292-342](file:///c:/Projects/detective-game/src/utils/audio.ts#L292-L342)
   - ТВ Эмбиент: [src/utils/audio.ts#L393-L502](file:///c:/Projects/detective-game/src/utils/audio.ts#L393-L502)
 - **Описание проблемы:**
   1. **Прямое нарушение инварианта проекта `AGENTS.md` (раздел 4):**
-     > *«В игре разрешено использовать строго оригинальные звуковые файлы из папки `public/sounds`. Категорически запрещен любой процедурный WebAudio-синтез (`createOscillator`).»*
+     > _«В игре разрешено использовать строго оригинальные звуковые файлы из папки `public/sounds`. Категорически запрещен любой процедурный WebAudio-синтез (`createOscillator`).»_
   2. В `src/utils/audio.ts` методы `startMorseTone` и `startTvAmbient` создают 5 процедурных осцилляторов (`createOscillator`) и связывают их с `BiquadFilter` и `GainNode`.
   3. В методе `stopTvAmbient` физическое отключение узлов отложено через `setTimeout(..., 1300)`. Если компонент размонтируется или аудио переключается несколько раз подряд, старые узлы не отключаются вовремя и продолжают обрабатываться аудиопотоком браузера.
 - **Рекомендуемое исправление:**
@@ -341,6 +360,7 @@
 ---
 
 ### MEM-RES-03: Висящие таймеры `setTimeout` (500 мс) без отмены в обработчиках ошибок
+
 - **Уровень критичности:** `MEDIUM`
 - **Место в коде:**
   - [src/hooks/useGameActions.ts:268, 360](file:///c:/Projects/detective-game/src/hooks/useGameActions.ts#L268)
@@ -359,6 +379,7 @@
 ---
 
 ### MEM-RES-04: Неотменяемый глобальный слушатель `visibilitychange` в `PartyService`
+
 - **Уровень критичности:** `LOW`
 - **Место в коде:** [src/utils/partyPeer.ts:248-262](file:///c:/Projects/detective-game/src/utils/partyPeer.ts#L248-L262)
 - **Описание проблемы:**
@@ -375,17 +396,20 @@
 ## 5. Дорожная карта и приоритеты устранения (Action Plan)
 
 ### Приоритет P0 (Критическая безопасность — исправить немедленно):
+
 1. **[SEC-NET-01]** Закрыть эксплойт `CAPTURE_SPY` на сервере `GameRoomServer`: отклонять команду, если режим не `SECRET_SERVICE`, и исключить доверие полю `payload.winner`.
 2. **[SEC-NET-02]** Заблокировать экшен `SET_MATCH_POT` для всех входящих сообщений клиентов.
 3. **[SEC-NET-03]** Включить полное маскирование секретов дуэли (`duelSecretKillerId`, `duelSecretDetectiveId`, `robberHand`) в методе `maskStateForPlayer`.
 4. **[SEC-NET-04]** Заблокировать прием `RESTART_DUEL` и `RESOLVE_DUEL_TIE_BREAK` от клиентских WebSocket-соединений.
 
 ### Приоритет P1 (Архитектурная надежность и утечки памяти):
+
 1. **[MEM-RES-01]** Заменить антипаттерн monkey-patching коллбэков в `partyService` на надежный `EventEmitter` / `Set<Listener>` с отпиской при анмаунте.
 2. **[MEM-RES-02]** Устранить процедурный синтез `createOscillator` в `audio.ts` согласно регламенту `AGENTS.md`, заменив его на сэмплы из `public/sounds`.
 3. **[SEC-ENV-01]** Внедрить строгую политику Content Security Policy (CSP) в `index.html`.
 
 ### Приоритет P2 (Плановое улучшение и гигиена кода):
+
 1. **[SEC-NET-05]** Реализовать полноценную валидацию правил 3×3 на сервере с возвратом `ACTION_REJECTED`.
 2. **[MEM-RES-03]** Обернуть разовые таймеры `setErrorCardId` в безопасные refs с автоматической очисткой.
 3. **[SEC-ENV-02]** Ограничить заголовки CORS доверенным списком хостов.

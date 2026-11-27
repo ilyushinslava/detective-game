@@ -1,4 +1,4 @@
-import { useRef, useMemo, type Dispatch, type SetStateAction } from "react";
+import { useRef, useMemo, useEffect, type Dispatch, type SetStateAction } from "react";
 import type { GameState, Role, Character, GameModeType } from "../types/game";
 import type { GameAction } from "../types/multiplayer";
 import { partyService } from "../utils/partyPeer";
@@ -137,6 +137,30 @@ export function useGameActions({
   handleStartNewGame,
 }: UseGameActionsParams) {
   const lastKillSoundTimeRef = useRef(0);
+  // MEM-RES-03: единый таймер сброса подсветки ошибочного выбора.
+  // Храним id, чтобы очищать его при повторном отказе и при размонтировании.
+  const errorCardTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (errorCardTimeoutRef.current) {
+        clearTimeout(errorCardTimeoutRef.current);
+        errorCardTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  const flashErrorCard = (id: string) => {
+    if (errorCardTimeoutRef.current) {
+      clearTimeout(errorCardTimeoutRef.current);
+      errorCardTimeoutRef.current = null;
+    }
+    setErrorCardId(id);
+    errorCardTimeoutRef.current = setTimeout(() => {
+      setErrorCardId(null);
+      errorCardTimeoutRef.current = null;
+    }, 500);
+  };
 
   const handleSelectDuelQuestion = (questionId: string) => {
     soundManager.play("radar");
@@ -262,8 +286,7 @@ export function useGameActions({
     } else if (isMiss) {
       soundManager.play("deny");
       triggerHaptic("error");
-      setErrorCardId(selectedId);
-      setTimeout(() => setErrorCardId(null), 500);
+      flashErrorCard(selectedId);
     } else {
       soundManager.play("arrest");
       triggerHaptic("medium");
@@ -353,8 +376,7 @@ export function useGameActions({
     if (isMiss) {
       soundManager.play("deny");
       triggerHaptic("error");
-      setErrorCardId(selectedId);
-      setTimeout(() => setErrorCardId(null), 500);
+      flashErrorCard(selectedId);
     } else {
       soundManager.play("arrest");
       triggerHaptic("medium");

@@ -1106,6 +1106,11 @@ export default class GameRoomServer {
       this.broadcastStatus();
     }
     if (playerWhoLeft?.isHost && this.state.status === "WAITING") {
+      // SEC-NET-07: комната уничтожается сразу, не дожидаясь grace-таймера,
+      // поэтому номер гостя нужно освободить здесь же, иначе он «зависнет» занятым.
+      if (playerWhoLeft.nickname) {
+        guestRegistry.releaseByCallsign(playerWhoLeft.nickname);
+      }
       unregisterRoom(this.getRoomCode());
     }
 
@@ -2367,6 +2372,13 @@ export default class GameRoomServer {
       clearTimeout(timer);
     }
     this.disconnectTimers.clear();
+    // SEC-NET-07: при остановке сервера номера всех оставшихся гостей
+    // должны быть возвращены в реестр, иначе они утекают навсегда.
+    for (const player of Object.values(this.state.players)) {
+      if (player?.nickname) {
+        guestRegistry.releaseByCallsign(player.nickname);
+      }
+    }
     this.state.restartRequestedBy = null;
     unregisterRoom(this.getRoomCode());
   }

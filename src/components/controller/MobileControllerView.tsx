@@ -233,6 +233,20 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
   // Понятная причина отказа сервера (инлайн-плашка, без блокирующих модалок)
   const [rejectMessage, setRejectMessage] = useState<string | null>(null);
   const rejectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // MEM-RES-03: таймер сброса подсветки ошибочной цели.
+  const errorTargetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const flashErrorTarget = (id: string) => {
+    if (errorTargetTimerRef.current) {
+      clearTimeout(errorTargetTimerRef.current);
+      errorTargetTimerRef.current = null;
+    }
+    setErrorTargetId(id);
+    errorTargetTimerRef.current = setTimeout(() => {
+      setErrorTargetId(null);
+      errorTargetTimerRef.current = null;
+    }, 500);
+  };
 
   // Сетевые состояния потери связи и грейс-периода
   const [internalLocalDisconnected, setInternalLocalDisconnected] = useState(false);
@@ -289,8 +303,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
         triggerHaptic('error');
         const errId = action.payload?.errorCardId || action.payload?.targetId || selectedTargetId;
         if (errId) {
-          setErrorTargetId(errId);
-          setTimeout(() => setErrorTargetId(null), 500);
+          flashErrorTarget(errId);
         }
 
         if (actionType === 'ACTION_REJECTED') {
@@ -321,12 +334,16 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
     };
   }, []);
 
-  // Снятие таймера авто-скрытия плашки отказа при размонтировании.
+  // Снятие таймеров авто-скрытия плашки отказа и подсветки ошибки при размонтировании.
   useEffect(() => {
     return () => {
       if (rejectTimerRef.current) {
         clearTimeout(rejectTimerRef.current);
         rejectTimerRef.current = null;
+      }
+      if (errorTargetTimerRef.current) {
+        clearTimeout(errorTargetTimerRef.current);
+        errorTargetTimerRef.current = null;
       }
     };
   }, []);
@@ -1567,8 +1584,7 @@ export const MobileControllerView: React.FC<MobileControllerViewProps> = ({
                         if (!char.isAlive) {
                           playLocalSound('deny');
                           triggerHaptic('error');
-                          setErrorTargetId(char.id);
-                          setTimeout(() => setErrorTargetId(null), 500);
+                          flashErrorTarget(char.id);
                           return;
                         }
                         triggerHaptic('light');

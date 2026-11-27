@@ -207,9 +207,13 @@ describe("TV Tactical Morse Resolution & Collision Invariants (TASK-NET-002)", (
       const rooms = await res.json();
 
       const publicRoom = rooms.find((r: any) => r.roomCode === "room-public");
-      const secretRoom = rooms.find((r: any) => r.roomCode === "room-secret");
+      // Приватная комната больше не раскрывает roomCode, поэтому ищем её по имени хоста.
+      const secretRoom = rooms.find((r: any) => r.hostName === "Secret Host");
 
+      expect(publicRoom).toBeDefined();
       expect(publicRoom.morseCode).toBe(".......");
+      expect(secretRoom).toBeDefined();
+      expect(secretRoom.roomCode).toBeUndefined();
       expect(secretRoom.morseCode).toBeUndefined();
     });
 

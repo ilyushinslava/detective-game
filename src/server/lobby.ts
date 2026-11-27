@@ -27,6 +27,22 @@ export const morseToRoomsRegistry: Map<string, Set<string>> =
 export const roomToMorseRegistry: Map<string, string> =
   g.__ps_roomToMorseRegistry || (g.__ps_roomToMorseRegistry = new Map());
 
+// P0-1: Единые хелперы маскирования приватных комнат.
+// Приватные комнаты не должны раскрывать roomCode и morseCode в публичных ответах.
+export function maskPrivateRoomMeta(room: PublicRoomMeta): Partial<PublicRoomMeta> {
+  if (!room.isPrivate) return room;
+  const { roomCode: _roomCode, morseCode: _morseCode, ...rest } = room;
+  return rest;
+}
+
+export function maskPrivateMorseCandidate(
+  candidate: MorseCandidate
+): Partial<MorseCandidate> {
+  if (!candidate.isPrivate) return candidate;
+  const { roomCode: _roomCode, ...rest } = candidate;
+  return rest;
+}
+
 export function generateUniqueMorseCode(
   existingCodes: Set<string> | Map<string, any> = morseToRoomRegistry
 ): string {
@@ -162,13 +178,7 @@ export default class LobbyServer {
     }
 
     if (action === "list" || url.pathname.endsWith("/rooms")) {
-      const rooms = Array.from(publicRoomsRegistry.values()).map((room) => {
-        if (room.isPrivate) {
-          const { morseCode: _morseCode, ...rest } = room;
-          return rest;
-        }
-        return room;
-      });
+      const rooms = Array.from(publicRoomsRegistry.values()).map(maskPrivateRoomMeta);
       return new Response(JSON.stringify(rooms), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -183,27 +193,30 @@ export default class LobbyServer {
         const candidates = resolveRoomsByMorse(morse);
         if (candidates.length === 1) {
           const single = candidates[0];
-          return new Response(
-            JSON.stringify({
-              ok: true,
-              disambiguation: false,
-              roomCode: single.roomCode,
-              morseCode: morse,
-              hostName: single.hostName,
-              status: single.status,
-              mode: single.mode,
-              playersCount: single.playersCount,
-              maxPlayers: single.maxPlayers,
-            }),
-            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-          );
+          const base = {
+            ok: true,
+            disambiguation: false,
+            hostName: single.hostName,
+            status: single.status,
+            mode: single.mode,
+            playersCount: single.playersCount,
+            maxPlayers: single.maxPlayers,
+          };
+          // Приватная комната: подтверждаем резолв, но не раскрываем секретные коды.
+          const payload = single.isPrivate
+            ? { ...base, isPrivate: true }
+            : { ...base, roomCode: single.roomCode, morseCode: morse };
+          return new Response(JSON.stringify(payload), {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
         } else if (candidates.length > 1) {
           return new Response(
             JSON.stringify({
               ok: true,
               disambiguation: true,
-              morseCode: morse,
-              candidates,
+              morseCode: candidates.some((c) => c.isPrivate) ? undefined : morse,
+              candidates: candidates.map(maskPrivateMorseCandidate),
             }),
             { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
           );
@@ -220,20 +233,23 @@ export default class LobbyServer {
         if (resolved) {
           const meta = publicRoomsRegistry.get(resolved);
           const morseCode = roomToMorseRegistry.get(resolved);
-          return new Response(
-            JSON.stringify({
-              ok: true,
-              disambiguation: false,
-              roomCode: resolved,
-              morseCode: morseCode || null,
-              hostName: meta?.hostName || "Хост",
-              status: meta?.status || "WAITING",
-              mode: meta?.mode || "MANIAC_VS_OPERATIVE",
-              playersCount: meta?.playersCount || 0,
-              maxPlayers: meta?.maxPlayers || 2,
-            }),
-            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-          );
+          const base = {
+            ok: true,
+            disambiguation: false,
+            hostName: meta?.hostName || "Хост",
+            status: meta?.status || "WAITING",
+            mode: meta?.mode || "MANIAC_VS_OPERATIVE",
+            playersCount: meta?.playersCount || 0,
+            maxPlayers: meta?.maxPlayers || 2,
+          };
+          // Приватная комната: не отражаем обратно roomCode/morseCode.
+          const payload = meta?.isPrivate
+            ? { ...base, isPrivate: true }
+            : { ...base, roomCode: resolved, morseCode: morseCode || null };
+          return new Response(JSON.stringify(payload), {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
         } else {
           return new Response(
             JSON.stringify({ ok: false, error: "ROOM_NOT_FOUND" }),
@@ -251,13 +267,7 @@ export default class LobbyServer {
 
   onConnect(conn: any): void {
     // Broadcast active rooms status to newly connected lobby client
-    const rooms = Array.from(publicRoomsRegistry.values()).map((room) => {
-      if (room.isPrivate) {
-        const { morseCode: _morseCode, ...rest } = room;
-        return rest;
-      }
-      return room;
-    });
+    const rooms = Array.from(publicRoomsRegistry.values()).map(maskPrivateRoomMeta);
     try {
       conn.send(JSON.stringify({ type: "LOBBY_ROOMS_UPDATE", payload: { rooms } }));
     } catch (_) {}

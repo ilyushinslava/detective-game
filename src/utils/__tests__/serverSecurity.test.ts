@@ -356,7 +356,7 @@ describe("GameRoomServer Security (SEC-01 & SEC-02)", () => {
   });
 
   describe("SEC-06: RECONNECT_SLOT Invariant & Room Isolation", () => {
-    it("seamlessly rebinds disconnected player slot to new controller connection in TV rooms during PLAYING phase", () => {
+    it("does NOT hand over a disconnected player slot in TV rooms during PLAYING without a valid authToken", () => {
       // 1. Подключаем TV_DISPLAY
       const tvConn = createMockConn("conn_tv");
       connections.push(tvConn);
@@ -379,6 +379,11 @@ describe("GameRoomServer Security (SEC-01 & SEC-02)", () => {
         request: new Request("http://localhost:1999/party/security-test-room?clientId=p_guest&isHost=false&clientType=CONTROLLER"),
       });
 
+      const guestToken = guestConn.sent
+        .map((s: string) => JSON.parse(s))
+        .find((m: any) => m.type === "AUTH_TOKEN")?.authToken;
+      expect(guestToken).toBeTruthy();
+
       // 4. Переводим комнату в статус PLAYING
       server.state.status = "PLAYING";
       const originalDetectiveRole = server.state.players["p_guest"].role;
@@ -387,29 +392,49 @@ describe("GameRoomServer Security (SEC-01 & SEC-02)", () => {
       server.onClose(guestConn);
       expect(server.state.players["p_guest"].isDisconnected).toBe(true);
 
-      // 6. Новый смартфон сканирует QR-код ТВ с новым clientId и без authToken
-      const newGuestConn = createMockConn("conn_new_device");
-      connections.push(newGuestConn);
-      server.onConnect(newGuestConn, {
+      // 6. P0-2: новый клиент без authToken пытается перехватить слот по QR-коду ТВ
+      const attackerConn = createMockConn("conn_new_device");
+      connections.push(attackerConn);
+      server.onConnect(attackerConn, {
         request: new Request("http://localhost:1999/party/security-test-room?clientId=p_new_device&clientType=CONTROLLER"),
       });
 
-      // Проверки RECONNECT_SLOT:
-      expect(newGuestConn.close).not.toHaveBeenCalled();
-      expect(server.state.players["p_guest"]).toBeUndefined(); // Старый ID очищен
-      expect(server.state.players["p_new_device"]).toBeDefined(); // Новый ID занял слот
-      expect(server.state.players["p_new_device"].role).toBe(originalDetectiveRole);
-      expect(server.state.players["p_new_device"].isDisconnected).toBe(false);
-      expect(server.state.players["p_new_device"].connectionId).toBe("conn_new_device");
+      // Слот не перехвачен, токен не выдан, комната жива.
+      expect(attackerConn.close).toHaveBeenCalled();
+      const attackerError = attackerConn.sent
+        .map((s: string) => JSON.parse(s))
+        .find((m: any) => m.type === "ERROR");
+      expect(attackerError?.message).toBe("ROOM_IN_PROGRESS");
+      expect(server.state.players["p_new_device"]).toBeUndefined();
+      expect(server.state.players["p_guest"]).toBeDefined();
+      expect(server.state.players["p_guest"].role).toBe(originalDetectiveRole);
+      expect(server.state.players["p_guest"].authToken).toBe(guestToken);
 
-      const sessionRestored = newGuestConn.sent
+      const sessionRestoredToAttacker = attackerConn.sent
         .map((s: string) => JSON.parse(s))
         .find((m: any) => m.type === "SESSION_RESTORED");
-      expect(sessionRestored).toBeDefined();
-      expect(sessionRestored.role).toBe(originalDetectiveRole);
+      expect(sessionRestoredToAttacker).toBeUndefined();
+
+      // 7. Легитимное восстановление возможно только с валидным authToken.
+      const legitimateConn = createMockConn("conn_legit");
+      connections.push(legitimateConn);
+      server.onConnect(legitimateConn, {
+        request: new Request(
+          `http://localhost:1999/party/security-test-room?clientId=p_guest_restored&clientType=CONTROLLER&authToken=${guestToken}`
+        ),
+      });
+
+      expect(legitimateConn.close).not.toHaveBeenCalled();
+      expect(server.state.players["p_guest_restored"]).toBeDefined();
+      expect(server.state.players["p_guest_restored"].role).toBe(originalDetectiveRole);
+      const restored = legitimateConn.sent
+        .map((s: string) => JSON.parse(s))
+        .find((m: any) => m.type === "SESSION_RESTORED");
+      expect(restored).toBeDefined();
+      expect(restored.role).toBe(originalDetectiveRole);
     });
 
-    it("strictly rejects RECONNECT_SLOT hijacking in standard online rooms (without TV) and returns ROOM_FULL", () => {
+    it("strictly rejects RECONNECT_SLOT hijacking in standard online rooms (without TV)", () => {
       // 1. Комната без ТВ (hasTvDisplay: false)
       const hostConn = createMockConn("conn_pvp_host");
       connections.push(hostConn);
@@ -442,7 +467,7 @@ describe("GameRoomServer Security (SEC-01 & SEC-02)", () => {
       const errorMsg = attackerConn.sent
         .map((s: string) => JSON.parse(s))
         .find((m: any) => m.type === "ERROR");
-      expect(errorMsg?.message).toBe("ROOM_FULL");
+      expect(errorMsg?.message).toBe("ROOM_IN_PROGRESS");
 
       // Слот законного игрока не тронут
       expect(server.state.players["pvp_guest"]).toBeDefined();

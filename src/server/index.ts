@@ -76,6 +76,33 @@ const defer = (fn: () => void) => {
 
 export const DISCONNECT_GRACE_PERIOD_MS = 60000;
 
+/**
+ * P0-3: Карта режимных ограничений для игровых действий.
+ * Действие, отсутствующее в карте, считается универсальным и разрешено в любом режиме.
+ * CLEANUP дополнительно разрешён в SECRET_SERVICE, так как «Зачистка» является
+ * штатным действием этого режима (см. getAvailableActionDescriptors).
+ */
+const MODE_RESTRICTED_ACTIONS: Record<string, GameModeType[]> = {
+  DUEL_ASK_QUESTION: ["LINE_UP"],
+  DUEL_ACCUSE: ["LINE_UP"],
+  ASK_QUESTION: ["LINE_UP"],
+  KILL_CHARACTER: ["MANIAC_VS_OPERATIVE"],
+  CLEANUP: ["MANIAC_VS_OPERATIVE", "SECRET_SERVICE"],
+  SWEAR_IN_OFFICER: ["THIEF_HUNT"],
+  SET_INSPECTOR_ROLE: ["MANIAC_VS_OPERATIVE"],
+};
+
+/**
+ * Проверяет, допустимо ли действие в текущем режиме комнаты.
+ * Используется серверным guard-ом, чтобы клиент не мог применить
+ * действие чужого режима и смутировать состояние комнаты.
+ */
+export function isActionAllowedForMode(mode: GameModeType, actionType: string): boolean {
+  const allowedModes = MODE_RESTRICTED_ACTIONS[actionType];
+  if (!allowedModes) return true;
+  return allowedModes.includes(mode);
+}
+
 export default class GameRoomServer {
   room: any;
   state: ServerRoomState;
@@ -626,16 +653,18 @@ export default class GameRoomServer {
       }
     }
 
-    // RECONNECT_SLOT: Разрешение перехвата слота отключенного игрока строго в ТВ-комнатах
-    const hasTvDisplay = Object.keys(this.state.tvDisplays).length > 0;
-    if (!existingPlayerId && this.state.status === "PLAYING" && hasTvDisplay) {
-      const disconnectedEntry = Object.entries(this.state.players).find(
-        ([_, p]) => p.isDisconnected === true
-      );
-      if (disconnectedEntry) {
-        existingPlayerId = disconnectedEntry[0];
-        // Подставляем токен сессии, чтобы разрешить перенос слота на новое устройство гостя ТВ
-        incomingAuthToken = this.state.players[existingPlayerId].authToken || null;
+    // P0-2: Хост может восстановить свою сессию только при предъявлении валидного hostToken.
+    const incomingHostTokenParam = url.searchParams.get("hostToken") || "";
+    if (
+      !existingPlayerId &&
+      incomingHostTokenParam &&
+      this.state.hostToken &&
+      incomingHostTokenParam === this.state.hostToken
+    ) {
+      const hostEntry = Object.values(this.state.players).find((p) => p.isHost);
+      if (hostEntry) {
+        existingPlayerId = hostEntry.clientId;
+        incomingAuthToken = incomingAuthToken || hostEntry.authToken || null;
       }
     }
 
@@ -749,6 +778,24 @@ export default class GameRoomServer {
         this.broadcastState();
       });
       return;
+    }
+
+    // P0-2: В фазе PLAYING новый клиент без валидного authToken/hostToken
+    // не имеет права занимать чужой активный слот игрока.
+    if (this.state.status === "PLAYING") {
+      const incomingHostToken = url.searchParams.get("hostToken") || "";
+      const hasValidHostToken =
+        Boolean(this.state.hostToken) && incomingHostToken === this.state.hostToken;
+      if (!hasValidHostToken) {
+        try {
+          conn.send(JSON.stringify({ type: "ERROR", message: "ROOM_IN_PROGRESS" }));
+          conn.close();
+        } catch (_err) {}
+        console.warn(
+          `[GameRoomServer] Connection rejected during PLAYING: no valid auth/host token for room ${roomCode}.`
+        );
+        return;
+      }
     }
 
     const activePlayersCount = Object.keys(this.state.players).length;
@@ -1057,6 +1104,11 @@ export default class GameRoomServer {
       action.type === "RESOLVE_DUEL_TIE_BREAK"
     ) {
       return { valid: false, reason: "PROHIBITED_ACTION" };
+    }
+
+    // P0-3: Режимная валидация действий — действие обязано принадлежать активному режиму.
+    if (!isActionAllowedForMode(this.state.mode, action.type)) {
+      return { valid: false, reason: "INVALID_ACTION_FOR_MODE" };
     }
 
     if (action.type === "CAPTURE_SPY" || action.type === "INTERROGATE") {
